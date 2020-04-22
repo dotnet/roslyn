@@ -14,14 +14,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(ITypeParameterSymbol symbol)
             => symbol.TypeParameterKind == TypeParameterKind.Method;
 
-        protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<ITypeParameterSymbol> symbolAndProjectId,
+        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            ITypeParameterSymbol symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
             var method = (IMethodSymbol)symbol.ContainingSymbol;
             var ordinal = method.TypeParameters.IndexOf(symbol);
 
@@ -29,18 +28,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.TypeParameters.Length)
                 {
-                    return Task.FromResult(ImmutableArray.Create(
-                        symbolAndProjectId.WithSymbol((ISymbol)method.PartialDefinitionPart.TypeParameters[ordinal])));
+                    return Task.FromResult(ImmutableArray.Create<ISymbol>(
+                        method.PartialDefinitionPart.TypeParameters[ordinal]));
                 }
 
                 if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.TypeParameters.Length)
                 {
-                    return Task.FromResult(ImmutableArray.Create(
-                        symbolAndProjectId.WithSymbol((ISymbol)method.PartialImplementationPart.TypeParameters[ordinal])));
+                    return Task.FromResult(ImmutableArray.Create<ISymbol>(
+                        method.PartialImplementationPart.TypeParameters[ordinal]));
                 }
             }
 
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
+            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

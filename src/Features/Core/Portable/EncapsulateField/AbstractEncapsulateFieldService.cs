@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -249,7 +248,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 if (finalFieldName != field.Name && constructorLocations.Count > 0)
                 {
                     solution = await RenameAsync(
-                        solution, SymbolAndProjectId.Create(field, projectId), finalFieldName,
+                        solution, field, finalFieldName,
                         location => IntersectsWithAny(location, constructorLocations),
                         cancellationToken).ConfigureAwait(false);
 
@@ -262,7 +261,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
                 // Outside the constructor we want to rename references to the field to final property name.
                 return await RenameAsync(
-                    solution, SymbolAndProjectId.Create(field, projectId), generatedPropertyName,
+                    solution, field, generatedPropertyName,
                     location => !IntersectsWithAny(location, constructorLocations),
                     cancellationToken).ConfigureAwait(false);
             }
@@ -270,19 +269,19 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             {
                 // Just rename everything.
                 return await Renamer.RenameSymbolAsync(
-                    solution, SymbolAndProjectId.Create(field, projectId), generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
+                    solution, field, generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task<Solution> RenameAsync(
             Solution solution,
-            SymbolAndProjectId<IFieldSymbol> field,
+            IFieldSymbol field,
             string finalName,
             Func<Location, bool> filter,
             CancellationToken cancellationToken)
         {
-            var initialLocations = await Renamer.GetRenameLocationsAsync(
-                solution, field, solution.Options, cancellationToken).ConfigureAwait(false);
+            var initialLocations = await Renamer.FindRenameLocationsAsync(
+                solution, field, optionSet: null, cancellationToken).ConfigureAwait(false);
 
             return await Renamer.RenameAsync(
                 initialLocations.Filter(filter), finalName,

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -445,7 +446,7 @@ namespace Microsoft.CodeAnalysis
             /// will either be the same as the original amount written, or <c>default</c> will be 
             /// returned. It will never be less or more.  <c>default</c> will be returned if any 
             /// elements could not be resolved to the requested <typeparamref name="TSymbol"/> type 
-            /// in the provided <see cref="Compilation"/>.
+            /// in the provided <see cref="SymbolKeyReader.Compilation"/>.
             /// 
             /// Callers should <see cref="IDisposable.Dispose"/> the instance returned.  No check is
             /// necessary if <c>default</c> was returned before calling <see cref="IDisposable.Dispose"/>
@@ -543,6 +544,23 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return Location.None;
+            }
+
+            public SymbolKeyResolution? ResolveLocation(Location location)
+            {
+                if (location.SourceTree != null)
+                {
+                    var node = location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, CancellationToken);
+                    var semanticModel = Compilation.GetSemanticModel(location.SourceTree);
+                    var info = semanticModel.GetSymbolInfo(node, CancellationToken);
+                    if (info.Symbol != null)
+                        return new SymbolKeyResolution(info.Symbol);
+
+                    if (info.CandidateSymbols.Length > 0)
+                        return new SymbolKeyResolution(info.CandidateSymbols, info.CandidateReason);
+                }
+
+                return null;
             }
 
             private IModuleSymbol GetModule(IEnumerable<IModuleSymbol> modules, string moduleName)

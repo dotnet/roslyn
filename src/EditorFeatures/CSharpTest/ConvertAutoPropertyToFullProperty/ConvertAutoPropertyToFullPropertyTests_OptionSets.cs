@@ -3,15 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.NamingStyles;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
@@ -19,44 +18,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
 {
     public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest
     {
-        private IDictionary<OptionKey2, object> PreferExpressionBodiedAccessorsWhenPossible
-            => OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
+        private OptionsCollection PreferExpressionBodiedAccessorsWhenPossible
+            => new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement } };
 
-        private IDictionary<OptionKey2, object> PreferExpressionBodiedAccessorsWhenOnSingleLine
-            => OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+        private OptionsCollection PreferExpressionBodiedAccessorsWhenOnSingleLine
+            => new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement } };
 
-        private IDictionary<OptionKey2, object> DoNotPreferExpressionBodiedAccessors
-            => OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
+        private OptionsCollection DoNotPreferExpressionBodiedAccessors
+            => new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement } };
 
-        private IDictionary<OptionKey2, object> DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine
-            => OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                SingleOption(CSharpFormattingOptions2.NewLinesForBracesInProperties, false));
+        private OptionsCollection DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                { CSharpFormattingOptions2.NewLinesForBracesInProperties, false },
+            };
 
-        private IDictionary<OptionKey2, object> DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine
-            => OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                SingleOption(CSharpFormattingOptions2.NewLinesForBracesInAccessors, false));
+        private OptionsCollection DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, false },
+            };
 
-        private IDictionary<OptionKey2, object> PreferExpressionBodiesOnAccessorsAndMethods
-            => OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+        private OptionsCollection PreferExpressionBodiesOnAccessorsAndMethods
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
+            };
 
-        private IDictionary<OptionKey2, object> UseCustomFieldName
-            => OptionsSet(
-                SingleOption(NamingStyleOptions.NamingPreferences, CreateCustomFieldNamingStylePreference()),
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
+        private OptionsCollection UseCustomFieldName
+            => new OptionsCollection(GetLanguage())
+            {
+                { NamingStyleOptions.NamingPreferences, CreateCustomFieldNamingStylePreference() },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            };
 
-        private IDictionary<OptionKey2, object> UseUnderscorePrefixedFieldName
-            => OptionsSet(
-                SingleOption(NamingStyleOptions.NamingPreferences, CreateUnderscorePrefixedFieldNamingStylePreference()),
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
+        private OptionsCollection UseUnderscorePrefixedFieldName
+            => new OptionsCollection(GetLanguage())
+            {
+                { NamingStyleOptions.NamingPreferences, CreateUnderscorePrefixedFieldNamingStylePreference() },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            };
 
-        private IDictionary<OptionKey2, object> UseCustomStaticFieldName
-            => OptionsSet(
-                SingleOption(NamingStyleOptions.NamingPreferences, CreateCustomStaticFieldNamingStylePreference()),
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
+        private OptionsCollection UseCustomStaticFieldName
+            => new OptionsCollection(GetLanguage())
+            {
+                { NamingStyleOptions.NamingPreferences, CreateCustomStaticFieldNamingStylePreference() },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            };
 
         private NamingStylePreferences CreateCustomFieldNamingStylePreference()
         {

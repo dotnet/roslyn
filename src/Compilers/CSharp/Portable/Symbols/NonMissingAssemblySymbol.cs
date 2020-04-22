@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)result != null)
             {
                 // We only cache result equivalent to digging through type forwarders, which
-                // might produce an forwarder specific ErrorTypeSymbol. We don't want to 
+                // might produce a forwarder specific ErrorTypeSymbol. We don't want to 
                 // return that error symbol, unless digThroughForwardedTypes is true.
                 if (digThroughForwardedTypes || (!result.IsErrorType() && (object)result.ContainingAssembly == (object)this))
                 {

@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.VisualBasic.Wrapping
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
@@ -15,11 +15,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return New VisualBasicWrappingCodeRefactoringProvider()
         End Function
 
-        Private ReadOnly Property EndOfLine As IDictionary(Of OptionKey2, Object) = [Option](
+        Private ReadOnly Property EndOfLine As OptionsCollection = [Option](
             CodeStyleOptions2.OperatorPlacementWhenWrapping,
             OperatorPlacementWhenWrappingPreference.EndOfLine)
 
-        Private ReadOnly Property BeginningOfLine As IDictionary(Of OptionKey2, Object) = [Option](
+        Private ReadOnly Property BeginningOfLine As OptionsCollection = [Option](
             CodeStyleOptions2.OperatorPlacementWhenWrapping,
             OperatorPlacementWhenWrappingPreference.BeginningOfLine)
 

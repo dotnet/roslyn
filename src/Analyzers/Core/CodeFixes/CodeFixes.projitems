@@ -29,6 +29,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\AbstractRemoveUnnecessaryParenthesesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\AbstractRemoveUnusedMembersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedValuesCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\SimplifyConditionalCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\AbstractSimplifyInterpolationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractUseCollectionInitializerCodeFixProvider.cs" />
@@ -37,6 +39,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForAssignment\AbstractUseConditionalExpressionForAssignmentCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForReturn\AbstractUseConditionalExpressionForReturnCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\AbstractUseInferredMemberNameCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\AbstractUseIsNullForReferenceEqualsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\AbstractUseNullPropagationCodeFixProvider.cs" />

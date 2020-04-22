@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public CodeFixService(
             IThreadingContext threadingContext,
             IDiagnosticAnalyzerService service,
-            [ImportMany]IEnumerable<Lazy<IErrorLoggerService>> loggers,
-            [ImportMany]IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
-            [ImportMany]IEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> configurationProviders)
+            [ImportMany] IEnumerable<Lazy<IErrorLoggerService>> loggers,
+            [ImportMany] IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
+            [ImportMany] IEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> configurationProviders)
             : base(threadingContext, assertIsForeground: false)
         {
             _errorLoggers = loggers;
@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var reference in project.AnalyzerReferences)
             {
                 var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
-                foreach (var fixer in projectCodeFixerProvider.GetFixers(project.Language))
+                foreach (var fixer in projectCodeFixerProvider.GetExtensions(project.Language))
                 {
                     var fixableIds = this.GetFixableDiagnosticIds(fixer, extensionManager);
                     foreach (var id in fixableIds)

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             ISyntaxFacts syntaxFacts, IConditionalOperation ifOperation,
             IOperation whenTrue, IOperation whenFalse)
         {
-            // Will likely screw things up if the if directive spans any preprocessor directives. So
+            // Will likely not work as intended if the if directive spans any preprocessor directives. So
             // do not offer for now.  Note: we pass in both the node for the ifOperation and the
             // whenFalse portion.  The whenFalse portion isn't necessary under the ifOperation.  For
             // example in:
@@ -58,11 +60,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 ? conversion.Operand
                 : value;
 
-        internal static bool HasRegularComments(ISyntaxFacts syntaxFacts, SyntaxNode syntax)
+        public static bool HasRegularComments(ISyntaxFacts syntaxFacts, SyntaxNode syntax)
             => HasRegularCommentTrivia(syntaxFacts, syntax.GetLeadingTrivia()) ||
                HasRegularCommentTrivia(syntaxFacts, syntax.GetTrailingTrivia());
 
-        internal static bool HasRegularCommentTrivia(ISyntaxFacts syntaxFacts, SyntaxTriviaList triviaList)
+        public static bool HasRegularCommentTrivia(ISyntaxFacts syntaxFacts, SyntaxTriviaList triviaList)
         {
             foreach (var trivia in triviaList)
             {
@@ -70,6 +72,31 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 {
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        public static bool HasInconvertibleThrowStatement(
+            ISyntaxFacts syntaxFacts, bool isRef,
+            IThrowOperation? trueThrow, IThrowOperation? falseThrow)
+        {
+            // Can't convert to `x ? throw ... : throw ...` as there's no best common type between the two (even when
+            // throwing the same exception type).
+            if (trueThrow != null && falseThrow != null)
+                return true;
+
+            var anyThrow = trueThrow ?? falseThrow;
+
+            if (anyThrow != null)
+            {
+                // can only convert to a conditional expression if the lang supports throw-exprs.
+                if (!syntaxFacts.SupportsThrowExpression(anyThrow.Syntax.SyntaxTree.Options))
+                    return true;
+
+                // `ref` can't be used with `throw`.
+                if (isRef)
+                    return true;
             }
 
             return false;

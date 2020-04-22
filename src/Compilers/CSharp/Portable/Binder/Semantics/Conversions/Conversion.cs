@@ -225,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitReference => new Conversion(ConversionKind.ImplicitReference);
         internal static Conversion ImplicitEnumeration => new Conversion(ConversionKind.ImplicitEnumeration);
         internal static Conversion ImplicitThrow => new Conversion(ConversionKind.ImplicitThrow);
+        internal static Conversion ObjectCreation => new Conversion(ConversionKind.ObjectCreation);
         internal static Conversion AnonymousFunction => new Conversion(ConversionKind.AnonymousFunction);
         internal static Conversion Boxing => new Conversion(ConversionKind.Boxing);
         internal static Conversion NullLiteral => new Conversion(ConversionKind.NullLiteral);
@@ -522,6 +523,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.ImplicitThrow;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit object creation expression conversion.
+        /// </summary>
+        internal bool IsObjectCreation
+        {
+            get
+            {
+                return Kind == ConversionKind.ObjectCreation;
             }
         }
 
@@ -915,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
             var methodSymbol = IsUserDefined ? MethodSymbol : null;
-            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, methodSymbol);
+            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, IsNullable, methodSymbol);
         }
 
         /// <summary>

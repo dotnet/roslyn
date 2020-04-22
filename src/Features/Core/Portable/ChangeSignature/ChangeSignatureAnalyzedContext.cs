@@ -2,31 +2,39 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
-    internal sealed class ChangeSignatureAnalyzedContext
+    internal abstract class ChangeSignatureAnalyzedContext
     {
-        public readonly bool CanChangeSignature;
-        public readonly Project Project;
+    }
+
+    internal sealed class ChangeSignatureAnalysisSucceededContext : ChangeSignatureAnalyzedContext
+    {
+        public readonly Document Document;
         public readonly ISymbol Symbol;
-        public readonly CannotChangeSignatureReason CannotChangeSignatureReason;
         public readonly ParameterConfiguration ParameterConfiguration;
+        public readonly int InsertPosition;
 
-        public Solution Solution => Project.Solution;
+        public Solution Solution => Document.Project.Solution;
 
-        public ChangeSignatureAnalyzedContext(
-            Project project, ISymbol symbol, ParameterConfiguration parameterConfiguration)
+        public ChangeSignatureAnalysisSucceededContext(
+            Document document, int insertPosition, ISymbol symbol, ParameterConfiguration parameterConfiguration)
         {
-            CanChangeSignature = true;
-            Project = project;
+            Document = document;
             Symbol = symbol;
             ParameterConfiguration = parameterConfiguration;
-            CannotChangeSignatureReason = CannotChangeSignatureReason.None;
+            InsertPosition = insertPosition;
         }
+    }
 
-        public ChangeSignatureAnalyzedContext(CannotChangeSignatureReason reason)
+    internal sealed class CannotChangeSignatureAnalyzedContext : ChangeSignatureAnalyzedContext
+    {
+        public readonly CannotChangeSignatureReason CannotChangeSignatureReason;
+
+        public CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason reason)
         {
-            CanChangeSignature = false;
             CannotChangeSignatureReason = reason;
         }
     }

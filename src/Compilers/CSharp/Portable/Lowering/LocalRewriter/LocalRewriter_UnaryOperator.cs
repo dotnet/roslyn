@@ -693,15 +693,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorKind binaryOperatorKind = GetCorrespondingBinaryOperator(node);
             binaryOperatorKind |= IsIncrement(node) ? BinaryOperatorKind.Addition : BinaryOperatorKind.Subtraction;
 
+            // The input/output type of the binary operand. "int" in the example. 
             // The "1" in the example above.
-            ConstantValue constantOne = GetConstantOneForBinOp(binaryOperatorKind);
+            (TypeSymbol binaryOperandType, ConstantValue constantOne) = GetConstantOneForIncrement(_compilation, binaryOperatorKind);
 
             Debug.Assert(constantOne != null);
             Debug.Assert(constantOne.SpecialType != SpecialType.None);
+            Debug.Assert(binaryOperandType.SpecialType != SpecialType.None);
             Debug.Assert(binaryOperatorKind.OperandTypes() != 0);
-
-            // The input/output type of the binary operand. "int" in the example. 
-            TypeSymbol binaryOperandType = _compilation.GetSpecialType(constantOne.SpecialType);
 
             // 1
             BoundExpression boundOne = MakeLiteral(
@@ -906,6 +905,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case UnaryOperatorKind.ULong:
                     specialType = SpecialType.System_UInt64;
                     break;
+                case UnaryOperatorKind.NInt:
+                    specialType = SpecialType.System_IntPtr;
+                    break;
+                case UnaryOperatorKind.NUInt:
+                    specialType = SpecialType.System_UIntPtr;
+                    break;
                 case UnaryOperatorKind.Float:
                     specialType = SpecialType.System_Single;
                     break;
@@ -960,6 +965,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case UnaryOperatorKind.ULong:
                     result = BinaryOperatorKind.ULong;
+                    break;
+                case UnaryOperatorKind.NInt:
+                    result = BinaryOperatorKind.NInt;
+                    break;
+                case UnaryOperatorKind.NUInt:
+                    result = BinaryOperatorKind.NUInt;
                     break;
                 case UnaryOperatorKind.Float:
                     result = BinaryOperatorKind.Float;
@@ -1023,6 +1034,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.Int:
                 case BinaryOperatorKind.ULong:
                 case BinaryOperatorKind.Long:
+                case BinaryOperatorKind.NUInt:
+                case BinaryOperatorKind.NInt:
                 case BinaryOperatorKind.PointerAndInt:
                     result |= (BinaryOperatorKind)unaryOperatorKind.OverflowChecks();
                     break;
@@ -1036,29 +1049,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static ConstantValue GetConstantOneForBinOp(
+        private static (TypeSymbol, ConstantValue) GetConstantOneForIncrement(
+            CSharpCompilation compilation,
             BinaryOperatorKind binaryOperatorKind)
         {
+            ConstantValue constantOne;
             switch (binaryOperatorKind.OperandTypes())
             {
                 case BinaryOperatorKind.PointerAndInt:
                 case BinaryOperatorKind.Int:
-                    return ConstantValue.Create(1);
+                    constantOne = ConstantValue.Create(1);
+                    break;
                 case BinaryOperatorKind.UInt:
-                    return ConstantValue.Create(1U);
+                    constantOne = ConstantValue.Create(1U);
+                    break;
                 case BinaryOperatorKind.Long:
-                    return ConstantValue.Create(1L);
+                    constantOne = ConstantValue.Create(1L);
+                    break;
                 case BinaryOperatorKind.ULong:
-                    return ConstantValue.Create(1LU);
+                    constantOne = ConstantValue.Create(1LU);
+                    break;
+                case BinaryOperatorKind.NInt:
+                    constantOne = ConstantValue.Create(1);
+                    return (compilation.CreateNativeIntegerTypeSymbol(signed: true), constantOne);
+                case BinaryOperatorKind.NUInt:
+                    constantOne = ConstantValue.Create(1U);
+                    return (compilation.CreateNativeIntegerTypeSymbol(signed: false), constantOne);
                 case BinaryOperatorKind.Float:
-                    return ConstantValue.Create(1f);
+                    constantOne = ConstantValue.Create(1f);
+                    break;
                 case BinaryOperatorKind.Double:
-                    return ConstantValue.Create(1.0);
+                    constantOne = ConstantValue.Create(1.0);
+                    break;
                 case BinaryOperatorKind.Decimal:
-                    return ConstantValue.Create(1m);
+                    constantOne = ConstantValue.Create(1m);
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(binaryOperatorKind.OperandTypes());
             }
+            return (compilation.GetSpecialType(constantOne.SpecialType), constantOne);
         }
     }
 }

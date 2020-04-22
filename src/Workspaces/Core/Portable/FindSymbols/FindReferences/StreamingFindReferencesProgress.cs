@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return Task.CompletedTask;
         }
 
-        public Task OnDefinitionFoundAsync(SymbolAndProjectId symbolAndProjectId)
+        public Task OnDefinitionFoundAsync(ISymbol symbol)
         {
-            _progress.OnDefinitionFound(symbolAndProjectId.Symbol);
+            _progress.OnDefinitionFound(symbol);
             return Task.CompletedTask;
         }
 
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return Task.CompletedTask;
         }
 
-        public Task OnReferenceFoundAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
+        public Task OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location)
         {
-            _progress.OnReferenceFound(symbolAndProjectId.Symbol, location);
+            _progress.OnReferenceFound(symbol, location);
             return Task.CompletedTask;
         }
 

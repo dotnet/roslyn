@@ -12,9 +12,29 @@
         <target state="translated">Ein neuer Namespace wird erstellt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="A_type_and_name_must_be_provided">
+        <source>A type and name must be provided.</source>
+        <target state="new">A type and name must be provided.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add">
+        <source>_Add</source>
+        <target state="new">_Add</target>
+        <note>Adding an element to a list</note>
+      </trans-unit>
+      <trans-unit id="Add_Parameter">
+        <source>Add Parameter</source>
+        <target state="new">Add Parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_to_current_file">
         <source>Add to _current file</source>
         <target state="translated">Zu a_ktueller Datei hinzufügen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Added_Parameter">
+        <source>Added parameter.</source>
+        <target state="new">Added parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
@@ -82,6 +102,16 @@
         <target state="translated">Abhängige Objekte werden berechnet...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Call_site_value">
+        <source>Call site value:</source>
+        <target state="new">Call site value:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Callsite">
+        <source>Call site</source>
+        <target state="new">Call site</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Code_analysis_completed_for_0">
         <source>Code analysis completed for '{0}'.</source>
         <target state="translated">Die Codeanalyse für "{0}" wurde abgeschlossen.</target>
@@ -112,6 +142,16 @@
         <target state="translated">Aktuelles Dokument</target>
         <note />
       </trans-unit>
+      <trans-unit id="Edit">
+        <source>_Edit</source>
+        <target state="new">_Edit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_0">
+        <source>Edit {0}</source>
+        <target state="new">Edit {0}</target>
+        <note>{0} is a parameter description</note>
+      </trans-unit>
       <trans-unit id="Editor_Color_Scheme">
         <source>Editor Color Scheme</source>
         <target state="new">Editor Color Scheme</target>
@@ -125,6 +165,11 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">Das Element ist ungültig.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
+        <source>Enter a call site value or choose a different value injection kind</source>
+        <target state="new">Enter a call site value or choose a different value injection kind</target>
         <note />
       </trans-unit>
       <trans-unit id="Entire_solution">
@@ -157,6 +202,16 @@
         <target state="translated">In anderen Operatoren</target>
         <note />
       </trans-unit>
+      <trans-unit id="Index">
+        <source>Index</source>
+        <target state="new">Index</target>
+        <note>Index of parameter in original signature</note>
+      </trans-unit>
+      <trans-unit id="Inserting_call_site_value_0">
+        <source>Inserting call site value '{0}'</source>
+        <target state="new">Inserting call site value '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
         <source>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
         <target state="translated">Installieren Sie von Microsoft empfohlene Roslyn-Analysetools, die zusätzliche Diagnosen und Fixes für allgemeine Design-, Sicherheits-, Leistungs- und Zuverlässigkeitsprobleme bei APIs bereitstellen.</target>
@@ -166,6 +221,11 @@
         <source>Interface cannot have field.</source>
         <target state="translated">Die Schnittstelle kann kein Feld aufweisen.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="IntroduceUndefinedTodoVariables">
+        <source>Introduce undefined TODO variables</source>
+        <target state="new">Introduce undefined TODO variables</target>
+        <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
@@ -377,14 +437,59 @@
         <target state="translated">Nicht öffentliche Methoden</target>
         <note />
       </trans-unit>
+      <trans-unit id="Omit_only_for_optional_parameters">
+        <source>Omit (only for optional parameters)</source>
+        <target state="new">Omit (only for optional parameters)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Open_documents">
         <source>Open documents</source>
         <target state="translated">Geöffnete Dokumente</target>
         <note />
       </trans-unit>
+      <trans-unit id="Optional_parameters_must_provide_a_default_value">
+        <source>Optional parameters must provide a default value</source>
+        <target state="new">Optional parameters must provide a default value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optional_with_default_value_colon">
+        <source>Optional with default value:</source>
+        <target state="new">Optional with default value:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_Details">
+        <source>Parameter Details</source>
+        <target state="new">Parameter Details</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_Name">
+        <source>Parameter name:</source>
+        <target state="new">Parameter name:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_information">
+        <source>Parameter information</source>
+        <target state="new">Parameter information</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_kind">
+        <source>Parameter kind</source>
+        <target state="new">Parameter kind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_name_contains_invalid_characters">
+        <source>Parameter name contains invalid character(s).</source>
+        <target state="new">Parameter name contains invalid character(s).</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
         <source>Parameter preferences:</source>
         <target state="translated">Parametereinstellungen:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_type_contains_invalid_characters">
+        <source>Parameter type contains invalid character(s).</source>
+        <target state="new">Parameter type contains invalid character(s).</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
@@ -396,6 +501,11 @@
         <source>Paused ({0} tasks in queue)</source>
         <target state="translated">Angehalten ({0} Tasks in der Warteschlange)</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Please_enter_a_type_name">
+        <source>Please enter a type name</source>
+        <target state="new">Please enter a type name</target>
+        <note>"Type" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
         <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
@@ -460,6 +570,11 @@
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">Ungültige reguläre Ausdrücke melden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Required">
+        <source>Required</source>
+        <target state="new">Required</target>
         <note />
       </trans-unit>
       <trans-unit id="Requires_System_HashCode_be_present_in_project">
@@ -557,6 +672,26 @@
         <target state="translated">Dies ist ein ungültiger Namespace.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_Name">
+        <source>Type name:</source>
+        <target state="new">Type name:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_name_has_a_syntax_error">
+        <source>Type name has a syntax error</source>
+        <target state="new">Type name has a syntax error</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Type_name_is_not_recognized">
+        <source>Type name is not recognized</source>
+        <target state="new">Type name is not recognized</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Type_name_is_recognized">
+        <source>Type name is recognized</source>
+        <target state="new">Type name is recognized</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
         <target state="translated">Der nicht verwendete Wert wird explizit einer nicht verwendeten lokalen Variablen zugewiesen.</target>
@@ -587,6 +722,11 @@
         <target state="translated">Ausdruckskörper für lokale Funktionen verwenden</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_named_argument">
+        <source>Use named argument</source>
+        <target state="new">Use named argument</target>
+        <note>"argument" is a programming term for a value passed to a function</note>
+      </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
         <target state="translated">Der hier zugewiesene Wert wird nie verwendet.</target>
@@ -600,6 +740,11 @@
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
         <source>Value returned by invocation is implicitly ignored</source>
         <target state="translated">Der vom Aufruf zurückgegebene Wert wird implizit ignoriert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_to_inject_at_call_sites">
+        <source>Value to inject at call sites</source>
+        <target state="new">Value to inject at call sites</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_2017">
@@ -621,6 +766,11 @@
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">Das Aktualisieren von Visual Basic-Kompilierungsoptionen wird von diesem Arbeitsbereich nicht unterstützt.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="You_must_change_the_signature">
+        <source>You must change the signature</source>
+        <target state="new">You must change the signature</target>
+        <note>"signature" here means the definition of a method</note>
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
         <source>You must select at least one member.</source>

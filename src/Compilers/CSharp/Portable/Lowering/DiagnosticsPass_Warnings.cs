@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // * a conversion with no cast in source code that goes from a smaller
         //   signed type to a larger signed or unsigned type.
         //
-        // * an conversion (with or without a cast) from a smaller
+        // * a conversion (with or without a cast) from a smaller
         //   signed type to a larger unsigned type.
 
         private static ulong FindSurprisingSignExtensionBits(BoundExpression expr)

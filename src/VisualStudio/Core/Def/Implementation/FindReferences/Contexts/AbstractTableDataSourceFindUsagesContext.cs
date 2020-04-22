@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -34,6 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public readonly StreamingFindUsagesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
             protected readonly IWpfTableControl2 TableControl;
+
+            private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
 
             protected readonly object Gate = new object();
 
@@ -111,6 +115,18 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // After adding us as the source, the manager should immediately call into us to
                 // tell us what the data sink is.
                 Debug.Assert(_tableDataSink != null);
+
+                // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
+                // VS actually responds to each SetProgess call by enqueueing a UI task to do the
+                // progress bar update.  This can made FindReferences feel extremely slow when
+                // thousands of SetProgress calls are made.
+                //
+                // To ensure a reasonable experience, we instead add the progress into a queue and
+                // only update the UI a few times a second so as to not overload it.
+                _progressQueue = new AsyncBatchingWorkQueue<(int current, int maximum)>(
+                    TimeSpan.FromMilliseconds(250),
+                    this.UpdateTableProgressAsync,
+                    this.CancellationToken);
             }
 
             private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
@@ -366,7 +382,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     if (!_definitionToBucket.TryGetValue(definition, out var bucket))
                     {
-                        bucket = new RoslynDefinitionBucket(Presenter, this, definition);
+                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition);
                         _definitionToBucket.Add(definition, bucket);
                     }
 
@@ -379,22 +395,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected sealed override Task ReportProgressAsync(int current, int maximum)
             {
-                // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
-                // Right now VS actually responds to each SetProgess call by enqueueing a UI task
-                // to do the progress bar update.  This can made FindReferences feel extremely slow
-                // when thousands of SetProgress calls are made.  So, for now, we're removing
-                // the progress update until the FindRefs window fixes that perf issue.
-#if false
-                try
+                _progressQueue.AddWork((current, maximum));
+                return Task.CompletedTask;
+            }
+
+            private Task UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken cancellationToken)
+            {
+                if (!nextBatch.IsEmpty)
                 {
-                    // The original FAR window exposed a SetProgress(double). Ensure that we 
-                    // don't crash if this code is running on a machine without the new API.
+                    var (current, maximum) = nextBatch.Last();
                     _findReferencesWindow.SetProgress(current, maximum);
                 }
-                catch
-                {
-                }
-#endif
 
                 return Task.CompletedTask;
             }

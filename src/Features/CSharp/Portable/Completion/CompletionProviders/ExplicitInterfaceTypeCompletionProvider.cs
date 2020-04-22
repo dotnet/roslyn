@@ -134,6 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private bool IsPreviousTokenValid(SyntaxToken tokenBeforeType)
         {
+            if (tokenBeforeType.Kind() == SyntaxKind.AsyncKeyword)
+            {
+                tokenBeforeType = tokenBeforeType.GetPreviousToken();
+            }
+
             if (tokenBeforeType.Kind() == SyntaxKind.OpenBraceToken)
             {
                 // Show us after the open brace for a class/struct/interface
