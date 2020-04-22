@@ -121,10 +121,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Dim syntaxFactService = document.Project.Solution.Workspace.Services.GetLanguageServices(targetType.Language).GetService(Of ISyntaxFactsService)
 
             Dim eventHandlerName As String = actualEventName + "Handler"
-            Dim existingSymbolAndProjectIds = Await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
+            Dim existingSymbols = Await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
                 document.Project.Solution, eventHandlerName, Not syntaxFactService.IsCaseSensitive, SymbolFilter.Type, cancellationToken).ConfigureAwait(False)
 
-            Dim existingSymbols = existingSymbolAndProjectIds.SelectAsArray(Function(t) t.Symbol)
             If existingSymbols.Any(Function(existingSymbol) existingSymbol IsNot Nothing _
                                                    AndAlso Equals(existingSymbol.ContainingNamespace, targetType.ContainingNamespace)) Then
                 ' There already exists a delegate that matches the event handler name

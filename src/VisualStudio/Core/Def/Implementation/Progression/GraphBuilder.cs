@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = new Dictionary<GraphNode, Project>();
         private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = new Dictionary<GraphNode, Document>();
-        private readonly Dictionary<GraphNode, SymbolAndProjectId> _nodeToSymbolMap = new Dictionary<GraphNode, SymbolAndProjectId>();
+        private readonly Dictionary<GraphNode, ISymbol> _nodeToSymbolMap = new Dictionary<GraphNode, ISymbol>();
 
         /// <summary>
         /// The input solution. Never null.
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 var symbol = symbolId.Value.Resolve(compilation).Symbol;
                 if (symbol != null)
                 {
-                    _nodeToSymbolMap.Add(inputNode, new SymbolAndProjectId(symbol, project.Id));
+                    _nodeToSymbolMap.Add(inputNode, symbol);
                 }
 
                 var documentId = (DocumentId)inputNode[RoslynGraphProperties.ContextDocumentId];
@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public SymbolAndProjectId GetSymbolAndProjectId(GraphNode node)
+        public ISymbol GetSymbol(GraphNode node)
         {
             using (_gate.DisposableWait())
             {
@@ -170,17 +170,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public Task<GraphNode> AddNodeAsync(SymbolAndProjectId symbol, GraphNode relatedNode)
+        public Task<GraphNode> AddNodeAsync(ISymbol symbol, GraphNode relatedNode)
         {
             // The lack of a lock here is acceptable, since each of the functions lock, and GetContextProject/GetContextDocument
             // never change for the same input.
             return AddNodeAsync(symbol, GetContextProject(relatedNode), GetContextDocument(relatedNode));
         }
 
-        public async Task<GraphNode> AddNodeAsync(SymbolAndProjectId symbolAndProjectId, Project contextProject, Document contextDocument)
+        public async Task<GraphNode> AddNodeAsync(ISymbol symbol, Project contextProject, Document contextDocument)
         {
-            var symbol = symbolAndProjectId.Symbol;
-
             // Figure out what the location for this node should be. We'll arbitrarily pick the
             // first one, unless we have a contextDocument to restrict it
             var preferredLocation = symbol.Locations.FirstOrDefault(l => l.SourceTree != null);
@@ -233,7 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 // we won't double-count.
                 _createdNodes.Add(node);
 
-                _nodeToSymbolMap[node] = symbolAndProjectId;
+                _nodeToSymbolMap[node] = symbol;
                 _nodeToContextProjectMap[node] = contextProject;
                 _nodeToContextDocumentMap[node] = contextDocument;
 

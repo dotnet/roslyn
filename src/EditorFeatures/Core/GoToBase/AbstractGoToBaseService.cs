@@ -16,20 +16,20 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
         public async Task FindBasesAsync(Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+            var symbolAndSolutionOpt = await FindUsagesHelpers.GetRelevantSymbolAndSolutionAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
 
-            if (symbolAndProjectOpt == null)
+            if (symbolAndSolutionOpt == null)
             {
                 await context.ReportMessageAsync(
                     EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
                 return;
             }
 
-            var (symbol, project) = symbolAndProjectOpt.Value;
+            var (symbol, solution) = symbolAndSolutionOpt.Value;
 
             var bases = FindBaseHelpers.FindBases(
-                symbol, project, cancellationToken);
+                symbol, solution, cancellationToken);
 
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_bases,
@@ -43,13 +43,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             foreach (var baseSymbol in bases)
             {
                 var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(
-                   SymbolAndProjectId.Create(baseSymbol, project.Id), project.Solution, cancellationToken).ConfigureAwait(false);
-                if (sourceDefinition.Symbol != null)
+                   baseSymbol, solution, cancellationToken).ConfigureAwait(false);
+                if (sourceDefinition != null)
                 {
-                    var definitionItem = await sourceDefinition.Symbol.ToClassifiedDefinitionItemAsync(
-                        project.Solution.GetProject(sourceDefinition.ProjectId),
-                        isPrimary: true, includeHiddenLocations: false,
-                        FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var definitionItem = await sourceDefinition.ToClassifiedDefinitionItemAsync(
+                        solution, isPrimary: true, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
                     found = true;
@@ -57,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
                 else if (baseSymbol.Locations.Any(l => l.IsInMetadata))
                 {
                     var definitionItem = baseSymbol.ToNonClassifiedDefinitionItem(
-                        project, includeHiddenLocations: true);
+                        solution, includeHiddenLocations: true);
                     await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
                     found = true;
                 }

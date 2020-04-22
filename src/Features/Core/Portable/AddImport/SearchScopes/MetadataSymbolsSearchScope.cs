@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     searchQuery, _assembly, _assemblyProjectId,
                     filter, CancellationToken).ConfigureAwait(false);
 
-                return declarations.SelectAsArray(d => d.Symbol);
+                return declarations;
             }
         }
     }

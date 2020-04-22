@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> nameDisplayParts,
-            Project project,
+            Solution solution,
             ISymbol symbol,
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
@@ -228,9 +228,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             var symbolKey = symbol.GetSymbolKey().ToString();
 
+            var projectId = solution.GetOriginatingProjectId(symbol);
+            Contract.ThrowIfNull(projectId);
+
             properties = properties.Add(MetadataSymbolKey, symbolKey)
-                                   .Add(MetadataSymbolOriginatingProjectIdGuid, project.Id.Id.ToString())
-                                   .Add(MetadataSymbolOriginatingProjectIdDebugName, project.Id.DebugName);
+                                   .Add(MetadataSymbolOriginatingProjectIdGuid, projectId.Id.ToString())
+                                   .Add(MetadataSymbolOriginatingProjectIdDebugName, projectId.DebugName);
 
             var originationParts = GetOriginationParts(symbol);
             return new DefaultDefinitionItem(

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     {
         public static DefinitionItem ToNonClassifiedDefinitionItem(
             this ISymbol definition,
-            Project project,
+            Solution solution,
             bool includeHiddenLocations)
         {
             // Because we're passing in 'false' for 'includeClassifiedSpans', this won't ever have
@@ -61,26 +61,27 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // to compute the classified spans for the locations of the definition.  So it's totally 
             // fine to pass in CancellationToken.None and block on the result.
             return ToDefinitionItemAsync(
-                definition, project, isPrimary: false, includeHiddenLocations, includeClassifiedSpans: false,
+                definition, solution, isPrimary: false, includeHiddenLocations, includeClassifiedSpans: false,
                 options: FindReferencesSearchOptions.Default, cancellationToken: CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
         }
 
         public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
             this ISymbol definition,
-            Project project,
+            Solution solution,
             bool isPrimary,
             bool includeHiddenLocations,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             return ToDefinitionItemAsync(
-                definition, project, isPrimary, includeHiddenLocations,
-                includeClassifiedSpans: true, options, cancellationToken);
+                definition, solution, isPrimary,
+                includeHiddenLocations, includeClassifiedSpans: true,
+                options, cancellationToken);
         }
 
         private static async Task<DefinitionItem> ToDefinitionItemAsync(
             this ISymbol definition,
-            Project project,
+            Solution solution,
             bool isPrimary,
             bool includeHiddenLocations,
             bool includeClassifiedSpans,
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     if (location.IsInMetadata)
                     {
                         return DefinitionItem.CreateMetadataDefinition(
-                            tags, displayParts, nameDisplayParts, project,
+                            tags, displayParts, nameDisplayParts, solution,
                             definition, properties, displayIfNoReferences);
                     }
                     else if (location.IsInSource)
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                             continue;
                         }
 
-                        var document = project.Solution.GetDocument(location.SourceTree);
+                        var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
                             var documentLocation = !includeClassifiedSpans
