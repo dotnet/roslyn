@@ -474,6 +474,7 @@ data class C(int X)
     }
 }";
             var comp = CreateCompilation(src);
+            // PROTOTYPE: records don't auto-generate Clone at the moment
             comp.VerifyDiagnostics(
                 // (7,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "Clone".
                 //         c = c with { };
@@ -540,7 +541,7 @@ data class C(int X) : B
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "With".
+                // (12,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "Clone".
                 //         c = c with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(12, 13)
             );
@@ -822,7 +823,7 @@ data class C(int X) : B
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,13): error CS8803: The 'with' expression requires the receiver type 'B' to have a single accessible non-inherited instance method named "With".
+                // (12,13): error CS8803: The 'with' expression requires the receiver type 'B' to have a single accessible non-inherited instance method named "Clone".
                 //         b = b with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(12, 13)
             );
@@ -868,7 +869,7 @@ data class C(int X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,13): error CS8803: The 'with' expression requires the receiver type 'B' to have a single accessible non-inherited instance method named "With".
+                // (12,13): error CS8803: The 'with' expression requires the receiver type 'B' to have a single accessible non-inherited instance method named "Clone".
                 //         b = b with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(12, 13)
             );
@@ -987,7 +988,7 @@ data class C(int X)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (7,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "With".
+                // (7,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "Clone".
                 //         c = c with { X = ""-3 };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(7, 13),
                 // (7,26): error CS0019: Operator '-' cannot be applied to operands of type 'string' and 'int'

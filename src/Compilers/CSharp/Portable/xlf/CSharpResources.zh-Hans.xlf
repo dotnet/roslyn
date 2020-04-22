@@ -313,8 +313,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidWithReceiverType">
-        <source>The receiver of a `with` expression must have a valid non-void type.</source>
-        <target state="new">The receiver of a `with` expression must have a valid non-void type.</target>
+        <source>The receiver of a `with` expression must have a non-void type.</source>
+        <target state="new">The receiver of a `with` expression must have a non-void type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsNullableType">

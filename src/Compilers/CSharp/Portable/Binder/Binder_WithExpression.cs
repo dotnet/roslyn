@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// This portion of the binder converts an <see cref="ExpressionSyntax"/> into a <see cref="BoundExpression"/>.
+    /// This portion of the binder converts a <see cref="WithExpressionSyntax"/> into a <see cref="BoundExpression"/>.
     /// </summary>
     internal partial class Binder
     {
@@ -57,10 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // PROTOTYPE: this should check for init-only, but that isn't a separate feature yet
                                 if (!(sym is SynthesizedRecordPropertySymbol))
                                 {
-                                    hasErrors = true;
-                                    diagnostics.Add(
-                                        ErrorCode.ERR_WithMemberIsNotRecordProperty,
-                                        location);
+                                    goto default;
                                 }
                                 member = sym;
                                 break;
