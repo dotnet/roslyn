@@ -125,36 +125,46 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             // Don't descend into anything other than top level declarations from the root.
             // ChangeNamespaceService only controls top level declarations right now.
             // Don't use namespaces that already match the target namespace
-            var namespaceDeclaration = syntaxRoot
-                .DescendantNodes(n => !syntaxFacts.IsDeclaration(n))
-                .FirstOrDefault(n => syntaxFacts.IsNamespaceDeclaration(n));
+            var originalNamespaceDeclarations = await GetTopLevelNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
 
-            if (namespaceDeclaration is null)
+            if (originalNamespaceDeclarations.Length == 0)
             {
                 return null;
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var originalNamespaceName = semanticModel.GetDeclaredSymbol(namespaceDeclaration).Name;
+            var originalNamespaceName = semanticModel.GetDeclaredSymbol(originalNamespaceDeclarations.First()).Name;
             var solution = document.Project.Solution;
 
-            while (true)
+            // Only loop as many top level namespace declarations as we originally had. 
+            // Change namespace doesn't change this number, so this helps limit us and
+            // rule out namespaces that didn't need to be changed
+            for (var i = 0; i < originalNamespaceDeclarations.Length; i++)
             {
-                syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var namespaceToRename = await GetMatchingTopLevelNamespaceAsync(document, originalNamespaceName, cancellationToken).ConfigureAwait(false);
-
-                if (namespaceToRename is null)
+                var namespaceName = semanticModel.GetDeclaredSymbol(originalNamespaceDeclarations[i]).Name;
+                if (namespaceName != originalNamespaceName)
                 {
-                    break;
+                    // Skip all namespaces that didn't match the original namespace name that 
+                    // we were syncing. 
+                    continue;
                 }
+                syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
+                // Since the original namespaces were retrieved before the document was modified
+                // get the current top level namespaces. Since we're only renaming namespaces, the 
+                // number and index of each is the same.
+                var namespaces = await GetTopLevelNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
+                Debug.Assert(namespaces.Length == originalNamespaceDeclarations.Length);
+
+                var namespaceToRename = namespaces[i];
                 solution = await ChangeNamespaceAsync(document, namespaceToRename, targetNamespace, cancellationToken).ConfigureAwait(false);
                 document = solution.GetRequiredDocument(document.Id);
             }
 
             return solution;
 
-            static async Task<SyntaxNode> GetMatchingTopLevelNamespaceAsync(Document document, string namespaceName, CancellationToken cancellationToken)
+
+            static async Task<ImmutableArray<SyntaxNode>> GetTopLevelNamespacesAsync(Document document, CancellationToken cancellationToken)
             {
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -162,7 +172,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 return syntaxRoot
                     .DescendantNodes(n => !syntaxFacts.IsDeclaration(n))
-                    .FirstOrDefault(n => syntaxFacts.IsNamespaceDeclaration(n) && semanticModel.GetDeclaredSymbol(n, cancellationToken).Name == namespaceName);
+                    .Where(n => syntaxFacts.IsNamespaceDeclaration(n))
+                    .ToImmutableArray();
             }
         }
 
