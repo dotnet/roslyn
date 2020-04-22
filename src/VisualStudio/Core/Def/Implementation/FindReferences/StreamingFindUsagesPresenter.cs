@@ -111,6 +111,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     case StandardTableKeyNames2.SymbolKind:
                     case ContainingTypeColumnDefinition.ColumnName:
                     case ContainingMemberColumnDefinition.ColumnName:
+                    case StandardTableKeyNames.Repository:
+                    case StandardTableKeyNames.ItemOrigin:
                         yield return column.Value;
                         break;
                 }
