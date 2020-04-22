@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
         public abstract Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
         public abstract string TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts);
-        public abstract string EscapeIdentifier(string identifier);
         public abstract Task<Solution> ChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CancellationToken cancellationToken);
 
         /// <summary>
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
         public override string TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts)
         {
-            var parts = folders.SelectMany(folder => folder.Split(new[] { '.' })).SelectAsArray(EscapeIdentifier);
+            var parts = folders.SelectMany(folder => folder.Split(new[] { '.' })).SelectAsArray(syntaxFacts.EscapeIdentifier);
             return parts.All(syntaxFacts.IsValidIdentifier) ? string.Join(".", parts) : null;
         }
 

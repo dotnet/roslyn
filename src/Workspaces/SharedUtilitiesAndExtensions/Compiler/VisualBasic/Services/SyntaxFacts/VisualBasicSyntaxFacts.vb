@@ -80,6 +80,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return SyntaxFactory.ParseLeadingTrivia(text)
         End Function
 
+        Public Function EscapeIdentifier(identifier As String) As String Implements ISyntaxFacts.EscapeIdentifier
+            Dim keywordKind = SyntaxFacts.GetKeywordKind(identifier)
+            Dim needsEscaping = keywordKind <> SyntaxKind.None
+
+            Return If(needsEscaping, "[" & identifier & "]", identifier)
+        End Function
+
         Public Function IsVerbatimIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsVerbatimIdentifier
             Return False
         End Function

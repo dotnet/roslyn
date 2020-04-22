@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);
-
+        string EscapeIdentifier(string identifier);
         bool IsVerbatimIdentifier(SyntaxToken token);
         bool IsOperator(SyntaxToken token);
         bool IsPredefinedType(SyntaxToken token);

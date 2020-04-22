@@ -72,7 +72,5 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// Returns null if the folders contain parts that are invalid identifiers for a namespace.
         /// </summary>
         string? TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts);
-
-        string EscapeIdentifier(string identifier);
     }
 }
