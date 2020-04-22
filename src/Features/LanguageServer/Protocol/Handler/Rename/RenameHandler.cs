@@ -2,14 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -44,15 +48,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 var newSolution = renameReplacementInfo.NewSolution;
                 var solutionChanges = newSolution.GetChanges(solution);
+
+                // Merge changes in linked files.  Will result in linked file documents having the same changes in all linked documents.
+                // Once the changes are the same across linked files, we can take the distinct changes by file uri
+                var solutionWithLinkedFileChangesMerged = newSolution.WithMergedLinkedFileChangesAsync(solution, solutionChanges, cancellationToken: cancellationToken).Result;
+                solutionChanges = solutionWithLinkedFileChangesMerged.GetChanges(solution);
                 var changedDocuments = solutionChanges
                     .GetProjectChanges()
-                    .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true));
+                    .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
+                    .GroupBy(docId => newSolution.GetRequiredDocument(docId).FilePath).Select(group => group.First());
 
                 var documentEdits = new ArrayBuilder<TextDocumentEdit>();
                 foreach (var docId in changedDocuments)
                 {
-                    var oldDoc = solution.GetDocument(docId);
-                    var newDoc = newSolution.GetDocument(docId);
+                    var oldDoc = solution.GetRequiredDocument(docId);
+                    var newDoc = newSolution.GetRequiredDocument(docId);
 
                     var textChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
                     var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
