@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         /// <returns></returns>
         public async Task<SumType<Command, CodeAction>[]> HandleAsync(CodeActionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var result = await base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), cancellationToken).ConfigureAwait(false);
+            var result = await base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), null, cancellationToken).ConfigureAwait(false);
 
             var commands = new ArrayBuilder<SumType<Command, CodeAction>>();
             foreach (var resultObj in result)
