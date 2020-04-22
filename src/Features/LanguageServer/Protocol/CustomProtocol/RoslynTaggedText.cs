@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
     // https://github.com/dotnet/roslyn/projects/45#card-21249665
     internal class RoslynTaggedText
     {
-        public string Tag { get; set; }
-        public string Text { get; set; }
+        public string? Tag { get; set; }
+        public string? Text { get; set; }
 
         public TaggedText ToTaggedText() => new TaggedText(Tag, Text);
     }

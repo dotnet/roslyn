@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         /// A set of custom tags on a completion item. Roslyn has information here to get icons.
         /// </summary>
         [DataMember(Name = "tags")]
-        public string[] Tags { get; set; }
+        public string[]? Tags { get; set; }
 
         /// <summary>
         /// The description for a completion item.
         /// </summary>
         [DataMember(Name = "description")]
-        public RoslynTaggedText[] Description { get; set; }
+        public RoslynTaggedText[]? Description { get; set; }
 
         public static RoslynCompletionItem From(CompletionItem completionItem)
         {

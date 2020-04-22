@@ -110,8 +110,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
 
         [JsonRpcMethod(Methods.TextDocumentRenameName, UseSingleObjectParameterDeserialization = true)]
-        public Task<WorkspaceEdit> GetTextDocumentRenameAsync(RenameParams renameParams, CancellationToken cancellationToken)
-            => _protocol.ExecuteRequestAsync<RenameParams, WorkspaceEdit>(Methods.TextDocumentRenameName,
+        public Task<WorkspaceEdit?> GetTextDocumentRenameAsync(RenameParams renameParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<RenameParams, WorkspaceEdit?>(Methods.TextDocumentRenameName,
                 _workspace.CurrentSolution, renameParams, _clientCapabilities, _clientName, cancellationToken);
 
         [JsonRpcMethod(Methods.TextDocumentReferencesName, UseSingleObjectParameterDeserialization = true)]

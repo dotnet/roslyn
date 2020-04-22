@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         /// <summary>
         /// Params that were passed to originally get a list of codeactions.
         /// </summary>
-        public CodeActionParams CodeActionParams { get; set; }
+        public CodeActionParams? CodeActionParams { get; set; }
 
         /// <summary>
         /// Title of the action to execute.
         /// </summary>
-        public string Title { get; set; }
+        public string? Title { get; set; }
     }
 }

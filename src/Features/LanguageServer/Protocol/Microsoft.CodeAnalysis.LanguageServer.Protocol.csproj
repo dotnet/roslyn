@@ -5,6 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServer</RootNamespace>
     <TargetFramework>net472</TargetFramework>
+    <Nullable>enable</Nullable>
 
     <IsPackable>true</IsPackable>
     <PackageDescription>

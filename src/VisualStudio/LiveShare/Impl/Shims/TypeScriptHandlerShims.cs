@@ -239,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentRenameName)]
-    internal class TypeScriptRenameHandlerShim : RenameHandler, ILspRequestHandler<RenameParams, WorkspaceEdit, Solution>
+    internal class TypeScriptRenameHandlerShim : RenameHandler, ILspRequestHandler<RenameParams, WorkspaceEdit?, Solution>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -247,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
         }
 
-        public Task<WorkspaceEdit> HandleAsync(RenameParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        public Task<WorkspaceEdit?> HandleAsync(RenameParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
             => base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), null, cancellationToken);
     }
 

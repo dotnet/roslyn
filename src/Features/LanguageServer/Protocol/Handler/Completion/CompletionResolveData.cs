@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal class CompletionResolveData
     {
-        public CompletionParams CompletionParams { get; set; }
-        public string DisplayText { get; set; }
+        public CompletionParams? CompletionParams { get; set; }
+        public string? DisplayText { get; set; }
     }
 }

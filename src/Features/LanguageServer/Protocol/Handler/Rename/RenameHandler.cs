@@ -10,13 +10,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspMethod(LSP.Methods.TextDocumentRenameName), Shared]
-    internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit>
+    internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -24,9 +25,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<WorkspaceEdit> HandleRequestAsync(Solution solution, RenameParams request, ClientCapabilities clientCapabilities, string clientName, CancellationToken cancellationToken)
+        public async Task<WorkspaceEdit?> HandleRequestAsync(Solution solution, RenameParams request, ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
         {
-            WorkspaceEdit workspaceEdit = null;
+            WorkspaceEdit? workspaceEdit = null;
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);
             if (document != null)
             {
@@ -51,8 +52,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var documentEdits = new ArrayBuilder<TextDocumentEdit>();
                 foreach (var docId in changedDocuments)
                 {
-                    var oldDoc = solution.GetDocument(docId);
-                    var newDoc = newSolution.GetDocument(docId);
+                    var oldDoc = solution.GetRequiredDocument(docId);
+                    var newDoc = newSolution.GetRequiredDocument(docId);
 
                     var textChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
                     var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
