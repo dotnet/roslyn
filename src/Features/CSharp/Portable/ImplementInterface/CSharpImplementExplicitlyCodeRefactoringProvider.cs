@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             // high fan-out (like IDisposable.Dispose()).
             var findRefsOptions = FindReferencesSearchOptions.Default.WithCascade(false);
             var references = await SymbolFinder.FindReferencesAsync(
-                new SymbolAndProjectId(implMember, project.Id),
-                solution, findRefsOptions, cancellationToken).ConfigureAwait(false);
+                implMember, solution, findRefsOptions, cancellationToken).ConfigureAwait(false);
 
             var implReferences = references.FirstOrDefault();
             if (implReferences == null)

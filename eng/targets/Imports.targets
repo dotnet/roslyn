@@ -201,13 +201,6 @@
     </PropertyGroup>
   </Target>
 
-  <!--
-    Exclude private Visual Studio packages from dependencies of Roslyn packages.
-  -->
-  <ItemGroup Condition="'$(IsPackable)' == 'true'">
-    <PackageReference Update="@(PrivateVisualStudioPackage)" PrivateAssets="all"/>
-  </ItemGroup>
-
   <!-- Make sure additional files show up in Solution Explorer -->
   <ItemGroup>
     <!--

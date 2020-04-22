@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly object _gate = new object();
         private readonly IStreamingFindReferencesProgress _underlyingProgress;
 
-        private readonly Dictionary<SymbolAndProjectId, List<ReferenceLocation>> _symbolToLocations =
-            new Dictionary<SymbolAndProjectId, List<ReferenceLocation>>();
+        private readonly Dictionary<ISymbol, List<ReferenceLocation>> _symbolToLocations =
+            new Dictionary<ISymbol, List<ReferenceLocation>>();
 
         public IStreamingProgressTracker ProgressTracker => _underlyingProgress.ProgressTracker;
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public Task OnFindInDocumentCompletedAsync(Document document) => _underlyingProgress.OnFindInDocumentCompletedAsync(document);
         public Task OnFindInDocumentStartedAsync(Document document) => _underlyingProgress.OnFindInDocumentStartedAsync(document);
 
-        public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
+        public Task OnDefinitionFoundAsync(ISymbol definition)
         {
             lock (_gate)
             {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return _underlyingProgress.OnDefinitionFoundAsync(definition);
         }
 
-        public Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
+        public Task OnReferenceFoundAsync(ISymbol definition, ReferenceLocation location)
         {
             lock (_gate)
             {

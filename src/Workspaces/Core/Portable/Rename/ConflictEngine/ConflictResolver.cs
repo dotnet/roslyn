@@ -34,19 +34,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         private const string s_metadataNameSeparators = " .,:<`>()\r\n";
 
-        /// <summary>
-        /// Performs the renaming of the symbol in the solution, identifies renaming conflicts and automatically
-        /// resolves them where possible.
-        /// </summary>
-        /// <param name="renameLocationSet">The locations to perform the renaming at.</param>
-        /// <param name="replacementText">The new name of the identifier</param>
-        /// <param name="nonConflictSymbols">Used after renaming references. References that now bind to any of these
-        /// symbols are not considered to be in conflict. Useful for features that want to rename existing references to
-        /// point at some existing symbol. Normally this would be a conflict, but this can be used to override that
-        /// behavior.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A conflict resolution containing the new solution.</returns>
-        public static Task<ConflictResolution> ResolveConflictsAsync(
+        internal static Task<ConflictResolution> ResolveConflictsAsync(
             RenameLocations renameLocationSet,
             string replacementText,
             ImmutableHashSet<ISymbol> nonConflictSymbols,
@@ -167,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         private static async Task AddDeclarationConflictsAsync(
             ISymbol renamedSymbol,
             ISymbol renameSymbol,
-            IEnumerable<SymbolAndProjectId> referencedSymbols,
+            IEnumerable<ISymbol> referencedSymbols,
             ConflictResolution conflictResolution,
             IDictionary<Location, Location> reverseMappedLocations,
             CancellationToken cancellationToken)

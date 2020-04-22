@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Checks if 'symbol' is accessible from within type 'within', with
-        /// an qualifier of type "throughTypeOpt". Sets "failedThroughTypeCheck" to true
+        /// a qualifier of type "throughTypeOpt". Sets "failedThroughTypeCheck" to true
         /// if it failed the "through type" check.
         /// </summary>
         public static bool IsSymbolAccessible(
