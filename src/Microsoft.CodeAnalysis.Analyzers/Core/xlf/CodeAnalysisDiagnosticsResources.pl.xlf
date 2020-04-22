@@ -232,6 +232,26 @@
         <target state="translated">Musisz określić co najmniej jeden rodzaj składni, symbolu lub operacji podczas rejestracji odpowiednio akcji analizatora składni, symboli lub operacji. W przeciwnym razie zarejestrowana akcja nie zostanie nigdy wywołana podczas analizy.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PreferIsKindDescription">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindFix">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindMessage">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindTitle">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
         <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
         <target state="translated">Wartość „customTags” jest używana jako sposób włączania określonych akcji i filtrów w deskryptorach diagnostycznych na podstawie konkretnych wartości tagów. Każdy analizator Roslyn powinien zawierać co najmniej jeden tag z klasy „WellKnownDiagnosticTags”.</target>

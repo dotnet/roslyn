@@ -232,6 +232,26 @@
         <target state="translated">Při registraci analyzátoru syntaxe, symbolů nebo operací musíte zadat minimálně jeden druh syntaxe, symbolu nebo operace. V opačném případě se registrovaná akce nikdy při analýze nevyvolá.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PreferIsKindDescription">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindFix">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindMessage">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindTitle">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
         <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
         <target state="translated">Hodnota customTags se používá jako způsob, jak povolit konkrétní akce a filtry v diagnostických popisovačích na základě konkrétních hodnot značek. Každý analyzátor Roslyn by měl mít alespoň jednu značku z třídy WellKnownDiagnosticTags.</target>

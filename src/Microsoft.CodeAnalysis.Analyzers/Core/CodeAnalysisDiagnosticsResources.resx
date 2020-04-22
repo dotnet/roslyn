@@ -503,4 +503,16 @@
   <data name="EnableAnalyzerReleaseTrackingRuleDescription" xml:space="preserve">
     <value>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</value>
   </data>
+  <data name="PreferIsKindDescription" xml:space="preserve">
+    <value>Prefer IsKind</value>
+  </data>
+  <data name="PreferIsKindMessage" xml:space="preserve">
+    <value>Prefer IsKind</value>
+  </data>
+  <data name="PreferIsKindTitle" xml:space="preserve">
+    <value>Prefer IsKind</value>
+  </data>
+  <data name="PreferIsKindFix" xml:space="preserve">
+    <value>Prefer IsKind</value>
+  </data>
 </root>

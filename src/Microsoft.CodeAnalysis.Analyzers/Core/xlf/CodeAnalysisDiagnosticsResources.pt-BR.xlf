@@ -232,6 +232,26 @@
         <target state="translated">É necessário especificar pelo menos um tipo de sintaxe, de símbolo ou de operação ao registrar uma ação de analisador de sintaxe, símbolo ou operação, respectivamente. Caso contrário, a ação registrada nunca será invocada durante a análise.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PreferIsKindDescription">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindFix">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindMessage">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindTitle">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
         <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
         <target state="translated">O valor 'customTags' é usado como uma maneira de habilitar as ações e os filtros específicos nos descritores de diagnóstico com base nos valores específicos das marcas. Todo analisador de Roslyn deve ter pelo menos uma marca da classe 'WellKnownDiagnosticTags'.</target>

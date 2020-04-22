@@ -232,6 +232,26 @@
         <target state="translated">Bir söz dizimi, sembol veya işlem çözümleyicisi eylemi eklerken en az bir söz dizimi, sembol veya işlem türü belirtmeniz gerekir. Aksi takdirde, kayıtlı eylem çözümleme sırasında hiçbir zaman çağrılmaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PreferIsKindDescription">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindFix">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindMessage">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindTitle">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
         <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
         <target state="translated">'customTags' değeri, etiketlerin belirli değerlerine dayalı olarak, tanılama tanımlayıcılarında belirli eylemleri ve filtreleri etkinleştirmek için kullanılır. Her Roslyn çözümleyicisinin 'WellKnownDiagnosticTags' sınıfından en az bir etiketi olmalıdır.</target>

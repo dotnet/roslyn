@@ -232,6 +232,26 @@
         <target state="translated">構文、シンボル、または操作のアナライザー アクションをそれぞれ登録するときに、少なくとも 1 つの構文、シンボル、または操作の種類を指定する必要があります。そうしないと、登録済みのアクションは分析中に呼び出されません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="PreferIsKindDescription">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindFix">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindMessage">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindTitle">
+        <source>Prefer IsKind</source>
+        <target state="new">Prefer IsKind</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
         <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
         <target state="translated">'customTags' 値は、タグの特定の値に基づいて診断記述子に対して特定のアクションとフィルターを有効にする方法として使用されます。すべての Roslyn アナライザーには、'WellKnownDiagnosticTags' クラスのタグが少なくとも 1 つ必要です。</target>
