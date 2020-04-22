@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
                 if (declarationDeclarators.Count == fieldDeclarators.Count())
                 {
-                    var modifiers = editor.Generator.GetModifiers(fieldDeclarators.Key) - DeclarationModifiers.Volatile | DeclarationModifiers.ReadOnly;
+                    var modifiers = WithReadOnly(editor.Generator.GetModifiers(fieldDeclarators.Key));
 
                     editor.SetModifiers(fieldDeclarators.Key, modifiers);
                 }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                                                                         generator.TypeExpression(symbol.Type),
                                                                         Accessibility.Private,
                                                                         fieldDeclarators.Contains(declarator)
-                                                                            ? modifiers - DeclarationModifiers.Volatile | DeclarationModifiers.ReadOnly
+                                                                            ? WithReadOnly(modifiers)
                                                                             : modifiers,
                                                                         GetInitializerNode(declarator))
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
@@ -97,6 +97,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 }
             }
         }
+
+        private static DeclarationModifiers WithReadOnly(DeclarationModifiers modifiers)
+            => modifiers - DeclarationModifiers.Volatile | DeclarationModifiers.ReadOnly;
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
