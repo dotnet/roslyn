@@ -1259,15 +1259,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (leftToken.IsKind(SyntaxKind.OpenParenToken))
             {
-                if (leftToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
+                if (leftToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesizedExpression))
                 {
                     // If we're dealing with an expression surrounded by one or more sets of open parentheses, we need to
                     // walk up the parens in order to see if we're actually at the start of a valid pattern or not.
-                    var tokenPrecedingParenthesizedExpression = leftToken.Parent.GetFirstToken().GetPreviousToken();
-                    return IsAtStartOfPattern(syntaxTree, tokenPrecedingParenthesizedExpression, tokenPrecedingParenthesizedExpression.Span.End + 1);
+                    return IsAtStartOfPattern(syntaxTree, parenthesizedExpression.GetFirstToken().GetPreviousToken(), parenthesizedExpression.SpanStart);
                 }
 
 #if !CODE_STYLE
+                // e is ((($$ 1 or 2)))
                 if (leftToken.Parent.IsKind(SyntaxKind.ParenthesizedPattern))
                 {
                     return true;
@@ -1367,14 +1367,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // If typeSyntax is part of a qualified name, we want to get the fully-qualified name so that we can
                 // later accurately perform the check comparing the right side of the BinaryExpressionSyntax to
                 // the typeSyntax.
-                while (typeSyntax.Parent is QualifiedNameSyntax qualifiedNameSyntax)
+                while (typeSyntax.Parent is TypeSyntax parentTypeSyntax)
                 {
-                    typeSyntax = qualifiedNameSyntax;
+                    typeSyntax = parentTypeSyntax;
                 }
 
-                var binaryExpressionSyntax = typeSyntax.GetAncestor<BinaryExpressionSyntax>();
-                if (binaryExpressionSyntax != null && binaryExpressionSyntax.OperatorToken.IsKind(SyntaxKind.IsKeyword) &&
-                    binaryExpressionSyntax.Right == typeSyntax)
+                if (typeSyntax.Parent is BinaryExpressionSyntax binaryExpressionSyntax &&
+                    binaryExpressionSyntax.OperatorToken.IsKind(SyntaxKind.IsKeyword) &&
+                    binaryExpressionSyntax.Right == typeSyntax && !typeSyntax.IsVar)
                 {
                     return true;
                 }

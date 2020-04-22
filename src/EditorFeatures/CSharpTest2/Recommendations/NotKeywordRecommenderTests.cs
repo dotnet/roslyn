@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInMiddleofCompleteQualifiedPattern()
+        public async Task TestInMiddleOfCompleteQualifiedPattern()
         {
             await VerifyKeywordAsync(
 @"namespace N
@@ -91,6 +91,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         void M()
         {
             if (e is $$ N.C.P or 2) { }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMiddleOfCompleteQualifiedPattern_List()
+        {
+            await VerifyKeywordAsync(
+@"namespace N
+{
+    class C
+    {
+        const int P = 1;
+
+        void M()
+        {
+            if (e is $$ System.Collections.Generic.List<int> or 2) { }
         }
     }
 }");

@@ -43,6 +43,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGenericType()
+        {
+            await VerifyKeywordAsync(
+@"class C<T>
+{
+    void M()
+    {
+        var e = new object();
+        if (e is T $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterArrayType()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    void M()
+    {
+        var e = new object();
+        if (e is int[] $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterListType()
+        {
+            await VerifyKeywordAsync(
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var e = new object();
+        if (e is List<int> $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterListType_FullyQualified()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    void M()
+    {
+        var e = new object();
+        if (e is System.Collections.Generic.List<int> $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInsideSubpattern()
         {
             await VerifyKeywordAsync(
@@ -385,6 +435,13 @@ namespace N
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingAfterVarKeyword()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is var $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestMissingAfterAndKeyword()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
@@ -403,6 +460,13 @@ namespace N
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is ($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingAfterOpenBracket()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is { $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
