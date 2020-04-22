@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis
             string name = MetadataReader.GetString(typeDefinition.Name);
             Debug.Assert(name.Length == 0 || MetadataHelpers.IsValidMetadataIdentifier(name)); // Obfuscated assemblies can have types with empty names.
 
-            // The problem is that the mangled name for an static machine type looks like 
+            // The problem is that the mangled name for a static machine type looks like 
             // "<" + methodName + ">d__" + uniqueId.However, methodName will have dots in 
             // it for explicit interface implementations (e.g. "<I.F>d__0").  Unfortunately, 
             // the native compiler emits such names in a very strange way: everything before 

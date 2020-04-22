@@ -249,7 +249,7 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// An reference-id to object map, that can share base data efficiently.
+        /// A reference-id to object map, that can share base data efficiently.
         /// </summary>
         private struct ReaderReferenceMap<T> : IDisposable
             where T : class
