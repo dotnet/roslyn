@@ -101,7 +101,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
     Expression: 
       IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'M2(default)')
         Children(1):
-            IDefaultValueOperation (OperationKind.DefaultValue, Type: null) (Syntax: 'default')";
+            IDefaultValueOperation (OperationKind.DefaultValue, Type: ?) (Syntax: 'default')";
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

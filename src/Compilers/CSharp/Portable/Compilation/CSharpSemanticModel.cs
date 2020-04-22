@@ -2101,6 +2101,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                     }
                 }
+                else if (highestBoundExpr is BoundConditionalOperator { WasTargetTyped: true } cond)
+                {
+                    type = cond.NaturalTypeOpt;
+                    convertedType = cond.Type;
+                    convertedNullability = nullability;
+                    // PROTOTYPE(ngafter): Should we preserve the set of conversions?
+                    // By now they have been pushed into the subexpressions.
+                    conversion = Conversion.MakeConditionalExpression(ImmutableArray<Conversion>.Empty);
+                }
                 else
                 {
                     convertedType = type;

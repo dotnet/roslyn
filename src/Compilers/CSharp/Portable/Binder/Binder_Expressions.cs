@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(syntax,
                 resultKind,
                 symbols,
-                ImmutableArray.Create(childNode),
+                ImmutableArray.Create(BindToTypeForErrorRecovery(childNode)),
                 CreateErrorType());
         }
 
@@ -258,6 +258,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundExpression BindToNaturalType(BoundExpression expression, DiagnosticBag diagnostics, bool reportDefaultMissingType = true)
         {
+            if (!expression.NeedsToBeConverted())
+                return expression;
+
             BoundExpression result;
             switch (expression)
             {
@@ -273,6 +276,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
                         result = ConvertSwitchExpression(expr, commonType, conversionIfTargetTyped: null, diagnostics, hasErrors);
+                    }
+                    break;
+                case BoundUnconvertedConditionalOperator op:
+                    {
+                        TypeSymbol type = op.Type;
+                        bool hasErrors = op.HasErrors;
+                        if (type is null)
+                        {
+                            Debug.Assert(op.NoCommonTypeError != 0);
+                            type = CreateErrorType();
+                            hasErrors = true;
+                            object trueArg = op.Consequence.Display;
+                            object falseArg = op.Alternative.Display;
+                            if (op.NoCommonTypeError == ErrorCode.ERR_InvalidQM && trueArg is Symbol trueSymbol && falseArg is Symbol falseSymbol)
+                            {
+                                // ERR_InvalidQM is an error that there is no conversion between the two types. They might be the same
+                                // type name from different assemblies, so we disambiguate the display.
+                                SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, trueSymbol, falseSymbol);
+                                trueArg = distinguisher.First;
+                                falseArg = distinguisher.Second;
+                            }
+
+                            diagnostics.Add(op.NoCommonTypeError, op.Syntax.Location, trueArg, falseArg);
+                        }
+
+                        result = ConvertConditionalExpression(op, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
                     }
                     break;
                 case BoundTupleLiteral sourceTuple:
@@ -310,10 +339,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case BoundStackAllocArrayCreation { Type: null } boundStackAlloc:
-                    // This is a context in which the stackalloc could be either a pointer
-                    // or a span.  For backward compatibility we treat it as a pointer.
-                    var type = new PointerTypeSymbol(TypeWithAnnotations.Create(boundStackAlloc.ElementType));
-                    result = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics);
+                    {
+                        // This is a context in which the stackalloc could be either a pointer
+                        // or a span.  For backward compatibility we treat it as a pointer.
+                        var type = new PointerTypeSymbol(TypeWithAnnotations.Create(boundStackAlloc.ElementType));
+                        result = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics);
+                    }
                     break;
                 default:
                     result = expression;
@@ -2307,6 +2338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_StackAllocConversionNotPossible, syntax, stackAllocExpression.ElementType, targetType);
                         return;
                     }
+                case BoundKind.UnconvertedConditionalOperator when operand.Type is null:
                 case BoundKind.UnconvertedSwitchExpression when operand.Type is null:
                     {
                         GenerateImplicitConversionError(diagnostics, operand.Syntax, conversion, operand, targetType);
@@ -4039,7 +4071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                 }
 
-                BoundExpression argument = BindToNaturalType(analyzedArguments.Arguments.Count >= 1 ? analyzedArguments.Arguments[0] : null, diagnostics);
+                BoundExpression argument = analyzedArguments.Arguments.Count >= 1 ? BindToNaturalType(analyzedArguments.Arguments[0], diagnostics) : null;
 
                 if (hasErrors)
                 {

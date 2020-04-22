@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rewrittenCondition.ConstantValue == null)
             {
-                return node.Update(node.IsRef, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
+                return node.Update(node.IsRef, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.NaturalTypeOpt, node.WasTargetTyped, node.Type);
             }
 
             return RewriteConditionalOperator(
@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenConsequence,
                     rewrittenAlternative,
                     constantValueOpt,
+                    rewrittenType,
+                    wasTargetTyped: false,
                     rewrittenType);
             }
         }
