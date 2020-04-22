@@ -374,14 +374,14 @@ namespace Microsoft.Cci
                 }
                 else if (current is IPointerTypeReference)
                 {
-                    // The target type is itself an pointer type, and we must visit *its* target type.
+                    // The target type is itself a pointer type, and we must visit *its* target type.
                     // Iterate rather than recursing.
                     current = ((IPointerTypeReference)current).GetTargetType(Context);
                     continue;
                 }
                 else
                 {
-                    // The target type is not an pointer type and we must visit its children.
+                    // The target type is not a pointer type and we must visit its children.
                     // Dispatch the type in order to visit its children.
                     DispatchAsReference(current);
                     return;

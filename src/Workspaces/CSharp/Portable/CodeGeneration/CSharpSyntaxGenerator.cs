@@ -56,6 +56,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list)
             => SyntaxFactory.SeparatedList<TElement>(list);
 
+        internal override SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim)
+        {
+            const string InterpolatedVerbatimText = "$@\"";
+
+            return isVerbatim
+                ? SyntaxFactory.Token(default, SyntaxKind.InterpolatedVerbatimStringStartToken, InterpolatedVerbatimText, InterpolatedVerbatimText, default)
+                : SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken);
+        }
+
+        internal override SyntaxToken CreateInterpolatedStringEndToken()
+            => SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken);
+
         internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(IEnumerable<TElement> nodes, IEnumerable<SyntaxToken> separators)
             => SyntaxFactory.SeparatedList(nodes, separators);
 
@@ -66,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return SyntaxFactory.Trivia(structuredTriviaSyntax);
             }
 
-            return default;
+            throw ExceptionUtilities.UnexpectedValue(node.Kind());
         }
 
         internal override SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString)
@@ -82,29 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 .WithTrailingTrivia(
                 SyntaxFactory.EndOfLine(endOfLineString),
                 lastWhitespaceTrivia);
-        }
-
-        internal override bool IsNamedArgument(SyntaxNode syntaxNode)
-            => syntaxNode is ArgumentSyntax argumentSyntax && argumentSyntax.NameColon != null;
-
-        internal override bool IsWhitespaceTrivia(SyntaxTrivia trivia)
-            => trivia.IsKind(SyntaxKind.WhitespaceTrivia);
-
-        internal override bool IsDocumentationCommentTriviaSyntax(SyntaxNode node)
-            => node is DocumentationCommentTriviaSyntax;
-
-        internal override bool IsParameterNameXmlElementSyntax(SyntaxNode node)
-            => node.IsKind(SyntaxKind.XmlElement, out XmlElementSyntax xmlElement) &&
-            xmlElement.StartTag.Name.ToString() == DocumentationCommentXmlNames.ParameterElementName;
-
-        internal override SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)
-        {
-            if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationCommentTrivia)
-            {
-                return documentationCommentTrivia.Content.ToArray();
-            }
-
-            return new SyntaxNode[0];
         }
 
         internal override SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content)
@@ -3546,9 +3535,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode ParseExpression(string stringToParse)
             => SyntaxFactory.ParseExpression(stringToParse);
-
-        internal override SyntaxToken CommaTokenWithElasticSpace()
-            => SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace);
 
         #endregion
 

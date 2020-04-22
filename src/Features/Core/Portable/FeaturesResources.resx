@@ -1448,6 +1448,13 @@ This version used in: {2}</value>
   <data name="Make_member_static" xml:space="preserve">
     <value>Make static</value>
   </data>
+  <data name="ChangeSignature_NewParameterIntroduceTODOVariable" xml:space="preserve">
+    <value>TODO</value>
+    <comment>"TODO" is an indication that there is work still to be done.</comment>
+  </data>
+  <data name="ChangeSignature_NewParameterOmitValue" xml:space="preserve">
+    <value>&lt;omit&gt;</value>
+  </data>
   <data name="Value_colon" xml:space="preserve">
     <value>Value:</value>
   </data>
@@ -2739,5 +2746,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Regex_inline_options_short" xml:space="preserve">
     <value>inline options</value>
+  </data>
+  <data name="_0_cannot_be_null_or_empty" xml:space="preserve">
+    <value>'{0}' cannot be null or empty</value>
+  </data>
+  <data name="_0_cannot_be_null_or_whitespace" xml:space="preserve">
+    <value>'{0}' cannot be null or whitespace</value>
   </data>
 </root>

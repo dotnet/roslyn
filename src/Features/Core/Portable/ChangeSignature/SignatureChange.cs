@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,13 +26,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var originalParameterList = originalConfiguration.ToListOfParameters();
             var updatedParameterList = updatedConfiguration.ToListOfParameters();
 
-            for (var i = 0; i < originalParameterList.Count; i++)
+            for (var i = 0; i < originalParameterList.Length; i++)
             {
                 int? index = null;
                 var parameter = originalParameterList[i];
                 if (parameter is ExistingParameter existingParameter)
                 {
-                    var updatedIndex = updatedParameterList.IndexOf(p => p is ExistingParameter ep && ep.Symbol == existingParameter.Symbol);
+                    var updatedIndex = updatedParameterList.IndexOf(p => p is ExistingParameter ep && ep.Symbol.Equals(existingParameter.Symbol));
                     if (updatedIndex >= 0)
                     {
                         index = updatedIndex;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public int? GetUpdatedIndex(int parameterIndex)
         {
-            if (parameterIndex >= OriginalConfiguration.ToListOfParameters().Count)
+            if (parameterIndex >= OriginalConfiguration.ToListOfParameters().Length)
             {
                 return null;
             }

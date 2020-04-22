@@ -7,10 +7,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-
-#if CODE_STYLE
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
@@ -19,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new CSharpRemoveUnusedValuesCodeFixProvider());
 
-        private protected abstract IOptionsCollection PreferNone { get; }
-        private protected abstract IOptionsCollection PreferDiscard { get; }
-        private protected abstract IOptionsCollection PreferUnusedLocal { get; }
+        private protected abstract OptionsCollection PreferNone { get; }
+        private protected abstract OptionsCollection PreferDiscard { get; }
+        private protected abstract OptionsCollection PreferUnusedLocal { get; }
 
-        private protected IOptionsCollection GetOptions(string optionName)
+        private protected OptionsCollection GetOptions(string optionName)
         {
             switch (optionName)
             {
@@ -38,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             }
         }
 
-        private protected Task TestMissingInRegularAndScriptAsync(string initialMarkup, IOptionsCollection options, ParseOptions parseOptions = null)
+        private protected Task TestMissingInRegularAndScriptAsync(string initialMarkup, OptionsCollection options, ParseOptions parseOptions = null)
             => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options, parseOptions: parseOptions));
         private protected Task TestMissingInRegularAndScriptAsync(string initialMarkup, string optionName, ParseOptions parseOptions = null)
              => TestMissingInRegularAndScriptAsync(initialMarkup, GetOptions(optionName), parseOptions);

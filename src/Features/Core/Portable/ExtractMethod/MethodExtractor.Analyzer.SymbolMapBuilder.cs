@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         token.Width() <= 0 ||
                         !_service.IsIdentifier(token) ||
                         !_span.Contains(token.Span) ||
-                        _service.IsNamedParameter(token.Parent))
+                        _service.IsNameOfNamedArgument(token.Parent))
                     {
                         return;
                     }

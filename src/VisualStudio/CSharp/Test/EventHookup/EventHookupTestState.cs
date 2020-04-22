@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
         private readonly EventHookupCommandHandler _commandHandler;
         private readonly Mutex _testSessionHookupMutex;
 
-        public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey2, object> options)
+        public EventHookupTestState(XElement workspaceElement, OptionsCollection options)
             : base(workspaceElement, GetExtraParts())
         {
             _commandHandler = new EventHookupCommandHandler(
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
             return ExportProviderCache.CreateTypeCatalog(new[] { typeof(EventHookupCommandHandler), typeof(EventHookupSessionManager) });
         }
 
-        public static EventHookupTestState CreateTestState(string markup, IDictionary<OptionKey2, object> options = null)
+        public static EventHookupTestState CreateTestState(string markup, OptionsCollection options = null)
             => new EventHookupTestState(GetWorkspaceXml(markup), options);
 
         public static XElement GetWorkspaceXml(string markup)

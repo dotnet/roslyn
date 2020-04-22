@@ -78,7 +78,7 @@ Friend Class GreenNodeWriter
         Next
     End Sub
 
-    ' Generate an constant value
+    ' Generate a constant value
     Private Function GetConstantValue(val As Long) As String
         Return val.ToString()
     End Function

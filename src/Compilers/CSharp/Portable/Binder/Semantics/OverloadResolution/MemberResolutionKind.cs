@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DuplicateNamedArgument,
 
         /// <summary>
-        /// The candidate member was rejected because an required parameter had no corresponding argument.
+        /// The candidate member was rejected because a required parameter had no corresponding argument.
         /// </summary>
         RequiredParameterMissing,
 

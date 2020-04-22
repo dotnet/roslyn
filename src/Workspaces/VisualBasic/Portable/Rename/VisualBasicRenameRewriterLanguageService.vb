@@ -667,7 +667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             replacementText As String,
             renamedSymbol As ISymbol,
             renameSymbol As ISymbol,
-            referencedSymbols As IEnumerable(Of SymbolAndProjectId),
+            referencedSymbols As IEnumerable(Of ISymbol),
             baseSolution As Solution,
             newSolution As Solution,
             reverseMappedLocations As IDictionary(Of Location, Location),
@@ -747,7 +747,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     DeclarationConflictHelpers.GetMembersWithConflictingSignatures(DirectCast(renamedSymbol, IPropertySymbol), trimOptionalParameters:=True) _
                         .Select(Function(loc) reverseMappedLocations(loc)))
                 AddConflictingParametersOfProperties(
-                    referencedSymbols.Select(Function(s) s.Symbol).Concat(renameSymbol).Where(Function(sym) sym.Kind = SymbolKind.Property),
+                    referencedSymbols.Concat(renameSymbol).Where(Function(sym) sym.Kind = SymbolKind.Property),
                     renamedSymbol.Name,
                     conflicts)
 

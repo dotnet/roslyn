@@ -160,6 +160,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Capture number cannot be zero</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
+        <source>TODO</source>
+        <target state="new">TODO</target>
+        <note>"TODO" is an indication that there is work still to be done.</note>
+      </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterOmitValue">
+        <source>&lt;omit&gt;</source>
+        <target state="new">&lt;omit&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_namespace_to_0">
         <source>Change namespace to '{0}'</source>
         <target state="translated">名前空間を '{0}' に変更します</target>
@@ -1993,6 +2003,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">折り返し</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_cannot_be_null_or_empty">
+        <source>'{0}' cannot be null or empty</source>
+        <target state="new">'{0}' cannot be null or empty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_cannot_be_null_or_whitespace">
+        <source>'{0}' cannot be null or whitespace</source>
+        <target state="new">'{0}' cannot be null or whitespace</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">

@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal static class ReferenceLocationExtensions
     {
-        public static async Task<Dictionary<SymbolAndProjectId, List<Location>>> FindReferencingSymbolsAsync(
+        public static async Task<Dictionary<ISymbol, List<Location>>> FindReferencingSymbolsAsync(
             this IEnumerable<ReferenceLocation> referenceLocations,
             CancellationToken cancellationToken)
         {
             var documentGroups = referenceLocations.GroupBy(loc => loc.Document);
             var projectGroups = documentGroups.GroupBy(g => g.Key.Project);
-            var result = new Dictionary<SymbolAndProjectId, List<Location>>();
+            var result = new Dictionary<ISymbol, List<Location>>();
 
             foreach (var projectGroup in projectGroups)
             {
@@ -48,18 +48,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document,
             SemanticModel semanticModel,
             IEnumerable<ReferenceLocation> references,
-            Dictionary<SymbolAndProjectId, List<Location>> result)
+            Dictionary<ISymbol, List<Location>> result)
         {
             foreach (var reference in references)
             {
                 var containingSymbol = GetEnclosingMethodOrPropertyOrField(semanticModel, reference);
                 if (containingSymbol != null)
                 {
-                    var symbolAndProjectId = new SymbolAndProjectId(containingSymbol, document.Project.Id);
-                    if (!result.TryGetValue(symbolAndProjectId, out var locations))
+                    if (!result.TryGetValue(containingSymbol, out var locations))
                     {
                         locations = new List<Location>();
-                        result.Add(symbolAndProjectId, locations);
+                        result.Add(containingSymbol, locations);
                     }
 
                     locations.Add(reference.Location);
