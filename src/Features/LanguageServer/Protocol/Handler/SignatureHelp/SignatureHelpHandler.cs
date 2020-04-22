@@ -28,8 +28,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public SignatureHelpHandler([ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
             => _allProviders = allProviders;
 
-        public async Task<LSP.SignatureHelp> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public async Task<LSP.SignatureHelp> HandleRequestAsync(Solution solution,
+            LSP.TextDocumentPositionParams request,
+            LSP.ClientCapabilities clientCapabilities,
+            string? clientName,
+            CancellationToken cancellationToken)
         {
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);
             if (document == null)

@@ -29,8 +29,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<LSP.CompletionItem> HandleRequestAsync(Solution solution, LSP.CompletionItem completionItem,
-            LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public async Task<LSP.CompletionItem> HandleRequestAsync(Solution solution,
+            LSP.CompletionItem completionItem,
+            LSP.ClientCapabilities clientCapabilities,
+            string? clientName,
+            CancellationToken cancellationToken)
         {
             CompletionResolveData data;
             if (completionItem.Data is CompletionResolveData)

@@ -21,7 +21,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public GoToDefinitionHandlerBase(IMetadataAsSourceFileService metadataAsSourceFileService)
             => _metadataAsSourceFileService = metadataAsSourceFileService;
 
-        protected async Task<LSP.Location[]> GetDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, bool typeOnly, string? clientName, CancellationToken cancellationToken)
+        protected async Task<LSP.Location[]> GetDefinitionAsync(Solution solution,
+            LSP.TextDocumentPositionParams request,
+            bool typeOnly,
+            string? clientName,
+            CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 

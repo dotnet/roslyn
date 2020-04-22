@@ -24,8 +24,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<DocumentHighlight[]> HandleRequestAsync(Solution solution, TextDocumentPositionParams request,
-            ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public async Task<DocumentHighlight[]> HandleRequestAsync(Solution solution,
+            TextDocumentPositionParams request,
+            ClientCapabilities clientCapabilities,
+            string? clientName,
+            CancellationToken cancellationToken)
         {
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);
             if (document == null)

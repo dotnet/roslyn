@@ -41,8 +41,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Handles an <see cref="LSP.Methods.WorkspaceExecuteCommand"/>
         /// by delegating to a handler for the specific command requested.
         /// </summary>
-        public Task<object> HandleRequestAsync(Solution solution, LSP.ExecuteCommandParams request, LSP.ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public Task<object> HandleRequestAsync(Solution solution,
+            LSP.ExecuteCommandParams request,
+            LSP.ClientCapabilities clientCapabilities,
+            string? clientName,
+            CancellationToken cancellationToken)
         {
             var commandName = request.Command;
             if (string.IsNullOrEmpty(commandName) || !_executeCommandHandlers.TryGetValue(commandName, out var executeCommandHandler))

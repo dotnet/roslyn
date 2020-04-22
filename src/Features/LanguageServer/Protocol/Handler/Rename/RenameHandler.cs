@@ -25,7 +25,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<WorkspaceEdit?> HandleRequestAsync(Solution solution, RenameParams request, ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public async Task<WorkspaceEdit?> HandleRequestAsync(Solution solution,
+            RenameParams request,
+            ClientCapabilities clientCapabilities,
+            string? clientName,
+            CancellationToken cancellationToken)
         {
             WorkspaceEdit? workspaceEdit = null;
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);

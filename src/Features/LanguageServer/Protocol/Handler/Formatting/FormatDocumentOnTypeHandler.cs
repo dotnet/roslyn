@@ -27,8 +27,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentOnTypeFormattingParams request, ClientCapabilities? clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public async Task<TextEdit[]> HandleRequestAsync(Solution solution,
+            DocumentOnTypeFormattingParams request,
+            ClientCapabilities? clientCapabilities,
+            string? clientName,
+            CancellationToken cancellationToken)
         {
             var edits = new ArrayBuilder<TextEdit>();
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);

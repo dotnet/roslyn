@@ -23,8 +23,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<FoldingRange[]> HandleRequestAsync(Solution solution, FoldingRangeParams request,
-            ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public async Task<FoldingRange[]> HandleRequestAsync(Solution solution,
+            FoldingRangeParams request,
+            ClientCapabilities clientCapabilities,
+            string? clientName,
+            CancellationToken cancellationToken)
         {
             var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
 

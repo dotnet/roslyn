@@ -28,7 +28,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeRefactoringService = codeRefactoringService ?? throw new ArgumentNullException(nameof(codeRefactoringService));
         }
 
-        public async Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Solution solution, Uri documentUri, LSP.Range selection, string? clientName, CancellationToken cancellationToken)
+        public async Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Solution solution,
+            Uri documentUri,
+            LSP.Range selection,
+            string? clientName,
+            CancellationToken cancellationToken)
         {
             var document = solution.GetDocumentFromURI(documentUri, clientName);
             if (document == null)
