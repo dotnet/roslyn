@@ -3158,7 +3158,7 @@ class C
 
             var expected = new[] {
                 Diagnostic("SymbolStartRuleId").WithArguments("get_P1", "Analyzer3").WithLocation(1, 1),
-                Diagnostic("SymbolStartRuleId").WithArguments("IsInitOnly", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("IsExternalInit", "Analyzer1").WithLocation(1, 1),
                 Diagnostic("SymbolStartRuleId").WithArguments("P2", "Analyzer4").WithLocation(1, 1),
                 Diagnostic("SymbolStartRuleId").WithArguments("P1", "Analyzer4").WithLocation(1, 1),
                 Diagnostic("SymbolStartRuleId").WithArguments("get_P2", "Analyzer3").WithLocation(1, 1),
