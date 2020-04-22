@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -118,8 +119,46 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <summary>
         /// Find the locations that need to be renamed.
         /// </summary>
-        /// <remarks>Do not call this method directly.  Instead, use <see cref="Renamer.FindRenameLocationsAsync"/></remarks>
-        internal static async Task<RenameLocations> FindLocationsInCurrentProcessAsync(
+        public static async Task<RenameLocations> FindLocationsAsync(
+            ISymbol symbol, Solution solution, RenameOptionSet optionSet, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(solution);
+            Contract.ThrowIfNull(symbol);
+            Contract.ThrowIfNull(solution.GetOriginatingProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
+            {
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var result = await client.TryRunRemoteAsync<SerializableRenameLocations>(
+                        WellKnownServiceHubServices.CodeAnalysisService,
+                        nameof(IRemoteRenamer.FindRenameLocationsAsync),
+                        solution,
+                        new object[]
+                        {
+                            SerializableSymbolAndProjectId.Dehydrate(solution, symbol, cancellationToken),
+                            SerializableRenameOptionSet.Dehydrate(optionSet),
+                        },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (result.HasValue)
+                    {
+                        return await RenameLocations.RehydrateAsync(
+                            solution, result.Value, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            // Couldn't effectively search in OOP. Perform the search in-proc.
+            return await FindLocationsInCurrentProcessAsync(
+                symbol, solution, optionSet, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<RenameLocations> FindLocationsInCurrentProcessAsync(
             ISymbol symbol, Solution solution, RenameOptionSet optionSet, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(symbol);
@@ -225,13 +264,8 @@ namespace Microsoft.CodeAnalysis.Rename
         /// behavior.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A conflict resolution containing the new solution.</returns>
-        public Task<ConflictResolution> ResolveConflictsAsync(
-            string replacementText,
-            ImmutableHashSet<ISymbol> nonConflictSymbols,
-            CancellationToken cancellationToken)
-        {
-            return ConflictResolver.ResolveConflictsInCurrentProcessAsync(this, replacementText, nonConflictSymbols, cancellationToken);
-        }
+        public Task<ConflictResolution> ResolveConflictsAsync(string replacementText, ImmutableHashSet<ISymbol> nonConflictSymbols, CancellationToken cancellationToken)
+            => ConflictResolver.ResolveConflictsAsync(this, replacementText, nonConflictSymbols, cancellationToken);
 
         public RenameLocations Filter(Func<Location, bool> filter)
             => Create(

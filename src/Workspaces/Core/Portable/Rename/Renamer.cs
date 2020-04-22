@@ -36,43 +36,10 @@ namespace Microsoft.CodeAnalysis.Rename
             return RenameSymbolAsync(solution, symbol, newName, renameOptions, nonConflictSymbols: null, cancellationToken);
         }
 
-        internal static async Task<RenameLocations> FindRenameLocationsAsync(
+        internal static Task<RenameLocations> FindRenameLocationsAsync(
             Solution solution, ISymbol symbol, RenameOptionSet options, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(solution);
-            Contract.ThrowIfNull(symbol);
-            Contract.ThrowIfNull(solution.GetOriginatingProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
-            {
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
-                {
-                    var result = await client.TryRunRemoteAsync<SerializableRenameLocations>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
-                        nameof(IRemoteRenamer.FindRenameLocationsAsync),
-                        solution,
-                        new object[]
-                        {
-                            SerializableSymbolAndProjectId.Dehydrate(solution, symbol, cancellationToken),
-                            SerializableRenameOptionSet.Dehydrate(options),
-                        },
-                        callbackTarget: null,
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (result.HasValue)
-                    {
-                        return await RenameLocations.RehydrateAsync(
-                            solution, result.Value, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-            }
-
-            // Couldn't effectively search in OOP. Perform the search in-proc.
-            return await RenameLocations.FindLocationsInCurrentProcessAsync(
-                symbol, solution, options, cancellationToken).ConfigureAwait(false);
+            return RenameLocations.FindLocationsAsync(symbol, solution, options, cancellationToken);
         }
 
         internal static async Task<Solution> RenameAsync(
