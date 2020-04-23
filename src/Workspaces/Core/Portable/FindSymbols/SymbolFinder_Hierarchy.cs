@@ -30,6 +30,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return await FindOverridesArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
         }
 
+        /// <inheritdoc cref="FindOverridesAsync"/>
+        /// <remarks>
+        /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
+        /// </remarks>
         internal static async Task<ImmutableArray<ISymbol>> FindOverridesArrayAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
@@ -88,6 +92,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return await FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
         }
 
+        /// <inheritdoc cref="FindImplementedInterfaceMembersAsync"/>
+        /// <remarks>
+        /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
+        /// </remarks>
         internal static async Task<ImmutableArray<ISymbol>> FindImplementedInterfaceMembersArrayAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
@@ -198,7 +206,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
         /// <param name="cancellationToken"></param>
         /// <returns>The derived types of the symbol. The symbol passed in is not included in this list.</returns>
-        public static async Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedClassesAsync(
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindImmediateDerivedClassesAsync(
             INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             if (type == null)
@@ -254,6 +262,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return await FindImplementationsArrayAsync(type, solution, projects, cancellationToken).ConfigureAwait(false);
         }
 
+        /// <inheritdoc cref="FindImplementationsAsync(INamedTypeSymbol, Solution, IImmutableSet{Project}, CancellationToken)"/>
+        /// <remarks>
+        /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
+        /// </remarks>
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementationsArrayAsync(
             INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
@@ -262,6 +274,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return implementingTypes.WhereAsArray(IsAccessible);
         }
 
+        /// <inheritdoc cref="FindImplementationsAsync(ISymbol, Solution, IImmutableSet{Project}, CancellationToken)"/>
+        /// <remarks>
+        /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
+        /// </remarks>
         internal static async Task<ImmutableArray<ISymbol>> FindImplementationsArrayAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
@@ -295,6 +311,37 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return results.Distinct(SymbolEquivalenceComparer.Instance).ToImmutableArray();
+        }
+
+        /// <summary>
+        /// Finds the immediate, accessible <see langword="class"/> or <see langword="struct"/> types that implement the given
+        /// interface.
+        /// </summary>
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindImmediateImplementationsAsync(
+            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            if (solution == null)
+                throw new ArgumentNullException(nameof(solution));
+
+            if (solution.GetOriginatingProjectId(type) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
+
+            return await FindImmediateImplementationsArrayAsync(type, solution, projects, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc cref="FindImmediateImplementationsAsync"/>
+        /// <remarks>
+        /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
+        /// </remarks>
+        internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImmediateImplementationsArrayAsync(
+            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        {
+            var implementingTypes = await DependentTypeFinder.FindImmediatelyImplementingStructuresAndClassesAsync(
+                type, solution, projects, cancellationToken).ConfigureAwait(false);
+            return implementingTypes.WhereAsArray(IsAccessible);
         }
     }
 }
