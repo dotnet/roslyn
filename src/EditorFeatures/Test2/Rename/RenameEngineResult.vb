@@ -39,11 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             _workspace = workspace
             _resolution = resolution
 
-            If resolution IsNot Nothing Then
-                _unassertedRelatedLocations = New HashSet(Of RelatedLocation)(resolution.RelatedLocations)
-            Else
-                _unassertedRelatedLocations = New HashSet(Of RelatedLocation)()
-            End If
+            _unassertedRelatedLocations = New HashSet(Of RelatedLocation)(resolution.RelatedLocations)
 
             _renameTo = renameTo
         End Sub
@@ -87,7 +83,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Dim locations = Renamer.FindRenameLocationsAsync(
                     workspace.CurrentSolution, symbol, optionSet, CancellationToken.None).Result
 
-                Dim result = locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).Result
+                Dim result = locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).GetAwaiter().GetResult()
+                If result.ErrorMessage IsNot Nothing Then
+                    Throw New ArgumentException(result.ErrorMessage)
+                End If
 
                 engineResult = New RenameEngineResult(workspace, result, renameTo)
                 engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
@@ -179,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Private Sub AssertLocationReplacedWith(location As Location, replacementText As String, Optional isRenameWithinStringOrComment As Boolean = False)
             Try
                 Dim documentId = ConflictResolution.OldSolution.GetDocumentId(location.SourceTree)
-                Dim newLocation = ConflictResolution.GetTestAccessor().GetResolutionTextSpan(location.SourceSpan, documentId)
+                Dim newLocation = ConflictResolution.GetResolutionTextSpan(location.SourceSpan, documentId)
 
                 Dim newTree = ConflictResolution.NewSolution.GetDocument(documentId).GetSyntaxTreeAsync().Result
                 Dim newToken = newTree.GetRoot.FindToken(newLocation.Start, findInsideTrivia:=True)
