@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     }
 }
 
-#if NETFRAMEWORK || NETSTANDARD2_0
+#if !NETCOREAPP
 namespace System.Collections.Generic
 {
     // In netcoreapp3.1 non-generic KeyValuePair type is defined in System.Collections.Generic
