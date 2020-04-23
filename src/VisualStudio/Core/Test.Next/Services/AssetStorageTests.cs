@@ -21,9 +21,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public void TestCreation()
         {
             var storage = new AssetStorage();
-            var source = new SimpleAssetSource(storage, new Dictionary<Checksum, object>());
+            var source = new SimpleAssetSource(new Dictionary<Checksum, object>());
+            storage.Initialize(source);
 
-            var stored = storage.AssetSource;
+            var stored = storage.GetAssetSource();
             Assert.Equal(source, stored);
         }
 
@@ -37,7 +38,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             Assert.True(storage.TryAddAsset(checksum, data));
 
-            Assert.True(storage.TryGetAsset(checksum, out object stored));
+            Assert.True(storage.TryGetAsset(checksum, out object _));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -54,7 +55,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 await Task.Delay(10);
 
-                if (!storage.TryGetAsset(checksum, out object stored))
+                if (!storage.TryGetAsset(checksum, out object _))
                 {
                     // asset is deleted
                     return;

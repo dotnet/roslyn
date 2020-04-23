@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
@@ -18,26 +19,22 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
     internal sealed class SimpleAssetSource : IAssetSource
     {
         private readonly IReadOnlyDictionary<Checksum, object> _map;
-        private readonly AssetStorage _assetStorage;
 
-        public SimpleAssetSource(AssetStorage assetStorage, IReadOnlyDictionary<Checksum, object> map)
+        public SimpleAssetSource(IReadOnlyDictionary<Checksum, object> map)
         {
             _map = map;
-
-            _assetStorage = assetStorage;
-            _assetStorage.SetAssetSource(this);
         }
 
-        public Task<IList<(Checksum, object)>> GetAssetsAsync(
+        public Task<ImmutableArray<(Checksum, object)>> GetAssetsAsync(
             int serviceId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            var list = new List<(Checksum, object)>();
+            var results = new List<(Checksum, object)>();
 
             foreach (var checksum in checksums)
             {
                 if (_map.TryGetValue(checksum, out var data))
                 {
-                    list.Add((checksum, data));
+                    results.Add((checksum, data));
                 }
                 else
                 {
@@ -45,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
                 }
             }
 
-            return Task.FromResult<IList<(Checksum, object)>>(list);
+            return Task.FromResult(results.ToImmutableArray());
         }
 
         public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)

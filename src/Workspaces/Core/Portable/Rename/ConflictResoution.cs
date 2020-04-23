@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     internal readonly struct ConflictResolution
     {
+        public readonly string ErrorMessage;
+
         private readonly Solution _newSolutionWithoutRenamedDocument;
         private readonly (DocumentId documentId, string newName) _renamedDocument;
 
@@ -33,6 +35,9 @@ namespace Microsoft.CodeAnalysis.Rename
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> _documentToComplexifiedSpansMap;
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> _documentToRelatedLocationsMap;
 
+        public ConflictResolution(string errorMessage) : this()
+            => ErrorMessage = errorMessage;
+
         public ConflictResolution(
             Solution oldSolution,
             Solution newSolutionWithoutRenamedDocument,
@@ -43,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Rename
             ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> documentToComplexifiedSpansMap,
             ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> documentToRelatedLocationsMap)
         {
+            ErrorMessage = null;
             OldSolution = oldSolution;
             _newSolutionWithoutRenamedDocument = newSolutionWithoutRenamedDocument;
             ReplacementTextValid = replacementTextValid;

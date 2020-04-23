@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Remote.Services
 {
+    [Obsolete("https://github.com/dotnet/roslyn/issues/43477")]
     [ExportWorkspaceService(typeof(IExperimentationService), ServiceLayer.Host), Shared]
     internal sealed class RemoteExperimentationService : IExperimentationService
     {
@@ -23,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Remote.Services
 
         public bool IsExperimentEnabled(string experimentName)
         {
-            var assetSource = AssetStorage.Default.AssetSource;
+            // may return null in tests
+            var assetSource = AssetStorage.Default.TryGetAssetSource();
             return assetSource?.IsExperimentEnabledAsync(experimentName, CancellationToken.None).Result ?? false;
         }
     }

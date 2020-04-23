@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -14,8 +13,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -31,19 +28,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly IAsynchronousOperationListener _asyncOperationListener;
             private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
-            // TODO: this should be removed once we move options down to compiler layer
-            private readonly ConcurrentDictionary<string, ValueTuple<OptionSet, CustomAsset>> _lastOptionSetPerLanguage;
-
             public InProcOrRemoteHostAnalyzerRunner(IAsynchronousOperationListener operationListener, DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {
                 _asyncOperationListener = operationListener;
                 _analyzerInfoCache = analyzerInfoCache;
-
-                // currently option is a bit weird since it is not part of snapshot and 
-                // we can't load all options without loading all language specific dlls.
-                // we have tracking issue for this.
-                // https://github.com/dotnet/roslyn/issues/13643
-                _lastOptionSetPerLanguage = new ConcurrentDictionary<string, ValueTuple<OptionSet, CustomAsset>>();
             }
 
             public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers compilation, Project project, bool forcedAnalysis, CancellationToken cancellationToken)
