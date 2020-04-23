@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 
         private static async Task<LSP.TextEdit[]> RunFormatDocumentRangeAsync(Solution solution, LSP.Location location)
             => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentRangeFormattingName,
-                solution, CreateDocumentRangeFormattingParams(location), new LSP.ClientCapabilities(), null, CancellationToken.None);
+                solution, CreateDocumentRangeFormattingParams(location), new LSP.ClientCapabilities(), clientName: null, CancellationToken.None);
 
         private static LSP.DocumentRangeFormattingParams CreateDocumentRangeFormattingParams(LSP.Location location)
             => new LSP.DocumentRangeFormattingParams()
