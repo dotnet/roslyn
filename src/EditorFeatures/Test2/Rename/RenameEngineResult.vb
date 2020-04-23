@@ -81,7 +81,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 End If
 
                 Dim locations = Renamer.FindRenameLocationsAsync(
-                    workspace.CurrentSolution, symbol, optionSet, CancellationToken.None).Result
+                    workspace.CurrentSolution, symbol,
+                    RenameOptionSet.From(workspace.CurrentSolution, optionSet), CancellationToken.None).Result
 
                 Dim result = locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).GetAwaiter().GetResult()
                 If result.ErrorMessage IsNot Nothing Then

@@ -28,17 +28,14 @@ namespace Microsoft.CodeAnalysis.Rename
             if (string.IsNullOrEmpty(newName))
                 throw new ArgumentException(nameof(newName));
 
-            optionSet ??= solution.Options;
-
-            return RenameSymbolAsync(solution, symbol, newName, optionSet, nonConflictSymbols: null, cancellationToken);
+            return RenameSymbolAsync(
+                solution, symbol, newName,
+                RenameOptionSet.From(solution, optionSet),
+                nonConflictSymbols: null, cancellationToken);
         }
 
-        internal static Task<RenameLocations> FindRenameLocationsAsync(
-            Solution solution, ISymbol symbol, OptionSet optionSet, CancellationToken cancellationToken)
-        {
-            return RenameLocations.FindLocationsAsync(
-                symbol, solution, RenameOptionSet.From(solution, optionSet), cancellationToken);
-        }
+        internal static Task<RenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, RenameOptionSet optionSet, CancellationToken cancellationToken)
+            => RenameLocations.FindLocationsAsync(symbol, solution, optionSet, cancellationToken);
 
         internal static async Task<Solution> RenameAsync(
             RenameLocations locations,
@@ -63,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Rename
             Solution solution,
             ISymbol symbol,
             string newName,
-            OptionSet optionSet,
+            RenameOptionSet optionSet,
             ImmutableHashSet<ISymbol> nonConflictSymbols,
             CancellationToken cancellationToken)
         {
