@@ -1187,6 +1187,7 @@ tryAgain:
             var allowedRequiredModifiers = AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute;
             if (isReturn)
             {
+                // PROTOTYPE(init-only): can we make this more restrictive (ie. disallow aside from the return value of a setter)?
                 allowedRequiredModifiers |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
             }
 

@@ -756,8 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var containingMember = ContainingMemberOrLambda;
-                if (!(containingMember is MethodSymbol method))
+                if (!(ContainingMemberOrLambda is MethodSymbol method))
                 {
                     return false;
                 }

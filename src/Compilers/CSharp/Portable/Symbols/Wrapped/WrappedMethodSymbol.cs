@@ -349,6 +349,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsDeclaredReadOnly => UnderlyingMethod.IsDeclaredReadOnly;
 
-        internal sealed override bool IsInitOnly => UnderlyingMethod.IsInitOnly;
+        internal override bool IsInitOnly => UnderlyingMethod.IsInitOnly;
     }
 }

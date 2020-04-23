@@ -2128,7 +2128,7 @@ public class C
         }
 
         [Fact]
-        public void ModReqOnAccessorParameter()
+        public void ModReqOnSetAccessorParameter()
         {
             string il = @"
 .class public auto ansi beforefieldinit C extends System.Object
@@ -2182,6 +2182,67 @@ public class Derived2 : C
                 //     public override int Property { init { throw null; } }
                 Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived2.Property", "C.Property").WithLocation(8, 25)
                 );
+        }
+
+        [Fact]
+        public void ModReqOnGetAccessorReturnValue()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit C extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance int32 modreq(System.Runtime.CompilerServices.IsExternalInit) get_Property () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname newslot virtual instance void set_Property ( int32 'value' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance int32 Property()
+    {
+        .get instance int32 modreq(System.Runtime.CompilerServices.IsExternalInit) C::get_Property()
+        .set instance void C::set_Property(int32)
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+
+            string source = @"
+public class Derived : C
+{
+    public override int Property { get { throw null; } }
+}
+public class Derived2 : C
+{
+    public override int Property { get { throw null; } }
+}
+";
+
+            var reference = CreateMetadataReferenceFromIlSource(il);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var property = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
+            Assert.False(property.GetMethod.IsInitOnly);
+            Assert.False(property.SetMethod.IsInitOnly);
         }
 
         [Fact]
