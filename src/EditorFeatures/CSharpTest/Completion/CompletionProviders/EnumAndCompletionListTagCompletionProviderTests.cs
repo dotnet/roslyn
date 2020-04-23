@@ -818,5 +818,22 @@ internal enum ProjectTreeWriterOptions
 }";
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInEnumHasFlag()
+        {
+            var markup =
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        FileInfo f;
+        f.Attributes.HasFlag($$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "FileAttributes");
+        }
     }
 }

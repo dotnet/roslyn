@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Helper method for wrapping a string and offset in an SourceText.
+        ''' Helper method for wrapping a string and offset in a SourceText.
         ''' </summary>
         Friend Shared Function MakeSourceText(text As String, offset As Integer) As SourceText
             Return SourceText.From(text, Encoding.UTF8).GetSubText(offset)

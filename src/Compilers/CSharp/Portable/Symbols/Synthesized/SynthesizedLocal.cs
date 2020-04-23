@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind = RefKind.None
 #if DEBUG
             ,
-            [CallerLineNumber]int createdAtLineNumber = 0,
-            [CallerFilePath]string createdAtFilePath = null
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
 #endif
             )
         {

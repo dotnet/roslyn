@@ -1989,6 +1989,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public const string RuleId = "ID1";
+            public const string RuleCategory = "Category1";
             private readonly DiagnosticDescriptor _rule;
             private readonly AnalysisKind _analysisKind;
             private readonly GeneratedCodeAnalysisFlags _analysisFlags;
@@ -2005,7 +2006,7 @@ namespace Microsoft.CodeAnalysis
                     RuleId,
                     "Title1",
                     "Symbol: {0}",
-                    "Category1",
+                    RuleCategory,
                     defaultSeverity: DiagnosticSeverity.Warning,
                     isEnabledByDefault: true,
                     customTags: customTags);

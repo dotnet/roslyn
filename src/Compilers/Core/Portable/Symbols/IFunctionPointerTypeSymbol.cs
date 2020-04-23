@@ -6,7 +6,7 @@
 namespace Microsoft.CodeAnalysis
 {
     // PROTOTYPE(func-ptr): Document
-    // PROTOTYPE(func-ptr): Expose calling convention on either this or IMethodSymbol in general
+    // https://github.com/dotnet/roslyn/issues/39865: Expose calling convention on either this or IMethodSymbol in general
     public interface IFunctionPointerTypeSymbol : ISymbol
     {
         public IMethodSymbol Signature { get; }

@@ -24,7 +24,7 @@ namespace Roslyn.Utilities
         public override T GetValue(CancellationToken cancellationToken = default)
             => _value;
 
-        public override bool TryGetValue([MaybeNullWhen(false)]out T value)
+        public override bool TryGetValue([MaybeNullWhen(false)] out T value)
         {
             value = _value;
             return true;

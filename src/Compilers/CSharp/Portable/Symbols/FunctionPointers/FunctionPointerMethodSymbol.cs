@@ -278,6 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CallingConvention = callingConvention;
             ReturnTypeWithAnnotations = returnType;
             RefKind = getRefKind(retInfo, RefCustomModifiers, RefKind.RefReadOnly);
+            Debug.Assert(RefKind != RefKind.Out);
             _parameters = makeParametersFromMetadata(retAndParamTypes.AsSpan()[1..], this);
 
             static ImmutableArray<FunctionPointerParameterSymbol> makeParametersFromMetadata(ReadOnlySpan<ParamInfo<TypeSymbol>> parameterTypes, FunctionPointerMethodSymbol parent)
@@ -305,11 +306,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static RefKind getRefKind(ParamInfo<TypeSymbol> param, ImmutableArray<CustomModifier> paramRefCustomMods, RefKind hasInRefKind)
             {
-                // PROTOTYPE(func-ptr): Need to encode out params as a custom modifier of some kind
                 return param.IsByRef switch
                 {
                     false => RefKind.None,
                     true when CustomModifierUtils.HasInAttributeModifier(paramRefCustomMods) => hasInRefKind,
+                    true when CustomModifierUtils.HasOutAttributeModifier(paramRefCustomMods) => RefKind.Out,
                     true => RefKind.Ref,
                 };
             }
@@ -366,6 +367,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             DiagnosticInfo? info = null;
             CalculateUseSiteDiagnostic(ref info);
+
+            if (CallingConvention.IsCallingConvention(CallingConvention.ExtraArguments) ||
+                CallingConvention.IsCallingConvention(CallingConvention.FastCall))
+            {
+                MergeUseSiteDiagnostics(ref info, new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCallingConvention, this));
+            }
+
             return info;
         }
 
@@ -376,7 +384,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 || GetUnificationUseSiteDiagnosticRecursive(ref result, Parameters, owner, ref checkedTypes);
         }
 
-        public override bool IsVararg => false; // PROTOTYPE(func-ptr): Varargs
+        public override bool IsVararg
+        {
+            get
+            {
+                var isVararg = CallingConvention.IsCallingConvention(CallingConvention.ExtraArguments);
+                Debug.Assert(!isVararg || HasUseSiteError);
+                return isVararg;
+            }
+        }
 
         public override Symbol? ContainingSymbol => null;
         // Function pointers cannot have type parameters

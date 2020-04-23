@@ -37,6 +37,37 @@ class C
 end class")
         End Function
 
+        <WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        Public Async Function TestNotWithThrow1() As Task
+            Await TestMissingAsync(
+"
+class C
+    sub M(i as integer)
+        [||]if true
+            throw new System.Exception()
+        else
+            i = 1
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        Public Async Function TestNotWithThrow2() As Task
+            Await TestMissingAsync(
+"
+class C
+    sub M(i as integer)
+        [||]if true
+            i = 0
+        else
+            throw new System.Exception()
+        end if
+    end sub
+end class")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
         Public Async Function TestOnSimpleAssignmentNoBlocks() As Task
             Await TestInRegularAndScriptAsync(

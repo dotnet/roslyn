@@ -105,6 +105,11 @@ namespace Microsoft.CodeAnalysis
             return _factory.IsAcceptedInAttributeModifierType(type);
         }
 
+        protected bool IsAcceptedOutAttributeModifierType(TypeSymbol type)
+        {
+            return _factory.IsAcceptedOutAttributeModifierType(type);
+        }
+
         protected bool IsAcceptedUnmanagedTypeModifierType(TypeSymbol type)
         {
             return _factory.IsAcceptedUnmanagedTypeModifierType(type);

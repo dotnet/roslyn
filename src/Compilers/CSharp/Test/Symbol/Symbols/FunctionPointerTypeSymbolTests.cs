@@ -56,35 +56,54 @@ class C
         delegate*<ref readonly readonly string> p4,
         delegate*<this string> p5,
         delegate*<params string> p6,
-        delegate*<ref ref string> p7)
+        delegate*<ref ref string> p7,
+        delegate*<out string> p8)
     {}
 }
 ");
             comp.VerifyDiagnostics(
-                    // (5,19): error CS8753: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    // (5,19): error CS8797: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<readonly string> p1,
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "readonly").WithArguments("readonly").WithLocation(5, 19),
-                    // (6,19): error CS8753: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    // (6,19): error CS8797: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<readonly ref string> p2,
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "readonly").WithArguments("readonly").WithLocation(6, 19),
-                    // (7,23): error CS8754: A return type can only have one 'ref' modifier.
+                    // (7,23): error CS8798: A return type can only have one 'ref' modifier.
                     //         delegate*<ref ref readonly string> p3,
                     Diagnostic(ErrorCode.ERR_DupReturnTypeMod, "ref").WithArguments("ref").WithLocation(7, 23),
-                    // (7,27): error CS8753: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    // (7,27): error CS8797: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<ref ref readonly string> p3,
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "readonly").WithArguments("readonly").WithLocation(7, 27),
-                    // (8,32): error CS8753: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    // (8,32): error CS8797: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<ref readonly readonly string> p4,
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "readonly").WithArguments("readonly").WithLocation(8, 32),
-                    // (9,19): error CS8753: 'this' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    // (9,19): error CS8797: 'this' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<this string> p5,
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "this").WithArguments("this").WithLocation(9, 19),
-                    // (10,19): error CS8753: 'params' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    // (10,19): error CS8797: 'params' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<params string> p6,
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "params").WithArguments("params").WithLocation(10, 19),
-                    // (11,23): error CS8754: A return type can only have one 'ref' modifier.
+                    // (11,23): error CS8798: A return type can only have one 'ref' modifier.
                     //         delegate*<ref ref string> p7)
-                    Diagnostic(ErrorCode.ERR_DupReturnTypeMod, "ref").WithArguments("ref").WithLocation(11, 23));
+                    Diagnostic(ErrorCode.ERR_DupReturnTypeMod, "ref").WithArguments("ref").WithLocation(11, 23),
+                    // (12,19): error CS8797: 'out' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    //         delegate*<out string> p8)
+                    Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "out").WithArguments("out").WithLocation(12, 19));
+
+            var mParams = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters;
+            Assert.Equal(8, mParams.Length);
+
+            verifyRefKind(RefKind.None, mParams[0]);
+            verifyRefKind(RefKind.Ref, mParams[1]);
+            verifyRefKind(RefKind.Ref, mParams[2]);
+            verifyRefKind(RefKind.RefReadOnly, mParams[3]);
+            verifyRefKind(RefKind.None, mParams[4]);
+            verifyRefKind(RefKind.None, mParams[5]);
+            verifyRefKind(RefKind.Ref, mParams[6]);
+            verifyRefKind(RefKind.None, mParams[7]);
+
+            static void verifyRefKind(RefKind expected, ParameterSymbol actual)
+                => Assert.Equal(expected, ((FunctionPointerTypeSymbol)actual.Type).Signature.RefKind);
         }
 
         [Fact]
@@ -119,7 +138,6 @@ class C
         [InlineData("cdecl", CallingConvention.CDecl)]
         [InlineData("stdcall", CallingConvention.Standard)]
         [InlineData("thiscall", CallingConvention.ThisCall)]
-        // PROTOTYPE(func-ptr): unmanaged
         [Theory]
         internal void ValidCallingConventions(string convention, CallingConvention expectedConvention)
         {
@@ -147,7 +165,7 @@ class C
     public unsafe void M(delegate* invalid<void> p) {}
 }");
             comp.VerifyDiagnostics(
-                    // (4,36): error CS8752: 'invalid' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.
+                    // (4,36): error CS8796: 'invalid' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.
                     //     public void M(delegate* invalid<void> p) {}
                     Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "invalid").WithArguments("invalid").WithLocation(4, 36));
 
@@ -629,7 +647,7 @@ class C
         }
 
         [Fact]
-        public void NoInAttribute_NoInParameter()
+        public void NoInOutAttribute_NoInOutParameter()
         {
             var comp = CreateFunctionPointerCompilation(@"
 class C
@@ -638,23 +656,28 @@ class C
 }");
 
             comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_OutAttribute);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void NoInAttribute_InParameter()
+        public void NoInOutAttribute_InOutParameter()
         {
             var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    unsafe void M(delegate*<in string, void> p1) {}
+    unsafe void M(delegate*<in string, out string, void> p1) {}
 }");
 
             comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_OutAttribute);
             comp.VerifyDiagnostics(
-                    // (4,29): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
-                    //     void M(delegate*<in string, void> p1) {}
-                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in string").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(4, 29));
+                // (4,29): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
+                //     unsafe void M(delegate*<in string, out string, void> p1) {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in string").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(4, 29),
+                // (4,40): error CS0518: Predefined type 'System.Runtime.InteropServices.OutAttribute' is not defined or imported
+                //     unsafe void M(delegate*<in string, out string, void> p1) {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "out string").WithArguments("System.Runtime.InteropServices.OutAttribute").WithLocation(4, 40));
         }
 
         [Fact]

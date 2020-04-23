@@ -14,30 +14,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IEventSymbol symbol)
             => true;
 
-        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IEventSymbol> symbolAndProjectId,
+        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            IEventSymbol symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var baseSymbols = await base.DetermineCascadedSymbolsAsync(
-                symbolAndProjectId, solution, projects, options, cancellationToken).ConfigureAwait(false);
+                symbol, solution, projects, options, cancellationToken).ConfigureAwait(false);
 
-            var symbol = symbolAndProjectId.Symbol;
             var backingFields = symbol.ContainingType.GetMembers()
                                                      .OfType<IFieldSymbol>()
                                                      .Where(f => symbol.Equals(f.AssociatedSymbol))
-                                                     .Select(s => (SymbolAndProjectId)symbolAndProjectId.WithSymbol(s))
                                                      .ToImmutableArray();
 
             var associatedNamedTypes = symbol.ContainingType.GetTypeMembers()
-                                                            .Where(n => symbol.Equals(n.AssociatedSymbol))
-                                                            .Select(s => (SymbolAndProjectId)symbolAndProjectId.WithSymbol(s))
-                                                            .ToImmutableArray();
+                                                            .WhereAsArray(n => symbol.Equals(n.AssociatedSymbol));
 
-            return baseSymbols.Concat(backingFields)
-                              .Concat(associatedNamedTypes);
+            return baseSymbols.Concat(ImmutableArray<ISymbol>.CastUp(backingFields))
+                              .Concat(ImmutableArray<ISymbol>.CastUp(associatedNamedTypes));
         }
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

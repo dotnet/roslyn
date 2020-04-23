@@ -12,7 +12,6 @@ retry_wait_time_seconds=30
 global_json_file="$(dirname "$(dirname "${scriptroot}")")/global.json"
 declare -A native_assets
 
-. $scriptroot/pipeline-logging-functions.sh
 . $scriptroot/native/common-library.sh
 
 while (($# > 0)); do
@@ -34,14 +33,6 @@ while (($# > 0)); do
       force=true
       shift 1
       ;;
-    --donotabortonfailure)
-      donotabortonfailure=true
-      shift 1
-      ;;
-    --donotdisplaywarnings)
-      donotdisplaywarnings=true
-      shift 1
-      ;;
     --downloadretries)
       download_retries=$2
       shift 2
@@ -60,8 +51,6 @@ while (($# > 0)); do
       echo "                                          - (default) %USERPROFILE%/.netcoreeng/native"
       echo ""
       echo "  --clean                             Switch specifying not to install anything, but cleanup native asset folders"
-      echo "  --donotabortonfailure               Switch specifiying whether to abort native tools installation on failure"
-      echo "  --donotdisplaywarnings              Switch specifiying whether to display warnings during native tools installation on failure"
       echo "  --force                             Clean and then install tools"
       echo "  --help                              Print help and exit"
       echo ""
@@ -102,7 +91,6 @@ if [[ -z $install_directory ]]; then
 fi
 
 install_bin="${native_base_dir}/bin"
-installed_any=false
 
 ReadGlobalJsonNativeTools
 
@@ -114,8 +102,8 @@ else
   for tool in "${!native_assets[@]}"
   do
     tool_version=${native_assets[$tool]}
-    installer_path="$native_installer_dir/install-$tool.sh"
-    installer_command="$installer_path"
+    installer_name="install-$tool.sh"
+    installer_command="$native_installer_dir/$installer_name"
     installer_command+=" --baseuri $base_uri"
     installer_command+=" --installpath $install_bin"
     installer_command+=" --version $tool_version"
@@ -129,29 +117,11 @@ else
       installer_command+=" --clean"
     fi
 
-    if [[ -a $installer_path ]]; then
-      $installer_command
-      if [[ $? != 0 ]]; then
-        if [[ $donotabortonfailure = true ]]; then
-          if [[ $donotdisplaywarnings != true ]]; then
-            Write-PipelineTelemetryError -category 'NativeToolsBootstrap' "Execution Failed"
-          fi
-        else
-          Write-PipelineTelemetryError -category 'NativeToolsBootstrap' "Execution Failed"
-          exit 1
-        fi
-      else
-        $installed_any = true
-      fi
-    else
-      if [[ $donotabortonfailure == true ]]; then
-        if [[ $donotdisplaywarnings != true ]]; then
-          Write-PipelineTelemetryError -category 'NativeToolsBootstrap' "Execution Failed: no install script"
-        fi
-      else
-        Write-PipelineTelemetryError -category 'NativeToolsBootstrap' "Execution Failed: no install script"
-        exit 1
-      fi
+    $installer_command
+
+    if [[ $? != 0 ]]; then
+      echo "Execution Failed" >&2
+      exit 1
     fi
   done
 fi
@@ -164,10 +134,8 @@ if [[ -d $install_bin ]]; then
   echo "Native tools are available from $install_bin"
   echo "##vso[task.prependpath]$install_bin"
 else
-  if [[ $installed_any = true ]]; then
-    Write-PipelineTelemetryError -category 'NativeToolsBootstrap' "Native tools install directory does not exist, installation failed"
-    exit 1
-  fi
+  echo "Native tools install directory does not exist, installation failed" >&2
+  exit 1
 fi
 
 exit 0

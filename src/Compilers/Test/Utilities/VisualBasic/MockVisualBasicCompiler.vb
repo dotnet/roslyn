@@ -32,7 +32,7 @@ Friend Class MockVisualBasicCompiler
     End Sub
 
     Public Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
-        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), RuntimeUtilities.CreateAnalyzerAssemblyLoader())
+        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), New DefaultAnalyzerAssemblyLoader())
 
         _analyzers = analyzers
     End Sub
@@ -41,16 +41,17 @@ Friend Class MockVisualBasicCompiler
         Return RuntimeUtilities.CreateBuildPaths(workingDirectory, tempDirectory:=tempDirectory)
     End Function
 
-    Protected Overrides Function ResolveAnalyzersFromArguments(
+    Protected Overrides Sub ResolveAnalyzersFromArguments(
         diagnostics As List(Of DiagnosticInfo),
-        messageProvider As CommonMessageProvider) As ImmutableArray(Of DiagnosticAnalyzer)
+        messageProvider As CommonMessageProvider,
+        ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
+        ByRef generators As ImmutableArray(Of ISourceGenerator))
 
-        Dim analyzers = MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider)
+        MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, analyzers, generators)
         If Not _analyzers.IsDefaultOrEmpty Then
             analyzers = analyzers.InsertRange(0, _analyzers)
         End If
-        Return analyzers
-    End Function
+    End Sub
 
     Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger, syntaxTreeDiagnosticOptionsOpt As ImmutableArray(Of AnalyzerConfigOptionsResult)) As Compilation
         Compilation = MyBase.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxTreeDiagnosticOptionsOpt)

@@ -22,7 +22,6 @@ namespace Microsoft.Cci
     /// <summary>
     /// Specifies how the caller passes parameters to the callee and who cleans up the stack.
     /// </summary>
-    // PROTOTYPE(func-ptr): represent `unmanaged`
     [Flags]
     internal enum CallingConvention
     {

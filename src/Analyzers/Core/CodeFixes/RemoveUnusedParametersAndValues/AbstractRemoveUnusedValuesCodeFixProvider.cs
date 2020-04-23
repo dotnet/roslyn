@@ -621,10 +621,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             void InsertLocalDeclarationStatement(TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode node)
             {
                 // Find the correct place to insert the given declaration statement based on the node's ancestors.
-                var insertionNode = node.FirstAncestorOrSelf<SyntaxNode>(n => n.Parent is TSwitchCaseBlockSyntax ||
+                var insertionNode = node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((n, syntaxFacts) => n.Parent is TSwitchCaseBlockSyntax ||
                                                                               syntaxFacts.IsExecutableBlock(n.Parent) &&
                                                                               !(n is TCatchStatementSyntax) &&
-                                                                              !(n is TCatchBlockSyntax));
+                                                                              !(n is TCatchBlockSyntax),
+                                                                              syntaxFacts);
                 if (insertionNode is TSwitchCaseLabelOrClauseSyntax)
                 {
                     InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(insertionNode.GetAncestor<TSwitchCaseBlockSyntax>(), editor, declarationStatement);

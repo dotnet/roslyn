@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 

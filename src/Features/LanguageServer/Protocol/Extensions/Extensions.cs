@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal static class Extensions
     {
         public static Uri GetURI(this Document document)
-            => new Uri(document.FilePath);
+        {
+            return ProtocolConversions.GetUriFromFilePath(document.FilePath);
+        }
 
         public static Document GetDocumentFromURI(this Solution solution, Uri fileName)
         {

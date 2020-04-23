@@ -7,8 +7,6 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities

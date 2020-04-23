@@ -2883,8 +2883,6 @@ void M()
 
         [InlineData("cdecl")]
         [InlineData("managed")]
-        // PROTOTYPE(func-ptr)
-        //[InlineData("unmanaged")]
         [InlineData("stdcall")]
         [InlineData("thiscall")]
         [Theory]

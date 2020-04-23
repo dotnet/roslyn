@@ -6,11 +6,14 @@
 #nullable enable
 
 using System.Linq;
+using Microsoft.Cci;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.CSharp.UnitTests.FunctionPointerUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -479,29 +482,33 @@ unsafe class C
             var comp = CreateCompilationWithFunctionPointers(@"
 unsafe class C
 {
-    void M(delegate*<object, ref int, string> param1, delegate*<object, ref int> param2, delegate*<object, void> param3)
+    void M(delegate*<object, ref int, string> param1, delegate*<object, ref int> param2, delegate*<object, void> param3, delegate*<object, out int, string> param4)
     {
         delegate*<string, ref int, object> ptr1 = param1;
         delegate*<string, ref int> ptr2 = param2;
         delegate*<string, void> ptr3 = param3;
+        delegate*<string, out int, object> ptr4 = param4;
     }
 }");
 
             var verifier = CompileAndVerifyFunctionPointers(comp);
             verifier.VerifyIL("C.M", @"
 {
-  // Code size        7 (0x7)
+  // Code size       10 (0xa)
   .maxstack  1
   .locals init (delegate*<string,ref int,object> V_0, //ptr1
                 delegate*<string,int> V_1, //ptr2
-                delegate*<string,void> V_2) //ptr3
+                delegate*<string,void> V_2, //ptr3
+                delegate*<string,out int,object> V_3) //ptr4
   IL_0000:  ldarg.1
   IL_0001:  stloc.0
   IL_0002:  ldarg.2
   IL_0003:  stloc.1
   IL_0004:  ldarg.3
   IL_0005:  stloc.2
-  IL_0006:  ret
+  IL_0006:  ldarg.s    V_4
+  IL_0008:  stloc.3
+  IL_0009:  ret
 }
 ");
 
@@ -509,7 +516,7 @@ unsafe class C
             var model = comp.GetSemanticModel(tree);
 
             var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => d.Initializer!.Value).ToList();
-            Assert.Equal(3, decls.Count);
+            Assert.Equal(4, decls.Count);
 
             foreach (var decl in decls)
             {
@@ -618,11 +625,16 @@ unsafe class C
             var comp = CreateCompilationWithFunctionPointers(@"
 unsafe class C
 {
-    void M(delegate*<ref object, void> param1)
+    void M(delegate*<ref object, void> param1, delegate*<out object, void> param2)
     {
         delegate*<in object, void> ptr1 = param1;
         delegate*<object, void> ptr2 = param1;
         delegate*<ref string, void> ptr3 = param1;
+        delegate*<out object, void> ptr4 = param1;
+        delegate*<in object, void> ptr5 = param2;
+        delegate*<object, void> ptr6 = param2;
+        delegate*<ref object, void> ptr7 = param2;
+        delegate*<out string, void> ptr8 = param2;
     }
 }");
 
@@ -635,7 +647,22 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref object,void>", "delegate*<object,void>").WithLocation(7, 40),
                 // (8,44): error CS0266: Cannot implicitly convert type 'delegate*<ref object,void>' to 'delegate*<ref string,void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate*<ref string, void> ptr3 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref object,void>", "delegate*<ref string,void>").WithLocation(8, 44)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref object,void>", "delegate*<ref string,void>").WithLocation(8, 44),
+                // (9,44): error CS0266: Cannot implicitly convert type 'delegate*<ref object,void>' to 'delegate*<out object,void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<out object, void> ptr4 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref object,void>", "delegate*<out object,void>").WithLocation(9, 44),
+                // (10,43): error CS0266: Cannot implicitly convert type 'delegate*<out object,void>' to 'delegate*<in object,void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<in object, void> ptr5 = param2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<out object,void>", "delegate*<in object,void>").WithLocation(10, 43),
+                // (11,40): error CS0266: Cannot implicitly convert type 'delegate*<out object,void>' to 'delegate*<object,void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<object, void> ptr6 = param2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<out object,void>", "delegate*<object,void>").WithLocation(11, 40),
+                // (12,44): error CS0266: Cannot implicitly convert type 'delegate*<out object,void>' to 'delegate*<ref object,void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<ref object, void> ptr7 = param2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<out object,void>", "delegate*<ref object,void>").WithLocation(12, 44),
+                // (13,44): error CS0266: Cannot implicitly convert type 'delegate*<out object,void>' to 'delegate*<out string,void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<out string, void> ptr8 = param2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<out object,void>", "delegate*<out string,void>").WithLocation(13, 44)
             );
         }
 
@@ -1917,6 +1944,54 @@ unsafe class C
                 //         ptr.ToString();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToString").WithArguments("delegate*<void>", "ToString").WithLocation(6, 13)
             );
+        }
+
+        [Fact]
+        public void ArglistCannotBeUsedWithFunctionPointers()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    static void M(delegate*<string, int, void> ptr1, delegate*<__arglist, void> ptr2)
+    {
+        ptr1(__arglist(string.Empty, 1), 1);
+        ptr1(null, __arglist(string.Empty, 1));
+        ptr1(null, 1, __arglist(string.Empty, 1));
+        ptr2(__arglist(1, 2, 3, ptr1));
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (4,64): error CS1031: Type expected
+                //     static void M(delegate*<string, int, void> ptr1, delegate*<__arglist, void> ptr2)
+                Diagnostic(ErrorCode.ERR_TypeExpected, "__arglist").WithLocation(4, 64),
+                // (4,64): error CS1003: Syntax error, ',' expected
+                //     static void M(delegate*<string, int, void> ptr1, delegate*<__arglist, void> ptr2)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "__arglist").WithArguments(",", "__arglist").WithLocation(4, 64),
+                // (6,14): error CS1503: Argument 1: cannot convert from '__arglist' to 'string'
+                //         ptr1(__arglist(string.Empty, 1), 1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(string.Empty, 1)").WithArguments("1", "__arglist", "string").WithLocation(6, 14),
+                // (7,20): error CS1503: Argument 2: cannot convert from '__arglist' to 'int'
+                //         ptr1(null, __arglist(string.Empty, 1));
+                Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(string.Empty, 1)").WithArguments("2", "__arglist", "int").WithLocation(7, 20),
+                // (8,9): error CS8756: Function pointer 'delegate*<string,int,void>' does not take 3 arguments
+                //         ptr1(null, 1, __arglist(string.Empty, 1));
+                Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, "ptr1(null, 1, __arglist(string.Empty, 1))").WithArguments("delegate*<string,int,void>", "3").WithLocation(8, 9),
+                // (9,14): error CS1503: Argument 1: cannot convert from '__arglist' to '?'
+                //         ptr2(__arglist(1, 2, 3, ptr1));
+                Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(1, 2, 3, ptr1)").WithArguments("1", "__arglist", "?").WithLocation(9, 14)
+            );
+
+            var m = comp.GetTypeByMetadataName("C").GetMethod("M");
+
+            Assert.Equal(2, m.ParameterCount);
+
+            var type = (FunctionPointerTypeSymbol)m.Parameters[1].Type;
+            VerifyFunctionPointerSymbol(type, CallingConvention.Default,
+                (RefKind.None, IsVoidType()),
+                (RefKind.None, IsErrorType()));
+
+            Assert.False(type.Signature.IsVararg);
         }
     }
 }
