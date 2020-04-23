@@ -23,10 +23,11 @@ namespace Microsoft.CodeAnalysis
             var workspace = solution.Workspace;
             var service = workspace.Services.GetService<IDocumentNavigationService>();
 
-            var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview);
-            options = options.WithChangedOption(NavigationOptions.ActivateProvisionalTab, activatePreview);
+            var navigationOptions = solution.Options
+                .WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview)
+                .WithChangedOption(NavigationOptions.ActivateProvisionalTab, activatePreview);
 
-            return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options);
+            return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, navigationOptions);
         }
 
         public static async Task<bool> IsHiddenAsync(
