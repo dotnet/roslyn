@@ -51,17 +51,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             string projectSystemName,
             IVsHierarchy hierarchy,
             IServiceProvider serviceProvider,
-            IThreadingContext threadingContext,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
-            ICommandLineParserService commandLineParserServiceOpt)
+            IThreadingContext threadingContext)
             : base(projectSystemName,
                    hierarchy,
                    LanguageNames.CSharp,
                    serviceProvider,
                    threadingContext,
-                   externalErrorReportingPrefix: "CS",
-                   hostDiagnosticUpdateSourceOpt: hostDiagnosticUpdateSourceOpt,
-                   commandLineParserServiceOpt: commandLineParserServiceOpt)
+                   externalErrorReportingPrefix: "CS")
         {
             _projectRoot = projectRoot;
             _serviceProvider = serviceProvider;

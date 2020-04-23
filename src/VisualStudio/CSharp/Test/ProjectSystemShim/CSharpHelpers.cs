@@ -39,9 +39,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 projectSystemName: projectName,
                 hierarchy: hierarchy,
                 serviceProvider: environment.ServiceProvider,
-                threadingContext: environment.ThreadingContext,
-                hostDiagnosticUpdateSourceOpt: null,
-                commandLineParserServiceOpt: new CSharpCommandLineParserService());
+                threadingContext: environment.ThreadingContext);
         }
 
         public static CPSProject CreateCSharpCPSProject(TestEnvironment environment, string projectName, params string[] commandLineArguments)

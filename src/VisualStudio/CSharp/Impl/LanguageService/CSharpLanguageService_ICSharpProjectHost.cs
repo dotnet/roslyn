@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
@@ -23,10 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 projectRoot,
                 projectName,
                 hierarchy,
-                this.SystemServiceProvider,
-                this.Package.ComponentModel.GetService<IThreadingContext>(),
-                this.HostDiagnosticUpdateSource,
-                this.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ICommandLineParserService>());
+                SystemServiceProvider,
+                Package.ComponentModel.GetService<IThreadingContext>());
 
             projectRoot.SetProjectSite(project);
         }
