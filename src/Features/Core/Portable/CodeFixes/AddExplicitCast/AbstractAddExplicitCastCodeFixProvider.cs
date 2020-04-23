@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         }
 
         /// <summary>
-        /// Check whether the invocation expression with new arguments is applicatble.
+        /// Check whether the invocation expression with new arguments is applicable.
         /// </summary>
         /// <param name="oldArgumentList" >old argumentList node</param>
         /// <param name="newArguments"> new arguments that are cast by corresponding parameter types</param>
