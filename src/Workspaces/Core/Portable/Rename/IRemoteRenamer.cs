@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -262,7 +263,8 @@ namespace Microsoft.CodeAnalysis.Rename
 
     internal class SerializableConflictResolution
     {
-        //   public readonly Solution NewSolution;
+        public string ErrorMessage;
+
         public bool ReplacementTextValid;
 
         public (DocumentId documentId, string newName) RenamedDocument;
@@ -276,6 +278,9 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public async Task<ConflictResolution> RehydrateAsync(Solution oldSolution, CancellationToken cancellationToken)
         {
+            if (ErrorMessage != null)
+                return new ConflictResolution(ErrorMessage);
+
             return new ConflictResolution(
                 oldSolution,
                 await CreateNewSolutionAsync(oldSolution, cancellationToken).ConfigureAwait(false),
@@ -298,6 +303,27 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             return currentSolution;
+        }
+    }
+
+    internal partial struct ConflictResolution
+    {
+        public async Task<SerializableConflictResolution> DehydrateAsync(CancellationToken cancellationToken)
+        {
+            if (ErrorMessage != null)
+                return new SerializableConflictResolution { ErrorMessage = ErrorMessage };
+
+            return new SerializableConflictResolution
+            {
+                ReplacementTextValid = ReplacementTextValid,
+                RenamedDocument = _renamedDocument,
+                DocumentIds = DocumentIds,
+                RelatedLocations = RelatedLocations.SelectAsArray(loc => SerializableRelatedLocation.Dehydrate(loc)),
+                DocumentToTextChanges = await GetDocumentToTextChangesAsync(cancellationToken).ConfigureAwait(false),
+                DocumentToModifiedSpansMap = _documentToModifiedSpansMap.SelectAsArray(kvp => (kvp.Key, kvp.Value)),
+                DocumentToComplexifiedSpansMap = _documentToComplexifiedSpansMap.SelectAsArray(kvp => (kvp.Key, kvp.Value.SelectAsArray(s => SerializableComplexifiedSpan.Dehydrate(s)))),
+                DocumentToRelatedLocationsMap = _documentToRelatedLocationsMap.SelectAsArray(kvp => (kvp.Key, kvp.Value.SelectAsArray(s => SerializableRelatedLocation.Dehydrate(s)))),
+            };
         }
     }
 }

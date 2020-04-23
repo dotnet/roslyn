@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
-    internal readonly struct ConflictResolution
+    internal readonly partial struct ConflictResolution
     {
         public readonly string ErrorMessage;
 
@@ -73,21 +73,6 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 return newSolution;
             }
-        }
-
-        public async Task<SerializableConflictResolution> DehydrateAsync(CancellationToken cancellationToken)
-        {
-            return new SerializableConflictResolution
-            {
-                ReplacementTextValid = ReplacementTextValid,
-                RenamedDocument = _renamedDocument,
-                DocumentIds = DocumentIds,
-                RelatedLocations = RelatedLocations.SelectAsArray(loc => SerializableRelatedLocation.Dehydrate(loc)),
-                DocumentToTextChanges = await GetDocumentToTextChangesAsync(cancellationToken).ConfigureAwait(false),
-                DocumentToModifiedSpansMap = _documentToModifiedSpansMap.SelectAsArray(kvp => (kvp.Key, kvp.Value)),
-                DocumentToComplexifiedSpansMap = _documentToComplexifiedSpansMap.SelectAsArray(kvp => (kvp.Key, kvp.Value.SelectAsArray(s => SerializableComplexifiedSpan.Dehydrate(s)))),
-                DocumentToRelatedLocationsMap = _documentToRelatedLocationsMap.SelectAsArray(kvp => (kvp.Key, kvp.Value.SelectAsArray(s => SerializableRelatedLocation.Dehydrate(s)))),
-            };
         }
 
         private async Task<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>> GetDocumentToTextChangesAsync(CancellationToken cancellationToken)
