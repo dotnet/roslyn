@@ -93,6 +93,19 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRecursivePattern()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int P { get; }
+
+    void M(C test)
+    {
+        if (test is { P: 1 } $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInsideSubpattern()
         {
             await VerifyKeywordAsync(
