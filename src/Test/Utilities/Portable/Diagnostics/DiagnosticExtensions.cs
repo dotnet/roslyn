@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis
 
             var analyzerManager = new AnalyzerManager(analyzersArray);
             var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, analyzerManager, onAnalyzerException,
-                analyzerExceptionFilter: null, reportAnalyzer: false, filteredSeverities: ImmutableHashSet<ReportDiagnostic>.Empty, out var newCompilation, cancellationToken);
+                analyzerExceptionFilter: null, reportAnalyzer: false, severityFilter: default, out var newCompilation, cancellationToken);
 
             var compilerDiagnostics = newCompilation.GetDiagnostics(cancellationToken);
             var analyzerDiagnostics = driver.GetDiagnosticsAsync(newCompilation).Result;

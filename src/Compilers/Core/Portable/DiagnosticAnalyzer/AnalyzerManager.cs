@@ -289,11 +289,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CompilationOptions options,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerExecutor analyzerExecutor,
-            ImmutableHashSet<ReportDiagnostic> filteredSeverities)
+            SeverityFilter severityFilter)
         {
-            Debug.Assert(!filteredSeverities.Contains(ReportDiagnostic.Suppress));
-            Debug.Assert(!filteredSeverities.Contains(ReportDiagnostic.Default));
-
             if (isCompilerAnalyzer(analyzer))
             {
                 // Compiler analyzer must always be executed for compiler errors, which cannot be suppressed or filtered.
@@ -333,14 +330,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 // Is this diagnostic suppressed due to its severity
-                if (filteredSeverities.Contains(severity))
+                if (severityFilter.Contains(severity))
                 {
                     isSuppressed = true;
                 }
 
                 // Editorconfig user settings override compilation wide settings.
                 if (isSuppressed &&
-                    isEnabledWithAnalyzerConfigOptions(diag, filteredSeverities, analyzerExecutor.Compilation, analyzerExecutor.AnalyzerOptions))
+                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, analyzerExecutor.Compilation, analyzerExecutor.AnalyzerOptions))
                 {
                     isSuppressed = false;
                 }
@@ -366,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             static bool isEnabledWithAnalyzerConfigOptions(
                 DiagnosticDescriptor descriptor,
-                ImmutableHashSet<ReportDiagnostic> filteredSeverities,
+                SeverityFilter severityFilter,
                 Compilation? compilation,
                 AnalyzerOptions? analyzerOptions)
             {
@@ -377,14 +374,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
                         if (tree.DiagnosticOptions.TryGetValue(descriptor.Id, out var configuredValue))
                         {
-                            if (isEnablingSeverity(configuredValue, filteredSeverities))
+                            if (isEnablingSeverity(configuredValue, severityFilter))
                             {
                                 return true;
                             }
                         }
-                        else if (!filteredSeverities.IsEmpty &&
+                        else if (!severityFilter.IsEmpty &&
                             analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, out var bulkConfiguredValue) &&
-                            isEnablingSeverity(bulkConfiguredValue, filteredSeverities))
+                            isEnablingSeverity(bulkConfiguredValue, severityFilter))
                         {
                             return true;
                         }
@@ -393,8 +390,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 return false;
 
-                static bool isEnablingSeverity(ReportDiagnostic severity, ImmutableHashSet<ReportDiagnostic> filteredSeverities)
-                    => severity != ReportDiagnostic.Suppress && !filteredSeverities.Contains(severity);
+                static bool isEnablingSeverity(ReportDiagnostic severity, SeverityFilter severityFilter)
+                    => severity != ReportDiagnostic.Suppress && !severityFilter.Contains(severity);
             }
         }
 
