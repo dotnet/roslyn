@@ -26782,6 +26782,38 @@ class Program
             }
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43621")]
+        [WorkItem(43621, "https://github.com/dotnet/roslyn/issues/43621")]
+        public void CustomFields_05()
+        {
+            var source0 = @"
+using System;
+
+namespace System
+{
+    public class C
+    {
+        public unsafe static void Main()
+        {
+            var s = new ValueTuple();
+            int* p = s.MessageType;
+            s.MessageType[0] = 12;
+            p[1] = p[0];
+            Console.WriteLine(s.MessageType[1]);
+        }
+    }
+
+    public unsafe struct ValueTuple
+    {
+        public fixed int MessageType[50];
+    }
+}
+";
+
+            var comp1 = CreateCompilation(source0, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp1, expectedOutput: "12");
+        }
+
         [Fact]
         [WorkItem(41702, "https://github.com/dotnet/roslyn/issues/41702")]
         public void TupleUnderlyingType_FromCSharp()
