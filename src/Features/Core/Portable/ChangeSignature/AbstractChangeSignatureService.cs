@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// </summary>
         public abstract SyntaxNode? FindNodeToUpdate(Document document, SyntaxNode node);
 
-        public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvokeAsync(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, Document document, CancellationToken cancellationToken);
+        public abstract Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsFromDelegateInvokeAsync(
+            IMethodSymbol symbol, Document document, CancellationToken cancellationToken);
 
         public abstract Task<SyntaxNode> ChangeSignatureAsync(
             Document document,
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindChangeSignatureReferencesAsync(
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             Solution solution,
             CancellationToken cancellationToken)
         {
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     FindReferencesSearchOptions.Default,
                     cancellationToken);
 
-                await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
+                await engine.FindReferencesAsync(symbol).ConfigureAwait(false);
                 return streamingProgress.GetReferencedSymbols();
             }
         }
@@ -265,8 +265,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var hasLocationsInMetadata = false;
 
             var symbols = FindChangeSignatureReferencesAsync(
-                SymbolAndProjectId.Create(declaredSymbol, context.Document.Project.Id),
-                context.Solution, cancellationToken).WaitAndGetResult(cancellationToken);
+                declaredSymbol, context.Solution, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var declaredSymbolParametersCount = declaredSymbol.GetParameters().Length;
 

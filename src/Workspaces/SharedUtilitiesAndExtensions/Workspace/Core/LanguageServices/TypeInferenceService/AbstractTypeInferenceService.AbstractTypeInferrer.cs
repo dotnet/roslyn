@@ -117,6 +117,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
+
+            protected static bool IsEnumHasFlag(ISymbol symbol)
+            {
+                return symbol.Name == nameof(Enum.HasFlag) &&
+                       symbol.ContainingType?.SpecialType == SpecialType.System_Enum;
+            }
         }
     }
 }

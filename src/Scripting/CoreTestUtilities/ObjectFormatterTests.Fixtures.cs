@@ -8,6 +8,7 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace ObjectFormatterFixtures
@@ -50,6 +51,12 @@ namespace ObjectFormatterFixtures
         public readonly uint aE = 1;
         public readonly long aF = -1;
         public readonly ulong AG = 1;
+    }
+
+    internal class Signatures
+    {
+        public static readonly MethodInfo Arrays = typeof(Signatures).GetMethod(nameof(ArrayParameters));
+        public void ArrayParameters(int[] arrayOne, int[,] arrayTwo, int[,,] arrayThree) { }
     }
 
     internal class RecursiveRootHidden

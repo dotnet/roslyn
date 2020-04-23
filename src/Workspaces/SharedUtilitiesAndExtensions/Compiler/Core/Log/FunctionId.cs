@@ -480,6 +480,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         ToolsOptions_GenerateEditorconfig = 385,
 
-        ChangeSignature_Data = 386,
+        Renamer_RenameSymbolAsync = 386,
+        Renamer_FindRenameLocationsAsync = 386,
+
+        ChangeSignature_Data = 387,
     }
 }

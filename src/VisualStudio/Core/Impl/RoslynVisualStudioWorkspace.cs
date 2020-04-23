@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject,
+                searchSymbol, searchProject.Solution,
                 _streamingPresenter.Value, cancellationToken);
         }
 

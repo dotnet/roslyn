@@ -1660,5 +1660,52 @@ public class Repro
     }
 }");
         }
+
+        [WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task TestVolatileField1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class TestClass
+{
+    private volatile object [|first|]; 
+}",
+@"class TestClass
+{
+    private readonly object first; 
+}");
+        }
+
+        [WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task TestVolatileField2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class TestClass
+{
+    private volatile object [|first|], second; 
+}",
+@"class TestClass
+{
+    private readonly object first;
+    private volatile object second;
+}");
+        }
+
+        [WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task TestVolatileField3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class TestClass
+{
+    private volatile object first, [|second|]; 
+}",
+@"class TestClass
+{
+    private volatile object first;
+    private readonly object second;
+}");
+        }
     }
 }
