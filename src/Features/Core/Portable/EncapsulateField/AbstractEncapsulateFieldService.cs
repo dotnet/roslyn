@@ -283,9 +283,10 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var initialLocations = await Renamer.FindRenameLocationsAsync(
                 solution, field, RenameOptionSet.From(solution), cancellationToken).ConfigureAwait(false);
 
-            return await Renamer.RenameAsync(
-                initialLocations.Filter(filter), finalName,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+            var resolution = await initialLocations.Filter(filter).ResolveConflictsAsync(
+                finalName, cancellationToken: cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfTrue(resolution.ErrorMessage != null);
+            return resolution.NewSolution;
         }
 
         private bool IntersectsWithAny(Location location, ISet<Location> constructorLocations)

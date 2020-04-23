@@ -126,14 +126,16 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // To address this, we let rename know that there is no conflict if the new symbol it resolves to is the
             // same as the property we're trying to get the references pointing to.
 
-            var updatedSolution = await Renamer.RenameAsync(
+            var filteredLocations =
                 fieldLocations.Filter(
                     location => !location.IntersectsWith(declaratorLocation) &&
-                                CanEditDocument(solution, location.SourceTree, linkedFiles, canEdit)),
+                                CanEditDocument(solution, location.SourceTree, linkedFiles, canEdit));
+            var resolution = await filteredLocations.ResolveConflictsAsync(
                 propertySymbol.Name,
                 nonConflictSymbols: ImmutableHashSet.Create<ISymbol>(propertySymbol),
                 cancellationToken).ConfigureAwait(false);
-
+            Contract.ThrowIfTrue(resolution.ErrorMessage != null);
+            var updatedSolution = resolution.NewSolution;
             solution = updatedSolution;
 
             // Now find the field and property again post rename.
