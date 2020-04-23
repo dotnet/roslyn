@@ -190,11 +190,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (type?.TypeKind == TypeKind.Interface)
             {
                 bool metadataTypeMatches(SymbolSet s, INamedTypeSymbol t)
-                    => TypeDerivesFrom(s, t, transitive) || TypeImplementsFrom(s, t, transitive);
+                    => TypeHasBaseTypeInSet(s, t, transitive) || TypesHasInterfaceInSet(s, t, transitive);
+
+                bool sourceTypeImmediatelyMatches(SymbolSet s, INamedTypeSymbol t)
+                    => TypeHasBaseTypeInSet(s, t, transitive: false) || TypesHasInterfaceInSet(s, t, transitive: false);
 
                 return FindTypesAsync(type, solution, projects,
                     metadataTypeMatches: metadataTypeMatches,
-                    sourceTypeImmediatelyMatches: ImmediatelyDerivesOrImplementsFrom,
+                    sourceTypeImmediatelyMatches: sourceTypeImmediatelyMatches,
                     shouldContinueSearching: s_isInterfaceOrNonSealedClass,
                     transitive: transitive,
                     cancellationToken: cancellationToken);
@@ -572,14 +575,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static bool TypeDerivesFrom(
-            SymbolSet metadataTypes, INamedTypeSymbol type, bool transitive)
+        private static bool TypeHasBaseTypeInSet(
+            SymbolSet set, INamedTypeSymbol type, bool transitive)
         {
             if (transitive)
             {
                 for (var current = type.BaseType; current != null; current = current.BaseType)
                 {
-                    if (metadataTypes.Contains(current.OriginalDefinition))
+                    if (set.Contains(current.OriginalDefinition))
                     {
                         return true;
                     }
@@ -589,18 +592,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             else
             {
-                return metadataTypes.Contains(type.BaseType?.OriginalDefinition);
+                return set.Contains(type.BaseType?.OriginalDefinition);
             }
         }
 
-        private static bool TypeImplementsFrom(
-            SymbolSet metadataTypes, INamedTypeSymbol type, bool transitive)
+        private static bool TypesHasInterfaceInSet(
+            SymbolSet set, INamedTypeSymbol type, bool transitive)
         {
             var interfaces = transitive ? type.AllInterfaces : type.Interfaces;
 
             foreach (var interfaceType in interfaces)
             {
-                if (metadataTypes.Contains(interfaceType.OriginalDefinition))
+                if (set.Contains(interfaceType.OriginalDefinition))
                 {
                     return true;
                 }
@@ -690,25 +693,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             s_setPool.ClearAndFree(localBuffer);
-        }
-
-        private static bool ImmediatelyDerivesOrImplementsFrom(
-            SymbolSet typesToSearchFor, INamedTypeSymbol type)
-        {
-            if (typesToSearchFor.Contains(type.BaseType?.OriginalDefinition))
-            {
-                return true;
-            }
-
-            foreach (var interfaceType in type.Interfaces)
-            {
-                if (typesToSearchFor.Contains(interfaceType.OriginalDefinition))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private static async Task AddTypesThatDeriveFromNameAsync(
