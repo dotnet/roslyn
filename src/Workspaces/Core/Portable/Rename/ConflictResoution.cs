@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Rename
             }
         }
 
-        private async Task<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>> GetDocumentToTextChangesAsync(CancellationToken cancellationToken)
+        private async Task<(DocumentId, ImmutableArray<TextChange>)[]> GetDocumentToTextChangesAsync(CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<(DocumentId, ImmutableArray<TextChange>)>.GetInstance(out var builder);
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToArray();
         }
 
         public ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)> GetComplexifiedSpans(DocumentId documentId)
