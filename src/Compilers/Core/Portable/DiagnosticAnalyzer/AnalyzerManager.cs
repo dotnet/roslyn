@@ -372,26 +372,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     foreach (var tree in compilation.SyntaxTrees)
                     {
                         // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
-                        if (tree.DiagnosticOptions.TryGetValue(descriptor.Id, out var configuredValue))
+                        if (tree.DiagnosticOptions.TryGetValue(descriptor.Id, out var configuredValue) ||
+                            analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, out configuredValue))
                         {
-                            if (isEnablingSeverity(configuredValue, severityFilter))
+                            if (configuredValue != ReportDiagnostic.Suppress && !severityFilter.Contains(configuredValue))
                             {
                                 return true;
                             }
-                        }
-                        else if (!severityFilter.IsEmpty &&
-                            analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, out var bulkConfiguredValue) &&
-                            isEnablingSeverity(bulkConfiguredValue, severityFilter))
-                        {
-                            return true;
                         }
                     }
                 }
 
                 return false;
-
-                static bool isEnablingSeverity(ReportDiagnostic severity, SeverityFilter severityFilter)
-                    => severity != ReportDiagnostic.Suppress && !severityFilter.Contains(severity);
             }
         }
 
