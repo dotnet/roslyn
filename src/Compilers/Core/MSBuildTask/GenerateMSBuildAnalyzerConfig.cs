@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                        .AppendLine(prop.GetMetadata("Value")); //TODO: do we need to encode/escape this?
             }
 
-            // group the metadata items by their itemspec
-            var groupedItems = MetadataItems.GroupBy(i => i.ItemSpec);
+            // group the metadata items by their full path
+            var groupedItems = MetadataItems.GroupBy(i => i.GetMetadata("FullPath"));
 
             foreach (var group in groupedItems)
             {

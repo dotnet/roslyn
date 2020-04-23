@@ -6,7 +6,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
@@ -198,5 +200,58 @@ msbuild_item.AdditionalFiles.ToRetrieve = ghi789
 ", result);
         }
 
+        [Fact]
+        public void ItemIsNotFullyQualifiedPath()
+        {
+            TaskItem item1 = new TaskItem("file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+            TaskItem item2 = new TaskItem("..\\file2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+            TaskItem item3 = new TaskItem("someDir\\otherDir\\thirdDir\\..\\file3.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+
+            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            {
+                MetadataItems = new[] { item1, item2, item3 }
+            };
+            configTask.Execute();
+
+            string executingLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+            var result = configTask.ConfigFileContents;
+
+            Assert.Equal($@"is_global = true
+
+[{Path.GetFullPath("file1.cs")}]
+msbuild_item.Compile.ToRetrieve = abc123
+
+[{Path.GetFullPath("..\\file2.cs")}]
+msbuild_item.Compile.ToRetrieve = abc123
+
+[{Path.GetFullPath("someDir\\otherDir\\thirdDir\\..\\file3.cs")}]
+msbuild_item.Compile.ToRetrieve = abc123
+", result);
+        }
+
+        [Fact]
+        public void ItemsWithDifferentRelativeButSameFullPathAreCombined()
+        {
+            TaskItem item1 = new TaskItem("file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+            TaskItem item2 = new TaskItem("someDir\\..\\file1.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
+
+            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            {
+                MetadataItems = new[] { item1, item2 }
+            };
+            configTask.Execute();
+
+            string executingLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+            var result = configTask.ConfigFileContents;
+
+            Assert.Equal($@"is_global = true
+
+[{Path.GetFullPath("file1.cs")}]
+msbuild_item.Compile.ToRetrieve = abc123
+msbuild_item.AdditionalFile.ToRetrieve = def456
+", result);
+        }
     }
 }

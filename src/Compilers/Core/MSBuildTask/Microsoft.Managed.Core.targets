@@ -94,7 +94,17 @@
 
   <Target Name="GenerateMSBuildAnalyzerConfigFile"
           BeforeTargets="BeforeCompile;CoreCompile"
-          DependsOnTargets="PrepareForBuild;CoreGenerateAssemblyInfo"
+          DependsOnTargets="PrepareForBuild;GenerateMSBuildAnalyzerConfigFileShouldRun;GenerateMSBuildAnalyzerConfigFileCore"
+          Condition="'$(Language)'=='VB' or '$(Language)'=='C#'" />
+
+  <Target Name="GenerateMSBuildAnalyzerConfigFileShouldRun">
+    <PropertyGroup>
+      <_GeneratedAnalyzerConfigHasItems Condition="'@(AnalyzerItemMetadata->Count())' != '0'">true</_GeneratedAnalyzerConfigHasItems>
+      <_GeneratedAnalyzerConfigShouldRun Condition="'$(GenerateMSBuildAnalyzerConfigFile)' == 'true' and ('$(_GeneratedAnalyzerConfigHasItems)' == 'true' or '@(AnalyzerProperty->Count())' != '0')">true</_GeneratedAnalyzerConfigShouldRun>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="GenerateMSBuildAnalyzerConfigFileCore"
           Condition="'$(_GeneratedAnalyzerConfigShouldRun)' == 'true'"
           Outputs="$(GeneratedMSBuildAnalyzerConfigFile)">
 
@@ -105,13 +115,10 @@
       </_GeneratedAnalyzerConfigProperty>
 
       <!-- Collect the requested items and remember which metadata is wanted -->
-      <_GeneratedAnalyzerConfigItem Include="@(%(AnalyzerItemMetadata.Identity))" Condition="'$(_GeneratedAnalyzerConfigHasItems)' == 'true'">
+      <_GeneratedAnalyzerConfigMetadata Include="@(%(AnalyzerItemMetadata.Identity))" Condition="'$(_GeneratedAnalyzerConfigHasItems)' == 'true'">
         <ItemType>%(Identity)</ItemType>
         <MetadataName>%(MetadataName)</MetadataName>
-      </_GeneratedAnalyzerConfigItem>
-
-      <!-- Transform the collected items into their full path -->
-      <_GeneratedAnalyzerConfigMetadata Include="@(_GeneratedAnalyzerConfigItem->'%(FullPath)')" />
+      </_GeneratedAnalyzerConfigMetadata>
 
       <!-- Record that we'll write a file, and add it to the editorconfig inputs -->
       <FileWrites Include="$(GeneratedMSBuildAnalyzerConfigFile)" />
