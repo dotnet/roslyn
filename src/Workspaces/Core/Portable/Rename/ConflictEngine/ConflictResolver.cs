@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             CancellationToken cancellationToken)
         {
             {
-                var renameRewriterService = conflictResolution.NewSolution.Workspace.Services.GetLanguageServices(renamedSymbol.Language).GetService<IRenameRewriterLanguageService>();
+                var renameRewriterService = conflictResolution.CurrentSolution.Workspace.Services.GetLanguageServices(renamedSymbol.Language).GetService<IRenameRewriterLanguageService>();
                 var implicitUsageConflicts = renameRewriterService.ComputePossibleImplicitUsageConflicts(renamedSymbol, semanticModel, originalDeclarationLocation, newDeclarationLocationStartingPosition, cancellationToken);
                 foreach (var implicitUsageConflict in implicitUsageConflicts)
                 {
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             try
             {
-                var project = conflictResolution.NewSolution.GetProject(renamedSymbol.ContainingAssembly, cancellationToken);
+                var project = conflictResolution.CurrentSolution.GetProject(renamedSymbol.ContainingAssembly, cancellationToken);
 
                 if (renamedSymbol.ContainingSymbol.IsKind(SymbolKind.NamedType))
                 {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         renameSymbol,
                         referencedSymbols,
                         conflictResolution.OldSolution,
-                        conflictResolution.NewSolution,
+                        conflictResolution.CurrentSolution,
                         reverseMappedLocations,
                         cancellationToken).ConfigureAwait(false);
 

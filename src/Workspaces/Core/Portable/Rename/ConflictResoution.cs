@@ -12,8 +12,12 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     internal readonly struct ConflictResolution
     {
+        private readonly Solution _newSolutionWithoutRenamedDocument;
+        private readonly DocumentId _renamedDocumentId;
+        private readonly string _renamedDocumentNewName;
+
         public readonly Solution OldSolution;
-        public readonly Solution NewSolution;
+
         public readonly bool ReplacementTextValid;
 
         /// <summary>
@@ -28,20 +32,41 @@ namespace Microsoft.CodeAnalysis.Rename
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> _documentToRelatedLocationsMap;
 
         public ConflictResolution(
-            Solution oldSolution, Solution newSolution, bool replacementTextValid,
+            Solution oldSolution,
+            Solution newSolutionWithoutRenamedDocument,
+            bool replacementTextValid,
+            DocumentId renamedDocumentId,
+            string renamedDocumentNewName,
             ImmutableArray<DocumentId> documentIds, ImmutableArray<RelatedLocation> relatedLocations,
             ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>> documentToModifiedSpansMap,
             ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> documentToComplexifiedSpansMap,
             ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> documentToRelatedLocationsMap)
         {
             OldSolution = oldSolution;
-            NewSolution = newSolution;
+            _newSolutionWithoutRenamedDocument = newSolutionWithoutRenamedDocument;
             ReplacementTextValid = replacementTextValid;
+            _renamedDocumentId = renamedDocumentId;
+            _renamedDocumentNewName = renamedDocumentNewName;
             DocumentIds = documentIds;
             RelatedLocations = relatedLocations;
             _documentToModifiedSpansMap = documentToModifiedSpansMap;
             _documentToComplexifiedSpansMap = documentToComplexifiedSpansMap;
             _documentToRelatedLocationsMap = documentToRelatedLocationsMap;
+        }
+
+        /// <summary>
+        /// The final solution snapshot
+        /// </summary>
+        public Solution NewSolution
+        {
+            get
+            {
+                var newSolution = _newSolutionWithoutRenamedDocument;
+                if (_renamedDocumentId != null)
+                    newSolution = newSolution.WithDocumentName(_renamedDocumentId, _renamedDocumentNewName);
+
+                return newSolution;
+            }
         }
 
         public ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)> GetComplexifiedSpans(DocumentId documentId)

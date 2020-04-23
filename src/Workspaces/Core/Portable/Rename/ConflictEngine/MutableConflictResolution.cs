@@ -43,9 +43,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         public readonly string ReplacementText;
 
         /// <summary>
-        /// The new workspace snapshot
+        /// The solution snapshot as it is being updated with specific rename steps.
         /// </summary>
-        public Solution NewSolution { get; private set; }
+        public Solution CurrentSolution { get; private set; }
+
+        private DocumentId _renamedDocumentId;
+        private string _renamedDocumentNewName;
 
         public MutableConflictResolution(
             Solution oldSolution,
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             bool replacementTextValid)
         {
             OldSolution = oldSolution;
-            NewSolution = oldSolution;
+            CurrentSolution = oldSolution;
             _renamedSpansTracker = renamedSpansTracker;
             ReplacementText = replacementText;
             ReplacementTextValid = replacementTextValid;
@@ -68,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         internal void UpdateCurrentSolution(Solution solution)
-            => NewSolution = solution;
+            => CurrentSolution = solution;
 
         internal async Task<Solution> RemoveAllRenameAnnotationsAsync(
             Solution intermediateSolution,
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 if (_renamedSpansTracker.IsDocumentChanged(documentId))
                 {
-                    var document = NewSolution.GetDocument(documentId);
+                    var document = CurrentSolution.GetDocument(documentId);
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                     // For the computeReplacementToken and computeReplacementNode functions, use 
@@ -105,7 +108,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             var extension = Path.GetExtension(document.Name);
             var newName = Path.ChangeExtension(ReplacementText, extension);
 
-            NewSolution = NewSolution.WithDocumentName(document.Id, newName);
+            _renamedDocumentId = document.Id;
+            _renamedDocumentNewName = newName;
         }
 
         public int GetAdjustedTokenStartingPosition(int startingPosition, DocumentId documentId)
@@ -137,8 +141,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             return new ConflictResolution(
                 OldSolution,
-                NewSolution,
+                CurrentSolution,
                 ReplacementTextValid,
+                _renamedDocumentId,
+                _renamedDocumentNewName,
                 documentIds,
                 relatedLocations,
                 documentToModifiedSpansMap,
