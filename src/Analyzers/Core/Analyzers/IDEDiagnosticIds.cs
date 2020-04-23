@@ -130,6 +130,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string SimplifyConditionalExpressionDiagnosticId = "IDE0075";
 
+        public const string UsePatternCombinatorsDiagnosticId = "IDE0076";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
