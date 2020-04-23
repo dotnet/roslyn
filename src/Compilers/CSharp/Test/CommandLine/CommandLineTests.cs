@@ -12108,6 +12108,42 @@ generated_code = auto");
             // warning CS8602: Dereference of a possibly null reference.
             Assert.Contains("warning CS8602", output, StringComparison.Ordinal);
         }
+
+        [WorkItem(42166, "https://github.com/dotnet/roslyn/issues/42166")]
+        [CombinatorialData, Theory]
+        public void TestAnalyzerFilteringBasedOnSeverity(DiagnosticSeverity defaultSeverity, bool errorlog)
+        {
+            // This test verifies that analyzer execution is skipped at build time for the following:
+            //   1. Analyzer reporting Hidden diagnostics
+            //   2. Analyzer reporting Info diagnostics, when /errorlog is not specified
+            var analyzerShouldBeSkipped = defaultSeverity == DiagnosticSeverity.Hidden ||
+                defaultSeverity == DiagnosticSeverity.Info && !errorlog;
+
+            // We use an analyzer that throws an exception on every analyzer callback.
+            // So an AD0001 analyzer exeption diagnostic is reported if analyzer executed, otherwise not.
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: true);
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
+            var args = new[] { "/nologo", "/t:library", "/preferreduilang:en", src.Path };
+            if (errorlog)
+                args = args.Append("/errorlog:errorlog");
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, args, analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            if (analyzerShouldBeSkipped)
+            {
+                Assert.Empty(output);
+            }
+            else
+            {
+                Assert.Contains("warning AD0001: Analyzer 'Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+NamedTypeAnalyzerWithConfigurableEnabledByDefault' threw an exception of type 'System.NotImplementedException'",
+                    output, StringComparison.Ordinal);
+            }
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]

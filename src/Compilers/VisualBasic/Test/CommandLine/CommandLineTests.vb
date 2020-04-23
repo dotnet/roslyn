@@ -9905,6 +9905,41 @@ End Class"
             Dim binaryPath As String = Path.Combine(dir.Path, "temp.dll")
             Assert.True(IO.File.Exists(binaryPath) = Not warnAsError)
         End Sub
+
+        <WorkItem(42166, "https://github.com/dotnet/roslyn/issues/42166")>
+        <CombinatorialData, Theory>
+        Public Sub TestAnalyzerFilteringBasedOnSeverity(ByVal defaultSeverity As DiagnosticSeverity, ByVal errorlog As Boolean)
+            ' This test verifies that analyzer execution is skipped at build time for the following:
+            '   1. Analyzer reporting Hidden diagnostics
+            '   2. Analyzer reporting Info diagnostics, when /errorlog is not specified
+            Dim analyzerShouldBeSkipped = defaultSeverity = DiagnosticSeverity.Hidden OrElse
+                defaultSeverity = DiagnosticSeverity.Info AndAlso Not errorlog
+
+            ' We use an analyzer that throws an exception on every analyzer callback.
+            ' So an AD0001 analyzer exeption diagnostic is reported if analyzer executed, otherwise not.
+            Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault:=True, defaultSeverity, throwOnAllNamedTypes:=True)
+
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+End Class")
+            Dim args = {"/nologo", "/t:library", "/preferreduilang:en", src.Path}
+            If errorlog Then
+                args = args.Append("/errorlog:errorlog")
+            End If
+
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, args, analyzer)
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            Dim output = outWriter.ToString()
+
+            If analyzerShouldBeSkipped Then
+                Assert.Empty(output)
+            Else
+                Assert.Contains("warning AD0001: Analyzer 'Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+NamedTypeAnalyzerWithConfigurableEnabledByDefault' threw an exception of type 'System.NotImplementedException'", output, StringComparison.Ordinal)
+            End If
+        End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
