@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// </summary>
         public Solution CurrentSolution { get; private set; }
 
-        private DocumentId _renamedDocumentId;
-        private string _renamedDocumentNewName;
+        private (DocumentId documentId, string newName) _renamedDocument;
 
         public MutableConflictResolution(
             Solution oldSolution,
@@ -108,8 +107,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             var extension = Path.GetExtension(document.Name);
             var newName = Path.ChangeExtension(ReplacementText, extension);
 
-            _renamedDocumentId = document.Id;
-            _renamedDocumentNewName = newName;
+            _renamedDocument = (document.Id, newName);
         }
 
         public int GetAdjustedTokenStartingPosition(int startingPosition, DocumentId documentId)
@@ -143,8 +141,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 OldSolution,
                 CurrentSolution,
                 ReplacementTextValid,
-                _renamedDocumentId,
-                _renamedDocumentNewName,
+                _renamedDocument,
                 documentIds,
                 relatedLocations,
                 documentToModifiedSpansMap,

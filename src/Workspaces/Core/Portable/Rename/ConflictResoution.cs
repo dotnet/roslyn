@@ -13,8 +13,7 @@ namespace Microsoft.CodeAnalysis.Rename
     internal readonly struct ConflictResolution
     {
         private readonly Solution _newSolutionWithoutRenamedDocument;
-        private readonly DocumentId _renamedDocumentId;
-        private readonly string _renamedDocumentNewName;
+        private readonly (DocumentId documentId, string newName) _renamedDocument;
 
         public readonly Solution OldSolution;
 
@@ -35,8 +34,7 @@ namespace Microsoft.CodeAnalysis.Rename
             Solution oldSolution,
             Solution newSolutionWithoutRenamedDocument,
             bool replacementTextValid,
-            DocumentId renamedDocumentId,
-            string renamedDocumentNewName,
+            (DocumentId documentId, string newName) renamedDocument,
             ImmutableArray<DocumentId> documentIds, ImmutableArray<RelatedLocation> relatedLocations,
             ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>> documentToModifiedSpansMap,
             ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> documentToComplexifiedSpansMap,
@@ -45,8 +43,7 @@ namespace Microsoft.CodeAnalysis.Rename
             OldSolution = oldSolution;
             _newSolutionWithoutRenamedDocument = newSolutionWithoutRenamedDocument;
             ReplacementTextValid = replacementTextValid;
-            _renamedDocumentId = renamedDocumentId;
-            _renamedDocumentNewName = renamedDocumentNewName;
+            _renamedDocument = renamedDocument;
             DocumentIds = documentIds;
             RelatedLocations = relatedLocations;
             _documentToModifiedSpansMap = documentToModifiedSpansMap;
@@ -62,8 +59,8 @@ namespace Microsoft.CodeAnalysis.Rename
             get
             {
                 var newSolution = _newSolutionWithoutRenamedDocument;
-                if (_renamedDocumentId != null)
-                    newSolution = newSolution.WithDocumentName(_renamedDocumentId, _renamedDocumentNewName);
+                if (_renamedDocument.documentId != null)
+                    newSolution = newSolution.WithDocumentName(_renamedDocument.documentId, _renamedDocument.newName);
 
                 return newSolution;
             }
