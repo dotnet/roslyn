@@ -50,7 +50,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 workspaceXml As XElement,
                 renameTo As String,
                 host As TestHost,
-                Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
+                Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
+                Optional expectFailure As Boolean = False) As RenameEngineResult
             Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml)
             workspace.SetTestLogger(AddressOf helper.WriteLine)
 
@@ -83,8 +84,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 Dim result = GetConflictResolution(renameTo, workspace.CurrentSolution, symbol, optionSet, host)
 
-                If result.ErrorMessage IsNot Nothing Then
-                    Throw New ArgumentException(result.ErrorMessage)
+                If expectFailure Then
+                    Assert.NotNull(result.ErrorMessage)
+                    Return engineResult
+                Else
+                    Assert.Null(result.ErrorMessage)
                 End If
 
                 engineResult = New RenameEngineResult(workspace, result, renameTo)

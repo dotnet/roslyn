@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public readonly Solution OldSolution;
 
+        /// <summary>
+        /// The final solution snapshot.  Including any renamed documents.
+        /// </summary>
+        public readonly Solution NewSolution;
+
         public readonly bool ReplacementTextValid;
 
         /// <summary>
@@ -58,21 +63,10 @@ namespace Microsoft.CodeAnalysis.Rename
             _documentToModifiedSpansMap = documentToModifiedSpansMap;
             _documentToComplexifiedSpansMap = documentToComplexifiedSpansMap;
             _documentToRelatedLocationsMap = documentToRelatedLocationsMap;
-        }
 
-        /// <summary>
-        /// The final solution snapshot
-        /// </summary>
-        public Solution NewSolution
-        {
-            get
-            {
-                var newSolution = _newSolutionWithoutRenamedDocument;
-                if (_renamedDocument.documentId != null)
-                    newSolution = newSolution.WithDocumentName(_renamedDocument.documentId, _renamedDocument.newName);
-
-                return newSolution;
-            }
+            NewSolution = _renamedDocument.documentId == null
+                ? _newSolutionWithoutRenamedDocument
+                : _newSolutionWithoutRenamedDocument.WithDocumentName(_renamedDocument.documentId, _renamedDocument.newName);
         }
 
         private async Task<(DocumentId, ImmutableArray<TextChange>)[]> GetDocumentToTextChangesAsync(CancellationToken cancellationToken)

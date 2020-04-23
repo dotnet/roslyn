@@ -31,15 +31,15 @@ namespace Microsoft.CodeAnalysis.Rename
             if (string.IsNullOrEmpty(newName))
                 throw new ArgumentException(nameof(newName));
 
-            var result = await RenameSymbolAsync(
+            var resolution = await RenameSymbolAsync(
                 solution, symbol, newName,
                 RenameOptionSet.From(solution, optionSet),
                 nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
 
-            if (result.ErrorMessage != null)
-                throw new ArgumentException(result.ErrorMessage);
+            if (resolution.ErrorMessage != null)
+                throw new ArgumentException(resolution.ErrorMessage);
 
-            return result.NewSolution;
+            return resolution.NewSolution;
         }
 
         internal static Task<RenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, RenameOptionSet optionSet, CancellationToken cancellationToken)
