@@ -51,11 +51,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
         private static readonly Func<Location, bool> s_isInSource = loc => loc.IsInSource;
 
+        private static readonly Func<INamedTypeSymbol, bool> s_isInterface =
+            t => t?.TypeKind == TypeKind.Interface;
+
         private static readonly Func<INamedTypeSymbol, bool> s_isNonSealedClass =
             t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
 
         private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass =
-            t => t.TypeKind == TypeKind.Interface || s_isNonSealedClass(t);
+            t => s_isInterface(t) || s_isNonSealedClass(t);
 
         private static readonly ObjectPool<SymbolSet> s_setPool = new ObjectPool<SymbolSet>(
             () => new SymbolSet(SymbolEquivalenceComparer.Instance));
@@ -70,6 +73,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static readonly RelatedTypeCache s_typeToImmediatelyDerivedClassesMap = new RelatedTypeCache();
         private static readonly RelatedTypeCache s_typeToTransitivelyDerivedClassesMap = new RelatedTypeCache();
+
+        private static readonly RelatedTypeCache s_typeToImmediatelyDerivedInterfacesMap = new RelatedTypeCache();
+        private static readonly RelatedTypeCache s_typeToTransitivelyDerivedInterfacesMap = new RelatedTypeCache();
 
         private static readonly RelatedTypeCache s_typeToImmediatelyImplementingStructuresAndClassesMap = new RelatedTypeCache();
         private static readonly RelatedTypeCache s_typeToTransitivelyImplementingStructuresAndClassesMap = new RelatedTypeCache();
@@ -201,7 +207,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (type?.TypeKind == TypeKind.Interface)
             {
                 static bool typeMatches(SymbolSet s, INamedTypeSymbol t, bool transitive)
-                    => TypeHasBaseTypeInSet(s, t, transitive) || TypesHasInterfaceInSet(s, t, transitive);
+                    => TypeHasBaseTypeInSet(s, t, transitive) || TypeHasInterfaceInSet(s, t, transitive);
 
                 return FindTypesAsync(type, solution, projects,
                     typeMatches: typeMatches,
@@ -600,7 +606,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static bool TypesHasInterfaceInSet(
+        private static bool TypeHasInterfaceInSet(
             SymbolSet set, INamedTypeSymbol type, bool transitive)
         {
             var interfaces = transitive ? type.AllInterfaces : type.Interfaces;

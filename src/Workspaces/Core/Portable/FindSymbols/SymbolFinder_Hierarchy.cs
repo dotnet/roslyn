@@ -223,6 +223,52 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
+        /// Finds all the derived interfaces of the given interface.
+        /// </summary>
+        /// <param name="type">The symbol to find derived types of.</param>
+        /// <param name="solution">The solution to search in.</param>
+        /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
+        /// <returns>The derived interfaces of the symbol. The symbol passed in is not included in this list.</returns>
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedInterfacesAsync(
+            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            if (solution == null)
+                throw new ArgumentNullException(nameof(solution));
+
+            if (solution.GetOriginatingProjectId(type) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
+
+            return await DependentTypeFinder.FindAndCacheDerivedInterfacesAsync(
+                type, solution, projects, transitive: true, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Finds the immediate derived interfaces of the given interfaces.
+        /// </summary>
+        /// <param name="type">The symbol to find derived types of.</param>
+        /// <param name="solution">The solution to search in.</param>
+        /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
+        /// <returns>The derived interfaces of the symbol. The symbol passed in is not included in this list.</returns>
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindImmediateDerivedInterfacesAsync(
+            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            if (solution == null)
+                throw new ArgumentNullException(nameof(solution));
+
+            if (solution.GetOriginatingProjectId(type) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
+
+            return await DependentTypeFinder.FindAndCacheDerivedInterfacesAsync(
+                type, solution, projects, transitive: false, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Finds all the accessible symbols that implement an interface or interface member.  For an <see
         /// cref="INamedTypeSymbol"/> this will be both immediate and transitive implementations.
         /// </summary>

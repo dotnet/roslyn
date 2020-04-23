@@ -13,8 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class DependentTypeFinderTests : ServicesTestBase
     {
-        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        [Fact]
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CSharp()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
@@ -50,6 +49,46 @@ namespace M
 
             // verify that the dependent types of `N.BaseClass` correctly resolve to `M.DerivedCLass`
             var derivedFromBase = await SymbolFinder.FindImmediateDerivedClassesAsync(baseClassSymbol, solution);
+            var derivedDependentType = derivedFromBase.Single();
+            Assert.Equal(derivedClassSymbol, derivedDependentType);
+        }
+
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        public async Task ImmediatelyDerivedInterfaces_CSharp()
+        {
+            var solution = new AdhocWorkspace().CurrentSolution;
+
+            // create portable assembly with an abstract base class
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
+namespace N
+{
+    public interface BaseInterface { }
+}
+", MscorlibRefPortable);
+
+            var portableProject = GetPortableProject(solution);
+
+            // create a normal assembly with a type derived from the portable abstract base
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
+using N;
+namespace M
+{
+    public interface DerivedInterface : BaseInterface { }
+}
+", MscorlibRef, portableProject.Id);
+
+            // get symbols for types
+            var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
+            var baseClassSymbol = portableCompilation.GetTypeByMetadataName("N.BaseInterface");
+
+            var normalCompilation = await solution.Projects.Single(p => p.Name == "NormalProject").GetCompilationAsync();
+            var derivedClassSymbol = normalCompilation.GetTypeByMetadataName("M.DerivedInterface");
+
+            // verify that the symbols are different (due to retargeting)
+            Assert.NotEqual(baseClassSymbol, derivedClassSymbol.Interfaces[0]);
+
+            // verify that the dependent types of `N.BaseClass` correctly resolve to `M.DerivedCLass`
+            var derivedFromBase = await SymbolFinder.FindImmediateDerivedInterfacesAsync(baseClassSymbol, solution);
             var derivedDependentType = derivedFromBase.Single();
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
@@ -103,8 +142,7 @@ namespace M
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        [Fact]
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CSharp_PortableProfile7()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
@@ -144,8 +182,7 @@ namespace M
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        [Fact]
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_VisualBasic()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
@@ -186,8 +223,7 @@ End Namespace
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        [Fact]
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CrossLanguage()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
@@ -228,9 +264,8 @@ End Namespace
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        [Fact]
-        public async Task ImmediatelyDerivedInterfaces_CSharp()
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        public async Task ImmediatelyDerivedAndImplementingInterfaces_CSharp()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
 
@@ -269,8 +304,7 @@ namespace M
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
 
-        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        [Fact]
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedInterfaces_VisualBasic()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
@@ -311,9 +345,8 @@ End Namespace
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
 
-        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        [Fact]
-        public async Task ImmediatelyDerivedInterfaces_CrossLanguage()
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        public async Task ImmediatelyDerivedAndImplementingInterfaces_CrossLanguage()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
 
