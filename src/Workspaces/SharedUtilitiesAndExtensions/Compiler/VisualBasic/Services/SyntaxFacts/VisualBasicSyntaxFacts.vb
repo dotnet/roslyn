@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function IsDeclarationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeclarationExpression
-            ' VB doesn't support declaration declaration
+            ' VB doesn't support declaration expressions
             Return False
         End Function
 
