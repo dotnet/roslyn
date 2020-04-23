@@ -168,7 +168,6 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CurrentLineText("namespace Goo$$", assertCaretPosition: true);
 
             ClearEditor();
-            Assert.False(VisualStudio.Editor.IsCompletionActive());
             VisualStudio.Editor.SetUseSuggestionMode(true);
 
             VisualStudio.Editor.SendKeys("nam");
