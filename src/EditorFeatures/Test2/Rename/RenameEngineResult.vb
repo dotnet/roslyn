@@ -84,6 +84,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     workspace.CurrentSolution, symbol, optionSet, CancellationToken.None).Result
 
                 Dim result = locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).GetAwaiter().GetResult()
+                If result.ErrorMessage IsNot Nothing Then
+                    Throw New ArgumentException(result.ErrorMessage)
+                End If
 
                 engineResult = New RenameEngineResult(workspace, result, renameTo)
                 engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()

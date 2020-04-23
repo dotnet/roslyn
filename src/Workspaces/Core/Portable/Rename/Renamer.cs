@@ -50,10 +50,13 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var conflictResolution = await locations.ResolveConflictsAsync(
+            var resolution = await locations.ResolveConflictsAsync(
                 newName, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
 
-            return conflictResolution.NewSolution;
+            if (resolution.ErrorMessage != null)
+                throw new ArgumentException(resolution.ErrorMessage);
+
+            return resolution.NewSolution;
         }
 
         internal static async Task<Solution> RenameSymbolAsync(

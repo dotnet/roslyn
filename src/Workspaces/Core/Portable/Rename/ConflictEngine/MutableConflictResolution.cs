@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     /// </summary>
     internal sealed class MutableConflictResolution
     {
+        public readonly string ErrorMessage;
+
         // Used to map spans from oldSolution to the newSolution
         private readonly RenamedSpansTracker _renamedSpansTracker;
 
@@ -48,6 +50,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         public Solution CurrentSolution { get; private set; }
 
         private (DocumentId documentId, string newName) _renamedDocument;
+
+        public MutableConflictResolution(string errorMessage)
+            => ErrorMessage = errorMessage;
 
         public MutableConflictResolution(
             Solution oldSolution,
@@ -127,6 +132,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         public ConflictResolution ToConflictResolution()
         {
+            if (ErrorMessage != null)
+                return new ConflictResolution(ErrorMessage);
+
             var documentIds = this._renamedSpansTracker.DocumentIds.Concat(
                 this.RelatedLocations.Select(l => l.DocumentId)).Distinct().ToImmutableArray();
 
