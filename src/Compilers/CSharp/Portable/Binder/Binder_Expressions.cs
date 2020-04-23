@@ -6628,7 +6628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!hasError && fieldSymbol.IsFixedSizeBuffer && !IsInsideNameof)
             {
                 // SPEC: In a member access of the form E.I, if E is of a struct type and a member lookup of I in
-                // that struct type identifies a fixed size member, then E.I is evaluated an classified as follows:
+                // that struct type identifies a fixed size member, then E.I is evaluated and classified as follows:
                 // * If the expression E.I does not occur in an unsafe context, a compile-time error occurs.
                 // * If E is classified as a value, a compile-time error occurs.
                 // * Otherwise, if E is a moveable variable and the expression E.I is not a fixed_pointer_initializer,

@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public LanguageServerClient(
             IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,
-            [ImportMany]IEnumerable<Lazy<IOptionPersister>> lazyOptions)
+            [ImportMany] IEnumerable<Lazy<IOptionPersister>> lazyOptions)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;

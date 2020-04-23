@@ -693,7 +693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Select Case context
                             Case VarianceContext.ByVal
                                 ' "Type '|1' cannot be used as a ByVal parameter type because '|1' is an 'Out' type parameter."
-                                Debug.Assert(inappropriateOut, "unexpected: an variance error in ByVal must be due to an inappropriate out")
+                                Debug.Assert(inappropriateOut, "unexpected: a variance error in ByVal must be due to an inappropriate out")
                                 AppendVarianceDiagnosticInfo(diagnostics, ErrorFactory.ErrorInfo(ERRID.ERR_VarianceOutByValDisallowed1, type.Name))
 
                             Case VarianceContext.ByRef
@@ -2717,7 +2717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If TypeKind = TypeKind.Submission Then
 
-                ' Only add an constructor if it is not shared OR if there are shared initializers
+                ' Only add a constructor if it is not shared OR if there are shared initializers
                 If Not isShared OrElse Me.AnyInitializerToBeInjectedIntoConstructor(initializers, False) Then
 
                     ' a submission can only have a single declaration:

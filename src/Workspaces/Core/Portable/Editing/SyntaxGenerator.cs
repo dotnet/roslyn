@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxTrivia Whitespace(string text);
         internal abstract SyntaxTrivia SingleLineComment(string text);
 
+        internal abstract SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim);
+        internal abstract SyntaxToken CreateInterpolatedStringEndToken();
+
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
@@ -2168,21 +2171,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         internal abstract SyntaxNode ParseExpression(string stringToParse);
 
-        internal abstract SyntaxToken CommaTokenWithElasticSpace();
-
         internal abstract SyntaxTrivia Trivia(SyntaxNode node);
 
         internal abstract SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString);
-
-        internal abstract bool IsNamedArgument(SyntaxNode syntaxNode);
-
-        internal abstract bool IsWhitespaceTrivia(SyntaxTrivia trivia);
-
-        internal abstract bool IsDocumentationCommentTriviaSyntax(SyntaxNode node);
-
-        internal abstract bool IsParameterNameXmlElementSyntax(SyntaxNode node);
-
-        internal abstract SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
 
         internal abstract SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content);
 

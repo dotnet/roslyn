@@ -23,14 +23,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in context.InputNodes)
                 {
-                    var symbol = graphBuilder.GetSymbolAndProjectId(node);
-                    if (symbol.Symbol != null)
+                    var symbol = graphBuilder.GetSymbol(node);
+                    if (symbol != null)
                     {
                         var callers = await SymbolFinder.FindCallersAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
                         foreach (var caller in callers.Where(c => c.IsDirect))
                         {
-                            var callerNode = await graphBuilder.AddNodeAsync(caller.CallingSymbolAndProjectId, relatedNode: node).ConfigureAwait(false);
+                            var callerNode = await graphBuilder.AddNodeAsync(caller.CallingSymbol, relatedNode: node).ConfigureAwait(false);
                             graphBuilder.AddLink(callerNode, CodeLinkCategories.Calls, node);
                         }
                     }
