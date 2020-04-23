@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public static async Task<RenameDocumentActionSet> RenameDocumentNameAsync(
             Document document,
             string newDocumentName,
-            OptionSet optionSet,
+            OptionSet optionSet = null,
             CancellationToken cancellationToken = default)
         {
             if (document == null)
@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 actions.AddIfNotNull(renameAction);
             }
+
+            optionSet ??= document.Project.Solution.Options;
 
             return new RenameDocumentActionSet(
                 actions.ToImmutable(),
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public static Task<RenameDocumentActionSet> RenameDocumentFoldersAsync(
             Document document,
             IReadOnlyList<string> newFolders,
-            OptionSet optionSet,
+            OptionSet optionSet = null,
             CancellationToken cancellationToken = default)
         {
             if (document == null)
@@ -107,6 +109,8 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 actions.AddIfNotNull(action);
             }
+
+            optionSet ??= document.Project.Solution.Options;
 
             // Analysis is not currently async, but may need to be in the future as we do more work to determine the
             // correct namespace. Keep the public API async even if it's not required for now
