@@ -3,8 +3,8 @@
   <file datatype="xml" source-language="en" target-language="ko" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
       <trans-unit id="CreateTestAccessorDescription">
-        <source>This is a refactoring which simplifies the process of creating test accessors using the TestAccessor pattern</source>
-        <target state="translated">TestAccessor 패턴을 사용하여 테스트 접근자를 만드는 프로세스를 간소화하는 리팩터링입니다.</target>
+        <source>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</source>
+        <target state="needs-review-translation">TestAccessor 패턴을 사용하여 테스트 접근자를 만드는 프로세스를 간소화하는 리팩터링입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorMessage">
@@ -18,8 +18,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
-        <source>Defaultable types should have defaultable fields</source>
-        <target state="translated">기본값 설정 가능 형식에는 기본값 설정 가능 필드가 있어야 합니다.</target>
+        <source>Defaultable types should have defaultable fields.</source>
+        <target state="needs-review-translation">기본값 설정 가능 형식에는 기본값 설정 가능 필드가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
@@ -33,23 +33,23 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorDescription">
-        <source>GetTestAccessor() is a helper method reserved for testing. Production code must not call this member.</source>
-        <target state="translated">GetTestAccessor()는 테스트용으로 예약된 도우미 메서드입니다. 프로덕션 코드는 이 멤버를 호출해서는 안 됩니다.</target>
+        <source>'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.</source>
+        <target state="needs-review-translation">GetTestAccessor()는 테스트용으로 예약된 도우미 메서드입니다. 프로덕션 코드는 이 멤버를 호출해서는 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorMessage">
-        <source>Do not call GetTestAccessor() from production code</source>
-        <target state="translated">프로덕션 코드에서 GetTestAccessor()를 호출하지 마세요.</target>
+        <source>Do not call 'GetTestAccessor()' from production code</source>
+        <target state="needs-review-translation">프로덕션 코드에서 GetTestAccessor()를 호출하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorTitle">
-        <source>Do not call GetTestAccessor()</source>
-        <target state="translated">GetTestAccessor() 호출 금지</target>
+        <source>Do not call 'GetTestAccessor()'</source>
+        <target state="needs-review-translation">GetTestAccessor() 호출 금지</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperDescription">
-        <source>Avoid nullable wrapper</source>
-        <target state="new">Avoid nullable wrapper</target>
+        <source>Avoid nullable wrapper.</source>
+        <target state="new">Avoid nullable wrapper.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperMessage">
@@ -58,8 +58,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueDescription">
-        <source>Do not copy value</source>
-        <target state="new">Do not copy value</target>
+        <source>Do not copy value.</source>
+        <target state="new">Do not copy value.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueMessage">
@@ -93,8 +93,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueUnsupportedUseDescription">
-        <source>Unsupported use of non-copyable type</source>
-        <target state="new">Unsupported use of non-copyable type</target>
+        <source>Unsupported use of non-copyable type.</source>
+        <target state="new">Unsupported use of non-copyable type.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueUnsupportedUseMessage">
@@ -118,8 +118,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
-        <source>Exported parts should have [ImportingConstructor]</source>
-        <target state="translated">내보낸 파트에는 [ImportingConstructor]가 있어야 합니다.</target>
+        <source>Exported parts should be marked with 'ImportingConstructorAttribute'.</source>
+        <target state="needs-review-translation">내보낸 파트에는 [ImportingConstructor]가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
@@ -128,13 +128,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
-        <source>Exported parts should have [ImportingConstructor]</source>
-        <target state="translated">내보낸 파트에는 [ImportingConstructor]가 있어야 함</target>
+        <source>Exported parts should be marked with 'ImportingConstructorAttribute'</source>
+        <target state="needs-review-translation">내보낸 파트에는 [ImportingConstructor]가 있어야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingDescription">
-        <source>Expose member for testing</source>
-        <target state="translated">테스트용 멤버 노출</target>
+        <source>Expose member for testing.</source>
+        <target state="needs-review-translation">테스트용 멤버 노출</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingMessage">
@@ -153,43 +153,43 @@
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
-        <source>Set ObsoleteAttribute.Error to true</source>
-        <target state="translated">ObsoleteAttribute.Error를 true로 설정</target>
+        <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
+        <target state="needs-review-translation">ObsoleteAttribute.Error를 true로 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription">
-        <source>Use correct ObsoleteAttribute message</source>
-        <target state="translated">올바른 ObsoleteAttribute 메시지 사용</target>
+        <source>Use correct 'ObsoleteAttribute' message.</source>
+        <target state="needs-review-translation">올바른 ObsoleteAttribute 메시지 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute">
-        <source>Add ObsoleteAttribute</source>
-        <target state="translated">ObsoleteAttribute 추가</target>
+        <source>Add 'ObsoleteAttribute'</source>
+        <target state="needs-review-translation">ObsoleteAttribute 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription">
-        <source>Configure ObsoleteAttribute for importing constructor</source>
-        <target state="translated">가져오기 생성자에 대해 ObsoleteAttribute 구성</target>
+        <source>Configure 'ObsoleteAttribute' for importing constructor.</source>
+        <target state="needs-review-translation">가져오기 생성자에 대해 ObsoleteAttribute 구성</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingError">
-        <source>Set ObsoleteAttribute.Error to true</source>
-        <target state="translated">ObsoleteAttribute.Error를 true로 설정</target>
+        <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
+        <target state="needs-review-translation">ObsoleteAttribute.Error를 true로 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
-        <source>Importing constructor should be [Obsolete]</source>
-        <target state="translated">가져오기 생성자는 [Obsolete]여야 합니다.</target>
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'.</source>
+        <target state="needs-review-translation">가져오기 생성자는 [Obsolete]여야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteMessage">
-        <source>Importing constructor should be [Obsolete]</source>
-        <target state="translated">가져오기 생성자는 [Obsolete]여야 합니다.</target>
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
+        <target state="needs-review-translation">가져오기 생성자는 [Obsolete]여야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
-        <source>Importing constructor should be [Obsolete]</source>
-        <target state="translated">가져오기 생성자는 [Obsolete]여야 함</target>
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
+        <target state="needs-review-translation">가져오기 생성자는 [Obsolete]여야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
@@ -213,23 +213,23 @@
         <note />
       </trans-unit>
       <trans-unit id="RelaxTestNamingSuppressorJustification">
-        <source>Asynchronous test methods do not require the 'Async' suffix.</source>
-        <target state="translated">비동기 테스트 메서드에는 'Async' 접미사가 필요하지 않습니다.</target>
+        <source>Asynchronous test methods do not require the 'Async' suffix</source>
+        <target state="needs-review-translation">비동기 테스트 메서드에는 'Async' 접미사가 필요하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
-        <source>Apply PartNotDiscoverableAttribute</source>
-        <target state="translated">PartNotDiscoverableAttribute 적용</target>
+        <source>Apply 'PartNotDiscoverableAttribute'</source>
+        <target state="needs-review-translation">PartNotDiscoverableAttribute 적용</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
-        <source>Test exports should not be discoverable</source>
-        <target state="translated">테스트 내보내기는 검색 가능해서는 안 됩니다.</target>
+        <source>Test exports should not be discoverable.</source>
+        <target state="needs-review-translation">테스트 내보내기는 검색 가능해서는 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
-        <source>'{0}' is exported for test purposes and should be marked PartNotDiscoverable</source>
-        <target state="translated">'{0}'은(는) 테스트용으로 내보냈으며 PartNotDiscoverable로 표시되어야 합니다.</target>
+        <source>'{0}' is exported for test purposes and should be marked with 'PartNotDiscoverableAttribute'</source>
+        <target state="needs-review-translation">'{0}'은(는) 테스트용으로 내보냈으며 PartNotDiscoverable로 표시되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">
@@ -238,8 +238,8 @@
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
-        <source>Use SpecializedCollections.EmptyEnumerable()</source>
-        <target state="translated">SpecializedCollections.EmptyEnumerable()을 사용하세요.</target>
+        <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
+        <target state="needs-review-translation">SpecializedCollections.EmptyEnumerable()을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableDescription">
@@ -248,13 +248,13 @@
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableMessage">
-        <source>Use SpecializedCollections.EmptyEnumerable()</source>
-        <target state="translated">SpecializedCollections.EmptyEnumerable()을 사용하세요.</target>
+        <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
+        <target state="needs-review-translation">SpecializedCollections.EmptyEnumerable()을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableTitle">
-        <source>Use SpecializedCollections.SingletonEnumerable()</source>
-        <target state="translated">SpecializedCollections.SingletonEnumerable()을 사용하세요.</target>
+        <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
+        <target state="needs-review-translation">SpecializedCollections.SingletonEnumerable()을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableDescription">
@@ -263,13 +263,13 @@
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableMessage">
-        <source>Use SpecializedCollections.SingletonEnumerable()</source>
-        <target state="translated">SpecializedCollections.SingletonEnumerable()을 사용하세요.</target>
+        <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
+        <target state="needs-review-translation">SpecializedCollections.SingletonEnumerable()을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
-        <source>Invoke the correct property to ensure correct use site diagnostics.</source>
-        <target state="translated">올바른 속성을 호출하여 사이트 진단을 올바르게 사용하는지 확인하세요.</target>
+        <source>Invoke the correct property to ensure correct use site diagnostics</source>
+        <target state="needs-review-translation">올바른 속성을 호출하여 사이트 진단을 올바르게 사용하는지 확인하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
@@ -278,13 +278,13 @@
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
-        <source>Invoke the correct property to ensure correct use site diagnostics.</source>
-        <target state="translated">올바른 속성을 호출하여 사이트 진단을 올바르게 사용하는지 확인하세요.</target>
+        <source>Invoke the correct property to ensure correct use site diagnostics</source>
+        <target state="needs-review-translation">올바른 속성을 호출하여 사이트 진단을 올바르게 사용하는지 확인하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
-        <source>Do not use generic CodeAction.Create to create CodeAction</source>
-        <target state="translated">제네릭 CodeAction.Create를 사용하여 CodeAction을 만들지 마세요.</target>
+        <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
+        <target state="needs-review-translation">제네릭 CodeAction.Create를 사용하여 CodeAction을 만들지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionDescription">
@@ -293,13 +293,13 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionMessage">
-        <source>Do not use generic CodeAction.Create to create CodeAction</source>
-        <target state="translated">제네릭 CodeAction.Create를 사용하여 CodeAction을 만들지 마세요.</target>
+        <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
+        <target state="needs-review-translation">제네릭 CodeAction.Create를 사용하여 CodeAction을 만들지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
-        <source>Override Object.Equals(object) when implementing Iequatable</source>
-        <target state="translated">IEquatable을 구현할 때 Object.Equals(개체)를 재정의하세요.</target>
+        <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
+        <target state="needs-review-translation">IEquatable을 구현할 때 Object.Equals(개체)를 재정의하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
@@ -308,18 +308,18 @@
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
-        <source>Override Object.Equals(object) when implementing Iequatable</source>
-        <target state="translated">IEquatable을 구현할 때 Object.Equals(개체)를 재정의하세요.</target>
+        <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
+        <target state="needs-review-translation">IEquatable을 구현할 때 Object.Equals(개체)를 재정의하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
-        <source>Do not invoke Diagnostic.Descriptor</source>
-        <target state="translated">Diagnostic.Descriptor를 호출하지 마세요.</target>
+        <source>Do not invoke 'Diagnostic.Descriptor'</source>
+        <target state="needs-review-translation">Diagnostic.Descriptor를 호출하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
-        <source>Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.</source>
-        <target state="translated">컴파일러 레이어에서 진단의 설명자 속성에 액세스하면 명령줄 컴파일에서 사용되지 않는 설명자의 필드에 대해 불필요한 문자열 할당이 발생합니다. 따라서 여기에서 컴파일러 진단의 설명자에 액세스하지 않아야 합니다. 대신 이 진단 형식의 속성에 직접 액세스해야 합니다.</target>
+        <source>Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.</source>
+        <target state="needs-review-translation">컴파일러 레이어에서 진단의 설명자 속성에 액세스하면 명령줄 컴파일에서 사용되지 않는 설명자의 필드에 대해 불필요한 문자열 할당이 발생합니다. 따라서 여기에서 컴파일러 진단의 설명자에 액세스하지 않아야 합니다. 대신 이 진단 형식의 속성에 직접 액세스해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
@@ -328,8 +328,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
-        <source>SymbolDeclaredEvent must be generated for source symbols</source>
-        <target state="translated">SymbolDeclaredEvent는 소스 기호에 대해 생성되어야 합니다.</target>
+        <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
+        <target state="needs-review-translation">SymbolDeclaredEvent는 소스 기호에 대해 생성되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription">
@@ -338,8 +338,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage">
-        <source>SymbolDeclaredEvent must be generated for source symbols</source>
-        <target state="translated">SymbolDeclaredEvent는 소스 기호에 대해 생성되어야 합니다.</target>
+        <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
+        <target state="needs-review-translation">SymbolDeclaredEvent는 소스 기호에 대해 생성되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFTitle">
@@ -348,8 +348,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFDescription">
-        <source>Do not mix attributes from different versions of MEF</source>
-        <target state="translated">다른 버전의 MEF 특성을 조합하지 마세요.</target>
+        <source>Do not mix attributes from different versions of MEF.</source>
+        <target state="needs-review-translation">다른 버전의 MEF 특성을 조합하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFMessage">
@@ -358,18 +358,18 @@
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle">
-        <source>Parts exported with MEFv2 must be marked as Shared</source>
-        <target state="translated">MEFv2를 통해 내보낸 파트는 Shared로 표시되어야 합니다.</target>
+        <source>Parts exported with MEFv2 must be marked with 'SharedAttribute'</source>
+        <target state="needs-review-translation">MEFv2를 통해 내보낸 파트는 Shared로 표시되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription">
-        <source>Part exported with MEFv2 must be marked with the Shared attribute.</source>
-        <target state="translated">MEFv2를 통해 내보낸 파트는 Shared 특성으로 표시되어야 합니다.</target>
+        <source>Part exported with MEFv2 must be marked with the 'SharedAttribute'.</source>
+        <target state="needs-review-translation">MEFv2를 통해 내보낸 파트는 Shared 특성으로 표시되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
-        <source>'{0}' is exported with MEFv2 and hence must be marked as Shared</source>
-        <target state="translated">'{0}'을(를) MEFv2를 통해 내보냈으므로 Shared로 표시해야 합니다.</target>
+        <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
+        <target state="needs-review-translation">'{0}'을(를) MEFv2를 통해 내보냈으므로 Shared로 표시해야 합니다.</target>
         <note />
       </trans-unit>
     </body>

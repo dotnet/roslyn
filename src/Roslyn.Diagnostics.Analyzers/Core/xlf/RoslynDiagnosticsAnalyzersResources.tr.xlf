@@ -3,8 +3,8 @@
   <file datatype="xml" source-language="en" target-language="tr" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
       <trans-unit id="CreateTestAccessorDescription">
-        <source>This is a refactoring which simplifies the process of creating test accessors using the TestAccessor pattern</source>
-        <target state="translated">Bu, TestAccessor desenini kullanarak test erişimcileri oluşturma işlemini basitleştiren bir yeniden düzenlemedir</target>
+        <source>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</source>
+        <target state="needs-review-translation">Bu, TestAccessor desenini kullanarak test erişimcileri oluşturma işlemini basitleştiren bir yeniden düzenlemedir</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorMessage">
@@ -18,8 +18,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
-        <source>Defaultable types should have defaultable fields</source>
-        <target state="translated">Varsayılan değer atanabilir türler varsayılan değer atanabilir alanlara sahip olmalıdır</target>
+        <source>Defaultable types should have defaultable fields.</source>
+        <target state="needs-review-translation">Varsayılan değer atanabilir türler varsayılan değer atanabilir alanlara sahip olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
@@ -33,23 +33,23 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorDescription">
-        <source>GetTestAccessor() is a helper method reserved for testing. Production code must not call this member.</source>
-        <target state="translated">GetTestAccessor(), test için ayrılmış bir yardımcı metottur. Üretim kodu bu üyeyi çağırmamalıdır.</target>
+        <source>'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.</source>
+        <target state="needs-review-translation">GetTestAccessor(), test için ayrılmış bir yardımcı metottur. Üretim kodu bu üyeyi çağırmamalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorMessage">
-        <source>Do not call GetTestAccessor() from production code</source>
-        <target state="translated">Üretim kodundan GetTestAccessor() metodunu çağırma</target>
+        <source>Do not call 'GetTestAccessor()' from production code</source>
+        <target state="needs-review-translation">Üretim kodundan GetTestAccessor() metodunu çağırma</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorTitle">
-        <source>Do not call GetTestAccessor()</source>
-        <target state="translated">GetTestAccessor() metodunu çağırma</target>
+        <source>Do not call 'GetTestAccessor()'</source>
+        <target state="needs-review-translation">GetTestAccessor() metodunu çağırma</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperDescription">
-        <source>Avoid nullable wrapper</source>
-        <target state="new">Avoid nullable wrapper</target>
+        <source>Avoid nullable wrapper.</source>
+        <target state="new">Avoid nullable wrapper.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperMessage">
@@ -58,8 +58,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueDescription">
-        <source>Do not copy value</source>
-        <target state="new">Do not copy value</target>
+        <source>Do not copy value.</source>
+        <target state="new">Do not copy value.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueMessage">
@@ -93,8 +93,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueUnsupportedUseDescription">
-        <source>Unsupported use of non-copyable type</source>
-        <target state="new">Unsupported use of non-copyable type</target>
+        <source>Unsupported use of non-copyable type.</source>
+        <target state="new">Unsupported use of non-copyable type.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueUnsupportedUseMessage">
@@ -118,8 +118,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
-        <source>Exported parts should have [ImportingConstructor]</source>
-        <target state="translated">Dışarı aktarılan bölümlerde [ImportingConstructor] olması gerekir</target>
+        <source>Exported parts should be marked with 'ImportingConstructorAttribute'.</source>
+        <target state="needs-review-translation">Dışarı aktarılan bölümlerde [ImportingConstructor] olması gerekir</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
@@ -128,13 +128,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
-        <source>Exported parts should have [ImportingConstructor]</source>
-        <target state="translated">Dışarı aktarılan bölümlerde [ImportingConstructor] olması gerekir</target>
+        <source>Exported parts should be marked with 'ImportingConstructorAttribute'</source>
+        <target state="needs-review-translation">Dışarı aktarılan bölümlerde [ImportingConstructor] olması gerekir</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingDescription">
-        <source>Expose member for testing</source>
-        <target state="translated">Test için üyeyi kullanıma sunun</target>
+        <source>Expose member for testing.</source>
+        <target state="needs-review-translation">Test için üyeyi kullanıma sunun</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingMessage">
@@ -153,43 +153,43 @@
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
-        <source>Set ObsoleteAttribute.Error to true</source>
-        <target state="translated">ObsoleteAttribute.Error özniteliğini true olarak ayarlayın</target>
+        <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
+        <target state="needs-review-translation">ObsoleteAttribute.Error özniteliğini true olarak ayarlayın</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription">
-        <source>Use correct ObsoleteAttribute message</source>
-        <target state="translated">Doğru ObsoleteAttribute iletisini kullanın</target>
+        <source>Use correct 'ObsoleteAttribute' message.</source>
+        <target state="needs-review-translation">Doğru ObsoleteAttribute iletisini kullanın</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute">
-        <source>Add ObsoleteAttribute</source>
-        <target state="translated">ObsoleteAttribute ekle</target>
+        <source>Add 'ObsoleteAttribute'</source>
+        <target state="needs-review-translation">ObsoleteAttribute ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription">
-        <source>Configure ObsoleteAttribute for importing constructor</source>
-        <target state="translated">İçeri aktarma oluşturucusu için ObsoleteAttribute özniteliğini yapılandırın</target>
+        <source>Configure 'ObsoleteAttribute' for importing constructor.</source>
+        <target state="needs-review-translation">İçeri aktarma oluşturucusu için ObsoleteAttribute özniteliğini yapılandırın</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingError">
-        <source>Set ObsoleteAttribute.Error to true</source>
-        <target state="translated">ObsoleteAttribute.Error özniteliğini true olarak ayarlayın</target>
+        <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
+        <target state="needs-review-translation">ObsoleteAttribute.Error özniteliğini true olarak ayarlayın</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
-        <source>Importing constructor should be [Obsolete]</source>
-        <target state="translated">İçeri aktarma oluşturucusunun [Obsolete] olması gerekir</target>
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'.</source>
+        <target state="needs-review-translation">İçeri aktarma oluşturucusunun [Obsolete] olması gerekir</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteMessage">
-        <source>Importing constructor should be [Obsolete]</source>
-        <target state="translated">İçeri aktarma oluşturucusunun [Obsolete] olması gerekir</target>
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
+        <target state="needs-review-translation">İçeri aktarma oluşturucusunun [Obsolete] olması gerekir</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
-        <source>Importing constructor should be [Obsolete]</source>
-        <target state="translated">İçeri aktarma oluşturucusunun [Obsolete] olması gerekir</target>
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
+        <target state="needs-review-translation">İçeri aktarma oluşturucusunun [Obsolete] olması gerekir</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
@@ -213,23 +213,23 @@
         <note />
       </trans-unit>
       <trans-unit id="RelaxTestNamingSuppressorJustification">
-        <source>Asynchronous test methods do not require the 'Async' suffix.</source>
-        <target state="translated">Asenkron test metotları için 'Async' son eki gerekmez.</target>
+        <source>Asynchronous test methods do not require the 'Async' suffix</source>
+        <target state="needs-review-translation">Asenkron test metotları için 'Async' son eki gerekmez.</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
-        <source>Apply PartNotDiscoverableAttribute</source>
-        <target state="translated">PartNotDiscoverableAttribute uygula</target>
+        <source>Apply 'PartNotDiscoverableAttribute'</source>
+        <target state="needs-review-translation">PartNotDiscoverableAttribute uygula</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
-        <source>Test exports should not be discoverable</source>
-        <target state="translated">Test dışarı aktarmaları bulunabilir olmamalıdır</target>
+        <source>Test exports should not be discoverable.</source>
+        <target state="needs-review-translation">Test dışarı aktarmaları bulunabilir olmamalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
-        <source>'{0}' is exported for test purposes and should be marked PartNotDiscoverable</source>
-        <target state="translated">'{0}', test amaçları doğrultusunda dışarı aktarıldı ve PartNotDiscoverable olarak işaretlenmelidir</target>
+        <source>'{0}' is exported for test purposes and should be marked with 'PartNotDiscoverableAttribute'</source>
+        <target state="needs-review-translation">'{0}', test amaçları doğrultusunda dışarı aktarıldı ve PartNotDiscoverable olarak işaretlenmelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">
@@ -238,8 +238,8 @@
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
-        <source>Use SpecializedCollections.EmptyEnumerable()</source>
-        <target state="translated">SpecializedCollections.EmptyEnumerable() kullanın</target>
+        <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
+        <target state="needs-review-translation">SpecializedCollections.EmptyEnumerable() kullanın</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableDescription">
@@ -248,13 +248,13 @@
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableMessage">
-        <source>Use SpecializedCollections.EmptyEnumerable()</source>
-        <target state="translated">SpecializedCollections.EmptyEnumerable() kullanın</target>
+        <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
+        <target state="needs-review-translation">SpecializedCollections.EmptyEnumerable() kullanın</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableTitle">
-        <source>Use SpecializedCollections.SingletonEnumerable()</source>
-        <target state="translated">SpecializedCollections.SingletonEnumerable() kullanın</target>
+        <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
+        <target state="needs-review-translation">SpecializedCollections.SingletonEnumerable() kullanın</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableDescription">
@@ -263,13 +263,13 @@
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableMessage">
-        <source>Use SpecializedCollections.SingletonEnumerable()</source>
-        <target state="translated">SpecializedCollections.SingletonEnumerable() kullanın</target>
+        <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
+        <target state="needs-review-translation">SpecializedCollections.SingletonEnumerable() kullanın</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
-        <source>Invoke the correct property to ensure correct use site diagnostics.</source>
-        <target state="translated">Doğru site tanılamalarının kullanıldığından emin olmak için doğru özelliği çağırın.</target>
+        <source>Invoke the correct property to ensure correct use site diagnostics</source>
+        <target state="needs-review-translation">Doğru site tanılamalarının kullanıldığından emin olmak için doğru özelliği çağırın.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
@@ -278,13 +278,13 @@
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
-        <source>Invoke the correct property to ensure correct use site diagnostics.</source>
-        <target state="translated">Doğru site tanılamalarının kullanıldığından emin olmak için doğru özelliği çağırın.</target>
+        <source>Invoke the correct property to ensure correct use site diagnostics</source>
+        <target state="needs-review-translation">Doğru site tanılamalarının kullanıldığından emin olmak için doğru özelliği çağırın.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
-        <source>Do not use generic CodeAction.Create to create CodeAction</source>
-        <target state="translated">CodeAction oluşturmak için genel CodeAction.Create kullanmayın</target>
+        <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
+        <target state="needs-review-translation">CodeAction oluşturmak için genel CodeAction.Create kullanmayın</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionDescription">
@@ -293,13 +293,13 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionMessage">
-        <source>Do not use generic CodeAction.Create to create CodeAction</source>
-        <target state="translated">CodeAction oluşturmak için genel CodeAction.Create kullanmayın</target>
+        <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
+        <target state="needs-review-translation">CodeAction oluşturmak için genel CodeAction.Create kullanmayın</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
-        <source>Override Object.Equals(object) when implementing Iequatable</source>
-        <target state="translated">Iequatable uygularken Object.Equals(object)’i geçersiz kılın</target>
+        <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
+        <target state="needs-review-translation">Iequatable uygularken Object.Equals(object)’i geçersiz kılın</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
@@ -308,18 +308,18 @@
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
-        <source>Override Object.Equals(object) when implementing Iequatable</source>
-        <target state="translated">Iequatable uygularken Object.Equals(object)’i geçersiz kılın</target>
+        <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
+        <target state="needs-review-translation">Iequatable uygularken Object.Equals(object)’i geçersiz kılın</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
-        <source>Do not invoke Diagnostic.Descriptor</source>
-        <target state="translated">Diagnostic.Descriptor’ı çağırmayın</target>
+        <source>Do not invoke 'Diagnostic.Descriptor'</source>
+        <target state="needs-review-translation">Diagnostic.Descriptor’ı çağırmayın</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
-        <source>Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.</source>
-        <target state="translated">Derleyici katmanında Tanılamanın Tanımlayıcı özelliğine erişmek, tanımlayıcının komut satırı derlemesinde kullanılmayan alanları için gereksiz dize ayırmalarına neden olabilir. Bu nedenle, burada derleyici tanılamalarının Tanımlayıcısına erişmekten kaçınmanız gerekir. Bunun yerine, bu özelliklere Tanılama türü dışında doğrudan erişmeniz gerekir.</target>
+        <source>Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.</source>
+        <target state="needs-review-translation">Derleyici katmanında Tanılamanın Tanımlayıcı özelliğine erişmek, tanımlayıcının komut satırı derlemesinde kullanılmayan alanları için gereksiz dize ayırmalarına neden olabilir. Bu nedenle, burada derleyici tanılamalarının Tanımlayıcısına erişmekten kaçınmanız gerekir. Bunun yerine, bu özelliklere Tanılama türü dışında doğrudan erişmeniz gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
@@ -328,8 +328,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
-        <source>SymbolDeclaredEvent must be generated for source symbols</source>
-        <target state="translated">Kaynak semboller için SymbolDeclaredEvent oluşturulmalıdır</target>
+        <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
+        <target state="needs-review-translation">Kaynak semboller için SymbolDeclaredEvent oluşturulmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription">
@@ -338,8 +338,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage">
-        <source>SymbolDeclaredEvent must be generated for source symbols</source>
-        <target state="translated">Kaynak semboller için SymbolDeclaredEvent oluşturulmalıdır</target>
+        <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
+        <target state="needs-review-translation">Kaynak semboller için SymbolDeclaredEvent oluşturulmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFTitle">
@@ -348,8 +348,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFDescription">
-        <source>Do not mix attributes from different versions of MEF</source>
-        <target state="translated">Farklı MEF sürümlerine ait öznitelikleri karışık kullanmayın</target>
+        <source>Do not mix attributes from different versions of MEF.</source>
+        <target state="needs-review-translation">Farklı MEF sürümlerine ait öznitelikleri karışık kullanmayın</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFMessage">
@@ -358,18 +358,18 @@
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle">
-        <source>Parts exported with MEFv2 must be marked as Shared</source>
-        <target state="translated">MEFv2 ile dışarı aktarılan parçalar Shared olarak işaretlenmelidir</target>
+        <source>Parts exported with MEFv2 must be marked with 'SharedAttribute'</source>
+        <target state="needs-review-translation">MEFv2 ile dışarı aktarılan parçalar Shared olarak işaretlenmelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription">
-        <source>Part exported with MEFv2 must be marked with the Shared attribute.</source>
-        <target state="translated">MEFv2 ile dışarı aktarılan parçalar Shared özniteliğiyle işaretlenmelidir.</target>
+        <source>Part exported with MEFv2 must be marked with the 'SharedAttribute'.</source>
+        <target state="needs-review-translation">MEFv2 ile dışarı aktarılan parçalar Shared özniteliğiyle işaretlenmelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
-        <source>'{0}' is exported with MEFv2 and hence must be marked as Shared</source>
-        <target state="translated">'{0}' MEFv2 ile dışarı aktarıldığından, Shared olarak işaretlenmelidir</target>
+        <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
+        <target state="needs-review-translation">'{0}' MEFv2 ile dışarı aktarıldığından, Shared olarak işaretlenmelidir</target>
         <note />
       </trans-unit>
     </body>
