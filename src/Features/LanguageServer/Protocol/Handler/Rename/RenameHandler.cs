@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var renamedSolution = renameReplacementInfo.NewSolution;
                 var solutionChanges = renamedSolution.GetChanges(oldSolution);
 
-                // Linked files can correspond to multiple roslyn documents each with changes.  W merge the changes in the linked files so that all linked documents have the same text.
+                // Linked files can correspond to multiple roslyn documents each with changes.  Merge the changes in the linked files so that all linked documents have the same text.
                 // Then we can just take the text changes from the first document to avoid returning duplicate edits.
                 renamedSolution = await renamedSolution.WithMergedLinkedFileChangesAsync(oldSolution, solutionChanges, cancellationToken: cancellationToken).ConfigureAwait(false);
                 solutionChanges = renamedSolution.GetChanges(oldSolution);
