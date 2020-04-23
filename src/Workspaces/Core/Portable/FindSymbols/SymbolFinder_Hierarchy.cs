@@ -192,8 +192,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (solution.GetOriginatingProjectId(type) == null)
                 throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
 
-            return await DependentTypeFinder.FindAndCacheTransitivelyDerivedClassesAsync(
-                type, solution, projects, cancellationToken).ConfigureAwait(false);
+            return await DependentTypeFinder.FindAndCacheDerivedClassesAsync(
+                type, solution, projects, transitive: true, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -218,8 +218,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (solution.GetOriginatingProjectId(type) == null)
                 throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
 
-            return await DependentTypeFinder.FindAndCacheImmediatelyDerivedClassesAsync(
-                type, solution, projects, cancellationToken).ConfigureAwait(false);
+            return await DependentTypeFinder.FindAndCacheDerivedClassesAsync(
+                type, solution, projects, transitive: false, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -269,8 +269,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementationsArrayAsync(
             INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var implementingTypes = await DependentTypeFinder.FindAndCacheTransitivelyImplementingStructuresAndClassesAsync(
-                type, solution, projects, cancellationToken).ConfigureAwait(false);
+            var implementingTypes = await DependentTypeFinder.FindAndCacheImplementingStructuresAndClassesAsync(
+                type, solution, projects, transitive: true, cancellationToken).ConfigureAwait(false);
             return implementingTypes.WhereAsArray(IsAccessible);
         }
 
@@ -339,8 +339,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImmediateImplementationsArrayAsync(
             INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var implementingTypes = await DependentTypeFinder.FindAndCacheImmediatelyImplementingStructuresAndClassesAsync(
-                type, solution, projects, cancellationToken).ConfigureAwait(false);
+            var implementingTypes = await DependentTypeFinder.FindAndCacheImplementingStructuresAndClassesAsync(
+                type, solution, projects, transitive: false, cancellationToken).ConfigureAwait(false);
             return implementingTypes.WhereAsArray(IsAccessible);
         }
     }

@@ -15,32 +15,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal static partial class DependentTypeFinder
     {
         /// <summary>
-        /// Used for implementing the Inherited-By relation for progression.
-        /// </summary>
-        public static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImmediatelyDerivedClassesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            CancellationToken cancellationToken)
-        {
-            return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects, s_typeToImmediatelyDerivedClassesMap,
-                c => FindWithoutCachingDerivedClassesAsync(type, solution, projects, transitive: false, c),
-                cancellationToken);
-        }
-
-        /// <summary>
         /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync(INamedTypeSymbol, Solution, IImmutableSet{Project}, CancellationToken)"/>, which is a publically callable method.
         /// </summary>
-        public static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheTransitivelyDerivedClassesAsync(
+        public static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
+            bool transitive,
             CancellationToken cancellationToken)
         {
             return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects, s_typeToTransitivelyDerivedClassesMap,
-                c => FindWithoutCachingDerivedClassesAsync(type, solution, projects, transitive: true, c),
+                type, solution, projects,
+                transitive ? s_typeToTransitivelyDerivedClassesMap : s_typeToImmediatelyDerivedClassesMap,
+                c => FindWithoutCachingDerivedClassesAsync(type, solution, projects, transitive, c),
                 cancellationToken);
         }
 

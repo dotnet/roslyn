@@ -49,7 +49,7 @@ namespace M
             Assert.NotEqual(baseClassSymbol, derivedClassSymbol.BaseType);
 
             // verify that the dependent types of `N.BaseClass` correctly resolve to `M.DerivedCLass`
-            var derivedFromBase = await SymbolFinder.FindImmediatelyDerivedClassesAsync(baseClassSymbol, solution);
+            var derivedFromBase = await SymbolFinder.FindImmediateDerivedClassesAsync(baseClassSymbol, solution);
             var derivedDependentType = derivedFromBase.Single();
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
@@ -98,7 +98,7 @@ namespace M
             Assert.NotEqual(baseClassSymbol, derivedClassSymbol.BaseType);
 
             // verify that the dependent types of `N.BaseClass` correctly resolve to `M.DerivedCLass`
-            var derivedFromBase = await SymbolFinder.FindImmediatelyDerivedClassesAsync(baseClassSymbol, solution);
+            var derivedFromBase = await SymbolFinder.FindImmediateDerivedClassesAsync(baseClassSymbol, solution);
             var derivedDependentType = derivedFromBase.Single();
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
@@ -139,7 +139,7 @@ namespace M
             Assert.NotEqual(baseClassSymbol, derivedClassSymbol.BaseType);
 
             // verify that the dependent types of `N.BaseClass` correctly resolve to `M.DerivedCLass`
-            var derivedFromBase = await SymbolFinder.FindImmediatelyDerivedClassesAsync(baseClassSymbol, solution);
+            var derivedFromBase = await SymbolFinder.FindImmediateDerivedClassesAsync(baseClassSymbol, solution);
             var derivedDependentType = derivedFromBase.Single();
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
@@ -181,7 +181,7 @@ End Namespace
             Assert.NotEqual(baseClassSymbol, derivedClassSymbol.BaseType);
 
             // verify that the dependent types of `N.BaseClass` correctly resolve to `M.DerivedCLass`
-            var derivedFromBase = await SymbolFinder.FindImmediatelyDerivedClassesAsync(baseClassSymbol, solution);
+            var derivedFromBase = await SymbolFinder.FindImmediateDerivedClassesAsync(baseClassSymbol, solution);
             var derivedDependentType = derivedFromBase.Single();
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
@@ -223,7 +223,7 @@ End Namespace
             Assert.NotEqual(baseClassSymbol, derivedClassSymbol.BaseType);
 
             // verify that the dependent types of `N.BaseClass` correctly resolve to `M.DerivedCLass`
-            var derivedFromBase = await SymbolFinder.FindImmediatelyDerivedClassesAsync(baseClassSymbol, solution);
+            var derivedFromBase = await SymbolFinder.FindImmediateDerivedClassesAsync(baseClassSymbol, solution);
             var derivedDependentType = derivedFromBase.Single();
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
