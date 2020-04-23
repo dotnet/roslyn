@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             public bool TryNavigateTo(bool isPreview)
-                => DefinitionItem.TryNavigateTo(_presenter._workspace, isPreview);
+                => DefinitionItem.TryNavigateTo(_presenter._workspace, isPreview, activatePreview: false);
 
             public override bool TryGetValue(string key, out object content)
             {

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return SourceSpans[0].CanNavigateTo();
             }
 
-            public override bool TryNavigateTo(Workspace workspace, bool isPreview, bool activatePreview = false)
+            public override bool TryNavigateTo(Workspace workspace, bool isPreview, bool activatePreview)
             {
                 if (Properties.ContainsKey(NonNavigable))
                 {
