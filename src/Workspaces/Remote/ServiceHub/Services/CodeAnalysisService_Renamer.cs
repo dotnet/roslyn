@@ -13,6 +13,36 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteRenamer
     {
+        public Task<SerializableConflictResolution> RenameSymbolAsync(
+            PinnedSolutionInfo solutionInfo,
+            SerializableSymbolAndProjectId symbolAndProjectId,
+            string newName,
+            SerializableRenameOptionSet options,
+            SerializableSymbolAndProjectId[] nonConflictSymbolIds,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync<SerializableConflictResolution>(async () =>
+            {
+                using (UserOperationBooster.Boost())
+                {
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+
+                    var symbol = await symbolAndProjectId.TryRehydrateAsync(
+                        solution, cancellationToken).ConfigureAwait(false);
+
+                    if (symbol == null)
+                        return null;
+
+                    var nonConflictSymbols = await GetNonConflictSymbolsAsync(solution, nonConflictSymbolIds, cancellationToken).ConfigureAwait(false);
+
+                    var result = await Renamer.RenameSymbolAsync(
+                        solution, symbol, newName, options.Rehydrate(),
+                        nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+                    return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
+                }
+            }, cancellationToken);
+        }
+
         public Task<SerializableRenameLocations> FindRenameLocationsAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId symbolAndProjectId,

@@ -11,6 +11,7 @@ Imports Xunit.Sdk
 Imports Microsoft.CodeAnalysis.Options
 Imports Xunit.Abstractions
 Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
+Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -54,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             workspace.SetTestLogger(AddressOf helper.WriteLine)
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
+                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, host <> TestHost.InProcess)))
 
             Dim engineResult As RenameEngineResult = Nothing
             Try
@@ -80,11 +81,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     Next
                 End If
 
-                Dim locations = Renamer.FindRenameLocationsAsync(
-                    workspace.CurrentSolution, symbol,
-                    RenameOptionSet.From(workspace.CurrentSolution, optionSet), CancellationToken.None).Result
+                Dim result = GetConflictResolution(renameTo, workspace.CurrentSolution, symbol, optionSet, host)
 
-                Dim result = locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).GetAwaiter().GetResult()
                 If result.ErrorMessage IsNot Nothing Then
                     Throw New ArgumentException(result.ErrorMessage)
                 End If
@@ -102,6 +100,26 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Try
 
             Return engineResult
+        End Function
+
+        Private Shared Function GetConflictResolution(
+                renameTo As String,
+                solution As Solution,
+                symbol As ISymbol,
+                optionSet As OptionSet,
+                host As TestHost) As ConflictResolution
+
+            Dim renameOptions = RenameOptionSet.From(solution, optionSet)
+            If host = TestHost.OutOfProcess_SplitCall Then
+                Dim locations = Renamer.FindRenameLocationsAsync(
+                    solution, symbol, renameOptions, CancellationToken.None).GetAwaiter().GetResult()
+
+                Return locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).GetAwaiter().GetResult()
+            Else
+                Return Renamer.RenameSymbolAsync(
+                    solution, symbol, renameTo, renameOptions,
+                    nonConflictSymbols:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
+            End If
         End Function
 
         Friend ReadOnly Property ConflictResolution As ConflictResolution

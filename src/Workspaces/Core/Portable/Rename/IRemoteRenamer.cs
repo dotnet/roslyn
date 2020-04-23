@@ -17,9 +17,17 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     internal interface IRemoteRenamer
     {
+        Task<SerializableConflictResolution> RenameSymbolAsync(
+            PinnedSolutionInfo solutionInfo,
+            SerializableSymbolAndProjectId symbolAndProjectId,
+            string replacementText,
+            SerializableRenameOptionSet options,
+            SerializableSymbolAndProjectId[] nonConflictSymbolIds,
+            CancellationToken cancellationToken);
+
         Task<SerializableRenameLocations> FindRenameLocationsAsync(
             PinnedSolutionInfo solutionInfo,
-            SerializableSymbolAndProjectId symbol,
+            SerializableSymbolAndProjectId symbolAndProjectId,
             SerializableRenameOptionSet options,
             CancellationToken cancellationToken);
 
@@ -27,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Rename
             PinnedSolutionInfo solutionInfo,
             SerializableRenameLocations renameLocationSet,
             string replacementText,
-            SerializableSymbolAndProjectId[] nonConflictSymbols,
+            SerializableSymbolAndProjectId[] nonConflictSymbolIds,
             CancellationToken cancellationToken);
     }
 
