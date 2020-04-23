@@ -47,15 +47,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [InlineData(null)]
         public void SetProperty_MaxSupportedLangVersion_CPS(LanguageVersion? maxSupportedLangVersion)
         {
-            var catalog = TestEnvironment.s_exportCatalog.Value
-                .WithParts(
-                    typeof(CSharpParseOptionsChangingService));
-
             const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
 
-            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
-
-            using (var environment = new TestEnvironment(exportProviderFactory: factory))
+            using (var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService)))
             using (var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
             {
                 var project = environment.Workspace.CurrentSolution.Projects.Single();
@@ -82,15 +76,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [WpfFact]
         public void SetProperty_MaxSupportedLangVersion_CPS_NotSet()
         {
-            var catalog = TestEnvironment.s_exportCatalog.Value
-                .WithParts(
-                    typeof(CSharpParseOptionsChangingService));
-
             const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
 
-            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
-
-            using (var environment = new TestEnvironment(exportProviderFactory: factory))
+            using (var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService)))
             using (var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
             {
                 var project = environment.Workspace.CurrentSolution.Projects.Single();
