@@ -80,8 +80,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly RelatedTypeCache s_typeToImmediatelyImplementingStructuresAndClassesMap = new RelatedTypeCache();
         private static readonly RelatedTypeCache s_typeToTransitivelyImplementingStructuresAndClassesMap = new RelatedTypeCache();
 
-        private static readonly RelatedTypeCache s_typeToImmediatelyDerivedAndImplementingTypesMap = new RelatedTypeCache();
-
         private static async Task<ImmutableArray<INamedTypeSymbol>> FindTypesFromCacheOrComputeAsync(
             INamedTypeSymbol type,
             Solution solution,
@@ -151,22 +149,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // we're create right below this.
             var result = await findAsync(cancellationToken).ConfigureAwait(false);
             return result.SelectAsArray(t => (t.GetSymbolKey(), solution.GetOriginatingProjectId(t)));
-        }
-
-        /// <summary>
-        /// Used for implementing the Inherited-By relation for progression.
-        /// </summary>
-        public static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImmediatelyDerivedAndImplementingTypesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            CancellationToken cancellationToken)
-        {
-            return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects: null,
-                cache: s_typeToImmediatelyDerivedAndImplementingTypesMap,
-                findAsync: c => FindWithoutCachingDerivedAndImplementingTypesAsync(
-                    type, solution, projects: null, transitive: false, c),
-                cancellationToken: cancellationToken);
         }
 
         private static Task<ImmutableArray<INamedTypeSymbol>> FindWithoutCachingDerivedAndImplementingTypesAsync(

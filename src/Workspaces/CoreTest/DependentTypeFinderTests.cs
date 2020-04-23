@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Roslyn.Test.Utilities;
@@ -299,8 +298,7 @@ namespace M
             Assert.NotEqual(baseInterfaceSymbol, implementingClassSymbol.Interfaces.Single());
 
             // verify that the implementing types of `N.IBaseInterface` correctly resolve to `M.ImplementingClass`
-            var typesThatImplementInterface = await DependentTypeFinder.FindAndCacheImmediatelyDerivedAndImplementingTypesAsync(
-                baseInterfaceSymbol, solution, CancellationToken.None);
+            var typesThatImplementInterface = await SymbolFinder.FindImmediateImplementationsAsync(baseInterfaceSymbol, solution);
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
 
@@ -340,8 +338,7 @@ End Namespace
             Assert.NotEqual(baseInterfaceSymbol, implementingClassSymbol.Interfaces.Single());
 
             // verify that the implementing types of `N.IBaseInterface` correctly resolve to `M.ImplementingClass`
-            var typesThatImplementInterface = await DependentTypeFinder.FindAndCacheImmediatelyDerivedAndImplementingTypesAsync(
-                baseInterfaceSymbol, solution, CancellationToken.None);
+            var typesThatImplementInterface = await SymbolFinder.FindImmediateImplementationsAsync(baseInterfaceSymbol, solution);
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
 
@@ -380,8 +377,7 @@ namespace M
             Assert.NotEqual(baseInterfaceSymbol, implementingClassSymbol.Interfaces.Single());
 
             // verify that the implementing types of `N.IBaseInterface` correctly resolve to `M.ImplementingClass`
-            var typesThatImplementInterface = await DependentTypeFinder.FindAndCacheImmediatelyDerivedAndImplementingTypesAsync(
-                baseInterfaceSymbol, solution, CancellationToken.None);
+            var typesThatImplementInterface = await SymbolFinder.FindImmediateImplementationsAsync(baseInterfaceSymbol, solution);
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
     }
