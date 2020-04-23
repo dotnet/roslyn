@@ -40,15 +40,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (s_isNonSealedClass(type))
             {
-                bool metadataTypeMatches(SymbolSet set, INamedTypeSymbol metadataType)
+                static bool typeMatches(SymbolSet set, INamedTypeSymbol metadataType, bool transitive)
                     => TypeHasBaseTypeInSet(set, metadataType, transitive);
 
-                bool sourceTypeImmediatelyMatches(SymbolSet set, INamedTypeSymbol sourceType)
-                    => TypeHasBaseTypeInSet(set, sourceType, transitive: false);
-
                 return FindTypesAsync(type, solution, projects,
-                    metadataTypeMatches: metadataTypeMatches,
-                    sourceTypeImmediatelyMatches: sourceTypeImmediatelyMatches,
+                    typeMatches: typeMatches,
                     shouldContinueSearching: s_isNonSealedClass,
                     transitive: transitive,
                     cancellationToken: cancellationToken);
