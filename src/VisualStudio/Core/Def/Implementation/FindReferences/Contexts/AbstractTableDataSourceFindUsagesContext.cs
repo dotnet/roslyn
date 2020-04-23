@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
 
                 customColumnsToInclude.Add(StandardTableKeyNames.Repository);
-                customColumnsToInclude.Add(StandardTableColumnDefinitions.ItemOrigin);
+                customColumnsToInclude.Add(StandardTableKeyNames.ItemOrigin);
 
                 return customColumnsToInclude.ToImmutableAndFree();
             }
