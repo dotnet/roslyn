@@ -5222,7 +5222,7 @@ Block[B5] - Exit
             /// syntax node. A selector is used to walk the operation tree and syntax tree for the final
             /// nodes to compare type info for.
             ///
-            /// <see cref="SyntaxSelector"/> is used to to select the syntax node to test.
+            /// <see cref="SyntaxSelector"/> is used to select the syntax node to test.
             /// <see cref="OperationSelector"/> is used to select the IConversion node to test.
             /// <see cref="ConversionChildSelector"/> is used to select what child node of the IConversion to compare original types to.
             /// this is useful for multiple conversion scenarios where we end up with multiple IConversion nodes in the tree.

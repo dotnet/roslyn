@@ -56,6 +56,14 @@ namespace Microsoft.CodeAnalysis
         // holds on data calculated based on the AnalyzerReferences list
         private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
 
+        /// <summary>
+        /// Cache we use to map between assembly and module symbols and the project they came from.  That way if we
+        /// are asked about many symbols from the same assembly/module we can answer the question quickly after
+        /// computing for the first one.  Created on demand.
+        /// </summary>
+        private ConditionalWeakTable<ISymbol, ProjectId?>? _assemblyOrModuleSymbolToProjectId;
+        private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
+
         private SolutionState(
             BranchId branchId,
             int workspaceVersion,

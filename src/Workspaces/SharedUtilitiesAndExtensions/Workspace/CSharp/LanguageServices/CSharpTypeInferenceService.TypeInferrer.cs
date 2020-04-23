@@ -467,7 +467,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SemanticModel.GetMemberGroup(invocation.Expression, CancellationToken)
                                      .OfType<IMethodSymbol>();
 
-                    methods = methods.Concat(memberGroupMethods).Distinct();
+                    methods = methods.Concat(memberGroupMethods).Distinct().ToList();
+                }
+
+                // Special case: if this is an argument in Enum.HasFlag, infer the Enum type that we're invoking into,
+                // as otherwise we infer "Enum" which isn't useful
+                if (methods.Any(IsEnumHasFlag))
+                {
+                    if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
+                    {
+                        var typeInfo = SemanticModel.GetTypeInfo(memberAccess.Expression, CancellationToken);
+
+                        if (typeInfo.Type != null && typeInfo.Type.IsEnumType())
+                        {
+                            return CreateResult(typeInfo.Type);
+                        }
+                    }
                 }
 
                 return InferTypeInArgument(index, methods, argumentOpt, invocation);

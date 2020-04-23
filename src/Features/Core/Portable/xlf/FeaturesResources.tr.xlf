@@ -2000,6 +2000,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Kaydırma</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_cannot_be_null_or_empty">
+        <source>'{0}' cannot be null or empty</source>
+        <target state="new">'{0}' cannot be null or empty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_cannot_be_null_or_whitespace">
+        <source>'{0}' cannot be null or whitespace</source>
+        <target state="new">'{0}' cannot be null or whitespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
         <source>10,000,000ths of a second</source>
         <target state="new">10,000,000ths of a second</target>
