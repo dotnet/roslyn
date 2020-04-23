@@ -80,6 +80,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly RelatedTypeCache s_typeToImmediatelyImplementingStructuresAndClassesMap = new RelatedTypeCache();
         private static readonly RelatedTypeCache s_typeToTransitivelyImplementingStructuresAndClassesMap = new RelatedTypeCache();
 
+        private static readonly RelatedTypeCache.CreateValueCallback s_createTypeMap =
+            _ => new ConcurrentDictionary<(SymbolKey, ProjectId, IImmutableSet<Project>), AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>>(KeyEqualityComparer.Instance);
+
         private static async Task<ImmutableArray<INamedTypeSymbol>> FindTypesFromCacheOrComputeAsync(
             INamedTypeSymbol type,
             Solution solution,
@@ -88,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Func<CancellationToken, Task<ImmutableArray<INamedTypeSymbol>>> findAsync,
             CancellationToken cancellationToken)
         {
-            var dictionary = cache.GetOrCreateValue(solution);
+            var dictionary = cache.GetValue(solution, s_createTypeMap);
 
             // Do a quick lookup first to avoid the allocation.  If it fails, go through the
             // slower allocating path.
@@ -696,5 +699,50 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static SymbolSet CreateSymbolAndProjectIdSet()
             => s_setPool.Allocate();
+
+        private class KeyEqualityComparer : IEqualityComparer<(SymbolKey, ProjectId, IImmutableSet<Project>)>
+        {
+            public static readonly KeyEqualityComparer Instance = new KeyEqualityComparer();
+
+            private KeyEqualityComparer()
+            {
+            }
+
+            public bool Equals((SymbolKey, ProjectId, IImmutableSet<Project>) x,
+                               (SymbolKey, ProjectId, IImmutableSet<Project>) y)
+            {
+                var (xSymbolKey, xProjectId, xProjects) = x;
+                var (ySymbolKey, yProjectId, yProjects) = y;
+
+                if (!xSymbolKey.Equals(ySymbolKey))
+                    return false;
+
+                if (!xProjectId.Equals(yProjectId))
+                    return false;
+
+                if (xProjects is null)
+                    return yProjects is null;
+
+                if (yProjects is null)
+                    return false;
+
+                return xProjects.SetEquals(yProjects);
+            }
+
+            public int GetHashCode((SymbolKey, ProjectId, IImmutableSet<Project>) obj)
+            {
+                var (symbolKey, projectId, projects) = obj;
+
+                var projectsHash = 0;
+                if (projects != null)
+                {
+                    foreach (var project in projects)
+                        projectsHash += project.GetHashCode();
+                }
+
+                return Hash.Combine(symbolKey.GetHashCode(),
+                       Hash.Combine(projectId, projectsHash));
+            }
+        }
     }
 }
