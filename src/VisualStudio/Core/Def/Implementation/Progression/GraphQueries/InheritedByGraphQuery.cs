@@ -36,10 +36,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
                 else if (namedType.TypeKind == TypeKind.Interface)
                 {
-                    var implementingClassesAndStructs = await DependentTypeFinder.FindAndCacheImplementingStructuresAndClassesAsync(
-                        namedType, solution, projects: null, transitive: false, cancellationToken).ConfigureAwait(false);
-                    var derivedInterfaces = await DependentTypeFinder.FindAndCacheDerivedInterfacesAsync(
-                        namedType, solution, projects: null, transitive: false, cancellationToken).ConfigureAwait(false);
+                    var implementingClassesAndStructs = await SymbolFinder.FindImmediateImplementationsAsync(
+                        namedType, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var derivedInterfaces = await SymbolFinder.FindImmediateDerivedInterfacesAsync(
+                        namedType, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in implementingClassesAndStructs.Concat(derivedInterfaces))
                     {
                         var symbolNode = await graphBuilder.AddNodeAsync(
