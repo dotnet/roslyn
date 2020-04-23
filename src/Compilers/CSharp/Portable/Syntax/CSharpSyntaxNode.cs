@@ -251,9 +251,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (child.ContainsDirectives)
                 {
-                    if (child.IsNode)
+                    if (child.AsNode(out var node))
                     {
-                        var d = child.AsNode()!.GetFirstDirective(predicate);
+                        var d = node.GetFirstDirective(predicate);
                         if (d != null)
                         {
                             return d;
@@ -291,9 +291,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (child.ContainsDirectives)
                 {
-                    if (child.IsNode) // TODO2
+                    if (child.AsNode(out var node))
                     {
-                        var d = child.AsNode()!.GetLastDirective(predicate);
+                        var d = node.GetLastDirective(predicate);
                         if (d != null)
                         {
                             return d;
