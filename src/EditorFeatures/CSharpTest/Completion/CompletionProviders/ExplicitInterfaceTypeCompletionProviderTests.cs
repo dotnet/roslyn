@@ -281,5 +281,23 @@ interface I : IList
             await VerifyItemExistsAsync(markup, "ICollection");
             await VerifyItemExistsAsync(markup, "IList");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestImplementedAsAsync()
+        {
+            var markup = @"
+interface IGoo
+{
+    Task Goo();
+}
+
+class MyGoo : IGoo
+{
+     async Task $$
+}";
+
+            await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
+            await VerifyItemExistsAsync(markup, "IGoo");
+        }
     }
 }

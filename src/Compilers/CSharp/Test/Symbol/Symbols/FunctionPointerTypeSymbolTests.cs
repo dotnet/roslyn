@@ -62,31 +62,31 @@ class C
 }
 ");
             comp.VerifyDiagnostics(
-                    // (5,19): error CS8753: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    // (5,19): error CS8797: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<readonly string> p1,
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "readonly").WithArguments("readonly").WithLocation(5, 19),
-                    // (6,19): error CS8753: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    // (6,19): error CS8797: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<readonly ref string> p2,
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "readonly").WithArguments("readonly").WithLocation(6, 19),
-                    // (7,23): error CS8754: A return type can only have one 'ref' modifier.
+                    // (7,23): error CS8798: A return type can only have one 'ref' modifier.
                     //         delegate*<ref ref readonly string> p3,
                     Diagnostic(ErrorCode.ERR_DupReturnTypeMod, "ref").WithArguments("ref").WithLocation(7, 23),
-                    // (7,27): error CS8753: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    // (7,27): error CS8797: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<ref ref readonly string> p3,
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "readonly").WithArguments("readonly").WithLocation(7, 27),
-                    // (8,32): error CS8753: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    // (8,32): error CS8797: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<ref readonly readonly string> p4,
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "readonly").WithArguments("readonly").WithLocation(8, 32),
-                    // (9,19): error CS8753: 'this' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    // (9,19): error CS8797: 'this' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<this string> p5,
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "this").WithArguments("this").WithLocation(9, 19),
-                    // (10,19): error CS8753: 'params' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    // (10,19): error CS8797: 'params' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<params string> p6,
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "params").WithArguments("params").WithLocation(10, 19),
-                    // (11,23): error CS8754: A return type can only have one 'ref' modifier.
+                    // (11,23): error CS8798: A return type can only have one 'ref' modifier.
                     //         delegate*<ref ref string> p7)
                     Diagnostic(ErrorCode.ERR_DupReturnTypeMod, "ref").WithArguments("ref").WithLocation(11, 23),
-                    // (12,19): error CS8753: 'out' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    // (12,19): error CS8797: 'out' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<out string> p8)
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "out").WithArguments("out").WithLocation(12, 19));
 
@@ -165,7 +165,7 @@ class C
     public unsafe void M(delegate* invalid<void> p) {}
 }");
             comp.VerifyDiagnostics(
-                    // (4,36): error CS8752: 'invalid' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.
+                    // (4,36): error CS8796: 'invalid' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.
                     //     public void M(delegate* invalid<void> p) {}
                     Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "invalid").WithArguments("invalid").WithLocation(4, 36));
 

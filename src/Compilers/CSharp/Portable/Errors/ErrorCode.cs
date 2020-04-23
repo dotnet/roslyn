@@ -1490,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_NoRefOutWhenRefOnly = 8308,
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
-        ERR_BadOpOnNullOrDefault = 8310,
+        ERR_BadOpOnNullOrDefaultOrNew = 8310,
         // ERR_BadDynamicMethodArgDefaultLiteral = 8311,
         ERR_DefaultLiteralNotValid = 8312,
         // ERR_DefaultInSwitch = 8313,
@@ -1739,13 +1739,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 8.0
 
-        ERR_InternalError = 8751,
-
         #region diagnostics introduced in preview
 
-        ERR_InvalidFunctionPointerCallingConvention = 8752,
-        ERR_InvalidFuncPointerReturnTypeModifier = 8753,
-        ERR_DupReturnTypeMod = 8754,
+        ERR_InternalError = 8751,
+
+        ERR_TypelessNewIllegalTargetType = 8752,
+        ERR_TypelessNewNotValid = 8753,
+        ERR_TypelessNewNoTargetType = 8754,
+
         ERR_BadFuncPointerParamModifier = 8755,
         ERR_BadFuncPointerArgCount = 8756,
         ERR_MethFuncPtrMismatch = 8757,
@@ -1771,12 +1772,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_MemberNotNull = 8774,
         WRN_MemberNotNullWhen = 8775,
         WRN_MemberNotNullBadMember = 8776,
+        WRN_ParameterDisallowsNull = 8777,
 
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8782,
 
         ERR_ConditionalOnLocalFunction = 8783,
 
-        ERR_AddressOfMethodGroupInExpressionTree = 8785,
+        WRN_GeneratorFailedDuringInitialization = 8784,
+        WRN_GeneratorFailedDuringGeneration = 8785,
+
         ERR_WrongFuncPtrCallingConvention = 8786,
         ERR_MissingAddressOf = 8787,
         ERR_CannotUseReducedExtensionMethodInAddressOf = 8788,
@@ -1787,6 +1791,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsRangeExpression = 8792,
 
         ERR_UnsupportedCallingConvention = 8795,
+        ERR_InvalidFunctionPointerCallingConvention = 8796,
+        ERR_InvalidFuncPointerReturnTypeModifier = 8797,
+        ERR_DupReturnTypeMod = 8798,
+        ERR_AddressOfMethodGroupInExpressionTree = 8799,
 
         #endregion
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                 private FlowGraphAnalysisData(
                     ControlFlowGraph controlFlowGraph,
+                    ISymbol owningSymbol,
                     ImmutableArray<IParameterSymbol> parameters,
                     PooledDictionary<BasicBlock, BasicBlockAnalysisData> analysisDataByBasicBlockMap,
                     PooledDictionary<(ISymbol symbol, IOperation operation), bool> symbolsWriteMap,
@@ -78,6 +79,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     PooledDictionary<IFlowAnonymousFunctionOperation, ControlFlowGraph> lambdaTargetsToAccessingCfgMap)
                 {
                     ControlFlowGraph = controlFlowGraph;
+                    OwningSymbol = owningSymbol;
                     _parameters = parameters;
                     _analysisDataByBasicBlockMap = analysisDataByBasicBlockMap;
                     _analyzeLocalFunctionOrLambdaInvocation = analyzeLocalFunctionOrLambdaInvocation;
@@ -96,6 +98,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     _symbolWritesInsideBlockRangeMap = PooledDictionary<(int firstBlockOrdinal, int lastBlockOrdinal), PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
                 }
 
+                public ISymbol OwningSymbol { get; }
+
                 protected override PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
 
                 protected override PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
@@ -112,6 +116,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     var parameters = owningSymbol.GetParameters();
                     return new FlowGraphAnalysisData(
                         cfg,
+                        owningSymbol,
                         parameters,
                         analysisDataByBasicBlockMap: CreateAnalysisDataByBasicBlockMap(cfg),
                         symbolsWriteMap: CreateSymbolsWriteMap(parameters),
@@ -135,6 +140,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     var parameters = lambdaOrLocalFunction.GetParameters();
                     return new FlowGraphAnalysisData(
                         cfg,
+                        lambdaOrLocalFunction,
                         parameters,
                         analysisDataByBasicBlockMap: CreateAnalysisDataByBasicBlockMap(cfg),
                         symbolsWriteMap: UpdateSymbolsWriteMap(parentAnalysisData.SymbolsWriteBuilder, parameters),

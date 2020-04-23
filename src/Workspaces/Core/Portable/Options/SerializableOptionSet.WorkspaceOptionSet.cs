@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
-            public override object? GetOption(OptionKey optionKey)
+            private protected override object? GetOptionCore(OptionKey optionKey)
             {
                 if (_values.TryGetValue(optionKey, out var value))
                 {

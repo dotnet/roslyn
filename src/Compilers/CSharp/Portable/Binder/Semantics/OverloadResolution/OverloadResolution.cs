@@ -453,7 +453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
                 method,
                 this.Conversions,
-                includeNullability: false,
                 this.Compilation,
                 diagnosticsBuilder,
                 nullabilityDiagnosticsBuilderOpt: null,
@@ -2829,6 +2828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_Int16:
                 case SpecialType.System_Int32:
                 case SpecialType.System_Int64:
+                case SpecialType.System_IntPtr:
                     return true;
 
                 default:
@@ -2849,6 +2849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_UInt16:
                 case SpecialType.System_UInt32:
                 case SpecialType.System_UInt64:
+                case SpecialType.System_UIntPtr:
                     return true;
 
                 default:

@@ -247,8 +247,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             XCData expectedIL,
             bool realIL = false,
             string sequencePoints = null,
-            [CallerFilePath]string callerPath = null,
-            [CallerLineNumber]int callerLine = 0)
+            [CallerFilePath] string callerPath = null,
+            [CallerLineNumber] int callerLine = 0)
         {
             return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: false);
         }
@@ -258,8 +258,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedIL,
             bool realIL = false,
             string sequencePoints = null,
-            [CallerFilePath]string callerPath = null,
-            [CallerLineNumber]int callerLine = 0,
+            [CallerFilePath] string callerPath = null,
+            [CallerLineNumber] int callerLine = 0,
             string source = null)
         {
             return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: true, source: source);
@@ -268,8 +268,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void VerifyLocalSignature(
             string qualifiedMethodName,
             string expectedSignature,
-            [CallerLineNumber]int callerLine = 0,
-            [CallerFilePath]string callerPath = null)
+            [CallerLineNumber] int callerLine = 0,
+            [CallerFilePath] string callerPath = null)
         {
             var ilBuilder = _testData.GetMethodData(qualifiedMethodName).ILBuilder;
             string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder);

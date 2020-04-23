@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
 
 #if NET472
 
-        const int s_currentUserOnlyValue = unchecked((int)0x20000000);
+        const int s_currentUserOnlyValue = 0x20000000;
 
         /// <summary>
         /// Mono supports CurrentUserOnly even though it's not exposed on the reference assemblies for net472. This 

@@ -40,11 +40,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public bool IsDirect { get; }
 
-        internal SymbolCallerInfo(ISymbol callingSymbol, ISymbol calledSymbol, IEnumerable<Location> locations, bool isDirect)
-            : this()
+        internal SymbolCallerInfo(
+            ISymbol callingSymbol,
+            ISymbol calledSymbol,
+            IEnumerable<Location> locations,
+            bool isDirect)
         {
-            this.CallingSymbol = callingSymbol;
-            this.CalledSymbol = calledSymbol;
+            CallingSymbol = callingSymbol;
+            CalledSymbol = calledSymbol;
             this.IsDirect = isDirect;
             this.Locations = locations;
         }

@@ -171,14 +171,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static Action<CodeAction, ImmutableArray<Diagnostic>> GetRegisterCodeFixAction(
             FixAllState fixAllState,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> result)
-            => (action, diagnostics) =>
-               {
-                   if (action != null && action.EquivalenceKey == fixAllState.CodeActionEquivalenceKey)
-                   {
-                       result.Add((diagnostics.First(), action));
-                   }
-               };
+        {
+            return (action, diagnostics) =>
+            {
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var builder);
+                builder.Push(action);
+                while (builder.Count > 0)
+                {
+                    var currentAction = builder.Pop();
+                    if (currentAction is { EquivalenceKey: var equivalenceKey }
+                        && equivalenceKey == fixAllState.CodeActionEquivalenceKey)
+                    {
+                        result.Add((diagnostics.First(), currentAction));
+                    }
 
+                    foreach (var nestedAction in currentAction.NestedCodeActions)
+                    {
+                        builder.Push(nestedAction);
+                    }
+                }
+            };
+        }
 
         protected virtual Task AddProjectFixesAsync(
             Project project, ImmutableArray<Diagnostic> diagnostics,

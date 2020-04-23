@@ -54,5 +54,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return document;
         }
+
+        public static Document GetRequiredDocument(this Project project, DocumentId documentId)
+        {
+            var document = project.GetDocument(documentId);
+            if (document == null)
+            {
+                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            }
+
+            return document;
+        }
     }
 }

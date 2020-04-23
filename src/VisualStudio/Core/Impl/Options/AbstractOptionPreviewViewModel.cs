@@ -67,29 +67,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public void SetOptionAndUpdatePreview<T>(T value, IOption option, string preview)
         {
-            if (option is Option<CodeStyleOption<T>>)
+            var key = new OptionKey(option, option.IsPerLanguage ? Language : null);
+            if (option.DefaultValue is ICodeStyleOption codeStyleOption)
             {
-                var opt = OptionStore.GetOption((Option<CodeStyleOption<T>>)option);
-                opt.Value = value;
-                OptionStore.SetOption((Option<CodeStyleOption<T>>)option, opt);
-            }
-            else if (option is PerLanguageOption<CodeStyleOption<T>>)
-            {
-                var opt = OptionStore.GetOption((PerLanguageOption<CodeStyleOption<T>>)option, Language);
-                opt.Value = value;
-                OptionStore.SetOption((PerLanguageOption<CodeStyleOption<T>>)option, Language, opt);
-            }
-            else if (option is Option<T>)
-            {
-                OptionStore.SetOption((Option<T>)option, value);
-            }
-            else if (option is PerLanguageOption<T>)
-            {
-                OptionStore.SetOption((PerLanguageOption<T>)option, Language, value);
+                OptionStore.SetOption(key, codeStyleOption.WithValue(value));
             }
             else
             {
-                throw new InvalidOperationException("Unexpected option type");
+                OptionStore.SetOption(key, value);
             }
 
             UpdateDocument(preview);

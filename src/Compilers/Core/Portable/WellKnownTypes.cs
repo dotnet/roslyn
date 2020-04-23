@@ -309,6 +309,7 @@ namespace Microsoft.CodeAnalysis
         System_InvalidOperationException,
         System_Runtime_CompilerServices_SwitchExpressionException,
         System_Collections_Generic_IEqualityComparer_T,
+        System_Runtime_CompilerServices_NativeIntegerAttribute,
 
         System_Runtime_InteropServices_OutAttribute,
 
@@ -614,6 +615,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.SwitchExpressionException",
             "System.Collections.Generic.IEqualityComparer`1",
 
+            "System.Runtime.CompilerServices.NativeIntegerAttribute",
+
             "System.Runtime.InteropServices.OutAttribute",
         };
 
@@ -622,6 +625,7 @@ namespace Microsoft.CodeAnalysis
         static WellKnownTypes()
         {
             AssertEnumAndTableInSync();
+
 
             for (int i = 0; i < s_metadataNames.Length; i++)
             {

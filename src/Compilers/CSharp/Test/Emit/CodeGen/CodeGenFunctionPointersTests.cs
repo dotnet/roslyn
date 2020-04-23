@@ -3551,7 +3551,7 @@ unsafe class C
                 // (11,47): error CS1944: An expression tree may not contain an unsafe pointer operation
                 //         Expression<Func<string>> a = () => M1(&M2);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "&M2").WithLocation(11, 47),
-                // (11,48): error CS8785: '&' on method groups cannot be used in expression trees
+                // (11,48): error CS8799: '&' on method groups cannot be used in expression trees
                 //         Expression<Func<string>> a = () => M1(&M2);
                 Diagnostic(ErrorCode.ERR_AddressOfMethodGroupInExpressionTree, "M2").WithLocation(11, 48),
                 // (12,44): error CS0149: Method name expected

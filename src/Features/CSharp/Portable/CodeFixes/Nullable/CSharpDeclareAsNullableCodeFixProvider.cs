@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         // warning CS8603: Possible null reference return.
         // warning CS8600: Converting null literal or possible null value to non-nullable type.
         // warning CS8625: Cannot convert null literal to non-nullable reference type.
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8603", "CS8600", "CS8625");
+        // warning CS8618: Non-nullable property is uninitialized
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8603", "CS8600", "CS8625", "CS8618");
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
@@ -272,6 +273,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 return propertyDeclaration.Type;
             }
 
+            // string x { get; }
+            // Unassigned value that's not marked as null
+            if (node is PropertyDeclarationSyntax propertyDeclarationSyntax)
+            {
+                return propertyDeclarationSyntax.Type;
+            }
+
             // void M(string x = null) { }
             if (node.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax? optionalParameter))
             {
@@ -342,7 +350,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 SyntaxKind.DefaultExpression,
                 SyntaxKind.DefaultLiteralExpression,
                 SyntaxKind.ConditionalExpression,
-                SyntaxKind.ConditionalAccessExpression);
+                SyntaxKind.ConditionalAccessExpression,
+                SyntaxKind.PropertyDeclaration);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

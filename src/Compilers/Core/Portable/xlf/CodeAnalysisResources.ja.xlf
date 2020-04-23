@@ -94,6 +94,11 @@
         <target state="translated">モジュールのコピーは、アセンブリ メタデータの作成には使用できません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="new">Only a single {0} can be registered per generator.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">アナライザー '{0}' の 'SupportedDiagnostics' に null 記述子が含まれています。</target>

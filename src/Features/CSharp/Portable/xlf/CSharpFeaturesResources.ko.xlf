@@ -72,6 +72,16 @@
         <target state="translated">'out' 매개 변수 할당(시작 시)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Assign_to_0">
+        <source>Assign to '{0}'</source>
+        <target state="new">Assign to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compare_to_0">
+        <source>Compare to '{0}'</source>
+        <target state="new">Compare to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">메서드로 변환</target>
@@ -132,11 +142,6 @@
         <target state="translated">'ref struct'로 지정</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Pass_in_captured_variables_as_arguments">
-        <source>Pass in captured variables as arguments</source>
-        <target state="translated">캡처된 변수를 인수로 전달</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">불필요한 캐스트 제거</target>
@@ -175,11 +180,6 @@
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
         <target state="translated">경고: 임시 작업을 조건부 메서드 호출로 인라인 처리합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
-        <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
-        <target state="translated">경고: 로컬 함수 선언에 매개 변수를 추가할 경우 잘못된 코드가 생성될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -632,11 +632,6 @@
         <target state="translated">기본 멤버 숨기기</target>
         <note />
       </trans-unit>
-      <trans-unit id="Delegate_invocation_can_be_simplified">
-        <source>Delegate invocation can be simplified.</source>
-        <target state="translated">대리자 호출을 간단하게 만들 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Properties">
         <source>Properties</source>
         <target state="translated">속성</target>
@@ -755,31 +750,6 @@
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
         <target state="translated">'using' 문 지정</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Misplaced_using_directive">
-        <source>Misplaced using directive</source>
-        <target state="translated">위치가 잘못된 using 지시문</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Move_misplaced_using_directives">
-        <source>Move misplaced using directives</source>
-        <target state="translated">위치가 잘못된 using 지시문 이동</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
-        <source>Using directives must be placed inside of a namespace declaration</source>
-        <target state="translated">Using 지시문은 namespace 선언 내부에 배치되어야 합니다.</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
-        <source>Using directives must be placed outside of a namespace declaration</source>
-        <target state="translated">Using 지시문은 namespace 선언 외부에 배치되어야 합니다.</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
-        <source>Warning: Moving using directives may change code meaning.</source>
-        <target state="translated">경고: using 지시문을 이동하면 코드 의미가 변경될 수 있습니다.</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">

@@ -71,8 +71,14 @@ namespace Microsoft.CodeAnalysis
     }
 
 #nullable enable
+    internal interface IAttributeNamedArgumentDecoder
+    {
+        (KeyValuePair<string, TypedConstant> nameValuePair, bool isProperty, SerializationTypeCode typeCode) DecodeCustomAttributeNamedArgumentOrThrow(ref BlobReader argReader);
+    }
+
     internal abstract class MetadataDecoder<ModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol> :
-        TypeNameDecoder<ModuleSymbol, TypeSymbol>
+        TypeNameDecoder<ModuleSymbol, TypeSymbol>,
+        IAttributeNamedArgumentDecoder
         where ModuleSymbol : class, IModuleSymbolInternal
         where TypeSymbol : class, Symbol, ITypeSymbolInternal
         where MethodSymbol : class, Symbol, IMethodSymbolInternal
@@ -1636,7 +1642,7 @@ tryAgain:
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded named argument is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private KeyValuePair<string, TypedConstant> DecodeCustomAttributeNamedArgumentOrThrow(ref BlobReader argReader)
+        public (KeyValuePair<string, TypedConstant> nameValuePair, bool isProperty, SerializationTypeCode typeCode) DecodeCustomAttributeNamedArgumentOrThrow(ref BlobReader argReader)
         {
             // Ecma-335 23.3 - A NamedArg is simply a FixedArg preceded by information to identify which field or
             // property it represents. [Note: Recall that the CLI allows fields and properties to have the same name; so
@@ -1663,7 +1669,7 @@ tryAgain:
                 ? DecodeCustomAttributeElementArrayOrThrow(ref argReader, elementTypeCode, elementType, type)
                 : DecodeCustomAttributeElementOrThrow(ref argReader, typeCode, type);
 
-            return new KeyValuePair<string, TypedConstant>(name, value);
+            return (new KeyValuePair<string, TypedConstant>(name, value), kind == CustomAttributeNamedArgumentKind.Property, typeCode);
         }
 
         internal bool IsTargetAttribute(
@@ -1709,7 +1715,7 @@ tryAgain:
             try
             {
                 positionalArgs = Array.Empty<TypedConstant>();
-                namedArgs = Array.Empty<KeyValuePair<String, TypedConstant>>();
+                namedArgs = Array.Empty<KeyValuePair<string, TypedConstant>>();
 
                 // We could call decoder.GetSignature and use that to decode the arguments. However, materializing the
                 // constructor signature is more work. We try to decode the arguments directly from the metadata bytes.
@@ -1764,7 +1770,7 @@ tryAgain:
 
                         for (int i = 0; i < namedArgs.Length; i++)
                         {
-                            namedArgs[i] = DecodeCustomAttributeNamedArgumentOrThrow(ref argsReader);
+                            (namedArgs[i], _, _) = DecodeCustomAttributeNamedArgumentOrThrow(ref argsReader);
                         }
                     }
 

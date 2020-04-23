@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Task OnFindInDocumentStartedAsync(Document document);
         Task OnFindInDocumentCompletedAsync(Document document);
 
-        Task OnDefinitionFoundAsync(SymbolAndProjectId symbolAndProjectId);
-        Task OnReferenceFoundAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location);
+        Task OnDefinitionFoundAsync(ISymbol symbol);
+        Task OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location);
     }
 
     internal interface IStreamingFindLiteralReferencesProgress

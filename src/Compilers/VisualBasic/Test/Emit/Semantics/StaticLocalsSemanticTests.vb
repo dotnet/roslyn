@@ -542,7 +542,7 @@ End Namespace
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub Semantic_StaticLocalDeclaration_WithDim()
-            'Declare static local in conjunction with an Dim keyword 
+            'Declare static local in conjunction with a Dim keyword 
             Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">

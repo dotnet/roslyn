@@ -1684,7 +1684,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Apply bulk configuration from analyzer options for analyzer diagnostics, if applicable.
             var tree = diagnostic?.Location.SourceTree;
-            if (tree == null || analyzerOptions == null || diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Compiler))
+            if (tree == null || analyzerOptions == null || diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Compiler) || diagnostic.IsNotConfigurable())
             {
                 return diagnostic;
             }
@@ -2617,6 +2617,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             case OperationKind.MethodBody:
                             case OperationKind.ConstructorBody:
                                 operationsToAnalyze.Add(operationBlock.Parent);
+                                break;
+
+                            case OperationKind.ExpressionStatement:
+                                // For constructor initializer, we generate an IInvocationOperation with an implicit IExpressionStatementOperation parent.
+                                Debug.Assert(operationBlock.Kind == OperationKind.Invocation);
+                                Debug.Assert(operationBlock.Parent.IsImplicit);
+                                Debug.Assert(operationBlock.Parent.Parent is IConstructorBodyOperation ctorBody &&
+                                    ctorBody.Initializer == operationBlock.Parent);
                                 break;
 
                             default:

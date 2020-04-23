@@ -35,9 +35,12 @@ namespace Roslyn.Utilities
                 throw new ArgumentNullException(nameof(collection));
             }
 
-            foreach (var item in values)
+            if (!values.IsDefault)
             {
-                collection.Add(item);
+                foreach (var item in values)
+                {
+                    collection.Add(item);
+                }
             }
         }
     }

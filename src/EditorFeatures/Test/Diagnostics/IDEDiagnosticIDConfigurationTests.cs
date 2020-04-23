@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Editor.UnitTests.Preview.TestOnly_CompilerDiagnosticAnalyzerProviderService;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityLevel
 {
@@ -68,6 +68,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
 
             diagnosticIdAndOptions.Sort();
             return diagnosticIdAndOptions.ToImmutableArray();
+        }
+
+        public class FromFileLoader : IAnalyzerAssemblyLoader
+        {
+            public static FromFileLoader Instance = new FromFileLoader();
+
+            public void AddDependencyLocation(string fullPath)
+            {
+            }
+
+            public Assembly LoadFromPath(string fullPath)
+            {
+                return Assembly.LoadFrom(fullPath);
+            }
         }
 
         private static Dictionary<string, string> GetExpectedMap(string expected, out string[] expectedLines)
