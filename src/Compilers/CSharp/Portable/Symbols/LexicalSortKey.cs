@@ -44,14 +44,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static readonly LexicalSortKey NotInitialized = new LexicalSortKey() { _treeOrdinal = -1, _position = -1 };
 
         // Put Record Equals right before synthesized constructors.
-        public static LexicalSortKey SynthesizedRecordEquals => new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 3 };
-        public static LexicalSortKey SynthesizedRecordObjEquals => new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 2 };
+        public static LexicalSortKey SynthesizedRecordEquals => new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 4 };
+        public static LexicalSortKey SynthesizedRecordObjEquals => new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 3 };
+
 
         // Dev12 compiler adds synthetic constructors to the child list after adding all other members.
         // Methods are emitted in the children order, but synthetic cctors would be deferred 
         // until later when it is known if they can be optimized or not.
         // As a result the last emitted method tokens are synthetic ctor and then synthetic cctor (if not optimized)
         // Since it is not too hard, we will try keeping the same order just to be easy on metadata diffing tools and such.
+        public static readonly LexicalSortKey SynthesizedRecordCtor = new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 2 };
         public static readonly LexicalSortKey SynthesizedCtor = new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 1 };
         public static readonly LexicalSortKey SynthesizedCCtor = new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue };
 

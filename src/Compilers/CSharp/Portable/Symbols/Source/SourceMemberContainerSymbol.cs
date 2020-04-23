@@ -143,6 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private static readonly ObjectPool<PooledDictionary<Symbol, Symbol>> s_duplicateMemberSignatureDictionary =
+            PooledDictionary<Symbol, Symbol>.CreatePool(MemberSignatureComparer.DuplicateSourceComparer);
+
         protected SymbolCompletionState state;
 
         private Flags _flags;
@@ -2933,20 +2936,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(paramList.SyntaxTree);
             var binder = binderFactory.GetBinder(paramList);
 
-            var memberSignatures = new HashSet<Symbol>(members, MemberSignatureComparer.DuplicateSourceComparer);
+            var memberSignatures = s_duplicateMemberSignatureDictionary.Allocate();
+            foreach (var member in members)
+            {
+                memberSignatures.Add(member, member);
+            }
 
             var ctor = addCtor(paramList);
             addProperties(ctor.Parameters);
-            addObjectEquals();
+            var thisEquals = addThisEquals();
+            addObjectEquals(thisEquals);
             addHashCode();
-            addThisEquals();
+
+            memberSignatures.Free();
 
             return;
 
             SynthesizedRecordConstructor addCtor(ParameterListSyntax paramList)
             {
                 var ctor = new SynthesizedRecordConstructor(this, binder, paramList, diagnostics);
-                if (!memberSignatures.Contains(ctor))
+                if (!memberSignatures.ContainsKey(ctor))
                 {
                     members.Add(ctor);
                 }
@@ -2963,7 +2972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (ParameterSymbol param in ctor.Parameters)
                 {
                     var property = new SynthesizedRecordPropertySymbol(this, param);
-                    if (!memberSignatures.Contains(property))
+                    if (!memberSignatures.ContainsKey(property))
                     {
                         members.Add(property);
                         members.Add(property.GetMethod);
@@ -2972,10 +2981,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void addObjectEquals()
+            void addObjectEquals(MethodSymbol thisEquals)
             {
-                var objEquals = new SynthesizedRecordObjEquals(this);
-                if (!memberSignatures.Contains(objEquals))
+                var objEquals = new SynthesizedRecordObjEquals(this, thisEquals);
+                if (!memberSignatures.ContainsKey(objEquals))
                 {
                     // PROTOTYPE: Don't add if the overridden method is sealed
                     members.Add(objEquals);
@@ -2985,32 +2994,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             void addHashCode()
             {
                 var hashCode = new SynthesizedRecordGetHashCode(this);
-                if (!memberSignatures.Contains(hashCode))
+                if (!memberSignatures.ContainsKey(hashCode))
                 {
                     // PROTOTYPE: Don't add if the overridden method is sealed
                     members.Add(hashCode);
                 }
             }
 
-            void addThisEquals()
+            MethodSymbol addThisEquals()
             {
                 var thisEquals = new SynthesizedRecordEquals(this);
-                if (!memberSignatures.Contains(thisEquals))
+                if (!memberSignatures.TryGetValue(thisEquals, out var existing))
                 {
                     members.Add(thisEquals);
+                    return thisEquals;
                 }
+                return (MethodSymbol)existing;
             }
         }
 
         private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers, DiagnosticBag diagnostics)
         {
-            switch (declaration.Kind)
-            {
-                case DeclarationKind.Class:
-                case DeclarationKind.Struct:
-                    break;
-            }
-
             //we're not calling the helpers on NamedTypeSymbol base, because those call
             //GetMembers and we're inside a GetMembers call ourselves (i.e. stack overflow)
             var hasInstanceConstructor = false;
@@ -3047,7 +3051,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: Per section 11.3.8 of the spec, "every struct implicitly has a parameterless instance constructor".
             // We won't insert a parameterless constructor for a struct if there already is one.
             // We don't expect anything to be emitted, but it should be in the symbol table.
-            if ((!hasParameterlessInstanceConstructor && this.IsStructType()) || (!hasInstanceConstructor && !this.IsStatic && !this.IsInterface))
+            if ((!hasParameterlessInstanceConstructor && this.IsStructType()) ||
+                (!hasInstanceConstructor && !this.IsStatic && !this.IsInterface))
             {
                 members.Add((this.TypeKind == TypeKind.Submission) ?
                     new SynthesizedSubmissionConstructor(this, diagnostics) :
