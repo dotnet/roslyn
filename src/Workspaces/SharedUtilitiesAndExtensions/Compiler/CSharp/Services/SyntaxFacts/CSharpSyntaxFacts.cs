@@ -139,6 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation) &&
                objectCreation.Type == node;
 
+        public bool IsDeclarationExpression(SyntaxNode node)
+            => node is DeclarationExpressionSyntax;
+
         public bool IsAttributeName(SyntaxNode node)
             => SyntaxFacts.IsAttributeName(node);
 
@@ -1269,7 +1272,17 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => GetArgumentsOfArgumentList((objectCreationExpression as ObjectCreationExpressionSyntax)?.ArgumentList);
 
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
-            => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default(SeparatedSyntaxList<SyntaxNode>);
+        {
+            if (argumentList is BaseArgumentListSyntax)
+            {
+                return (argumentList as BaseArgumentListSyntax).Arguments;
+            }
+            else if (argumentList is AttributeArgumentListSyntax)
+            {
+                return (argumentList as AttributeArgumentListSyntax).Arguments;
+            }
+            return default;
+        }
 
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();

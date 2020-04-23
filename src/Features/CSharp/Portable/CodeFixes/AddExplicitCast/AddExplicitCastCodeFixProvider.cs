@@ -107,19 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return !potentialConversionTypes.IsEmpty;
         }
 
-        protected override SeparatedSyntaxList<SyntaxNode> GetArguments(SyntaxNode argumentList)
-        {
-            if (argumentList is ArgumentListSyntax normalArgumentList)
-            {
-                return normalArgumentList.Arguments;
-            }
-            else if (argumentList is AttributeArgumentListSyntax attributeArgumentList)
-            {
-                return attributeArgumentList.Arguments;
-            }
-            return SyntaxFactory.SeparatedList<SyntaxNode>();
-        }
-
         protected override SyntaxNode GenerateNewArgument(SyntaxNode oldArgument, ITypeSymbol conversionType)
         {
             if (oldArgument is ArgumentSyntax oldNormalArgument)
@@ -132,9 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             }
             return oldArgument;
         }
-
-        protected override bool IsDeclarationExpression(ExpressionSyntax expression)
-            => expression.Kind() == SyntaxKind.DeclarationExpression;
 
         protected override SyntaxNode GenerateNewArgumentList(
             SyntaxNode oldArgumentList, List<SyntaxNode> newArguments)

@@ -50,11 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         protected abstract CommonConversion ClassifyConversion(SemanticModel semanticModel, TExpressionSyntax expression,
             ITypeSymbol type);
 
-        protected abstract SeparatedSyntaxList<SyntaxNode> GetArguments(SyntaxNode argumentList);
-
         protected abstract SyntaxNode GenerateNewArgument(SyntaxNode oldArgument, ITypeSymbol conversionType);
-
-        protected abstract bool IsDeclarationExpression(TExpressionSyntax expression);
 
         protected abstract SyntaxNode GenerateNewArgumentList(
             SyntaxNode oldArgumentList, List<SyntaxNode> newArguments);
@@ -211,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             if (parameters.Length == 0)
                 return false;
 
-            var arguments = GetArguments(argumentList);
+            var arguments = syntaxFacts.GetArgumentsOfArgumentList(argumentList);
             var newArguments = new List<SyntaxNode>();
 
             for (var i = 0; i < arguments.Count; i++)
@@ -252,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     if (arguments[i].Equals(targetArgument))
                         targetArgumentConversionType = parameterType;
                 }
-                else if (IsDeclarationExpression(argumentExpression)
+                else if (syntaxFacts.IsDeclarationExpression(argumentExpression)
                     && semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type is ITypeSymbol argumentType
                     && semanticModel.Compilation.ClassifyCommonConversion(argumentType, parameterType).IsIdentity)
                 {
@@ -328,9 +324,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var candidateSymbols);
             if (symbolInfo.Symbol != null) // BC42016: the only candidate symbol is symbolInfo.Symbol
+            {
                 candidateSymbols.Add(symbolInfo.Symbol);
+            }
             else
-                candidateSymbols.Add(symbolInfo.CandidateSymbols)
+            {
+                candidateSymbols.AddRange(symbolInfo.CandidateSymbols);
+            }
 
             using var __ = ArrayBuilder<(TExpressionSyntax, ITypeSymbol)>.GetInstance(out var mutablePotentialConversionTypes);
             foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())

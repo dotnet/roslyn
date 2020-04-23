@@ -95,11 +95,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
             Return semanticModel.ClassifyConversion(expression, type).ToCommonConversion()
         End Function
 
-        Protected Overrides Function GetArguments(argumentList As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
-            Return If(TryCast(argumentList, ArgumentListSyntax)?.Arguments,
-                SyntaxFactory.SeparatedList(Of ArgumentSyntax)())
-        End Function
-
         Protected Overrides Function GenerateNewArgument(
                 oldArgument As SyntaxNode, conversionType As ITypeSymbol) As SyntaxNode
             Select Case oldArgument.Kind
@@ -110,11 +105,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                 Case Else
                     Return oldArgument
             End Select
-        End Function
-
-        Protected Overrides Function IsDeclarationExpression(expression As ExpressionSyntax) As Boolean
-            ' VB does not have keyword "out", so VB doesn't support declaration declaration in an argument
-            Return False
         End Function
 
         Protected Overrides Function GenerateNewArgumentList(
