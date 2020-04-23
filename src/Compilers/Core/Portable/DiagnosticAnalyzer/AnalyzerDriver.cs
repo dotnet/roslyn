@@ -1704,8 +1704,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic = diagnostic.WithReportDiagnostic(severity);
             }
 
-            if (!severityFilter.IsEmpty &&
-                diagnostic != null &&
+            if (diagnostic != null &&
                 severityFilter.Contains(DiagnosticDescriptor.MapSeverityToReport(diagnostic.Severity)))
             {
                 return null;

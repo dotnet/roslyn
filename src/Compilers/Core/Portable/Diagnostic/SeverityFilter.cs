@@ -4,43 +4,30 @@
 
 #nullable enable
 
+using System;
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
     /// Represents a set of filtered diagnostic severities.
+    /// Currently, we only support filtering out Hidden and Info severities during build.
     /// </summary>
-    internal readonly struct SeverityFilter
+    [Flags]
+    internal enum SeverityFilter
     {
-        private const int HiddenBit = 0x01;
-        private const int InfoBit = 0x10;
+        None = 0x00,
+        Hidden = 0x01,
+        Info = 0x10
+    }
 
-        private readonly int _flag;
-
-        private SeverityFilter(bool includeHidden, bool includeInfo)
-        {
-            _flag = 0;
-
-            if (includeHidden)
-            {
-                _flag = HiddenBit;
-            }
-
-            if (includeInfo)
-            {
-                _flag |= InfoBit;
-            }
-        }
-
-        internal static SeverityFilter Hidden = new SeverityFilter(includeHidden: true, includeInfo: false);
-        internal static SeverityFilter HiddenAndInfo = new SeverityFilter(includeHidden: true, includeInfo: true);
-
-        internal bool IsEmpty => _flag == 0;
-        internal bool Contains(ReportDiagnostic severity)
+    internal static class SeverityFilterExtensions
+    {
+        internal static bool Contains(this SeverityFilter severityFilter, ReportDiagnostic severity)
         {
             return severity switch
             {
-                ReportDiagnostic.Hidden => (_flag & HiddenBit) != 0,
-                ReportDiagnostic.Info => (_flag & InfoBit) != 0,
+                ReportDiagnostic.Hidden => (severityFilter & SeverityFilter.Hidden) != 0,
+                ReportDiagnostic.Info => (severityFilter & SeverityFilter.Info) != 0,
                 _ => false
             };
         }

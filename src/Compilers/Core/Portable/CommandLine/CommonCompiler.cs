@@ -931,7 +931,9 @@ namespace Microsoft.CodeAnalysis
                 // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
                 //  1. Always filter out 'Hidden' analyzer diagnostics in build.
                 //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
-                var severityFilter = Arguments.ErrorLogPath != null ? SeverityFilter.Hidden : SeverityFilter.HiddenAndInfo;
+                var severityFilter = SeverityFilter.Hidden;
+                if (Arguments.ErrorLogPath == null)
+                    severityFilter |= SeverityFilter.Info;
 
                 analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
                     compilation,
