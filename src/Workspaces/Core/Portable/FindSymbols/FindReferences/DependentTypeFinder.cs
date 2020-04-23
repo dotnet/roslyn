@@ -151,29 +151,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result.SelectAsArray(t => (t.GetSymbolKey(), solution.GetOriginatingProjectId(t)));
         }
 
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindWithoutCachingDerivedAndImplementingTypesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            // Only an interface can be implemented.
-            if (type?.TypeKind == TypeKind.Interface)
-            {
-                static bool typeMatches(SymbolSet s, INamedTypeSymbol t, bool transitive)
-                    => TypeHasBaseTypeInSet(s, t, transitive) || TypeHasInterfaceInSet(s, t, transitive);
-
-                return FindTypesAsync(type, solution, projects,
-                    typeMatches: typeMatches,
-                    shouldContinueSearching: s_isInterfaceOrNonSealedClass,
-                    transitive: transitive,
-                    cancellationToken: cancellationToken);
-            }
-
-            return SpecializedTasks.EmptyImmutableArray<INamedTypeSymbol>();
-        }
-
         private static async Task<ImmutableArray<INamedTypeSymbol>> FindTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
