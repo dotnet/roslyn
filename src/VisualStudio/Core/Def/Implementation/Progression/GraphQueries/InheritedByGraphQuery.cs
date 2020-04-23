@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
                 else if (namedType.TypeKind == TypeKind.Interface)
                 {
-                    var derivedTypes = await DependentTypeFinder.FindImmediatelyDerivedAndImplementingTypesAsync(
+                    var derivedTypes = await DependentTypeFinder.FindAndCacheImmediatelyDerivedAndImplementingTypesAsync(
                         namedType, solution, cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in derivedTypes)
                     {

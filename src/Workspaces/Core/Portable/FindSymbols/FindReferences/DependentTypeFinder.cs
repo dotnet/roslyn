@@ -159,14 +159,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
-            return FindDerivedAndImplementingTypesAsync(
+            return FindWithoutCachingDerivedAndImplementingTypesAsync(
                 type, solution, projects, transitive: true, cancellationToken);
         }
 
         /// <summary>
         /// Used for implementing the Inherited-By relation for progression.
         /// </summary>
-        public static Task<ImmutableArray<INamedTypeSymbol>> FindImmediatelyDerivedAndImplementingTypesAsync(
+        public static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImmediatelyDerivedAndImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
@@ -174,12 +174,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return FindTypesFromCacheOrComputeAsync(
                 type, solution, projects: null,
                 cache: s_typeToImmediatelyDerivedAndImplementingTypesMap,
-                findAsync: c => FindDerivedAndImplementingTypesAsync(
+                findAsync: c => FindWithoutCachingDerivedAndImplementingTypesAsync(
                     type, solution, projects: null, transitive: false, c),
                 cancellationToken: cancellationToken);
         }
 
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindDerivedAndImplementingTypesAsync(
+        private static Task<ImmutableArray<INamedTypeSymbol>> FindWithoutCachingDerivedAndImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
