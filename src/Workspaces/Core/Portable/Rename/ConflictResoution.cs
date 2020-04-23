@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -13,36 +12,36 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     internal readonly struct ConflictResolution
     {
-        public readonly Solution NewSolution;
         public readonly Solution OldSolution;
-
-        public readonly ImmutableArray<RelatedLocation> RelatedLocations;
+        public readonly Solution NewSolution;
         public readonly bool ReplacementTextValid;
-
-        private readonly ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>> _documentToModifiedSpansMap;
-        private readonly ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> _documentToComplexifiedSpansMap;
-
-        private readonly ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> _documentToRelatedLocationsMap;
 
         /// <summary>
         /// The list of all document ids of documents that have been touched for this rename operation.
         /// </summary>
         public readonly ImmutableArray<DocumentId> DocumentIds;
 
-        public ConflictResolution(MutableConflictResolution resolution)
+        public readonly ImmutableArray<RelatedLocation> RelatedLocations;
+
+        private readonly ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>> _documentToModifiedSpansMap;
+        private readonly ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> _documentToComplexifiedSpansMap;
+        private readonly ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> _documentToRelatedLocationsMap;
+
+        public ConflictResolution(
+            Solution oldSolution, Solution newSolution, bool replacementTextValid,
+            ImmutableArray<DocumentId> documentIds, ImmutableArray<RelatedLocation> relatedLocations,
+            ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>> documentToModifiedSpansMap,
+            ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> documentToComplexifiedSpansMap,
+            ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> documentToRelatedLocationsMap)
         {
-            OldSolution = resolution.OldSolution;
-            NewSolution = resolution.NewSolution;
-            RelatedLocations = resolution.RelatedLocations.ToImmutableArray();
-            ReplacementTextValid = resolution.ReplacementTextValid;
-
-            DocumentIds = resolution.RenamedSpansTracker.DocumentIds.Concat(
-                resolution.RelatedLocations.Select(l => l.DocumentId)).Distinct().ToImmutableArray();
-
-            _documentToModifiedSpansMap = resolution.RenamedSpansTracker.GetDocumentToModifiedSpansMap();
-            _documentToComplexifiedSpansMap = resolution.RenamedSpansTracker.GetDocumentToComplexifiedSpansMap();
-            _documentToRelatedLocationsMap = resolution.RelatedLocations.GroupBy(loc => loc.DocumentId).ToImmutableDictionary(
-                g => g.Key, g => g.ToImmutableArray());
+            OldSolution = oldSolution;
+            NewSolution = newSolution;
+            ReplacementTextValid = replacementTextValid;
+            DocumentIds = documentIds;
+            RelatedLocations = relatedLocations;
+            _documentToModifiedSpansMap = documentToModifiedSpansMap;
+            _documentToComplexifiedSpansMap = documentToComplexifiedSpansMap;
+            _documentToRelatedLocationsMap = documentToRelatedLocationsMap;
         }
 
         public ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)> GetComplexifiedSpans(DocumentId documentId)

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             var resolution = await ResolveMutableConflictsAsync(
                 renameLocationSet, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
-            return new ConflictResolution(resolution);
+            return resolution.ToConflictResolution();
         }
 
         private static Task<MutableConflictResolution> ResolveMutableConflictsAsync(

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     internal sealed class MutableConflictResolution
     {
         // Used to map spans from oldSolution to the newSolution
-        public readonly RenamedSpansTracker RenamedSpansTracker;
+        private readonly RenamedSpansTracker _renamedSpansTracker;
 
         // List of All the Locations that were renamed and conflict-complexified
         public readonly List<RelatedLocation> RelatedLocations;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             OldSolution = oldSolution;
             NewSolution = oldSolution;
-            RenamedSpansTracker = renamedSpansTracker;
+            _renamedSpansTracker = renamedSpansTracker;
             ReplacementText = replacementText;
             ReplacementTextValid = replacementTextValid;
             RelatedLocations = new List<RelatedLocation>();
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         internal void ClearDocuments(IEnumerable<DocumentId> conflictLocationDocumentIds)
         {
             RelatedLocations.RemoveAll(r => conflictLocationDocumentIds.Contains(r.DocumentId));
-            RenamedSpansTracker.ClearDocuments(conflictLocationDocumentIds);
+            _renamedSpansTracker.ClearDocuments(conflictLocationDocumentIds);
         }
 
         internal void UpdateCurrentSolution(Solution solution)
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             foreach (var documentId in documentWithRenameAnnotations)
             {
-                if (RenamedSpansTracker.IsDocumentChanged(documentId))
+                if (_renamedSpansTracker.IsDocumentChanged(documentId))
                 {
                     var document = NewSolution.GetDocument(documentId);
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         public int GetAdjustedTokenStartingPosition(int startingPosition, DocumentId documentId)
-            => RenamedSpansTracker.GetAdjustedPosition(startingPosition, documentId);
+            => _renamedSpansTracker.GetAdjustedPosition(startingPosition, documentId);
 
         internal void AddRelatedLocation(RelatedLocation location)
             => RelatedLocations.Add(location);
@@ -120,6 +121,29 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 RelatedLocations.Remove(existingRelatedLocation.Value);
 
             AddRelatedLocation(location);
+        }
+
+        public ConflictResolution ToConflictResolution()
+        {
+            var documentIds = this._renamedSpansTracker.DocumentIds.Concat(
+                this.RelatedLocations.Select(l => l.DocumentId)).Distinct().ToImmutableArray();
+
+            var relatedLocations = this.RelatedLocations.ToImmutableArray();
+
+            var documentToModifiedSpansMap = this._renamedSpansTracker.GetDocumentToModifiedSpansMap();
+            var documentToComplexifiedSpansMap = this._renamedSpansTracker.GetDocumentToComplexifiedSpansMap();
+            var documentToRelatedLocationsMap = this.RelatedLocations.GroupBy(loc => loc.DocumentId).ToImmutableDictionary(
+                g => g.Key, g => g.ToImmutableArray());
+
+            return new ConflictResolution(
+                OldSolution,
+                NewSolution,
+                ReplacementTextValid,
+                documentIds,
+                relatedLocations,
+                documentToModifiedSpansMap,
+                documentToComplexifiedSpansMap,
+                documentToRelatedLocationsMap);
         }
     }
 }
