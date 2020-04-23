@@ -1,5 +1,5 @@
 <Project>
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory)..\, Directory.Build.props))\Directory.Build.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory)..\, Directory.Build.props))' != '' " />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory)../, Directory.Build.props))\Directory.Build.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory)../, Directory.Build.props))' != '' " />
 
   <PropertyGroup>
     <TargetFrameworks>net472;netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
