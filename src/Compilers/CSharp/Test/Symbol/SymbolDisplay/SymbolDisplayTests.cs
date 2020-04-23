@@ -2549,7 +2549,7 @@ namespace N1 {
         }
 
         [Fact]
-        public void TestMinimalNamespace__()
+        public void TestMembersInScriptGlobals()
         {
             var text = @"1";
             var tree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.Script);
@@ -2571,19 +2571,15 @@ namespace N1 {
             var propertySymbol = hostTypeSymbol.GetMember("Property");
             var eventSymbol = hostTypeSymbol.GetMember("Event");
 
-            // ...
-            //name type symbol 
             var nestedTypeSymbol = (TypeSymbol)hostTypeSymbol.GetMember("NestedType");
             var nestedMethodSymbol = nestedTypeSymbol.GetMember("Method");
             var nestedDelegateSymbol = nestedTypeSymbol.GetMember("MyDelegate");
             var nestedFieldSymbol = nestedTypeSymbol.GetMember("Field");
             var nestedPropertySymbol = nestedTypeSymbol.GetMember("Property");
             var nestedEventSymbol = nestedTypeSymbol.GetMember("Event");
-            // ...
 
             Verify(methodSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
                 "void Method(int p)",
-
                  SymbolDisplayPartKind.Keyword,
                  SymbolDisplayPartKind.Space,
                  SymbolDisplayPartKind.MethodName,
@@ -2696,36 +2692,36 @@ namespace N1 {
         }
 
         private static readonly SymbolDisplayFormat s_memberSignatureDisplayFormat =
-                new SymbolDisplayFormat(
-                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
-                    memberOptions:
-                        SymbolDisplayMemberOptions.IncludeRef |
-                        SymbolDisplayMemberOptions.IncludeType |
-                        SymbolDisplayMemberOptions.IncludeParameters |
-                        SymbolDisplayMemberOptions.IncludeContainingType,
-                    delegateStyle:
-                        SymbolDisplayDelegateStyle.NameAndSignature,
-                    kindOptions:
-                        SymbolDisplayKindOptions.IncludeMemberKeyword,
-                    propertyStyle:
-                        SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
-                    parameterOptions:
-                        SymbolDisplayParameterOptions.IncludeName |
-                        SymbolDisplayParameterOptions.IncludeType |
-                        SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                        SymbolDisplayParameterOptions.IncludeExtensionThis |
-                        SymbolDisplayParameterOptions.IncludeDefaultValue |
-                        SymbolDisplayParameterOptions.IncludeOptionalBrackets,
-                    localOptions:
-                        SymbolDisplayLocalOptions.IncludeRef |
-                        SymbolDisplayLocalOptions.IncludeType,
-                    miscellaneousOptions:
-                        SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                        SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
-                        SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                        SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
-                        SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
+            new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeRef |
+                    SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeContainingType,
+                delegateStyle:
+                    SymbolDisplayDelegateStyle.NameAndSignature,
+                kindOptions:
+                    SymbolDisplayKindOptions.IncludeMemberKeyword,
+                propertyStyle:
+                    SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.IncludeName |
+                    SymbolDisplayParameterOptions.IncludeType |
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                    SymbolDisplayParameterOptions.IncludeExtensionThis |
+                    SymbolDisplayParameterOptions.IncludeDefaultValue |
+                    SymbolDisplayParameterOptions.IncludeOptionalBrackets,
+                localOptions:
+                    SymbolDisplayLocalOptions.IncludeRef |
+                    SymbolDisplayLocalOptions.IncludeType,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
+                    SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
 
         [Fact]
         public void TestRemoveAttributeSuffix1()
