@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <returns>The segment size to use for small object heap segmented arrays.</returns>
         internal static int CalculateSegmentSize(int elementSize)
         {
+            // Default Large Object Heap size threshold
+            // https://github.com/dotnet/runtime/blob/c9d69e38d0e54bea5d188593ef6c3b30139f3ab1/src/coreclr/src/gc/gc.h#L111
             const int Threshold = 85000;
 
             var segmentSize = 2;
@@ -38,6 +40,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
+        /// <summary>
+        /// Calculates a shift which can be applied to an absolute index to get the page index within a segmented array.
+        /// </summary>
+        /// <param name="segmentSize">The number of elements in each page of the segmented array. Must be a power of 2.</param>
+        /// <returns>The shift to apply to the absolute index to get the page index within a segmented array.</returns>
         internal static int CalculateSegmentShift(int segmentSize)
         {
             var segmentShift = 0;
@@ -49,9 +56,15 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return segmentShift;
         }
 
+        /// <summary>
+        /// Calculates a mask, which can be applied to an absolute index to get the index within a page of a segmented
+        /// array.
+        /// </summary>
+        /// <param name="segmentSize">The number of elements in each page of the segmented array. Must be a power of 2.</param>
+        /// <returns>The bit mask to obtain the index within a page from an absolute index within a segmented array.</returns>
         internal static int CalculateOffsetMask(int segmentSize)
         {
-            Debug.Assert(segmentSize <= 1 || (segmentSize & (segmentSize - 1)) == 0);
+            Debug.Assert(segmentSize == 1 || (segmentSize & (segmentSize - 1)) == 0, "Expected size of 1, or a power of 2");
             return segmentSize - 1;
         }
     }

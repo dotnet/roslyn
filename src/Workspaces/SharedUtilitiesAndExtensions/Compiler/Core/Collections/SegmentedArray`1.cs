@@ -5,15 +5,41 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
+    /// <summary>
+    /// Defines a fixed-size collection with the same API surface and behavior as an "SZArray", which is a
+    /// single-dimensional zero-based array commonly represented in C# as <c>T[]</c>. The implementation of this
+    /// collection uses segmented arrays to avoid placing objects on the Large Object Heap.
+    /// </summary>
+    /// <typeparam name="T">The type of elements stored in the array.</typeparam>
     internal readonly struct SegmentedArray<T> : ICloneable, IList, IStructuralComparable, IStructuralEquatable, IList<T>, IReadOnlyList<T>
     {
+        /// <summary>
+        /// The number of elements in each page of the segmented array of type <typeparamref name="T"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>The segment size is calculated according to <see cref="Unsafe.SizeOf{T}"/>, performs the IL operation
+        /// defined by <see cref="OpCodes.Sizeof"/>. ECMA-335 defines this operation with the following note:</para>
+        ///
+        /// <para><c>sizeof</c> returns the total size that would be occupied by each element in an array of this type –
+        /// including any padding the implementation chooses to add. Specifically, array elements lie <c>sizeof</c>
+        /// bytes apart.</para>
+        /// </remarks>
         private static readonly int s_segmentSize = SegmentedArrayHelper.CalculateSegmentSize(Unsafe.SizeOf<T>());
+
+        /// <summary>
+        /// The bit shift to apply to an array index to get the page index within <see cref="_items"/>.
+        /// </summary>
         private static readonly int s_segmentShift = SegmentedArrayHelper.CalculateSegmentShift(s_segmentSize);
+
+        /// <summary>
+        /// The bit mask to apply to an array index to get the index within a page of <see cref="_items"/>.
+        /// </summary>
         private static readonly int s_offsetMask = SegmentedArrayHelper.CalculateOffsetMask(s_segmentSize);
 
         private readonly int _length;
@@ -39,6 +65,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     _items[i] = new T[s_segmentSize];
                 }
 
+                // Make sure the last page only contains the number of elements required for the desired length. This
+                // collection is not resizeable so any additional padding would be a waste of space.
                 _items[^1] = new T[length & s_offsetMask];
                 _length = length;
             }
@@ -58,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         public int Length => _length;
 
-        public object SyncRoot => _items ?? Array.Empty<T[]>().SyncRoot;
+        public object SyncRoot => _items;
 
         public ref T this[int index]
         {
@@ -68,11 +96,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
-        int ICollection.Count => _length;
+        int ICollection.Count => Length;
 
-        int ICollection<T>.Count => _length;
+        int ICollection<T>.Count => Length;
 
-        int IReadOnlyCollection<T>.Count => _length;
+        int IReadOnlyCollection<T>.Count => Length;
 
         T IReadOnlyList<T>.this[int index] => this[index];
 
@@ -96,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 items[i] = (T[])items[i].Clone();
             }
 
-            return new SegmentedArray<T>(_length, items);
+            return new SegmentedArray<T>(Length, items);
         }
 
         public void CopyTo(Array array, int index)
@@ -131,6 +159,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         void IList.Clear()
         {
+            // Matches System.Array
+            // https://github.com/dotnet/runtime/blob/e0ec035994179e8ebd6ccf081711ee11d4c5491b/src/libraries/System.Private.CoreLib/src/System/Array.cs#L279-L282
             foreach (IList list in _items)
             {
                 list.Clear();
@@ -139,6 +169,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         void ICollection<T>.Clear()
         {
+            // Matches `((ICollection<T>)new T[1]).Clear()`
             throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
 
@@ -235,6 +266,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             if (other is null)
                 return 1;
 
+            // Matches System.Array
+            // https://github.com/dotnet/runtime/blob/e0ec035994179e8ebd6ccf081711ee11d4c5491b/src/libraries/System.Private.CoreLib/src/System/Array.cs#L320-L323
             if (!(other is SegmentedArray<T> o)
                 || Length != o.Length)
             {
@@ -278,6 +311,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             _ = comparer ?? throw new ArgumentNullException(nameof(comparer));
 
+            // Matches System.Array
+            // https://github.com/dotnet/runtime/blob/e0ec035994179e8ebd6ccf081711ee11d4c5491b/src/libraries/System.Private.CoreLib/src/System/Array.cs#L380-L383
             var ret = 0;
             for (var i = Length >= 8 ? Length - 8 : 0; i < Length; i++)
             {

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.False(data.IsReadOnly);
             Assert.False(data.IsSynchronized);
             Assert.Equal(0, data.Length);
-            Assert.Same(Array.Empty<IntPtr[]>().SyncRoot, data.SyncRoot);
+            Assert.Null(data.SyncRoot);
 
             Assert.Throws<NullReferenceException>(() => data[0]);
             Assert.Throws<NullReferenceException>(() => ((IReadOnlyList<IntPtr>)data)[0]);
@@ -178,6 +178,30 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 ((IList)data)[i] = IntPtr.Add(data[i], 1);
                 Assert.Equal((IntPtr)(i + 1), ((IList)data)[i]);
             }
+        }
+
+        /// <summary>
+        /// Verify that indexing and iteration match for an array with many segments.
+        /// </summary>
+        [Fact]
+        public void TestIterateLargeArray()
+        {
+            var data = new SegmentedArray<Guid>(1000000);
+            Assert.True(data.GetTestAccessor().Items.Length > 10);
+
+            for (var i = 0; i < data.Length; i++)
+            {
+                data[i] = Guid.NewGuid();
+                Assert.NotEqual(Guid.Empty, data[i]);
+            }
+
+            var index = 0;
+            foreach (var guid in data)
+            {
+                Assert.Equal(guid, data[index++]);
+            }
+
+            Assert.Equal(data.Length, index);
         }
     }
 }
