@@ -217,7 +217,7 @@ End Class";
                 var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
 
                 // add host analyzer as global assets
-                var snapshotService = workspace.Services.GetService<IRemotableDataService>();
+                var remotableDataService = workspace.Services.GetService<IRemotableDataService>();
                 var serializer = workspace.Services.GetRequiredService<ISerializerService>();
 
                 // run analysis

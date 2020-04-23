@@ -120,10 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             // However, convert the existing declaration over to a "var (x, y)" declaration or (int x, int y)
             // tuple expression.
             return SyntaxFactory.ForEachVariableStatement(
-#if !CODE_STYLE // ForEachStatementSyntax.AttributeLists is not available in the version of Microsoft.CodeAnalysis used by CodeStyle layer
-                // https://github.com/dotnet/roslyn/issues/41462#issuecomment-595893953 tracks removing these conditional directives.
                 forEachStatement.AttributeLists,
-#endif
                 forEachStatement.AwaitKeyword,
                 forEachStatement.ForEachKeyword,
                 forEachStatement.OpenParenToken,

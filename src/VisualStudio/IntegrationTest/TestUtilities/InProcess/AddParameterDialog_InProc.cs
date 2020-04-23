@@ -25,7 +25,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
-                    dialog.CallSiteValueTextBox.Text = callSiteValue;
+                    dialog.CallsiteValueTextBox.Focus();
+                    dialog.CallsiteValueTextBox.Text = callSiteValue;
                 });
             }
         }
@@ -38,7 +39,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
+                    dialog.NameContentControl.Focus();
                     dialog.NameContentControl.Text = parameterName;
+                });
+            }
+        }
+
+        public void SetCallSiteTodo()
+        {
+            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
+            {
+                JoinableTaskFactory.Run(async () =>
+                {
+                    await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
+                    var dialog = await GetDialogAsync(cancellationTokenSource.Token);
+                    dialog.IntroduceErrorRadioButton.Focus();
+                    dialog.IntroduceErrorRadioButton.IsChecked = true;
                 });
             }
         }
@@ -51,6 +67,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
+                    dialog.TypeContentControl.Focus();
                     dialog.TypeContentControl.Text = typeName;
                 });
             }

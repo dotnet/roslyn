@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(options);
 
-            _formattingRules = formattingRules.ToImmutableArray();
+            _formattingRules = formattingRules.Select(rule => rule.WithOptions(options)).ToImmutableArray();
             _options = options;
 
             _addSuppressOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddSuppressOperations));
@@ -48,37 +48,37 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode currentNode)
         {
-            var action = new NextSuppressOperationAction(_addSuppressOperationsRules, index: 0, currentNode, _options, list);
+            var action = new NextSuppressOperationAction(_addSuppressOperationsRules, index: 0, currentNode, list);
             action.Invoke();
         }
 
         public void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode currentNode)
         {
-            var action = new NextAnchorIndentationOperationAction(_addAnchorIndentationOperationsRules, index: 0, currentNode, _options, list);
+            var action = new NextAnchorIndentationOperationAction(_addAnchorIndentationOperationsRules, index: 0, currentNode, list);
             action.Invoke();
         }
 
         public void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode currentNode)
         {
-            var action = new NextIndentBlockOperationAction(_addIndentBlockOperationsRules, index: 0, currentNode, _options, list);
+            var action = new NextIndentBlockOperationAction(_addIndentBlockOperationsRules, index: 0, currentNode, list);
             action.Invoke();
         }
 
         public void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode currentNode)
         {
-            var action = new NextAlignTokensOperationAction(_addAlignTokensOperationsRules, index: 0, currentNode, _options, list);
+            var action = new NextAlignTokensOperationAction(_addAlignTokensOperationsRules, index: 0, currentNode, list);
             action.Invoke();
         }
 
         public AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            var action = new NextGetAdjustNewLinesOperation(_getAdjustNewLinesOperationRules, index: 0, previousToken, currentToken, _options);
+            var action = new NextGetAdjustNewLinesOperation(_getAdjustNewLinesOperationRules, index: 0, previousToken, currentToken);
             return action.Invoke();
         }
 
         public AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            var action = new NextGetAdjustSpacesOperation(_getAdjustSpacesOperationRules, index: 0, previousToken, currentToken, _options);
+            var action = new NextGetAdjustSpacesOperation(_getAdjustSpacesOperationRules, index: 0, previousToken, currentToken);
             return action.Invoke();
         }
 

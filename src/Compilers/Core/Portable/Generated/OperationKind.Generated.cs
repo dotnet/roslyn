@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis
         Increment = 0x42,
         /// <summary>Indicates an <see cref="IThrowOperation"/>.</summary>
         Throw = 0x43,
-        /// <summary>Indicates an <see cref="IIncrementOrDecrementOperation"/>. This is used as an decrement operator</summary>
+        /// <summary>Indicates an <see cref="IIncrementOrDecrementOperation"/>. This is used as a decrement operator</summary>
         Decrement = 0x44,
         /// <summary>Indicates an <see cref="IDeconstructionAssignmentOperation"/>.</summary>
         DeconstructionAssignment = 0x45,

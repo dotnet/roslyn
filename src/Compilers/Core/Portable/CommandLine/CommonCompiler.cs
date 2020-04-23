@@ -694,9 +694,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Peform source generation, if the compiler supports it.
+        /// Perform source generation, if the compiler supports it.
         /// </summary>
-        /// <param name="input">The compilation before any source generation has occured.</param>
+        /// <param name="input">The compilation before any source generation has occurred.</param>
         /// <param name="parseOptions">The <see cref="ParseOptions"/> to use when parsing any generated sources.</param>
         /// <param name="generators">The generators to run</param>
         /// <param name="additionalTexts">Any additional texts that should be passed to the generators when run.</param>
