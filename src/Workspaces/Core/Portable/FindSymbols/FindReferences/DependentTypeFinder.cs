@@ -139,14 +139,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<ImmutableArray<INamedTypeSymbol>> FindImmediatelyDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
+            IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
             return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects: null,
+                type, solution, projects,
                 cache: s_typeToImmediatelyDerivedClassesMap,
-                findAsync: c => FindDerivedClassesAsync(type, solution, projects: null,
-                    transitive: false, cancellationToken: c),
-                cancellationToken: cancellationToken);
+                findAsync: c => FindDerivedClassesAsync(type, solution, projects, transitive: false, c),
+                cancellationToken);
         }
 
         /// <summary>

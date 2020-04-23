@@ -163,8 +163,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
-        /// Finds the derived classes of the given type. Implementations of an interface are not considered "derived", but can be found
-        /// with <see cref="FindImplementationsAsync(ISymbol, Solution, IImmutableSet{Project}, CancellationToken)"/>.
+        /// Finds all the derived classes of the given type. Implementations of an interface are not considered
+        /// "derived", but can be found with <see cref="FindImplementationsAsync(ISymbol, Solution,
+        /// IImmutableSet{Project}, CancellationToken)"/>.
         /// </summary>
         /// <param name="type">The symbol to find derived types of.</param>
         /// <param name="solution">The solution to search in.</param>
@@ -184,6 +185,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
 
             return await DependentTypeFinder.FindTransitivelyDerivedClassesAsync(
+                type, solution, projects, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Finds the immediate derived classes of the given type. Implementations of an interface are not considered
+        /// "derived", but can be found with <see cref="FindImplementationsAsync(ISymbol, Solution,
+        /// IImmutableSet{Project}, CancellationToken)"/>.
+        /// </summary>
+        /// <param name="type">The symbol to find derived types of.</param>
+        /// <param name="solution">The solution to search in.</param>
+        /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>The derived types of the symbol. The symbol passed in is not included in this list.</returns>
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedClassesAsync(
+            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            if (solution == null)
+                throw new ArgumentNullException(nameof(solution));
+
+            if (solution.GetOriginatingProjectId(type) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
+
+            return await DependentTypeFinder.FindImmediatelyDerivedClassesAsync(
                 type, solution, projects, cancellationToken).ConfigureAwait(false);
         }
 

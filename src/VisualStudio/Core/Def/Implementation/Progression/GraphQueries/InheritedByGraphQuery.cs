@@ -25,8 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 if (namedType.TypeKind == TypeKind.Class)
                 {
-                    var derivedTypes = await DependentTypeFinder.FindImmediatelyDerivedClassesAsync(
-                        namedType, solution, cancellationToken).ConfigureAwait(false);
+                    var derivedTypes = await SymbolFinder.FindImmediatelyDerivedClassesAsync(
+                        namedType, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in derivedTypes)
                     {
                         var symbolNode = await graphBuilder.AddNodeAsync(
