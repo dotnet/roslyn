@@ -375,20 +375,20 @@ public class C
             CompileAndVerify(comp, symbolValidator: m =>
             {
                 var assembly = m.ContainingAssembly;
-                Assert.Equal(@"{ }", GetDebuggerDisplayString(assembly, 0, 0));
-                Assert.Equal(@"{ X0 = {X0} }", GetDebuggerDisplayString(assembly, 1, 1));
-                Assert.Equal(@"{ X0 = {X0}, X1 = {X1} }", GetDebuggerDisplayString(assembly, 2, 2));
-                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2} }", GetDebuggerDisplayString(assembly, 3, 3));
-                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3} }", GetDebuggerDisplayString(assembly, 4, 4));
-                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4} }", GetDebuggerDisplayString(assembly, 5, 5));
-                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5} }", GetDebuggerDisplayString(assembly, 6, 6));
-                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6} }", GetDebuggerDisplayString(assembly, 7, 7));
-                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7} }", GetDebuggerDisplayString(assembly, 8, 8));
-                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8} }", GetDebuggerDisplayString(assembly, 9, 9));
-                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8}, X9 = {X9} }", GetDebuggerDisplayString(assembly, 10, 10));
-                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8}, X9 = {X9} ... }", GetDebuggerDisplayString(assembly, 11, 11));
+                Assert.Equal(@"\{ }", GetDebuggerDisplayString(assembly, 0, 0));
+                Assert.Equal(@"\{ X0 = {X0} }", GetDebuggerDisplayString(assembly, 1, 1));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1} }", GetDebuggerDisplayString(assembly, 2, 2));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2} }", GetDebuggerDisplayString(assembly, 3, 3));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3} }", GetDebuggerDisplayString(assembly, 4, 4));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4} }", GetDebuggerDisplayString(assembly, 5, 5));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5} }", GetDebuggerDisplayString(assembly, 6, 6));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6} }", GetDebuggerDisplayString(assembly, 7, 7));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7} }", GetDebuggerDisplayString(assembly, 8, 8));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8} }", GetDebuggerDisplayString(assembly, 9, 9));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8}, X9 = {X9} }", GetDebuggerDisplayString(assembly, 10, 10));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8}, X9 = {X9} ... }", GetDebuggerDisplayString(assembly, 11, 11));
 
-                Assert.Equal(@"{ X10 = {X10}, X11 = {X11}, X12 = {X12}, X13 = {X13}, X14 = {X14}, X15 = {X15}, X16 = {X16}, X17 = {X17}, X20 = {X20}, X21 = {X21} ... }",
+                Assert.Equal(@"\{ X10 = {X10}, X11 = {X11}, X12 = {X12}, X13 = {X13}, X14 = {X14}, X15 = {X15}, X16 = {X16}, X17 = {X17}, X20 = {X20}, X21 = {X21} ... }",
                     GetDebuggerDisplayString(assembly, 12, 48));
             });
 
