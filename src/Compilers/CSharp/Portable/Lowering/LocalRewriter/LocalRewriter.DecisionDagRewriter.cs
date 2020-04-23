@@ -40,8 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected DecisionDagRewriter(
                 SyntaxNode node,
-                LocalRewriter localRewriter)
-                : base(node, localRewriter)
+                LocalRewriter localRewriter,
+                bool generateInstrumentation)
+                : base(node, localRewriter, generateInstrumentation)
             {
             }
 

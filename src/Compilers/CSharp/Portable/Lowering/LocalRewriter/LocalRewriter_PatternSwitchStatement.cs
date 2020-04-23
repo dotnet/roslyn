@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private readonly Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
 
-            protected override bool GenerateInstrumentation { get; }
-
             public static BoundStatement Rewrite(LocalRewriter localRewriter, BoundSwitchStatement node)
             {
                 var rewriter = new SwitchStatementLocalRewriter(node, localRewriter);
@@ -65,10 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private SwitchStatementLocalRewriter(BoundSwitchStatement node, LocalRewriter localRewriter)
-                : base(node.Syntax, localRewriter, node.SwitchSections.SelectAsArray(section => section.Syntax))
+                : base(node.Syntax, localRewriter, node.SwitchSections.SelectAsArray(section => section.Syntax),
+                      // Only add instrumentation (such as sequence points) if the node is not compiler-generated.
+                      generateInstrumentation: localRewriter.Instrument && !node.WasCompilerGenerated)
             {
-                // Only add instrumentation (such as sequence points) if the node is not compiler-generated.
-                GenerateInstrumentation = localRewriter.Instrument && !node.WasCompilerGenerated;
             }
 
             private BoundStatement LowerSwitchStatement(BoundSwitchStatement node)

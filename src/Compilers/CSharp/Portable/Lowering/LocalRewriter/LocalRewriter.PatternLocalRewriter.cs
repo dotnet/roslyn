@@ -25,11 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected readonly SyntheticBoundNodeFactory _factory;
             protected readonly DagTempAllocator _tempAllocator;
 
-            public PatternLocalRewriter(SyntaxNode node, LocalRewriter localRewriter)
+            public PatternLocalRewriter(SyntaxNode node, LocalRewriter localRewriter, bool generateInstrumentation)
             {
                 _localRewriter = localRewriter;
                 _factory = localRewriter._factory;
-                _tempAllocator = new DagTempAllocator(_factory, node, GenerateInstrumentation);
+                GenerateInstrumentation = generateInstrumentation;
+                _tempAllocator = new DagTempAllocator(_factory, node, generateInstrumentation);
             }
 
             /// <summary>
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// - synthesized local variable kind
             ///   The temp variables must be long lived in a switch statement since their lifetime spans across sequence points.
             /// </summary>
-            protected abstract bool GenerateInstrumentation { get; }
+            protected bool GenerateInstrumentation { get; }
 
             public void Free()
             {

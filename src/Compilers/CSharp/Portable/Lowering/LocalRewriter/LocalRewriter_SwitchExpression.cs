@@ -29,12 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class SwitchExpressionLocalRewriter : BaseSwitchLocalRewriter
         {
             private SwitchExpressionLocalRewriter(BoundConvertedSwitchExpression node, LocalRewriter localRewriter)
-                : base(node.Syntax, localRewriter, node.SwitchArms.SelectAsArray(arm => arm.Syntax))
+                : base(node.Syntax, localRewriter, node.SwitchArms.SelectAsArray(arm => arm.Syntax),
+                      generateInstrumentation: !node.WasCompilerGenerated && localRewriter.Instrument)
             {
-                GenerateInstrumentation = !node.WasCompilerGenerated && localRewriter.Instrument;
             }
-
-            protected override bool GenerateInstrumentation { get; }
 
             public static BoundExpression Rewrite(LocalRewriter localRewriter, BoundConvertedSwitchExpression node)
             {

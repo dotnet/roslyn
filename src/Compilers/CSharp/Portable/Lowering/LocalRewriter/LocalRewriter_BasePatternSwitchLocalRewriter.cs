@@ -39,8 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected BaseSwitchLocalRewriter(
                 SyntaxNode node,
                 LocalRewriter localRewriter,
-                ImmutableArray<SyntaxNode> arms)
-                : base(node, localRewriter)
+                ImmutableArray<SyntaxNode> arms,
+                bool generateInstrumentation)
+                : base(node, localRewriter, generateInstrumentation)
             {
                 foreach (var arm in arms)
                 {
