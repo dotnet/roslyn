@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new WrappedValue { Value = value };
         }
 
-        internal bool TryGetValue(TKey key, [MaybeNull] [NotNullWhen(true)] out TValue value)
+        internal bool TryGetValue(TKey key, [MaybeNull][NotNullWhen(true)] out TValue value)
         {
             // Catch any exceptions from the computeValue callback, which calls into user code.
             try

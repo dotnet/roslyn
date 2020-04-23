@@ -23,11 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 if (!cancellationToken.IsCancellationRequested)
                 {
-                    var symbolAndProjectId = graphBuilder.GetSymbolAndProjectId(node);
+                    var symbol = graphBuilder.GetSymbol(node);
 
-                    if (symbolAndProjectId.Symbol != null)
+                    if (symbol != null)
                     {
-                        var containsChildren = SymbolContainment.GetContainedSymbols(symbolAndProjectId).Any();
+                        var containsChildren = SymbolContainment.GetContainedSymbols(symbol).Any();
                         graphBuilder.AddDeferredPropertySet(node, DgmlNodeProperties.ContainsChildren, containsChildren);
                     }
                     else if (node.HasCategory(CodeNodeCategories.File))

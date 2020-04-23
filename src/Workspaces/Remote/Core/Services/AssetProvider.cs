@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfNull(source);
 
             // ask one of asset source for data
-            return await source.RequestAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
+            return await source.GetAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
         }
     }
 }

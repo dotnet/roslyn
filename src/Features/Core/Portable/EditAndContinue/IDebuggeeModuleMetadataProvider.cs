@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Returns an error message when any instance of a module with given <paramref name="mvid"/> disallows EnC.
         /// </summary>
-        bool IsEditAndContinueAvailable(Guid mvid, out int errorCode, [NotNullWhen(true)]out string localizedMessage);
+        bool IsEditAndContinueAvailable(Guid mvid, out int errorCode, [NotNullWhen(true)] out string localizedMessage);
 
         /// <summary>
         /// Notifies the debugger that a document changed that may affect the given module when the change is applied.

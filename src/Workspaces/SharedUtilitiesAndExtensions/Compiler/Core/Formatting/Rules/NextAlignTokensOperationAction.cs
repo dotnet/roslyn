@@ -2,36 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
+    [NonDefaultable]
     internal readonly struct NextAlignTokensOperationAction
     {
         private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
         private readonly int _index;
         private readonly SyntaxNode _node;
-        private readonly AnalyzerConfigOptions _options;
         private readonly List<AlignTokensOperation> _list;
 
         public NextAlignTokensOperationAction(
             ImmutableArray<AbstractFormattingRule> formattingRules,
             int index,
             SyntaxNode node,
-            AnalyzerConfigOptions options,
             List<AlignTokensOperation> list)
         {
             _formattingRules = formattingRules;
             _index = index;
             _node = node;
-            _options = options;
             _list = list;
         }
 
         private NextAlignTokensOperationAction NextAction
-            => new NextAlignTokensOperationAction(_formattingRules, _index + 1, _node, _options, _list);
+            => new NextAlignTokensOperationAction(_formattingRules, _index + 1, _node, _list);
 
         public void Invoke()
         {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             else
             {
                 // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                _formattingRules[_index].AddAlignTokensOperations(_list, _node, _options, NextAction);
+                _formattingRules[_index].AddAlignTokensOperations(_list, _node, NextAction);
                 return;
             }
         }

@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -229,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 foreach (var reference in project.AnalyzerReferences)
                 {
                     var projectCodeRefactoringProvider = _analyzerReferenceToRefactoringsMap.GetValue(reference, _createProjectCodeRefactoringsProvider);
-                    foreach (var refactoring in projectCodeRefactoringProvider.GetRefactorings(project.Language))
+                    foreach (var refactoring in projectCodeRefactoringProvider.GetExtensions(project.Language))
                     {
                         builder.Add(refactoring);
                     }
@@ -240,70 +239,31 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         private class ProjectCodeRefactoringProvider
+            : AbstractProjectExtensionProvider<CodeRefactoringProvider, ExportCodeRefactoringProviderAttribute>
         {
-            private readonly AnalyzerReference _reference;
-            private ImmutableDictionary<string, ImmutableArray<CodeRefactoringProvider>> _refactoringsPerLanguage;
-
             public ProjectCodeRefactoringProvider(AnalyzerReference reference)
+                : base(reference)
             {
-                _reference = reference;
-                _refactoringsPerLanguage = ImmutableDictionary<string, ImmutableArray<CodeRefactoringProvider>>.Empty;
             }
 
-            public ImmutableArray<CodeRefactoringProvider> GetRefactorings(string language)
-                => ImmutableInterlocked.GetOrAdd(ref _refactoringsPerLanguage, language, (language, provider) => provider.CreateRefactorings(language), this);
+            protected override bool SupportsLanguage(ExportCodeRefactoringProviderAttribute exportAttribute, string language)
+            {
+                return exportAttribute.Languages == null
+                    || exportAttribute.Languages.Length == 0
+                    || exportAttribute.Languages.Contains(language);
+            }
 
-            private ImmutableArray<CodeRefactoringProvider> CreateRefactorings(string language)
+            protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CodeRefactoringProvider> extensions)
             {
                 // check whether the analyzer reference knows how to return fixers directly.
-                if (_reference is ICodeRefactoringProviderFactory codeRefactoringProviderFactory)
+                if (reference is ICodeRefactoringProviderFactory codeRefactoringProviderFactory)
                 {
-                    return codeRefactoringProviderFactory.GetRefactorings();
+                    extensions = codeRefactoringProviderFactory.GetRefactorings();
+                    return true;
                 }
 
-                // otherwise, see whether we can pick it up from reference itself
-                if (!(_reference is AnalyzerFileReference analyzerFileReference))
-                {
-                    return ImmutableArray<CodeRefactoringProvider>.Empty;
-                }
-
-                var builder = ArrayBuilder<CodeRefactoringProvider>.GetInstance();
-
-                try
-                {
-                    var analyzerAssembly = analyzerFileReference.GetAssembly();
-                    var typeInfos = analyzerAssembly.DefinedTypes;
-
-                    foreach (var typeInfo in typeInfos)
-                    {
-                        if (typeInfo.IsSubclassOf(typeof(CodeRefactoringProvider)))
-                        {
-                            try
-                            {
-                                var attribute = typeInfo.GetCustomAttribute<ExportCodeRefactoringProviderAttribute>();
-                                if (attribute != null)
-                                {
-                                    if (attribute.Languages == null ||
-                                        attribute.Languages.Length == 0 ||
-                                        attribute.Languages.Contains(language))
-                                    {
-                                        builder.Add((CodeRefactoringProvider)Activator.CreateInstance(typeInfo.AsType())!);
-                                    }
-                                }
-                            }
-                            catch
-                            {
-                            }
-                        }
-                    }
-                }
-                catch
-                {
-                    // REVIEW: is the below message right?
-                    // NOTE: We could report "unable to load analyzer" exception here but it should have been already reported by DiagnosticService.
-                }
-
-                return builder.ToImmutableAndFree();
+                extensions = default;
+                return false;
             }
         }
     }
