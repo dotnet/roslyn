@@ -185,12 +185,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ElseIf isRenameWithinStringOrComment AndAlso newToken.FullSpan.Contains(newLocation) Then
                     newText = newToken.ToFullString().Substring(newLocation.Start - newToken.FullSpan.Start, newLocation.Length)
                 Else
-                    Dim newNode = newToken.Parent
-                    While (newNode IsNot Nothing AndAlso newNode.Span <> newLocation)
-                        newNode = newNode.Parent
-                    End While
-
-                    newText = newNode.ToString()
+                    newText = newTree.GetText().ToString(newLocation)
                 End If
 
                 Assert.Equal(replacementText, newText)

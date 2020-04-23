@@ -481,6 +481,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         ToolsOptions_GenerateEditorconfig = 385,
 
         Renamer_RenameSymbolAsync = 386,
-        Renamer_FindRenameLocationsAsync = 386,
+        Renamer_FindRenameLocationsAsync = 387,
+        Renamer_ResolveConflictsAsync = 388,
     }
 }

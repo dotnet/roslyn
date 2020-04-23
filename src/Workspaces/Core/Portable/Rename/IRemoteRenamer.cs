@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Rename
@@ -16,7 +17,17 @@ namespace Microsoft.CodeAnalysis.Rename
     internal interface IRemoteRenamer
     {
         Task<SerializableRenameLocations> FindRenameLocationsAsync(
-            PinnedSolutionInfo solutionInfo, SerializableSymbolAndProjectId symbol, SerializableRenameOptionSet options, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo,
+            SerializableSymbolAndProjectId symbol,
+            SerializableRenameOptionSet options,
+            CancellationToken cancellationToken);
+
+        Task<SerializableConflictResolution> ResolveConflictsAsync(
+            PinnedSolutionInfo solutionInfo,
+            SerializableRenameLocations renameLocationSet,
+            string replacementText,
+            SerializableSymbolAndProjectId[] nonConflictSymbols,
+            CancellationToken cancellationToken);
     }
 
     internal struct SerializableRenameOptionSet
@@ -207,5 +218,86 @@ namespace Microsoft.CodeAnalysis.Rename
         public SerializableSearchResult[] OverloadsResult;
         public SerializableRenameLocation[] StringsResult;
         public SerializableRenameLocation[] CommentsResult;
+    }
+
+    internal class SerializableComplexifiedSpan
+    {
+        public TextSpan OriginalSpan;
+        public TextSpan NewSpan;
+        public ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)> ModifiedSubSpans;
+
+        public ComplexifiedSpan Rehydrate()
+            => new ComplexifiedSpan(OriginalSpan, NewSpan, ModifiedSubSpans);
+
+        public static SerializableComplexifiedSpan Dehydrate(ComplexifiedSpan span)
+            => new SerializableComplexifiedSpan
+            {
+                OriginalSpan = span.OriginalSpan,
+                NewSpan = span.NewSpan,
+                ModifiedSubSpans = span.ModifiedSubSpans,
+            };
+    }
+
+    internal class SerializableRelatedLocation
+    {
+        public TextSpan ConflictCheckSpan;
+        public RelatedLocationType Type;
+        public bool IsReference;
+        public DocumentId DocumentId;
+        public TextSpan ComplexifiedTargetSpan;
+
+        public RelatedLocation Rehydrate()
+            => new RelatedLocation(ConflictCheckSpan, DocumentId, Type, IsReference, ComplexifiedTargetSpan);
+
+        public static SerializableRelatedLocation Dehydrate(RelatedLocation location)
+            => new SerializableRelatedLocation
+            {
+                ConflictCheckSpan = location.ConflictCheckSpan,
+                Type = location.Type,
+                IsReference = location.IsReference,
+                DocumentId = location.DocumentId,
+                ComplexifiedTargetSpan = location.ComplexifiedTargetSpan,
+            };
+    }
+
+    internal class SerializableConflictResolution
+    {
+        //   public readonly Solution NewSolution;
+        public bool ReplacementTextValid;
+
+        public (DocumentId documentId, string newName) RenamedDocument;
+
+        public ImmutableArray<DocumentId> DocumentIds;
+        public ImmutableArray<SerializableRelatedLocation> RelatedLocations;
+        public ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> DocumentToTextChanges;
+        public ImmutableArray<(DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>)> DocumentToModifiedSpansMap;
+        public ImmutableArray<(DocumentId, ImmutableArray<SerializableComplexifiedSpan>)> DocumentToComplexifiedSpansMap;
+        public ImmutableArray<(DocumentId, ImmutableArray<SerializableRelatedLocation>)> DocumentToRelatedLocationsMap;
+
+        public async Task<ConflictResolution> RehydrateAsync(Solution oldSolution, CancellationToken cancellationToken)
+        {
+            return new ConflictResolution(
+                oldSolution,
+                await CreateNewSolutionAsync(oldSolution, cancellationToken).ConfigureAwait(false),
+                ReplacementTextValid,
+                RenamedDocument,
+                DocumentIds,
+                RelatedLocations.SelectAsArray(loc => loc.Rehydrate()),
+                DocumentToModifiedSpansMap.ToImmutableDictionary(t => t.Item1, t => t.Item2),
+                DocumentToComplexifiedSpansMap.ToImmutableDictionary(t => t.Item1, t => t.Item2.SelectAsArray(c => c.Rehydrate())),
+                DocumentToRelatedLocationsMap.ToImmutableDictionary(t => t.Item1, t => t.Item2.SelectAsArray(c => c.Rehydrate())));
+        }
+
+        private async Task<Solution> CreateNewSolutionAsync(Solution oldSolution, CancellationToken cancellationToken)
+        {
+            var currentSolution = oldSolution;
+            foreach (var (docId, textChanges) in this.DocumentToTextChanges)
+            {
+                var text = await oldSolution.GetDocument(docId).GetTextAsync(cancellationToken).ConfigureAwait(false);
+                currentSolution = currentSolution.WithDocumentText(docId, text.WithChanges(textChanges));
+            }
+
+            return currentSolution;
+        }
     }
 }

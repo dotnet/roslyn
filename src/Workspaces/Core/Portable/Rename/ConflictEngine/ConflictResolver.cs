@@ -13,7 +13,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -35,6 +37,44 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         private const string s_metadataNameSeparators = " .,:<`>()\r\n";
 
         internal static async Task<ConflictResolution> ResolveConflictsAsync(
+            RenameLocations renameLocationSet,
+            string replacementText,
+            ImmutableHashSet<ISymbol> nonConflictSymbols,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
+            {
+                var solution = renameLocationSet.Solution;
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var result = await client.TryRunRemoteAsync<SerializableConflictResolution>(
+                        WellKnownServiceHubServices.CodeAnalysisService,
+                        nameof(IRemoteRenamer.ResolveConflictsAsync),
+                        solution,
+                        new object[]
+                        {
+                            renameLocationSet.Dehydrate(solution, cancellationToken),
+                            replacementText,
+                            nonConflictSymbols?.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
+                        },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (result.HasValue)
+                    {
+                        return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            return await ResolveConflictsInCurrentProcessAsync(
+                renameLocationSet, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<ConflictResolution> ResolveConflictsInCurrentProcessAsync(
             RenameLocations renameLocationSet,
             string replacementText,
             ImmutableHashSet<ISymbol> nonConflictSymbols,

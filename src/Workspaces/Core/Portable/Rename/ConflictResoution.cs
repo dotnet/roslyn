@@ -3,6 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -64,6 +67,40 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 return newSolution;
             }
+        }
+
+        public async Task<SerializableConflictResolution> DehydrateAsync(CancellationToken cancellationToken)
+        {
+            return new SerializableConflictResolution
+            {
+                ReplacementTextValid = ReplacementTextValid,
+                RenamedDocument = _renamedDocument,
+                DocumentIds = DocumentIds,
+                RelatedLocations = RelatedLocations.SelectAsArray(loc => SerializableRelatedLocation.Dehydrate(loc)),
+                DocumentToTextChanges = await GetDocumentToTextChangesAsync(cancellationToken).ConfigureAwait(false),
+                DocumentToModifiedSpansMap = _documentToModifiedSpansMap.SelectAsArray(kvp => (kvp.Key, kvp.Value)),
+                DocumentToComplexifiedSpansMap = _documentToComplexifiedSpansMap.SelectAsArray(kvp => (kvp.Key, kvp.Value.SelectAsArray(s => SerializableComplexifiedSpan.Dehydrate(s)))),
+                DocumentToRelatedLocationsMap = _documentToRelatedLocationsMap.SelectAsArray(kvp => (kvp.Key, kvp.Value.SelectAsArray(s => SerializableRelatedLocation.Dehydrate(s)))),
+            };
+        }
+
+        private async Task<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>> GetDocumentToTextChangesAsync(CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<(DocumentId, ImmutableArray<TextChange>)>.GetInstance(out var builder);
+
+            var solutionChanges = _newSolutionWithoutRenamedDocument.GetChanges(OldSolution);
+            foreach (var projectChange in solutionChanges.GetProjectChanges())
+            {
+                foreach (var docId in projectChange.GetChangedDocuments())
+                {
+                    var oldDoc = OldSolution.GetDocument(docId);
+                    var newDoc = _newSolutionWithoutRenamedDocument.GetDocument(docId);
+                    var textChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
+                    builder.Add((docId, textChanges.ToImmutableArray()));
+                }
+            }
+
+            return builder.ToImmutable();
         }
 
         public ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)> GetComplexifiedSpans(DocumentId documentId)
