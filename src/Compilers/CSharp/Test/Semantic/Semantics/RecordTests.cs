@@ -1357,5 +1357,30 @@ data class C(int X) : B
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(13, 13)
             );
         }
+
+        [Fact]
+        public void WithExprBadMemberBadType()
+        {
+            var src = @"
+class C
+{
+    public C Clone() => null;
+    public int X { get; }
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { X = ""a"" };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (9,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
+                //         c = c with { X = "a" };
+                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(9, 22),
+                // (9,26): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         c = c with { X = "a" };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""a""").WithArguments("string", "int").WithLocation(9, 26)
+            );
+        }
     }
 }

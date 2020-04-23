@@ -54,12 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (sym.Kind)
                         {
                             case SymbolKind.Property:
+                                member = sym;
                                 // PROTOTYPE: this should check for init-only, but that isn't a separate feature yet
                                 if (!(sym is SynthesizedRecordPropertySymbol))
                                 {
                                     goto default;
                                 }
-                                member = sym;
                                 break;
 
                             default:
