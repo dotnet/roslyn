@@ -1,0 +1,4 @@
+﻿// ProvideAutoLoad(UIContextGuids.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)
+[$RootKey$\AutoLoadPackages\{f1536ef8-92ec-443c-9ed7-fdadf150da82}]
+"{31c0675e-87a4-4061-a0dd-a4e510fccf97}"=dword:00000002
+

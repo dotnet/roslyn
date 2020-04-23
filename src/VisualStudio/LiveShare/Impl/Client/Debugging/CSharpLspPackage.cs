@@ -14,9 +14,6 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
 {
     [Guid(StringConstants.CSharpLspPackageGuidString)]
-    [ProvideLanguageService(StringConstants.CSharpLspLanguageServiceGuidString, StringConstants.CSharpLspLanguageName, 101,
-        RequestStockColors = true, ShowDropDownOptions = true, ShowCompletion = true, EnableAdvancedMembersOption = true, ShowSmartIndent = true, DefaultToInsertSpaces = true)]
-    [ProvideService(typeof(CSharpLspLanguageService))]
     internal class CSharpLspPackage : AbstractPackage<CSharpLspPackage, CSharpLspLanguageService>
     {
         protected override VisualStudioWorkspaceImpl CreateWorkspace() => ComponentModel.GetService<VisualStudioWorkspaceImpl>();
