@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return SourceSpans[0].CanNavigateTo();
             }
 
-            public override bool TryNavigateTo(Workspace workspace, bool isPreview)
+            public override bool TryNavigateTo(Workspace workspace, bool isPreview, bool activatePreview = false)
             {
                 if (Properties.ContainsKey(NonNavigable))
                 {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return TryNavigateToMetadataSymbol(workspace, symbolKey);
                 }
 
-                return SourceSpans[0].TryNavigateTo(isPreview);
+                return SourceSpans[0].TryNavigateTo(isPreview, activatePreview);
             }
 
             private bool CanNavigateToMetadataSymbol(Workspace workspace, string symbolKey)

@@ -80,7 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 nonExternalItems[0].SourceSpans.Length <= 1)
             {
                 // There was only one location to navigate to.  Just directly go to that location.
-                return nonExternalItems[0].TryNavigateTo(workspace, isPreview: true);
+                // If we're directly going to a location we need to activate the preview to keep focus 
+                // in the correct spot
+                return nonExternalItems[0].TryNavigateTo(workspace, isPreview: true, activatePreview: true);
             }
 
             if (presenter != null)
