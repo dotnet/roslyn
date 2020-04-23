@@ -483,5 +483,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Renamer_RenameSymbolAsync = 386,
         Renamer_FindRenameLocationsAsync = 387,
         Renamer_ResolveConflictsAsync = 388,
+
+        ChangeSignature_Data = 389,
     }
 }

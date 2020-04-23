@@ -284,8 +284,10 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 solution, field, RenameOptionSet.From(solution), cancellationToken).ConfigureAwait(false);
 
             var resolution = await initialLocations.Filter(filter).ResolveConflictsAsync(
-                finalName, cancellationToken: cancellationToken).ConfigureAwait(false);
+                finalName, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
+
             Contract.ThrowIfTrue(resolution.ErrorMessage != null);
+
             return resolution.NewSolution;
         }
 

@@ -126,17 +126,18 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // To address this, we let rename know that there is no conflict if the new symbol it resolves to is the
             // same as the property we're trying to get the references pointing to.
 
-            var filteredLocations =
-                fieldLocations.Filter(
-                    location => !location.IntersectsWith(declaratorLocation) &&
-                                CanEditDocument(solution, location.SourceTree, linkedFiles, canEdit));
+            var filteredLocations = fieldLocations.Filter(
+                location => !location.IntersectsWith(declaratorLocation) &&
+                            CanEditDocument(solution, location.SourceTree, linkedFiles, canEdit));
+
             var resolution = await filteredLocations.ResolveConflictsAsync(
                 propertySymbol.Name,
                 nonConflictSymbols: ImmutableHashSet.Create<ISymbol>(propertySymbol),
                 cancellationToken).ConfigureAwait(false);
+
             Contract.ThrowIfTrue(resolution.ErrorMessage != null);
-            var updatedSolution = resolution.NewSolution;
-            solution = updatedSolution;
+
+            solution = resolution.NewSolution;
 
             // Now find the field and property again post rename.
             fieldDocument = solution.GetDocument(fieldDocument.Id);
@@ -221,7 +222,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
                 newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, cancellationToken).ConfigureAwait(false);
 
-                updatedSolution = solution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
+                var updatedSolution = solution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);
 
                 return updatedSolution;
