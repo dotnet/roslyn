@@ -155,32 +155,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
-        /// Implementation of <see cref="SymbolFinder.FindImplementationsAsync(ISymbol, Solution, IImmutableSet{Project}, CancellationToken)"/> for 
-        /// <see cref="INamedTypeSymbol"/>s
-        /// </summary>
-        public static Task<ImmutableArray<INamedTypeSymbol>> FindTransitivelyImplementingStructuresClassesAndInterfacesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            CancellationToken cancellationToken)
-        {
-            return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects, s_typeToTransitivelyImplementingStructuresClassesAndInterfacesMap,
-                c => FindTransitivelyImplementingStructuresClassesAndInterfacesWorkerAsync(type, solution, projects, c),
-                cancellationToken);
-        }
-
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindTransitivelyImplementingStructuresClassesAndInterfacesWorkerAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            CancellationToken cancellationToken)
-        {
-            return FindWithoutCachingDerivedAndImplementingTypesAsync(
-                type, solution, projects, transitive: true, cancellationToken);
-        }
-
-        /// <summary>
         /// Used for implementing the Inherited-By relation for progression.
         /// </summary>
         public static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImmediatelyDerivedAndImplementingTypesAsync(
