@@ -112,8 +112,8 @@
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.27</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
     <MicrosoftVisualStudioEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioGraphModelVersion>16.0.28226-alpha</MicrosoftVisualStudioGraphModelVersion>
-    <MicrosoftVisualStudioImageCatalogVersion>16.7.30022.54-pre</MicrosoftVisualStudioImageCatalogVersion>
-    <MicrosoftVisualStudioImagingVersion>16.7.30022.54-pre</MicrosoftVisualStudioImagingVersion>
+    <MicrosoftVisualStudioImageCatalogVersion>16.6.29925.50-pre</MicrosoftVisualStudioImageCatalogVersion>
+    <MicrosoftVisualStudioImagingVersion>16.6.29925.50-pre</MicrosoftVisualStudioImagingVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>2.8.0</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioLanguageVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageVersion>
     <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.8.27812-alpha</MicrosoftVisualStudioLanguageCallHierarchyVersion>
@@ -135,8 +135,8 @@
     <MicrosoftVisualStudioRemoteControlVersion>16.3.4</MicrosoftVisualStudioRemoteControlVersion>
     <MicrosoftVisualStudioSDKAnalyzersVersion>16.3.14</MicrosoftVisualStudioSDKAnalyzersVersion>
     <MicrosoftVisualStudioSetupConfigurationInteropVersion>1.16.30</MicrosoftVisualStudioSetupConfigurationInteropVersion>
-    <MicrosoftVisualStudioShell150Version>16.7.30022.152-pre</MicrosoftVisualStudioShell150Version>
-    <MicrosoftVisualStudioShellFrameworkVersion>16.7.30022.152-pre</MicrosoftVisualStudioShellFrameworkVersion>
+    <MicrosoftVisualStudioShell150Version>16.6.29925.50-pre</MicrosoftVisualStudioShell150Version>
+    <MicrosoftVisualStudioShellFrameworkVersion>16.6.29925.50-pre</MicrosoftVisualStudioShellFrameworkVersion>
     <MicrosoftVisualStudioShellDesignVersion>15.7.27703</MicrosoftVisualStudioShellDesignVersion>
     <MicrosoftVisualStudioShellImmutable100Version>15.0.25415</MicrosoftVisualStudioShellImmutable100Version>
     <MicrosoftVisualStudioShellImmutable110Version>15.0.25415</MicrosoftVisualStudioShellImmutable110Version>
@@ -159,8 +159,8 @@
     <MicrosoftVisualStudioTextManagerInterop120Version>12.0.30110</MicrosoftVisualStudioTextManagerInterop120Version>
     <MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>
     <MicrosoftVisualStudioTextManagerInterop160DesignTimeVersion>16.0.0</MicrosoftVisualStudioTextManagerInterop160DesignTimeVersion>
-    <MicrosoftVisualStudioThreadingAnalyzersVersion>16.6.14</MicrosoftVisualStudioThreadingAnalyzersVersion>
-    <MicrosoftVisualStudioThreadingVersion>16.6.14</MicrosoftVisualStudioThreadingVersion>
+    <MicrosoftVisualStudioThreadingAnalyzersVersion>16.6.5-alpha</MicrosoftVisualStudioThreadingAnalyzersVersion>
+    <MicrosoftVisualStudioThreadingVersion>16.6.5-alpha</MicrosoftVisualStudioThreadingVersion>
     <MicrosoftVisualStudioUtilitiesVersion>16.6.29925.50</MicrosoftVisualStudioUtilitiesVersion>
     <MicrosoftVisualStudioValidationVersion>15.5.31</MicrosoftVisualStudioValidationVersion>
     <MicrosoftVisualStudioVsInteractiveWindowVersion>2.8.0</MicrosoftVisualStudioVsInteractiveWindowVersion>
