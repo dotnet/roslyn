@@ -149,30 +149,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task TestNewProjectAttributes()
-        {
-            var code1 = @"class Test1 { void Method() { } }";
-
-            using (var workspace = TestWorkspace.CreateCSharp(code1))
-            {
-                var solution = workspace.CurrentSolution;
-                var projectId = solution.ProjectIds.First();
-
-                solution = workspace.CurrentSolution
-                                    .WithProjectOutputRefFilePath(projectId, "TestPath")
-                                    .WithProjectDefaultNamespace(projectId, "TestNamespace")
-                                    .WithHasAllInformation(projectId, hasAllInformation: false);
-
-                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-
-                var service = await GetSolutionServiceAsync(solution);
-                var synched = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
-
-                Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestUpdatePrimaryWorkspace()
         {
             var code = @"class Test { void Method() { } }";
@@ -181,35 +157,36 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task TestUpdateProjectInfo()
+        public async Task ProjectProperties()
         {
-            var code = @"class Test { void Method() { } }";
+            using var workspace = TestWorkspace.CreateCSharp("");
 
-            await VerifySolutionUpdate(code, s => s.Projects.First().WithAssemblyName("test2").Solution);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task TestUpdateOutputFilePath()
-        {
-            var code = @"class Test { void Method() { } }";
-
-            await VerifySolutionUpdate(code, s => s.WithProjectOutputFilePath(s.ProjectIds[0], "test.dll"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task TestUpdateOutputRefFilePath()
-        {
-            var code = @"class Test { void Method() { } }";
-
-            await VerifySolutionUpdate(code, s => s.WithProjectOutputRefFilePath(s.ProjectIds[0], "test.dll"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task TestUpdateDefaultNamespace()
-        {
-            var code = @"class Test { void Method() { } }";
-
-            await VerifySolutionUpdate(code, s => s.WithProjectDefaultNamespace(s.ProjectIds[0], "TestClassLibrary"));
+            await VerifySolutionUpdate(workspace, solution =>
+            {
+                var projectId = solution.ProjectIds.Single();
+                return solution
+                    .WithProjectName(projectId, "NewName")
+                    .WithProjectAssemblyName(projectId, "NewAssemblyName")
+                    .WithProjectFilePath(projectId, "NewFilePath")
+                    .WithProjectOutputFilePath(projectId, "NewOutputFilePath")
+                    .WithProjectOutputRefFilePath(projectId, "NewOutputRefFilePath")
+                    .WithProjectCompilationOutputFilePaths(projectId, new CompilationOutputFilePaths("NewAssemblyPath"))
+                    .WithProjectDefaultNamespace(projectId, "NewDefaultNamespace")
+                    .WithHasAllInformation(projectId, false)
+                    .WithRunAnalyzers(projectId, false);
+            }, solution =>
+            {
+                var project = solution.Projects.Single();
+                Assert.Equal("NewName", project.Name);
+                Assert.Equal("NewAssemblyName", project.AssemblyName);
+                Assert.Equal("NewFilePath", project.FilePath);
+                Assert.Equal("NewOutputFilePath", project.OutputFilePath);
+                Assert.Equal("NewOutputRefFilePath", project.OutputRefFilePath);
+                Assert.Equal("NewAssemblyPath", project.CompilationOutputFilePaths.AssemblyPath);
+                Assert.Equal("NewDefaultNamespace", project.DefaultNamespace);
+                Assert.False(project.State.HasAllInformation);
+                Assert.False(project.State.RunAnalyzers);
+            }).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -218,14 +195,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var code = @"class Test { void Method() { } }";
 
             await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, new[] { "test" }));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task TestHasAllInformation()
-        {
-            var code = @"class Test { void Method() { } }";
-
-            await VerifySolutionUpdate(code, s => s.WithHasAllInformation(s.ProjectIds.First(), false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -457,13 +426,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                await VerifySolutionUpdate(workspace, newSolutionGetter);
-            }
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            await VerifySolutionUpdate(workspace, newSolutionGetter);
         }
 
-        private static async Task VerifySolutionUpdate(TestWorkspace workspace, Func<Solution, Solution> newSolutionGetter)
+        private static async Task VerifySolutionUpdate(
+            TestWorkspace workspace,
+            Func<Solution, Solution> newSolutionGetter,
+            Action<Solution> solutionValidator = null)
         {
             var map = new Dictionary<Checksum, object>();
 
@@ -474,12 +444,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // update primary workspace
             await service.UpdatePrimaryWorkspaceAsync(solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
-            var first = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
+            var recoveredSolution = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
 
-            Assert.IsAssignableFrom<RemoteWorkspace>(first.Workspace);
-            var primaryWorkspace = first.Workspace;
-            Assert.Equal(solutionChecksum, await first.State.GetChecksumAsync(CancellationToken.None));
-            Assert.Same(primaryWorkspace.PrimaryBranchId, first.BranchId);
+            Assert.IsAssignableFrom<RemoteWorkspace>(recoveredSolution.Workspace);
+            var primaryWorkspace = recoveredSolution.Workspace;
+            Assert.Equal(solutionChecksum, await recoveredSolution.State.GetChecksumAsync(CancellationToken.None));
+            Assert.Same(primaryWorkspace.PrimaryBranchId, recoveredSolution.BranchId);
 
             // get new solution
             var newSolution = newSolutionGetter(solution);
@@ -487,10 +457,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await newSolution.AppendAssetMapAsync(map, CancellationToken.None);
 
             // get solution without updating primary workspace
-            var second = await service.GetSolutionAsync(newSolutionChecksum, CancellationToken.None);
+            var recoveredNewSolution = await service.GetSolutionAsync(newSolutionChecksum, CancellationToken.None);
 
-            Assert.Equal(newSolutionChecksum, await second.State.GetChecksumAsync(CancellationToken.None));
-            Assert.NotSame(primaryWorkspace.PrimaryBranchId, second.BranchId);
+            Assert.Equal(newSolutionChecksum, await recoveredNewSolution.State.GetChecksumAsync(CancellationToken.None));
+            Assert.NotSame(primaryWorkspace.PrimaryBranchId, recoveredNewSolution.BranchId);
 
             // do same once updating primary workspace
             await service.UpdatePrimaryWorkspaceAsync(newSolutionChecksum, solution.WorkspaceVersion + 1, CancellationToken.None);
@@ -498,6 +468,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             Assert.Equal(newSolutionChecksum, await third.State.GetChecksumAsync(CancellationToken.None));
             Assert.Same(primaryWorkspace.PrimaryBranchId, third.BranchId);
+
+            solutionValidator?.Invoke(recoveredNewSolution);
         }
 
         private static async Task<SolutionService> GetSolutionServiceAsync(Solution solution, Dictionary<Checksum, object> map = null)

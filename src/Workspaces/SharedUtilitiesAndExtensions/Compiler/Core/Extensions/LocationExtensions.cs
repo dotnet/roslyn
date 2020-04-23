@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Diagnostics;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -38,6 +39,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var tree = loc.SourceTree;
             return !(tree == null || tree.IsHiddenPosition(loc.SourceSpan.Start));
+        }
+
+        public static bool IntersectsWith(this Location loc1, Location loc2)
+        {
+            Debug.Assert(loc1.IsInSource && loc2.IsInSource);
+            return loc1.SourceTree == loc2.SourceTree && loc1.SourceSpan.IntersectsWith(loc2.SourceSpan);
         }
     }
 }

@@ -644,6 +644,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return guidString;
         }
 
+        private protected sealed override bool IsStringProperty(string memberName)
+        {
+            if (AttributeClass is object)
+            {
+                foreach (var member in AttributeClass.GetMembers(memberName))
+                {
+                    if (member is PropertySymbol { Type: { SpecialType: SpecialType.System_String } })
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         #endregion
 
         /// <summary>

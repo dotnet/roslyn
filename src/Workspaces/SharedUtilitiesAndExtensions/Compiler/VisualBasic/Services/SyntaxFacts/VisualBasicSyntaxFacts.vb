@@ -169,7 +169,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
 
-        Public Function IsNamedParameter(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamedParameter
+        Public Function IsNamedArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamedArgument
+            Dim arg = TryCast(node, SimpleArgumentSyntax)
+            Return arg?.NameColonEquals IsNot Nothing
+        End Function
+
+        Public Function IsNameOfNamedArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfNamedArgument
             Return node.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is node)
         End Function
 
@@ -1568,15 +1573,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return trivia.IsElastic()
         End Function
 
-        Public Function IsOnTypeHeader(root As SyntaxNode, position As Integer, ByRef typeDeclaration As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnTypeHeader
-            Dim node = TryGetAncestorForLocation(Of TypeStatementSyntax)(root, position)
-            typeDeclaration = node
-
-            If node Is Nothing Then
+        Public Function IsOnTypeHeader(
+                root As SyntaxNode,
+                position As Integer,
+                fullHeader As Boolean,
+                ByRef typeDeclaration As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnTypeHeader
+            Dim typeBlock = TryGetAncestorForLocation(Of TypeBlockSyntax)(root, position)
+            If typeBlock Is Nothing Then
                 Return Nothing
             End If
 
-            Return IsOnHeader(root, position, node, If(node.TypeParameterList?.GetLastToken(), node.Identifier))
+            Dim typeStatement = typeBlock.BlockStatement
+            typeDeclaration = typeStatement
+
+            Dim lastToken = If(typeStatement.TypeParameterList?.GetLastToken(), typeStatement.Identifier)
+            If fullHeader Then
+                lastToken = If(typeBlock.Implements.LastOrDefault()?.GetLastToken(),
+                            If(typeBlock.Inherits.LastOrDefault()?.GetLastToken(),
+                               lastToken))
+            End If
+
+            Return IsOnHeader(root, position, typeBlock, lastToken)
         End Function
 
         Public Function IsOnPropertyDeclarationHeader(root As SyntaxNode, position As Integer, ByRef propertyDeclaration As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnPropertyDeclarationHeader
@@ -1882,6 +1899,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             End If
 
             Return False
+        End Function
+
+        Public Overrides Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParameterNameXmlElementSyntax
+            Dim xmlElement = TryCast(node, XmlElementSyntax)
+            If xmlElement IsNot Nothing Then
+                Dim name = TryCast(xmlElement.StartTag.Name, XmlNameSyntax)
+                Return name?.LocalName.ValueText = DocumentationCommentXmlNames.ParameterElementName
+            End If
+
+            Return False
+        End Function
+
+        Public Overrides Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetContentFromDocumentationCommentTriviaSyntax
+            Dim documentationCommentTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
+            If documentationCommentTrivia IsNot Nothing Then
+                Return documentationCommentTrivia.Content
+            End If
+
+            Return Nothing
         End Function
 
         Public Overrides Function CanHaveAccessibility(declaration As SyntaxNode) As Boolean Implements ISyntaxFacts.CanHaveAccessibility

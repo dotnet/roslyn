@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
@@ -43,5 +44,41 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
         Protected Overrides Function GetLanguage() As String
             Return LanguageNames.VisualBasic
         End Function
+
+        Friend ReadOnly Property RequireArithmeticBinaryParenthesesForClarity As OptionsCollection
+            Get
+                Return ParenthesesOptionsProvider.RequireArithmeticBinaryParenthesesForClarity
+            End Get
+        End Property
+
+        Friend ReadOnly Property RequireRelationalBinaryParenthesesForClarity As OptionsCollection
+            Get
+                Return ParenthesesOptionsProvider.RequireRelationalBinaryParenthesesForClarity
+            End Get
+        End Property
+
+        Friend ReadOnly Property RequireOtherBinaryParenthesesForClarity As OptionsCollection
+            Get
+                Return ParenthesesOptionsProvider.RequireOtherBinaryParenthesesForClarity
+            End Get
+        End Property
+
+        Friend ReadOnly Property IgnoreAllParentheses As OptionsCollection
+            Get
+                Return ParenthesesOptionsProvider.IgnoreAllParentheses
+            End Get
+        End Property
+
+        Friend ReadOnly Property RemoveAllUnnecessaryParentheses As OptionsCollection
+            Get
+                Return ParenthesesOptionsProvider.RemoveAllUnnecessaryParentheses
+            End Get
+        End Property
+
+        Friend ReadOnly Property RequireAllParenthesesForClarity As OptionsCollection
+            Get
+                Return ParenthesesOptionsProvider.RequireAllParenthesesForClarity
+            End Get
+        End Property
     End Class
 End Namespace

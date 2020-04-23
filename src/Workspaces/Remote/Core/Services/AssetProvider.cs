@@ -31,9 +31,6 @@ namespace Microsoft.CodeAnalysis.Remote
             _serializerService = serializerService;
         }
 
-        public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
-            => _assetStorage.GetGlobalAssetsOfType<T>(cancellationToken);
-
         public override async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
             if (_assetStorage.TryGetAsset(checksum, out T asset))
@@ -147,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfNull(source);
 
             // ask one of asset source for data
-            return await source.RequestAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
+            return await source.GetAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
         }
     }
 }

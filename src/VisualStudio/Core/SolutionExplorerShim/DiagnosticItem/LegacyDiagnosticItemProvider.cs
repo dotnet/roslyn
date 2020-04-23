@@ -26,8 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LegacyDiagnosticItemProvider(
-            [Import(typeof(AnalyzersCommandHandler))]IAnalyzersCommandHandler commandHandler,
-            [Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider)
+            [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
             _commandHandler = commandHandler;
             _serviceProvider = serviceProvider;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -23,17 +25,13 @@ namespace Microsoft.CodeAnalysis.Interactive
             private readonly bool _joinOutputWritingThreadsOnDisposal;
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
-            private InteractiveHost _host;              // nulled on dispose
-            private Thread _readOutputThread;           // nulled on dispose	
-            private Thread _readErrorOutputThread;      // nulled on dispose
+            private InteractiveHost? _host;              // nulled on dispose
+            private Thread? _readOutputThread;           // nulled on dispose	
+            private Thread? _readErrorOutputThread;      // nulled on dispose
             private volatile ProcessExitHandlerStatus _processExitHandlerStatus;  // set to Handled on dispose
 
             internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
             {
-                Debug.Assert(host != null);
-                Debug.Assert(process != null);
-                Debug.Assert(service != null);
-
                 Process = process;
                 Service = service;
 

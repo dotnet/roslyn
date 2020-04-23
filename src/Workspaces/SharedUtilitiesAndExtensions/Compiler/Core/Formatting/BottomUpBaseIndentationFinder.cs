@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal class BottomUpBaseIndentationFinder
     {
-        private readonly TokenStream _tokenStream;
+        private readonly TokenStream? _tokenStream;
         private readonly ChainedFormattingRules _formattingRules;
         private readonly int _tabSize;
         private readonly int _indentationSize;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             ChainedFormattingRules formattingRules,
             int tabSize,
             int indentationSize,
-            TokenStream tokenStream)
+            TokenStream? tokenStream)
         {
             Contract.ThrowIfNull(formattingRules);
 
@@ -149,6 +151,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (operation.IsRelativeIndentation)
             {
                 var baseToken = operation.BaseToken;
+                RoslynDebug.AssertNotNull(baseToken.SyntaxTree);
 
                 // If the SmartIndenter created this IndentationFinder then tokenStream will be a null hence we should do a null check on the tokenStream
                 if (operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine))
@@ -176,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             throw ExceptionUtilities.Unreachable;
         }
 
-        private (int indentation, IndentBlockOperation operation) GetIndentationRuleOfCurrentPosition(
+        private (int indentation, IndentBlockOperation? operation) GetIndentationRuleOfCurrentPosition(
             SyntaxNode root, SyntaxToken token, List<IndentBlockOperation> list, int position)
         {
             var indentationLevel = 0;
@@ -270,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return default;
         }
 
-        private IndentBlockOperation GetIndentationDataFor(SyntaxNode root, SyntaxToken token, int position)
+        private IndentBlockOperation? GetIndentationDataFor(SyntaxNode root, SyntaxToken token, int position)
         {
             var startNode = token.Parent;
 

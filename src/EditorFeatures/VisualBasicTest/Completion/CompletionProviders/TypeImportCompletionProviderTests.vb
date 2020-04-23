@@ -144,7 +144,7 @@ Public Class Bar
     End Sub
 End Class]]></Text>.Value
 
-            Dim markup = CreateMarkupForProjecWithProjectReference(file2, file1, LanguageNames.VisualBasic, LanguageNames.CSharp)
+            Dim markup = CreateMarkupForProjectWithProjectReference(file2, file1, LanguageNames.VisualBasic, LanguageNames.CSharp)
             Await VerifyItemExistsAsync(markup, "My", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.Myattribute")
             Await VerifyItemIsAbsentAsync(markup, "Myattribute", inlineDescription:="Foo")
         End Function

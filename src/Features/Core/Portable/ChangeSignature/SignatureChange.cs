@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
@@ -22,22 +26,34 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var originalParameterList = originalConfiguration.ToListOfParameters();
             var updatedParameterList = updatedConfiguration.ToListOfParameters();
 
-            for (var i = 0; i < originalParameterList.Count; i++)
+            for (var i = 0; i < originalParameterList.Length; i++)
             {
+                int? index = null;
                 var parameter = originalParameterList[i];
-                var updatedIndex = updatedParameterList.IndexOf(parameter);
-                _originalIndexToUpdatedIndexMap.Add(i, updatedIndex != -1 ? updatedIndex : (int?)null);
+                if (parameter is ExistingParameter existingParameter)
+                {
+                    var updatedIndex = updatedParameterList.IndexOf(p => p is ExistingParameter ep && ep.Symbol.Equals(existingParameter.Symbol));
+                    if (updatedIndex >= 0)
+                    {
+                        index = updatedIndex;
+                    }
+                }
+
+                _originalIndexToUpdatedIndexMap.Add(i, index);
             }
         }
 
         public int? GetUpdatedIndex(int parameterIndex)
         {
-            if (parameterIndex >= OriginalConfiguration.ToListOfParameters().Count)
+            if (parameterIndex >= OriginalConfiguration.ToListOfParameters().Length)
             {
                 return null;
             }
 
             return _originalIndexToUpdatedIndexMap[parameterIndex];
         }
+
+        internal SignatureChange WithoutAddedParameters()
+            => new SignatureChange(OriginalConfiguration, UpdatedConfiguration.WithoutAddedParameters());
     }
 }

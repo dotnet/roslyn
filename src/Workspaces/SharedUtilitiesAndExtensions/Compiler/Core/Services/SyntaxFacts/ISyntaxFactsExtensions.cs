@@ -214,6 +214,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return node.Span;
         }
 
+        /// <summary>
+        /// Checks if the position is on the header of a type (from the start of the type up through it's name).
+        /// </summary>
+        public static bool IsOnTypeHeader(this ISyntaxFacts syntaxFacts, SyntaxNode root, int position, out SyntaxNode typeDeclaration)
+            => syntaxFacts.IsOnTypeHeader(root, position, fullHeader: false, out typeDeclaration);
+
+
         #region ISyntaxKinds forwarding methods
 
         #region trivia

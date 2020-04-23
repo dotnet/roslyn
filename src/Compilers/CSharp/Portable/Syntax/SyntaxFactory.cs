@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        /// Creates the syntax representation of an xml value element (e.g. for xml documentation comments).
         /// </summary>
         /// <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         public static XmlElementSyntax XmlValueElement(params XmlNodeSyntax[] content)
@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        /// Creates the syntax representation of an xml value element (e.g. for xml documentation comments).
         /// </summary>
         /// <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         public static XmlElementSyntax XmlValueElement(SyntaxList<XmlNodeSyntax> content)
@@ -1882,7 +1882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Helper method for wrapping a string in an SourceText.
+        /// Helper method for wrapping a string in a SourceText.
         /// </summary>
         private static SourceText MakeSourceText(string text, int offset)
         {

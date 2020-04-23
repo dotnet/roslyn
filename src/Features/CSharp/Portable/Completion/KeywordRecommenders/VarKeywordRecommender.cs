@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
         }
 
-        private bool IsValidContext(CSharpSyntaxContext context)
+        private static bool IsValidContext(CSharpSyntaxContext context)
         {
             if (context.IsStatementContext ||
                 context.IsGlobalStatementContext ||

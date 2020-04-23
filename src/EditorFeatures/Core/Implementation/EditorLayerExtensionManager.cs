@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorLayerExtensionManager(
-            [ImportMany]IEnumerable<IExtensionErrorHandler> errorHandlers)
+            [ImportMany] IEnumerable<IExtensionErrorHandler> errorHandlers)
         {
             _errorHandlers = errorHandlers.ToList();
         }

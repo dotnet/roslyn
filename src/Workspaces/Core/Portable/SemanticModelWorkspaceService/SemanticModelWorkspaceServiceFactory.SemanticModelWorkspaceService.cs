@@ -292,10 +292,10 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     case WorkspaceChangeKind.ProjectRemoved:
                     case WorkspaceChangeKind.ProjectChanged:
                     case WorkspaceChangeKind.ProjectReloaded:
-                        ClearVersionMap(e.NewSolution.Workspace, e.ProjectId);
+                        ClearVersionMap(e.NewSolution.Workspace, e.ProjectId!);
                         break;
                     case WorkspaceChangeKind.DocumentRemoved:
-                        ClearVersionMap(e.NewSolution.Workspace, e.DocumentId);
+                        ClearVersionMap(e.NewSolution.Workspace, e.DocumentId!);
                         break;
                     case WorkspaceChangeKind.DocumentAdded:
                     case WorkspaceChangeKind.DocumentReloaded:

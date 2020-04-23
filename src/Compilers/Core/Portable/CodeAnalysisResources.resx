@@ -687,4 +687,7 @@
     <value>Suppress the following diagnostics to disable this analyzer: {0}</value>
     <comment>{0}: Comma-separated list of diagnostic IDs</comment>
   </data>
+  <data name="Single_type_per_generator_0" xml:space="preserve">
+    <value>Only a single {0} can be registered per generator.</value>
+  </data>
 </root>
