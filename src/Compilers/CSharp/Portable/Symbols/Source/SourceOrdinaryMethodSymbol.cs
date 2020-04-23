@@ -100,7 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _hasAnyBody = hasBody;
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(modifiers, methodKind, hasBody, location, diagnostics, out modifierErrors);
+            DeclarationModifiers declarationModifiers;
+            (declarationModifiers, HasExplicitAccessMod, modifierErrors) = this.MakeModifiers(modifiers, methodKind, hasBody, location, diagnostics);
 
             var isMetadataVirtualIgnoringModifiers = (object)explicitInterfaceType != null; //explicit impls must be marked metadata virtual
 
@@ -759,7 +760,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _isExpressionBodied; }
         }
 
-        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        internal bool HasExplicitAccessMod { get; }
+
+        private (DeclarationModifiers mods, bool hasExplicitAccessMod, bool modifierErrors) MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, bool hasBody, Location location, DiagnosticBag diagnostics)
         {
             bool isInterface = this.ContainingType.IsInterface;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
@@ -811,7 +814,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            // In order to detect whether explicit accessibility mods were provided, we pass the default value
+            // for 'defaultAccess' and manually add in the 'defaultAccess' flags after the call.
+            bool hasExplicitAccessMod;
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out bool modifierErrors);
+            if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
+            {
+                hasExplicitAccessMod = false;
+                mods |= defaultAccess;
+            }
+            else
+            {
+                hasExplicitAccessMod = true;
+            }
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
@@ -820,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                         location, diagnostics);
 
             mods = AddImpliedModifiers(mods, isInterface, methodKind, hasBody);
-            return mods;
+            return (mods, hasExplicitAccessMod, modifierErrors);
         }
 
         private static DeclarationModifiers AddImpliedModifiers(DeclarationModifiers mods, bool containingTypeIsInterface, MethodKind methodKind, bool hasBody)
@@ -918,13 +933,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                      DeclarationModifiers.Sealed |
                      DeclarationModifiers.Extern;
 
-            // note: explicit 'private' accessibility requires the extended partial methods feature,
-            // but we have to mask out Private here to deal with the implicit private access level for standard partial methods.
-            const DeclarationModifiers extendedPartialAccessMods = DeclarationModifiers.AccessibilityMask & ~DeclarationModifiers.Private;
-
             bool isExplicitInterfaceImplementationInInterface = isExplicitInterfaceImplementation && ContainingType.IsInterface;
 
-            if (IsPartial && (!ReturnsVoid || (DeclarationModifiers & extendedPartialAccessMods) != 0))
+            if (IsPartial && (!ReturnsVoid || HasExplicitAccessMod))
             {
                 Binder.CheckFeatureAvailability(SyntaxNode, MessageID.IDS_FeatureExtendedPartialMethods, diagnostics, location);
             }

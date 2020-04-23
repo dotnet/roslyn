@@ -674,11 +674,7 @@ partial class B<T> where T : struct
     static partial void M4<U, V>() where U : A<V> { }
     static partial A<U> M5<U>() { return null; }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (11,25): error CS0766: Partial methods must have a void return type
-                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M5").WithLocation(11, 25),
-                // (19,25): error CS0766: Partial methods must have a void return type
-                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M5").WithLocation(19, 25),
+            CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
                 // (10,28): error CS0453: The type 'V' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "U").WithArguments("A<T>", "T", "V").WithLocation(10, 28),
                 // (18,28): error CS0453: The type 'V' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'

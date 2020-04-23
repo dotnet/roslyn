@@ -2576,7 +2576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_PartialMethodWithOutParamMustHaveImplementation, method.Locations[0], method);
                         }
-                        else if (method.DeclaredAccessibility != Accessibility.NotApplicable)
+                        else if (method.HasExplicitAccessMod)
                         {
                             diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.Locations[0], method);
                         }

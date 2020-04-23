@@ -61,15 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifierErrors = true;
             }
 
-            bool isMethod = (allowedModifiers & (DeclarationModifiers.Partial | DeclarationModifiers.Virtual)) == (DeclarationModifiers.Partial | DeclarationModifiers.Virtual);
-            if (isMethod && ((result & (DeclarationModifiers.Partial | DeclarationModifiers.Private)) == (DeclarationModifiers.Partial | DeclarationModifiers.Private)))
-            {
-                if (!Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeatureExtendedPartialMethods, diagnostics, errorLocation))
-                {
-                    modifierErrors = true;
-                }
-            }
-
             if ((result & DeclarationModifiers.PrivateProtected) != 0)
             {
                 modifierErrors |= !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeaturePrivateProtected, diagnostics, errorLocation);

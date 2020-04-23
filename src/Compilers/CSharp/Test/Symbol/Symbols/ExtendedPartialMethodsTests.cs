@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ExtendedPartialMethodsTests : CSharpTestBase
     {
-        private static readonly CSharpParseOptions s_parseOptions = TestOptions.RegularPreview;
-
         [Fact]
         public void NonVoidReturnType_LangVersion()
         {
@@ -30,7 +28,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(5, 17)
             );
 
-            comp = CreateCompilation(text, parseOptions: s_parseOptions);
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
         }
 
@@ -42,7 +40,7 @@ partial class C
 {
     partial int M1();
 }";
-            var comp = CreateCompilation(text, parseOptions: s_parseOptions);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (4,17): error CS9050: Partial method C.M1() must have an implementation part because it has a non-void return type.
                 //     partial int M1();
@@ -70,7 +68,7 @@ partial class C
     partial int M1() { return 42; }
 }
 ";
-            var verifier = CompileAndVerify(new[] { text1, text2 }, parseOptions: s_parseOptions, expectedOutput: "42");
+            var verifier = CompileAndVerify(new[] { text1, text2 }, parseOptions: TestOptions.RegularWithExtendedPartialMethods, expectedOutput: "42");
             verifier.VerifyDiagnostics();
         }
 
@@ -93,7 +91,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(5, 18)
             );
 
-            comp = CreateCompilation(text, parseOptions: s_parseOptions);
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
         }
 
@@ -105,7 +103,7 @@ partial class C
 {
     partial void M1(out int i);
 }";
-            var comp = CreateCompilation(text, parseOptions: s_parseOptions);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (4,18): error CS9051: Partial method C.M1(out int) must have an implementation part because it has 'out' parameters.
                 //     partial void M1(out int i);
@@ -134,7 +132,7 @@ partial class C
     partial void M1(out int value) { value = 42; }
 }
 ";
-            var verifier = CompileAndVerify(new[] { text1, text2 }, parseOptions: s_parseOptions, expectedOutput: "42");
+            var verifier = CompileAndVerify(new[] { text1, text2 }, parseOptions: TestOptions.RegularWithExtendedPartialMethods, expectedOutput: "42");
             verifier.VerifyDiagnostics();
         }
 
@@ -168,7 +166,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods")
             );
 
-            comp = CreateCompilation(text, parseOptions: s_parseOptions);
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
         }
 
@@ -181,12 +179,36 @@ partial class C
 {{
     {mod} partial void M1();
 }}";
-            var comp = CreateCompilation(text, parseOptions: s_parseOptions);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (4,27): error CS9052: Partial method C.M1() must have an implementation part because it has accessibility modifiers.
                 //     {mod} partial void M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M1").WithArguments("C.M1()")
             );
+        }
+
+        [Fact]
+        public void Static_NoImpl()
+        {
+            const string text1 = @"
+partial class C
+{
+    static partial void M1();
+}";
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Simple_NoImpl()
+        {
+            const string text1 = @"
+partial class C
+{
+    partial void M1();
+}";
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
         }
     }
 }
