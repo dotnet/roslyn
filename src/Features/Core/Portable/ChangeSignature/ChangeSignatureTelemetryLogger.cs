@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.ChangeSignature
 {
     internal class ChangeSignatureLogger
     {
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
 
         private static readonly LogAggregator s_logAggregator = new LogAggregator();
         private static readonly StatisticLogAggregator s_statisticLogAggregator = new StatisticLogAggregator();
-        private static readonly HistogramLogAggregator s_histogramLogAggregator = new HistogramLogAggregator(bucketSize: 50, maxBucketValue: 1000);
+        private static readonly HistogramLogAggregator s_histogramLogAggregator = new HistogramLogAggregator(bucketSize: 1000, maxBucketValue: 30000);
 
         internal enum ActionInfo
         {
