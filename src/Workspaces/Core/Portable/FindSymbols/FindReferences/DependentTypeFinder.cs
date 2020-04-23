@@ -37,6 +37,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal static partial class DependentTypeFinder
     {
+        /// <summary>
+        /// Function shape for helpers that test if <paramref name="type"/> is a match given the types we've already
+        /// found in <paramref name="set"/>. <paramref name="transitive"/> dictates if we should perform a transitive
+        /// search on <paramref name="type"/> to try to find a match, or if we should search only one level deep.  In
+        /// practice we search transitively with metadata (since all the symbols are fully resolved and fast to walk),
+        /// but only a single level with source.  The latter is due to our indices only storing syntactic information,
+        /// so they can only do things like store the directly named base-types/interfaces that a class explicitly
+        /// declares in source.
+        /// </summary>
         private delegate bool TypeMatches(SymbolSet set, INamedTypeSymbol type, bool transitive);
 
         private static readonly Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
