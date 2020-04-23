@@ -33,7 +33,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             bool ISupportsNavigation.TryNavigateTo(bool isPreview)
-                => DefinitionBucket.DefinitionItem.TryNavigateTo(Presenter._workspace, isPreview, activatePreview: false);
+                => DefinitionBucket.DefinitionItem.TryNavigateTo(
+                    Presenter._workspace,
+                    isPreview ? NavigationBehavior.PreviewWithoutActivation : NavigationBehavior.Normal);
 
             protected override IList<Inline> CreateLineTextInlines()
                 => DefinitionBucket.DefinitionItem.DisplayParts
