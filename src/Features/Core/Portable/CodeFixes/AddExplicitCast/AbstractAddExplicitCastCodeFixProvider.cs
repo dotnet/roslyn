@@ -327,9 +327,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             // get all candidate functions and extract potential conversion types 
             var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var candidateSymbols);
-            candidateSymbols.AddRange(symbolInfo.CandidateSymbols);
             if (symbolInfo.Symbol != null) // BC42016: the only candidate symbol is symbolInfo.Symbol
                 candidateSymbols.Add(symbolInfo.Symbol);
+            else
+                candidateSymbols.Add(symbolInfo.CandidateSymbols)
 
             using var __ = ArrayBuilder<(TExpressionSyntax, ITypeSymbol)>.GetInstance(out var mutablePotentialConversionTypes);
             foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())
