@@ -750,6 +750,82 @@ class C1<T>
             Assert.Equal(c1.MangleName, c1r.MangleName);
             Assert.Equal(c1.MetadataName, c1r.MetadataName);
         }
+
+        [Fact]
+        public void RetargetingFunctionPointerType_01()
+        {
+            string source = @"
+unsafe class C
+{
+    delegate*<out string, ref readonly int> M(delegate* cdecl<void> param) => throw null;
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var sourceModule = comp.SourceModule;
+            var sourceAssembly = (SourceAssemblySymbol)sourceModule.ContainingAssembly;
+            var sourceNamespace = sourceModule.GlobalNamespace;
+
+            var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
+            retargetingAssembly.SetCorLibrary(sourceAssembly.CorLibrary);
+            var retargetingModule = retargetingAssembly.Modules[0];
+            var retargetingNamespace = retargetingModule.GlobalNamespace;
+
+            RetargetingSymbolChecker.CheckSymbols(sourceNamespace.GetMember<NamedTypeSymbol>("C"), retargetingNamespace.GetMember<NamedTypeSymbol>("C"));
+        }
+
+        [Fact]
+        public void RetargetingFunctionPointerType_02()
+        {
+            var source = @"
+public unsafe class C
+{
+    public delegate* cdecl<out string, int> M() => throw null;
+}
+";
+
+            CSharpCompilation c1 = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+
+            var c1Assembly = c1.Assembly;
+
+            var r1 = c1.ToMetadataReference();
+            CSharpCompilation c2 = CreateCompilation("", references: new[] { r1 }, targetFramework: TargetFramework.Mscorlib45);
+            var c1AsmRef = c2.GetReferencedAssemblySymbol(r1);
+
+            var c2CorLib = c2.Assembly.CorLibrary;
+
+            Assert.NotSame(c1Assembly, c1AsmRef);
+            Assert.NotSame(c2.Assembly.CorLibrary, c1.Assembly.CorLibrary);
+
+            var ptr_c1 = getFuncPtr(c1);
+            var ptr_c2 = getFuncPtr(c2);
+
+            Assert.NotSame(ptr_c1, ptr_c2);
+            FunctionPointerUtilities.CommonVerifyFunctionPointer(ptr_c1);
+            FunctionPointerUtilities.CommonVerifyFunctionPointer(ptr_c2);
+
+            Assert.NotSame(c2CorLib, ptr_c1.Signature.ReturnType.ContainingAssembly);
+            Assert.Same(c2CorLib, ptr_c2.Signature.ReturnType.ContainingAssembly);
+
+            Assert.Equal(ptr_c1.Signature.CallingConvention, ptr_c2.Signature.CallingConvention);
+
+            var param_c1 = ptr_c1.Signature.Parameters.Single();
+            var param_c2 = ptr_c2.Signature.Parameters.Single();
+
+            Assert.NotSame(c2CorLib, param_c1.Type.ContainingAssembly);
+            Assert.Same(c2CorLib, param_c2.Type.ContainingAssembly);
+
+            Assert.NotSame(c2CorLib, ((CSharpCustomModifier)param_c1.RefCustomModifiers.Single()).ModifierSymbol.ContainingAssembly);
+            Assert.Same(c2CorLib, ((CSharpCustomModifier)param_c2.RefCustomModifiers.Single()).ModifierSymbol.ContainingAssembly);
+
+            static FunctionPointerTypeSymbol getFuncPtr(CSharpCompilation compilation)
+            {
+                var c = compilation.GetTypeByMetadataName("C");
+                var m = c.GetMethod("M");
+                return (FunctionPointerTypeSymbol)m.ReturnType;
+            }
+        }
     }
 
     internal abstract class SymbolChecker
@@ -845,6 +921,41 @@ class C1<T>
             CheckSymbols(a.TypeParameters, b.TypeParameters, true);
         }
 
+        public void CheckFunctionPointerTypes(FunctionPointerTypeSymbol a, FunctionPointerTypeSymbol b)
+        {
+            FunctionPointerUtilities.CommonVerifyFunctionPointer(a);
+            FunctionPointerUtilities.CommonVerifyFunctionPointer(b);
+            CheckSymbols(a.Signature.ReturnTypeWithAnnotations, b.Signature.ReturnTypeWithAnnotations, recurse: true);
+            checkModifiers(a.Signature.RefCustomModifiers, b.Signature.RefCustomModifiers);
+
+            Assert.Equal(a.Signature.ParameterCount, b.Signature.ParameterCount);
+
+            for (int i = 0; i < a.Signature.ParameterCount; i++)
+            {
+                var aParam = a.Signature.Parameters[i];
+                var bParam = b.Signature.Parameters[i];
+                CheckSymbols(aParam.TypeWithAnnotations, bParam.TypeWithAnnotations, recurse: true);
+                checkModifiers(aParam.RefCustomModifiers, bParam.RefCustomModifiers);
+            }
+
+            void checkModifiers(ImmutableArray<CustomModifier> aModifiers, ImmutableArray<CustomModifier> bModifiers)
+            {
+                if (aModifiers.IsDefault)
+                {
+                    Assert.True(bModifiers.IsDefault);
+                    return;
+                }
+
+                Assert.Equal(aModifiers.Length, bModifiers.Length);
+                for (int i = 0; i < aModifiers.Length; i++)
+                {
+                    CheckSymbols(getModifier(aModifiers[i]), getModifier(bModifiers[i]), recurse: true);
+
+                    static TypeSymbol getModifier(CustomModifier modifier) => ((CSharpCustomModifier)modifier).ModifierSymbol;
+                }
+            }
+        }
+
         public void CheckParameters(ParameterSymbol a, ParameterSymbol b)
         {
             Assert.Equal(a.Name, b.Name);
@@ -892,6 +1003,11 @@ class C1<T>
         {
             a = a.OriginalDefinition;
             b = b.OriginalDefinition;
+            if (a is FunctionPointerTypeSymbol && b is FunctionPointerTypeSymbol)
+            {
+                return;
+            }
+
             var underlying = GetUnderlyingSymbol(b);
             Assert.NotNull(underlying);
             Assert.Same(underlying, a);
