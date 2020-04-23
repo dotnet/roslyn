@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 if (namedType.TypeKind == TypeKind.Class)
                 {
-                    var derivedTypes = await SymbolFinder.FindImmediatelyDerivedClassesAsync(
+                    var derivedTypes = await SymbolFinder.FindImmediateDerivedClassesAsync(
                         namedType, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in derivedTypes)
                     {
