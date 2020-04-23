@@ -868,28 +868,28 @@ unsafe class D
 
             var comp = CreateCompilationWithFunctionPointersAndIl(source, ilSource);
             comp.VerifyDiagnostics(
-                // (6,11): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
+                // (6,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Field(__arglist(1, 2));
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(6, 11),
-                // (7,11): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
+                // (7,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Field(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(7, 11),
-                // (8,11): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
+                // (8,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Field();
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(8, 11),
-                // (9,11): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
+                // (9,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Field = c.Field;
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(9, 11),
-                // (9,21): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
+                // (9,21): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Field = c.Field;
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(9, 21),
-                // (10,11): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
+                // (10,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Prop();
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate*<void>").WithLocation(10, 11),
-                // (11,11): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
+                // (11,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Prop = c.Prop;
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate*<void>").WithLocation(11, 11),
-                // (11,20): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
+                // (11,20): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Prop = c.Prop;
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate*<void>").WithLocation(11, 20)
             );
@@ -5043,7 +5043,7 @@ unsafe class C
         }
 
         [Fact]
-        public void FunctionPointerReturnTypeConstrainedCallVirtIfNotRef()
+        public void FunctionPointerReturnTypeConstrainedCallVirtIfRef()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
 unsafe class C

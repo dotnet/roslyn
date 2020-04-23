@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.False(symbol.IsMetadataVirtual(true));
                 Assert.False(symbol.IsMetadataVirtual(false));
 
+                Assert.Equal(symbol.IsVararg, symbol.CallingConvention.IsCallingConvention(CallingConvention.ExtraArguments));
+
                 Assert.True(symbol.IsImplicitlyDeclared);
 
                 Assert.Null(symbol.ContainingSymbol);

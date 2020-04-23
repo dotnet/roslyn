@@ -1216,7 +1216,7 @@ tryAgain:
                 info.RefCustomModifiers = info.CustomModifiers;
                 info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
             }
-            else if (foundRequiredTypes != 0)
+            else if (foundRequiredTypes != AllowedRequiredModifierType.None)
             {
                 // This cannot be placed on CustomModifiers, just RefCustomModifiers
                 throw new UnsupportedSignatureContent();
