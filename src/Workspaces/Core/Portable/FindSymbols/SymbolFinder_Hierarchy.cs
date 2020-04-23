@@ -215,15 +215,51 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
-        /// Finds the symbols that implement an interface or interface member.
+        /// Finds all the accessible symbols that implement an interface or interface member.  For an <see
+        /// cref="INamedTypeSymbol"/> this will be both immediate and transitive implementations.
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindImplementationsAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
+            if (symbol == null)
+                throw new ArgumentNullException(nameof(symbol));
+
+            if (solution == null)
+                throw new ArgumentNullException(nameof(solution));
+
             if (solution.GetOriginatingProjectId(symbol) == null)
                 throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
 
             return await FindImplementationsArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Finds all the accessible <see langword="class"/> or <see langword="struct"/> types that implement the given
+        /// interface.
+        /// </summary>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindImplementationsAsync(
+            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            if (solution == null)
+                throw new ArgumentNullException(nameof(solution));
+
+            if (solution.GetOriginatingProjectId(type) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
+
+            return await FindImplementationsArrayAsync(type, solution, projects, cancellationToken).ConfigureAwait(false);
+        }
+
+        internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementationsArrayAsync(
+            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        {
+            var implementingTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresAndClassesAsync(
+                type, solution, projects, cancellationToken).ConfigureAwait(false);
+            return implementingTypes.WhereAsArray(IsAccessible);
         }
 
         internal static async Task<ImmutableArray<ISymbol>> FindImplementationsArrayAsync(
@@ -233,39 +269,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // method/property/event from an interface.
             if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
-                var implementingTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresAndClassesAsync(
+                var implementations = await FindImplementationsArrayAsync(
                     namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
-                return ImmutableArray<ISymbol>.CastUp(implementingTypes).WhereAsArray(IsAccessible);
+                return ImmutableArray<ISymbol>.CastUp(implementations);
             }
-            else if (symbol.IsImplementableMember())
+
+            if (!symbol.IsImplementableMember())
+                return ImmutableArray<ISymbol>.Empty;
+
+            var containingType = symbol.ContainingType.OriginalDefinition;
+            var allTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresClassesAndInterfacesAsync(
+                containingType, solution, projects, cancellationToken).ConfigureAwait(false);
+
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var results);
+            foreach (var t in allTypes)
             {
-                var containingType = symbol.ContainingType.OriginalDefinition;
-                var allTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresClassesAndInterfacesAsync(
-                    containingType, solution, projects, cancellationToken).ConfigureAwait(false);
-
-                ImmutableArray<ISymbol>.Builder results = null;
-                foreach (var t in allTypes)
+                var implementations = await t.FindImplementationsForInterfaceMemberAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+                foreach (var implementation in implementations)
                 {
-                    var implementations = await t.FindImplementationsForInterfaceMemberAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-                    foreach (var implementation in implementations)
-                    {
-                        var sourceDef = await FindSourceDefinitionAsync(implementation, solution, cancellationToken).ConfigureAwait(false);
-                        var bestDef = sourceDef ?? implementation;
-                        if (IsAccessible(bestDef))
-                        {
-                            results ??= ImmutableArray.CreateBuilder<ISymbol>();
-                            results.Add(bestDef.OriginalDefinition);
-                        }
-                    }
-                }
-
-                if (results != null)
-                {
-                    return results.Distinct(SymbolEquivalenceComparer.Instance).ToImmutableArray();
+                    var sourceDef = await FindSourceDefinitionAsync(implementation, solution, cancellationToken).ConfigureAwait(false);
+                    var bestDef = sourceDef ?? implementation;
+                    if (IsAccessible(bestDef))
+                        results.Add(bestDef.OriginalDefinition);
                 }
             }
 
-            return ImmutableArray<ISymbol>.Empty;
+            return results.Distinct(SymbolEquivalenceComparer.Instance).ToImmutableArray();
         }
     }
 }
