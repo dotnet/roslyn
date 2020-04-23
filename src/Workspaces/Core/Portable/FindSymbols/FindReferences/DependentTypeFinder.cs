@@ -137,62 +137,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result.SelectAsArray(t => (t.GetSymbolKey(), solution.GetOriginatingProjectId(t)));
         }
 
-        /// <summary>
-        /// Used for implementing the Inherited-By relation for progression.
-        /// </summary>
-        public static Task<ImmutableArray<INamedTypeSymbol>> FindImmediatelyDerivedClassesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            CancellationToken cancellationToken)
-        {
-            return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects, s_typeToImmediatelyDerivedClassesMap,
-                c => FindDerivedClassesAsync(type, solution, projects, transitive: false, c),
-                cancellationToken);
-        }
-
-        /// <summary>
-        /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync(INamedTypeSymbol, Solution, IImmutableSet{Project}, CancellationToken)"/>, which is a publically callable method.
-        /// </summary>
-        public static Task<ImmutableArray<INamedTypeSymbol>> FindTransitivelyDerivedClassesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            CancellationToken cancellationToken)
-        {
-            return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects, s_typeToTransitivelyDerivedClassesMap,
-                c => FindDerivedClassesAsync(type, solution, projects, transitive: true, c),
-                cancellationToken);
-        }
-
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindDerivedClassesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            if (s_isNonSealedClass(type))
-            {
-                bool metadataTypeMatches(SymbolSet set, INamedTypeSymbol metadataType)
-                    => TypeDerivesFrom(set, metadataType, transitive);
-
-                bool sourceTypeImmediatelyMatches(SymbolSet set, INamedTypeSymbol metadataType)
-                    => set.Contains(metadataType.BaseType?.OriginalDefinition);
-
-                return FindTypesAsync(type, solution, projects,
-                    metadataTypeMatches: metadataTypeMatches,
-                    sourceTypeImmediatelyMatches: sourceTypeImmediatelyMatches,
-                    shouldContinueSearching: s_isNonSealedClass,
-                    transitive: transitive,
-                    cancellationToken: cancellationToken);
-            }
-
-            return SpecializedTasks.EmptyImmutableArray<INamedTypeSymbol>();
-        }
-
         public static Task<ImmutableArray<INamedTypeSymbol>> FindImmediatelyImplementingStructuresAndClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
