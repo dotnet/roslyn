@@ -95,6 +95,5 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return ImmutableArray<ReferencedSymbol>.Empty;
         }
-
     }
 }
