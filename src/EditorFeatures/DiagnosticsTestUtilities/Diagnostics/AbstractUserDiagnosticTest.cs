@@ -21,7 +21,6 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {

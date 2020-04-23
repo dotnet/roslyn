@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var dir = Temp.CreateDirectory();
             dir.CopyFile(typeof(AppDomainUtils).Assembly.Location);
-            dir.CopyFile(typeof(TestAnalyzerAssemblyLoader).Assembly.Location);
+            dir.CopyFile(typeof(RemoteAnalyzerFileReferenceTest).Assembly.Location);
             var analyzerFile = DesktopTestHelpers.CreateCSharpAnalyzerAssemblyWithTestAnalyzer(dir, "MyAnalyzer");
             var loadDomain = AppDomainUtils.Create("AnalyzerTestDomain", basePath: dir.Path);
             try
@@ -84,7 +84,6 @@ public class TestAnalyzer : DiagnosticAnalyzer
             dir.CopyFile(typeof(System.Runtime.CompilerServices.Unsafe).Assembly.Location);
             var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
-            dir.CopyFile(typeof(TestAnalyzerAssemblyLoader).Assembly.Location);
 
             var analyzerCompilation = CSharp.CSharpCompilation.Create(
                 "MyAnalyzer",
