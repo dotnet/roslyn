@@ -1483,25 +1483,32 @@ static class Extensions
 }
 ";
             var expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (va ... }')
-  Locals: Local_1: var value
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
+  Locals: Local_1: System.String value
   LoopControlVariable: 
-    IVariableDeclaratorOperation (Symbol: var value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+    IVariableDeclaratorOperation (Symbol: System.String value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
       Initializer: 
         null
   Collection: 
-    IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program, IsInvalid) (Syntax: 'new Program()')
-      Arguments(0)
-      Initializer: 
-        null
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, IsImplicit) (Syntax: 'new Program()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
+          Arguments(0)
+          Initializer: 
+            null
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ine(value);')
         Expression: 
-          IInvalidOperation (OperationKind.Invalid, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
-            Children(2):
-                IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Console')
-                ILocalReferenceOperation: value (OperationKind.LocalReference, Type: var) (Syntax: 'value')
+          IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
+            Instance Receiver: 
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'value')
+                  ILocalReferenceOperation: value (OperationKind.LocalReference, Type: System.String) (Syntax: 'value')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   NextVariables(0)";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree, parseOptions: TestOptions.RegularPreview);
         }
@@ -1521,7 +1528,7 @@ class Program
             System.Console.WriteLine(value);
         }/*</bind>*/
     }
-
+}
 
 static class Extensions
 {
@@ -1529,27 +1536,34 @@ static class Extensions
 }
 ";
             var expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (va ... }')
-  Locals: Local_1: var value
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
+  Locals: Local_1: System.String value
   LoopControlVariable: 
-    IVariableDeclaratorOperation (Symbol: var value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+    IVariableDeclaratorOperation (Symbol: System.String value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
       Initializer: 
         null
   Collection: 
-    IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program, IsInvalid) (Syntax: 'new Program()')
-      Arguments(0)
-      Initializer: 
-        null
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new Program()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
+          Arguments(0)
+          Initializer: 
+            null
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ine(value);')
         Expression: 
-          IInvalidOperation (OperationKind.Invalid, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
-            Children(2):
-                IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Console')
-                ILocalReferenceOperation: value (OperationKind.LocalReference, Type: var) (Syntax: 'value')
+          IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
+            Instance Receiver: 
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'value')
+                  ILocalReferenceOperation: value (OperationKind.LocalReference, Type: System.String) (Syntax: 'value')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   NextVariables(0)";
-            VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree, parseOptions: TestOptions.RegularPreview);
+        VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree, parseOptions: TestOptions.RegularPreview);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1567,7 +1581,7 @@ class Program
             System.Console.WriteLine(value);
         }/*</bind>*/
     }
-
+}
 
 static class Extensions
 {
@@ -1594,6 +1608,65 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
             Children(2):
                 IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Console')
                 ILocalReferenceOperation: value (OperationKind.LocalReference, Type: var) (Syntax: 'value')
+  NextVariables(0)";
+            VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree, parseOptions: TestOptions.RegularPreview);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        public void IForEachLoopStatement_ViaExtensionMethod_WithSpillInExpression()
+        {
+            var source = @"
+using System.Collections.Generic;
+class Program
+{
+    static void Main()
+    {
+        /*<bind>*/foreach (var value in null ?? new Program())
+        {
+            System.Console.WriteLine(value);
+        }/*</bind>*/
+    }
+}
+
+static class Extensions
+{
+    public static IEnumerator<string> GetEnumerator(this Program p) => throw null;
+}
+";
+            var expectedOperationTree = @"
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
+  Locals: Local_1: System.String value
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol: System.String value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+      Initializer: 
+        null
+  Collection: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, IsImplicit) (Syntax: 'null ?? new Program()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ICoalesceOperation (OperationKind.Coalesce, Type: Program) (Syntax: 'null ?? new Program()')
+          Expression: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+          ValueConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            (ImplicitReference)
+          WhenNull: 
+            IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
+              Arguments(0)
+              Initializer: 
+                null
+  Body: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ine(value);')
+        Expression: 
+          IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
+            Instance Receiver: 
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'value')
+                  ILocalReferenceOperation: value (OperationKind.LocalReference, Type: System.String) (Syntax: 'value')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   NextVariables(0)";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree, parseOptions: TestOptions.RegularPreview);
         }
@@ -4271,6 +4344,176 @@ Block[B2] - Block
 }
 Block[B4] - Exit
     Predecessors: [B2]
+    Statements (0)";
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        public void ForEachFlow_ViaExtensionMethod_WithSpillInExpression()
+        {
+            var source = @"
+using System.Collections.Generic;
+class Program
+{
+    static void Main()
+    /*<bind>*/{
+        foreach (var value in null ?? new Program())
+        {
+            System.Console.WriteLine(value);
+        }
+    }/*</bind>*/
+}
+
+static class Extensions
+{
+    public static IEnumerator<string> GetEnumerator(this Program p) => throw null;
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3}
+.locals {R1}
+{
+    CaptureIds: [2]
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        .locals {R3}
+        {
+            CaptureIds: [0]
+            Block[B1] - Block
+                Predecessors: [B0]
+                Statements (1)
+                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'null')
+                      Value: 
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                Jump if True (Regular) to Block[B3]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'null')
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
+                    Leaving: {R3}
+                Next (Regular) Block[B2]
+            Block[B2] - Block [UnReachable]
+                Predecessors: [B1]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'null')
+                      Value: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, IsImplicit) (Syntax: 'null')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                            (ImplicitReference)
+                          Operand: 
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
+                Next (Regular) Block[B4]
+                    Leaving: {R3}
+        }
+        Block[B3] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new Program()')
+                  Value: 
+                    IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B2] [B3]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'null ?? new Program()')
+                  Value: 
+                    IInvocationOperation (System.Collections.Generic.IEnumerator<System.String> Extensions.GetEnumerator(this Program p)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerator<System.String>, IsImplicit) (Syntax: 'null ?? new Program()')
+                      Instance Receiver: 
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'null ?? new Program()')
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, IsImplicit) (Syntax: 'null ?? new Program()')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (Identity)
+                              Operand: 
+                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: Program, IsImplicit) (Syntax: 'null ?? new Program()')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B5]
+                Leaving: {R2}
+                Entering: {R4} {R5}
+    }
+    .try {R4, R5}
+    {
+        Block[B5] - Block
+            Predecessors: [B4] [B6]
+            Statements (0)
+            Jump if False (Regular) to Block[B10]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'null ?? new Program()')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.String>, IsImplicit) (Syntax: 'null ?? new Program()')
+                  Arguments(0)
+                Finalizing: {R7}
+                Leaving: {R5} {R4} {R1}
+            Next (Regular) Block[B6]
+                Entering: {R6}
+        .locals {R6}
+        {
+            Locals: [System.String value]
+            Block[B6] - Block
+                Predecessors: [B5]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left: 
+                        ILocalReferenceOperation: value (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, IsImplicit) (Syntax: 'var')
+                      Right: 
+                        IPropertyReferenceOperation: System.String System.Collections.Generic.IEnumerator<System.String>.Current { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'var')
+                          Instance Receiver: 
+                            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.String>, IsImplicit) (Syntax: 'null ?? new Program()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ine(value);')
+                      Expression: 
+                        IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
+                          Instance Receiver: 
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'value')
+                                ILocalReferenceOperation: value (OperationKind.LocalReference, Type: System.String) (Syntax: 'value')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B5]
+                    Leaving: {R6}
+        }
+    }
+    .finally {R7}
+    {
+        Block[B7] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B9]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'null ?? new Program()')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.String>, IsImplicit) (Syntax: 'null ?? new Program()')
+            Next (Regular) Block[B8]
+        Block[B8] - Block
+            Predecessors: [B7]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'null ?? new Program()')
+                  Instance Receiver: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'null ?? new Program()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.String>, IsImplicit) (Syntax: 'null ?? new Program()')
+                  Arguments(0)
+            Next (Regular) Block[B9]
+        Block[B9] - Block
+            Predecessors: [B7] [B8]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B10] - Exit
+    Predecessors: [B5]
     Statements (0)";
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);

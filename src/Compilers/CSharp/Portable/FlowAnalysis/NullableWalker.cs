@@ -4361,18 +4361,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (HasImplicitTypeArguments(node))
                 {
-                    var binder =
-                        (node as BoundCall)?.BinderOpt
-                        ?? (node as BoundCollectionElementInitializer)?.BinderOpt
-                        ?? (node as BoundForEachStatement)?.EnumeratorInfoOpt?.Binder
-                        ?? throw ExceptionUtilities.UnexpectedValue(node);
+                    var binder = node switch
+                    {
+                        BoundCall { BinderOpt: { } b } => b,
+                        BoundCollectionElementInitializer { BinderOpt: { } b } => b,
+                        BoundForEachStatement { EnumeratorInfoOpt: { Binder: var b } } => b,
+                        _ => throw ExceptionUtilities.UnexpectedValue(node)
+                    };
                     method = InferMethodTypeArguments(binder, method, GetArgumentsForMethodTypeInference(results, argumentsNoConversions), refKindsOpt, argsToParamsOpt, expanded);
                     parametersOpt = method.Parameters;
                 }
                 if (ConstraintsHelper.RequiresChecking(method))
                 {
                     var syntax = node.Syntax;
-                    CheckMethodConstraints((syntax as InvocationExpressionSyntax)?.Expression ?? syntax, method);
+                    CheckMethodConstraints(
+                        syntax switch
+                        {
+                            InvocationExpressionSyntax { Expression: var expression } => expression,
+                            ForEachStatementSyntax { Expression: var expression } => expression,
+                            _ => syntax
+                        },
+                        method);
                 }
             }
 
@@ -7763,11 +7772,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       nested nullability of type parameters. See ForEach_22 for a concrete example of this.
             //    5. The collection type implements IEnumerable (non-generic). Because this version isn't generic, we don't need to
             //       do any reinference, and the existing conversion can stand as is.
-            //    6. The collection type implements the GetEnumerator pattern via an extension GetEnumerator. For this, there will be 
-            //       conversion to the parameter of the extension method.
-            //    7. The target framework's System.String doesn't implement IEnumerable. This is a compat case: System.String normally
+            //    6. The target framework's System.String doesn't implement IEnumerable. This is a compat case: System.String normally
             //       does implement IEnumerable, but there are certain target frameworks where this isn't the case. The compiler will
             //       still emit code for foreach in these scenarios.
+            //    7. The collection type implements the GetEnumerator pattern via an extension GetEnumerator. For this, there will be 
+            //       conversion to the parameter of the extension method.
             //    8. Some binding error occurred, and some other error has already been reported. Usually this doesn't have any kind
             //       of conversion on top, but if there was an explicit conversion in code then we could get past the initial check
             //       for a BoundConversion node.
@@ -7780,7 +7789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.EnumeratorInfoOpt?.GetEnumeratorMethod is { IsExtensionMethod: true, Parameters: var parameters } enumeratorMethod)
             {
-                // this is case 6
+                // this is case 7
                 var (method, results, _) = VisitArguments(
                     node,
                     ImmutableArray.Create(node.Expression),
@@ -7797,7 +7806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (conversion.IsIdentity ||
                 (conversion.Kind == ConversionKind.ExplicitReference && resultTypeWithState.Type.SpecialType == SpecialType.System_String))
             {
-                // This is case 3 or 7.
+                // This is case 3 or 6.
                 targetTypeWithAnnotations = resultTypeWithState.ToTypeWithAnnotations();
             }
             else if (conversion.IsImplicit)

@@ -2991,9 +2991,9 @@ public static class Extensions2
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (7,27): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.GetEnumerator(C, int)' and 'Extensions2.GetEnumerator(C, bool)'
+                    // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'
                     //         foreach (var i in new C())
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Extensions1.GetEnumerator(C, int)", "Extensions2.GetEnumerator(C, bool)").WithLocation(7, 27)
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27)
                     );
         }
 
@@ -3415,9 +3415,9 @@ public static class Extensions
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (7,27): error CS8793: 'C' does not implement the 'collection' pattern. 'Extensions.GetEnumerator(C)' is either static or not public.
+                    // (7,27): error CS8793: 'C' does not implement the 'collection' pattern. 'Extensions.GetEnumerator(C)' is not an accessible instance or extension method.
                     //         foreach (var i in new C())
-                    Diagnostic(ErrorCode.ERR_PatternStaticOrInaccessible, "new C()").WithArguments("C", "collection", "Extensions.GetEnumerator(C)").WithLocation(7, 27)
+                    Diagnostic(ErrorCode.ERR_PatternInaccessibleOrNotInstance, "new C()").WithArguments("C", "collection", "Extensions.GetEnumerator(C)").WithLocation(7, 27)
                 );
         }
 

@@ -393,8 +393,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternStaticOrInaccessible">
-        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
-        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</target>
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
+        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
@@ -3315,8 +3315,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternStaticOrInaccessible">
-        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
-        <target state="translated">'{0}'이(가) '{1}' 패턴을 구현하지 않습니다. '{2}'이(가) public이 아니거나 static입니다.</target>
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
+        <target state="needs-review-translation">'{0}'이(가) '{1}' 패턴을 구현하지 않습니다. '{2}'이(가) public이 아니거나 static입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternStaticOrInaccessible_Title">

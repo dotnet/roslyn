@@ -1120,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (result.IsStatic && !viaExtensionMethod || result.DeclaredAccessibility != Accessibility.Public)
                 {
                     var patternName = isAsync ? MessageID.IDS_FeatureAsyncStreams : MessageID.IDS_Collection;
-                    var errorCode = warningsOnly ? ErrorCode.WRN_PatternStaticOrInaccessible : ErrorCode.ERR_PatternStaticOrInaccessible;
+                    var errorCode = warningsOnly ? ErrorCode.WRN_PatternInaccessibleOrNotInstance : ErrorCode.ERR_PatternInaccessibleOrNotInstance;
                     diagnostics.Add(errorCode, _syntax.Expression.Location, patternType, patternName.Localize(), result);
                     reportedError = !warningsOnly;
                     result = null;
@@ -1132,16 +1132,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = null;
                 }
             }
-            else if (overloadResolutionResult.Results.Length > 1)
+            else if (overloadResolutionResult.GetAllApplicableMembers() is var applicableMembers && applicableMembers.Length > 1)
             {
                 if (warningsOnly)
                 {
                     diagnostics.Add(ErrorCode.WRN_PatternIsAmbiguous, _syntax.Expression.Location, patternType, MessageID.IDS_Collection.Localize(),
-                        overloadResolutionResult.Results[0].Member, overloadResolutionResult.Results[1].Member);
+                        applicableMembers[0], applicableMembers[1]);
                 }
                 else
                 {
-                    diagnostics.Add(ErrorCode.ERR_AmbigCall, _syntax.Expression.Location, overloadResolutionResult.Results[0].Member, overloadResolutionResult.Results[1].Member);
+                    diagnostics.Add(ErrorCode.ERR_AmbigCall, _syntax.Expression.Location, applicableMembers[0], applicableMembers[1]);
                     reportedError = true;
                 }
             }

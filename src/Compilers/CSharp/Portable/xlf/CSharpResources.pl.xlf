@@ -393,8 +393,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternStaticOrInaccessible">
-        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
-        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</target>
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
+        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
@@ -3315,8 +3315,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternStaticOrInaccessible">
-        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
-        <target state="translated">'Element „{0}” nie implementuje wzorca „{1}”. Element „{2}” jest statyczny lub nie jest publiczny.</target>
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
+        <target state="needs-review-translation">'Element „{0}” nie implementuje wzorca „{1}”. Element „{2}” jest statyczny lub nie jest publiczny.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternStaticOrInaccessible_Title">

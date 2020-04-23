@@ -245,8 +245,8 @@ class Enumerator
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,27): warning CS0279: 'Enumerable' does not implement the 'collection' pattern. 'Enumerable.GetEnumerator()' is either static or not public.
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new Enumerable()").WithArguments("Enumerable", "collection", "Enumerable.GetEnumerator()"),
+                // (6,27): warning CS0279: 'Enumerable' does not implement the 'collection' pattern. 'Enumerable.GetEnumerator()' is not an accessible instance or extension method.
+                Diagnostic(ErrorCode.WRN_PatternInaccessibleOrNotInstance, "new Enumerable()").WithArguments("Enumerable", "collection", "Enumerable.GetEnumerator()"),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public definition for 'GetEnumerator'
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new Enumerable()").WithArguments("Enumerable", "GetEnumerator"));
         }
@@ -278,8 +278,8 @@ class Enumerator
 ";
 
             CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (6,27): warning CS0279: 'Enumerable' does not implement the 'collection' pattern. 'Enumerable.GetEnumerator()' is either static or not public.
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new Enumerable()").WithArguments("Enumerable", "collection", "Enumerable.GetEnumerator()"),
+                // (6,27): warning CS0279: 'Enumerable' does not implement the 'collection' pattern. 'Enumerable.GetEnumerator()' is not an accessible instance or extension method.
+                Diagnostic(ErrorCode.WRN_PatternInaccessibleOrNotInstance, "new Enumerable()").WithArguments("Enumerable", "collection", "Enumerable.GetEnumerator()"),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public definition for 'GetEnumerator'
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new Enumerable()").WithArguments("Enumerable", "GetEnumerator"));
             CreateCompilation(text).VerifyDiagnostics(
@@ -580,9 +580,9 @@ class Enumerator
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,27): error CS8793: 'Enumerator' does not implement the 'collection' pattern. 'Enumerator.MoveNext()' is either static or not public.
+                // (6,27): error CS8793: 'Enumerator' does not implement the 'collection' pattern. 'Enumerator.MoveNext()' is not an accessible instance or extension method.
                 //         foreach (int x in new Enumerable())
-                Diagnostic(ErrorCode.ERR_PatternStaticOrInaccessible, "new Enumerable()").WithArguments("Enumerator", "collection", "Enumerator.MoveNext()").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_PatternInaccessibleOrNotInstance, "new Enumerable()").WithArguments("Enumerator", "collection", "Enumerator.MoveNext()").WithLocation(6, 27)
                 );
         }
 

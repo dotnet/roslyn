@@ -247,9 +247,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): warning CS0279: 'C' does not implement the 'async streams' pattern. 'C.GetAsyncEnumerator(System.Threading.CancellationToken)' is either static or not public.
+                // (6,33): warning CS0279: 'C' does not implement the 'async streams' pattern. 'C.GetAsyncEnumerator(System.Threading.CancellationToken)' is not an accessible instance or extension method.
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new C()").WithArguments("C", "async streams", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33),
+                Diagnostic(ErrorCode.WRN_PatternInaccessibleOrNotInstance, "new C()").WithArguments("C", "async streams", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33),
                 // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
@@ -441,9 +441,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8793: 'C.Enumerator' does not implement the 'async streams' pattern. 'C.Enumerator.MoveNextAsync()' is either static or not public.
+                // (6,33): error CS8793: 'C.Enumerator' does not implement the 'async streams' pattern. 'C.Enumerator.MoveNextAsync()' is not an accessible instance or extension method.
                 //         await foreach (var i in new C()) { }
-                Diagnostic(ErrorCode.ERR_PatternStaticOrInaccessible, "new C()").WithArguments("C.Enumerator", "async streams", "C.Enumerator.MoveNextAsync()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_PatternInaccessibleOrNotInstance, "new C()").WithArguments("C.Enumerator", "async streams", "C.Enumerator.MoveNextAsync()").WithLocation(6, 33)
                 );
         }
 
@@ -5429,9 +5429,9 @@ public static class Extensions2
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (8,33): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.GetAsyncEnumerator(C, int)' and 'Extensions2.GetAsyncEnumerator(C, bool)'
+                    // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
                     //         await foreach (var i in new C())
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Extensions1.GetAsyncEnumerator(C, int)", "Extensions2.GetAsyncEnumerator(C, bool)").WithLocation(8, 33)
+                    Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
                     );
         }
 
@@ -5874,9 +5874,9 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,33): error CS8793: 'C' does not implement the 'async streams' pattern. 'Extensions.GetAsyncEnumerator(C)' is either static or not public.
+                // (8,33): error CS8793: 'C' does not implement the 'async streams' pattern. 'Extensions.GetAsyncEnumerator(C)' is not an accessible instance or extension method.
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_PatternStaticOrInaccessible, "new C()").WithArguments("C", "async streams", "Extensions.GetAsyncEnumerator(C)").WithLocation(8, 33)
+                Diagnostic(ErrorCode.ERR_PatternInaccessibleOrNotInstance, "new C()").WithArguments("C", "async streams", "Extensions.GetAsyncEnumerator(C)").WithLocation(8, 33)
                 );
         }
 
