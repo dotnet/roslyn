@@ -66,6 +66,73 @@
 
   <!--
     ========================
+    Property/metadata global .editorconfig Support
+    ========================
+    
+    Generates a global analyzer config that contains the evaluation of requested MSBuild properties and item metadata
+    
+    Requested properties/items are requested via item groups like:
+   
+      <AnalyzerProperty Include="PropertyNameToEval" />
+      <AnalyzerItemMetadata Include="ItemType" MetadataName="MetaDataToRetrieve" />
+    -->
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildAnalyzerConfig" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
+
+  <PropertyGroup>
+    <GeneratedMSBuildAnalyzerConfigFile Condition="'$(GeneratedMSBuildAnalyzerConfigFile)' ==''">$(IntermediateOutputPath)$(MSBuildProjectName).GeneratedMSBuildAnalyzerConfig.editorconfig</GeneratedMSBuildAnalyzerConfigFile>
+    <GenerateMSBuildAnalyzerConfigFile Condition="'$(GenerateMSBuildAnalyzerConfigFile)' == ''">true</GenerateMSBuildAnalyzerConfigFile>
+  </PropertyGroup>
+
+  <Target Name="GenerateMSBuildAnalyzerConfigFileShouldRun"
+          BeforeTargets="GenerateMSBuildAnalyzerConfigFile"
+          Condition="'$(Language)'=='VB' or '$(Language)'=='C#'">
+    <PropertyGroup>
+      <_GeneratedAnalyzerConfigHasItems Condition="'@(AnalyzerItemMetadata->Count())' != '0'">true</_GeneratedAnalyzerConfigHasItems>
+      <_GeneratedAnalyzerConfigShouldRun Condition="'$(GenerateMSBuildAnalyzerConfigFile)' == 'true' and ('$(_GeneratedAnalyzerConfigHasItems)' == 'true' or '@(AnalyzerProperty->Count())' != '0')">true</_GeneratedAnalyzerConfigShouldRun>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="GenerateMSBuildAnalyzerConfigFile"
+          BeforeTargets="BeforeCompile;CoreCompile"
+          DependsOnTargets="PrepareForBuild;CoreGenerateAssemblyInfo"
+          Condition="'$(_GeneratedAnalyzerConfigShouldRun)' == 'true'"
+          Outputs="$(GeneratedMSBuildAnalyzerConfigFile)">
+
+    <ItemGroup>
+      <!-- Collect requested properties, and eval their value -->
+      <_GeneratedAnalyzerConfigProperty Include="@(AnalyzerProperty)">
+        <Value>$(%(AnalyzerProperty.Identity))</Value>
+      </_GeneratedAnalyzerConfigProperty>
+
+      <!-- Collect the requested items and remember which metadata is wanted -->
+      <_GeneratedAnalyzerConfigItem Include="@(%(AnalyzerItemMetadata.Identity))" Condition="'$(_GeneratedAnalyzerConfigHasItems)' == 'true'">
+        <ItemType>%(Identity)</ItemType>
+        <MetadataName>%(MetadataName)</MetadataName>
+      </_GeneratedAnalyzerConfigItem>
+
+      <!-- Transform the collected items into their full path -->
+      <_GeneratedAnalyzerConfigMetadata Include="@(_GeneratedAnalyzerConfigItem->'%(FullPath)')" />
+
+      <!-- Record that we'll write a file, and add it to the editorconfig inputs -->
+      <FileWrites Include="$(GeneratedMSBuildAnalyzerConfigFile)" />
+      <EditorConfigFiles Include="$(GeneratedMSBuildAnalyzerConfigFile)"  />
+    </ItemGroup>
+
+    <!-- Transform the collected properties and items into an editor config file -->
+    <GenerateMSBuildAnalyzerConfig
+      PropertyItems="@(_GeneratedAnalyzerConfigProperty)"
+      MetadataItems="@(_GeneratedAnalyzerConfigMetadata)">
+
+      <Output TaskParameter="ConfigFileContents"
+          PropertyName="_GeneratedAnalyzerConfigFileContent" />
+    </GenerateMSBuildAnalyzerConfig>
+
+    <!-- Write the output to the generated file, if it's changed -->
+    <WriteLinesToFile Lines="$(_GeneratedAnalyzerConfigFileContent)" File="$(GeneratedMSBuildAnalyzerConfigFile)" Overwrite="True" WriteOnlyWhenDifferent="True" />
+  </Target>
+
+  <!--
+    ========================
     DeterministicSourcePaths
     ========================
     
