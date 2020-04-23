@@ -19,14 +19,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var node in context.InputNodes)
             {
-                var symbol = graphBuilder.GetSymbolAndProjectId(node);
-                if (symbol.Symbol != null)
+                var symbol = graphBuilder.GetSymbol(node);
+                if (symbol != null)
                 {
-                    var overriddenMember = symbol.Symbol.OverriddenMember();
+                    var overriddenMember = symbol.OverriddenMember();
                     if (overriddenMember != null)
                     {
                         var symbolNode = await graphBuilder.AddNodeAsync(
-                            symbol.WithSymbol(overriddenMember), relatedNode: node).ConfigureAwait(false);
+                            overriddenMember, relatedNode: node).ConfigureAwait(false);
                         graphBuilder.AddLink(node, RoslynGraphCategories.Overrides, symbolNode);
                     }
                 }

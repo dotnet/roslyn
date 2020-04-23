@@ -479,5 +479,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeFixes_AddExplicitCast = 384,
 
         ToolsOptions_GenerateEditorconfig = 385,
+
+        Renamer_RenameSymbolAsync = 386,
+        Renamer_FindRenameLocationsAsync = 386,
     }
 }
