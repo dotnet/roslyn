@@ -402,6 +402,21 @@
         <target state="translated">Nessuna o entrambe le dichiarazioni di metodi parziali devono essere di tipo readonly</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it has accessibility modifiers.</source>
+        <target state="new">Partial method {0} must have an implementation part because it has accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithNonVoidReturnMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it has a non-void return type.</source>
+        <target state="new">Partial method {0} must have an implementation part because it has a non-void return type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithOutParamMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it has 'out' parameters.</source>
+        <target state="new">Partial method {0} must have an implementation part because it has 'out' parameters.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">I criteri di ricerca non sono consentiti per i tipi di puntatore.</target>
@@ -907,6 +922,11 @@
       <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
         <source>declaration of expression variables in member initializers and queries</source>
         <target state="translated">dichiarazione di variabili di espressione in query e inizializzatori di membri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtendedPartialMethods">
+        <source>extended partial methods</source>
+        <target state="new">extended partial methods</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">

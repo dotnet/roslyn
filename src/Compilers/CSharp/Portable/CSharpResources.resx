@@ -6070,4 +6070,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
     <value>Generator failed to initialize.</value>
   </data>
+  <data name="IDS_FeatureExtendedPartialMethods" xml:space="preserve">
+    <value>extended partial methods</value>
+  </data>
+  <data name="ERR_PartialMethodWithNonVoidReturnMustHaveImplementation" xml:space="preserve">
+    <value>Partial method {0} must have an implementation part because it has a non-void return type.</value>
+  </data>
+  <data name="ERR_PartialMethodWithOutParamMustHaveImplementation" xml:space="preserve">
+    <value>Partial method {0} must have an implementation part because it has 'out' parameters.</value>
+  </data>
+  <data name="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation" xml:space="preserve">
+    <value>Partial method {0} must have an implementation part because it has accessibility modifiers.</value>
+  </data>
 </root>

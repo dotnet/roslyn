@@ -289,13 +289,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsPartial)
             {
-                // check that there are no out parameters in a partial
-                foreach (var p in this.Parameters)
+                if (MessageID.IDS_FeatureExtendedPartialMethods.GetFeatureAvailabilityDiagnosticInfo(DeclaringCompilation) is { } info)
                 {
-                    if (p.RefKind == RefKind.Out)
+                    // check that there are no out parameters in a partial
+                    foreach (var p in this.Parameters)
                     {
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, location);
-                        break;
+                        if (p.RefKind == RefKind.Out)
+                        {
+                            diagnostics.Add(info, location);
+                            break;
+                        }
                     }
                 }
 
@@ -907,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckModifiers(bool isExplicitInterfaceImplementation, bool hasBody, Location location, DiagnosticBag diagnostics)
         {
-            const DeclarationModifiers partialMethodInvalidModifierMask = (DeclarationModifiers.AccessibilityMask & ~DeclarationModifiers.Private) |
+            const DeclarationModifiers partialMethodInvalidModifierMask =
                      DeclarationModifiers.Virtual |
                      DeclarationModifiers.Abstract |
                      DeclarationModifiers.Override |
@@ -915,13 +918,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                      DeclarationModifiers.Sealed |
                      DeclarationModifiers.Extern;
 
+            // note: explicit 'private' accessibility requires the extended partial methods feature,
+            // but we have to mask out Private here to deal with the implicit private access level for standard partial methods.
+            const DeclarationModifiers extendedPartialAccessMods = DeclarationModifiers.AccessibilityMask & ~DeclarationModifiers.Private;
+
             bool isExplicitInterfaceImplementationInInterface = isExplicitInterfaceImplementation && ContainingType.IsInterface;
 
-            if (IsPartial && !ReturnsVoid)
+            if (IsPartial && (!ReturnsVoid || (DeclarationModifiers & extendedPartialAccessMods) != 0))
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodMustReturnVoid, location);
+                Binder.CheckFeatureAvailability(SyntaxNode, MessageID.IDS_FeatureExtendedPartialMethods, diagnostics, location);
             }
-            else if (IsPartial && (DeclarationModifiers & partialMethodInvalidModifierMask) != 0)
+
+            if (IsPartial && (DeclarationModifiers & partialMethodInvalidModifierMask) != 0)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, location);
             }

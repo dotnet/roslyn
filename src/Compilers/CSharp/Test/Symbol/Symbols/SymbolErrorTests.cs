@@ -13951,31 +13951,6 @@ namespace N
         }
 
         [Fact]
-        public void CS0766ERR_PartialMethodMustReturnVoid()
-        {
-            var text = @"
-
-public partial class C
-{
-    partial int Part(); // CS0766
-    partial int Part() //CS0766
-    {
-        return 1;
-    }
-
-    public static int Main()
-    {
-        return 1;
-    }
-
-}
-";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodMustReturnVoid, Line = 5, Column = 17 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodMustReturnVoid, Line = 6, Column = 17 });
-        }
-
-        [Fact]
         public void CS0767ERR_ExplicitImplCollisionOnRefOut()
         {
             var text = @"interface IFace<T>

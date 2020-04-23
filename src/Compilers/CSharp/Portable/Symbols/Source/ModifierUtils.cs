@@ -64,8 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isMethod = (allowedModifiers & (DeclarationModifiers.Partial | DeclarationModifiers.Virtual)) == (DeclarationModifiers.Partial | DeclarationModifiers.Virtual);
             if (isMethod && ((result & (DeclarationModifiers.Partial | DeclarationModifiers.Private)) == (DeclarationModifiers.Partial | DeclarationModifiers.Private)))
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, errorLocation);
-                modifierErrors = true;
+                if (!Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeatureExtendedPartialMethods, diagnostics, errorLocation))
+                {
+                    modifierErrors = true;
+                }
             }
 
             if ((result & DeclarationModifiers.PrivateProtected) != 0)

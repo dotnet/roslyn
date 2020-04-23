@@ -402,6 +402,21 @@
         <target state="translated">两个分部方法声明必须都是只读声明，或者两者都不能是只读声明</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it has accessibility modifiers.</source>
+        <target state="new">Partial method {0} must have an implementation part because it has accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithNonVoidReturnMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it has a non-void return type.</source>
+        <target state="new">Partial method {0} must have an implementation part because it has a non-void return type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithOutParamMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it has 'out' parameters.</source>
+        <target state="new">Partial method {0} must have an implementation part because it has 'out' parameters.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">指针类型不允许进行模式匹配。</target>
@@ -907,6 +922,11 @@
       <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
         <source>declaration of expression variables in member initializers and queries</source>
         <target state="translated">成员初始值设定项和查询中的表达式变量声明</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtendedPartialMethods">
+        <source>extended partial methods</source>
+        <target state="new">extended partial methods</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">

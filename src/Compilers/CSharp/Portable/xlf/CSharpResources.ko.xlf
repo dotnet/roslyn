@@ -402,6 +402,21 @@
         <target state="translated">두 부분 메서드(Partial method) 선언 모두 readonly이거나 readonly가 아니어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it has accessibility modifiers.</source>
+        <target state="new">Partial method {0} must have an implementation part because it has accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithNonVoidReturnMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it has a non-void return type.</source>
+        <target state="new">Partial method {0} must have an implementation part because it has a non-void return type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithOutParamMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it has 'out' parameters.</source>
+        <target state="new">Partial method {0} must have an implementation part because it has 'out' parameters.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">포인터 형식에 대해 패턴 일치가 허용되지 않습니다.</target>
@@ -907,6 +922,11 @@
       <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
         <source>declaration of expression variables in member initializers and queries</source>
         <target state="translated">멤버 이니셜라이저 및 쿼리에서 식 변수 선언</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtendedPartialMethods">
+        <source>extended partial methods</source>
+        <target state="new">extended partial methods</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">

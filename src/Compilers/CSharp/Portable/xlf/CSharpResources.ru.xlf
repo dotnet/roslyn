@@ -402,6 +402,21 @@
         <target state="translated">Либо оба объявления разделяемого метода должны иметь модификатор readonly, либо ни одно из них не должно иметь модификатор readonly.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it has accessibility modifiers.</source>
+        <target state="new">Partial method {0} must have an implementation part because it has accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithNonVoidReturnMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it has a non-void return type.</source>
+        <target state="new">Partial method {0} must have an implementation part because it has a non-void return type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithOutParamMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it has 'out' parameters.</source>
+        <target state="new">Partial method {0} must have an implementation part because it has 'out' parameters.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">Сопоставление шаблонов запрещено для типов указателей.</target>
@@ -907,6 +922,11 @@
       <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
         <source>declaration of expression variables in member initializers and queries</source>
         <target state="translated">объявление переменных выражения в инициализаторах члена и запросах</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtendedPartialMethods">
+        <source>extended partial methods</source>
+        <target state="new">extended partial methods</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">

@@ -1777,6 +1777,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,
 
+        ERR_PartialMethodWithNonVoidReturnMustHaveImplementation = 9050,
+        ERR_PartialMethodWithOutParamMustHaveImplementation = 9051,
+        ERR_PartialMethodWithAccessibilityModsMustHaveImplementation = 9052
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }
