@@ -2531,7 +2531,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     }
 }";
 
-        await new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = source,
                 FixedCode = fixedSource,
