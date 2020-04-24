@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal static partial class DependentTypeFinder
     {
-        public static async Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingStructuresAndClassesAsync(
+        public static async Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -23,18 +23,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var result = await TryFindAndCacheRemoteTypesAsync(
                 type, solution, projects, transitive,
-                FunctionId.DependentTypeFinder_FindAndCacheImplementingStructuresAndClassesAsync,
-                nameof(IRemoteDependentTypeFinder.FindAndCacheImplementingStructuresAndClassesAsync),
+                FunctionId.DependentTypeFinder_FindAndCacheImplementingTypesAsync,
+                nameof(IRemoteDependentTypeFinder.FindAndCacheImplementingTypesAsync),
                 cancellationToken).ConfigureAwait(false);
 
             if (result.HasValue)
                 return result.Value;
 
-            return await FindAndCacheImplementingStructuresAndClassesInCurrentProcessAsync(
+            return await FindAndCacheImplementingTypesInCurrentProcessAsync(
                 type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
         }
 
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingStructuresAndClassesInCurrentProcessAsync(
+        private static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingTypesInCurrentProcessAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             return FindTypesFromCacheOrComputeAsync(
                 type, solution, projects,
-                transitive ? s_typeToTransitivelyImplementingStructuresAndClassesMap : s_typeToImmediatelyImplementingStructuresAndClassesMap,
-                c => FindWithoutCachingImplementingStructuresAndClassesAsync(type, solution, projects, transitive, c),
+                transitive ? s_typeToTransitivelyImplementingTypesMap : s_typeToImmediatelyImplementingTypesMap,
+                c => FindWithoutCachingImplementingTypesAsync(type, solution, projects, transitive, c),
                 cancellationToken);
         }
 
-        private static async Task<ImmutableArray<INamedTypeSymbol>> FindWithoutCachingImplementingStructuresAndClassesAsync(
+        private static async Task<ImmutableArray<INamedTypeSymbol>> FindWithoutCachingImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -67,7 +67,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     transitive: transitive,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                // We only want implementing classes/structs here, not derived interfaces.
+                // Only classes/struct implement interface types.  Derived interfaces can be found with
+                // FindDerivedInterfacesAsync.
                 return allTypes.WhereAsArray(t => t.TypeKind == TypeKind.Class || t.TypeKind == TypeKind.Struct);
             }
 

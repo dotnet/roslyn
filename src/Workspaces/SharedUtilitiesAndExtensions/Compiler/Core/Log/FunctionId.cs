@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         DependentTypeFinder_FindAndCacheDerivedClassesAsync = 389,
         DependentTypeFinder_FindAndCacheDerivedInterfacesAsync = 390,
-        DependentTypeFinder_FindAndCacheImplementingStructuresAndClassesAsync = 391,
+        DependentTypeFinder_FindAndCacheImplementingTypesAsync = 391,
 
         ChangeSignature_Data = 400,
     }

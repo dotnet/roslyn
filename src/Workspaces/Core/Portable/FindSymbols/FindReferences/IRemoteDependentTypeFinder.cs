@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool transitive,
             CancellationToken cancellationToken);
 
-        Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAndCacheImplementingStructuresAndClassesAsync(
+        Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAndCacheImplementingTypesAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId type,
             ProjectId[] projects,

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken);
         }
 
-        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAndCacheImplementingStructuresAndClassesAsync(PinnedSolutionInfo solutionInfo,
+        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAndCacheImplementingTypesAsync(PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId typeAndProjectId,
             ProjectId[] projectIds,
             bool transitive,
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return FindAndCacheTypesAsync(
                 solutionInfo, typeAndProjectId, projectIds,
-                (nt, s, ps) => DependentTypeFinder.FindAndCacheImplementingStructuresAndClassesAsync(nt, s, ps, transitive, cancellationToken),
+                (nt, s, ps) => DependentTypeFinder.FindAndCacheImplementingTypesAsync(nt, s, ps, transitive, cancellationToken),
                 cancellationToken);
         }
     }
