@@ -102,7 +102,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     if (!_definitionToItem.TryGetValue(definition, out var definitionItem))
                     {
                         definitionItem = await definition.ToClassifiedDefinitionItemAsync(
-                            _solution, includeHiddenLocations: false, _options, _context.CancellationToken).ConfigureAwait(false);
+                            _solution,
+                            isPrimary: _definitionToItem.Count == 0,
+                            includeHiddenLocations: false,
+                            _options,
+                            _context.CancellationToken).ConfigureAwait(false);
 
                         _definitionToItem[definition] = definitionItem;
                     }

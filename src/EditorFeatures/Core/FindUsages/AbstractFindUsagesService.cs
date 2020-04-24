@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             foreach (var implementation in implementations)
             {
                 var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
-                    solution, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
+                    solution, isPrimary: true, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
 
                 await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
