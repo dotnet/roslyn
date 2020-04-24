@@ -4365,7 +4365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BoundCall { BinderOpt: { } b } => b,
                         BoundCollectionElementInitializer { BinderOpt: { } b } => b,
-                        BoundForEachStatement { EnumeratorInfoOpt: { Binder: var b } } => b,
+                        BoundForEachStatement { EnumeratorInfoOpt: { Binder: { } b } } => b,
                         _ => throw ExceptionUtilities.UnexpectedValue(node)
                     };
                     method = InferMethodTypeArguments(binder, method, GetArgumentsForMethodTypeInference(results, argumentsNoConversions), refKindsOpt, argsToParamsOpt, expanded);

@@ -63,8 +63,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMemberWrongAsync">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
-        <target state="translated">'{0}' 형식 변수에서 비동기 foreach 문을 수행할 수 없습니다. '{0}'에는 '{1}'의 공용 인스턴스 정의가 없기 때문입니다. 'await foreach' 대신 'foreach'를 사용하시겠습니까?</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
+        <target state="needs-review-translation">'{0}' 형식 변수에서 비동기 foreach 문을 수행할 수 없습니다. '{0}'에는 '{1}'의 공용 인스턴스 정의가 없기 때문입니다. 'await foreach' 대신 'foreach'를 사용하시겠습니까?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -233,8 +233,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
-        <target state="translated">'{0}' 형식 변수에서 foreach 문을 수행할 수 없습니다. '{0}'에는 '{1}'의 공용 인스턴스 정의가 없기 때문입니다. 'foreach' 대신 'await foreach'를 사용하시겠습니까?</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
+        <target state="needs-review-translation">'{0}' 형식 변수에서 foreach 문을 수행할 수 없습니다. '{0}'에는 '{1}'의 공용 인스턴스 정의가 없기 때문입니다. 'foreach' 대신 'await foreach'를 사용하시겠습니까?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -392,7 +392,7 @@
         <target state="translated">두 부분 메서드(Partial method) 선언 모두 readonly이거나 readonly가 아니어야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PatternStaticOrInaccessible">
+      <trans-unit id="ERR_PatternInaccessibleOrNotInstance">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
         <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</target>
         <note />
@@ -1889,6 +1889,11 @@
         <target state="translated">일부 조건으로 종료할 때 매개 변수에 null 값을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PatternInaccessibleOrNotInstance">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
+        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">[DoesNotReturn]으로 표시된 메서드는 반환하지 않아야 합니다.</target>
@@ -3312,11 +3317,6 @@
       <trans-unit id="WRN_PatternIsAmbiguous_Title">
         <source>Type does not implement the collection pattern; members are ambiguous</source>
         <target state="translated">형식은 컬렉션 패턴을 구현하지 않습니다. 멤버가 모호합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible">
-        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
-        <target state="needs-review-translation">'{0}'이(가) '{1}' 패턴을 구현하지 않습니다. '{2}'이(가) public이 아니거나 static입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternStaticOrInaccessible_Title">
@@ -5793,8 +5793,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="translated">'{0}' 형식 변수에서 foreach 문을 수행할 수 없습니다. '{0}'에는 '{1}'에 대한 공용 인스턴스 정의가 없기 때문입니다.</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="needs-review-translation">'{0}' 형식 변수에서 foreach 문을 수행할 수 없습니다. '{0}'에는 '{1}'에 대한 공용 인스턴스 정의가 없기 때문입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">

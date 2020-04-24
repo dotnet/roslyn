@@ -2993,7 +2993,7 @@ public class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,27): error CS1579: foreach statement cannot operate on variables of type 'MyClass' because 'MyClass' does not contain a public instance definition for 'GetEnumerator'
+                // file.cs(6,27): error CS1579: foreach statement cannot operate on variables of type 'MyClass' because 'MyClass' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach (var x in e)
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "e").WithArguments("MyClass", "GetEnumerator").WithLocation(6, 27)
             };

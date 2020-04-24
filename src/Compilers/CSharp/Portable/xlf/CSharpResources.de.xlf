@@ -63,8 +63,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMemberWrongAsync">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
-        <target state="translated">Eine asynchrone foreach-Anweisung kann nicht für Variablen vom Typ "{0}" verwendet werden, weil "{0}" keine öffentliche Instanzendefinition für "{1}" enthält. Meinten Sie "foreach" statt "await foreach"?</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
+        <target state="needs-review-translation">Eine asynchrone foreach-Anweisung kann nicht für Variablen vom Typ "{0}" verwendet werden, weil "{0}" keine öffentliche Instanzendefinition für "{1}" enthält. Meinten Sie "foreach" statt "await foreach"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -233,8 +233,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
-        <target state="translated">Eine foreach-Anweisung kann nicht für Variablen vom Typ "{0}" verwendet werden, weil "{0}" keine öffentliche Instanzendefinition für "{1}" enthält. Meinten Sie "await foreach" statt "foreach"?</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
+        <target state="needs-review-translation">Eine foreach-Anweisung kann nicht für Variablen vom Typ "{0}" verwendet werden, weil "{0}" keine öffentliche Instanzendefinition für "{1}" enthält. Meinten Sie "await foreach" statt "foreach"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -392,7 +392,7 @@
         <target state="translated">Entweder beide oder keine der partiellen Methodendeklarationen müssen als "readonly" festgelegt werden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PatternStaticOrInaccessible">
+      <trans-unit id="ERR_PatternInaccessibleOrNotInstance">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
         <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</target>
         <note />
@@ -1889,6 +1889,11 @@
         <target state="translated">Der Parameter darf keinen NULL-Wert aufweisen, wenn er in einer Bedingung beendet wird.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PatternInaccessibleOrNotInstance">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
+        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">Eine mit [DoesNotReturn] gekennzeichnete Methode darf nicht zurückgegeben werden.</target>
@@ -3312,11 +3317,6 @@
       <trans-unit id="WRN_PatternIsAmbiguous_Title">
         <source>Type does not implement the collection pattern; members are ambiguous</source>
         <target state="translated">Der Typ implementiert nicht das Sammlungsmuster. Die Elemente sind nicht eindeutig.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible">
-        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
-        <target state="needs-review-translation">'"{0}" implementiert das Muster "{1}" nicht. "{2}" ist entweder statisch oder nicht öffentlich.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternStaticOrInaccessible_Title">
@@ -5793,8 +5793,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="translated">Eine foreach-Anweisung kann nicht für Variablen vom Typ "{0}" verwendet werden, da "{0}" keine öffentliche Instanzendefinition für "{1}" enthält.</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="needs-review-translation">Eine foreach-Anweisung kann nicht für Variablen vom Typ "{0}" verwendet werden, da "{0}" keine öffentliche Instanzendefinition für "{1}" enthält.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">

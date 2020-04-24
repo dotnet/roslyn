@@ -1858,7 +1858,7 @@ public struct S1
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (6,27): error CS1579: foreach statement cannot operate on variables of type 'S1' because 'S1' does not contain a public instance definition for 'GetEnumerator'
+                // (6,27): error CS1579: foreach statement cannot operate on variables of type 'S1' because 'S1' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach (var x in this) {}
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "this").WithArguments("S1", "GetEnumerator").WithLocation(6, 27));
         }

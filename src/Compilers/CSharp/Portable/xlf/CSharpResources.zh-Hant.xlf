@@ -63,8 +63,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMemberWrongAsync">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
-        <target state="translated">因為 '{0}' 不包含 '{1}' 的公用執行個體定義，所以非同步的 foreach 陳述式無法在型別 '{0}' 的變數上作業。您指的是 'foreach' 而不是 'await foreach' 嗎?</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
+        <target state="needs-review-translation">因為 '{0}' 不包含 '{1}' 的公用執行個體定義，所以非同步的 foreach 陳述式無法在型別 '{0}' 的變數上作業。您指的是 'foreach' 而不是 'await foreach' 嗎?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -233,8 +233,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
-        <target state="translated">因為 '{0}' 不包含 '{1}' 的公用執行個體定義，所以 foreach 陳述式無法在型別 '{0}' 的變數上作業。您指的是 'await foreach' 而不是 'foreach' 嗎?</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
+        <target state="needs-review-translation">因為 '{0}' 不包含 '{1}' 的公用執行個體定義，所以 foreach 陳述式無法在型別 '{0}' 的變數上作業。您指的是 'await foreach' 而不是 'foreach' 嗎?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -392,7 +392,7 @@
         <target state="translated">兩個部份方法宣告必須都為唯讀，或者都不為唯讀</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PatternStaticOrInaccessible">
+      <trans-unit id="ERR_PatternInaccessibleOrNotInstance">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
         <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</target>
         <note />
@@ -1889,6 +1889,11 @@
         <target state="translated">當參數在某些條件下結束時，不能有 Null 值。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PatternInaccessibleOrNotInstance">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
+        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">標記 [DoesNotReturn] 的方法不應傳回。</target>
@@ -3312,11 +3317,6 @@
       <trans-unit id="WRN_PatternIsAmbiguous_Title">
         <source>Type does not implement the collection pattern; members are ambiguous</source>
         <target state="translated">類型未實作集合模式; 成員模稜兩可</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible">
-        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
-        <target state="needs-review-translation">'{0}' 未實作 '{1}' 模式，因為 '{2}' 為靜態或並非公用。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternStaticOrInaccessible_Title">
@@ -5793,8 +5793,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="translated">foreach 陳述式不可用在類型 '{0}' 的變數上，因為 '{0}' 未包含 '{1}' 的公用執行個體定義</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="needs-review-translation">foreach 陳述式不可用在類型 '{0}' 的變數上，因為 '{0}' 未包含 '{1}' 的公用執行個體定義</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">

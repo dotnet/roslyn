@@ -63,8 +63,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMemberWrongAsync">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
-        <target state="translated">'{0}', '{1}' için bir genel örnek tanımı içermediğinden zaman uyumsuz foreach deyimi '{0}' türündeki değişkenlerle çalışmaz. 'await foreach' yerine 'foreach' mi kullanmak istediniz?</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
+        <target state="needs-review-translation">'{0}', '{1}' için bir genel örnek tanımı içermediğinden zaman uyumsuz foreach deyimi '{0}' türündeki değişkenlerle çalışmaz. 'await foreach' yerine 'foreach' mi kullanmak istediniz?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -233,8 +233,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
-        <target state="translated">'{0}', '{1}' için bir genel örnek tanımı içermediğinden foreach deyimi '{0}' türündeki değişkenlerle çalışamaz. 'foreach' yerine 'await foreach' mi kullanmak istediniz?</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
+        <target state="needs-review-translation">'{0}', '{1}' için bir genel örnek tanımı içermediğinden foreach deyimi '{0}' türündeki değişkenlerle çalışamaz. 'foreach' yerine 'await foreach' mi kullanmak istediniz?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -392,7 +392,7 @@
         <target state="translated">İki kısmi yöntem bildiriminin de saltokunur olması ya da hiçbirinin saltokunur olmaması gerekir</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PatternStaticOrInaccessible">
+      <trans-unit id="ERR_PatternInaccessibleOrNotInstance">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
         <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</target>
         <note />
@@ -1889,6 +1889,11 @@
         <target state="translated">Parametre bir koşulda çıkarken null değer alamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PatternInaccessibleOrNotInstance">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
+        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">[DoesNotReturn] olarak işaretlenen bir yöntem, döndürmemelidir.</target>
@@ -3312,11 +3317,6 @@
       <trans-unit id="WRN_PatternIsAmbiguous_Title">
         <source>Type does not implement the collection pattern; members are ambiguous</source>
         <target state="translated">Tür koleksiyon desenini uygulamaz; üyeler belirsiz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible">
-        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
-        <target state="needs-review-translation">'{0}', '{1}' kalıbını uygulamaz. '{2}' statik veya ortak değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternStaticOrInaccessible_Title">
@@ -5793,8 +5793,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="translated">{0}' bir '{1}' ortak örnek tanımı içermediğinden veya erişilemez olduğundan foreach deyimi '{0}' türündeki değişkenlerde çalışamaz</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="needs-review-translation">{0}' bir '{1}' ortak örnek tanımı içermediğinden veya erişilemez olduğundan foreach deyimi '{0}' türündeki değişkenlerde çalışamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
