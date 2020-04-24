@@ -248,7 +248,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             this.UndoManager.CreateInitialState(this.ReplacementText, _triggerView.Selection, new SnapshotSpan(triggerSpan.Snapshot, startingSpan));
-            _openTextBuffers[triggerSpan.Snapshot.TextBuffer].SetReferenceSpans(SpecializedCollections.SingletonEnumerable(startingSpan.ToTextSpan()));
+            _openTextBuffers[triggerSpan.Snapshot.TextBuffer].SetReferenceSpans(
+                SpecializedCollections.SingletonEnumerable((startingSpan.ToTextSpan(), triggerSpan.GetText())));
 
             UpdateReferenceLocationsTask(ThreadingContext.JoinableTaskFactory.RunAsync(
                 () => _renameInfo.FindRenameLocationsAsync(_optionSet, _cancellationTokenSource.Token)));
@@ -444,12 +445,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 if (!documents.Any(d => locationsByDocument.Contains(d.Id)))
                 {
-                    _openTextBuffers[textBuffer].SetReferenceSpans(SpecializedCollections.EmptyEnumerable<TextSpan>());
+                    _openTextBuffers[textBuffer].SetReferenceSpans(SpecializedCollections.EmptyEnumerable<(TextSpan, string)>());
                 }
                 else
                 {
-                    var spans = documents.SelectMany(d => locationsByDocument[d.Id]).Select(l => l.TextSpan).Distinct();
-                    _openTextBuffers[textBuffer].SetReferenceSpans(spans);
+                    IEnumerable<(TextSpan span, string text)> triggerSpansAndTexts =
+                        documents.SelectMany(d => locationsByDocument[d.Id]).Select(
+                        l => (l.TextSpan, l.Document.GetTextSynchronously(CancellationToken.None).ToString(l.TextSpan)));
+                    triggerSpansAndTexts = triggerSpansAndTexts.GroupBy(t => t.span).Select(t => t.First());
+
+                    _openTextBuffers[textBuffer].SetReferenceSpans(triggerSpansAndTexts);
                 }
             }
 
@@ -809,7 +814,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
                 else
                 {
-                    var newText = newDocument.GetTextAsync(waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+                    var newText = newDocument.GetTextSynchronously(waitContext.CancellationToken);
                     finalSolution = finalSolution.WithDocumentText(id, newText);
                 }
 
