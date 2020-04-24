@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using System.Linq;
-using System;
 using System.IO;
 using Microsoft.CodeAnalysis.Utilities;
 

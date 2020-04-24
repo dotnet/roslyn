@@ -66,10 +66,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             foreach (var (documentId, endDocument) in documentIdToDocumentInfoMap)
             {
                 var document = solution.GetDocument(documentId);
-                var documentRenameResult = await Rename.Renamer.RenameDocumentNameAsync(document, endDocument.DocumentName, workspace.Options);
-                var documentFoldersRenameResult = await Rename.Renamer.RenameDocumentFoldersAsync(document, endDocument.DocumentFolders, workspace.Options);
+                var documentRenameResult = await Rename.Renamer.RenameDocumentAsync(document, endDocument.DocumentName, endDocument.DocumentFolders);
 
-                foreach (var action in documentRenameResult.ApplicableActions.Concat(documentFoldersRenameResult.ApplicableActions))
+                foreach (var action in documentRenameResult.ApplicableActions)
                 {
                     foreach (var error in action.GetErrors())
                     {
@@ -81,9 +80,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 solution = await documentRenameResult.UpdateSolutionAsync(solution, CancellationToken.None);
                 var updatedDocument = solution.GetDocument(documentId);
                 Assert.Equal(endDocument.DocumentName, updatedDocument.Name);
-
-                solution = await documentFoldersRenameResult.UpdateSolutionAsync(solution, CancellationToken.None);
-                updatedDocument = solution.GetDocument(documentId);
                 AssertEx.SetEqual(endDocument.DocumentFolders, updatedDocument.Folders);
 
                 AssertEx.EqualOrDiff(endDocument.Text, (await updatedDocument.GetTextAsync()).ToString());
@@ -185,11 +181,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             foreach (var (documentId, endDocument) in documentIdToDocumentInfoMap)
             {
                 var document = solution.GetDocument(documentId);
-                var documentRenameResult = await Rename.Renamer.RenameDocumentNameAsync(document, endDocument.DocumentName, workspace.Options);
-                var documentFoldersRenameResult = await Rename.Renamer.RenameDocumentFoldersAsync(document, endDocument.DocumentFolders, workspace.Options);
-
+                var documentRenameResult = await Rename.Renamer.RenameDocumentAsync(document, endDocument.DocumentName, endDocument.DocumentFolders);
                 Assert.Empty(documentRenameResult.ApplicableActions);
-                Assert.Empty(documentFoldersRenameResult.ApplicableActions);
             }
         }
     }

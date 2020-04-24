@@ -27,20 +27,29 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         /// <summary>
-        /// Similar to calling <see cref="Document.WithName(string)" /> with additional changes to the solution. 
+        /// Call to perform a rename of document or change in document folders. Performs additional code changes related to the document
+        /// being renamed or moved. 
+        ///
         /// Each change is added as a <see cref="RenameDocumentAction"/> in the returned <see cref="RenameDocumentActionSet.ApplicableActions" />.
         /// 
         /// Each action may individually encounter errors that prevent it from behaving correctly. Those are reported in <see cref="RenameDocumentAction.GetErrors(System.Globalization.CultureInfo?)"/>.
         /// 
+        /// <para />
+        /// 
         /// Current supported actions that may be returned: 
         /// <list>
         ///  <item>Rename symbol action that will rename the type to match the document name.</item>
+        ///  <item>Sync namespace action that will sync the namespace(s) of the document to match the document folders. </item>
         /// </list>
         /// 
         /// </summary>
-        public static async Task<RenameDocumentActionSet> RenameDocumentNameAsync(
+        /// <param name="document">The document to be modified</param>
+        /// <param name="newDocumentName">The new name for the document. Pass null or the same name to keep unchanged.</param>
+        /// <param name="newDocumentFolders">The new set of folders for the <see cref="TextDocument.Folders"/> property</param>
+        public static async Task<RenameDocumentActionSet> RenameDocumentAsync(
             Document document,
             string newDocumentName,
+            IReadOnlyList<string> newDocumentFolders,
             OptionSet optionSet = null,
             CancellationToken cancellationToken = default)
         {
@@ -49,18 +58,20 @@ namespace Microsoft.CodeAnalysis.Rename
                 throw new ArgumentNullException(nameof(document));
             }
 
-            if (newDocumentName == null)
-            {
-                throw new ArgumentNullException(nameof(newDocumentName));
-            }
-
             using var _ = ArrayBuilder<RenameDocumentAction>.GetInstance(out var actions);
 
-            if (!newDocumentName.Equals(document.Name))
+            if (newDocumentName != null && !newDocumentName.Equals(document.Name))
             {
                 var renameAction = await RenameSymbolDocumentAction.TryCreateAsync(document, newDocumentName, cancellationToken).ConfigureAwait(false);
 
                 actions.AddIfNotNull(renameAction);
+            }
+
+            if (newDocumentFolders != null && !newDocumentFolders.SequenceEqual(document.Folders))
+            {
+                var action = SyncNamespaceDocumentAction.TryCreate(document, newDocumentFolders, cancellationToken);
+
+                actions.AddIfNotNull(action);
             }
 
             optionSet ??= document.Project.Solution.Options;
@@ -71,55 +82,6 @@ namespace Microsoft.CodeAnalysis.Rename
                 newDocumentName,
                 document.Folders.ToImmutableArray(),
                 optionSet);
-        }
-
-        /// <summary>
-        /// Similar to calling <see cref="Document.WithFolders(IEnumerable{string})" /> with additional changes to the solution. 
-        /// Each change is added as a <see cref="RenameDocumentAction"/> in the returned <see cref="RenameDocumentActionSet.ApplicableActions" />.
-        /// 
-        /// Each action may individually encounter errors that prevent it from behaving correctly. Those are reported in <see cref="RenameDocumentAction.GetErrors(System.Globalization.CultureInfo?)"/>.
-        /// 
-        /// Current supported actions that may be returned: 
-        /// <list>
-        ///  <item>Sync namespace action that will sync the namespace(s) of the document to match the document folders. </item>
-        /// </list>
-        /// 
-        /// </summary>
-        public static Task<RenameDocumentActionSet> RenameDocumentFoldersAsync(
-            Document document,
-            IReadOnlyList<string> newFolders,
-            OptionSet optionSet = null,
-            CancellationToken cancellationToken = default)
-        {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            if (newFolders == null)
-            {
-                throw new ArgumentNullException(nameof(newFolders));
-            }
-
-            using var _ = ArrayBuilder<RenameDocumentAction>.GetInstance(out var actions);
-
-            if (!newFolders.SequenceEqual(document.Folders))
-            {
-                var action = SyncNamespaceDocumentAction.TryCreate(document, newFolders, cancellationToken);
-
-                actions.AddIfNotNull(action);
-            }
-
-            optionSet ??= document.Project.Solution.Options;
-
-            // Analysis is not currently async, but may need to be in the future as we do more work to determine the
-            // correct namespace. Keep the public API async even if it's not required for now
-            return Task.FromResult(new RenameDocumentActionSet(
-                actions.ToImmutable(),
-                document.Id,
-                document.Name,
-                newFolders.ToImmutableArray(),
-                optionSet));
         }
 
         internal static Task<Solution> RenameSymbolAsync(
