@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.EncapsulateField
@@ -65,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
             Return root
         End Function
 
-        Protected Overrides Async Function GetFieldsAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of IFieldSymbol))
+        Protected Overrides Async Function GetFieldsAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of IFieldSymbol))
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
@@ -82,10 +83,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
                 names = fields.SelectMany(Function(f) f.Declarators.SelectMany(Function(d) d.Names.Where(Function(n) n.Span.IntersectsWith(span))))
             End If
 
-            Return names.Select(Function(n) semanticModel.GetDeclaredSymbol(n)) _
-                                                        .OfType(Of IFieldSymbol)() _
-                                                        .WhereNotNull() _
-                                                        .Where(Function(f) f.Name.Length > 0)
+            Return names.Select(Function(n) semanticModel.GetDeclaredSymbol(n)).
+                         OfType(Of IFieldSymbol)().
+                         WhereNotNull().
+                         Where(Function(f) f.Name.Length > 0).
+                         ToImmutableArray()
         End Function
 
         Private Function CanEncapsulate(field As FieldDeclarationSyntax) As Boolean

@@ -10,7 +10,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -26,24 +25,23 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 {
     internal abstract partial class AbstractEncapsulateFieldService : ILanguageService
     {
+        protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+
         public async Task<EncapsulateFieldResult> EncapsulateFieldAsync(Document document, TextSpan span, bool useDefaultBehavior, CancellationToken cancellationToken)
         {
             var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
-            if (fields == null || !fields.Any())
-            {
+            if (fields.IsDefaultOrEmpty)
                 return null;
-            }
 
             return new EncapsulateFieldResult(c => EncapsulateFieldResultAsync(document, span, useDefaultBehavior, c));
         }
 
         public async Task<ImmutableArray<EncapsulateFieldCodeAction>> GetEncapsulateFieldCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var fields = (await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
+            var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
             if (fields.Length == 0)
-            {
                 return ImmutableArray<EncapsulateFieldCodeAction>.Empty;
-            }
 
             if (fields.Length == 1)
             {
@@ -93,14 +91,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         private async Task<Result> SingleEncapsulateFieldResultAsync(Document document, TextSpan span, int index, bool updateReferences, CancellationToken cancellationToken)
         {
-            var fields = (await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
+            var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
             Debug.Assert(fields.Length > index);
 
             var field = fields[index];
             var result = await EncapsulateFieldAsync(field, document, updateReferences, cancellationToken).ConfigureAwait(false);
             if (result == null)
             {
-                return new Result(document.Project.Solution, field);
+                return new Result(document.Project.Solution);
             }
 
             return result;
@@ -108,11 +106,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         private async Task<Result> EncapsulateFieldResultAsync(Document document, TextSpan span, bool updateReferences, CancellationToken cancellationToken)
         {
-            // probably later we want to add field and reason why it failed.
-            var failedFieldSymbols = new List<IFieldSymbol>();
-
             var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
-            Debug.Assert(fields.Any());
+            Debug.Assert(fields.Length > 0);
 
             // For now, build up the multiple field case by encapsulating one at a time.
             Result result = null;
@@ -123,28 +118,19 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
                 // We couldn't resolve this field. skip it
                 if (!(field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol is IFieldSymbol currentField))
-                {
-                    failedFieldSymbols.Add(field);
                     continue;
-                }
 
                 result = await EncapsulateFieldAsync(currentField, document, updateReferences, cancellationToken).ConfigureAwait(false);
                 if (result == null)
-                {
-                    failedFieldSymbols.Add(field);
                     continue;
-                }
 
                 document = result.Solution.GetDocument(document.Id);
             }
 
             if (result == null)
-            {
-                return new Result(document.Project.Solution, fields.ToArray());
-            }
+                return new Result(document.Project.Solution);
 
-            // add failed field symbol info
-            return result.WithFailedFields(failedFieldSymbols);
+            return result;
         }
 
         private async Task<Result> EncapsulateFieldAsync(IFieldSymbol field, Document document, bool updateReferences, CancellationToken cancellationToken)
@@ -426,8 +412,5 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         }
 
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
-
-        protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
-        protected abstract Task<IEnumerable<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
     }
 }

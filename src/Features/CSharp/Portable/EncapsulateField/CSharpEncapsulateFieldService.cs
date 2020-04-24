@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
             return root;
         }
 
-        protected override async Task<IEnumerable<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -139,8 +140,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
             }
 
             return declarators.Select(d => semanticModel.GetDeclaredSymbol(d, cancellationToken) as IFieldSymbol)
-                                .WhereNotNull()
-                                .Where(f => f.Name.Length != 0);
+                              .WhereNotNull()
+                              .Where(f => f.Name.Length != 0)
+                              .ToImmutableArray();
         }
 
         private bool CanEncapsulate(FieldDeclarationSyntax field)

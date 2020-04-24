@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             public Solution Solution { get; }
             public string Name { get; }
             public Glyph Glyph { get; }
-            public ImmutableArray<IFieldSymbol> FailedFields { get; }
 
             public Result(Solution solutionWithProperty, string name, Glyph glyph)
             {
@@ -24,26 +23,9 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 Glyph = glyph;
             }
 
-            public Result(Solution solutionWithProperty, string name, Glyph glyph, List<IFieldSymbol> failedFieldSymbols)
-                : this(solutionWithProperty, name, glyph)
-            {
-                FailedFields = failedFieldSymbols.ToImmutableArrayOrEmpty();
-            }
-
-            public Result(Solution originalSolution, params IFieldSymbol[] fields)
+            public Result(Solution originalSolution)
                 : this(originalSolution, string.Empty, Glyph.Error)
             {
-                FailedFields = fields.ToImmutableArrayOrEmpty();
-            }
-
-            public Result WithFailedFields(List<IFieldSymbol> failedFieldSymbols)
-            {
-                if (failedFieldSymbols.Count == 0)
-                {
-                    return this;
-                }
-
-                return new Result(Solution, Name, Glyph, failedFieldSymbols);
             }
         }
     }
