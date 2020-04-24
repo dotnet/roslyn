@@ -41,20 +41,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("false : error", false, ReportDiagnostic.Error)]
         public void TestParseEditorConfigCodeStyleOption(string args, bool isEnabled, ReportDiagnostic severity)
         {
-            var notificationOption = NotificationOption.Silent;
             switch (severity)
             {
                 case ReportDiagnostic.Hidden:
-                    notificationOption = NotificationOption.Silent;
                     break;
                 case ReportDiagnostic.Info:
-                    notificationOption = NotificationOption.Suggestion;
                     break;
                 case ReportDiagnostic.Warn:
-                    notificationOption = NotificationOption.Warning;
                     break;
                 case ReportDiagnostic.Error:
-                    notificationOption = NotificationOption.Error;
                     break;
             }
 

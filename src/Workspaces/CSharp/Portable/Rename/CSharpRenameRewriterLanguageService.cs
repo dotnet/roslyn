@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 if (identifierToken != default && !_annotatedIdentifierTokens.Contains(identifierToken))
                 {
                     var symbolInfo = _semanticModel.GetSymbolInfo(invocationExpression, _cancellationToken);
-                    IEnumerable<ISymbol> symbols = null;
+                    IEnumerable<ISymbol> symbols;
                     if (symbolInfo.Symbol == null)
                     {
                         return null;

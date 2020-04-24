@@ -253,7 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
         {
             // Invocations definitely have side effects.  So we assume this
             // is invalid initially;
-            expressionType = ExpressionType.Invalid;
             ExpressionType leftFlags = ExpressionType.Invalid, rightFlags = ExpressionType.Invalid;
 
             AddSubExpressionTerms(invocationExpression.Expression, terms, ref leftFlags);

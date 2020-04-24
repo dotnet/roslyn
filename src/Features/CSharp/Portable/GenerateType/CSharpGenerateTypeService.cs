@@ -871,7 +871,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             CancellationToken cancellationToken,
             out IPropertySymbol property)
         {
-            property = null;
             var propertyType = GetPropertyType(propertyName, semanticModel, typeInference, cancellationToken);
             if (propertyType == null || propertyType is IErrorTypeSymbol)
             {
