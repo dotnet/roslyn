@@ -91,8 +91,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                     string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Encapsulate_Field),
                      "vs.csharp.refactoring.preview",
                     EditorFeaturesResources.Encapsulate_Field_colon,
-                    result.GetNameAsync(cancellationToken).WaitAndGetResult(cancellationToken),
-                    result.GetGlyphAsync(cancellationToken).WaitAndGetResult(cancellationToken),
+                    result.Name,
+                    result.Glyph,
                     finalSolution,
                     document.Project.Solution);
             }

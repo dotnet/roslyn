@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -33,15 +34,18 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             if (fields.IsDefaultOrEmpty)
                 return null;
 
+            var firstField = fields[0];
             return new EncapsulateFieldResult(
+                firstField.ToDisplayString(),
+                firstField.GetGlyph(),
                 c => EncapsulateFieldsAsync(document, fields, useDefaultBehavior, c));
         }
 
-        public async Task<ImmutableArray<EncapsulateFieldCodeAction>> GetEncapsulateFieldCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeAction>> GetEncapsulateFieldCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
             if (fields.Length == 0)
-                return ImmutableArray<EncapsulateFieldCodeAction>.Empty;
+                return ImmutableArray<CodeAction>.Empty;
 
             if (fields.Length == 1)
             {
@@ -50,7 +54,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             }
 
             // there are multiple fields.
-            using var _ = ArrayBuilder<EncapsulateFieldCodeAction>.GetInstance(out var builder);
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var builder);
 
             if (span.IsEmpty)
             {
@@ -63,25 +67,30 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             return builder.ToImmutable();
         }
 
-        private ImmutableArray<EncapsulateFieldCodeAction> EncapsulateAllFields(Document document, ImmutableArray<IFieldSymbol> fields)
+        private ImmutableArray<CodeAction> EncapsulateAllFields(Document document, ImmutableArray<IFieldSymbol> fields)
         {
-            return ImmutableArray.Create(
-                new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => EncapsulateFieldsAsync(document, fields, updateReferences: true, c)), FeaturesResources.Encapsulate_fields_and_use_property),
-                new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => EncapsulateFieldsAsync(document, fields, updateReferences: false, c)), FeaturesResources.Encapsulate_fields_but_still_use_field));
+            return ImmutableArray.Create<CodeAction>(
+                new MyCodeAction(
+                    FeaturesResources.Encapsulate_fields_and_use_property,
+                    c => EncapsulateFieldsAsync(document, fields, updateReferences: true, c)),
+                new MyCodeAction(
+                    FeaturesResources.Encapsulate_fields_but_still_use_field,
+                    c => EncapsulateFieldsAsync(document, fields, updateReferences: false, c)));
         }
 
-        private ImmutableArray<EncapsulateFieldCodeAction> EncapsulateOneField(Document document, IFieldSymbol field)
+        private ImmutableArray<CodeAction> EncapsulateOneField(Document document, IFieldSymbol field)
         {
-            var action1Text = string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, field.Name);
-            var action2Text = string.Format(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field, field.Name);
-
             var fields = ImmutableArray.Create(field);
-            return ImmutableArray.Create(
-                new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => EncapsulateFieldsAsync(document, fields, updateReferences: true, c)), action1Text),
-                new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => EncapsulateFieldsAsync(document, fields, updateReferences: false, c)), action2Text));
+            return ImmutableArray.Create<CodeAction>(
+                new MyCodeAction(
+                    string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, field.Name),
+                    c => EncapsulateFieldsAsync(document, fields, updateReferences: true, c)),
+                new MyCodeAction(
+                    string.Format(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field, field.Name),
+                    c => EncapsulateFieldsAsync(document, fields, updateReferences: false, c)));
         }
 
-        private async Task<Result> EncapsulateFieldsAsync(Document document, ImmutableArray<IFieldSymbol> fields, bool updateReferences, CancellationToken cancellationToken)
+        private async Task<Solution> EncapsulateFieldsAsync(Document document, ImmutableArray<IFieldSymbol> fields, bool updateReferences, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(fields.Length == 0);
 
@@ -104,8 +113,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 currentSolution = nextSolution;
             }
 
-            var firstField = fields[0];
-            return new Result(currentSolution, firstField.ToDisplayString(), firstField.GetGlyph());
+            return currentSolution;
         }
 
         private async Task<Solution> EncapsulateFieldAsync(
@@ -387,5 +395,13 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         }
 
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+
+        private class MyCodeAction : CodeAction.SolutionChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(title, createChangedSolution)
+            {
+            }
+        }
     }
 }
