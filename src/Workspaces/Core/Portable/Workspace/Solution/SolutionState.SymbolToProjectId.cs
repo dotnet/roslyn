@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
 
                     // Have to lock as there's no atomic AddOrUpdate in netstandard2.0 and we could throw if two
                     // threads tried to add the same item.
-#if NETSTANDARD
+#if !NETCOREAPP
                     lock (unrootedSymbolToProjectId)
                     {
                         unrootedSymbolToProjectId.Remove(symbol);
