@@ -316,6 +316,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal void AddNullableTransforms(ArrayBuilder<byte> transforms)
+        {
+            ReturnTypeWithAnnotations.AddNullableTransforms(transforms);
+            foreach (var param in Parameters)
+            {
+                param.TypeWithAnnotations.AddNullableTransforms(transforms);
+            }
+        }
+
+        internal FunctionPointerMethodSymbol ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position)
+        {
+            bool madeChanges = ReturnTypeWithAnnotations.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out var newReturnType);
+            var newParamTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+            if (!Parameters.IsEmpty)
+            {
+                var paramTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(Parameters.Length);
+                bool madeParamChanges = false;
+                foreach (var param in Parameters)
+                {
+                    madeParamChanges |= param.TypeWithAnnotations.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out var newParamType);
+                    paramTypesBuilder.Add(newParamType);
+                }
+
+                if (madeParamChanges)
+                {
+                    newParamTypes = paramTypesBuilder.ToImmutableAndFree();
+                    madeChanges = true;
+                }
+                else
+                {
+                    paramTypesBuilder.Free();
+                    newParamTypes = ParameterTypesWithAnnotations;
+                }
+            }
+
+            if (madeChanges)
+            {
+                return SubstituteParameterSymbols(newReturnType, newParamTypes);
+            }
+            else
+            {
+                return this;
+            }
+        }
+
         public override bool Equals(Symbol other, TypeCompareKind compareKind)
         {
             if (!(other is FunctionPointerMethodSymbol method))

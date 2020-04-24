@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: symbolValidator, verify: Verification.Skipped);
         }
 
-        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, IEnumerable<MetadataReference>? references = null)
+        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, IEnumerable<MetadataReference>? references = null, CSharpCompilationOptions? options = null)
         {
-            return CreateCompilation(source, references: references, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
         }
 
         private CSharpCompilation CreateCompilationWithFunctionPointersAndIl(string source, string ilStub, IEnumerable<MetadataReference>? references = null)
@@ -5071,6 +5071,66 @@ unsafe class C
   IL_0021:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void NullableAnnotationsInMetadata()
+        {
+            var source = @"
+public unsafe class C
+{
+    public delegate*<string, object, C> F1;
+    public delegate*<string?, object, C> F2;
+    public delegate*<string, object?, C> F3;
+    public delegate*<string, object, C?> F4;
+    public delegate*<string?, object?, C?> F5;
+    public delegate*<delegate*<string, int*>, delegate*<string?>, delegate*<void*, string>> F6;
+}";
+
+            var comp = CreateCompilationWithFunctionPointers(source, options: WithNonNullTypesTrue(TestOptions.UnsafeReleaseDll));
+            comp.VerifyDiagnostics();
+
+            verifySymbolNullabilities(comp.GetTypeByMetadataName("C")!);
+
+            CompileAndVerify(comp, symbolValidator: symbolValidator);
+
+            static void symbolValidator(ModuleSymbol module)
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                Assert.Equal("System.Runtime.CompilerServices.NullableAttribute({0, 1, 1, 1})", getAttribute("F1"));
+                Assert.Equal("System.Runtime.CompilerServices.NullableAttribute({0, 1, 2, 1})", getAttribute("F2"));
+                Assert.Equal("System.Runtime.CompilerServices.NullableAttribute({0, 1, 1, 2})", getAttribute("F3"));
+                Assert.Equal("System.Runtime.CompilerServices.NullableAttribute({0, 2, 1, 1})", getAttribute("F4"));
+                Assert.Equal("System.Runtime.CompilerServices.NullableAttribute({0, 2, 2, 2})", getAttribute("F5"));
+                Assert.Equal("System.Runtime.CompilerServices.NullableAttribute({0, 0, 1, 0, 0, 0, 1, 0, 2})", getAttribute("F6"));
+
+                verifySymbolNullabilities(c);
+
+                string getAttribute(string fieldName) => c.GetField(fieldName).GetAttributes().Single().ToString()!;
+            }
+
+            static void verifySymbolNullabilities(NamedTypeSymbol c)
+            {
+                assertExpected("System.String!", "System.Object!", "C!", "F1");
+                assertExpected("System.String?", "System.Object!", "C!", "F2");
+                assertExpected("System.String!", "System.Object?", "C!", "F3");
+                assertExpected("System.String!", "System.Object!", "C?", "F4");
+                assertExpected("System.String?", "System.Object?", "C?", "F5");
+                assertExpected("System.String?", "System.Object?", "C?", "F5");
+                assertExpected("delegate*<System.String! ,System.Int32*>", "delegate*<System.String?>", "delegate*<System.Void* ,System.String!>", "F6");
+
+                void assertExpected(string param1Type, string param2Type, string returnType, string fieldName)
+                {
+                    var field = (FunctionPointerTypeSymbol)c.GetField(fieldName).Type;
+
+                    var paramTypes = field.Signature.ParameterTypesWithAnnotations;
+                    Assert.Equal(2, paramTypes.Length);
+                    Assert.Equal(param1Type, paramTypes[0].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal(param2Type, paramTypes[1].ToTestDisplayString(includeNonNullable: true));
+
+                    Assert.Equal(returnType, field.Signature.ReturnTypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
+                }
+            }
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
