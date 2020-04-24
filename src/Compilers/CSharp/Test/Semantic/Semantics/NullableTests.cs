@@ -1904,7 +1904,7 @@ Diagnostic(ErrorCode.ERR_BadBinaryOps, "b1 || b2").WithArguments("||", "bool?", 
         [Fact]
         public void ShortCircuitLiftedUserDefinedOperators()
         {
-            // This test illustrates an bug in the native compiler which Roslyn fixes.
+            // This test illustrates a bug in the native compiler which Roslyn fixes.
             // The native compiler disallows a *lifted* & operator from being used as an &&
             // operator, but allows a *nullable* & operator to be used as an && operator.
             // There is no good reason for this discrepancy; either both should be legal

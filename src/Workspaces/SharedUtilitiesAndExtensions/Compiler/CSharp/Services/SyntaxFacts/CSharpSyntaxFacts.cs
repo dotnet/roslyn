@@ -2121,15 +2121,15 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
             var binaryPattern = (BinaryPatternSyntax)node;
-            left = binaryPattern.LeftPattern;
-            operatorToken = binaryPattern.PatternOperator;
-            right = binaryPattern.RightPattern;
+            left = binaryPattern.Left;
+            operatorToken = binaryPattern.OperatorToken;
+            right = binaryPattern.Right;
         }
 
         public void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern)
         {
             var unaryPattern = (UnaryPatternSyntax)node;
-            operatorToken = unaryPattern.PatternOperator;
+            operatorToken = unaryPattern.OperatorToken;
             pattern = unaryPattern.Pattern;
         }
 

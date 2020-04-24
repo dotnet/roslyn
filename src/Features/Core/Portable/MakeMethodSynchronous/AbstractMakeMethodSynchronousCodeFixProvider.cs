@@ -125,8 +125,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
                 if (semanticModel.GetDeclaredSymbol(methodDeclaration) is IMethodSymbol methodSymbol)
                 {
                     var references = await SymbolFinder.FindRenamableReferencesAsync(
-                        new SymbolAndProjectId(methodSymbol, document.Project.Id),
-                        document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                        methodSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
 
                     var referencedSymbol = references.FirstOrDefault(r => Equals(r.Definition, methodSymbol));
                     if (referencedSymbol != null)

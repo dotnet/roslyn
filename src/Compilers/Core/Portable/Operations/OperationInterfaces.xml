@@ -1745,7 +1745,7 @@
   <Node Name="IIncrementOrDecrementOperation" Base="IOperation">
     <OperationKind>
       <Entry Name="Increment" Value="0x42" ExtraDescription="This is used as an increment operator"/>
-      <Entry Name="Decrement" Value="0x44" ExtraDescription="This is used as an decrement operator"/>
+      <Entry Name="Decrement" Value="0x44" ExtraDescription="This is used as a decrement operator"/>
     </OperationKind>
     <Comments>
       <summary>

@@ -1335,8 +1335,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isDisjunction)
             {
                 permitDesignations = false; // prevent designators under 'or'
-                var left = BindPattern(node.LeftPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
-                var right = BindPattern(node.RightPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
+                var left = BindPattern(node.Left, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
+                var right = BindPattern(node.Right, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
 
                 // Compute the common type. This algorithm is quadratic, but disjunctive patterns are unlikely to be huge
                 var narrowedTypeCandidates = ArrayBuilder<TypeSymbol>.GetInstance(2);
@@ -1417,9 +1417,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var left = BindPattern(node.LeftPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
+                var left = BindPattern(node.Left, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
                 var leftOutputValEscape = GetValEscape(left.ConvertedType, inputValEscape);
-                var right = BindPattern(node.RightPattern, left.ConvertedType, leftOutputValEscape, permitDesignations, hasErrors, diagnostics);
+                var right = BindPattern(node.Right, left.ConvertedType, leftOutputValEscape, permitDesignations, hasErrors, diagnostics);
                 return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType: inputType, convertedType: right.ConvertedType, hasErrors);
             }
         }

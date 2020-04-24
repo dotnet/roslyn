@@ -835,7 +835,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SymbolInfoFactory.Create(symbols, resultKind)
         End Function
 
-        ' Get the symbol info of an withevents sourcing property in a handles clause.
+        ' Get the symbol info of a withevents sourcing property in a handles clause.
         Private Function GetHandlesPropertySymbolInfo(handlesClause As HandlesClauseItemSyntax, options As SymbolInfoOptions) As SymbolInfo
             Dim builder As ArrayBuilder(Of Symbol) = ArrayBuilder(Of Symbol).GetInstance()
             Dim resultKind As LookupResultKind = GetHandledEventOrContainerSymbolsAndResultKind(eventSymbolBuilder:=Nothing,
@@ -1238,7 +1238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Given an FieldInitializerSyntax, get the corresponding symbol of anonymous type creation.
+        ''' Given a FieldInitializerSyntax, get the corresponding symbol of anonymous type creation.
         ''' </summary>
         ''' <param name="fieldInitializerSyntax">The anonymous object creation field initializer syntax.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
@@ -1283,7 +1283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Given an CollectionRangeVariableSyntax, get the corresponding symbol.
+        ''' Given a CollectionRangeVariableSyntax, get the corresponding symbol.
         ''' </summary>
         ''' <param name="rangeVariableSyntax">The range variable syntax that declares a variable.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
