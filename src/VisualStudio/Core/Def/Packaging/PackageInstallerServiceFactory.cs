@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
@@ -55,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly Lazy<IVsPackageUninstaller> _packageUninstaller;
         private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
 
-        private ImmutableArray<PackageSource> _packageSources;
+        private AsyncLazy<ImmutableArray<PackageSource>> _packageSources;
         private IVsPackage _nugetPackageManager;
 
         private CancellationTokenSource _tokenSource = new CancellationTokenSource();
@@ -91,44 +90,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageInstaller = packageInstaller;
             _packageUninstaller = packageUninstaller;
             _packageSourceProvider = packageSourceProvider;
+            ResetPackageSources();
         }
 
-        public ImmutableArray<PackageSource> GetPackageSources()
+        private void ResetPackageSources()
+            => Interlocked.Exchange(ref _packageSources, new AsyncLazy<ImmutableArray<PackageSource>>(
+                c => ComputePackageSourcesAsync(c), cacheResult: true));
+
+        private async Task<ImmutableArray<PackageSource>> ComputePackageSourcesAsync(CancellationToken cancellationToken)
         {
-            // Only read from _packageSources once, since OnSourceProviderSourcesChanged could reset it to default at
-            // any time while this method is running.
-            var packageSources = _packageSources;
-            if (packageSources != null)
-            {
-                return packageSources;
-            }
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
             try
             {
-                packageSources = _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
+                return _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
                     .SelectAsArray(r => new PackageSource(r.Key, r.Value));
             }
             catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
             {
                 // These exceptions can happen when the nuget.config file is broken.
-                packageSources = ImmutableArray<PackageSource>.Empty;
+                return ImmutableArray<PackageSource>.Empty;
             }
             catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
             {
                 // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
                 // https://github.com/dotnet/roslyn/issues/40857
-                packageSources = ImmutableArray<PackageSource>.Empty;
+                return ImmutableArray<PackageSource>.Empty;
             }
-
-            var previousPackageSources = ImmutableInterlocked.InterlockedCompareExchange(ref _packageSources, packageSources, default);
-            if (previousPackageSources != null)
-            {
-                // Another thread already initialized _packageSources
-                packageSources = previousPackageSources;
-            }
-
-            return packageSources;
         }
+
+        public Task<ImmutableArray<PackageSource>> GetPackageSourcesAsync(CancellationToken cancellationToken)
+            => _packageSources.GetValueAsync(cancellationToken);
 
         public event EventHandler PackageSourcesChanged;
 
@@ -186,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)
         {
-            _packageSources = default;
+            ResetPackageSources();
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
         }
 
