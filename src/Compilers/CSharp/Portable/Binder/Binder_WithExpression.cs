@@ -29,18 +29,83 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             bool hasErrors = false;
 
+            if (receiverType is null || receiverType.IsVoidType())
+            {
+                diagnostics.Add(ErrorCode.ERR_InvalidWithReceiverType, syntax.Receiver.Location);
+                receiverType = CreateErrorType();
+            }
+
+            MethodSymbol? cloneMethod = null;
+            if (!receiverType.IsErrorType())
+            {
+                // PROTOTYPE: The receiver type must have a instance method called 'Clone' with no parameters
+                LookupMembersInType(
+                    lookupResult,
+                    receiverType,
+                    "Clone",
+                    arity: 0,
+                    ConsList<TypeSymbol>.Empty,
+                    LookupOptions.MustBeInstance | LookupOptions.MustBeInvocableIfMember,
+                    this,
+                    diagnose: false,
+                    ref useSiteDiagnostics);
+
+                if (lookupResult.IsMultiViable)
+                {
+                    foreach (var symbol in lookupResult.Symbols)
+                    {
+                        if (symbol is MethodSymbol { ParameterCount: 0 } m)
+                        {
+                            cloneMethod = m;
+                            break;
+                        }
+                    }
+                }
+
+                lookupResult.Clear();
+                // PROTOTYPE: discarding use-site diagnostics
+                useSiteDiagnostics = null;
+
+                if (cloneMethod is null)
+                {
+                    hasErrors = true;
+                    diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Receiver.Location, receiverType);
+                }
+                else
+                {
+                    // Check return type
+                    if (!receiverType.IsEqualToOrDerivedFrom(
+                            cloneMethod.ReturnType,
+                            TypeCompareKind.ConsiderEverything,
+                            ref useSiteDiagnostics))
+                    {
+                        hasErrors = true;
+                        diagnostics.Add(
+                            ErrorCode.ERR_ContainingTypeMustDeriveFromWithReturnType,
+                            syntax.Receiver.Location,
+                            receiverType,
+                            cloneMethod.ReturnType);
+                    }
+
+                    // PROTOTYPE: discarding use-site diagnostics
+                    useSiteDiagnostics = null;
+                }
+            }
+
+            var cloneReturnType = cloneMethod?.ReturnType;
+
             var args = ArrayBuilder<(Symbol?, BoundExpression)>.GetInstance();
             // Bind with expression arguments
             foreach (var initializer in syntax.Initializers)
             {
                 var propName = initializer.NameEquals?.Name.Identifier.Text;
                 Symbol? member = null;
-                if (!(propName is null) && !(receiverType is null))
+                if (!(propName is null) && !(cloneReturnType is null))
                 {
                     var location = initializer.NameEquals!.Name.Location;
                     this.LookupMembersInType(
                         lookupResult,
-                        receiverType,
+                        cloneReturnType,
                         propName,
                         arity: 0,
                         basesBeingResolved: null,
@@ -56,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SymbolKind.Property:
                                 member = sym;
                                 // PROTOTYPE: this should check for init-only, but that isn't a separate feature yet
+                                // It also will not work in metadata.
                                 if (!(sym is SynthesizedRecordPropertySymbol))
                                 {
                                     goto default;
@@ -78,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics,
                             ErrorCode.ERR_NoSuchMemberOrExtension,
                             location,
-                            receiverType,
+                            cloneReturnType,
                             propName);
                     }
                 }
@@ -95,77 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 args.Add((member, expr));
             }
 
-            if (receiverType is null || receiverType.IsVoidType())
-            {
-                diagnostics.Add(ErrorCode.ERR_InvalidWithReceiverType, syntax.Receiver.Location);
-                receiverType = CreateErrorType();
-            }
-
-            if (receiverType.IsErrorType())
-            {
-                lookupResult.Free();
-                return new BoundWithExpression(
-                    syntax,
-                    receiver,
-                    cloneMethod: null,
-                    args.ToImmutableAndFree(),
-                    receiverType,
-                    hasErrors: true);
-            }
-
-            // PROTOTYPE: The receiver type must have a instance method called 'Clone' with no parameters
-            LookupMembersWithoutInheritance(
-                lookupResult,
-                receiverType,
-                "Clone",
-                arity: 0,
-                LookupOptions.MustBeInstance | LookupOptions.MustBeInvocableIfMember,
-                this,
-                this.ContainingType,
-                diagnose: false,
-                ref useSiteDiagnostics,
-                ConsList<TypeSymbol>.Empty);
-
-            MethodSymbol? cloneMethod = null;
-            if (lookupResult.IsMultiViable)
-            {
-                foreach (var symbol in lookupResult.Symbols)
-                {
-                    if (symbol is MethodSymbol { ParameterCount: 0 } m)
-                    {
-                        cloneMethod = m;
-                        break;
-                    }
-                }
-            }
-
-            lookupResult.Clear();
-            useSiteDiagnostics = null;
-
-            if (cloneMethod is null)
-            {
-                hasErrors = true;
-                diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Receiver.Location, receiverType);
-            }
-            else
-            {
-                // Check return type
-                if (!receiverType.IsEqualToOrDerivedFrom(
-                        cloneMethod.ReturnType,
-                        TypeCompareKind.ConsiderEverything,
-                        ref useSiteDiagnostics))
-                {
-                    hasErrors = true;
-                    diagnostics.Add(
-                        ErrorCode.ERR_ContainingTypeMustDeriveFromWithReturnType,
-                        syntax.Receiver.Location,
-                        receiverType,
-                        cloneMethod.ReturnType);
-                }
-
-                useSiteDiagnostics = null;
-            }
-
             lookupResult.Free();
 
             return new BoundWithExpression(
@@ -173,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver,
                 cloneMethod,
                 args.ToImmutableAndFree(),
-                cloneMethod?.ReturnType ?? receiverType,
+                cloneReturnType ?? receiverType,
                 hasErrors: hasErrors);
         }
     }

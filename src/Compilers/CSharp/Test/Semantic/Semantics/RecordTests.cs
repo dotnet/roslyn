@@ -541,9 +541,9 @@ data class C(int X) : B
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "Clone".
+                // (12,13): error CS0266: Cannot implicitly convert type 'B' to 'C'. An explicit conversion exists (are you missing a cast?)
                 //         c = c with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c with { }").WithArguments("B", "C").WithLocation(12, 13)
             );
         }
 
@@ -571,7 +571,10 @@ data class C(int X) : B
             comp.VerifyDiagnostics(
                 // (13,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
                 //         b = b with { X = 0 };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(13, 22)
+                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(13, 22),
+                // (14,27): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
+                //         var b2 = c with { X = 0 };
+                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(14, 27)
             );
         }
 
@@ -847,7 +850,11 @@ data class C(int X) : B
     }
 }";
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (12,13): error CS8803: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
+                //         b = b with { };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(12, 13)
+            );
         }
 
         [Fact]
@@ -1349,12 +1356,12 @@ data class C(int X) : B
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,13): error CS8803: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
+                // (12,13): error CS0266: Cannot implicitly convert type 'B' to 'C'. An explicit conversion exists (are you missing a cast?)
                 //         c = c with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(12, 13),
-                // (13,13): error CS8803: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c with { }").WithArguments("B", "C").WithLocation(12, 13),
+                // (13,22): error CS1061: 'B' does not contain a definition for 'X' and no accessible extension method 'X' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(13, 13)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "X").WithArguments("B", "X").WithLocation(13, 22)
             );
         }
 
@@ -1381,6 +1388,44 @@ class C
                 //         c = c with { X = "a" };
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""a""").WithArguments("string", "int").WithLocation(9, 26)
             );
+        }
+
+        [Fact]
+        public void WithExprCloneReturnDifferent()
+        {
+            var src = @"
+data class B(int X) { }
+class C : B
+{
+    public C(int x) : base(x) { }
+    public B Clone() => new B(0);
+    public static void Main()
+    {
+        var c = new C(0);
+        var b = c with { X = 0 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExprCloneReturnDifferent2()
+        {
+            var src = @"
+data class B(int X) { }
+class C : B
+{
+    public C() : base(0) {}
+    public B Clone() => new B(0);
+    public static void Main()
+    {
+        var c = new C();
+        var b = c with { X = 0 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
         }
     }
 }

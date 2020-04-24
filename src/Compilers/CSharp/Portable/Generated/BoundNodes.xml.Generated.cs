@@ -10183,7 +10183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitWithExpression(BoundWithExpression node)
         {
             BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
-            TypeSymbol type = this.VisitType(node.Type);
+            TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(receiver, node.CloneMethod, node.Arguments, type);
         }
     }

@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var arg in withExpr.Arguments)
             {
                 RoslynDebug.AssertNotNull(arg.Member);
+                // PROTOTYPE: only works for source symbols
                 var prop = (SynthesizedRecordPropertySymbol)arg.Member;
                 stores.Add(F.AssignmentExpression(
                     (BoundExpression)F.Field((BoundExpression)receiverLocal, (FieldSymbol)prop.BackingField),
