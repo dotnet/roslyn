@@ -2831,7 +2831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ilBuilder.EmitToken(
                         moduleBeingBuilt.Translate(method, methodBodyDiagnosticBag, needDeclaration: true),
-                        method.SyntaxNode,
+                        CSharpSyntaxTree.Dummy.GetRoot(),
                         methodBodyDiagnosticBag);
                 }
 
