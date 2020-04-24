@@ -10,6 +10,19 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     /// <summary>Provides the base class from which the classes that represent name syntax nodes are derived. This is an abstract class.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SimpleNameSyntax"/></description></item>
+    /// </list>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="IdentifierNameSyntax"/></description></item>
+    /// <item><description><see cref="QualifiedNameSyntax"/></description></item>
+    /// <item><description><see cref="GenericNameSyntax"/></description></item>
+    /// <item><description><see cref="AliasQualifiedNameSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class NameSyntax : TypeSyntax
     {
         internal NameSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -19,6 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Provides the base class from which the classes that represent simple name syntax nodes are derived. This is an abstract class.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="IdentifierNameSyntax"/></description></item>
+    /// <item><description><see cref="GenericNameSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class SimpleNameSyntax : NameSyntax
     {
         internal SimpleNameSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -273,6 +293,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Provides the base class from which the classes that represent type syntax nodes are derived. This is an abstract class.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="NameSyntax"/></description></item>
+    /// <item><description><see cref="SimpleNameSyntax"/></description></item>
+    /// </list>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="IdentifierNameSyntax"/></description></item>
+    /// <item><description><see cref="QualifiedNameSyntax"/></description></item>
+    /// <item><description><see cref="GenericNameSyntax"/></description></item>
+    /// <item><description><see cref="AliasQualifiedNameSyntax"/></description></item>
+    /// <item><description><see cref="PredefinedTypeSyntax"/></description></item>
+    /// <item><description><see cref="ArrayTypeSyntax"/></description></item>
+    /// <item><description><see cref="PointerTypeSyntax"/></description></item>
+    /// <item><description><see cref="NullableTypeSyntax"/></description></item>
+    /// <item><description><see cref="TupleTypeSyntax"/></description></item>
+    /// <item><description><see cref="OmittedTypeArgumentSyntax"/></description></item>
+    /// <item><description><see cref="RefTypeSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class TypeSyntax : ExpressionSyntax
     {
         internal TypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -673,6 +714,78 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Provides the base class from which the classes that represent expression syntax nodes are derived. This is an abstract class.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="NameSyntax"/></description></item>
+    /// <item><description><see cref="SimpleNameSyntax"/></description></item>
+    /// <item><description><see cref="TypeSyntax"/></description></item>
+    /// <item><description><see cref="InstanceExpressionSyntax"/></description></item>
+    /// <item><description><see cref="AnonymousFunctionExpressionSyntax"/></description></item>
+    /// <item><description><see cref="LambdaExpressionSyntax"/></description></item>
+    /// <item><description><see cref="BaseObjectCreationExpressionSyntax"/></description></item>
+    /// </list>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="IdentifierNameSyntax"/></description></item>
+    /// <item><description><see cref="QualifiedNameSyntax"/></description></item>
+    /// <item><description><see cref="GenericNameSyntax"/></description></item>
+    /// <item><description><see cref="AliasQualifiedNameSyntax"/></description></item>
+    /// <item><description><see cref="PredefinedTypeSyntax"/></description></item>
+    /// <item><description><see cref="ArrayTypeSyntax"/></description></item>
+    /// <item><description><see cref="PointerTypeSyntax"/></description></item>
+    /// <item><description><see cref="NullableTypeSyntax"/></description></item>
+    /// <item><description><see cref="TupleTypeSyntax"/></description></item>
+    /// <item><description><see cref="OmittedTypeArgumentSyntax"/></description></item>
+    /// <item><description><see cref="RefTypeSyntax"/></description></item>
+    /// <item><description><see cref="ParenthesizedExpressionSyntax"/></description></item>
+    /// <item><description><see cref="TupleExpressionSyntax"/></description></item>
+    /// <item><description><see cref="PrefixUnaryExpressionSyntax"/></description></item>
+    /// <item><description><see cref="AwaitExpressionSyntax"/></description></item>
+    /// <item><description><see cref="PostfixUnaryExpressionSyntax"/></description></item>
+    /// <item><description><see cref="MemberAccessExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ConditionalAccessExpressionSyntax"/></description></item>
+    /// <item><description><see cref="MemberBindingExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ElementBindingExpressionSyntax"/></description></item>
+    /// <item><description><see cref="RangeExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ImplicitElementAccessSyntax"/></description></item>
+    /// <item><description><see cref="BinaryExpressionSyntax"/></description></item>
+    /// <item><description><see cref="AssignmentExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ConditionalExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ThisExpressionSyntax"/></description></item>
+    /// <item><description><see cref="BaseExpressionSyntax"/></description></item>
+    /// <item><description><see cref="LiteralExpressionSyntax"/></description></item>
+    /// <item><description><see cref="MakeRefExpressionSyntax"/></description></item>
+    /// <item><description><see cref="RefTypeExpressionSyntax"/></description></item>
+    /// <item><description><see cref="RefValueExpressionSyntax"/></description></item>
+    /// <item><description><see cref="CheckedExpressionSyntax"/></description></item>
+    /// <item><description><see cref="DefaultExpressionSyntax"/></description></item>
+    /// <item><description><see cref="TypeOfExpressionSyntax"/></description></item>
+    /// <item><description><see cref="SizeOfExpressionSyntax"/></description></item>
+    /// <item><description><see cref="InvocationExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ElementAccessExpressionSyntax"/></description></item>
+    /// <item><description><see cref="DeclarationExpressionSyntax"/></description></item>
+    /// <item><description><see cref="CastExpressionSyntax"/></description></item>
+    /// <item><description><see cref="AnonymousMethodExpressionSyntax"/></description></item>
+    /// <item><description><see cref="SimpleLambdaExpressionSyntax"/></description></item>
+    /// <item><description><see cref="RefExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ParenthesizedLambdaExpressionSyntax"/></description></item>
+    /// <item><description><see cref="InitializerExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ImplicitObjectCreationExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ObjectCreationExpressionSyntax"/></description></item>
+    /// <item><description><see cref="AnonymousObjectCreationExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ArrayCreationExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ImplicitArrayCreationExpressionSyntax"/></description></item>
+    /// <item><description><see cref="StackAllocArrayCreationExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ImplicitStackAllocArrayCreationExpressionSyntax"/></description></item>
+    /// <item><description><see cref="QueryExpressionSyntax"/></description></item>
+    /// <item><description><see cref="OmittedArraySizeExpressionSyntax"/></description></item>
+    /// <item><description><see cref="InterpolatedStringExpressionSyntax"/></description></item>
+    /// <item><description><see cref="IsPatternExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ThrowExpressionSyntax"/></description></item>
+    /// <item><description><see cref="SwitchExpressionSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class ExpressionSyntax : CSharpSyntaxNode
     {
         internal ExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -1354,6 +1467,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Provides the base class from which the classes that represent instance expression syntax nodes are derived. This is an abstract class.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="ThisExpressionSyntax"/></description></item>
+    /// <item><description><see cref="BaseExpressionSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class InstanceExpressionSyntax : ExpressionSyntax
     {
         internal InstanceExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -1920,6 +2040,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Provides the base class from which the classes that represent argument list syntax nodes are derived. This is an abstract class.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="ArgumentListSyntax"/></description></item>
+    /// <item><description><see cref="BracketedArgumentListSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class BaseArgumentListSyntax : CSharpSyntaxNode
     {
         internal BaseArgumentListSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -2258,6 +2385,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Provides the base class from which the classes that represent anonymous function expressions are derived.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="LambdaExpressionSyntax"/></description></item>
+    /// </list>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="AnonymousMethodExpressionSyntax"/></description></item>
+    /// <item><description><see cref="SimpleLambdaExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ParenthesizedLambdaExpressionSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class AnonymousFunctionExpressionSyntax : ExpressionSyntax
     {
         internal AnonymousFunctionExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -2387,6 +2526,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Provides the base class from which the classes that represent lambda expressions are derived.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SimpleLambdaExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ParenthesizedLambdaExpressionSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class LambdaExpressionSyntax : AnonymousFunctionExpressionSyntax
     {
         internal LambdaExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -2693,6 +2839,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public InitializerExpressionSyntax AddExpressions(params ExpressionSyntax[] items) => WithExpressions(this.Expressions.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="ImplicitObjectCreationExpressionSyntax"/></description></item>
+    /// <item><description><see cref="ObjectCreationExpressionSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class BaseObjectCreationExpressionSyntax : ExpressionSyntax
     {
         internal BaseObjectCreationExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -3185,6 +3338,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ImplicitStackAllocArrayCreationExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items) => WithInitializer(this.Initializer.WithExpressions(this.Initializer.Expressions.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="FromClauseSyntax"/></description></item>
+    /// <item><description><see cref="LetClauseSyntax"/></description></item>
+    /// <item><description><see cref="JoinClauseSyntax"/></description></item>
+    /// <item><description><see cref="WhereClauseSyntax"/></description></item>
+    /// <item><description><see cref="OrderByClauseSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class QueryClauseSyntax : CSharpSyntaxNode
     {
         internal QueryClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -3193,6 +3356,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SelectClauseSyntax"/></description></item>
+    /// <item><description><see cref="GroupClauseSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class SelectOrGroupClauseSyntax : CSharpSyntaxNode
     {
         internal SelectOrGroupClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -3990,6 +4160,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public WhenClauseSyntax WithCondition(ExpressionSyntax condition) => Update(this.WhenKeyword, condition);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="DiscardPatternSyntax"/></description></item>
+    /// <item><description><see cref="DeclarationPatternSyntax"/></description></item>
+    /// <item><description><see cref="VarPatternSyntax"/></description></item>
+    /// <item><description><see cref="RecursivePatternSyntax"/></description></item>
+    /// <item><description><see cref="ConstantPatternSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class PatternSyntax : CSharpSyntaxNode
     {
         internal PatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -4365,6 +4545,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ConstantPatternSyntax WithExpression(ExpressionSyntax expression) => Update(expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="InterpolatedStringTextSyntax"/></description></item>
+    /// <item><description><see cref="InterpolationSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class InterpolatedStringContentSyntax : CSharpSyntaxNode
     {
         internal InterpolatedStringContentSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -4604,6 +4791,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents the base class for all statements syntax classes.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="CommonForEachStatementSyntax"/></description></item>
+    /// </list>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="BlockSyntax"/></description></item>
+    /// <item><description><see cref="LocalFunctionStatementSyntax"/></description></item>
+    /// <item><description><see cref="LocalDeclarationStatementSyntax"/></description></item>
+    /// <item><description><see cref="ExpressionStatementSyntax"/></description></item>
+    /// <item><description><see cref="EmptyStatementSyntax"/></description></item>
+    /// <item><description><see cref="LabeledStatementSyntax"/></description></item>
+    /// <item><description><see cref="GotoStatementSyntax"/></description></item>
+    /// <item><description><see cref="BreakStatementSyntax"/></description></item>
+    /// <item><description><see cref="ContinueStatementSyntax"/></description></item>
+    /// <item><description><see cref="ReturnStatementSyntax"/></description></item>
+    /// <item><description><see cref="ThrowStatementSyntax"/></description></item>
+    /// <item><description><see cref="YieldStatementSyntax"/></description></item>
+    /// <item><description><see cref="WhileStatementSyntax"/></description></item>
+    /// <item><description><see cref="DoStatementSyntax"/></description></item>
+    /// <item><description><see cref="ForStatementSyntax"/></description></item>
+    /// <item><description><see cref="ForEachStatementSyntax"/></description></item>
+    /// <item><description><see cref="ForEachVariableStatementSyntax"/></description></item>
+    /// <item><description><see cref="UsingStatementSyntax"/></description></item>
+    /// <item><description><see cref="FixedStatementSyntax"/></description></item>
+    /// <item><description><see cref="CheckedStatementSyntax"/></description></item>
+    /// <item><description><see cref="UnsafeStatementSyntax"/></description></item>
+    /// <item><description><see cref="LockStatementSyntax"/></description></item>
+    /// <item><description><see cref="IfStatementSyntax"/></description></item>
+    /// <item><description><see cref="SwitchStatementSyntax"/></description></item>
+    /// <item><description><see cref="TryStatementSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class StatementSyntax : CSharpSyntaxNode
     {
         internal StatementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -5047,6 +5268,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public EqualsValueClauseSyntax WithValue(ExpressionSyntax value) => Update(this.EqualsToken, value);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SingleVariableDesignationSyntax"/></description></item>
+    /// <item><description><see cref="DiscardDesignationSyntax"/></description></item>
+    /// <item><description><see cref="ParenthesizedVariableDesignationSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class VariableDesignationSyntax : CSharpSyntaxNode
     {
         internal VariableDesignationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -5923,6 +6152,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ForStatementSyntax AddIncrementors(params ExpressionSyntax[] items) => WithIncrementors(this.Incrementors.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="ForEachStatementSyntax"/></description></item>
+    /// <item><description><see cref="ForEachVariableStatementSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class CommonForEachStatementSyntax : StatementSyntax
     {
         internal CommonForEachStatementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -6804,6 +7040,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents a switch label within a switch statement.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="CasePatternSwitchLabelSyntax"/></description></item>
+    /// <item><description><see cref="CaseSwitchLabelSyntax"/></description></item>
+    /// <item><description><see cref="DefaultSwitchLabelSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class SwitchLabelSyntax : CSharpSyntaxNode
     {
         internal SwitchLabelSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -7542,6 +7786,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Member declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="BaseTypeDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="TypeDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="BaseFieldDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="BaseMethodDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="BasePropertyDeclarationSyntax"/></description></item>
+    /// </list>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="GlobalStatementSyntax"/></description></item>
+    /// <item><description><see cref="NamespaceDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="ClassDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="StructDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="InterfaceDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="EnumDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="DelegateDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="EnumMemberDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="FieldDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="EventFieldDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="MethodDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="OperatorDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="ConversionOperatorDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="ConstructorDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="DestructorDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="PropertyDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="EventDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="IndexerDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="IncompleteMemberSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class MemberDeclarationSyntax : CSharpSyntaxNode
     {
         internal MemberDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -8087,6 +8363,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Base class for type declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="TypeDeclarationSyntax"/></description></item>
+    /// </list>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="ClassDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="StructDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="InterfaceDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="EnumDeclarationSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class BaseTypeDeclarationSyntax : MemberDeclarationSyntax
     {
         internal BaseTypeDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -8131,6 +8420,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Base class for type declaration syntax (class, struct, interface).</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="ClassDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="StructDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="InterfaceDeclarationSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class TypeDeclarationSyntax : BaseTypeDeclarationSyntax
     {
         internal TypeDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -8917,6 +9214,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Provides the base class from which the classes that represent base type syntax nodes are derived. This is an abstract class.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SimpleBaseTypeSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class BaseTypeSyntax : CSharpSyntaxNode
     {
         internal BaseTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -9032,6 +9335,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Base type for type parameter constraint syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="ConstructorConstraintSyntax"/></description></item>
+    /// <item><description><see cref="ClassOrStructConstraintSyntax"/></description></item>
+    /// <item><description><see cref="TypeConstraintSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class TypeParameterConstraintSyntax : CSharpSyntaxNode
     {
         internal TypeParameterConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -9160,6 +9471,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TypeConstraintSyntax WithType(TypeSyntax type) => Update(type);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="FieldDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="EventFieldDeclarationSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class BaseFieldDeclarationSyntax : MemberDeclarationSyntax
     {
         internal BaseFieldDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -9372,6 +9690,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Base type for method declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="MethodDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="OperatorDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="ConversionOperatorDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="ConstructorDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="DestructorDeclarationSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class BaseMethodDeclarationSyntax : MemberDeclarationSyntax
     {
         internal BaseMethodDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -10083,6 +10411,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Base type for property declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="PropertyDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="EventDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="IndexerDeclarationSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class BasePropertyDeclarationSyntax : MemberDeclarationSyntax
     {
         internal BasePropertyDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -10622,6 +10958,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Base type for parameter list syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="ParameterListSyntax"/></description></item>
+    /// <item><description><see cref="BracketedParameterListSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class BaseParameterListSyntax : CSharpSyntaxNode
     {
         internal BaseParameterListSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -10967,6 +11310,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// A symbol referenced by a cref attribute (e.g. in a &lt;see&gt; or &lt;seealso&gt; documentation comment tag).
     /// For example, the M in &lt;see cref="M" /&gt;.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="MemberCrefSyntax"/></description></item>
+    /// </list>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="TypeCrefSyntax"/></description></item>
+    /// <item><description><see cref="QualifiedCrefSyntax"/></description></item>
+    /// <item><description><see cref="NameMemberCrefSyntax"/></description></item>
+    /// <item><description><see cref="IndexerMemberCrefSyntax"/></description></item>
+    /// <item><description><see cref="OperatorMemberCrefSyntax"/></description></item>
+    /// <item><description><see cref="ConversionOperatorMemberCrefSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class CrefSyntax : CSharpSyntaxNode
     {
         internal CrefSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -11081,6 +11439,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// will always be bound as type, so it's safer to use QualifiedCrefSyntax or MemberCrefSyntax if the symbol
     /// might be a non-type member.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="NameMemberCrefSyntax"/></description></item>
+    /// <item><description><see cref="IndexerMemberCrefSyntax"/></description></item>
+    /// <item><description><see cref="OperatorMemberCrefSyntax"/></description></item>
+    /// <item><description><see cref="ConversionOperatorMemberCrefSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class MemberCrefSyntax : CrefSyntax
     {
         internal MemberCrefSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -11316,6 +11683,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// A list of cref parameters with surrounding punctuation.
     /// Unlike regular parameters, cref parameters do not have names.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="CrefParameterListSyntax"/></description></item>
+    /// <item><description><see cref="CrefBracketedParameterListSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class BaseCrefParameterListSyntax : CSharpSyntaxNode
     {
         internal BaseCrefParameterListSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -11490,6 +11864,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public CrefParameterSyntax WithType(TypeSyntax type) => Update(this.RefKindKeyword, type);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="XmlElementSyntax"/></description></item>
+    /// <item><description><see cref="XmlEmptyElementSyntax"/></description></item>
+    /// <item><description><see cref="XmlTextSyntax"/></description></item>
+    /// <item><description><see cref="XmlCDataSectionSyntax"/></description></item>
+    /// <item><description><see cref="XmlProcessingInstructionSyntax"/></description></item>
+    /// <item><description><see cref="XmlCommentSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class XmlNodeSyntax : CSharpSyntaxNode
     {
         internal XmlNodeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -11779,6 +12164,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlPrefixSyntax WithColonToken(SyntaxToken colonToken) => Update(this.Prefix, colonToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="XmlTextAttributeSyntax"/></description></item>
+    /// <item><description><see cref="XmlCrefAttributeSyntax"/></description></item>
+    /// <item><description><see cref="XmlNameAttributeSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class XmlAttributeSyntax : CSharpSyntaxNode
     {
         internal XmlAttributeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12168,6 +12561,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlCommentSyntax AddTextTokens(params SyntaxToken[] items) => WithTextTokens(this.TextTokens.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="BranchingDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="ConditionalDirectiveTriviaSyntax"/></description></item>
+    /// </list>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="IfDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="ElifDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="ElseDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="EndIfDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="RegionDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="EndRegionDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="ErrorDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="WarningDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="BadDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="DefineDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="UndefDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="LineDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="PragmaWarningDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="PragmaChecksumDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="ReferenceDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="LoadDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="ShebangDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="NullableDirectiveTriviaSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class DirectiveTriviaSyntax : StructuredTriviaSyntax
     {
         internal DirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12186,6 +12607,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public abstract bool IsActive { get; }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="ConditionalDirectiveTriviaSyntax"/></description></item>
+    /// </list>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="IfDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="ElifDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="ElseDirectiveTriviaSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class BranchingDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal BranchingDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12199,6 +12632,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new BranchingDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken) => (BranchingDirectiveTriviaSyntax)WithEndOfDirectiveTokenCore(endOfDirectiveToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="IfDirectiveTriviaSyntax"/></description></item>
+    /// <item><description><see cref="ElifDirectiveTriviaSyntax"/></description></item>
+    /// </list>
+    /// </remarks>
     public abstract partial class ConditionalDirectiveTriviaSyntax : BranchingDirectiveTriviaSyntax
     {
         internal ConditionalDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)

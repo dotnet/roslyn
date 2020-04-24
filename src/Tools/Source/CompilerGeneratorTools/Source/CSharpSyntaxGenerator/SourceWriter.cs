@@ -806,6 +806,32 @@ namespace CSharpSyntaxGenerator
             if (node is AbstractNode)
             {
                 var nd = (AbstractNode)node;
+                WriteComment($"<remarks>");
+
+                var descendantAbstractNodes = GetDescendantAbstractNodes(nd).Where(d => d != nd).ToList();
+                if (descendantAbstractNodes.Any())
+                {
+                    WriteComment($"<para>This node is associated with the following abstract syntax nodes:</para>");
+                    WriteComment($"<list type=\"bullet\">");
+
+                    foreach (var descendant in descendantAbstractNodes)
+                    {
+                        WriteComment($"<item><description><see cref=\"{descendant.Name}\"/></description></item>");
+                    }
+
+                    WriteComment($"</list>");
+                }
+
+                WriteComment($"<para>This node is associated with the following syntax nodes:</para>");
+                WriteComment($"<list type=\"bullet\">");
+
+                foreach (var descendant in GetDescendantNodes(nd))
+                {
+                    WriteComment($"<item><description><see cref=\"{descendant.Name}\"/></description></item>");
+                }
+
+                WriteComment($"</list>");
+                WriteComment($"</remarks>");
                 WriteLine($"public abstract partial class {node.Name} : {node.Base}");
                 OpenBlock();
                 WriteLine($"internal {node.Name}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)");
@@ -1165,6 +1191,16 @@ namespace CSharpSyntaxGenerator
                 WriteLine($"public virtual {(genericResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
             CloseBlock();
+        }
+
+        private IEnumerable<AbstractNode> GetDescendantAbstractNodes(TreeType node)
+        {
+            return Tree.Types.OfType<AbstractNode>().Where(n => IsDerivedType(node.Name, n.Name));
+        }
+
+        private IEnumerable<Node> GetDescendantNodes(TreeType node)
+        {
+            return Tree.Types.OfType<Node>().Where(n => IsDerivedType(node.Name, n.Name));
         }
 
         private void WriteRedUpdateMethod(Node node)
