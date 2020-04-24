@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return false;
             }
 
-            if (node.IsKind(SyntaxKind.Block, out BlockSyntax block) && block.Statements.Count >= 1)
+            if (node.IsBlock(out var block) && block.Statements.Count >= 1)
             {
                 // In the case of a block, see if the first statement is on the same line 
                 // as the open curly.  If so then we'll want to consider the end of the

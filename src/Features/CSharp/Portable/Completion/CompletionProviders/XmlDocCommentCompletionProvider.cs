@@ -203,9 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // <elem attr$$
                 (elementName, attributes) = GetElementNameAndAttributes(token.Parent.Parent);
             }
-            else if (token.Parent.IsKind(SyntaxKind.XmlCrefAttribute, out XmlAttributeSyntax attributeSyntax) ||
-                     token.Parent.IsKind(SyntaxKind.XmlNameAttribute, out attributeSyntax) ||
-                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out attributeSyntax))
+            else if (token.Parent.IsXmlAttribute(out var attributeSyntax))
             {
                 // In the following, 'attr1' may be a regular text attribute, or one of the special 'cref' or 'name' attributes
                 // <elem attr1="" $$
@@ -266,13 +264,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 attributeSyntax = xmlName;
             }
             else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) &&
-                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out XmlTextAttributeSyntax xmlText))
+                     token.Parent.IsXmlTextAttribute(out var xmlText))
             {
                 // Handle the other general text attributes: foo="bar$$
                 attributeSyntax = xmlText;
             }
-            else if (token.Parent.IsKind(SyntaxKind.XmlNameAttribute, out attributeSyntax) ||
-                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out attributeSyntax))
+            else if (token.Parent.IsXmlAttribute(out attributeSyntax) &&
+                     attributeSyntax.IsKind(SyntaxKind.XmlTextAttribute, SyntaxKind.XmlNameAttribute))
             {
                 // When there's no attribute value yet, the parent attribute is returned:
                 //     name="$$

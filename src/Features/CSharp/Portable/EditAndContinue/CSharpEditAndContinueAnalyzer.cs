@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </returns>
         internal override SyntaxNode? TryGetDeclarationBody(SyntaxNode node, bool isMember)
         {
-            if (node.IsKind(SyntaxKind.VariableDeclarator, out VariableDeclaratorSyntax? variableDeclarator))
+            if (node.IsVariableDeclarator(out var variableDeclarator))
             {
                 return variableDeclarator.Initializer?.Value;
             }

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             {
                 var newNode = base.VisitParenthesizedExpression(node);
                 if (node != newNode &&
-                    newNode.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesizedExpression))
+                    newNode.IsParenthesizedExpression(out var parenthesizedExpression))
                 {
                     var innerExpression = parenthesizedExpression.OpenParenToken.GetNextToken().Parent;
                     if (innerExpression.HasAnnotation(_replacementAnnotation))
