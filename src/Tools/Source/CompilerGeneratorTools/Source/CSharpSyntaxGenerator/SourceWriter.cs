@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
-using static System.String;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace CSharpSyntaxGenerator
 {
@@ -67,10 +67,12 @@ namespace CSharpSyntaxGenerator
             WriteFileHeader();
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
             OpenBlock();
+            WriteLine("using System.Diagnostics.CodeAnalysis;");
             WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedVisitors();
             this.WriteRedRewriter();
             this.WriteRedFactories();
+            this.WriteRedTypeCheckExtensions();
             CloseBlock();
         }
 
@@ -806,6 +808,38 @@ namespace CSharpSyntaxGenerator
             if (node is AbstractNode)
             {
                 var nd = (AbstractNode)node;
+                WriteComment($"<remarks>");
+
+                WriteComment($"This node has the following derived hierarchy:");
+                WriteComment($"<list type=\"bullet\">");
+
+                void writeTypeHierarchy(TreeType node)
+                {
+                    if (node is AbstractNode abstractNode)
+                    {
+                        WriteComment($"<item><description><see cref=\"{node.Name}\"/>");
+                        WriteComment($"<list type=\"bullet\">");
+                        foreach (var derived in GetImmediatelyDerivedNodes(abstractNode))
+                        {
+                            writeTypeHierarchy(derived);
+                        }
+
+                        WriteComment($"</list>");
+                        WriteComment($"</description></item>");
+                    }
+                    else
+                    {
+                        WriteComment($"<item><description><see cref=\"{node.Name}\"/></description></item>");
+                    }
+                }
+
+                foreach (var derived in GetImmediatelyDerivedNodes(nd))
+                {
+                    writeTypeHierarchy(derived);
+                }
+
+                WriteComment($"</list>");
+                WriteComment($"</remarks>");
                 WriteLine($"public abstract partial class {node.Name} : {node.Base}");
                 OpenBlock();
                 WriteLine($"internal {node.Name}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)");
@@ -911,6 +945,17 @@ namespace CSharpSyntaxGenerator
             else if (node is Node)
             {
                 var nd = (Node)node;
+                WriteComment($"<remarks>");
+                WriteComment($"<para>This node is associated with the following syntax kinds:</para>");
+                WriteComment($"<list type=\"bullet\">");
+
+                foreach (var kind in nd.Kinds)
+                {
+                    WriteComment($"<item><description><see cref=\"SyntaxKind.{kind.Name}\"/></description></item>");
+                }
+
+                WriteComment($"</list>");
+                WriteComment($"</remarks>");
                 WriteLine($"public sealed partial class {node.Name} : {node.Base}");
                 OpenBlock();
 
@@ -1165,6 +1210,89 @@ namespace CSharpSyntaxGenerator
                 WriteLine($"public virtual {(genericResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
             CloseBlock();
+        }
+
+        private void WriteRedTypeCheckExtensions()
+        {
+            WriteLine();
+            WriteLine("public static partial class CSharpSyntaxNodeExtensions");
+            OpenBlock();
+
+            bool first = true;
+            foreach (var node in Tree.Types)
+            {
+                if (node is PredefinedNode)
+                    continue;
+
+                if (first)
+                    first = false;
+                else
+                    WriteLine();
+
+                string paramName = CamelCase(StripPost(node.Name, "Syntax"));
+                WriteComment($@"<summary>Checks to see if a <see cref=""SyntaxNode""/> is a <see cref=""{node.Name}""/>.</summary>");
+                WriteLine($"public static bool Is{StripPost(node.Name, "Syntax")}([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out {node.Name}? {paramName})");
+                OpenBlock();
+
+                if (node is Node)
+                {
+                    WriteLine($"{paramName} = node as {node.Name};");
+                    WriteLine($"return {paramName} is object;");
+                }
+                else
+                {
+                    WriteLine($"switch ((SyntaxKind)(node?.RawKind ?? 0))");
+                    OpenBlock();
+
+                    var hasKind = false;
+                    foreach (var kind in getKinds(this, node))
+                    {
+                        hasKind = true;
+                        WriteLine($"case SyntaxKind.{kind.Name}:");
+                    }
+
+                    if (hasKind)
+                    {
+                        Indent();
+                        WriteLine($"{paramName} = ({node.Name})node!;");
+                        WriteLine($"return true;");
+                        Unindent();
+                    }
+
+                    WriteLine("default:");
+                    Indent();
+                    WriteLine($"{paramName} = null;");
+                    WriteLine("return false;");
+                    Unindent();
+                    CloseBlock();
+                }
+
+                CloseBlock();
+            }
+
+            CloseBlock();
+
+            static IEnumerable<Kind> getKinds(SourceWriter self, TreeType treeType)
+            {
+                var kinds = treeType switch
+                {
+                    AbstractNode node => getDescendantNodes(self, node).SelectMany(node => node.Kinds),
+                    Node node => getDescendantNodes(self, node).SelectMany(node => node.Kinds),
+                    _ => Enumerable.Empty<Kind>(),
+                };
+
+                return kinds.Distinct().OrderBy(kind => (int)(SyntaxKind)Enum.Parse(typeof(SyntaxKind), kind.Name));
+            }
+
+            static IEnumerable<Node> getDescendantNodes(SourceWriter self, TreeType node)
+            {
+                return self.Tree.Types.OfType<Node>().Where(n => self.IsDerivedType(node.Name, n.Name));
+            }
+        }
+
+        private IEnumerable<TreeType> GetImmediatelyDerivedNodes(TreeType node)
+        {
+            return Tree.Types.Where(n => ParentMap[n.Name] == node.Name);
         }
 
         private void WriteRedUpdateMethod(Node node)
