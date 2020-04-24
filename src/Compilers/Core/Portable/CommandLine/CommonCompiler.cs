@@ -925,8 +925,15 @@ namespace Microsoft.CodeAnalysis
                         additionalFileAnalyzerOptions);
                 }
 
-                Diagnostics.AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
+                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
                     additionalTextFiles, analyzerConfigProvider);
+
+                // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
+                //  1. Always filter out 'Hidden' analyzer diagnostics in build.
+                //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
+                var severityFilter = SeverityFilter.Hidden;
+                if (Arguments.ErrorLogPath == null)
+                    severityFilter |= SeverityFilter.Info;
 
                 analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
                     compilation,
@@ -935,6 +942,7 @@ namespace Microsoft.CodeAnalysis
                     new AnalyzerManager(analyzers),
                     analyzerExceptionDiagnostics.Add,
                     Arguments.ReportAnalyzer,
+                    severityFilter,
                     out compilation,
                     analyzerCts.Token);
                 reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
