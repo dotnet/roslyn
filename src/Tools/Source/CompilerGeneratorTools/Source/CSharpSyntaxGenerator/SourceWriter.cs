@@ -808,6 +808,32 @@ namespace CSharpSyntaxGenerator
             if (node is AbstractNode)
             {
                 var nd = (AbstractNode)node;
+                WriteComment($"<remarks>");
+
+                var descendantAbstractNodes = GetDescendantAbstractNodes(nd).Where(d => d != nd).ToList();
+                if (descendantAbstractNodes.Any())
+                {
+                    WriteComment($"<para>This node is associated with the following abstract syntax nodes:</para>");
+                    WriteComment($"<list type=\"bullet\">");
+
+                    foreach (var descendant in descendantAbstractNodes)
+                    {
+                        WriteComment($"<item><description><see cref=\"{descendant.Name}\"/></description></item>");
+                    }
+
+                    WriteComment($"</list>");
+                }
+
+                WriteComment($"<para>This node is associated with the following syntax nodes:</para>");
+                WriteComment($"<list type=\"bullet\">");
+
+                foreach (var descendant in GetDescendantNodes(nd))
+                {
+                    WriteComment($"<item><description><see cref=\"{descendant.Name}\"/></description></item>");
+                }
+
+                WriteComment($"</list>");
+                WriteComment($"</remarks>");
                 WriteLine($"public abstract partial class {node.Name} : {node.Base}");
                 OpenBlock();
                 WriteLine($"internal {node.Name}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)");
@@ -1244,18 +1270,23 @@ namespace CSharpSyntaxGenerator
             {
                 var kinds = treeType switch
                 {
-                    AbstractNode node => getDescendantNodes(self, node).SelectMany(node => node.Kinds),
-                    Node node => getDescendantNodes(self, node).SelectMany(node => node.Kinds),
+                    AbstractNode node => self.GetDescendantNodes(node).SelectMany(node => node.Kinds),
+                    Node node => self.GetDescendantNodes(node).SelectMany(node => node.Kinds),
                     _ => Enumerable.Empty<Kind>(),
                 };
 
                 return kinds.Distinct().OrderBy(kind => (int)(SyntaxKind)Enum.Parse(typeof(SyntaxKind), kind.Name));
             }
+        }
 
-            static IEnumerable<Node> getDescendantNodes(SourceWriter self, TreeType node)
-            {
-                return self.Tree.Types.OfType<Node>().Where(n => self.IsDerivedType(node.Name, n.Name));
-            }
+        private IEnumerable<AbstractNode> GetDescendantAbstractNodes(TreeType node)
+        {
+            return Tree.Types.OfType<AbstractNode>().Where(n => IsDerivedType(node.Name, n.Name));
+        }
+
+        private IEnumerable<Node> GetDescendantNodes(TreeType node)
+        {
+            return Tree.Types.OfType<Node>().Where(n => IsDerivedType(node.Name, n.Name));
         }
 
         private void WriteRedUpdateMethod(Node node)
