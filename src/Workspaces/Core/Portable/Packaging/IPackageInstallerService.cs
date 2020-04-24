@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Packaging
 {
-    internal interface IPackageInstallerService : IWorkspaceService
+    internal interface IPackageInstallerService : IWorkspaceService, IDisposable
     {
         bool IsEnabled(ProjectId projectId);
 

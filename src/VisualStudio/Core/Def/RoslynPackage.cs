@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
@@ -273,6 +274,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             if (_workspace != null)
             {
                 _workspace.Services.GetRequiredService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
+                _workspace.Services.GetService<IPackageInstallerService>()?.Dispose();
             }
         }
 

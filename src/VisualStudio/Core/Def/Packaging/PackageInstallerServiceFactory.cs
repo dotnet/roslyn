@@ -12,11 +12,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.Editor;
@@ -44,7 +46,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     [ExportWorkspaceService(typeof(IPackageInstallerService)), Shared]
     internal partial class PackageInstallerService : AbstractDelayStartedService, IPackageInstallerService, IVsSearchProviderCallback
     {
-        private readonly object _gate = new object();
+        /// <summary>
+        /// How much time we will give work to run on the UI thread.
+        /// </summary>
+        private const int DefaultTimeSliceInMS = ForegroundNotificationService.DefaultTimeSliceInMS;
+
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly SVsServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
@@ -57,16 +63,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private AsyncLazy<ImmutableArray<PackageSource>> _packageSources;
         private IVsPackage _nugetPackageManager;
 
-        private CancellationTokenSource _tokenSource = new CancellationTokenSource();
-
         // We keep track of what types of changes we've seen so we can then determine what to
         // refresh on the UI thread.  If we hear about project changes, we only refresh that
         // project.  If we hear about a solution level change, we'll refresh all projects.
-        private bool _solutionChanged;
-        private readonly HashSet<ProjectId> _changedProjects = new HashSet<ProjectId>();
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private readonly AsyncBatchingWorkQueue<(bool changedSolution, ProjectId changedProject)> _workQueue;
 
         private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion =
             new ConcurrentDictionary<ProjectId, ProjectState>();
+
+        public event EventHandler PackageSourcesChanged;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -79,9 +85,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2> packageInstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller> packageUninstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider> packageSourceProvider)
-            : base(threadingContext, workspace, SymbolSearchOptions.Enabled,
-                              SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
-                              SymbolSearchOptions.SuggestForTypesInNuGetPackages)
+            : base(threadingContext,
+                   workspace,
+                   SymbolSearchOptions.Enabled,
+                   SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
+                   SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;
@@ -91,7 +99,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageUninstaller = packageUninstaller;
             _packageSourceProvider = packageSourceProvider;
             ResetPackageSources();
+
+            // Create a work queue to allow us to batch up flurries of notifications to be processed at some time in the
+            // future.  To prevent saturating the UI thread, we process no more than once every 250ms.
+            //
+            // Our work notifications are a simple pair that says if we should process the entire solution or, if not,
+            // which project we need to process.  Because it's just simple data, and the order doesn't matter, we can
+            // pass in an appropriate IEqualityComparer to dedupe notifications as they come in.
+            _workQueue = new AsyncBatchingWorkQueue<(bool changedSolution, ProjectId changedProject)>(
+                TimeSpan.FromMilliseconds(250),
+                ProcessBatchedChangesAsync,
+                EqualityComparer<(bool, ProjectId)>.Default,
+                asyncListener: null,
+                _cancellationTokenSource.Token);
         }
+
+        void IDisposable.Dispose()
+            => _cancellationTokenSource.Cancel();
 
         private void ResetPackageSources()
             => Interlocked.Exchange(ref _packageSources, new AsyncLazy<ImmutableArray<PackageSource>>(
@@ -121,8 +145,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         public Task<ImmutableArray<PackageSource>> GetPackageSourcesAsync(CancellationToken cancellationToken)
             => _packageSources.GetValueAsync(cancellationToken);
-
-        public event EventHandler PackageSourcesChanged;
 
         private bool IsEnabled
         {
@@ -173,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             OnSourceProviderSourcesChanged(this, EventArgs.Empty);
-            OnWorkspaceChanged(localSolutionChanged: true, localChangedProject: null);
+            OnWorkspaceChanged(changedSolution: true, changedProjectId: null);
         }
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)
@@ -203,8 +225,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var dteProject = _workspace.TryGetDTEProject(projectId);
                 if (dteProject != null)
                 {
-                    var description = string.Format(ServicesVSResources.Install_0, packageName);
-
                     var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
                         workspace, documentId, cancellationToken);
 
@@ -340,7 +360,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             ThisCanBeCalledOnAnyThread();
 
             var solutionChanged = false;
-            ProjectId chnagedProject = null;
+            ProjectId changedProjectId = null;
             switch (e.Kind)
             {
                 default:
@@ -351,7 +371,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 case WorkspaceChangeKind.ProjectChanged:
                 case WorkspaceChangeKind.ProjectReloaded:
                 case WorkspaceChangeKind.ProjectRemoved:
-                    chnagedProject = e.ProjectId;
+                    changedProjectId = e.ProjectId;
                     break;
 
                 case WorkspaceChangeKind.SolutionAdded:
@@ -363,108 +383,76 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     break;
             }
 
-            this.OnWorkspaceChanged(solutionChanged, chnagedProject);
+            this.OnWorkspaceChanged(solutionChanged, changedProjectId);
         }
 
-        private void OnWorkspaceChanged(bool localSolutionChanged, ProjectId localChangedProject)
+        private void OnWorkspaceChanged(bool changedSolution, ProjectId changedProjectId)
+            => _workQueue.AddWork((changedSolution, changedProjectId));
+
+        private async Task ProcessBatchedChangesAsync(
+            ImmutableArray<(bool changedSolution, ProjectId changedProjectId)> work,
+            CancellationToken cancellationToken)
         {
-            lock (_gate)
-            {
-                // Augment the data that the foreground thread will process.
-                _solutionChanged |= localSolutionChanged;
-                if (localChangedProject != null)
-                {
-                    _changedProjects.Add(localChangedProject);
-                }
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                // Now cancel any inflight work that is processing the data.
-                _tokenSource.Cancel();
-                _tokenSource = new CancellationTokenSource();
+            // Keep track of how much time we're spending on the UI thread.  We want to relinquish it if we're taking
+            // too long to process all the notifications.
+            var startTimeOnUIThread = Environment.TickCount;
 
-                // And enqueue a new job to process things.  Wait one second before starting.
-                // That way if we get a flurry of events we'll end up processing them after
-                // they've all come in.
-                var cancellationToken = _tokenSource.Token;
-                Task.Delay(TimeSpan.FromSeconds(1), cancellationToken)
-                    .ContinueWith(
-                        async _ =>
-                        {
-                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-                            cancellationToken.ThrowIfCancellationRequested();
-
-                            ProcessBatchedChangesOnForeground(cancellationToken);
-                        },
-                        cancellationToken,
-                        TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
-                        TaskScheduler.Default).Unwrap();
-            }
-        }
-
-        private void ProcessBatchedChangesOnForeground(CancellationToken cancellationToken)
-        {
             this.AssertIsForeground();
 
-            // If we've been asked to stop, then there's no point proceeding.
+            // If we've been asked to shutdown, then there's no point proceeding.
             if (cancellationToken.IsCancellationRequested)
-            {
                 return;
-            }
 
             // If we've been disconnected, then there's no point proceeding.
             if (_workspace == null || !IsEnabled)
-            {
                 return;
-            }
 
-            // Get a project to process.
+            using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectsToProcess);
+
             var solution = _workspace.CurrentSolution;
-            var projectId = DequeueNextProject(solution);
-            if (projectId == null)
+            AddProjectsToProcess(solution, projectsToProcess, work);
+
+            // Now, keep processing projects as long as we haven't exceeded too much time on the UI thread. We'll always
+            // proces at least one item, so we're sure to make forward progress.
+            using var enumerator = projectsToProcess.GetEnumerator();
+            while (enumerator.MoveNext())
             {
-                // No project to process, nothing to do.
-                return;
+                ProcessProjectChange(solution, projectId: enumerator.Current);
+
+                // If too much time has passed, or if there's existing user input on the UI thread then stop what
+                // we're doing and enqueue all these projects for the next round.
+                var elapsedTime = Environment.TickCount - startTimeOnUIThread;
+                if (elapsedTime > DefaultTimeSliceInMS || IsInputPending())
+                    break;
             }
 
-            // Process this single project.
-            ProcessProjectChange(solution, projectId);
-
-            // After processing this single project, yield so the foreground thread
-            // can do more work.  Then go and loop again so we can process the 
-            // rest of the projects.
-            Task.Factory.SafeStartNewFromAsync(
-                async () =>
-                {
-                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    ProcessBatchedChangesOnForeground(cancellationToken);
-                },
-                cancellationToken,
-                TaskScheduler.Default);
+            // Any remaining items will be enqueued for the next time we process work.
+            while (enumerator.MoveNext())
+                OnWorkspaceChanged(changedSolution: false, changedProjectId: enumerator.Current);
         }
 
-        private ProjectId DequeueNextProject(Solution solution)
+        private void AddProjectsToProcess(
+            Solution solution,
+            HashSet<ProjectId> projectsToProcess,
+            ImmutableArray<(bool changedSolution, ProjectId changedProjectId)> work)
         {
             this.AssertIsForeground();
 
-            lock (_gate)
+            if (work.Any(t => t.changedSolution))
             {
                 // If we detected a solution change, then we need to process all projects.
                 // This includes all the projects that we already know about, as well as
                 // all the projects in the current workspace solution.
-                if (_solutionChanged)
-                {
-                    _changedProjects.AddRange(solution.ProjectIds);
-                    _changedProjects.AddRange(_projectToInstalledPackageAndVersion.Keys);
-                }
-
-                _solutionChanged = false;
-
-                // Remove and return the first project in the list.
-                var projectId = _changedProjects.FirstOrDefault();
-                _changedProjects.Remove(projectId);
-                return projectId;
+                projectsToProcess.AddRange(solution.ProjectIds);
+                projectsToProcess.AddRange(_projectToInstalledPackageAndVersion.Keys);
+                return;
             }
+
+            // Otherwise, just collect the set of projects we've been notified about.
+            foreach (var (_, projectId) in work)
+                projectsToProcess.Add(projectId);
         }
 
         private void ProcessProjectChange(Solution solution, ProjectId projectId)
