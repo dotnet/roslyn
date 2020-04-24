@@ -32,6 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier: false);
         }
 
+        internal override LexicalSortKey GetLexicalSortKey()
+        {
+            // We need a separate sort key because struct records will have two synthesized
+            // constructors: the record constructor, and the parameterless constructor
+            return LexicalSortKey.SynthesizedRecordCtor;
+        }
+
         internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory F, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics)
         {
             // Write assignments to backing fields

@@ -14,12 +14,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedRecordObjEquals : SynthesizedInstanceMethodSymbol
     {
+        private readonly MethodSymbol _typedRecordEquals;
+
         public override NamedTypeSymbol ContainingType { get; }
 
         public override ImmutableArray<ParameterSymbol> Parameters { get; }
 
-        public SynthesizedRecordObjEquals(NamedTypeSymbol containingType)
+
+        public SynthesizedRecordObjEquals(NamedTypeSymbol containingType, MethodSymbol typedRecordEquals)
         {
+            _typedRecordEquals = typedRecordEquals;
             ContainingType = containingType;
             Parameters = ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(
                 this,
@@ -120,13 +124,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
 
-            // return this.Equals(param as ContainingType);
-            var block = F.Block(ImmutableArray.Create<BoundStatement>(
-                F.Return(
-                    F.InstanceCall(F.This(), "Equals",
-                        F.As(F.Parameter(Parameters[0]), ContainingType)))));
+            var paramAccess = F.Parameter(Parameters[0]);
 
-            F.CloseMethod(block);
+            BoundExpression expression;
+            if (ContainingType.IsStructType())
+            {
+                // For structs:
+                //
+                //      return param is ContainingType i ? this.Equals(in i) : false;
+                expression = F.Conditional(
+                    F.Is(paramAccess, ContainingType),
+                    F.Call(
+                        F.This(),
+                        _typedRecordEquals,
+                        ImmutableArray.Create<RefKind>(RefKind.In),
+                        ImmutableArray.Create<BoundExpression>(F.Convert(ContainingType, paramAccess))),
+                    F.Literal(false),
+                    F.SpecialType(SpecialType.System_Boolean));
+            }
+            else
+            {
+                // For classes:
+                //      return this.Equals(param as ContainingType);
+                expression = F.InstanceCall(F.This(), "Equals", F.As(paramAccess, ContainingType));
+            }
+
+            F.CloseMethod(F.Block(ImmutableArray.Create<BoundStatement>(F.Return(expression))));
         }
     }
 }
