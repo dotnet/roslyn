@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
             var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, navigationBehavior != NavigationBehavior.Normal);
             options = options.WithChangedOption(NavigationOptions.ActivateProvisionalTab, navigationBehavior == NavigationBehavior.PreviewWithActivation);
 
-            return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options);
+            return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, navigationOptions);
         }
 
         public static async Task<bool> IsHiddenAsync(
