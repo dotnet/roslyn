@@ -5,12 +5,14 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
-using System.IO;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -54,9 +56,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static Task<List<(Checksum, object)>> ReadDataAsync(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            var results = new List<(Checksum, object)>();
+            using var _ = ArrayBuilder<(Checksum, object)>.GetInstance(out var results);
 
             using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
 
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 results.Add((responseChecksum, result));
             }
 
-            return Task.FromResult(results);
+            return results.ToImmutable();
         }
     }
 }

@@ -3818,8 +3818,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
-        <source>Cannot use attribute constructor '{0}' because it is has 'in' parameters.</source>
-        <target state="translated">Não é possível atribuir o construtor ‘{0}’ porque ele tem parâmetros ‘in’.</target>
+        <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
+        <target state="needs-review-translation">Não é possível atribuir o construtor ‘{0}’ porque ele tem parâmetros ‘in’.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">

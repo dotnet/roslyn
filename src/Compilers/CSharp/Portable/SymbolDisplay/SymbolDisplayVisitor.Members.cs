@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case MethodKind.Destructor:
                         case MethodKind.Conversion:
                             // If we're using the metadata format, then include the return type.  
-                            // Otherwise we eschew it since it is redundant in an conversion
+                            // Otherwise we eschew it since it is redundant in a conversion
                             // signature.
                             if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames))
                             {
