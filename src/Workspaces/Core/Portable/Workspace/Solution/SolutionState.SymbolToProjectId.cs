@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis
         /// <inheritdoc cref="Solution.GetOriginatingProjectId"/>
         public ProjectId? GetOriginatingProjectId(ISymbol? symbol)
         {
-            LazyInitialization.EnsureInitialized(ref _assemblyOrModuleSymbolToProjectId, s_createTable);
+            LazyInitialization.EnsureInitialized(ref _unrootedSymbolToProjectId, s_createTable);
 
             // Walk up the symbol so we can get to the containing namespace/assembly that will be used to map
             // back to a project.
 
             while (symbol != null)
             {
-                var result = GetProjectIdDirectly(symbol, _assemblyOrModuleSymbolToProjectId);
+                var result = GetProjectIdDirectly(symbol, _unrootedSymbolToProjectId);
                 if (result != null)
                     return result;
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private ProjectId? GetProjectIdDirectly(
-            ISymbol symbol, ConditionalWeakTable<ISymbol, ProjectId?> assemblyOrModuleSymbolToProjectId)
+            ISymbol symbol, ConditionalWeakTable<ISymbol, ProjectId?> unrootedSymbolToProjectId)
         {
             if (symbol.IsKind(SymbolKind.Namespace, out INamespaceSymbol? ns))
             {
@@ -46,13 +46,14 @@ namespace Microsoft.CodeAnalysis
                 }
             }
             else if (symbol.IsKind(SymbolKind.Assembly) ||
-                     symbol.IsKind(SymbolKind.NetModule))
+                     symbol.IsKind(SymbolKind.NetModule) ||
+                     symbol.IsKind(SymbolKind.DynamicType))
             {
-                if (!assemblyOrModuleSymbolToProjectId.TryGetValue(symbol, out var projectId))
+                if (!unrootedSymbolToProjectId.TryGetValue(symbol, out var projectId))
                 {
                     foreach (var (id, tracker) in _projectIdToTrackerMap)
                     {
-                        if (tracker.ContainsAssemblyOrModule(symbol))
+                        if (tracker.ContainsAssemblyOrModuleOrDynamic(symbol))
                         {
                             projectId = id;
                             break;
@@ -62,30 +63,17 @@ namespace Microsoft.CodeAnalysis
                     // Have to lock as there's no atomic AddOrUpdate in netstandard2.0 and we could throw if two
                     // threads tried to add the same item.
 #if NETSTANDARD
-                    lock (assemblyOrModuleSymbolToProjectId)
+                    lock (unrootedSymbolToProjectId)
                     {
-                        assemblyOrModuleSymbolToProjectId.Remove(symbol);
-                        assemblyOrModuleSymbolToProjectId.Add(symbol, projectId);
+                        unrootedSymbolToProjectId.Remove(symbol);
+                        unrootedSymbolToProjectId.Add(symbol, projectId);
                     }
 #else
-                    assemblyOrModuleSymbolToProjectId.AddOrUpdate(symbol, projectId);
+                    unrootedSymbolToProjectId.AddOrUpdate(symbol, projectId);
 #endif
                 }
 
                 return projectId;
-            }
-            else if (symbol.IsKind(SymbolKind.DynamicType))
-            {
-                foreach (var (projectId, tracker) in _projectIdToTrackerMap)
-                {
-                    // VB doesn't have DynamicTypes (and throws if you ask for them), so just check C# projects.
-                    if (tracker.TryGetCompilation(out var compilation) &&
-                        compilation.Language == LanguageNames.CSharp &&
-                        compilation.DynamicType.Equals(symbol))
-                    {
-                        return projectId;
-                    }
-                }
             }
             else if (symbol.IsKind(SymbolKind.TypeParameter, out ITypeParameterSymbol? typeParameter) &&
                      typeParameter.TypeParameterKind == TypeParameterKind.Cref)
