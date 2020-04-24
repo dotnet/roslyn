@@ -114,21 +114,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             private Not(AnalyzedPattern pattern)
                 => Pattern = pattern;
 
-            private static BinaryOperatorKind Negate(BinaryOperatorKind kind) => kind switch
-            {
-                BinaryOperatorKind.LessThan => BinaryOperatorKind.GreaterThanOrEqual,
-                BinaryOperatorKind.GreaterThan => BinaryOperatorKind.LessThanOrEqual,
-                BinaryOperatorKind.LessThanOrEqual => BinaryOperatorKind.GreaterThan,
-                BinaryOperatorKind.GreaterThanOrEqual => BinaryOperatorKind.LessThan,
-                var v => throw ExceptionUtilities.UnexpectedValue(v)
-            };
+            private static BinaryOperatorKind Negate(BinaryOperatorKind kind)
+                => kind switch
+                {
+                    BinaryOperatorKind.LessThan => BinaryOperatorKind.GreaterThanOrEqual,
+                    BinaryOperatorKind.GreaterThan => BinaryOperatorKind.LessThanOrEqual,
+                    BinaryOperatorKind.LessThanOrEqual => BinaryOperatorKind.GreaterThan,
+                    BinaryOperatorKind.GreaterThanOrEqual => BinaryOperatorKind.LessThan,
+                    var v => throw ExceptionUtilities.UnexpectedValue(v)
+                };
 
-            public static AnalyzedPattern Create(AnalyzedPattern pattern) => pattern switch
-            {
-                Not p => p.Pattern,
-                Relational p => new Relational(Negate(p.OperatorKind), p.Value, p.TargetOperation),
-                _ => new Not(pattern)
-            };
+            public static AnalyzedPattern Create(AnalyzedPattern pattern)
+                => pattern switch
+                {
+                    Not p => p.Pattern,
+                    Relational p => new Relational(Negate(p.OperatorKind), p.Value, p.TargetOperation),
+                    _ => new Not(pattern)
+                };
         }
     }
 }
