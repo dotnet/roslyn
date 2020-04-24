@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 
             var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
 
-            var result = service.EncapsulateFieldAsync(document, spans.First().Span.ToTextSpan(), true, cancellationToken).WaitAndGetResult(cancellationToken);
+            var result = service.EncapsulateFieldsInSpanAsync(document, spans.First().Span.ToTextSpan(), true, cancellationToken).WaitAndGetResult(cancellationToken);
 
             // We are about to show a modal UI dialog so we should take over the command execution
             // wait context. That means the command system won't attempt to show its own wait dialog 

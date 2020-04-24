@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -28,13 +27,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
         protected abstract Task<ImmutableArray<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 
-        public async Task<EncapsulateFieldResult> EncapsulateFieldAsync(Document document, TextSpan span, bool useDefaultBehavior, CancellationToken cancellationToken)
+        public async Task<EncapsulateFieldResult> EncapsulateFieldsInSpanAsync(Document document, TextSpan span, bool useDefaultBehavior, CancellationToken cancellationToken)
         {
             var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
             if (fields.IsDefaultOrEmpty)
                 return null;
 
-            return new EncapsulateFieldResult(c => EncapsulateFieldResultAsync(document, span, useDefaultBehavior, c));
+            return new EncapsulateFieldResult(
+                c => EncapsulateFieldsAsync(document, fields, useDefaultBehavior, c));
         }
 
         public async Task<ImmutableArray<EncapsulateFieldCodeAction>> GetEncapsulateFieldCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
@@ -46,73 +46,50 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             if (fields.Length == 1)
             {
                 // there is only one field
-                return EncapsulateOneField(document, span, fields[0], index: 0);
+                return EncapsulateOneField(document, fields[0]);
             }
-            else
+
+            // there are multiple fields.
+            using var _ = ArrayBuilder<EncapsulateFieldCodeAction>.GetInstance(out var builder);
+
+            if (span.IsEmpty)
             {
-                // there are multiple fields.
-                var current = ArrayBuilder<EncapsulateFieldCodeAction>.GetInstance();
-
-                if (span.IsEmpty)
-                {
-                    // if there is no selection, get action for each field + all of them.
-                    for (var i = 0; i < fields.Length; i++)
-                    {
-                        current.AddRange(EncapsulateOneField(document, span, fields[i], i));
-                    }
-                }
-
-                current.AddRange(EncapsulateAllFields(document, span));
-                return current.ToImmutableAndFree();
+                // if there is no selection, get action for each field + all of them.
+                foreach (var field in fields)
+                    builder.AddRange(EncapsulateOneField(document, field));
             }
+
+            builder.AddRange(EncapsulateAllFields(document, fields));
+            return builder.ToImmutable();
         }
 
-        private IEnumerable<EncapsulateFieldCodeAction> EncapsulateAllFields(Document document, TextSpan span)
+        private ImmutableArray<EncapsulateFieldCodeAction> EncapsulateAllFields(Document document, ImmutableArray<IFieldSymbol> fields)
         {
-            var action1Text = FeaturesResources.Encapsulate_fields_and_use_property;
-            var action2Text = FeaturesResources.Encapsulate_fields_but_still_use_field;
-
-            return new[]
-            {
-                new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => EncapsulateFieldResultAsync(document, span, true, c)), action1Text),
-                new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => EncapsulateFieldResultAsync(document, span, false, c)), action2Text)
-            };
+            return ImmutableArray.Create(
+                new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => EncapsulateFieldsAsync(document, fields, updateReferences: true, c)), FeaturesResources.Encapsulate_fields_and_use_property),
+                new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => EncapsulateFieldsAsync(document, fields, updateReferences: false, c)), FeaturesResources.Encapsulate_fields_but_still_use_field));
         }
 
-        private ImmutableArray<EncapsulateFieldCodeAction> EncapsulateOneField(Document document, TextSpan span, IFieldSymbol field, int index)
+        private ImmutableArray<EncapsulateFieldCodeAction> EncapsulateOneField(Document document, IFieldSymbol field)
         {
             var action1Text = string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, field.Name);
             var action2Text = string.Format(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field, field.Name);
 
+            var fields = ImmutableArray.Create(field);
             return ImmutableArray.Create(
-                new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => SingleEncapsulateFieldResultAsync(document, span, index, true, c)), action1Text),
-                new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => SingleEncapsulateFieldResultAsync(document, span, index, false, c)), action2Text));
+                new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => EncapsulateFieldsAsync(document, fields, updateReferences: true, c)), action1Text),
+                new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => EncapsulateFieldsAsync(document, fields, updateReferences: false, c)), action2Text));
         }
 
-        private async Task<Result> SingleEncapsulateFieldResultAsync(Document document, TextSpan span, int index, bool updateReferences, CancellationToken cancellationToken)
+        private async Task<Result> EncapsulateFieldsAsync(Document document, ImmutableArray<IFieldSymbol> fields, bool updateReferences, CancellationToken cancellationToken)
         {
-            var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
-            Debug.Assert(fields.Length > index);
-
-            var field = fields[index];
-            var result = await EncapsulateFieldAsync(field, document, updateReferences, cancellationToken).ConfigureAwait(false);
-            if (result == null)
-            {
-                return new Result(document.Project.Solution);
-            }
-
-            return result;
-        }
-
-        private async Task<Result> EncapsulateFieldResultAsync(Document document, TextSpan span, bool updateReferences, CancellationToken cancellationToken)
-        {
-            var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
-            Debug.Assert(fields.Length > 0);
+            Contract.ThrowIfTrue(fields.Length == 0);
 
             // For now, build up the multiple field case by encapsulating one at a time.
-            Result result = null;
+            var currentSolution = document.Project.Solution;
             foreach (var field in fields)
             {
+                document = currentSolution.GetDocument(document.Id);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = semanticModel.Compilation;
 
@@ -120,20 +97,20 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 if (!(field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol is IFieldSymbol currentField))
                     continue;
 
-                result = await EncapsulateFieldAsync(currentField, document, updateReferences, cancellationToken).ConfigureAwait(false);
-                if (result == null)
+                var nextSolution = await EncapsulateFieldAsync(document, currentField, updateReferences, cancellationToken).ConfigureAwait(false);
+                if (nextSolution == null)
                     continue;
 
-                document = result.Solution.GetDocument(document.Id);
+                currentSolution = nextSolution;
             }
 
-            if (result == null)
-                return new Result(document.Project.Solution);
-
-            return result;
+            var firstField = fields[0];
+            return new Result(currentSolution, firstField.ToDisplayString(), firstField.GetGlyph());
         }
 
-        private async Task<Result> EncapsulateFieldAsync(IFieldSymbol field, Document document, bool updateReferences, CancellationToken cancellationToken)
+        private async Task<Solution> EncapsulateFieldAsync(
+            Document document, IFieldSymbol field,
+            bool updateReferences, CancellationToken cancellationToken)
         {
             var originalField = field;
             var (finalFieldName, generatedPropertyName) = GenerateFieldAndPropertyNames(field);
@@ -170,9 +147,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
             // We couldn't resolve field after annotating its declaration. Bail
             if (field == null)
-            {
                 return null;
-            }
 
             var solutionNeedingProperty = await UpdateReferencesAsync(
                 updateReferences, solution, document, field, finalFieldName, generatedPropertyName, cancellationToken).ConfigureAwait(false);
@@ -212,7 +187,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var solutionWithProperty = await AddPropertyAsync(
                 document, document.Project.Solution, field, generatedProperty, cancellationToken).ConfigureAwait(false);
 
-            return new Result(solutionWithProperty, originalField.ToDisplayString(), originalField.GetGlyph());
+            return solutionWithProperty;
         }
 
         private async Task<Solution> UpdateReferencesAsync(

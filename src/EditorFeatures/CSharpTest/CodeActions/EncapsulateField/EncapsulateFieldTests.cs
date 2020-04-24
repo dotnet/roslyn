@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
     public enum TestHost
     {
         InProcess,
-        OutOfProcess,
+        //OutOfProcess,
     }
 
     public class EncapsulateFieldTests : AbstractCSharpCodeActionTest
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
         {
             options = options ?? new OptionsCollection(GetLanguage());
             options.AddRange(AllOptionsOff);
-            options.Add(RemoteHostOptions.RemoteHostTest, host == TestHost.OutOfProcess);
+            options.Add(RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess);
 
             return TestAsync(initialMarkup, expectedMarkup,
                 parseOptions, compilationOptions, index, options);
@@ -219,7 +219,7 @@ class goo
                 {
                     { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
                     { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
-                    { RemoteHostOptions.RemoteHostTest, host == TestHost.OutOfProcess }
+                    { RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess }
                 });
         }
 
@@ -255,7 +255,7 @@ class goo
                 options: new OptionsCollection(GetLanguage())
                 {
                     {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
-                    { RemoteHostOptions.RemoteHostTest, host == TestHost.OutOfProcess }
+                    { RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess }
                 });
         }
 
@@ -794,7 +794,7 @@ class Program
 
         private TestParameters GetRemoteHostOptions(TestHost host)
         {
-            return new TestParameters(options: Option(RemoteHostOptions.RemoteHostTest, host == TestHost.OutOfProcess));
+            return new TestParameters(options: Option(RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess));
         }
 
         [WorkItem(705898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898")]
