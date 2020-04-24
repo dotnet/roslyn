@@ -1190,30 +1190,40 @@ namespace CSharpSyntaxGenerator
                 WriteComment($@"<summary>Checks to see if a <see cref=""SyntaxNode""/> is a <see cref=""{node.Name}""/>.</summary>");
                 WriteLine($"public static bool Is{StripPost(node.Name, "Syntax")}([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out {node.Name}? {paramName})");
                 OpenBlock();
-                WriteLine($"switch ((SyntaxKind)(node?.RawKind ?? 0))");
-                OpenBlock();
 
-                var hasKind = false;
-                foreach (var kind in getKinds(this, node))
+                if (node is Node)
                 {
-                    hasKind = true;
-                    WriteLine($"case SyntaxKind.{kind.Name}:");
+                    WriteLine($"{paramName} = node as {node.Name};");
+                    WriteLine($"return {paramName} is object;");
                 }
-
-                if (hasKind)
+                else
                 {
+                    WriteLine($"switch ((SyntaxKind)(node?.RawKind ?? 0))");
+                    OpenBlock();
+
+                    var hasKind = false;
+                    foreach (var kind in getKinds(this, node))
+                    {
+                        hasKind = true;
+                        WriteLine($"case SyntaxKind.{kind.Name}:");
+                    }
+
+                    if (hasKind)
+                    {
+                        Indent();
+                        WriteLine($"{paramName} = ({node.Name})node!;");
+                        WriteLine($"return true;");
+                        Unindent();
+                    }
+
+                    WriteLine("default:");
                     Indent();
-                    WriteLine($"{paramName} = ({node.Name})node!;");
-                    WriteLine($"return true;");
+                    WriteLine($"{paramName} = null;");
+                    WriteLine("return false;");
                     Unindent();
+                    CloseBlock();
                 }
 
-                WriteLine("default:");
-                Indent();
-                WriteLine($"{paramName} = null;");
-                WriteLine("return false;");
-                Unindent();
-                CloseBlock();
                 CloseBlock();
             }
 
