@@ -371,12 +371,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var containingType = symbol.ContainingType.OriginalDefinition;
 
-            // implementations could be found in direct class/struct implementations of the containing interface. Or, in
+            // implementations could be found in any class/struct implementations of the containing interface. And, in
             // the case of DIM, they could be found in any derived interface.
 
-            var immediateClassAndStructImplementations = await FindImmediateImplementationsAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false);
+            var classAndStructImplementations = await FindImplementationsAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false);
             var transitiveDerivedInterfaces = await FindDerivedInterfacesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false);
-            var allTypes = immediateClassAndStructImplementations.Concat(transitiveDerivedInterfaces);
+            var allTypes = classAndStructImplementations.Concat(transitiveDerivedInterfaces);
 
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var results);
             foreach (var t in allTypes)
