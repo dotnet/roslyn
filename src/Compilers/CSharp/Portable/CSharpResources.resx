@@ -2112,7 +2112,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit</value>
   </data>
   <data name="ERR_PartialMethodInvalidModifier" xml:space="preserve">
-    <value>A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers</value>
+    <value>A partial method cannot have the 'abstract' modifier</value>
   </data>
   <data name="ERR_PartialMethodOnlyInPartialClass" xml:space="preserve">
     <value>A partial method must be declared within a partial class, partial struct, or partial interface</value>
@@ -6081,5 +6081,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation" xml:space="preserve">
     <value>Partial method {0} must have an implementation part because it has accessibility modifiers.</value>
+  </data>
+  <data name="ERR_PartialMethodWithExtendedModMustHaveImplementation" xml:space="preserve">
+    <value>Partial method {0} must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.</value>
+  </data>
+  <data name="ERR_PartialMethodExplicitAccessibilityDifference" xml:space="preserve">
+    <value>Both partial method declarations must have accessibility modifiers or neither may have accessibility modifiers.</value>
+  </data>
+  <data name="ERR_PartialMethodAccessibilityDifference" xml:space="preserve">
+    <value>Both partial method declarations must have equivalent accessibility modifiers.</value>
+  </data>
+  <data name="ERR_PartialMethodVirtualDifference" xml:space="preserve">
+    <value>Both partial method declarations must be 'virtual' or neither may be 'virtual'.</value>
+  </data>
+  <data name="ERR_PartialMethodOverrideDifference" xml:space="preserve">
+    <value>Both partial method declarations must be 'override' or neither may be 'override'.</value>
+  </data>
+  <data name="ERR_PartialMethodSealedDifference" xml:space="preserve">
+    <value>Both partial method declarations must be 'sealed' or neither may be 'sealed'.</value>
   </data>
 </root>

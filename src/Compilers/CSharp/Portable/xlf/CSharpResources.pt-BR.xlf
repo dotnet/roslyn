@@ -397,14 +397,44 @@
         <target state="translated">O método '{0}' especifica uma restrição 'struct' para o parâmetro de tipo '{1}', mas o parâmetro de tipo correspondente '{2}' do método substituído ou implementado explicitamente '{3}' não é um tipo de valor não anulável.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodAccessibilityDifference">
+        <source>Both partial method declarations must have equivalent accessibility modifiers.</source>
+        <target state="new">Both partial method declarations must have equivalent accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodExplicitAccessibilityDifference">
+        <source>Both partial method declarations must have accessibility modifiers or neither may have accessibility modifiers.</source>
+        <target state="new">Both partial method declarations must have accessibility modifiers or neither may have accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodOverrideDifference">
+        <source>Both partial method declarations must be 'override' or neither may be 'override'.</source>
+        <target state="new">Both partial method declarations must be 'override' or neither may be 'override'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
         <target state="translated">As duas declarações de métodos parciais precisam ser readonly ou nenhuma deve ser readonly</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodSealedDifference">
+        <source>Both partial method declarations must be 'sealed' or neither may be 'sealed'.</source>
+        <target state="new">Both partial method declarations must be 'sealed' or neither may be 'sealed'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodVirtualDifference">
+        <source>Both partial method declarations must be 'virtual' or neither may be 'virtual'.</source>
+        <target state="new">Both partial method declarations must be 'virtual' or neither may be 'virtual'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
         <source>Partial method {0} must have an implementation part because it has accessibility modifiers.</source>
         <target state="new">Partial method {0} must have an implementation part because it has accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithExtendedModMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.</source>
+        <target state="new">Partial method {0} must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodWithNonVoidReturnMustHaveImplementation">
@@ -4942,8 +4972,8 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInvalidModifier">
-        <source>A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers</source>
-        <target state="translated">Um método parcial não pode ter modificadores de acesso ou modificadores do tipo virtual, abstract, override, new, sealed ou extern</target>
+        <source>A partial method cannot have the 'abstract' modifier</source>
+        <target state="needs-review-translation">Um método parcial não pode ter modificadores de acesso ou modificadores do tipo virtual, abstract, override, new, sealed ou extern</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">

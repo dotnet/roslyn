@@ -397,14 +397,44 @@
         <target state="translated">Die Methode "{0}" gibt eine struct-Einschränkung für den Typparameter "{1}" an, aber der zugehörige Typparameter "{2}" der außer Kraft gesetzten oder explizit implementierten Methode "{3}" ist kein Non-Nullable-Werttyp.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodAccessibilityDifference">
+        <source>Both partial method declarations must have equivalent accessibility modifiers.</source>
+        <target state="new">Both partial method declarations must have equivalent accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodExplicitAccessibilityDifference">
+        <source>Both partial method declarations must have accessibility modifiers or neither may have accessibility modifiers.</source>
+        <target state="new">Both partial method declarations must have accessibility modifiers or neither may have accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodOverrideDifference">
+        <source>Both partial method declarations must be 'override' or neither may be 'override'.</source>
+        <target state="new">Both partial method declarations must be 'override' or neither may be 'override'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
         <target state="translated">Entweder beide oder keine der partiellen Methodendeklarationen müssen als "readonly" festgelegt werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodSealedDifference">
+        <source>Both partial method declarations must be 'sealed' or neither may be 'sealed'.</source>
+        <target state="new">Both partial method declarations must be 'sealed' or neither may be 'sealed'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodVirtualDifference">
+        <source>Both partial method declarations must be 'virtual' or neither may be 'virtual'.</source>
+        <target state="new">Both partial method declarations must be 'virtual' or neither may be 'virtual'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
         <source>Partial method {0} must have an implementation part because it has accessibility modifiers.</source>
         <target state="new">Partial method {0} must have an implementation part because it has accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithExtendedModMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.</source>
+        <target state="new">Partial method {0} must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodWithNonVoidReturnMustHaveImplementation">
@@ -4944,8 +4974,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInvalidModifier">
-        <source>A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers</source>
-        <target state="translated">Eine partielle Methode darf keine Zugriffsmodifizierer oder die Modifizierer "virtual", "abstract", "override", "new", "sealed" oder "extern" enthalten.</target>
+        <source>A partial method cannot have the 'abstract' modifier</source>
+        <target state="needs-review-translation">Eine partielle Methode darf keine Zugriffsmodifizierer oder die Modifizierer "virtual", "abstract", "override", "new", "sealed" oder "extern" enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">

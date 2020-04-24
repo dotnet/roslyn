@@ -9219,7 +9219,7 @@ public partial interface I1
                 //     static partial void M5(out int x);
                 Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveImplementation, "M5").WithArguments("I1.M5(out int)").WithLocation(8, 25),
                 // (11,25): error CS0759: No defining declaration found for implementing declaration of partial method 'I1.M8()'
-                //     static partial void M8() {} 
+                //     static partial void M8() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M8").WithArguments("I1.M8()").WithLocation(11, 25),
                 // (18,17): error CS0111: Type 'I1' already defines a member called 'M6' with the same parameter types
                 //     static void M6() {}
@@ -9228,17 +9228,11 @@ public partial interface I1
                 //     static partial void M7();
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "I1").WithLocation(19, 25),
                 // (20,25): error CS0757: A partial method may not have multiple implementing declarations
-                //     static partial void M8() {} 
+                //     static partial void M8() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneActual, "M8").WithLocation(20, 25),
                 // (21,25): error CS0756: A partial method may not have multiple defining declarations
-                //     static partial void M9(); 
+                //     static partial void M9();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M9").WithLocation(21, 25),
-                // (22,32): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                //     static extern partial void M10(); 
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M10").WithLocation(22, 32),
-                // (22,32): error CS0756: A partial method may not have multiple defining declarations
-                //     static extern partial void M10(); 
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M10").WithLocation(22, 32),
                 // (23,35): error CS9052: Partial method I1.M11() must have an implementation part because it has accessibility modifiers.
                 //     protected static partial void M11();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M11").WithArguments("I1.M11()").WithLocation(23, 35),
@@ -9274,10 +9268,10 @@ public partial interface I1
                 //     static void M7() {}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M7").WithLocation(10, 17),
                 // (11,25): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static partial void M8() {} 
+                //     static partial void M8() {}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M8").WithLocation(11, 25),
                 // (11,25): error CS0759: No defining declaration found for implementing declaration of partial method 'I1.M8()'
-                //     static partial void M8() {} 
+                //     static partial void M8() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M8").WithArguments("I1.M8()").WithLocation(11, 25),
                 // (18,17): error CS8701: Target runtime doesn't support default interface implementation.
                 //     static void M6() {}
@@ -9289,23 +9283,17 @@ public partial interface I1
                 //     static partial void M7();
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "I1").WithLocation(19, 25),
                 // (20,25): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static partial void M8() {} 
+                //     static partial void M8() {}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M8").WithLocation(20, 25),
                 // (20,25): error CS0757: A partial method may not have multiple implementing declarations
-                //     static partial void M8() {} 
+                //     static partial void M8() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneActual, "M8").WithLocation(20, 25),
                 // (21,25): error CS0756: A partial method may not have multiple defining declarations
-                //     static partial void M9(); 
+                //     static partial void M9();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M9").WithLocation(21, 25),
                 // (22,32): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static extern partial void M10(); 
+                //     static extern partial void M10();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M10").WithLocation(22, 32),
-                // (22,32): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                //     static extern partial void M10(); 
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M10").WithLocation(22, 32),
-                // (22,32): error CS0756: A partial method may not have multiple defining declarations
-                //     static extern partial void M10(); 
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M10").WithLocation(22, 32),
                 // (23,35): error CS9052: Partial method I1.M11() must have an implementation part because it has accessibility modifiers.
                 //     protected static partial void M11();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M11").WithArguments("I1.M11()").WithLocation(23, 35),
@@ -9350,34 +9338,46 @@ interface I2
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.RegularWithExtendedPartialMethods,
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
             compilation1.VerifyDiagnostics(
-                // (4,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (4,25): error CS0238: 'I1.M1()' cannot be sealed because it is not an override
                 //     sealed partial void M1();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M1").WithLocation(4, 25),
-                // (5,27): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "M1").WithArguments("I1.M1()").WithLocation(4, 25),
+                // (4,25): error CS9053: Partial method I1.M1() must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                //     sealed partial void M1();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveImplementation, "M1").WithArguments("I1.M1()").WithLocation(4, 25),
+                // (5,27): error CS0750: A partial method cannot have the 'abstract' modifier
                 //     abstract partial void M2();
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M2").WithLocation(5, 27),
-                // (6,26): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (6,26): error CS0621: 'I1.M3()': virtual or abstract members cannot be private
                 //     virtual partial void M3();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M3").WithLocation(6, 26),
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "M3").WithArguments("I1.M3()").WithLocation(6, 26),
+                // (6,26): error CS9053: Partial method I1.M3() must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                //     virtual partial void M3();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveImplementation, "M3").WithArguments("I1.M3()").WithLocation(6, 26),
                 // (10,21): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I2.M7();
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M7").WithLocation(10, 21),
-                // (15,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (15,25): error CS0238: 'I1.M4()' cannot be sealed because it is not an override
                 //     sealed partial void M4() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M4").WithLocation(15, 25),
-                // (16,27): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                //     abstract partial void M5(); 
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "M4").WithArguments("I1.M4()").WithLocation(15, 25),
+                // (15,25): error CS9058: Both partial method declarations must be 'sealed' or neither may be 'sealed'.
+                //     sealed partial void M4() {}
+                Diagnostic(ErrorCode.ERR_PartialMethodSealedDifference, "M4").WithLocation(15, 25),
+                // (16,27): error CS0750: A partial method cannot have the 'abstract' modifier
+                //     abstract partial void M5();
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M5").WithLocation(16, 27),
                 // (16,27): error CS0756: A partial method may not have multiple defining declarations
-                //     abstract partial void M5(); 
+                //     abstract partial void M5();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M5").WithLocation(16, 27),
-                // (17,26): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (17,26): error CS0621: 'I1.M6()': virtual or abstract members cannot be private
                 //     virtual partial void M6() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M6").WithLocation(17, 26),
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "M6").WithArguments("I1.M6()").WithLocation(17, 26),
+                // (17,26): error CS9056: Both partial method declarations must be 'virtual' or neither may be 'virtual'.
+                //     virtual partial void M6() {}
+                Diagnostic(ErrorCode.ERR_PartialMethodVirtualDifference, "M6").WithLocation(17, 26),
                 // (19,21): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I2.M7() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M7").WithLocation(19, 21),
@@ -45774,7 +45774,7 @@ class Test1 : I2
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.RegularWithExtendedPartialMethods,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             validate(compilation1.SourceModule);
 
@@ -45782,9 +45782,12 @@ class Test1 : I2
                 // (9,30): error CS0754: A partial method may not explicitly implement an interface method
                 //     abstract partial void I1.M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M1").WithLocation(9, 30),
-                // (9,30): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (9,30): error CS0750: A partial method cannot have the 'abstract' modifier
                 //     abstract partial void I1.M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M1").WithLocation(9, 30),
+                // (9,30): error CS9053: Partial method I2.I1.M1() must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                //     abstract partial void I1.M1();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveImplementation, "M1").WithArguments("I2.I1.M1()").WithLocation(9, 30),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(12, 15)

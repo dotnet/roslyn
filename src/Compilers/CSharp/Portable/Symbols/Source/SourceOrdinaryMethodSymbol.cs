@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && !_hasAnyBody;
+                return this.IsPartial && !_hasAnyBody && !IsExtern;
             }
         }
 
@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && _hasAnyBody;
+                return this.IsPartial && (_hasAnyBody || IsExtern);
             }
         }
 
@@ -923,24 +923,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
+        const DeclarationModifiers PartialMethodExtendedModifierMask =
+            DeclarationModifiers.Virtual |
+            DeclarationModifiers.Override |
+            DeclarationModifiers.New |
+            DeclarationModifiers.Sealed |
+            DeclarationModifiers.Extern;
+
+        internal bool HasExtendedPartialModifier => (DeclarationModifiers & PartialMethodExtendedModifierMask) != 0;
+
         private void CheckModifiers(bool isExplicitInterfaceImplementation, bool hasBody, Location location, DiagnosticBag diagnostics)
         {
-            const DeclarationModifiers partialMethodInvalidModifierMask =
-                     DeclarationModifiers.Virtual |
-                     DeclarationModifiers.Abstract |
-                     DeclarationModifiers.Override |
-                     DeclarationModifiers.New |
-                     DeclarationModifiers.Sealed |
-                     DeclarationModifiers.Extern;
-
             bool isExplicitInterfaceImplementationInInterface = isExplicitInterfaceImplementation && ContainingType.IsInterface;
 
-            if (IsPartial && (!ReturnsVoid || HasExplicitAccessMod))
+            if (IsPartial && (!ReturnsVoid || HasExplicitAccessMod || HasExtendedPartialModifier))
             {
                 Binder.CheckFeatureAvailability(SyntaxNode, MessageID.IDS_FeatureExtendedPartialMethods, diagnostics, location);
             }
 
-            if (IsPartial && (DeclarationModifiers & partialMethodInvalidModifierMask) != 0)
+            if (IsPartial && IsAbstract)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, location);
             }
@@ -1161,6 +1162,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (definition.IsParams() != implementation.IsParams())
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodParamsDifference, implementation.Locations[0]);
+            }
+
+            if (definition.HasExplicitAccessMod != implementation.HasExplicitAccessMod)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodExplicitAccessibilityDifference, implementation.Locations[0]);
+            }
+            else if (definition.DeclaredAccessibility != implementation.DeclaredAccessibility)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodAccessibilityDifference, implementation.Locations[0]);
+            }
+
+            if (definition.IsVirtual != implementation.IsVirtual)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodVirtualDifference, implementation.Locations[0]);
+            }
+
+            if (definition.IsOverride != implementation.IsOverride)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodOverrideDifference, implementation.Locations[0]);
+            }
+
+            if (definition.IsSealed != implementation.IsSealed)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodSealedDifference, implementation.Locations[0]);
             }
 
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);

@@ -397,14 +397,44 @@
         <target state="translated">Metoda {0} určuje omezení struct pro parametr typu {1}, ale odpovídající parametr typu {2} přepsané nebo explicitně implementované metody {3} není typ, který nemůže mít hodnotu null.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodAccessibilityDifference">
+        <source>Both partial method declarations must have equivalent accessibility modifiers.</source>
+        <target state="new">Both partial method declarations must have equivalent accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodExplicitAccessibilityDifference">
+        <source>Both partial method declarations must have accessibility modifiers or neither may have accessibility modifiers.</source>
+        <target state="new">Both partial method declarations must have accessibility modifiers or neither may have accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodOverrideDifference">
+        <source>Both partial method declarations must be 'override' or neither may be 'override'.</source>
+        <target state="new">Both partial method declarations must be 'override' or neither may be 'override'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
         <target state="translated">Obě deklarace částečné metody musí mít modifikátor readonly, nebo nesmí mít modifikátor readonly žádná z nich.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodSealedDifference">
+        <source>Both partial method declarations must be 'sealed' or neither may be 'sealed'.</source>
+        <target state="new">Both partial method declarations must be 'sealed' or neither may be 'sealed'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodVirtualDifference">
+        <source>Both partial method declarations must be 'virtual' or neither may be 'virtual'.</source>
+        <target state="new">Both partial method declarations must be 'virtual' or neither may be 'virtual'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
         <source>Partial method {0} must have an implementation part because it has accessibility modifiers.</source>
         <target state="new">Partial method {0} must have an implementation part because it has accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithExtendedModMustHaveImplementation">
+        <source>Partial method {0} must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.</source>
+        <target state="new">Partial method {0} must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodWithNonVoidReturnMustHaveImplementation">
@@ -4944,8 +4974,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInvalidModifier">
-        <source>A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers</source>
-        <target state="translated">Částečná metoda nemůže používat modifikátory přístupu ani modifikátory virtual, abstract, override, new, sealed či extern.</target>
+        <source>A partial method cannot have the 'abstract' modifier</source>
+        <target state="needs-review-translation">Částečná metoda nemůže používat modifikátory přístupu ani modifikátory virtual, abstract, override, new, sealed či extern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">

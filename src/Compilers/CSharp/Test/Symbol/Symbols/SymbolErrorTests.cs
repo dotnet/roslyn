@@ -13484,24 +13484,18 @@ public partial class C : Base
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
-                // (23,26): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (23,26): error CS0621: 'C.PartE()': virtual or abstract members cannot be private
                 //     virtual partial void PartE();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartE").WithLocation(23, 26),
-                // (24,27): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "PartE").WithArguments("C.PartE()").WithLocation(23, 26),
+                // (24,27): error CS0750: A partial method cannot have the 'abstract' modifier
                 //     abstract partial void PartF();
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartF").WithLocation(24, 27),
-                // (25,27): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (25,27): error CS0621: 'C.PartG()': virtual or abstract members cannot be private
                 //     override partial void PartG();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartG").WithLocation(25, 27),
-                // (26,22): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                //     new partial void PartH();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartH").WithLocation(26, 22),
-                // (27,34): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "PartG").WithArguments("C.PartG()").WithLocation(25, 27),
+                // (27,34): error CS0621: 'C.PartI()': virtual or abstract members cannot be private
                 //     sealed override partial void PartI();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartI").WithLocation(27, 34),
-                // (29,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                //     extern partial void PartJ();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartJ").WithLocation(29, 25),
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "PartI").WithArguments("C.PartI()").WithLocation(27, 34),
                 // (19,25): error CS9052: Partial method C.PartA() must have an implementation part because it has accessibility modifiers.
                 //     public partial void PartA();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "PartA").WithArguments("C.PartA()").WithLocation(19, 25),
@@ -13514,6 +13508,21 @@ public partial class C : Base
                 // (22,27): error CS9052: Partial method C.PartD() must have an implementation part because it has accessibility modifiers.
                 //     internal partial void PartD();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "PartD").WithArguments("C.PartD()").WithLocation(22, 27),
+                // (23,26): error CS9053: Partial method C.PartE() must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                //     virtual partial void PartE();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveImplementation, "PartE").WithArguments("C.PartE()").WithLocation(23, 26),
+                // (25,27): error CS9053: Partial method C.PartG() must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                //     override partial void PartG();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveImplementation, "PartG").WithArguments("C.PartG()").WithLocation(25, 27),
+                // (26,22): error CS9053: Partial method C.PartH() must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                //     new partial void PartH();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveImplementation, "PartH").WithArguments("C.PartH()").WithLocation(26, 22),
+                // (27,34): error CS9053: Partial method C.PartI() must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                //     sealed override partial void PartI();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveImplementation, "PartI").WithArguments("C.PartI()").WithLocation(27, 34),
+                // (29,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.PartJ()'
+                //     extern partial void PartJ();
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "PartJ").WithArguments("C.PartJ()").WithLocation(29, 25),
                 // (28,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
                 //     [System.Runtime.InteropServices.DllImport("none")]
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "System.Runtime.InteropServices.DllImport").WithLocation(28, 6));

@@ -2580,6 +2580,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.Locations[0], method);
                         }
+                        else if (method.HasExtendedPartialModifier)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveImplementation, method.Locations[0], method);
+                        }
                     }
                 }
             }
