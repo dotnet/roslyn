@@ -91,10 +91,10 @@ class Program
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
 
-            var x = CompileAndVerify(
+            CompileAndVerify(
                 source,
                 parseOptions: s_parseOptions,
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, metadataImportOptions: MetadataImportOptions.All),
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
                     var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");

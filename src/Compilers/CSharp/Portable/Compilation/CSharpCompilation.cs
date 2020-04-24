@@ -2822,7 +2822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!_moduleInitializerMethods.IsEmpty)
             {
-                var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: true);
+                var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
 
                 // PROTOTYPE(module-initializers): require deterministic order
                 foreach (var method in _moduleInitializerMethods)
