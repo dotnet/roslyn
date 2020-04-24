@@ -278,21 +278,18 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                             _ => null
                         };
 
+                    case IBinaryOperation { OperatorKind: NotEquals } op
+                        when Supports(Feature.InequalityPattern):
+                        return ParseRelationalPattern(op);
+
                     case IBinaryOperation op
-                        when Supports(Feature.RelationalPattern) && IsComparisonOperator(op.OperatorKind):
-                        return DetermineConstant(op) switch
-                        {
-                            ConstantResult.Left when op.LeftOperand.Syntax is TExpressionSyntax left
-                                => new AnalyzedPattern.Relational(Flip(op.OperatorKind), left),
-                            ConstantResult.Right when op.RightOperand.Syntax is TExpressionSyntax right
-                                => new AnalyzedPattern.Relational(op.OperatorKind, right),
-                            _ => null
-                        };
+                        when Supports(Feature.RelationalPattern) && IsRelationalOperator(op.OperatorKind):
+                        return ParseRelationalPattern(op);
 
                     // Check this below the cases that produce Relational/Ranges.  We would prefer to use those if
                     // available before utilizing a CaseGuard.
                     case IBinaryOperation { OperatorKind: ConditionalAnd } op
-                        when Supports(Feature.AndPattern) || Supports(Feature.CaseGuard):
+                        when Supports(Feature.AndPattern | Feature.CaseGuard):
                         {
                             var leftPattern = ParsePattern(op.LeftOperand, guards);
                             if (leftPattern == null)
@@ -331,6 +328,18 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
 
                 return null;
+            }
+
+            private AnalyzedPattern? ParseRelationalPattern(IBinaryOperation op)
+            {
+                return DetermineConstant(op) switch
+                {
+                    ConstantResult.Left when op.LeftOperand.Syntax is TExpressionSyntax left
+                        => new AnalyzedPattern.Relational(Flip(op.OperatorKind), left),
+                    ConstantResult.Right when op.RightOperand.Syntax is TExpressionSyntax right
+                        => new AnalyzedPattern.Relational(op.OperatorKind, right),
+                    _ => null
+                };
             }
 
             private enum BoundKind
@@ -401,7 +410,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 };
             }
 
-            private static bool IsComparisonOperator(BinaryOperatorKind operatorKind)
+            private static bool IsRelationalOperator(BinaryOperatorKind operatorKind)
             {
                 switch (operatorKind)
                 {
@@ -409,7 +418,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     case LessThanOrEqual:
                     case GreaterThanOrEqual:
                     case GreaterThan:
-                    case NotEquals:
                         return true;
                     default:
                         return false;
@@ -451,17 +459,19 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             None = 0,
             // VB/C# 9.0 features
             RelationalPattern = 1,
-            RangePattern = 1 << 1,
+            // VB features
+            InequalityPattern = 1 << 1,
+            RangePattern = 1 << 2,
             // C# 7.0 features
-            SourcePattern = 1 << 2,
-            IsTypePattern = 1 << 3,
-            CaseGuard = 1 << 4,
+            SourcePattern = 1 << 3,
+            IsTypePattern = 1 << 4,
+            CaseGuard = 1 << 5,
             // C# 8.0 features
-            SwitchExpression = 1 << 5,
+            SwitchExpression = 1 << 6,
             // C# 9.0 features
-            OrPattern = 1 << 6,
-            AndPattern = 1 << 7,
-            TypePattern = 1 << 8,
+            OrPattern = 1 << 7,
+            AndPattern = 1 << 8,
+            TypePattern = 1 << 9,
         }
     }
 }
