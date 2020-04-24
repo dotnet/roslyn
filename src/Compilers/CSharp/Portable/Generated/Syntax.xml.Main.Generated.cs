@@ -220,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual TResult VisitInitializerExpression(InitializerExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ImplicitObjectCreationExpressionSyntax node.</summary>
+        [return: MaybeNull]
         public virtual TResult VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ObjectCreationExpressionSyntax node.</summary>

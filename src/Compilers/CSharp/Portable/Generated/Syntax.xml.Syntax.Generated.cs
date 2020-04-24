@@ -2808,6 +2808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitObjectCreationExpression(this);
+        [return: MaybeNull]
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitObjectCreationExpression(this);
 
         public ImplicitObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, ArgumentListSyntax argumentList, InitializerExpressionSyntax? initializer)
