@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
@@ -13,16 +14,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
     using static BinaryOperatorKind;
     using static AnalyzedPattern;
 
-    internal sealed class CSharpUsePatternCombinatorsAnalyzer
+    internal static class CSharpUsePatternCombinatorsAnalyzer
     {
-        private ExpressionSyntax _targetExpression = null!;
-
-        public static AnalyzedPattern? Analyze(IOperation operation, out ExpressionSyntax targetExpression)
+        public static bool Analyze(IOperation operation,
+            [NotNullWhen(true)] out AnalyzedPattern? pattern,
+            [NotNullWhen(true)] out ExpressionSyntax? target)
         {
-            var patternAnalyzer = new CSharpUsePatternCombinatorsAnalyzer();
-            var analyzedPattern = patternAnalyzer.ParsePattern(operation);
-            targetExpression = patternAnalyzer._targetExpression;
-            return analyzedPattern;
+            if ((pattern = ParsePattern(operation)) != null)
+                return TryGetTargetExpression(pattern, out target);
+            target = null;
+            return false;
         }
 
         private enum ConstantResult
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             Right,
         }
 
-        private AnalyzedPattern? ParsePattern(IOperation operation)
+        private static AnalyzedPattern? ParsePattern(IOperation operation)
         {
             switch (operation)
             {
@@ -75,13 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                         return Not.Create(pattern);
                     }
 
-                case IIsTypeOperation op when CheckTargetExpression(op.ValueOperand) &&
-                                              op.Syntax is BinaryExpressionSyntax { Right: TypeSyntax type }:
-                    return new Type(type);
+                case IIsTypeOperation { Syntax: BinaryExpressionSyntax { Right: TypeSyntax type } } op:
+                    return new Type(type, op.ValueOperand);
 
-                case IIsPatternOperation op when CheckTargetExpression(op.Value) &&
-                                                 op.Pattern.Syntax is PatternSyntax pattern:
-                    return new Source(pattern);
+                case IIsPatternOperation { Pattern: { Syntax: PatternSyntax pattern } } op:
+                    return new Source(pattern, op.Value);
 
                 case IParenthesizedOperation op:
                     return ParsePattern(op.Operand);
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             return null;
         }
 
-        private AnalyzedPattern? ParseBinaryPattern(IBinaryOperation op, bool isDisjunctive, SyntaxToken token)
+        private static AnalyzedPattern? ParseBinaryPattern(IBinaryOperation op, bool isDisjunctive, SyntaxToken token)
         {
             var leftPattern = ParsePattern(op.LeftOperand);
             if (leftPattern == null)
@@ -101,39 +100,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 return null;
 
             return Binary.Create(leftPattern, rightPattern, isDisjunctive, token);
-
         }
 
-        private ConstantResult DetermineConstant(IBinaryOperation op)
+        private static ConstantResult DetermineConstant(IBinaryOperation op)
         {
             return (op.LeftOperand, op.RightOperand) switch
             {
-                var (e, v) when IsConstant(v) && CheckTargetExpression(e) => ConstantResult.Right,
-                var (v, e) when IsConstant(v) && CheckTargetExpression(e) => ConstantResult.Left,
+                var (_, v) when IsConstant(v) => ConstantResult.Right,
+                var (v, _) when IsConstant(v) => ConstantResult.Left,
                 _ => ConstantResult.None,
             };
         }
 
-        private AnalyzedPattern? ParseRelationalPattern(IBinaryOperation op)
+        private static AnalyzedPattern? ParseRelationalPattern(IBinaryOperation op)
         {
             return DetermineConstant(op) switch
             {
                 ConstantResult.Left when op.LeftOperand.Syntax is ExpressionSyntax left
-                    => new Relational(Flip(op.OperatorKind), left),
+                    => new Relational(Flip(op.OperatorKind), left, op.RightOperand),
                 ConstantResult.Right when op.RightOperand.Syntax is ExpressionSyntax right
-                    => new Relational(op.OperatorKind, right),
+                    => new Relational(op.OperatorKind, right, op.LeftOperand),
                 _ => null
             };
         }
 
-        private AnalyzedPattern? ParseConstantPattern(IBinaryOperation op)
+        private static AnalyzedPattern? ParseConstantPattern(IBinaryOperation op)
         {
             return DetermineConstant(op) switch
             {
                 ConstantResult.Left when op.LeftOperand.Syntax is ExpressionSyntax left
-                    => new Constant(left),
+                    => new Constant(left, op.RightOperand),
                 ConstantResult.Right when op.RightOperand.Syntax is ExpressionSyntax right
-                    => new Constant(right),
+                    => new Constant(right, op.LeftOperand),
                 _ => null
             };
         }
@@ -153,8 +151,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         }
 
         /// <summary>
-        /// Changes the direction the operator is pointing
+        /// Changes the direction the operator is pointing to.
         /// </summary>
+        /// <remarks>
+        /// Relational patterns only come in prefix form so we'll have to
+        /// flip the operator if the original comparison has an LHS constant.
+        /// </remarks>
         public static BinaryOperatorKind Flip(BinaryOperatorKind operatorKind)
         {
             return operatorKind switch
@@ -169,34 +171,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
         private static bool IsConstant(IOperation operation)
         {
-            // Constants do not propagate to conversions
+            // By-design, constants will not propagate to conversions.
             return operation is IConversionOperation op
                 ? IsConstant(op.Operand)
                 : operation.ConstantValue.HasValue;
         }
 
-        private bool CheckTargetExpression(IOperation operation)
+        private static bool TryGetTargetExpression(AnalyzedPattern pattern, out ExpressionSyntax? target)
         {
-            if (operation is IConversionOperation { IsImplicit: false } op)
+            target = null;
+            return CheckTargetExpressions(pattern, ref target);
+
+            static bool CheckTargetExpressions(AnalyzedPattern pattern, ref ExpressionSyntax? target)
             {
-                // Unwrap explicit casts because the pattern will emit those anyways
-                operation = op.Operand;
+                return pattern switch
+                {
+                    Test p => CheckTargetExpression(p.TargetOperation, ref target),
+                    Binary p => CheckTargetExpressions(p.Left, ref target) &&
+                                CheckTargetExpressions(p.Right, ref target),
+                    Not p => CheckTargetExpressions(p.Pattern, ref target),
+                    var p => throw ExceptionUtilities.UnexpectedValue(p)
+                };
             }
 
-            if (!(operation.Syntax is ExpressionSyntax expression))
+            static bool CheckTargetExpression(IOperation operation, ref ExpressionSyntax? target)
             {
-                return false;
-            }
+                var expr = GetTargetExpression(operation);
+                if (expr is null)
+                    return false;
 
-            // If we have not figured the target expression yet,
-            // we will assume that the first expression is the one.
-            if (_targetExpression is null)
-            {
-                _targetExpression = expression;
+                if (target != null)
+                    return SyntaxFactory.AreEquivalent(expr, target);
+
+                target = expr;
                 return true;
             }
 
-            return SyntaxFactory.AreEquivalent(expression, _targetExpression);
+            static ExpressionSyntax? GetTargetExpression(IOperation operation)
+            {
+                // Unwrap explicit casts because the pattern will emit those anyways
+                if (operation is IConversionOperation { IsImplicit: false } op)
+                    operation = op.Operand;
+
+                return operation.Syntax as ExpressionSyntax;
+            }
         }
     }
 }

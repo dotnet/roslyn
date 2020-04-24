@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -37,14 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         {
         }
 
-        private static SyntaxKind MapToSyntaxKind(BinaryOperatorKind kind) => kind switch
-        {
-            BinaryOperatorKind.LessThan => SyntaxKind.LessThanToken,
-            BinaryOperatorKind.GreaterThan => SyntaxKind.GreaterThanToken,
-            BinaryOperatorKind.LessThanOrEqual => SyntaxKind.LessThanEqualsToken,
-            BinaryOperatorKind.GreaterThanOrEqual => SyntaxKind.GreaterThanEqualsToken,
-            _ => throw ExceptionUtilities.UnexpectedValue(kind)
-        };
+        private static SyntaxKind MapToSyntaxKind(BinaryOperatorKind kind)
+            => kind switch
+            {
+                BinaryOperatorKind.LessThan => SyntaxKind.LessThanToken,
+                BinaryOperatorKind.GreaterThan => SyntaxKind.GreaterThanToken,
+                BinaryOperatorKind.LessThanOrEqual => SyntaxKind.LessThanEqualsToken,
+                BinaryOperatorKind.GreaterThanOrEqual => SyntaxKind.GreaterThanEqualsToken,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind)
+            };
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId);
@@ -66,40 +68,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             var semanticModel = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
-                var location = diagnostic.AdditionalLocations[0];
-                var node = editor.OriginalRoot.FindNode(location.SourceSpan);
-                var expression = FixNode(CSharpUsePatternCombinatorsHelpers.GetExpression(node));
-                var operation = semanticModel.GetOperation(expression!);
-                var pattern = CSharpUsePatternCombinatorsAnalyzer.Analyze(operation!, out var targetExpression);
-                var patternSyntax = AsPatternSyntax(pattern!).WithAdditionalAnnotations(Formatter.Annotation);
-                editor.ReplaceNode(expression, IsPatternExpression(targetExpression, patternSyntax));
+                var location = diagnostic.Location;
+                var expression = editor.OriginalRoot.FindNode(location.SourceSpan, getInnermostNodeForTie: true);
+                var operation = semanticModel.GetOperation(expression, cancellationToken);
+                RoslynDebug.AssertNotNull(operation);
+                if (!CSharpUsePatternCombinatorsAnalyzer.Analyze(operation, out var pattern, out var target))
+                    Debug.Fail("Analysis was expected to succeed.");
+                var patternSyntax = AsPatternSyntax(pattern).WithAdditionalAnnotations(Formatter.Annotation);
+                editor.ReplaceNode(expression, IsPatternExpression(target, patternSyntax));
             }
         }
 
-        private static ExpressionSyntax? FixNode(ExpressionSyntax? e)
-        {
-            return e switch
+        private static PatternSyntax AsPatternSyntax(AnalyzedPattern pattern)
+            => pattern switch
             {
-                AssignmentExpressionSyntax n => n.Right,
-                LambdaExpressionSyntax n => n.ExpressionBody,
-                var n => n,
+                Binary p => BinaryPattern(
+                    p.IsDisjunctive ? SyntaxKind.OrPattern : SyntaxKind.AndPattern,
+                    AsPatternSyntax(p.Left).Parenthesize(),
+                    Token(p.Token.LeadingTrivia, p.IsDisjunctive ? SyntaxKind.OrKeyword : SyntaxKind.AndKeyword,
+                        TriviaList(p.Token.GetAllTrailingTrivia())),
+                    AsPatternSyntax(p.Right).Parenthesize()),
+                Constant p => ConstantPattern(p.ExpressionSyntax),
+                Source p => p.PatternSyntax,
+                Type p => TypePattern(p.TypeSyntax),
+                Relational p => RelationalPattern(Token(MapToSyntaxKind(p.OperatorKind)), p.Value.Parenthesize()),
+                Not p => UnaryPattern(AsPatternSyntax(p.Pattern).Parenthesize()),
+                var p => throw ExceptionUtilities.UnexpectedValue(p)
             };
-        }
-
-        private static PatternSyntax AsPatternSyntax(AnalyzedPattern pattern) => pattern switch
-        {
-            Binary p => BinaryPattern(
-                p.IsDisjunctive ? SyntaxKind.OrPattern : SyntaxKind.AndPattern,
-                AsPatternSyntax(p.Left).Parenthesize(),
-                Token(p.Token.LeadingTrivia, p.IsDisjunctive ? SyntaxKind.OrKeyword : SyntaxKind.AndKeyword, TriviaList(p.Token.GetAllTrailingTrivia())),
-                AsPatternSyntax(p.Right).Parenthesize()),
-            Constant p => ConstantPattern(p.ExpressionSyntax),
-            Source p => p.PatternSyntax,
-            Type p => TypePattern(p.TypeSyntax),
-            Relational p => RelationalPattern(Token(MapToSyntaxKind(p.OperatorKind)), p.Value),
-            Not p => UnaryPattern(AsPatternSyntax(p.Pattern).Parenthesize()),
-            var p => throw ExceptionUtilities.UnexpectedValue(p)
-        };
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

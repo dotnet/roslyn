@@ -20,47 +20,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         }
 
         /// <summary>
+        /// Base class for patterns that target a specific expression, i.e. non-combinators
+        /// </summary>
+        internal abstract class Test : AnalyzedPattern
+        {
+            public readonly IOperation TargetOperation;
+
+            protected Test(IOperation targetOperation)
+                => TargetOperation = targetOperation;
+        }
+
+        /// <summary>
         /// Represents a type-pattern, constructed from is-expression
         /// </summary>
-        internal sealed class Type : AnalyzedPattern
+        internal sealed class Type : Test
         {
             public readonly TypeSyntax TypeSyntax;
 
-            public Type(TypeSyntax expression)
+            public Type(TypeSyntax expression, IOperation target) : base(target)
                 => TypeSyntax = expression;
         }
 
         /// <summary>
         /// Represents a source-pattern, constructed from C# patterns
         /// </summary>
-        internal sealed class Source : AnalyzedPattern
+        internal sealed class Source : Test
         {
             public readonly PatternSyntax PatternSyntax;
 
-            public Source(PatternSyntax patternSyntax)
+            public Source(PatternSyntax patternSyntax, IOperation target) : base(target)
                 => PatternSyntax = patternSyntax;
         }
 
         /// <summary>
         /// Represents a constant-pattern, constructed from an equality check
         /// </summary>
-        internal sealed class Constant : AnalyzedPattern
+        internal sealed class Constant : Test
         {
             public readonly ExpressionSyntax ExpressionSyntax;
 
-            public Constant(ExpressionSyntax expression)
+            public Constant(ExpressionSyntax expression, IOperation target) : base(target)
                 => ExpressionSyntax = expression;
         }
 
         /// <summary>
         /// Represents a relational-pattern, constructed from relational operators
         /// </summary>
-        internal sealed class Relational : AnalyzedPattern
+        internal sealed class Relational : Test
         {
             public readonly BinaryOperatorKind OperatorKind;
             public readonly ExpressionSyntax Value;
 
-            public Relational(BinaryOperatorKind operatorKind, ExpressionSyntax value)
+            public Relational(BinaryOperatorKind operatorKind, ExpressionSyntax value, IOperation target) : base(target)
             {
                 OperatorKind = operatorKind;
                 Value = value;
@@ -87,11 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
             public static AnalyzedPattern Create(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern, bool isDisjunctive, SyntaxToken token)
             {
-                return (leftPattern, rightPattern) switch
-                {
-                    (Not left, Not right) => Not.Create(new Binary(left.Pattern, right.Pattern, !isDisjunctive, token)),
-                    _ => new Binary(leftPattern, rightPattern, isDisjunctive, token)
-                };
+                return !isDisjunctive && (leftPattern, rightPattern) is (Not left, Not right)
+                    ? Not.Create(new Binary(left.Pattern, right.Pattern, isDisjunctive: true, token))
+                    : new Binary(leftPattern, rightPattern, isDisjunctive, token);
             }
         }
 
@@ -102,7 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         {
             public readonly AnalyzedPattern Pattern;
 
-            private Not(AnalyzedPattern pattern) => Pattern = pattern;
+            private Not(AnalyzedPattern pattern)
+                => Pattern = pattern;
 
             private static BinaryOperatorKind Negate(BinaryOperatorKind kind) => kind switch
             {
@@ -116,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             public static AnalyzedPattern Create(AnalyzedPattern pattern) => pattern switch
             {
                 Not p => p.Pattern,
-                Relational p => new Relational(Negate(p.OperatorKind), p.Value),
+                Relational p => new Relational(Negate(p.OperatorKind), p.Value, p.TargetOperation),
                 _ => new Not(pattern)
             };
         }
