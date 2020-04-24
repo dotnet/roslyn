@@ -2008,12 +2008,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw new NotImplementedException();
         }
 
-        private ImmutableQueue<SourceMethodSymbolWithAttributes> _moduleInitializerMethods = ImmutableQueue<SourceMethodSymbolWithAttributes>.Empty;
+        private ConcurrentSet<SourceMethodSymbolWithAttributes>? _moduleInitializerMethods;
 
         internal void AddModuleInitializerMethod(SourceMethodSymbolWithAttributes method)
         {
             Debug.Assert(!_declarationDiagnosticsFrozen);
-            ImmutableInterlocked.Enqueue(ref _moduleInitializerMethods, method);
+            LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
         }
 
         #endregion
@@ -2820,7 +2820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(_declarationDiagnosticsFrozen);
 
-            if (!_moduleInitializerMethods.IsEmpty)
+            if (_moduleInitializerMethods is object)
             {
                 var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
 
