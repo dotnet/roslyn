@@ -9,6 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    using System.Diagnostics.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
 
     public partial class CSharpSyntaxVisitor<TResult>
@@ -5810,5 +5811,3815 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new NullableDirectiveTriviaSyntax instance.</summary>
         public static NullableDirectiveTriviaSyntax NullableDirectiveTrivia(SyntaxToken settingToken, bool isActive)
             => SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.NullableKeyword), settingToken, default, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+    }
+
+    public static partial class CSharpSyntaxNodeExtensions
+    {
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="NameSyntax"/>.</summary>
+        public static bool IsName([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out NameSyntax? name)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.IdentifierName:
+                case SyntaxKind.QualifiedName:
+                case SyntaxKind.GenericName:
+                case SyntaxKind.AliasQualifiedName:
+                    name = (NameSyntax)node!;
+                    return true;
+                default:
+                    name = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="SimpleNameSyntax"/>.</summary>
+        public static bool IsSimpleName([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out SimpleNameSyntax? simpleName)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.IdentifierName:
+                case SyntaxKind.GenericName:
+                    simpleName = (SimpleNameSyntax)node!;
+                    return true;
+                default:
+                    simpleName = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="IdentifierNameSyntax"/>.</summary>
+        public static bool IsIdentifierName([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out IdentifierNameSyntax? identifierName)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.IdentifierName:
+                    identifierName = (IdentifierNameSyntax)node!;
+                    return true;
+                default:
+                    identifierName = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="QualifiedNameSyntax"/>.</summary>
+        public static bool IsQualifiedName([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out QualifiedNameSyntax? qualifiedName)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.QualifiedName:
+                    qualifiedName = (QualifiedNameSyntax)node!;
+                    return true;
+                default:
+                    qualifiedName = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="GenericNameSyntax"/>.</summary>
+        public static bool IsGenericName([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out GenericNameSyntax? genericName)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.GenericName:
+                    genericName = (GenericNameSyntax)node!;
+                    return true;
+                default:
+                    genericName = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="TypeArgumentListSyntax"/>.</summary>
+        public static bool IsTypeArgumentList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out TypeArgumentListSyntax? typeArgumentList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.TypeArgumentList:
+                    typeArgumentList = (TypeArgumentListSyntax)node!;
+                    return true;
+                default:
+                    typeArgumentList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="AliasQualifiedNameSyntax"/>.</summary>
+        public static bool IsAliasQualifiedName([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out AliasQualifiedNameSyntax? aliasQualifiedName)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.AliasQualifiedName:
+                    aliasQualifiedName = (AliasQualifiedNameSyntax)node!;
+                    return true;
+                default:
+                    aliasQualifiedName = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="TypeSyntax"/>.</summary>
+        public static bool IsType([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out TypeSyntax? type)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.IdentifierName:
+                case SyntaxKind.QualifiedName:
+                case SyntaxKind.GenericName:
+                case SyntaxKind.AliasQualifiedName:
+                case SyntaxKind.PredefinedType:
+                case SyntaxKind.ArrayType:
+                case SyntaxKind.PointerType:
+                case SyntaxKind.NullableType:
+                case SyntaxKind.OmittedTypeArgument:
+                case SyntaxKind.TupleType:
+                case SyntaxKind.RefType:
+                    type = (TypeSyntax)node!;
+                    return true;
+                default:
+                    type = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="PredefinedTypeSyntax"/>.</summary>
+        public static bool IsPredefinedType([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out PredefinedTypeSyntax? predefinedType)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.PredefinedType:
+                    predefinedType = (PredefinedTypeSyntax)node!;
+                    return true;
+                default:
+                    predefinedType = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ArrayTypeSyntax"/>.</summary>
+        public static bool IsArrayType([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ArrayTypeSyntax? arrayType)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ArrayType:
+                    arrayType = (ArrayTypeSyntax)node!;
+                    return true;
+                default:
+                    arrayType = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ArrayRankSpecifierSyntax"/>.</summary>
+        public static bool IsArrayRankSpecifier([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ArrayRankSpecifierSyntax? arrayRankSpecifier)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ArrayRankSpecifier:
+                    arrayRankSpecifier = (ArrayRankSpecifierSyntax)node!;
+                    return true;
+                default:
+                    arrayRankSpecifier = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="PointerTypeSyntax"/>.</summary>
+        public static bool IsPointerType([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out PointerTypeSyntax? pointerType)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.PointerType:
+                    pointerType = (PointerTypeSyntax)node!;
+                    return true;
+                default:
+                    pointerType = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="NullableTypeSyntax"/>.</summary>
+        public static bool IsNullableType([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out NullableTypeSyntax? nullableType)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.NullableType:
+                    nullableType = (NullableTypeSyntax)node!;
+                    return true;
+                default:
+                    nullableType = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="TupleTypeSyntax"/>.</summary>
+        public static bool IsTupleType([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out TupleTypeSyntax? tupleType)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.TupleType:
+                    tupleType = (TupleTypeSyntax)node!;
+                    return true;
+                default:
+                    tupleType = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="TupleElementSyntax"/>.</summary>
+        public static bool IsTupleElement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out TupleElementSyntax? tupleElement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.TupleElement:
+                    tupleElement = (TupleElementSyntax)node!;
+                    return true;
+                default:
+                    tupleElement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="OmittedTypeArgumentSyntax"/>.</summary>
+        public static bool IsOmittedTypeArgument([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out OmittedTypeArgumentSyntax? omittedTypeArgument)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.OmittedTypeArgument:
+                    omittedTypeArgument = (OmittedTypeArgumentSyntax)node!;
+                    return true;
+                default:
+                    omittedTypeArgument = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="RefTypeSyntax"/>.</summary>
+        public static bool IsRefType([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out RefTypeSyntax? refType)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.RefType:
+                    refType = (RefTypeSyntax)node!;
+                    return true;
+                default:
+                    refType = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ExpressionSyntax"/>.</summary>
+        public static bool IsExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ExpressionSyntax? expression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.IdentifierName:
+                case SyntaxKind.QualifiedName:
+                case SyntaxKind.GenericName:
+                case SyntaxKind.AliasQualifiedName:
+                case SyntaxKind.PredefinedType:
+                case SyntaxKind.ArrayType:
+                case SyntaxKind.PointerType:
+                case SyntaxKind.NullableType:
+                case SyntaxKind.OmittedTypeArgument:
+                case SyntaxKind.ParenthesizedExpression:
+                case SyntaxKind.ConditionalExpression:
+                case SyntaxKind.InvocationExpression:
+                case SyntaxKind.ElementAccessExpression:
+                case SyntaxKind.CastExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.ObjectInitializerExpression:
+                case SyntaxKind.CollectionInitializerExpression:
+                case SyntaxKind.ArrayInitializerExpression:
+                case SyntaxKind.ComplexElementInitializerExpression:
+                case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.AnonymousObjectCreationExpression:
+                case SyntaxKind.ArrayCreationExpression:
+                case SyntaxKind.ImplicitArrayCreationExpression:
+                case SyntaxKind.StackAllocArrayCreationExpression:
+                case SyntaxKind.OmittedArraySizeExpression:
+                case SyntaxKind.InterpolatedStringExpression:
+                case SyntaxKind.ImplicitElementAccess:
+                case SyntaxKind.IsPatternExpression:
+                case SyntaxKind.RangeExpression:
+                case SyntaxKind.ImplicitObjectCreationExpression:
+                case SyntaxKind.AddExpression:
+                case SyntaxKind.SubtractExpression:
+                case SyntaxKind.MultiplyExpression:
+                case SyntaxKind.DivideExpression:
+                case SyntaxKind.ModuloExpression:
+                case SyntaxKind.LeftShiftExpression:
+                case SyntaxKind.RightShiftExpression:
+                case SyntaxKind.LogicalOrExpression:
+                case SyntaxKind.LogicalAndExpression:
+                case SyntaxKind.BitwiseOrExpression:
+                case SyntaxKind.BitwiseAndExpression:
+                case SyntaxKind.ExclusiveOrExpression:
+                case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
+                case SyntaxKind.LessThanExpression:
+                case SyntaxKind.LessThanOrEqualExpression:
+                case SyntaxKind.GreaterThanExpression:
+                case SyntaxKind.GreaterThanOrEqualExpression:
+                case SyntaxKind.IsExpression:
+                case SyntaxKind.AsExpression:
+                case SyntaxKind.CoalesceExpression:
+                case SyntaxKind.SimpleMemberAccessExpression:
+                case SyntaxKind.PointerMemberAccessExpression:
+                case SyntaxKind.ConditionalAccessExpression:
+                case SyntaxKind.MemberBindingExpression:
+                case SyntaxKind.ElementBindingExpression:
+                case SyntaxKind.SimpleAssignmentExpression:
+                case SyntaxKind.AddAssignmentExpression:
+                case SyntaxKind.SubtractAssignmentExpression:
+                case SyntaxKind.MultiplyAssignmentExpression:
+                case SyntaxKind.DivideAssignmentExpression:
+                case SyntaxKind.ModuloAssignmentExpression:
+                case SyntaxKind.AndAssignmentExpression:
+                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                case SyntaxKind.OrAssignmentExpression:
+                case SyntaxKind.LeftShiftAssignmentExpression:
+                case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.CoalesceAssignmentExpression:
+                case SyntaxKind.UnaryPlusExpression:
+                case SyntaxKind.UnaryMinusExpression:
+                case SyntaxKind.BitwiseNotExpression:
+                case SyntaxKind.LogicalNotExpression:
+                case SyntaxKind.PreIncrementExpression:
+                case SyntaxKind.PreDecrementExpression:
+                case SyntaxKind.PointerIndirectionExpression:
+                case SyntaxKind.AddressOfExpression:
+                case SyntaxKind.PostIncrementExpression:
+                case SyntaxKind.PostDecrementExpression:
+                case SyntaxKind.AwaitExpression:
+                case SyntaxKind.IndexExpression:
+                case SyntaxKind.ThisExpression:
+                case SyntaxKind.BaseExpression:
+                case SyntaxKind.ArgListExpression:
+                case SyntaxKind.NumericLiteralExpression:
+                case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.CharacterLiteralExpression:
+                case SyntaxKind.TrueLiteralExpression:
+                case SyntaxKind.FalseLiteralExpression:
+                case SyntaxKind.NullLiteralExpression:
+                case SyntaxKind.DefaultLiteralExpression:
+                case SyntaxKind.TypeOfExpression:
+                case SyntaxKind.SizeOfExpression:
+                case SyntaxKind.CheckedExpression:
+                case SyntaxKind.UncheckedExpression:
+                case SyntaxKind.DefaultExpression:
+                case SyntaxKind.MakeRefExpression:
+                case SyntaxKind.RefValueExpression:
+                case SyntaxKind.RefTypeExpression:
+                case SyntaxKind.QueryExpression:
+                case SyntaxKind.TupleType:
+                case SyntaxKind.TupleExpression:
+                case SyntaxKind.SwitchExpression:
+                case SyntaxKind.DeclarationExpression:
+                case SyntaxKind.RefExpression:
+                case SyntaxKind.RefType:
+                case SyntaxKind.ThrowExpression:
+                case SyntaxKind.ImplicitStackAllocArrayCreationExpression:
+                case SyntaxKind.SuppressNullableWarningExpression:
+                    expression = (ExpressionSyntax)node!;
+                    return true;
+                default:
+                    expression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ParenthesizedExpressionSyntax"/>.</summary>
+        public static bool IsParenthesizedExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ParenthesizedExpressionSyntax? parenthesizedExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ParenthesizedExpression:
+                    parenthesizedExpression = (ParenthesizedExpressionSyntax)node!;
+                    return true;
+                default:
+                    parenthesizedExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="TupleExpressionSyntax"/>.</summary>
+        public static bool IsTupleExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out TupleExpressionSyntax? tupleExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.TupleExpression:
+                    tupleExpression = (TupleExpressionSyntax)node!;
+                    return true;
+                default:
+                    tupleExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="PrefixUnaryExpressionSyntax"/>.</summary>
+        public static bool IsPrefixUnaryExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out PrefixUnaryExpressionSyntax? prefixUnaryExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.UnaryPlusExpression:
+                case SyntaxKind.UnaryMinusExpression:
+                case SyntaxKind.BitwiseNotExpression:
+                case SyntaxKind.LogicalNotExpression:
+                case SyntaxKind.PreIncrementExpression:
+                case SyntaxKind.PreDecrementExpression:
+                case SyntaxKind.PointerIndirectionExpression:
+                case SyntaxKind.AddressOfExpression:
+                case SyntaxKind.IndexExpression:
+                    prefixUnaryExpression = (PrefixUnaryExpressionSyntax)node!;
+                    return true;
+                default:
+                    prefixUnaryExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="AwaitExpressionSyntax"/>.</summary>
+        public static bool IsAwaitExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out AwaitExpressionSyntax? awaitExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.AwaitExpression:
+                    awaitExpression = (AwaitExpressionSyntax)node!;
+                    return true;
+                default:
+                    awaitExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="PostfixUnaryExpressionSyntax"/>.</summary>
+        public static bool IsPostfixUnaryExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out PostfixUnaryExpressionSyntax? postfixUnaryExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.PostIncrementExpression:
+                case SyntaxKind.PostDecrementExpression:
+                case SyntaxKind.SuppressNullableWarningExpression:
+                    postfixUnaryExpression = (PostfixUnaryExpressionSyntax)node!;
+                    return true;
+                default:
+                    postfixUnaryExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="MemberAccessExpressionSyntax"/>.</summary>
+        public static bool IsMemberAccessExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out MemberAccessExpressionSyntax? memberAccessExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SimpleMemberAccessExpression:
+                case SyntaxKind.PointerMemberAccessExpression:
+                    memberAccessExpression = (MemberAccessExpressionSyntax)node!;
+                    return true;
+                default:
+                    memberAccessExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ConditionalAccessExpressionSyntax"/>.</summary>
+        public static bool IsConditionalAccessExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ConditionalAccessExpressionSyntax? conditionalAccessExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ConditionalAccessExpression:
+                    conditionalAccessExpression = (ConditionalAccessExpressionSyntax)node!;
+                    return true;
+                default:
+                    conditionalAccessExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="MemberBindingExpressionSyntax"/>.</summary>
+        public static bool IsMemberBindingExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out MemberBindingExpressionSyntax? memberBindingExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.MemberBindingExpression:
+                    memberBindingExpression = (MemberBindingExpressionSyntax)node!;
+                    return true;
+                default:
+                    memberBindingExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ElementBindingExpressionSyntax"/>.</summary>
+        public static bool IsElementBindingExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ElementBindingExpressionSyntax? elementBindingExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ElementBindingExpression:
+                    elementBindingExpression = (ElementBindingExpressionSyntax)node!;
+                    return true;
+                default:
+                    elementBindingExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="RangeExpressionSyntax"/>.</summary>
+        public static bool IsRangeExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out RangeExpressionSyntax? rangeExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.RangeExpression:
+                    rangeExpression = (RangeExpressionSyntax)node!;
+                    return true;
+                default:
+                    rangeExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ImplicitElementAccessSyntax"/>.</summary>
+        public static bool IsImplicitElementAccess([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ImplicitElementAccessSyntax? implicitElementAccess)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ImplicitElementAccess:
+                    implicitElementAccess = (ImplicitElementAccessSyntax)node!;
+                    return true;
+                default:
+                    implicitElementAccess = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BinaryExpressionSyntax"/>.</summary>
+        public static bool IsBinaryExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BinaryExpressionSyntax? binaryExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.AddExpression:
+                case SyntaxKind.SubtractExpression:
+                case SyntaxKind.MultiplyExpression:
+                case SyntaxKind.DivideExpression:
+                case SyntaxKind.ModuloExpression:
+                case SyntaxKind.LeftShiftExpression:
+                case SyntaxKind.RightShiftExpression:
+                case SyntaxKind.LogicalOrExpression:
+                case SyntaxKind.LogicalAndExpression:
+                case SyntaxKind.BitwiseOrExpression:
+                case SyntaxKind.BitwiseAndExpression:
+                case SyntaxKind.ExclusiveOrExpression:
+                case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
+                case SyntaxKind.LessThanExpression:
+                case SyntaxKind.LessThanOrEqualExpression:
+                case SyntaxKind.GreaterThanExpression:
+                case SyntaxKind.GreaterThanOrEqualExpression:
+                case SyntaxKind.IsExpression:
+                case SyntaxKind.AsExpression:
+                case SyntaxKind.CoalesceExpression:
+                    binaryExpression = (BinaryExpressionSyntax)node!;
+                    return true;
+                default:
+                    binaryExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="AssignmentExpressionSyntax"/>.</summary>
+        public static bool IsAssignmentExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out AssignmentExpressionSyntax? assignmentExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SimpleAssignmentExpression:
+                case SyntaxKind.AddAssignmentExpression:
+                case SyntaxKind.SubtractAssignmentExpression:
+                case SyntaxKind.MultiplyAssignmentExpression:
+                case SyntaxKind.DivideAssignmentExpression:
+                case SyntaxKind.ModuloAssignmentExpression:
+                case SyntaxKind.AndAssignmentExpression:
+                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                case SyntaxKind.OrAssignmentExpression:
+                case SyntaxKind.LeftShiftAssignmentExpression:
+                case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.CoalesceAssignmentExpression:
+                    assignmentExpression = (AssignmentExpressionSyntax)node!;
+                    return true;
+                default:
+                    assignmentExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ConditionalExpressionSyntax"/>.</summary>
+        public static bool IsConditionalExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ConditionalExpressionSyntax? conditionalExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ConditionalExpression:
+                    conditionalExpression = (ConditionalExpressionSyntax)node!;
+                    return true;
+                default:
+                    conditionalExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="InstanceExpressionSyntax"/>.</summary>
+        public static bool IsInstanceExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out InstanceExpressionSyntax? instanceExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ThisExpression:
+                case SyntaxKind.BaseExpression:
+                    instanceExpression = (InstanceExpressionSyntax)node!;
+                    return true;
+                default:
+                    instanceExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ThisExpressionSyntax"/>.</summary>
+        public static bool IsThisExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ThisExpressionSyntax? thisExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ThisExpression:
+                    thisExpression = (ThisExpressionSyntax)node!;
+                    return true;
+                default:
+                    thisExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BaseExpressionSyntax"/>.</summary>
+        public static bool IsBaseExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BaseExpressionSyntax? baseExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.BaseExpression:
+                    baseExpression = (BaseExpressionSyntax)node!;
+                    return true;
+                default:
+                    baseExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="LiteralExpressionSyntax"/>.</summary>
+        public static bool IsLiteralExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out LiteralExpressionSyntax? literalExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ArgListExpression:
+                case SyntaxKind.NumericLiteralExpression:
+                case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.CharacterLiteralExpression:
+                case SyntaxKind.TrueLiteralExpression:
+                case SyntaxKind.FalseLiteralExpression:
+                case SyntaxKind.NullLiteralExpression:
+                case SyntaxKind.DefaultLiteralExpression:
+                    literalExpression = (LiteralExpressionSyntax)node!;
+                    return true;
+                default:
+                    literalExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="MakeRefExpressionSyntax"/>.</summary>
+        public static bool IsMakeRefExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out MakeRefExpressionSyntax? makeRefExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.MakeRefExpression:
+                    makeRefExpression = (MakeRefExpressionSyntax)node!;
+                    return true;
+                default:
+                    makeRefExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="RefTypeExpressionSyntax"/>.</summary>
+        public static bool IsRefTypeExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out RefTypeExpressionSyntax? refTypeExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.RefTypeExpression:
+                    refTypeExpression = (RefTypeExpressionSyntax)node!;
+                    return true;
+                default:
+                    refTypeExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="RefValueExpressionSyntax"/>.</summary>
+        public static bool IsRefValueExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out RefValueExpressionSyntax? refValueExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.RefValueExpression:
+                    refValueExpression = (RefValueExpressionSyntax)node!;
+                    return true;
+                default:
+                    refValueExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="CheckedExpressionSyntax"/>.</summary>
+        public static bool IsCheckedExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out CheckedExpressionSyntax? checkedExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.CheckedExpression:
+                case SyntaxKind.UncheckedExpression:
+                    checkedExpression = (CheckedExpressionSyntax)node!;
+                    return true;
+                default:
+                    checkedExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="DefaultExpressionSyntax"/>.</summary>
+        public static bool IsDefaultExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out DefaultExpressionSyntax? defaultExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.DefaultExpression:
+                    defaultExpression = (DefaultExpressionSyntax)node!;
+                    return true;
+                default:
+                    defaultExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="TypeOfExpressionSyntax"/>.</summary>
+        public static bool IsTypeOfExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out TypeOfExpressionSyntax? typeOfExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.TypeOfExpression:
+                    typeOfExpression = (TypeOfExpressionSyntax)node!;
+                    return true;
+                default:
+                    typeOfExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="SizeOfExpressionSyntax"/>.</summary>
+        public static bool IsSizeOfExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out SizeOfExpressionSyntax? sizeOfExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SizeOfExpression:
+                    sizeOfExpression = (SizeOfExpressionSyntax)node!;
+                    return true;
+                default:
+                    sizeOfExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="InvocationExpressionSyntax"/>.</summary>
+        public static bool IsInvocationExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out InvocationExpressionSyntax? invocationExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.InvocationExpression:
+                    invocationExpression = (InvocationExpressionSyntax)node!;
+                    return true;
+                default:
+                    invocationExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ElementAccessExpressionSyntax"/>.</summary>
+        public static bool IsElementAccessExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ElementAccessExpressionSyntax? elementAccessExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ElementAccessExpression:
+                    elementAccessExpression = (ElementAccessExpressionSyntax)node!;
+                    return true;
+                default:
+                    elementAccessExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BaseArgumentListSyntax"/>.</summary>
+        public static bool IsBaseArgumentList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BaseArgumentListSyntax? baseArgumentList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ArgumentList:
+                case SyntaxKind.BracketedArgumentList:
+                    baseArgumentList = (BaseArgumentListSyntax)node!;
+                    return true;
+                default:
+                    baseArgumentList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ArgumentListSyntax"/>.</summary>
+        public static bool IsArgumentList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ArgumentListSyntax? argumentList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ArgumentList:
+                    argumentList = (ArgumentListSyntax)node!;
+                    return true;
+                default:
+                    argumentList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BracketedArgumentListSyntax"/>.</summary>
+        public static bool IsBracketedArgumentList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BracketedArgumentListSyntax? bracketedArgumentList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.BracketedArgumentList:
+                    bracketedArgumentList = (BracketedArgumentListSyntax)node!;
+                    return true;
+                default:
+                    bracketedArgumentList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ArgumentSyntax"/>.</summary>
+        public static bool IsArgument([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ArgumentSyntax? argument)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.Argument:
+                    argument = (ArgumentSyntax)node!;
+                    return true;
+                default:
+                    argument = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="NameColonSyntax"/>.</summary>
+        public static bool IsNameColon([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out NameColonSyntax? nameColon)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.NameColon:
+                    nameColon = (NameColonSyntax)node!;
+                    return true;
+                default:
+                    nameColon = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="DeclarationExpressionSyntax"/>.</summary>
+        public static bool IsDeclarationExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out DeclarationExpressionSyntax? declarationExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.DeclarationExpression:
+                    declarationExpression = (DeclarationExpressionSyntax)node!;
+                    return true;
+                default:
+                    declarationExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="CastExpressionSyntax"/>.</summary>
+        public static bool IsCastExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out CastExpressionSyntax? castExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.CastExpression:
+                    castExpression = (CastExpressionSyntax)node!;
+                    return true;
+                default:
+                    castExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="AnonymousFunctionExpressionSyntax"/>.</summary>
+        public static bool IsAnonymousFunctionExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out AnonymousFunctionExpressionSyntax? anonymousFunctionExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    anonymousFunctionExpression = (AnonymousFunctionExpressionSyntax)node!;
+                    return true;
+                default:
+                    anonymousFunctionExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="AnonymousMethodExpressionSyntax"/>.</summary>
+        public static bool IsAnonymousMethodExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out AnonymousMethodExpressionSyntax? anonymousMethodExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.AnonymousMethodExpression:
+                    anonymousMethodExpression = (AnonymousMethodExpressionSyntax)node!;
+                    return true;
+                default:
+                    anonymousMethodExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="LambdaExpressionSyntax"/>.</summary>
+        public static bool IsLambdaExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out LambdaExpressionSyntax? lambdaExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    lambdaExpression = (LambdaExpressionSyntax)node!;
+                    return true;
+                default:
+                    lambdaExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="SimpleLambdaExpressionSyntax"/>.</summary>
+        public static bool IsSimpleLambdaExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out SimpleLambdaExpressionSyntax? simpleLambdaExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SimpleLambdaExpression:
+                    simpleLambdaExpression = (SimpleLambdaExpressionSyntax)node!;
+                    return true;
+                default:
+                    simpleLambdaExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="RefExpressionSyntax"/>.</summary>
+        public static bool IsRefExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out RefExpressionSyntax? refExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.RefExpression:
+                    refExpression = (RefExpressionSyntax)node!;
+                    return true;
+                default:
+                    refExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ParenthesizedLambdaExpressionSyntax"/>.</summary>
+        public static bool IsParenthesizedLambdaExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ParenthesizedLambdaExpressionSyntax? parenthesizedLambdaExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    parenthesizedLambdaExpression = (ParenthesizedLambdaExpressionSyntax)node!;
+                    return true;
+                default:
+                    parenthesizedLambdaExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="InitializerExpressionSyntax"/>.</summary>
+        public static bool IsInitializerExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out InitializerExpressionSyntax? initializerExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ObjectInitializerExpression:
+                case SyntaxKind.CollectionInitializerExpression:
+                case SyntaxKind.ArrayInitializerExpression:
+                case SyntaxKind.ComplexElementInitializerExpression:
+                    initializerExpression = (InitializerExpressionSyntax)node!;
+                    return true;
+                default:
+                    initializerExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BaseObjectCreationExpressionSyntax"/>.</summary>
+        public static bool IsBaseObjectCreationExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BaseObjectCreationExpressionSyntax? baseObjectCreationExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ImplicitObjectCreationExpression:
+                    baseObjectCreationExpression = (BaseObjectCreationExpressionSyntax)node!;
+                    return true;
+                default:
+                    baseObjectCreationExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ImplicitObjectCreationExpressionSyntax"/>.</summary>
+        public static bool IsImplicitObjectCreationExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ImplicitObjectCreationExpressionSyntax? implicitObjectCreationExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ImplicitObjectCreationExpression:
+                    implicitObjectCreationExpression = (ImplicitObjectCreationExpressionSyntax)node!;
+                    return true;
+                default:
+                    implicitObjectCreationExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ObjectCreationExpressionSyntax"/>.</summary>
+        public static bool IsObjectCreationExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ObjectCreationExpressionSyntax? objectCreationExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ObjectCreationExpression:
+                    objectCreationExpression = (ObjectCreationExpressionSyntax)node!;
+                    return true;
+                default:
+                    objectCreationExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="AnonymousObjectMemberDeclaratorSyntax"/>.</summary>
+        public static bool IsAnonymousObjectMemberDeclarator([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out AnonymousObjectMemberDeclaratorSyntax? anonymousObjectMemberDeclarator)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.AnonymousObjectMemberDeclarator:
+                    anonymousObjectMemberDeclarator = (AnonymousObjectMemberDeclaratorSyntax)node!;
+                    return true;
+                default:
+                    anonymousObjectMemberDeclarator = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="AnonymousObjectCreationExpressionSyntax"/>.</summary>
+        public static bool IsAnonymousObjectCreationExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out AnonymousObjectCreationExpressionSyntax? anonymousObjectCreationExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.AnonymousObjectCreationExpression:
+                    anonymousObjectCreationExpression = (AnonymousObjectCreationExpressionSyntax)node!;
+                    return true;
+                default:
+                    anonymousObjectCreationExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ArrayCreationExpressionSyntax"/>.</summary>
+        public static bool IsArrayCreationExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ArrayCreationExpressionSyntax? arrayCreationExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ArrayCreationExpression:
+                    arrayCreationExpression = (ArrayCreationExpressionSyntax)node!;
+                    return true;
+                default:
+                    arrayCreationExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ImplicitArrayCreationExpressionSyntax"/>.</summary>
+        public static bool IsImplicitArrayCreationExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ImplicitArrayCreationExpressionSyntax? implicitArrayCreationExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ImplicitArrayCreationExpression:
+                    implicitArrayCreationExpression = (ImplicitArrayCreationExpressionSyntax)node!;
+                    return true;
+                default:
+                    implicitArrayCreationExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="StackAllocArrayCreationExpressionSyntax"/>.</summary>
+        public static bool IsStackAllocArrayCreationExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out StackAllocArrayCreationExpressionSyntax? stackAllocArrayCreationExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.StackAllocArrayCreationExpression:
+                    stackAllocArrayCreationExpression = (StackAllocArrayCreationExpressionSyntax)node!;
+                    return true;
+                default:
+                    stackAllocArrayCreationExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ImplicitStackAllocArrayCreationExpressionSyntax"/>.</summary>
+        public static bool IsImplicitStackAllocArrayCreationExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ImplicitStackAllocArrayCreationExpressionSyntax? implicitStackAllocArrayCreationExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ImplicitStackAllocArrayCreationExpression:
+                    implicitStackAllocArrayCreationExpression = (ImplicitStackAllocArrayCreationExpressionSyntax)node!;
+                    return true;
+                default:
+                    implicitStackAllocArrayCreationExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="QueryClauseSyntax"/>.</summary>
+        public static bool IsQueryClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out QueryClauseSyntax? queryClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.FromClause:
+                case SyntaxKind.LetClause:
+                case SyntaxKind.JoinClause:
+                case SyntaxKind.WhereClause:
+                case SyntaxKind.OrderByClause:
+                    queryClause = (QueryClauseSyntax)node!;
+                    return true;
+                default:
+                    queryClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="SelectOrGroupClauseSyntax"/>.</summary>
+        public static bool IsSelectOrGroupClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out SelectOrGroupClauseSyntax? selectOrGroupClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SelectClause:
+                case SyntaxKind.GroupClause:
+                    selectOrGroupClause = (SelectOrGroupClauseSyntax)node!;
+                    return true;
+                default:
+                    selectOrGroupClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="QueryExpressionSyntax"/>.</summary>
+        public static bool IsQueryExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out QueryExpressionSyntax? queryExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.QueryExpression:
+                    queryExpression = (QueryExpressionSyntax)node!;
+                    return true;
+                default:
+                    queryExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="QueryBodySyntax"/>.</summary>
+        public static bool IsQueryBody([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out QueryBodySyntax? queryBody)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.QueryBody:
+                    queryBody = (QueryBodySyntax)node!;
+                    return true;
+                default:
+                    queryBody = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="FromClauseSyntax"/>.</summary>
+        public static bool IsFromClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out FromClauseSyntax? fromClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.FromClause:
+                    fromClause = (FromClauseSyntax)node!;
+                    return true;
+                default:
+                    fromClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="LetClauseSyntax"/>.</summary>
+        public static bool IsLetClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out LetClauseSyntax? letClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.LetClause:
+                    letClause = (LetClauseSyntax)node!;
+                    return true;
+                default:
+                    letClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="JoinClauseSyntax"/>.</summary>
+        public static bool IsJoinClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out JoinClauseSyntax? joinClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.JoinClause:
+                    joinClause = (JoinClauseSyntax)node!;
+                    return true;
+                default:
+                    joinClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="JoinIntoClauseSyntax"/>.</summary>
+        public static bool IsJoinIntoClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out JoinIntoClauseSyntax? joinIntoClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.JoinIntoClause:
+                    joinIntoClause = (JoinIntoClauseSyntax)node!;
+                    return true;
+                default:
+                    joinIntoClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="WhereClauseSyntax"/>.</summary>
+        public static bool IsWhereClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out WhereClauseSyntax? whereClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.WhereClause:
+                    whereClause = (WhereClauseSyntax)node!;
+                    return true;
+                default:
+                    whereClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="OrderByClauseSyntax"/>.</summary>
+        public static bool IsOrderByClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out OrderByClauseSyntax? orderByClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.OrderByClause:
+                    orderByClause = (OrderByClauseSyntax)node!;
+                    return true;
+                default:
+                    orderByClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="OrderingSyntax"/>.</summary>
+        public static bool IsOrdering([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out OrderingSyntax? ordering)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.AscendingOrdering:
+                case SyntaxKind.DescendingOrdering:
+                    ordering = (OrderingSyntax)node!;
+                    return true;
+                default:
+                    ordering = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="SelectClauseSyntax"/>.</summary>
+        public static bool IsSelectClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out SelectClauseSyntax? selectClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SelectClause:
+                    selectClause = (SelectClauseSyntax)node!;
+                    return true;
+                default:
+                    selectClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="GroupClauseSyntax"/>.</summary>
+        public static bool IsGroupClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out GroupClauseSyntax? groupClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.GroupClause:
+                    groupClause = (GroupClauseSyntax)node!;
+                    return true;
+                default:
+                    groupClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="QueryContinuationSyntax"/>.</summary>
+        public static bool IsQueryContinuation([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out QueryContinuationSyntax? queryContinuation)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.QueryContinuation:
+                    queryContinuation = (QueryContinuationSyntax)node!;
+                    return true;
+                default:
+                    queryContinuation = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="OmittedArraySizeExpressionSyntax"/>.</summary>
+        public static bool IsOmittedArraySizeExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out OmittedArraySizeExpressionSyntax? omittedArraySizeExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.OmittedArraySizeExpression:
+                    omittedArraySizeExpression = (OmittedArraySizeExpressionSyntax)node!;
+                    return true;
+                default:
+                    omittedArraySizeExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="InterpolatedStringExpressionSyntax"/>.</summary>
+        public static bool IsInterpolatedStringExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out InterpolatedStringExpressionSyntax? interpolatedStringExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.InterpolatedStringExpression:
+                    interpolatedStringExpression = (InterpolatedStringExpressionSyntax)node!;
+                    return true;
+                default:
+                    interpolatedStringExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="IsPatternExpressionSyntax"/>.</summary>
+        public static bool IsIsPatternExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out IsPatternExpressionSyntax? isPatternExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.IsPatternExpression:
+                    isPatternExpression = (IsPatternExpressionSyntax)node!;
+                    return true;
+                default:
+                    isPatternExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ThrowExpressionSyntax"/>.</summary>
+        public static bool IsThrowExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ThrowExpressionSyntax? throwExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ThrowExpression:
+                    throwExpression = (ThrowExpressionSyntax)node!;
+                    return true;
+                default:
+                    throwExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="WhenClauseSyntax"/>.</summary>
+        public static bool IsWhenClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out WhenClauseSyntax? whenClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.WhenClause:
+                    whenClause = (WhenClauseSyntax)node!;
+                    return true;
+                default:
+                    whenClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="PatternSyntax"/>.</summary>
+        public static bool IsPattern([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out PatternSyntax? pattern)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.DeclarationPattern:
+                case SyntaxKind.ConstantPattern:
+                case SyntaxKind.RecursivePattern:
+                case SyntaxKind.DiscardPattern:
+                case SyntaxKind.VarPattern:
+                    pattern = (PatternSyntax)node!;
+                    return true;
+                default:
+                    pattern = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="DiscardPatternSyntax"/>.</summary>
+        public static bool IsDiscardPattern([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out DiscardPatternSyntax? discardPattern)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.DiscardPattern:
+                    discardPattern = (DiscardPatternSyntax)node!;
+                    return true;
+                default:
+                    discardPattern = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="DeclarationPatternSyntax"/>.</summary>
+        public static bool IsDeclarationPattern([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out DeclarationPatternSyntax? declarationPattern)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.DeclarationPattern:
+                    declarationPattern = (DeclarationPatternSyntax)node!;
+                    return true;
+                default:
+                    declarationPattern = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="VarPatternSyntax"/>.</summary>
+        public static bool IsVarPattern([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out VarPatternSyntax? varPattern)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.VarPattern:
+                    varPattern = (VarPatternSyntax)node!;
+                    return true;
+                default:
+                    varPattern = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="RecursivePatternSyntax"/>.</summary>
+        public static bool IsRecursivePattern([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out RecursivePatternSyntax? recursivePattern)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.RecursivePattern:
+                    recursivePattern = (RecursivePatternSyntax)node!;
+                    return true;
+                default:
+                    recursivePattern = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="PositionalPatternClauseSyntax"/>.</summary>
+        public static bool IsPositionalPatternClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out PositionalPatternClauseSyntax? positionalPatternClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.PositionalPatternClause:
+                    positionalPatternClause = (PositionalPatternClauseSyntax)node!;
+                    return true;
+                default:
+                    positionalPatternClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="PropertyPatternClauseSyntax"/>.</summary>
+        public static bool IsPropertyPatternClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out PropertyPatternClauseSyntax? propertyPatternClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.PropertyPatternClause:
+                    propertyPatternClause = (PropertyPatternClauseSyntax)node!;
+                    return true;
+                default:
+                    propertyPatternClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="SubpatternSyntax"/>.</summary>
+        public static bool IsSubpattern([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out SubpatternSyntax? subpattern)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.Subpattern:
+                    subpattern = (SubpatternSyntax)node!;
+                    return true;
+                default:
+                    subpattern = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ConstantPatternSyntax"/>.</summary>
+        public static bool IsConstantPattern([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ConstantPatternSyntax? constantPattern)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ConstantPattern:
+                    constantPattern = (ConstantPatternSyntax)node!;
+                    return true;
+                default:
+                    constantPattern = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="InterpolatedStringContentSyntax"/>.</summary>
+        public static bool IsInterpolatedStringContent([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out InterpolatedStringContentSyntax? interpolatedStringContent)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.Interpolation:
+                case SyntaxKind.InterpolatedStringText:
+                    interpolatedStringContent = (InterpolatedStringContentSyntax)node!;
+                    return true;
+                default:
+                    interpolatedStringContent = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="InterpolatedStringTextSyntax"/>.</summary>
+        public static bool IsInterpolatedStringText([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out InterpolatedStringTextSyntax? interpolatedStringText)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.InterpolatedStringText:
+                    interpolatedStringText = (InterpolatedStringTextSyntax)node!;
+                    return true;
+                default:
+                    interpolatedStringText = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="InterpolationSyntax"/>.</summary>
+        public static bool IsInterpolation([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out InterpolationSyntax? interpolation)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.Interpolation:
+                    interpolation = (InterpolationSyntax)node!;
+                    return true;
+                default:
+                    interpolation = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="InterpolationAlignmentClauseSyntax"/>.</summary>
+        public static bool IsInterpolationAlignmentClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out InterpolationAlignmentClauseSyntax? interpolationAlignmentClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.InterpolationAlignmentClause:
+                    interpolationAlignmentClause = (InterpolationAlignmentClauseSyntax)node!;
+                    return true;
+                default:
+                    interpolationAlignmentClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="InterpolationFormatClauseSyntax"/>.</summary>
+        public static bool IsInterpolationFormatClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out InterpolationFormatClauseSyntax? interpolationFormatClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.InterpolationFormatClause:
+                    interpolationFormatClause = (InterpolationFormatClauseSyntax)node!;
+                    return true;
+                default:
+                    interpolationFormatClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="GlobalStatementSyntax"/>.</summary>
+        public static bool IsGlobalStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out GlobalStatementSyntax? globalStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.GlobalStatement:
+                    globalStatement = (GlobalStatementSyntax)node!;
+                    return true;
+                default:
+                    globalStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="StatementSyntax"/>.</summary>
+        public static bool IsStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out StatementSyntax? statement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.Block:
+                case SyntaxKind.LocalDeclarationStatement:
+                case SyntaxKind.ExpressionStatement:
+                case SyntaxKind.EmptyStatement:
+                case SyntaxKind.LabeledStatement:
+                case SyntaxKind.GotoStatement:
+                case SyntaxKind.GotoCaseStatement:
+                case SyntaxKind.GotoDefaultStatement:
+                case SyntaxKind.BreakStatement:
+                case SyntaxKind.ContinueStatement:
+                case SyntaxKind.ReturnStatement:
+                case SyntaxKind.YieldReturnStatement:
+                case SyntaxKind.YieldBreakStatement:
+                case SyntaxKind.ThrowStatement:
+                case SyntaxKind.WhileStatement:
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.ForStatement:
+                case SyntaxKind.ForEachStatement:
+                case SyntaxKind.UsingStatement:
+                case SyntaxKind.FixedStatement:
+                case SyntaxKind.CheckedStatement:
+                case SyntaxKind.UncheckedStatement:
+                case SyntaxKind.UnsafeStatement:
+                case SyntaxKind.LockStatement:
+                case SyntaxKind.IfStatement:
+                case SyntaxKind.SwitchStatement:
+                case SyntaxKind.TryStatement:
+                case SyntaxKind.LocalFunctionStatement:
+                case SyntaxKind.ForEachVariableStatement:
+                    statement = (StatementSyntax)node!;
+                    return true;
+                default:
+                    statement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BlockSyntax"/>.</summary>
+        public static bool IsBlock([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BlockSyntax? block)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.Block:
+                    block = (BlockSyntax)node!;
+                    return true;
+                default:
+                    block = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="LocalFunctionStatementSyntax"/>.</summary>
+        public static bool IsLocalFunctionStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out LocalFunctionStatementSyntax? localFunctionStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.LocalFunctionStatement:
+                    localFunctionStatement = (LocalFunctionStatementSyntax)node!;
+                    return true;
+                default:
+                    localFunctionStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="LocalDeclarationStatementSyntax"/>.</summary>
+        public static bool IsLocalDeclarationStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out LocalDeclarationStatementSyntax? localDeclarationStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.LocalDeclarationStatement:
+                    localDeclarationStatement = (LocalDeclarationStatementSyntax)node!;
+                    return true;
+                default:
+                    localDeclarationStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="VariableDeclarationSyntax"/>.</summary>
+        public static bool IsVariableDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out VariableDeclarationSyntax? variableDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.VariableDeclaration:
+                    variableDeclaration = (VariableDeclarationSyntax)node!;
+                    return true;
+                default:
+                    variableDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="VariableDeclaratorSyntax"/>.</summary>
+        public static bool IsVariableDeclarator([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out VariableDeclaratorSyntax? variableDeclarator)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.VariableDeclarator:
+                    variableDeclarator = (VariableDeclaratorSyntax)node!;
+                    return true;
+                default:
+                    variableDeclarator = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="EqualsValueClauseSyntax"/>.</summary>
+        public static bool IsEqualsValueClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out EqualsValueClauseSyntax? equalsValueClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.EqualsValueClause:
+                    equalsValueClause = (EqualsValueClauseSyntax)node!;
+                    return true;
+                default:
+                    equalsValueClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="VariableDesignationSyntax"/>.</summary>
+        public static bool IsVariableDesignation([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out VariableDesignationSyntax? variableDesignation)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                case SyntaxKind.DiscardDesignation:
+                    variableDesignation = (VariableDesignationSyntax)node!;
+                    return true;
+                default:
+                    variableDesignation = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="SingleVariableDesignationSyntax"/>.</summary>
+        public static bool IsSingleVariableDesignation([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out SingleVariableDesignationSyntax? singleVariableDesignation)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    singleVariableDesignation = (SingleVariableDesignationSyntax)node!;
+                    return true;
+                default:
+                    singleVariableDesignation = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="DiscardDesignationSyntax"/>.</summary>
+        public static bool IsDiscardDesignation([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out DiscardDesignationSyntax? discardDesignation)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.DiscardDesignation:
+                    discardDesignation = (DiscardDesignationSyntax)node!;
+                    return true;
+                default:
+                    discardDesignation = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ParenthesizedVariableDesignationSyntax"/>.</summary>
+        public static bool IsParenthesizedVariableDesignation([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ParenthesizedVariableDesignationSyntax? parenthesizedVariableDesignation)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    parenthesizedVariableDesignation = (ParenthesizedVariableDesignationSyntax)node!;
+                    return true;
+                default:
+                    parenthesizedVariableDesignation = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ExpressionStatementSyntax"/>.</summary>
+        public static bool IsExpressionStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ExpressionStatementSyntax? expressionStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ExpressionStatement:
+                    expressionStatement = (ExpressionStatementSyntax)node!;
+                    return true;
+                default:
+                    expressionStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="EmptyStatementSyntax"/>.</summary>
+        public static bool IsEmptyStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out EmptyStatementSyntax? emptyStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.EmptyStatement:
+                    emptyStatement = (EmptyStatementSyntax)node!;
+                    return true;
+                default:
+                    emptyStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="LabeledStatementSyntax"/>.</summary>
+        public static bool IsLabeledStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out LabeledStatementSyntax? labeledStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.LabeledStatement:
+                    labeledStatement = (LabeledStatementSyntax)node!;
+                    return true;
+                default:
+                    labeledStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="GotoStatementSyntax"/>.</summary>
+        public static bool IsGotoStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out GotoStatementSyntax? gotoStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.GotoStatement:
+                case SyntaxKind.GotoCaseStatement:
+                case SyntaxKind.GotoDefaultStatement:
+                    gotoStatement = (GotoStatementSyntax)node!;
+                    return true;
+                default:
+                    gotoStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BreakStatementSyntax"/>.</summary>
+        public static bool IsBreakStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BreakStatementSyntax? breakStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.BreakStatement:
+                    breakStatement = (BreakStatementSyntax)node!;
+                    return true;
+                default:
+                    breakStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ContinueStatementSyntax"/>.</summary>
+        public static bool IsContinueStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ContinueStatementSyntax? continueStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ContinueStatement:
+                    continueStatement = (ContinueStatementSyntax)node!;
+                    return true;
+                default:
+                    continueStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ReturnStatementSyntax"/>.</summary>
+        public static bool IsReturnStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ReturnStatementSyntax? returnStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ReturnStatement:
+                    returnStatement = (ReturnStatementSyntax)node!;
+                    return true;
+                default:
+                    returnStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ThrowStatementSyntax"/>.</summary>
+        public static bool IsThrowStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ThrowStatementSyntax? throwStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ThrowStatement:
+                    throwStatement = (ThrowStatementSyntax)node!;
+                    return true;
+                default:
+                    throwStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="YieldStatementSyntax"/>.</summary>
+        public static bool IsYieldStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out YieldStatementSyntax? yieldStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.YieldReturnStatement:
+                case SyntaxKind.YieldBreakStatement:
+                    yieldStatement = (YieldStatementSyntax)node!;
+                    return true;
+                default:
+                    yieldStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="WhileStatementSyntax"/>.</summary>
+        public static bool IsWhileStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out WhileStatementSyntax? whileStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.WhileStatement:
+                    whileStatement = (WhileStatementSyntax)node!;
+                    return true;
+                default:
+                    whileStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="DoStatementSyntax"/>.</summary>
+        public static bool IsDoStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out DoStatementSyntax? doStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.DoStatement:
+                    doStatement = (DoStatementSyntax)node!;
+                    return true;
+                default:
+                    doStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ForStatementSyntax"/>.</summary>
+        public static bool IsForStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ForStatementSyntax? forStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ForStatement:
+                    forStatement = (ForStatementSyntax)node!;
+                    return true;
+                default:
+                    forStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="CommonForEachStatementSyntax"/>.</summary>
+        public static bool IsCommonForEachStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out CommonForEachStatementSyntax? commonForEachStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
+                    commonForEachStatement = (CommonForEachStatementSyntax)node!;
+                    return true;
+                default:
+                    commonForEachStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ForEachStatementSyntax"/>.</summary>
+        public static bool IsForEachStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ForEachStatementSyntax? forEachStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ForEachStatement:
+                    forEachStatement = (ForEachStatementSyntax)node!;
+                    return true;
+                default:
+                    forEachStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ForEachVariableStatementSyntax"/>.</summary>
+        public static bool IsForEachVariableStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ForEachVariableStatementSyntax? forEachVariableStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ForEachVariableStatement:
+                    forEachVariableStatement = (ForEachVariableStatementSyntax)node!;
+                    return true;
+                default:
+                    forEachVariableStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="UsingStatementSyntax"/>.</summary>
+        public static bool IsUsingStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out UsingStatementSyntax? usingStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.UsingStatement:
+                    usingStatement = (UsingStatementSyntax)node!;
+                    return true;
+                default:
+                    usingStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="FixedStatementSyntax"/>.</summary>
+        public static bool IsFixedStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out FixedStatementSyntax? fixedStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.FixedStatement:
+                    fixedStatement = (FixedStatementSyntax)node!;
+                    return true;
+                default:
+                    fixedStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="CheckedStatementSyntax"/>.</summary>
+        public static bool IsCheckedStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out CheckedStatementSyntax? checkedStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.CheckedStatement:
+                case SyntaxKind.UncheckedStatement:
+                    checkedStatement = (CheckedStatementSyntax)node!;
+                    return true;
+                default:
+                    checkedStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="UnsafeStatementSyntax"/>.</summary>
+        public static bool IsUnsafeStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out UnsafeStatementSyntax? unsafeStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.UnsafeStatement:
+                    unsafeStatement = (UnsafeStatementSyntax)node!;
+                    return true;
+                default:
+                    unsafeStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="LockStatementSyntax"/>.</summary>
+        public static bool IsLockStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out LockStatementSyntax? lockStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.LockStatement:
+                    lockStatement = (LockStatementSyntax)node!;
+                    return true;
+                default:
+                    lockStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="IfStatementSyntax"/>.</summary>
+        public static bool IsIfStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out IfStatementSyntax? ifStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.IfStatement:
+                    ifStatement = (IfStatementSyntax)node!;
+                    return true;
+                default:
+                    ifStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ElseClauseSyntax"/>.</summary>
+        public static bool IsElseClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ElseClauseSyntax? elseClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ElseClause:
+                    elseClause = (ElseClauseSyntax)node!;
+                    return true;
+                default:
+                    elseClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="SwitchStatementSyntax"/>.</summary>
+        public static bool IsSwitchStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out SwitchStatementSyntax? switchStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SwitchStatement:
+                    switchStatement = (SwitchStatementSyntax)node!;
+                    return true;
+                default:
+                    switchStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="SwitchSectionSyntax"/>.</summary>
+        public static bool IsSwitchSection([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out SwitchSectionSyntax? switchSection)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SwitchSection:
+                    switchSection = (SwitchSectionSyntax)node!;
+                    return true;
+                default:
+                    switchSection = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="SwitchLabelSyntax"/>.</summary>
+        public static bool IsSwitchLabel([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out SwitchLabelSyntax? switchLabel)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.CaseSwitchLabel:
+                case SyntaxKind.DefaultSwitchLabel:
+                case SyntaxKind.CasePatternSwitchLabel:
+                    switchLabel = (SwitchLabelSyntax)node!;
+                    return true;
+                default:
+                    switchLabel = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="CasePatternSwitchLabelSyntax"/>.</summary>
+        public static bool IsCasePatternSwitchLabel([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out CasePatternSwitchLabelSyntax? casePatternSwitchLabel)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.CasePatternSwitchLabel:
+                    casePatternSwitchLabel = (CasePatternSwitchLabelSyntax)node!;
+                    return true;
+                default:
+                    casePatternSwitchLabel = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="CaseSwitchLabelSyntax"/>.</summary>
+        public static bool IsCaseSwitchLabel([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out CaseSwitchLabelSyntax? caseSwitchLabel)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.CaseSwitchLabel:
+                    caseSwitchLabel = (CaseSwitchLabelSyntax)node!;
+                    return true;
+                default:
+                    caseSwitchLabel = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="DefaultSwitchLabelSyntax"/>.</summary>
+        public static bool IsDefaultSwitchLabel([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out DefaultSwitchLabelSyntax? defaultSwitchLabel)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.DefaultSwitchLabel:
+                    defaultSwitchLabel = (DefaultSwitchLabelSyntax)node!;
+                    return true;
+                default:
+                    defaultSwitchLabel = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="SwitchExpressionSyntax"/>.</summary>
+        public static bool IsSwitchExpression([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out SwitchExpressionSyntax? switchExpression)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SwitchExpression:
+                    switchExpression = (SwitchExpressionSyntax)node!;
+                    return true;
+                default:
+                    switchExpression = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="SwitchExpressionArmSyntax"/>.</summary>
+        public static bool IsSwitchExpressionArm([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out SwitchExpressionArmSyntax? switchExpressionArm)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SwitchExpressionArm:
+                    switchExpressionArm = (SwitchExpressionArmSyntax)node!;
+                    return true;
+                default:
+                    switchExpressionArm = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="TryStatementSyntax"/>.</summary>
+        public static bool IsTryStatement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out TryStatementSyntax? tryStatement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.TryStatement:
+                    tryStatement = (TryStatementSyntax)node!;
+                    return true;
+                default:
+                    tryStatement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="CatchClauseSyntax"/>.</summary>
+        public static bool IsCatchClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out CatchClauseSyntax? catchClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.CatchClause:
+                    catchClause = (CatchClauseSyntax)node!;
+                    return true;
+                default:
+                    catchClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="CatchDeclarationSyntax"/>.</summary>
+        public static bool IsCatchDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out CatchDeclarationSyntax? catchDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.CatchDeclaration:
+                    catchDeclaration = (CatchDeclarationSyntax)node!;
+                    return true;
+                default:
+                    catchDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="CatchFilterClauseSyntax"/>.</summary>
+        public static bool IsCatchFilterClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out CatchFilterClauseSyntax? catchFilterClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.CatchFilterClause:
+                    catchFilterClause = (CatchFilterClauseSyntax)node!;
+                    return true;
+                default:
+                    catchFilterClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="FinallyClauseSyntax"/>.</summary>
+        public static bool IsFinallyClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out FinallyClauseSyntax? finallyClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.FinallyClause:
+                    finallyClause = (FinallyClauseSyntax)node!;
+                    return true;
+                default:
+                    finallyClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="CompilationUnitSyntax"/>.</summary>
+        public static bool IsCompilationUnit([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out CompilationUnitSyntax? compilationUnit)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.CompilationUnit:
+                    compilationUnit = (CompilationUnitSyntax)node!;
+                    return true;
+                default:
+                    compilationUnit = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ExternAliasDirectiveSyntax"/>.</summary>
+        public static bool IsExternAliasDirective([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ExternAliasDirectiveSyntax? externAliasDirective)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ExternAliasDirective:
+                    externAliasDirective = (ExternAliasDirectiveSyntax)node!;
+                    return true;
+                default:
+                    externAliasDirective = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="UsingDirectiveSyntax"/>.</summary>
+        public static bool IsUsingDirective([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out UsingDirectiveSyntax? usingDirective)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.UsingDirective:
+                    usingDirective = (UsingDirectiveSyntax)node!;
+                    return true;
+                default:
+                    usingDirective = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="MemberDeclarationSyntax"/>.</summary>
+        public static bool IsMemberDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out MemberDeclarationSyntax? memberDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.GlobalStatement:
+                case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.EnumDeclaration:
+                case SyntaxKind.DelegateDeclaration:
+                case SyntaxKind.EnumMemberDeclaration:
+                case SyntaxKind.FieldDeclaration:
+                case SyntaxKind.EventFieldDeclaration:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.EventDeclaration:
+                case SyntaxKind.IndexerDeclaration:
+                case SyntaxKind.IncompleteMember:
+                    memberDeclaration = (MemberDeclarationSyntax)node!;
+                    return true;
+                default:
+                    memberDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="NamespaceDeclarationSyntax"/>.</summary>
+        public static bool IsNamespaceDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out NamespaceDeclarationSyntax? namespaceDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.NamespaceDeclaration:
+                    namespaceDeclaration = (NamespaceDeclarationSyntax)node!;
+                    return true;
+                default:
+                    namespaceDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="AttributeListSyntax"/>.</summary>
+        public static bool IsAttributeList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out AttributeListSyntax? attributeList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.AttributeList:
+                    attributeList = (AttributeListSyntax)node!;
+                    return true;
+                default:
+                    attributeList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="AttributeTargetSpecifierSyntax"/>.</summary>
+        public static bool IsAttributeTargetSpecifier([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out AttributeTargetSpecifierSyntax? attributeTargetSpecifier)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.AttributeTargetSpecifier:
+                    attributeTargetSpecifier = (AttributeTargetSpecifierSyntax)node!;
+                    return true;
+                default:
+                    attributeTargetSpecifier = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="AttributeSyntax"/>.</summary>
+        public static bool IsAttribute([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out AttributeSyntax? attribute)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.Attribute:
+                    attribute = (AttributeSyntax)node!;
+                    return true;
+                default:
+                    attribute = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="AttributeArgumentListSyntax"/>.</summary>
+        public static bool IsAttributeArgumentList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out AttributeArgumentListSyntax? attributeArgumentList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.AttributeArgumentList:
+                    attributeArgumentList = (AttributeArgumentListSyntax)node!;
+                    return true;
+                default:
+                    attributeArgumentList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="AttributeArgumentSyntax"/>.</summary>
+        public static bool IsAttributeArgument([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out AttributeArgumentSyntax? attributeArgument)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.AttributeArgument:
+                    attributeArgument = (AttributeArgumentSyntax)node!;
+                    return true;
+                default:
+                    attributeArgument = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="NameEqualsSyntax"/>.</summary>
+        public static bool IsNameEquals([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out NameEqualsSyntax? nameEquals)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.NameEquals:
+                    nameEquals = (NameEqualsSyntax)node!;
+                    return true;
+                default:
+                    nameEquals = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="TypeParameterListSyntax"/>.</summary>
+        public static bool IsTypeParameterList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out TypeParameterListSyntax? typeParameterList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.TypeParameterList:
+                    typeParameterList = (TypeParameterListSyntax)node!;
+                    return true;
+                default:
+                    typeParameterList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="TypeParameterSyntax"/>.</summary>
+        public static bool IsTypeParameter([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out TypeParameterSyntax? typeParameter)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.TypeParameter:
+                    typeParameter = (TypeParameterSyntax)node!;
+                    return true;
+                default:
+                    typeParameter = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BaseTypeDeclarationSyntax"/>.</summary>
+        public static bool IsBaseTypeDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BaseTypeDeclarationSyntax? baseTypeDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.EnumDeclaration:
+                    baseTypeDeclaration = (BaseTypeDeclarationSyntax)node!;
+                    return true;
+                default:
+                    baseTypeDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="TypeDeclarationSyntax"/>.</summary>
+        public static bool IsTypeDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out TypeDeclarationSyntax? typeDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                    typeDeclaration = (TypeDeclarationSyntax)node!;
+                    return true;
+                default:
+                    typeDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ClassDeclarationSyntax"/>.</summary>
+        public static bool IsClassDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ClassDeclarationSyntax? classDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ClassDeclaration:
+                    classDeclaration = (ClassDeclarationSyntax)node!;
+                    return true;
+                default:
+                    classDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="StructDeclarationSyntax"/>.</summary>
+        public static bool IsStructDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out StructDeclarationSyntax? structDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.StructDeclaration:
+                    structDeclaration = (StructDeclarationSyntax)node!;
+                    return true;
+                default:
+                    structDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="InterfaceDeclarationSyntax"/>.</summary>
+        public static bool IsInterfaceDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out InterfaceDeclarationSyntax? interfaceDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.InterfaceDeclaration:
+                    interfaceDeclaration = (InterfaceDeclarationSyntax)node!;
+                    return true;
+                default:
+                    interfaceDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="EnumDeclarationSyntax"/>.</summary>
+        public static bool IsEnumDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out EnumDeclarationSyntax? enumDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.EnumDeclaration:
+                    enumDeclaration = (EnumDeclarationSyntax)node!;
+                    return true;
+                default:
+                    enumDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="DelegateDeclarationSyntax"/>.</summary>
+        public static bool IsDelegateDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out DelegateDeclarationSyntax? delegateDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.DelegateDeclaration:
+                    delegateDeclaration = (DelegateDeclarationSyntax)node!;
+                    return true;
+                default:
+                    delegateDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="EnumMemberDeclarationSyntax"/>.</summary>
+        public static bool IsEnumMemberDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out EnumMemberDeclarationSyntax? enumMemberDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.EnumMemberDeclaration:
+                    enumMemberDeclaration = (EnumMemberDeclarationSyntax)node!;
+                    return true;
+                default:
+                    enumMemberDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BaseListSyntax"/>.</summary>
+        public static bool IsBaseList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BaseListSyntax? baseList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.BaseList:
+                    baseList = (BaseListSyntax)node!;
+                    return true;
+                default:
+                    baseList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BaseTypeSyntax"/>.</summary>
+        public static bool IsBaseType([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BaseTypeSyntax? baseType)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SimpleBaseType:
+                    baseType = (BaseTypeSyntax)node!;
+                    return true;
+                default:
+                    baseType = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="SimpleBaseTypeSyntax"/>.</summary>
+        public static bool IsSimpleBaseType([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out SimpleBaseTypeSyntax? simpleBaseType)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SimpleBaseType:
+                    simpleBaseType = (SimpleBaseTypeSyntax)node!;
+                    return true;
+                default:
+                    simpleBaseType = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="TypeParameterConstraintClauseSyntax"/>.</summary>
+        public static bool IsTypeParameterConstraintClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out TypeParameterConstraintClauseSyntax? typeParameterConstraintClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.TypeParameterConstraintClause:
+                    typeParameterConstraintClause = (TypeParameterConstraintClauseSyntax)node!;
+                    return true;
+                default:
+                    typeParameterConstraintClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="TypeParameterConstraintSyntax"/>.</summary>
+        public static bool IsTypeParameterConstraint([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out TypeParameterConstraintSyntax? typeParameterConstraint)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ConstructorConstraint:
+                case SyntaxKind.ClassConstraint:
+                case SyntaxKind.StructConstraint:
+                case SyntaxKind.TypeConstraint:
+                    typeParameterConstraint = (TypeParameterConstraintSyntax)node!;
+                    return true;
+                default:
+                    typeParameterConstraint = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ConstructorConstraintSyntax"/>.</summary>
+        public static bool IsConstructorConstraint([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ConstructorConstraintSyntax? constructorConstraint)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ConstructorConstraint:
+                    constructorConstraint = (ConstructorConstraintSyntax)node!;
+                    return true;
+                default:
+                    constructorConstraint = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ClassOrStructConstraintSyntax"/>.</summary>
+        public static bool IsClassOrStructConstraint([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ClassOrStructConstraintSyntax? classOrStructConstraint)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ClassConstraint:
+                case SyntaxKind.StructConstraint:
+                    classOrStructConstraint = (ClassOrStructConstraintSyntax)node!;
+                    return true;
+                default:
+                    classOrStructConstraint = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="TypeConstraintSyntax"/>.</summary>
+        public static bool IsTypeConstraint([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out TypeConstraintSyntax? typeConstraint)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.TypeConstraint:
+                    typeConstraint = (TypeConstraintSyntax)node!;
+                    return true;
+                default:
+                    typeConstraint = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BaseFieldDeclarationSyntax"/>.</summary>
+        public static bool IsBaseFieldDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BaseFieldDeclarationSyntax? baseFieldDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.FieldDeclaration:
+                case SyntaxKind.EventFieldDeclaration:
+                    baseFieldDeclaration = (BaseFieldDeclarationSyntax)node!;
+                    return true;
+                default:
+                    baseFieldDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="FieldDeclarationSyntax"/>.</summary>
+        public static bool IsFieldDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out FieldDeclarationSyntax? fieldDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.FieldDeclaration:
+                    fieldDeclaration = (FieldDeclarationSyntax)node!;
+                    return true;
+                default:
+                    fieldDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="EventFieldDeclarationSyntax"/>.</summary>
+        public static bool IsEventFieldDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out EventFieldDeclarationSyntax? eventFieldDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.EventFieldDeclaration:
+                    eventFieldDeclaration = (EventFieldDeclarationSyntax)node!;
+                    return true;
+                default:
+                    eventFieldDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ExplicitInterfaceSpecifierSyntax"/>.</summary>
+        public static bool IsExplicitInterfaceSpecifier([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ExplicitInterfaceSpecifier:
+                    explicitInterfaceSpecifier = (ExplicitInterfaceSpecifierSyntax)node!;
+                    return true;
+                default:
+                    explicitInterfaceSpecifier = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BaseMethodDeclarationSyntax"/>.</summary>
+        public static bool IsBaseMethodDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BaseMethodDeclarationSyntax? baseMethodDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                    baseMethodDeclaration = (BaseMethodDeclarationSyntax)node!;
+                    return true;
+                default:
+                    baseMethodDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="MethodDeclarationSyntax"/>.</summary>
+        public static bool IsMethodDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out MethodDeclarationSyntax? methodDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.MethodDeclaration:
+                    methodDeclaration = (MethodDeclarationSyntax)node!;
+                    return true;
+                default:
+                    methodDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="OperatorDeclarationSyntax"/>.</summary>
+        public static bool IsOperatorDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out OperatorDeclarationSyntax? operatorDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.OperatorDeclaration:
+                    operatorDeclaration = (OperatorDeclarationSyntax)node!;
+                    return true;
+                default:
+                    operatorDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ConversionOperatorDeclarationSyntax"/>.</summary>
+        public static bool IsConversionOperatorDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ConversionOperatorDeclarationSyntax? conversionOperatorDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    conversionOperatorDeclaration = (ConversionOperatorDeclarationSyntax)node!;
+                    return true;
+                default:
+                    conversionOperatorDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ConstructorDeclarationSyntax"/>.</summary>
+        public static bool IsConstructorDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ConstructorDeclarationSyntax? constructorDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ConstructorDeclaration:
+                    constructorDeclaration = (ConstructorDeclarationSyntax)node!;
+                    return true;
+                default:
+                    constructorDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ConstructorInitializerSyntax"/>.</summary>
+        public static bool IsConstructorInitializer([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ConstructorInitializerSyntax? constructorInitializer)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.BaseConstructorInitializer:
+                case SyntaxKind.ThisConstructorInitializer:
+                    constructorInitializer = (ConstructorInitializerSyntax)node!;
+                    return true;
+                default:
+                    constructorInitializer = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="DestructorDeclarationSyntax"/>.</summary>
+        public static bool IsDestructorDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out DestructorDeclarationSyntax? destructorDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.DestructorDeclaration:
+                    destructorDeclaration = (DestructorDeclarationSyntax)node!;
+                    return true;
+                default:
+                    destructorDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BasePropertyDeclarationSyntax"/>.</summary>
+        public static bool IsBasePropertyDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BasePropertyDeclarationSyntax? basePropertyDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.EventDeclaration:
+                case SyntaxKind.IndexerDeclaration:
+                    basePropertyDeclaration = (BasePropertyDeclarationSyntax)node!;
+                    return true;
+                default:
+                    basePropertyDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="PropertyDeclarationSyntax"/>.</summary>
+        public static bool IsPropertyDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out PropertyDeclarationSyntax? propertyDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.PropertyDeclaration:
+                    propertyDeclaration = (PropertyDeclarationSyntax)node!;
+                    return true;
+                default:
+                    propertyDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ArrowExpressionClauseSyntax"/>.</summary>
+        public static bool IsArrowExpressionClause([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ArrowExpressionClauseSyntax? arrowExpressionClause)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ArrowExpressionClause:
+                    arrowExpressionClause = (ArrowExpressionClauseSyntax)node!;
+                    return true;
+                default:
+                    arrowExpressionClause = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="EventDeclarationSyntax"/>.</summary>
+        public static bool IsEventDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out EventDeclarationSyntax? eventDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.EventDeclaration:
+                    eventDeclaration = (EventDeclarationSyntax)node!;
+                    return true;
+                default:
+                    eventDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="IndexerDeclarationSyntax"/>.</summary>
+        public static bool IsIndexerDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out IndexerDeclarationSyntax? indexerDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.IndexerDeclaration:
+                    indexerDeclaration = (IndexerDeclarationSyntax)node!;
+                    return true;
+                default:
+                    indexerDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="AccessorListSyntax"/>.</summary>
+        public static bool IsAccessorList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out AccessorListSyntax? accessorList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.AccessorList:
+                    accessorList = (AccessorListSyntax)node!;
+                    return true;
+                default:
+                    accessorList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="AccessorDeclarationSyntax"/>.</summary>
+        public static bool IsAccessorDeclaration([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out AccessorDeclarationSyntax? accessorDeclaration)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.UnknownAccessorDeclaration:
+                    accessorDeclaration = (AccessorDeclarationSyntax)node!;
+                    return true;
+                default:
+                    accessorDeclaration = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BaseParameterListSyntax"/>.</summary>
+        public static bool IsBaseParameterList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BaseParameterListSyntax? baseParameterList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ParameterList:
+                case SyntaxKind.BracketedParameterList:
+                    baseParameterList = (BaseParameterListSyntax)node!;
+                    return true;
+                default:
+                    baseParameterList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ParameterListSyntax"/>.</summary>
+        public static bool IsParameterList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ParameterListSyntax? parameterList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ParameterList:
+                    parameterList = (ParameterListSyntax)node!;
+                    return true;
+                default:
+                    parameterList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BracketedParameterListSyntax"/>.</summary>
+        public static bool IsBracketedParameterList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BracketedParameterListSyntax? bracketedParameterList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.BracketedParameterList:
+                    bracketedParameterList = (BracketedParameterListSyntax)node!;
+                    return true;
+                default:
+                    bracketedParameterList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ParameterSyntax"/>.</summary>
+        public static bool IsParameter([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ParameterSyntax? parameter)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.Parameter:
+                    parameter = (ParameterSyntax)node!;
+                    return true;
+                default:
+                    parameter = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="IncompleteMemberSyntax"/>.</summary>
+        public static bool IsIncompleteMember([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out IncompleteMemberSyntax? incompleteMember)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.IncompleteMember:
+                    incompleteMember = (IncompleteMemberSyntax)node!;
+                    return true;
+                default:
+                    incompleteMember = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="SkippedTokensTriviaSyntax"/>.</summary>
+        public static bool IsSkippedTokensTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out SkippedTokensTriviaSyntax? skippedTokensTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SkippedTokensTrivia:
+                    skippedTokensTrivia = (SkippedTokensTriviaSyntax)node!;
+                    return true;
+                default:
+                    skippedTokensTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="DocumentationCommentTriviaSyntax"/>.</summary>
+        public static bool IsDocumentationCommentTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out DocumentationCommentTriviaSyntax? documentationCommentTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.SingleLineDocumentationCommentTrivia:
+                case SyntaxKind.MultiLineDocumentationCommentTrivia:
+                    documentationCommentTrivia = (DocumentationCommentTriviaSyntax)node!;
+                    return true;
+                default:
+                    documentationCommentTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="CrefSyntax"/>.</summary>
+        public static bool IsCref([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out CrefSyntax? cref)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.TypeCref:
+                case SyntaxKind.QualifiedCref:
+                case SyntaxKind.NameMemberCref:
+                case SyntaxKind.IndexerMemberCref:
+                case SyntaxKind.OperatorMemberCref:
+                case SyntaxKind.ConversionOperatorMemberCref:
+                    cref = (CrefSyntax)node!;
+                    return true;
+                default:
+                    cref = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="TypeCrefSyntax"/>.</summary>
+        public static bool IsTypeCref([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out TypeCrefSyntax? typeCref)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.TypeCref:
+                    typeCref = (TypeCrefSyntax)node!;
+                    return true;
+                default:
+                    typeCref = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="QualifiedCrefSyntax"/>.</summary>
+        public static bool IsQualifiedCref([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out QualifiedCrefSyntax? qualifiedCref)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.QualifiedCref:
+                    qualifiedCref = (QualifiedCrefSyntax)node!;
+                    return true;
+                default:
+                    qualifiedCref = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="MemberCrefSyntax"/>.</summary>
+        public static bool IsMemberCref([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out MemberCrefSyntax? memberCref)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.NameMemberCref:
+                case SyntaxKind.IndexerMemberCref:
+                case SyntaxKind.OperatorMemberCref:
+                case SyntaxKind.ConversionOperatorMemberCref:
+                    memberCref = (MemberCrefSyntax)node!;
+                    return true;
+                default:
+                    memberCref = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="NameMemberCrefSyntax"/>.</summary>
+        public static bool IsNameMemberCref([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out NameMemberCrefSyntax? nameMemberCref)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.NameMemberCref:
+                    nameMemberCref = (NameMemberCrefSyntax)node!;
+                    return true;
+                default:
+                    nameMemberCref = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="IndexerMemberCrefSyntax"/>.</summary>
+        public static bool IsIndexerMemberCref([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out IndexerMemberCrefSyntax? indexerMemberCref)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.IndexerMemberCref:
+                    indexerMemberCref = (IndexerMemberCrefSyntax)node!;
+                    return true;
+                default:
+                    indexerMemberCref = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="OperatorMemberCrefSyntax"/>.</summary>
+        public static bool IsOperatorMemberCref([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out OperatorMemberCrefSyntax? operatorMemberCref)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.OperatorMemberCref:
+                    operatorMemberCref = (OperatorMemberCrefSyntax)node!;
+                    return true;
+                default:
+                    operatorMemberCref = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ConversionOperatorMemberCrefSyntax"/>.</summary>
+        public static bool IsConversionOperatorMemberCref([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ConversionOperatorMemberCrefSyntax? conversionOperatorMemberCref)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ConversionOperatorMemberCref:
+                    conversionOperatorMemberCref = (ConversionOperatorMemberCrefSyntax)node!;
+                    return true;
+                default:
+                    conversionOperatorMemberCref = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BaseCrefParameterListSyntax"/>.</summary>
+        public static bool IsBaseCrefParameterList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BaseCrefParameterListSyntax? baseCrefParameterList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.CrefParameterList:
+                case SyntaxKind.CrefBracketedParameterList:
+                    baseCrefParameterList = (BaseCrefParameterListSyntax)node!;
+                    return true;
+                default:
+                    baseCrefParameterList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="CrefParameterListSyntax"/>.</summary>
+        public static bool IsCrefParameterList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out CrefParameterListSyntax? crefParameterList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.CrefParameterList:
+                    crefParameterList = (CrefParameterListSyntax)node!;
+                    return true;
+                default:
+                    crefParameterList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="CrefBracketedParameterListSyntax"/>.</summary>
+        public static bool IsCrefBracketedParameterList([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out CrefBracketedParameterListSyntax? crefBracketedParameterList)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.CrefBracketedParameterList:
+                    crefBracketedParameterList = (CrefBracketedParameterListSyntax)node!;
+                    return true;
+                default:
+                    crefBracketedParameterList = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="CrefParameterSyntax"/>.</summary>
+        public static bool IsCrefParameter([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out CrefParameterSyntax? crefParameter)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.CrefParameter:
+                    crefParameter = (CrefParameterSyntax)node!;
+                    return true;
+                default:
+                    crefParameter = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlNodeSyntax"/>.</summary>
+        public static bool IsXmlNode([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlNodeSyntax? xmlNode)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlElement:
+                case SyntaxKind.XmlEmptyElement:
+                case SyntaxKind.XmlText:
+                case SyntaxKind.XmlCDataSection:
+                case SyntaxKind.XmlComment:
+                case SyntaxKind.XmlProcessingInstruction:
+                    xmlNode = (XmlNodeSyntax)node!;
+                    return true;
+                default:
+                    xmlNode = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlElementSyntax"/>.</summary>
+        public static bool IsXmlElement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlElementSyntax? xmlElement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlElement:
+                    xmlElement = (XmlElementSyntax)node!;
+                    return true;
+                default:
+                    xmlElement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlElementStartTagSyntax"/>.</summary>
+        public static bool IsXmlElementStartTag([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlElementStartTagSyntax? xmlElementStartTag)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlElementStartTag:
+                    xmlElementStartTag = (XmlElementStartTagSyntax)node!;
+                    return true;
+                default:
+                    xmlElementStartTag = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlElementEndTagSyntax"/>.</summary>
+        public static bool IsXmlElementEndTag([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlElementEndTagSyntax? xmlElementEndTag)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlElementEndTag:
+                    xmlElementEndTag = (XmlElementEndTagSyntax)node!;
+                    return true;
+                default:
+                    xmlElementEndTag = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlEmptyElementSyntax"/>.</summary>
+        public static bool IsXmlEmptyElement([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlEmptyElementSyntax? xmlEmptyElement)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlEmptyElement:
+                    xmlEmptyElement = (XmlEmptyElementSyntax)node!;
+                    return true;
+                default:
+                    xmlEmptyElement = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlNameSyntax"/>.</summary>
+        public static bool IsXmlName([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlNameSyntax? xmlName)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlName:
+                    xmlName = (XmlNameSyntax)node!;
+                    return true;
+                default:
+                    xmlName = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlPrefixSyntax"/>.</summary>
+        public static bool IsXmlPrefix([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlPrefixSyntax? xmlPrefix)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlPrefix:
+                    xmlPrefix = (XmlPrefixSyntax)node!;
+                    return true;
+                default:
+                    xmlPrefix = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlAttributeSyntax"/>.</summary>
+        public static bool IsXmlAttribute([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlAttributeSyntax? xmlAttribute)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlTextAttribute:
+                case SyntaxKind.XmlCrefAttribute:
+                case SyntaxKind.XmlNameAttribute:
+                    xmlAttribute = (XmlAttributeSyntax)node!;
+                    return true;
+                default:
+                    xmlAttribute = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlTextAttributeSyntax"/>.</summary>
+        public static bool IsXmlTextAttribute([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlTextAttributeSyntax? xmlTextAttribute)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlTextAttribute:
+                    xmlTextAttribute = (XmlTextAttributeSyntax)node!;
+                    return true;
+                default:
+                    xmlTextAttribute = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlCrefAttributeSyntax"/>.</summary>
+        public static bool IsXmlCrefAttribute([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlCrefAttributeSyntax? xmlCrefAttribute)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlCrefAttribute:
+                    xmlCrefAttribute = (XmlCrefAttributeSyntax)node!;
+                    return true;
+                default:
+                    xmlCrefAttribute = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlNameAttributeSyntax"/>.</summary>
+        public static bool IsXmlNameAttribute([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlNameAttributeSyntax? xmlNameAttribute)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlNameAttribute:
+                    xmlNameAttribute = (XmlNameAttributeSyntax)node!;
+                    return true;
+                default:
+                    xmlNameAttribute = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlTextSyntax"/>.</summary>
+        public static bool IsXmlText([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlTextSyntax? xmlText)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlText:
+                    xmlText = (XmlTextSyntax)node!;
+                    return true;
+                default:
+                    xmlText = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlCDataSectionSyntax"/>.</summary>
+        public static bool IsXmlCDataSection([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlCDataSectionSyntax? xmlCDataSection)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlCDataSection:
+                    xmlCDataSection = (XmlCDataSectionSyntax)node!;
+                    return true;
+                default:
+                    xmlCDataSection = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlProcessingInstructionSyntax"/>.</summary>
+        public static bool IsXmlProcessingInstruction([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlProcessingInstructionSyntax? xmlProcessingInstruction)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlProcessingInstruction:
+                    xmlProcessingInstruction = (XmlProcessingInstructionSyntax)node!;
+                    return true;
+                default:
+                    xmlProcessingInstruction = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="XmlCommentSyntax"/>.</summary>
+        public static bool IsXmlComment([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out XmlCommentSyntax? xmlComment)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.XmlComment:
+                    xmlComment = (XmlCommentSyntax)node!;
+                    return true;
+                default:
+                    xmlComment = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="DirectiveTriviaSyntax"/>.</summary>
+        public static bool IsDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out DirectiveTriviaSyntax? directiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.IfDirectiveTrivia:
+                case SyntaxKind.ElifDirectiveTrivia:
+                case SyntaxKind.ElseDirectiveTrivia:
+                case SyntaxKind.EndIfDirectiveTrivia:
+                case SyntaxKind.RegionDirectiveTrivia:
+                case SyntaxKind.EndRegionDirectiveTrivia:
+                case SyntaxKind.DefineDirectiveTrivia:
+                case SyntaxKind.UndefDirectiveTrivia:
+                case SyntaxKind.ErrorDirectiveTrivia:
+                case SyntaxKind.WarningDirectiveTrivia:
+                case SyntaxKind.LineDirectiveTrivia:
+                case SyntaxKind.PragmaWarningDirectiveTrivia:
+                case SyntaxKind.PragmaChecksumDirectiveTrivia:
+                case SyntaxKind.ReferenceDirectiveTrivia:
+                case SyntaxKind.BadDirectiveTrivia:
+                case SyntaxKind.ShebangDirectiveTrivia:
+                case SyntaxKind.LoadDirectiveTrivia:
+                case SyntaxKind.NullableDirectiveTrivia:
+                    directiveTrivia = (DirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    directiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BranchingDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsBranchingDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BranchingDirectiveTriviaSyntax? branchingDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.IfDirectiveTrivia:
+                case SyntaxKind.ElifDirectiveTrivia:
+                case SyntaxKind.ElseDirectiveTrivia:
+                    branchingDirectiveTrivia = (BranchingDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    branchingDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ConditionalDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsConditionalDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ConditionalDirectiveTriviaSyntax? conditionalDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.IfDirectiveTrivia:
+                case SyntaxKind.ElifDirectiveTrivia:
+                    conditionalDirectiveTrivia = (ConditionalDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    conditionalDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="IfDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsIfDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out IfDirectiveTriviaSyntax? ifDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.IfDirectiveTrivia:
+                    ifDirectiveTrivia = (IfDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    ifDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ElifDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsElifDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ElifDirectiveTriviaSyntax? elifDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ElifDirectiveTrivia:
+                    elifDirectiveTrivia = (ElifDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    elifDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ElseDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsElseDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ElseDirectiveTriviaSyntax? elseDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ElseDirectiveTrivia:
+                    elseDirectiveTrivia = (ElseDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    elseDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="EndIfDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsEndIfDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out EndIfDirectiveTriviaSyntax? endIfDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.EndIfDirectiveTrivia:
+                    endIfDirectiveTrivia = (EndIfDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    endIfDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="RegionDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsRegionDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out RegionDirectiveTriviaSyntax? regionDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.RegionDirectiveTrivia:
+                    regionDirectiveTrivia = (RegionDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    regionDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="EndRegionDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsEndRegionDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out EndRegionDirectiveTriviaSyntax? endRegionDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.EndRegionDirectiveTrivia:
+                    endRegionDirectiveTrivia = (EndRegionDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    endRegionDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ErrorDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsErrorDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ErrorDirectiveTriviaSyntax? errorDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ErrorDirectiveTrivia:
+                    errorDirectiveTrivia = (ErrorDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    errorDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="WarningDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsWarningDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out WarningDirectiveTriviaSyntax? warningDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.WarningDirectiveTrivia:
+                    warningDirectiveTrivia = (WarningDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    warningDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="BadDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsBadDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out BadDirectiveTriviaSyntax? badDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.BadDirectiveTrivia:
+                    badDirectiveTrivia = (BadDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    badDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="DefineDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsDefineDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out DefineDirectiveTriviaSyntax? defineDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.DefineDirectiveTrivia:
+                    defineDirectiveTrivia = (DefineDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    defineDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="UndefDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsUndefDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out UndefDirectiveTriviaSyntax? undefDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.UndefDirectiveTrivia:
+                    undefDirectiveTrivia = (UndefDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    undefDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="LineDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsLineDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out LineDirectiveTriviaSyntax? lineDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.LineDirectiveTrivia:
+                    lineDirectiveTrivia = (LineDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    lineDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="PragmaWarningDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsPragmaWarningDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out PragmaWarningDirectiveTriviaSyntax? pragmaWarningDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.PragmaWarningDirectiveTrivia:
+                    pragmaWarningDirectiveTrivia = (PragmaWarningDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    pragmaWarningDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="PragmaChecksumDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsPragmaChecksumDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out PragmaChecksumDirectiveTriviaSyntax? pragmaChecksumDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.PragmaChecksumDirectiveTrivia:
+                    pragmaChecksumDirectiveTrivia = (PragmaChecksumDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    pragmaChecksumDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ReferenceDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsReferenceDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ReferenceDirectiveTriviaSyntax? referenceDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ReferenceDirectiveTrivia:
+                    referenceDirectiveTrivia = (ReferenceDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    referenceDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="LoadDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsLoadDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out LoadDirectiveTriviaSyntax? loadDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.LoadDirectiveTrivia:
+                    loadDirectiveTrivia = (LoadDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    loadDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="ShebangDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsShebangDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out ShebangDirectiveTriviaSyntax? shebangDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.ShebangDirectiveTrivia:
+                    shebangDirectiveTrivia = (ShebangDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    shebangDirectiveTrivia = null;
+                    return false;
+            }
+        }
+
+        /// <summary>Checks to see if a <see cref="SyntaxNode"/> is a <see cref="NullableDirectiveTriviaSyntax"/>.</summary>
+        public static bool IsNullableDirectiveTrivia([NotNullWhen(true)] this SyntaxNode? node, [NotNullWhen(true)] out NullableDirectiveTriviaSyntax? nullableDirectiveTrivia)
+        {
+            switch ((SyntaxKind)(node?.RawKind ?? 0))
+            {
+                case SyntaxKind.NullableDirectiveTrivia:
+                    nullableDirectiveTrivia = (NullableDirectiveTriviaSyntax)node!;
+                    return true;
+                default:
+                    nullableDirectiveTrivia = null;
+                    return false;
+            }
+        }
     }
 }
