@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Private constants are used for static assertions.")]
     internal static class SyntaxKindEx
     {
+        public const SyntaxKind ImplicitObjectCreationExpression = (SyntaxKind)8659;
+
         // The code style layer does not currently need access to any syntax defined in newer versions of Roslyn. This
         // type is included as an example should this change in future updates.
         public const SyntaxKind RelationalPattern = (SyntaxKind)9029;

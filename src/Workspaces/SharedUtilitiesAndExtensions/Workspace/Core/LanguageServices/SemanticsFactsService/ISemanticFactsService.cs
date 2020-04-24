@@ -94,6 +94,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node);
 
+        IMethodSymbol GetImplicitObjectCreationConstructor(SemanticModel semanticModel, SyntaxNode node);
+
         ImmutableArray<IMethodSymbol> GetDeconstructionAssignmentMethods(SemanticModel semanticModel, SyntaxNode node);
 
         ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node);
