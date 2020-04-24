@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (namedType == semanticModelOpt.Compilation.ScriptGlobalsType)
+            if (namedType == semanticModelOpt?.Compilation.ScriptGlobalsType)
             {
                 return false;
             }
