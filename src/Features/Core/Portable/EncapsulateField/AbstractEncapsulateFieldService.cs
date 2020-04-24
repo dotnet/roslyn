@@ -24,7 +24,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EncapsulateField
 {
-    internal abstract class AbstractEncapsulateFieldService : ILanguageService
+    internal abstract partial class AbstractEncapsulateFieldService : ILanguageService
     {
         public async Task<EncapsulateFieldResult> EncapsulateFieldAsync(Document document, TextSpan span, bool useDefaultBehavior, CancellationToken cancellationToken)
         {
@@ -209,7 +209,6 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             document = solution.GetDocument(document.Id);
 
             semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            compilation = semanticModel.Compilation;
 
             var newRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newDeclaration = newRoot.GetAnnotatedNodes<SyntaxNode>(declarationAnnotation).First();
@@ -430,42 +429,5 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
         protected abstract Task<IEnumerable<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
-
-        internal class Result
-        {
-            public Result(Solution solutionWithProperty, string name, Glyph glyph)
-            {
-                Solution = solutionWithProperty;
-                Name = name;
-                Glyph = glyph;
-            }
-
-            public Result(Solution solutionWithProperty, string name, Glyph glyph, List<IFieldSymbol> failedFieldSymbols)
-                : this(solutionWithProperty, name, glyph)
-            {
-                FailedFields = failedFieldSymbols.ToImmutableArrayOrEmpty();
-            }
-
-            public Result(Solution originalSolution, params IFieldSymbol[] fields)
-                : this(originalSolution, string.Empty, Glyph.Error)
-            {
-                FailedFields = fields.ToImmutableArrayOrEmpty();
-            }
-
-            public Solution Solution { get; }
-            public string Name { get; }
-            public Glyph Glyph { get; }
-            public ImmutableArray<IFieldSymbol> FailedFields { get; }
-
-            public Result WithFailedFields(List<IFieldSymbol> failedFieldSymbols)
-            {
-                if (failedFieldSymbols.Count == 0)
-                {
-                    return this;
-                }
-
-                return new Result(Solution, Name, Glyph, failedFieldSymbols);
-            }
-        }
     }
 }
