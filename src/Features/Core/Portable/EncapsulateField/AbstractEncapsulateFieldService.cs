@@ -150,9 +150,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         private async Task<Result> EncapsulateFieldAsync(IFieldSymbol field, Document document, bool updateReferences, CancellationToken cancellationToken)
         {
             var originalField = field;
-            var finalNames = GeneratePropertyAndFieldNames(field);
-            var finalFieldName = finalNames.Item1;
-            var generatedPropertyName = finalNames.Item2;
+            var (finalFieldName, generatedPropertyName) = GenerateFieldAndPropertyNames(field);
 
             // Annotate the field declarations so we can find it after rename.
             var fieldDeclaration = field.DeclaringSyntaxReferences.First();
@@ -352,7 +350,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 Formatter.Annotation.AddAnnotationToSymbol(propertySymbol));
         }
 
-        protected abstract Tuple<string, string> GeneratePropertyAndFieldNames(IFieldSymbol field);
+        protected abstract (string fieldName, string propertyName) GenerateFieldAndPropertyNames(IFieldSymbol field);
 
         protected Accessibility ComputeAccessibility(Accessibility accessibility, ITypeSymbol type)
         {

@@ -100,19 +100,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
             End If
         End Function
 
-        Protected Overrides Function GeneratePropertyAndFieldNames(field As IFieldSymbol) As Tuple(Of String, String)
+        Protected Overrides Function GenerateFieldAndPropertyNames(field As IFieldSymbol) As (fieldName As String, propertyName As String)
             ' If the field is marked shadows, it will keep its name.
             If field.DeclaredAccessibility = Accessibility.Private OrElse IsShadows(field) Then
                 Dim propertyName = GeneratePropertyName(field.Name)
                 propertyName = MakeUnique(propertyName, field)
-                Return Tuple.Create(field.Name, propertyName)
+                Return (field.Name, propertyName)
             Else
                 Dim propertyName = GeneratePropertyName(field.Name)
                 Dim containingTypeMemberNames = field.ContainingType.GetAccessibleMembersInThisAndBaseTypes(Of ISymbol)(field.ContainingType).Select(Function(s) s.Name)
                 propertyName = NameGenerator.GenerateUniqueName(propertyName, containingTypeMemberNames.Where(Function(m) m <> field.Name).ToSet(), StringComparer.OrdinalIgnoreCase)
 
                 Dim newFieldName = MakeUnique("_" + Char.ToLower(propertyName(0)) + propertyName.Substring(1), field)
-                Return Tuple.Create(newFieldName, propertyName)
+                Return (newFieldName, propertyName)
             End If
         End Function
 
