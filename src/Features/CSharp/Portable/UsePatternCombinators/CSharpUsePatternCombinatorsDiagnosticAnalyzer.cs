@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 _ => null,
             };
 
-        public void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             // TODO need an option for user to disable the feature
 
