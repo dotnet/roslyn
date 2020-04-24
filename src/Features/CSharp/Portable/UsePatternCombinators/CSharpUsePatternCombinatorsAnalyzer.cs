@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         }
 
         /// <summary>
-        /// Changes the direction the operator is pointing to.
+        /// Changes the direction the operator is pointing at.
         /// </summary>
         /// <remarks>
         /// Relational patterns only come in prefix form so we'll have to
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             static ExpressionSyntax? GetTargetExpression(IOperation operation)
             {
                 // Unwrap explicit casts because the pattern will emit those anyways.
-                // For instance, `(int)o == 123` would be the same `o is 123`.
+                // For instance, `(int)o == 123` would be the same as `o is 123`.
                 if (operation is IConversionOperation { IsImplicit: false } op)
                     operation = op.Operand;
 
