@@ -33,6 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for identifier name.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.IdentifierName"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class IdentifierNameSyntax : SimpleNameSyntax
     {
         internal IdentifierNameSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -67,6 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for qualified name.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.QualifiedName"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class QualifiedNameSyntax : NameSyntax
     {
         private NameSyntax? left;
@@ -123,6 +135,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for generic name.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.GenericName"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class GenericNameSyntax : SimpleNameSyntax
     {
         private TypeArgumentListSyntax? typeArgumentList;
@@ -165,6 +183,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for type argument list.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypeArgumentList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypeArgumentListSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? arguments;
@@ -217,6 +241,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for alias qualified name.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AliasQualifiedName"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AliasQualifiedNameSyntax : NameSyntax
     {
         private IdentifierNameSyntax? alias;
@@ -282,6 +312,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for predefined types.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PredefinedType"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PredefinedTypeSyntax : TypeSyntax
     {
         internal PredefinedTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -315,6 +351,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for the array type.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ArrayType"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ArrayTypeSyntax : TypeSyntax
     {
         private TypeSyntax? elementType;
@@ -368,6 +410,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ArrayTypeSyntax AddRankSpecifiers(params ArrayRankSpecifierSyntax[] items) => WithRankSpecifiers(this.RankSpecifiers.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ArrayRankSpecifier"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ArrayRankSpecifierSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? sizes;
@@ -417,6 +465,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for pointer type.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PointerType"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PointerTypeSyntax : TypeSyntax
     {
         private TypeSyntax? elementType;
@@ -456,6 +510,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for a nullable type.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.NullableType"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class NullableTypeSyntax : TypeSyntax
     {
         private TypeSyntax? elementType;
@@ -495,6 +555,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for tuple type.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TupleType"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TupleTypeSyntax : TypeSyntax
     {
         private SyntaxNode? elements;
@@ -546,6 +612,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Tuple type element.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TupleElement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TupleElementSyntax : CSharpSyntaxNode
     {
         private TypeSyntax? type;
@@ -592,6 +664,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents a placeholder in the type argument list of an unbound generic type.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.OmittedTypeArgument"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class OmittedTypeArgumentSyntax : TypeSyntax
     {
         internal OmittedTypeArgumentSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -625,6 +703,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>The ref modifier of a method's return value or a local.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RefType"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RefTypeSyntax : TypeSyntax
     {
         private TypeSyntax? type;
@@ -682,6 +766,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for parenthesized expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ParenthesizedExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ParenthesizedExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -725,6 +815,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for tuple expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TupleExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TupleExpressionSyntax : ExpressionSyntax
     {
         private SyntaxNode? arguments;
@@ -777,6 +873,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for prefix unary expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.UnaryPlusExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.UnaryMinusExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.BitwiseNotExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.LogicalNotExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.PreIncrementExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.PreDecrementExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.AddressOfExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.PointerIndirectionExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.IndexExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PrefixUnaryExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? operand;
@@ -816,6 +926,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for an "await" expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AwaitExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AwaitExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -855,6 +971,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for postfix unary expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PostIncrementExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.PostDecrementExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.SuppressNullableWarningExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PostfixUnaryExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? operand;
@@ -894,6 +1018,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for member access expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SimpleMemberAccessExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.PointerMemberAccessExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class MemberAccessExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -950,6 +1081,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for conditional access expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ConditionalAccessExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConditionalAccessExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -1006,6 +1143,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for member binding expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.MemberBindingExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class MemberBindingExpressionSyntax : ExpressionSyntax
     {
         private SimpleNameSyntax? name;
@@ -1045,6 +1188,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for element binding expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ElementBindingExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ElementBindingExpressionSyntax : ExpressionSyntax
     {
         private BracketedArgumentListSyntax? argumentList;
@@ -1082,6 +1231,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for a range expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RangeExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RangeExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? leftOperand;
@@ -1138,6 +1293,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for implicit element access expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ImplicitElementAccess"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ImplicitElementAccessSyntax : ExpressionSyntax
     {
         private BracketedArgumentListSyntax? argumentList;
@@ -1175,6 +1336,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents an expression that has a binary operator.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AddExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.SubtractExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.MultiplyExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.DivideExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ModuloExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.LeftShiftExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.RightShiftExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.LogicalOrExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.LogicalAndExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.BitwiseOrExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.BitwiseAndExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ExclusiveOrExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.EqualsExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.NotEqualsExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.LessThanExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.LessThanOrEqualExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.GreaterThanExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.GreaterThanOrEqualExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.IsExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.AsExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.CoalesceExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BinaryExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? left;
@@ -1231,6 +1418,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents an expression that has an assignment operator.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SimpleAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.AddAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.SubtractAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.MultiplyAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.DivideAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ModuloAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.AndAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ExclusiveOrAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.OrAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.LeftShiftAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.RightShiftAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.CoalesceAssignmentExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AssignmentExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? left;
@@ -1287,6 +1491,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for conditional expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ConditionalExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConditionalExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? condition;
@@ -1363,6 +1573,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for a this expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ThisExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ThisExpressionSyntax : InstanceExpressionSyntax
     {
         internal ThisExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -1396,6 +1612,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for a base expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.BaseExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BaseExpressionSyntax : InstanceExpressionSyntax
     {
         internal BaseExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -1429,6 +1651,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for a literal expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ArgListExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.NumericLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.StringLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.CharacterLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.TrueLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.FalseLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.NullLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.DefaultLiteralExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LiteralExpressionSyntax : ExpressionSyntax
     {
         internal LiteralExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -1462,6 +1697,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for MakeRef expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.MakeRefExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class MakeRefExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -1509,6 +1750,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for RefType expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RefTypeExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RefTypeExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -1556,6 +1803,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for RefValue expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RefValueExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RefValueExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -1624,6 +1877,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for Checked or Unchecked expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CheckedExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.UncheckedExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CheckedExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -1671,6 +1931,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for Default expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DefaultExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DefaultExpressionSyntax : ExpressionSyntax
     {
         private TypeSyntax? type;
@@ -1718,6 +1984,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for TypeOf expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypeOfExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypeOfExpressionSyntax : ExpressionSyntax
     {
         private TypeSyntax? type;
@@ -1765,6 +2037,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for SizeOf expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SizeOfExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SizeOfExpressionSyntax : ExpressionSyntax
     {
         private TypeSyntax? type;
@@ -1812,6 +2090,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for invocation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.InvocationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InvocationExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -1866,6 +2150,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for element access expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ElementAccessExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ElementAccessExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -1937,6 +2227,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for the list of arguments.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ArgumentList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ArgumentListSyntax : BaseArgumentListSyntax
     {
         private SyntaxNode? arguments;
@@ -1991,6 +2287,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for bracketed argument list.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.BracketedArgumentList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BracketedArgumentListSyntax : BaseArgumentListSyntax
     {
         private SyntaxNode? arguments;
@@ -2045,6 +2347,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for argument.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.Argument"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ArgumentSyntax : CSharpSyntaxNode
     {
         private NameColonSyntax? nameColon;
@@ -2108,6 +2416,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for name colon syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.NameColon"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class NameColonSyntax : CSharpSyntaxNode
     {
         private IdentifierNameSyntax? name;
@@ -2147,6 +2461,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for the variable declaration in an out var declaration or a deconstruction declaration.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DeclarationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DeclarationExpressionSyntax : ExpressionSyntax
     {
         private TypeSyntax? type;
@@ -2198,6 +2518,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for cast expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CastExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CastExpressionSyntax : ExpressionSyntax
     {
         private TypeSyntax? type;
@@ -2294,6 +2620,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for anonymous method expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AnonymousMethodExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AnonymousMethodExpressionSyntax : AnonymousFunctionExpressionSyntax
     {
         private ParameterListSyntax? parameterList;
@@ -2409,6 +2741,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for a simple lambda expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SimpleLambdaExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SimpleLambdaExpressionSyntax : LambdaExpressionSyntax
     {
         private ParameterSyntax? parameter;
@@ -2507,6 +2845,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RefExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RefExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -2544,6 +2888,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for parenthesized lambda expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ParenthesizedLambdaExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ParenthesizedLambdaExpressionSyntax : LambdaExpressionSyntax
     {
         private ParameterListSyntax? parameterList;
@@ -2642,6 +2992,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for initializer expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ObjectInitializerExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.CollectionInitializerExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ArrayInitializerExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ComplexElementInitializerExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InitializerExpressionSyntax : ExpressionSyntax
     {
         private SyntaxNode? expressions;
@@ -2720,6 +3079,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for implicit object creation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ImplicitObjectCreationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ImplicitObjectCreationExpressionSyntax : BaseObjectCreationExpressionSyntax
     {
         private ArgumentListSyntax? argumentList;
@@ -2782,6 +3147,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for object creation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ObjectCreationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ObjectCreationExpressionSyntax : BaseObjectCreationExpressionSyntax
     {
         private TypeSyntax? type;
@@ -2854,6 +3225,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AnonymousObjectMemberDeclarator"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AnonymousObjectMemberDeclaratorSyntax : CSharpSyntaxNode
     {
         private NameEqualsSyntax? nameEquals;
@@ -2906,6 +3283,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for anonymous object creation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AnonymousObjectCreationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AnonymousObjectCreationExpressionSyntax : ExpressionSyntax
     {
         private SyntaxNode? initializers;
@@ -2962,6 +3345,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for array creation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ArrayCreationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ArrayCreationExpressionSyntax : ExpressionSyntax
     {
         private ArrayTypeSyntax? type;
@@ -3020,6 +3409,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for implicit array creation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ImplicitArrayCreationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ImplicitArrayCreationExpressionSyntax : ExpressionSyntax
     {
         private InitializerExpressionSyntax? initializer;
@@ -3081,6 +3476,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for stackalloc array creation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.StackAllocArrayCreationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class StackAllocArrayCreationExpressionSyntax : ExpressionSyntax
     {
         private TypeSyntax? type;
@@ -3137,6 +3538,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents the syntax node for implicit stackalloc array creation expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ImplicitStackAllocArrayCreationExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ImplicitStackAllocArrayCreationExpressionSyntax : ExpressionSyntax
     {
         private InitializerExpressionSyntax? initializer;
@@ -3201,6 +3608,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.QueryExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class QueryExpressionSyntax : ExpressionSyntax
     {
         private FromClauseSyntax? fromClause;
@@ -3252,6 +3665,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public QueryExpressionSyntax AddBodyClauses(params QueryClauseSyntax[] items) => WithBody(this.Body.WithClauses(this.Body.Clauses.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.QueryBody"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class QueryBodySyntax : CSharpSyntaxNode
     {
         private SyntaxNode? clauses;
@@ -3309,6 +3728,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public QueryBodySyntax AddClauses(params QueryClauseSyntax[] items) => WithClauses(this.Clauses.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FromClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class FromClauseSyntax : QueryClauseSyntax
     {
         private TypeSyntax? type;
@@ -3368,6 +3793,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public FromClauseSyntax WithExpression(ExpressionSyntax expression) => Update(this.FromKeyword, this.Type, this.Identifier, this.InKeyword, expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LetClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LetClauseSyntax : QueryClauseSyntax
     {
         private ExpressionSyntax? expression;
@@ -3411,6 +3842,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public LetClauseSyntax WithExpression(ExpressionSyntax expression) => Update(this.LetKeyword, this.Identifier, this.EqualsToken, expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.JoinClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class JoinClauseSyntax : QueryClauseSyntax
     {
         private TypeSyntax? type;
@@ -3494,6 +3931,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public JoinClauseSyntax WithInto(JoinIntoClauseSyntax? into) => Update(this.JoinKeyword, this.Type, this.Identifier, this.InKeyword, this.InExpression, this.OnKeyword, this.LeftExpression, this.EqualsKeyword, this.RightExpression, into);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.JoinIntoClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class JoinIntoClauseSyntax : CSharpSyntaxNode
     {
         internal JoinIntoClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -3529,6 +3972,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public JoinIntoClauseSyntax WithIdentifier(SyntaxToken identifier) => Update(this.IntoKeyword, identifier);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.WhereClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class WhereClauseSyntax : QueryClauseSyntax
     {
         private ExpressionSyntax? condition;
@@ -3565,6 +4014,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public WhereClauseSyntax WithCondition(ExpressionSyntax condition) => Update(this.WhereKeyword, condition);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.OrderByClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class OrderByClauseSyntax : QueryClauseSyntax
     {
         private SyntaxNode? orderings;
@@ -3610,6 +4065,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public OrderByClauseSyntax AddOrderings(params OrderingSyntax[] items) => WithOrderings(this.Orderings.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AscendingOrdering"/></description></item>
+    /// <item><description><see cref="SyntaxKind.DescendingOrdering"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class OrderingSyntax : CSharpSyntaxNode
     {
         private ExpressionSyntax? expression;
@@ -3653,6 +4115,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public OrderingSyntax WithAscendingOrDescendingKeyword(SyntaxToken ascendingOrDescendingKeyword) => Update(this.Expression, ascendingOrDescendingKeyword);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SelectClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SelectClauseSyntax : SelectOrGroupClauseSyntax
     {
         private ExpressionSyntax? expression;
@@ -3689,6 +4157,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SelectClauseSyntax WithExpression(ExpressionSyntax expression) => Update(this.SelectKeyword, expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.GroupClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class GroupClauseSyntax : SelectOrGroupClauseSyntax
     {
         private ExpressionSyntax? groupExpression;
@@ -3744,6 +4218,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public GroupClauseSyntax WithByExpression(ExpressionSyntax byExpression) => Update(this.GroupKeyword, this.GroupExpression, this.ByKeyword, byExpression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.QueryContinuation"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class QueryContinuationSyntax : CSharpSyntaxNode
     {
         private QueryBodySyntax? body;
@@ -3787,6 +4267,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents a placeholder in an array size list.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.OmittedArraySizeExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class OmittedArraySizeExpressionSyntax : ExpressionSyntax
     {
         internal OmittedArraySizeExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -3819,6 +4305,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public OmittedArraySizeExpressionSyntax WithOmittedArraySizeExpressionToken(SyntaxToken omittedArraySizeExpressionToken) => Update(omittedArraySizeExpressionToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.InterpolatedStringExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InterpolatedStringExpressionSyntax : ExpressionSyntax
     {
         private SyntaxNode? contents;
@@ -3864,6 +4356,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class which represents a simple pattern-matching expression using the "is" keyword.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.IsPatternExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class IsPatternExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -3918,6 +4416,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public IsPatternExpressionSyntax WithPattern(PatternSyntax pattern) => Update(this.Expression, this.IsKeyword, pattern);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ThrowExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ThrowExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? expression;
@@ -3954,6 +4458,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ThrowExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(this.ThrowKeyword, expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.WhenClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class WhenClauseSyntax : CSharpSyntaxNode
     {
         private ExpressionSyntax? condition;
@@ -3998,6 +4508,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DiscardPattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DiscardPatternSyntax : PatternSyntax
     {
         internal DiscardPatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -4029,6 +4545,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public DiscardPatternSyntax WithUnderscoreToken(SyntaxToken underscoreToken) => Update(underscoreToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DeclarationPattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DeclarationPatternSyntax : PatternSyntax
     {
         private TypeSyntax? type;
@@ -4078,6 +4600,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public DeclarationPatternSyntax WithDesignation(VariableDesignationSyntax designation) => Update(this.Type, designation);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.VarPattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class VarPatternSyntax : PatternSyntax
     {
         private VariableDesignationSyntax? designation;
@@ -4114,6 +4642,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public VarPatternSyntax WithDesignation(VariableDesignationSyntax designation) => Update(this.VarKeyword, designation);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RecursivePattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RecursivePatternSyntax : PatternSyntax
     {
         private TypeSyntax? type;
@@ -4186,6 +4720,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PositionalPatternClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PositionalPatternClauseSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? subpatterns;
@@ -4234,6 +4774,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public PositionalPatternClauseSyntax AddSubpatterns(params SubpatternSyntax[] items) => WithSubpatterns(this.Subpatterns.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PropertyPatternClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PropertyPatternClauseSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? subpatterns;
@@ -4282,6 +4828,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public PropertyPatternClauseSyntax AddSubpatterns(params SubpatternSyntax[] items) => WithSubpatterns(this.Subpatterns.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.Subpattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SubpatternSyntax : CSharpSyntaxNode
     {
         private NameColonSyntax? nameColon;
@@ -4331,6 +4883,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SubpatternSyntax WithPattern(PatternSyntax pattern) => Update(this.NameColon, pattern);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ConstantPattern"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConstantPatternSyntax : PatternSyntax
     {
         private ExpressionSyntax? expression;
@@ -4373,6 +4931,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.InterpolatedStringText"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InterpolatedStringTextSyntax : InterpolatedStringContentSyntax
     {
         internal InterpolatedStringTextSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -4405,6 +4969,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public InterpolatedStringTextSyntax WithTextToken(SyntaxToken textToken) => Update(textToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.Interpolation"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InterpolationSyntax : InterpolatedStringContentSyntax
     {
         private ExpressionSyntax? expression;
@@ -4466,6 +5036,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public InterpolationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.OpenBraceToken, this.Expression, this.AlignmentClause, this.FormatClause, closeBraceToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.InterpolationAlignmentClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InterpolationAlignmentClauseSyntax : CSharpSyntaxNode
     {
         private ExpressionSyntax? value;
@@ -4502,6 +5078,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public InterpolationAlignmentClauseSyntax WithValue(ExpressionSyntax value) => Update(this.CommaToken, value);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.InterpolationFormatClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InterpolationFormatClauseSyntax : CSharpSyntaxNode
     {
         internal InterpolationFormatClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -4537,6 +5119,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public InterpolationFormatClauseSyntax WithFormatStringToken(SyntaxToken formatStringToken) => Update(this.ColonToken, formatStringToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.GlobalStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class GlobalStatementSyntax : MemberDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -4619,6 +5207,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal abstract StatementSyntax AddAttributeListsCore(params AttributeListSyntax[] items);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.Block"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BlockSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -4679,6 +5273,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public BlockSyntax AddStatements(params StatementSyntax[] items) => WithStatements(this.Statements.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LocalFunctionStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LocalFunctionStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -4805,6 +5405,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LocalDeclarationStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LocalDeclarationStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -4894,6 +5500,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public LocalDeclarationStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items) => WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.VariableDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class VariableDeclarationSyntax : CSharpSyntaxNode
     {
         private TypeSyntax? type;
@@ -4952,6 +5564,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public VariableDeclarationSyntax AddVariables(params VariableDeclaratorSyntax[] items) => WithVariables(this.Variables.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.VariableDeclarator"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class VariableDeclaratorSyntax : CSharpSyntaxNode
     {
         private BracketedArgumentListSyntax? argumentList;
@@ -5011,6 +5629,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EqualsValueClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EqualsValueClauseSyntax : CSharpSyntaxNode
     {
         private ExpressionSyntax? value;
@@ -5055,6 +5679,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SingleVariableDesignation"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SingleVariableDesignationSyntax : VariableDesignationSyntax
     {
         internal SingleVariableDesignationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -5086,6 +5716,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SingleVariableDesignationSyntax WithIdentifier(SyntaxToken identifier) => Update(identifier);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DiscardDesignation"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DiscardDesignationSyntax : VariableDesignationSyntax
     {
         internal DiscardDesignationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -5117,6 +5753,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public DiscardDesignationSyntax WithUnderscoreToken(SyntaxToken underscoreToken) => Update(underscoreToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ParenthesizedVariableDesignation"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ParenthesizedVariableDesignationSyntax : VariableDesignationSyntax
     {
         private SyntaxNode? variables;
@@ -5165,6 +5807,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ParenthesizedVariableDesignationSyntax AddVariables(params VariableDesignationSyntax[] items) => WithVariables(this.Variables.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ExpressionStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ExpressionStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5221,6 +5869,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ExpressionStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EmptyStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EmptyStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5262,6 +5916,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents a labeled statement syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LabeledStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LabeledStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5326,6 +5986,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>
     /// Represents a goto statement syntax
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.GotoStatement"/></description></item>
+    /// <item><description><see cref="SyntaxKind.GotoCaseStatement"/></description></item>
+    /// <item><description><see cref="SyntaxKind.GotoDefaultStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class GotoStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5407,6 +6075,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new GotoStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.BreakStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BreakStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5450,6 +6124,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new BreakStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ContinueStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ContinueStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5493,6 +6173,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ContinueStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ReturnStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ReturnStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5552,6 +6238,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ReturnStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ThrowStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ThrowStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5611,6 +6303,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ThrowStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.YieldReturnStatement"/></description></item>
+    /// <item><description><see cref="SyntaxKind.YieldBreakStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class YieldStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5673,6 +6372,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new YieldStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.WhileStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class WhileStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5741,6 +6446,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new WhileStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DoStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DoStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5815,6 +6526,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new DoStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ForStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ForStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -5963,6 +6680,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new CommonForEachStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => (CommonForEachStatementSyntax)AddAttributeListsCore(items);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ForEachStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ForEachStatementSyntax : CommonForEachStatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6061,6 +6784,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ForEachStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ForEachVariableStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ForEachVariableStatementSyntax : CommonForEachStatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6161,6 +6890,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ForEachVariableStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.UsingStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class UsingStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6245,6 +6980,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new UsingStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FixedStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class FixedStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6314,6 +7055,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public FixedStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items) => WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CheckedStatement"/></description></item>
+    /// <item><description><see cref="SyntaxKind.UncheckedStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CheckedStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6372,6 +7120,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public CheckedStatementSyntax AddBlockStatements(params StatementSyntax[] items) => WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.UnsafeStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class UnsafeStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6430,6 +7184,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public UnsafeStatementSyntax AddBlockStatements(params StatementSyntax[] items) => WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LockStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LockStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6501,6 +7261,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>
     /// Represents an if statement syntax.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.IfStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class IfStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6594,6 +7360,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents an else statement syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ElseClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ElseClauseSyntax : CSharpSyntaxNode
     {
         private StatementSyntax? statement;
@@ -6634,6 +7406,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents a switch statement syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SwitchStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SwitchStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -6745,6 +7523,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents a switch section syntax of a switch statement.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SwitchSection"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SwitchSectionSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? labels;
@@ -6827,6 +7611,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents a case label within a switch statement.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CasePatternSwitchLabel"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CasePatternSwitchLabelSyntax : SwitchLabelSyntax
     {
         private PatternSyntax? pattern;
@@ -6889,6 +7679,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents a case label within a switch statement.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CaseSwitchLabel"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CaseSwitchLabelSyntax : SwitchLabelSyntax
     {
         private ExpressionSyntax? value;
@@ -6935,6 +7731,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Represents a default label within a switch statement.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DefaultSwitchLabel"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DefaultSwitchLabelSyntax : SwitchLabelSyntax
     {
         internal DefaultSwitchLabelSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -6972,6 +7774,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new DefaultSwitchLabelSyntax WithColonToken(SyntaxToken colonToken) => Update(this.Keyword, colonToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SwitchExpression"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SwitchExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax? governingExpression;
@@ -7039,6 +7847,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SwitchExpressionSyntax AddArms(params SwitchExpressionArmSyntax[] items) => WithArms(this.Arms.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SwitchExpressionArm"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SwitchExpressionArmSyntax : CSharpSyntaxNode
     {
         private PatternSyntax? pattern;
@@ -7097,6 +7911,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SwitchExpressionArmSyntax WithExpression(ExpressionSyntax expression) => Update(this.Pattern, this.WhenClause, this.EqualsGreaterThanToken, expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TryStatement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TryStatementSyntax : StatementSyntax
     {
         private SyntaxNode? attributeLists;
@@ -7168,6 +7988,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TryStatementSyntax AddCatches(params CatchClauseSyntax[] items) => WithCatches(this.Catches.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CatchClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CatchClauseSyntax : CSharpSyntaxNode
     {
         private CatchDeclarationSyntax? declaration;
@@ -7229,6 +8055,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public CatchClauseSyntax AddBlockStatements(params StatementSyntax[] items) => WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CatchDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CatchDeclarationSyntax : CSharpSyntaxNode
     {
         private TypeSyntax? type;
@@ -7278,6 +8110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public CatchDeclarationSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.OpenParenToken, this.Type, this.Identifier, closeParenToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CatchFilterClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CatchFilterClauseSyntax : CSharpSyntaxNode
     {
         private ExpressionSyntax? filterExpression;
@@ -7320,6 +8158,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public CatchFilterClauseSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.WhenKeyword, this.OpenParenToken, this.FilterExpression, closeParenToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FinallyClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class FinallyClauseSyntax : CSharpSyntaxNode
     {
         private BlockSyntax? block;
@@ -7359,6 +8203,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public FinallyClauseSyntax AddBlockStatements(params StatementSyntax[] items) => WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CompilationUnit"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CompilationUnitSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? externs;
@@ -7432,6 +8282,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>
     /// Represents an ExternAlias directive syntax, e.g. "extern alias MyAlias;" with specifying "/r:MyAlias=SomeAssembly.dll " on the compiler command line.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ExternAliasDirective"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ExternAliasDirectiveSyntax : CSharpSyntaxNode
     {
         internal ExternAliasDirectiveSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -7476,6 +8332,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ExternAliasDirectiveSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.ExternKeyword, this.AliasKeyword, this.Identifier, semicolonToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.UsingDirective"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class UsingDirectiveSyntax : CSharpSyntaxNode
     {
         private NameEqualsSyntax? alias;
@@ -7566,6 +8428,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal abstract MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.NamespaceDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class NamespaceDeclarationSyntax : MemberDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -7674,6 +8542,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class representing one or more attributes applied to a language construct.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AttributeList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AttributeListSyntax : CSharpSyntaxNode
     {
         private AttributeTargetSpecifierSyntax? target;
@@ -7743,6 +8617,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class representing what language construct an attribute targets.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AttributeTargetSpecifier"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AttributeTargetSpecifierSyntax : CSharpSyntaxNode
     {
         internal AttributeTargetSpecifierSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -7780,6 +8660,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Attribute syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.Attribute"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AttributeSyntax : CSharpSyntaxNode
     {
         private NameSyntax? name;
@@ -7837,6 +8723,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Attribute argument list syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AttributeArgumentList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AttributeArgumentListSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? arguments;
@@ -7889,6 +8781,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Attribute argument syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AttributeArgument"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AttributeArgumentSyntax : CSharpSyntaxNode
     {
         private NameEqualsSyntax? nameEquals;
@@ -7946,6 +8844,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class representing an identifier name followed by an equals token.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.NameEquals"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class NameEqualsSyntax : CSharpSyntaxNode
     {
         private IdentifierNameSyntax? name;
@@ -7984,6 +8888,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Type parameter list syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypeParameterList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypeParameterListSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? parameters;
@@ -8036,6 +8946,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Type parameter syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypeParameter"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypeParameterSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? attributeLists;
@@ -8176,6 +9092,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Class type declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ClassDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ClassDeclarationSyntax : TypeDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -8309,6 +9231,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Struct type declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.StructDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -8442,6 +9370,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Interface type declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.InterfaceDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class InterfaceDeclarationSyntax : TypeDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -8575,6 +9509,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Enum type declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EnumDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EnumDeclarationSyntax : BaseTypeDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -8692,6 +9632,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Delegate declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DelegateDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DelegateDeclarationSyntax : MemberDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -8798,6 +9744,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public DelegateDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items) => WithConstraintClauses(this.ConstraintClauses.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EnumMemberDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EnumMemberDeclarationSyntax : MemberDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -8869,6 +9821,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Base list syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.BaseList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BaseListSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? types;
@@ -8929,6 +9887,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal abstract BaseTypeSyntax WithTypeCore(TypeSyntax type);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SimpleBaseType"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SimpleBaseTypeSyntax : BaseTypeSyntax
     {
         private TypeSyntax? type;
@@ -8964,6 +9928,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Type parameter constraint clause.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypeParameterConstraintClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypeParameterConstraintClauseSyntax : CSharpSyntaxNode
     {
         private IdentifierNameSyntax? name;
@@ -9041,6 +10011,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Constructor constraint syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ConstructorConstraint"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConstructorConstraintSyntax : TypeParameterConstraintSyntax
     {
         internal ConstructorConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -9082,6 +10058,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Base type for class or struct constraint syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ClassConstraint"/></description></item>
+    /// <item><description><see cref="SyntaxKind.StructConstraint"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ClassOrStructConstraintSyntax : TypeParameterConstraintSyntax
     {
         internal ClassOrStructConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -9126,6 +10109,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Type constraint syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypeConstraint"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypeConstraintSyntax : TypeParameterConstraintSyntax
     {
         private TypeSyntax? type;
@@ -9186,6 +10175,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new BaseFieldDeclarationSyntax AddModifiers(params SyntaxToken[] items) => (BaseFieldDeclarationSyntax)AddModifiersCore(items);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FieldDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class FieldDeclarationSyntax : BaseFieldDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -9259,6 +10254,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new FieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items) => WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EventFieldDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EventFieldDeclarationSyntax : BaseFieldDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -9335,6 +10336,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new EventFieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items) => WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ExplicitInterfaceSpecifier"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ExplicitInterfaceSpecifierSyntax : CSharpSyntaxNode
     {
         private NameSyntax? name;
@@ -9415,6 +10422,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Method declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.MethodDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class MethodDeclarationSyntax : BaseMethodDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -9559,6 +10572,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Operator declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.OperatorDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class OperatorDeclarationSyntax : BaseMethodDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -9682,6 +10701,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Conversion operator declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ConversionOperatorDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConversionOperatorDeclarationSyntax : BaseMethodDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -9805,6 +10830,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Constructor declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ConstructorDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConstructorDeclarationSyntax : BaseMethodDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -9923,6 +10954,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Constructor initializer syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.BaseConstructorInitializer"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ThisConstructorInitializer"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConstructorInitializerSyntax : CSharpSyntaxNode
     {
         private ArgumentListSyntax? argumentList;
@@ -9967,6 +11005,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Destructor declaration syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DestructorDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DestructorDeclarationSyntax : BaseMethodDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -10115,6 +11159,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new BasePropertyDeclarationSyntax AddModifiers(params SyntaxToken[] items) => (BasePropertyDeclarationSyntax)AddModifiersCore(items);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PropertyDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PropertyDeclarationSyntax : BasePropertyDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -10229,6 +11279,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>The syntax for the expression body of an expression-bodied member.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ArrowExpressionClause"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ArrowExpressionClauseSyntax : CSharpSyntaxNode
     {
         private ExpressionSyntax? expression;
@@ -10265,6 +11321,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ArrowExpressionClauseSyntax WithExpression(ExpressionSyntax expression) => Update(this.ArrowToken, expression);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EventDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EventDeclarationSyntax : BasePropertyDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -10369,6 +11431,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.IndexerDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class IndexerDeclarationSyntax : BasePropertyDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -10483,6 +11551,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.AccessorList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AccessorListSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? accessors;
@@ -10524,6 +11598,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public AccessorListSyntax AddAccessors(params AccessorDeclarationSyntax[] items) => WithAccessors(this.Accessors.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.GetAccessorDeclaration"/></description></item>
+    /// <item><description><see cref="SyntaxKind.SetAccessorDeclaration"/></description></item>
+    /// <item><description><see cref="SyntaxKind.AddAccessorDeclaration"/></description></item>
+    /// <item><description><see cref="SyntaxKind.RemoveAccessorDeclaration"/></description></item>
+    /// <item><description><see cref="SyntaxKind.UnknownAccessorDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class AccessorDeclarationSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? attributeLists;
@@ -10639,6 +11723,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Parameter list syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ParameterList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ParameterListSyntax : BaseParameterListSyntax
     {
         private SyntaxNode? parameters;
@@ -10692,6 +11782,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Parameter list syntax with surrounding brackets.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.BracketedParameterList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BracketedParameterListSyntax : BaseParameterListSyntax
     {
         private SyntaxNode? parameters;
@@ -10745,6 +11841,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>Parameter syntax.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.Parameter"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ParameterSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? attributeLists;
@@ -10819,6 +11921,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ParameterSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.IncompleteMember"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class IncompleteMemberSyntax : MemberDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
@@ -10885,6 +11993,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new IncompleteMemberSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SkippedTokensTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class SkippedTokensTriviaSyntax : StructuredTriviaSyntax
     {
         internal SkippedTokensTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -10925,6 +12039,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SkippedTokensTriviaSyntax AddTokens(params SyntaxToken[] items) => WithTokens(this.Tokens.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/></description></item>
+    /// <item><description><see cref="SyntaxKind.MultiLineDocumentationCommentTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DocumentationCommentTriviaSyntax : StructuredTriviaSyntax
     {
         private SyntaxNode? content;
@@ -10982,6 +12103,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// will always be bound as type, so it's safer to use QualifiedCrefSyntax or MemberCrefSyntax if the symbol
     /// might be a non-type member.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.TypeCref"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class TypeCrefSyntax : CrefSyntax
     {
         private TypeSyntax? type;
@@ -11022,6 +12149,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// will always be bound as type, so it's safer to use QualifiedCrefSyntax or MemberCrefSyntax if the symbol
     /// might be a non-type member.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.QualifiedCref"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class QualifiedCrefSyntax : CrefSyntax
     {
         private TypeSyntax? container;
@@ -11095,6 +12228,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// For example, "M", "M&lt;T&gt;" or "M(int)".
     /// Also, "A::B()" or "string()".
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.NameMemberCref"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class NameMemberCrefSyntax : MemberCrefSyntax
     {
         private TypeSyntax? name;
@@ -11154,6 +12293,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// A MemberCrefSyntax specified by a this keyword and an optional parameter list.
     /// For example, "this" or "this[int]".
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.IndexerMemberCref"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class IndexerMemberCrefSyntax : MemberCrefSyntax
     {
         private CrefBracketedParameterListSyntax? parameters;
@@ -11201,6 +12346,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// For example, "operator +" or "operator -[int]".
     /// NOTE: the operator must be overloadable.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.OperatorMemberCref"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class OperatorMemberCrefSyntax : MemberCrefSyntax
     {
         private CrefParameterListSyntax? parameters;
@@ -11251,6 +12402,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// A MemberCrefSyntax specified by an implicit or explicit keyword, an operator keyword, a destination type, and an optional parameter list.
     /// For example, "implicit operator int" or "explicit operator MyType(int)".
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ConversionOperatorMemberCref"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ConversionOperatorMemberCrefSyntax : MemberCrefSyntax
     {
         private TypeSyntax? type;
@@ -11335,6 +12492,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>
     /// A parenthesized list of cref parameters.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CrefParameterList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CrefParameterListSyntax : BaseCrefParameterListSyntax
     {
         private SyntaxNode? parameters;
@@ -11390,6 +12553,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>
     /// A bracketed list of cref parameters.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CrefBracketedParameterList"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CrefBracketedParameterListSyntax : BaseCrefParameterListSyntax
     {
         private SyntaxNode? parameters;
@@ -11447,6 +12616,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// Unlike a regular parameter, a cref parameter has only an optional ref or out keyword and a type -
     /// there is no name and there are no attributes or other modifiers.
     /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.CrefParameter"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class CrefParameterSyntax : CSharpSyntaxNode
     {
         private TypeSyntax? type;
@@ -11498,6 +12673,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlElement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlElementSyntax : XmlNodeSyntax
     {
         private XmlElementStartTagSyntax? startTag;
@@ -11556,6 +12737,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlElementSyntax AddContent(params XmlNodeSyntax[] items) => WithContent(this.Content.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlElementStartTag"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlElementStartTagSyntax : CSharpSyntaxNode
     {
         private XmlNameSyntax? name;
@@ -11613,6 +12800,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlElementStartTagSyntax AddAttributes(params XmlAttributeSyntax[] items) => WithAttributes(this.Attributes.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlElementEndTag"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlElementEndTagSyntax : CSharpSyntaxNode
     {
         private XmlNameSyntax? name;
@@ -11652,6 +12845,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlElementEndTagSyntax WithGreaterThanToken(SyntaxToken greaterThanToken) => Update(this.LessThanSlashToken, this.Name, greaterThanToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlEmptyElement"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlEmptyElementSyntax : XmlNodeSyntax
     {
         private XmlNameSyntax? name;
@@ -11709,6 +12908,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlEmptyElementSyntax AddAttributes(params XmlAttributeSyntax[] items) => WithAttributes(this.Attributes.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlName"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlNameSyntax : CSharpSyntaxNode
     {
         private XmlPrefixSyntax? prefix;
@@ -11745,6 +12950,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlNameSyntax WithLocalName(SyntaxToken localName) => Update(this.Prefix, localName);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlPrefix"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlPrefixSyntax : CSharpSyntaxNode
     {
         internal XmlPrefixSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -11803,6 +13014,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal abstract XmlAttributeSyntax WithEndQuoteTokenCore(SyntaxToken endQuoteToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlTextAttribute"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlTextAttributeSyntax : XmlAttributeSyntax
     {
         private XmlNameSyntax? name;
@@ -11861,6 +13078,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlTextAttributeSyntax AddTextTokens(params SyntaxToken[] items) => WithTextTokens(this.TextTokens.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlCrefAttribute"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlCrefAttributeSyntax : XmlAttributeSyntax
     {
         private XmlNameSyntax? name;
@@ -11923,6 +13146,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new XmlCrefAttributeSyntax WithEndQuoteToken(SyntaxToken endQuoteToken) => Update(this.Name, this.EqualsToken, this.StartQuoteToken, this.Cref, endQuoteToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlNameAttribute"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlNameAttributeSyntax : XmlAttributeSyntax
     {
         private XmlNameSyntax? name;
@@ -11985,6 +13214,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new XmlNameAttributeSyntax WithEndQuoteToken(SyntaxToken endQuoteToken) => Update(this.Name, this.EqualsToken, this.StartQuoteToken, this.Identifier, endQuoteToken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlText"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlTextSyntax : XmlNodeSyntax
     {
         internal XmlTextSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12025,6 +13260,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlTextSyntax AddTextTokens(params SyntaxToken[] items) => WithTextTokens(this.TextTokens.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlCDataSection"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlCDataSectionSyntax : XmlNodeSyntax
     {
         internal XmlCDataSectionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12071,6 +13312,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlCDataSectionSyntax AddTextTokens(params SyntaxToken[] items) => WithTextTokens(this.TextTokens.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlProcessingInstruction"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlProcessingInstructionSyntax : XmlNodeSyntax
     {
         private XmlNameSyntax? name;
@@ -12122,6 +13369,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlProcessingInstructionSyntax AddTextTokens(params SyntaxToken[] items) => WithTextTokens(this.TextTokens.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.XmlComment"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class XmlCommentSyntax : XmlNodeSyntax
     {
         internal XmlCommentSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12213,6 +13466,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public abstract bool ConditionValue { get; }
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.IfDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class IfDirectiveTriviaSyntax : ConditionalDirectiveTriviaSyntax
     {
         private ExpressionSyntax? condition;
@@ -12267,6 +13526,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public IfDirectiveTriviaSyntax WithConditionValue(bool conditionValue) => Update(this.HashToken, this.IfKeyword, this.Condition, this.EndOfDirectiveToken, this.IsActive, this.BranchTaken, conditionValue);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ElifDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ElifDirectiveTriviaSyntax : ConditionalDirectiveTriviaSyntax
     {
         private ExpressionSyntax? condition;
@@ -12321,6 +13586,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ElifDirectiveTriviaSyntax WithConditionValue(bool conditionValue) => Update(this.HashToken, this.ElifKeyword, this.Condition, this.EndOfDirectiveToken, this.IsActive, this.BranchTaken, conditionValue);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ElseDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ElseDirectiveTriviaSyntax : BranchingDirectiveTriviaSyntax
     {
         internal ElseDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12366,6 +13637,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ElseDirectiveTriviaSyntax WithBranchTaken(bool branchTaken) => Update(this.HashToken, this.ElseKeyword, this.EndOfDirectiveToken, this.IsActive, branchTaken);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EndIfDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EndIfDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal EndIfDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12408,6 +13685,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public EndIfDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.EndIfKeyword, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.RegionDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class RegionDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal RegionDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12450,6 +13733,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public RegionDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.RegionKeyword, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.EndRegionDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class EndRegionDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal EndRegionDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12492,6 +13781,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public EndRegionDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.EndRegionKeyword, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ErrorDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ErrorDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal ErrorDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12534,6 +13829,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ErrorDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.ErrorKeyword, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.WarningDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class WarningDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal WarningDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12576,6 +13877,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public WarningDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.WarningKeyword, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.BadDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class BadDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal BadDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12618,6 +13925,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public BadDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.Identifier, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.DefineDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class DefineDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal DefineDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12663,6 +13976,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public DefineDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.DefineKeyword, this.Name, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.UndefDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class UndefDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal UndefDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12708,6 +14027,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public UndefDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.UndefKeyword, this.Name, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LineDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LineDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal LineDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12763,6 +14088,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public LineDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.LineKeyword, this.Line, this.File, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PragmaWarningDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PragmaWarningDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         private SyntaxNode? errorCodes;
@@ -12825,6 +14156,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public PragmaWarningDirectiveTriviaSyntax AddErrorCodes(params ExpressionSyntax[] items) => WithErrorCodes(this.ErrorCodes.AddRange(items));
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PragmaChecksumDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class PragmaChecksumDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal PragmaChecksumDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12879,6 +14216,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public PragmaChecksumDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.PragmaKeyword, this.ChecksumKeyword, this.File, this.Guid, this.Bytes, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ReferenceDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ReferenceDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal ReferenceDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12924,6 +14267,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ReferenceDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.ReferenceKeyword, this.File, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LoadDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class LoadDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal LoadDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -12969,6 +14318,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public LoadDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.LoadKeyword, this.File, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ShebangDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal ShebangDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -13011,6 +14366,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ShebangDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.ExclamationToken, this.EndOfDirectiveToken, isActive);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.NullableDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
     public sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
         internal NullableDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
