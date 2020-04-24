@@ -1972,6 +1972,27 @@ E.E() -> void";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
         }
 
+        [Fact, WorkItem(2195, "https://github.com/dotnet/roslyn-analyzers/issues/2195")]
+        public async Task TestPartialType()
+        {
+            var source = @"
+public partial class {|RS0016:{|RS0016:C|}|}
+{
+}
+
+public partial class {|RS0016:{|RS0016:C|}|}
+{
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"";
+            var fixedUnshippedText = @"C
+C.C() -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
         #endregion
     }
 }
