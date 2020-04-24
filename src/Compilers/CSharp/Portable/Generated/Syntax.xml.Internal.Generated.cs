@@ -1606,8 +1606,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
+    internal abstract partial class ExpressionOrPatternSyntax : CSharpSyntaxNode
+    {
+        internal ExpressionOrPatternSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+        }
+
+        internal ExpressionOrPatternSyntax(SyntaxKind kind)
+          : base(kind)
+        {
+        }
+
+        protected ExpressionOrPatternSyntax(ObjectReader reader)
+          : base(reader)
+        {
+        }
+    }
+
     /// <summary>Provides the base class from which the classes that represent expression syntax nodes are derived. This is an abstract class.</summary>
-    internal abstract partial class ExpressionSyntax : CSharpSyntaxNode
+    internal abstract partial class ExpressionSyntax : ExpressionOrPatternSyntax
     {
         internal ExpressionSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
@@ -9424,7 +9442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal abstract partial class PatternSyntax : CSharpSyntaxNode
+    internal abstract partial class PatternSyntax : ExpressionOrPatternSyntax
     {
         internal PatternSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
@@ -10645,57 +10663,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal sealed partial class BinaryPatternSyntax : PatternSyntax
     {
-        internal readonly PatternSyntax leftPattern;
-        internal readonly SyntaxToken patternOperator;
-        internal readonly PatternSyntax rightPattern;
+        internal readonly PatternSyntax left;
+        internal readonly SyntaxToken operatorToken;
+        internal readonly PatternSyntax right;
 
-        internal BinaryPatternSyntax(SyntaxKind kind, PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal BinaryPatternSyntax(SyntaxKind kind, PatternSyntax left, SyntaxToken operatorToken, PatternSyntax right, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 3;
-            this.AdjustFlagsAndWidth(leftPattern);
-            this.leftPattern = leftPattern;
-            this.AdjustFlagsAndWidth(patternOperator);
-            this.patternOperator = patternOperator;
-            this.AdjustFlagsAndWidth(rightPattern);
-            this.rightPattern = rightPattern;
+            this.AdjustFlagsAndWidth(left);
+            this.left = left;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(right);
+            this.right = right;
         }
 
-        internal BinaryPatternSyntax(SyntaxKind kind, PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern, SyntaxFactoryContext context)
+        internal BinaryPatternSyntax(SyntaxKind kind, PatternSyntax left, SyntaxToken operatorToken, PatternSyntax right, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
             this.SlotCount = 3;
-            this.AdjustFlagsAndWidth(leftPattern);
-            this.leftPattern = leftPattern;
-            this.AdjustFlagsAndWidth(patternOperator);
-            this.patternOperator = patternOperator;
-            this.AdjustFlagsAndWidth(rightPattern);
-            this.rightPattern = rightPattern;
+            this.AdjustFlagsAndWidth(left);
+            this.left = left;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(right);
+            this.right = right;
         }
 
-        internal BinaryPatternSyntax(SyntaxKind kind, PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
+        internal BinaryPatternSyntax(SyntaxKind kind, PatternSyntax left, SyntaxToken operatorToken, PatternSyntax right)
           : base(kind)
         {
             this.SlotCount = 3;
-            this.AdjustFlagsAndWidth(leftPattern);
-            this.leftPattern = leftPattern;
-            this.AdjustFlagsAndWidth(patternOperator);
-            this.patternOperator = patternOperator;
-            this.AdjustFlagsAndWidth(rightPattern);
-            this.rightPattern = rightPattern;
+            this.AdjustFlagsAndWidth(left);
+            this.left = left;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(right);
+            this.right = right;
         }
 
-        public PatternSyntax LeftPattern => this.leftPattern;
-        public SyntaxToken PatternOperator => this.patternOperator;
-        public PatternSyntax RightPattern => this.rightPattern;
+        public PatternSyntax Left => this.left;
+        public SyntaxToken OperatorToken => this.operatorToken;
+        public PatternSyntax Right => this.right;
 
         internal override GreenNode? GetSlot(int index)
             => index switch
             {
-                0 => this.leftPattern,
-                1 => this.patternOperator,
-                2 => this.rightPattern,
+                0 => this.left,
+                1 => this.operatorToken,
+                2 => this.right,
                 _ => null,
             };
 
@@ -10704,11 +10722,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBinaryPattern(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBinaryPattern(this);
 
-        public BinaryPatternSyntax Update(PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
+        public BinaryPatternSyntax Update(PatternSyntax left, SyntaxToken operatorToken, PatternSyntax right)
         {
-            if (leftPattern != this.LeftPattern || patternOperator != this.PatternOperator || rightPattern != this.RightPattern)
+            if (left != this.Left || operatorToken != this.OperatorToken || right != this.Right)
             {
-                var newNode = SyntaxFactory.BinaryPattern(this.Kind, leftPattern, patternOperator, rightPattern);
+                var newNode = SyntaxFactory.BinaryPattern(this.Kind, left, operatorToken, right);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -10722,32 +10740,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new BinaryPatternSyntax(this.Kind, this.leftPattern, this.patternOperator, this.rightPattern, diagnostics, GetAnnotations());
+            => new BinaryPatternSyntax(this.Kind, this.left, this.operatorToken, this.right, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new BinaryPatternSyntax(this.Kind, this.leftPattern, this.patternOperator, this.rightPattern, GetDiagnostics(), annotations);
+            => new BinaryPatternSyntax(this.Kind, this.left, this.operatorToken, this.right, GetDiagnostics(), annotations);
 
         internal BinaryPatternSyntax(ObjectReader reader)
           : base(reader)
         {
             this.SlotCount = 3;
-            var leftPattern = (PatternSyntax)reader.ReadValue();
-            AdjustFlagsAndWidth(leftPattern);
-            this.leftPattern = leftPattern;
-            var patternOperator = (SyntaxToken)reader.ReadValue();
-            AdjustFlagsAndWidth(patternOperator);
-            this.patternOperator = patternOperator;
-            var rightPattern = (PatternSyntax)reader.ReadValue();
-            AdjustFlagsAndWidth(rightPattern);
-            this.rightPattern = rightPattern;
+            var left = (PatternSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(left);
+            this.left = left;
+            var operatorToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            var right = (PatternSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(right);
+            this.right = right;
         }
 
         internal override void WriteTo(ObjectWriter writer)
         {
             base.WriteTo(writer);
-            writer.WriteValue(this.leftPattern);
-            writer.WriteValue(this.patternOperator);
-            writer.WriteValue(this.rightPattern);
+            writer.WriteValue(this.left);
+            writer.WriteValue(this.operatorToken);
+            writer.WriteValue(this.right);
         }
 
         static BinaryPatternSyntax()
@@ -10758,47 +10776,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal sealed partial class UnaryPatternSyntax : PatternSyntax
     {
-        internal readonly SyntaxToken patternOperator;
+        internal readonly SyntaxToken operatorToken;
         internal readonly PatternSyntax pattern;
 
-        internal UnaryPatternSyntax(SyntaxKind kind, SyntaxToken patternOperator, PatternSyntax pattern, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal UnaryPatternSyntax(SyntaxKind kind, SyntaxToken operatorToken, PatternSyntax pattern, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 2;
-            this.AdjustFlagsAndWidth(patternOperator);
-            this.patternOperator = patternOperator;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
             this.AdjustFlagsAndWidth(pattern);
             this.pattern = pattern;
         }
 
-        internal UnaryPatternSyntax(SyntaxKind kind, SyntaxToken patternOperator, PatternSyntax pattern, SyntaxFactoryContext context)
+        internal UnaryPatternSyntax(SyntaxKind kind, SyntaxToken operatorToken, PatternSyntax pattern, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
             this.SlotCount = 2;
-            this.AdjustFlagsAndWidth(patternOperator);
-            this.patternOperator = patternOperator;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
             this.AdjustFlagsAndWidth(pattern);
             this.pattern = pattern;
         }
 
-        internal UnaryPatternSyntax(SyntaxKind kind, SyntaxToken patternOperator, PatternSyntax pattern)
+        internal UnaryPatternSyntax(SyntaxKind kind, SyntaxToken operatorToken, PatternSyntax pattern)
           : base(kind)
         {
             this.SlotCount = 2;
-            this.AdjustFlagsAndWidth(patternOperator);
-            this.patternOperator = patternOperator;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
             this.AdjustFlagsAndWidth(pattern);
             this.pattern = pattern;
         }
 
-        public SyntaxToken PatternOperator => this.patternOperator;
+        public SyntaxToken OperatorToken => this.operatorToken;
         public PatternSyntax Pattern => this.pattern;
 
         internal override GreenNode? GetSlot(int index)
             => index switch
             {
-                0 => this.patternOperator,
+                0 => this.operatorToken,
                 1 => this.pattern,
                 _ => null,
             };
@@ -10808,11 +10826,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnaryPattern(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUnaryPattern(this);
 
-        public UnaryPatternSyntax Update(SyntaxToken patternOperator, PatternSyntax pattern)
+        public UnaryPatternSyntax Update(SyntaxToken operatorToken, PatternSyntax pattern)
         {
-            if (patternOperator != this.PatternOperator || pattern != this.Pattern)
+            if (operatorToken != this.OperatorToken || pattern != this.Pattern)
             {
-                var newNode = SyntaxFactory.UnaryPattern(patternOperator, pattern);
+                var newNode = SyntaxFactory.UnaryPattern(operatorToken, pattern);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -10826,18 +10844,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new UnaryPatternSyntax(this.Kind, this.patternOperator, this.pattern, diagnostics, GetAnnotations());
+            => new UnaryPatternSyntax(this.Kind, this.operatorToken, this.pattern, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new UnaryPatternSyntax(this.Kind, this.patternOperator, this.pattern, GetDiagnostics(), annotations);
+            => new UnaryPatternSyntax(this.Kind, this.operatorToken, this.pattern, GetDiagnostics(), annotations);
 
         internal UnaryPatternSyntax(ObjectReader reader)
           : base(reader)
         {
             this.SlotCount = 2;
-            var patternOperator = (SyntaxToken)reader.ReadValue();
-            AdjustFlagsAndWidth(patternOperator);
-            this.patternOperator = patternOperator;
+            var operatorToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
             var pattern = (PatternSyntax)reader.ReadValue();
             AdjustFlagsAndWidth(pattern);
             this.pattern = pattern;
@@ -10846,7 +10864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal override void WriteTo(ObjectWriter writer)
         {
             base.WriteTo(writer);
-            writer.WriteValue(this.patternOperator);
+            writer.WriteValue(this.operatorToken);
             writer.WriteValue(this.pattern);
         }
 
@@ -32235,10 +32253,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((TypeSyntax)Visit(node.Type));
 
         public override CSharpSyntaxNode VisitBinaryPattern(BinaryPatternSyntax node)
-            => node.Update((PatternSyntax)Visit(node.LeftPattern), (SyntaxToken)Visit(node.PatternOperator), (PatternSyntax)Visit(node.RightPattern));
+            => node.Update((PatternSyntax)Visit(node.Left), (SyntaxToken)Visit(node.OperatorToken), (PatternSyntax)Visit(node.Right));
 
         public override CSharpSyntaxNode VisitUnaryPattern(UnaryPatternSyntax node)
-            => node.Update((SyntaxToken)Visit(node.PatternOperator), (PatternSyntax)Visit(node.Pattern));
+            => node.Update((SyntaxToken)Visit(node.OperatorToken), (PatternSyntax)Visit(node.Pattern));
 
         public override CSharpSyntaxNode VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
             => node.Update((SyntaxToken)Visit(node.TextToken));
@@ -34596,7 +34614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
+        public BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax left, SyntaxToken operatorToken, PatternSyntax right)
         {
             switch (kind)
             {
@@ -34605,22 +34623,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default: throw new ArgumentException(nameof(kind));
             }
             #if DEBUG
-            if (leftPattern == null) throw new ArgumentNullException(nameof(leftPattern));
-            if (patternOperator == null) throw new ArgumentNullException(nameof(patternOperator));
-            switch (patternOperator.Kind)
+            if (left == null) throw new ArgumentNullException(nameof(left));
+            if (operatorToken == null) throw new ArgumentNullException(nameof(operatorToken));
+            switch (operatorToken.Kind)
             {
                 case SyntaxKind.OrKeyword:
                 case SyntaxKind.AndKeyword: break;
-                default: throw new ArgumentException(nameof(patternOperator));
+                default: throw new ArgumentException(nameof(operatorToken));
             }
-            if (rightPattern == null) throw new ArgumentNullException(nameof(rightPattern));
+            if (right == null) throw new ArgumentNullException(nameof(right));
             #endif
 
             int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)kind, leftPattern, patternOperator, rightPattern, this.context, out hash);
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)kind, left, operatorToken, right, this.context, out hash);
             if (cached != null) return (BinaryPatternSyntax)cached;
 
-            var result = new BinaryPatternSyntax(kind, leftPattern, patternOperator, rightPattern, this.context);
+            var result = new BinaryPatternSyntax(kind, left, operatorToken, right, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -34629,19 +34647,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public UnaryPatternSyntax UnaryPattern(SyntaxToken patternOperator, PatternSyntax pattern)
+        public UnaryPatternSyntax UnaryPattern(SyntaxToken operatorToken, PatternSyntax pattern)
         {
             #if DEBUG
-            if (patternOperator == null) throw new ArgumentNullException(nameof(patternOperator));
-            if (patternOperator.Kind != SyntaxKind.NotKeyword) throw new ArgumentException(nameof(patternOperator));
+            if (operatorToken == null) throw new ArgumentNullException(nameof(operatorToken));
+            if (operatorToken.Kind != SyntaxKind.NotKeyword) throw new ArgumentException(nameof(operatorToken));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
             #endif
 
             int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.NotPattern, patternOperator, pattern, this.context, out hash);
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.NotPattern, operatorToken, pattern, this.context, out hash);
             if (cached != null) return (UnaryPatternSyntax)cached;
 
-            var result = new UnaryPatternSyntax(SyntaxKind.NotPattern, patternOperator, pattern, this.context);
+            var result = new UnaryPatternSyntax(SyntaxKind.NotPattern, operatorToken, pattern, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -39267,7 +39285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
+        public static BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax left, SyntaxToken operatorToken, PatternSyntax right)
         {
             switch (kind)
             {
@@ -39276,22 +39294,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default: throw new ArgumentException(nameof(kind));
             }
             #if DEBUG
-            if (leftPattern == null) throw new ArgumentNullException(nameof(leftPattern));
-            if (patternOperator == null) throw new ArgumentNullException(nameof(patternOperator));
-            switch (patternOperator.Kind)
+            if (left == null) throw new ArgumentNullException(nameof(left));
+            if (operatorToken == null) throw new ArgumentNullException(nameof(operatorToken));
+            switch (operatorToken.Kind)
             {
                 case SyntaxKind.OrKeyword:
                 case SyntaxKind.AndKeyword: break;
-                default: throw new ArgumentException(nameof(patternOperator));
+                default: throw new ArgumentException(nameof(operatorToken));
             }
-            if (rightPattern == null) throw new ArgumentNullException(nameof(rightPattern));
+            if (right == null) throw new ArgumentNullException(nameof(right));
             #endif
 
             int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)kind, leftPattern, patternOperator, rightPattern, out hash);
+            var cached = SyntaxNodeCache.TryGetNode((int)kind, left, operatorToken, right, out hash);
             if (cached != null) return (BinaryPatternSyntax)cached;
 
-            var result = new BinaryPatternSyntax(kind, leftPattern, patternOperator, rightPattern);
+            var result = new BinaryPatternSyntax(kind, left, operatorToken, right);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -39300,19 +39318,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static UnaryPatternSyntax UnaryPattern(SyntaxToken patternOperator, PatternSyntax pattern)
+        public static UnaryPatternSyntax UnaryPattern(SyntaxToken operatorToken, PatternSyntax pattern)
         {
             #if DEBUG
-            if (patternOperator == null) throw new ArgumentNullException(nameof(patternOperator));
-            if (patternOperator.Kind != SyntaxKind.NotKeyword) throw new ArgumentException(nameof(patternOperator));
+            if (operatorToken == null) throw new ArgumentNullException(nameof(operatorToken));
+            if (operatorToken.Kind != SyntaxKind.NotKeyword) throw new ArgumentException(nameof(operatorToken));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
             #endif
 
             int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.NotPattern, patternOperator, pattern, out hash);
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.NotPattern, operatorToken, pattern, out hash);
             if (cached != null) return (UnaryPatternSyntax)cached;
 
-            var result = new UnaryPatternSyntax(SyntaxKind.NotPattern, patternOperator, pattern);
+            var result = new UnaryPatternSyntax(SyntaxKind.NotPattern, operatorToken, pattern);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);

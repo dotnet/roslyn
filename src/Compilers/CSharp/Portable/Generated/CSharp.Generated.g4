@@ -1246,6 +1246,11 @@ character_literal_token
   : /* see lexical specification */
   ;
 
+expression_or_pattern
+  : expression
+  | pattern
+  ;
+
 identifier_token
   : /* see lexical specification */
   ;
