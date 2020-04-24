@@ -269,25 +269,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
-        /// Finds all the accessible symbols that implement an interface or interface member.  For an <see
-        /// cref="INamedTypeSymbol"/> this will be both immediate and transitive implementations.
-        /// </summary>
-        public static async Task<IEnumerable<ISymbol>> FindImplementationsAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
-        {
-            if (symbol == null)
-                throw new ArgumentNullException(nameof(symbol));
-
-            if (solution == null)
-                throw new ArgumentNullException(nameof(solution));
-
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
-
-            return await FindImplementationsArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
         /// Finds all the accessible <see langword="class"/> or <see langword="struct"/> types that implement the given
         /// interface.
         /// </summary>
@@ -351,22 +332,40 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return implementingTypes.WhereAsArray(IsAccessible);
         }
 
-        /// <inheritdoc cref="FindImplementationsAsync(ISymbol, Solution, IImmutableSet{Project}, CancellationToken)"/>
-        /// <remarks>
-        /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
-        /// </remarks>
-        internal static async Task<ImmutableArray<ISymbol>> FindImplementationsArrayAsync(
+        /// <summary>
+        /// Finds all the accessible symbols that implement an interface or interface member.  For an <see
+        /// cref="INamedTypeSymbol"/> this will be both immediate and transitive implementations.
+        /// </summary>
+        public static async Task<IEnumerable<ISymbol>> FindImplementationsAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
+            if (symbol == null)
+                throw new ArgumentNullException(nameof(symbol));
+
+            if (solution == null)
+                throw new ArgumentNullException(nameof(solution));
+
+            if (solution.GetOriginatingProjectId(symbol) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
+
             // A symbol can only have implementations if it's an interface or a
             // method/property/event from an interface.
             if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
-                var implementations = await FindImplementationsArrayAsync(
+                return await FindImplementationsArrayAsync(
                     namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
-                return ImmutableArray<ISymbol>.CastUp(implementations);
             }
 
+            return await FindMemberImplementationsArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc cref="FindImplementationsAsync(ISymbol, Solution, IImmutableSet{Project}, CancellationToken)"/>
+        /// <remarks>
+        /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
+        /// </remarks>
+        internal static async Task<ImmutableArray<ISymbol>> FindMemberImplementationsArrayAsync(
+            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        {
             if (!symbol.IsImplementableMember())
                 return ImmutableArray<ISymbol>.Empty;
 
