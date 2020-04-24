@@ -40,6 +40,7 @@ Some requirements are imposed on the method targeted with this attribute:
 1. The method must be `static`.
 1. The method must be parameterless.
 1. The method must return `void`.
+1. The method may not be generic or be contained in a generic type.
 1. The method must be accessible from the `<Module>` class.
     - This means the method's effective accessibility must be `internal` or `public`.
     - This also means the method cannot be a local function.
