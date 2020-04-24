@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         /// <param name="root">ref as we add simplifier annotations to nodes with explicit namespaces</param>
         /// <returns></returns>
-        private async ValueTask<(ImmutableArray<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode? context, SemanticModel model, SyntaxNode? newRoot)> GetImportDirectivesFromSyntaxesAsync(
+        private async ValueTask<(ImmutableArray<SyntaxNode> imports, HashSet<INamespaceSymbol> namespaceSymbols, SyntaxNode? context, SemanticModel model, SyntaxNode? newRoot)> GetImportDirectivesFromSyntaxesAsync(
             Document document,
                 IEnumerable<SyntaxNode> syntaxNodes,
                 SyntaxNode root,
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return (importsToAdd.ToImmutableAndFree(), addedSymbols, first.GetCommonRoot(last), model, root);
         }
 
-        private async ValueTask<(ImmutableArray<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode? context, SemanticModel? model, SyntaxNode? newRoot)> GetImportDirectivesFromAnnotatedNodesAsync(
+        private async ValueTask<(ImmutableArray<SyntaxNode> imports, HashSet<INamespaceSymbol> namespaceSymbols, SyntaxNode? context, SemanticModel? model, SyntaxNode? newRoot)> GetImportDirectivesFromAnnotatedNodesAsync(
             Document document,
             IEnumerable<SyntaxNode> syntaxNodes,
             SyntaxNode root,
