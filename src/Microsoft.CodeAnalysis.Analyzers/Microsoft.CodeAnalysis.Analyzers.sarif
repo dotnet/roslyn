@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.Analyzers",
-        "version": "3.0.0",
+        "version": "3.3.0",
         "language": "en-US"
       },
       "rules": {
@@ -542,7 +542,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.Analyzers",
-        "version": "3.0.0",
+        "version": "3.3.0",
         "language": "en-US"
       },
       "rules": {
@@ -722,7 +722,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.VisualBasic.Analyzers",
-        "version": "3.0.0",
+        "version": "3.3.0",
         "language": "en-US"
       },
       "rules": {
