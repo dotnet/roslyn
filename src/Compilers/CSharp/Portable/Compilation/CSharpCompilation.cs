@@ -2008,9 +2008,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw new NotImplementedException();
         }
 
-        private ConcurrentSet<SourceMethodSymbolWithAttributes>? _moduleInitializerMethods;
+        private ConcurrentSet<MethodSymbol>? _moduleInitializerMethods;
 
-        internal void AddModuleInitializerMethod(SourceMethodSymbolWithAttributes method)
+        internal void AddModuleInitializerMethod(MethodSymbol method)
         {
             Debug.Assert(!_declarationDiagnosticsFrozen);
             LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
