@@ -177,10 +177,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 : operation.ConstantValue.HasValue;
         }
 
-        private static bool TryGetTargetExpression(AnalyzedPattern pattern, out ExpressionSyntax? target)
+        private static bool TryGetTargetExpression(AnalyzedPattern pattern, [NotNullWhen(true)] out ExpressionSyntax? target)
         {
             target = null;
+#pragma warning disable CS8762 // Parameter must have a non-null value when exiting in some condition.
             return CheckTargetExpressions(pattern, ref target);
+#pragma warning restore CS8762 // Parameter must have a non-null value when exiting in some condition.
 
             static bool CheckTargetExpressions(AnalyzedPattern pattern, ref ExpressionSyntax? target)
             {
