@@ -594,6 +594,58 @@ public static class Module1
 ");
         }
 
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void DecimalConstInit002()
+        {
+            var source = @"
+class C
+{
+    const decimal d1 = 0.1m;
+}
+";
+            CompileAndVerify(source).
+                VerifyIL("C..cctor", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  5
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldc.i4.1
+  IL_0005:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_000a:  stsfld     ""decimal C.d1""
+  IL_000f:  ret
+}
+");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void StaticLambdaConstructorAlwaysEmitted()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        System.Action a1 = () => { };
+    }
+}
+";
+            CompileAndVerify(source).
+                VerifyIL("C.<>c..cctor", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  newobj     ""C.<>c..ctor()""
+  IL_0005:  stsfld     ""C.<>c C.<>c.<>9""
+  IL_000a:  ret
+}
+");
+        }
+
         [WorkItem(217748, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=217748")]
         [Fact]
         public void BadExpressionConstructor()
