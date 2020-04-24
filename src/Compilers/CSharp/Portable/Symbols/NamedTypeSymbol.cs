@@ -449,13 +449,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (SynthesizedEntryPointSymbol)GetMembers(name).Single();
         }
 
-#nullable enable
-        internal SynthesizedStaticConstructor? GetSynthesizedStaticConstructor()
-        {
-            return StaticConstructors.FirstOrDefault() as SynthesizedStaticConstructor;
-        }
-#nullable restore
-
         /// <summary>
         /// Returns true if the type is the implicit class that holds onto invalid global members (like methods or
         /// statements in a non script file).

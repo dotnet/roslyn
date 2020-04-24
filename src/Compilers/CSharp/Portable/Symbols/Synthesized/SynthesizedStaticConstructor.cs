@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -11,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedStaticConstructor : MethodSymbol
     {
         private readonly NamedTypeSymbol _containingType;
+        private ThreeState _lazyShouldEmit = ThreeState.Unknown;
 
         internal SynthesizedStaticConstructor(NamedTypeSymbol containingType)
         {
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             thisParameter = null;
             return true;
@@ -160,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol AssociatedSymbol
+        public override Symbol? AssociatedSymbol
         {
             get
             {
@@ -331,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override DllImportData GetDllImportData()
+        public override DllImportData? GetDllImportData()
         {
             return null;
         }
@@ -341,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ContainingType.AreLocalsZeroed; }
         }
 
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation
         {
             get { return null; }
         }
@@ -356,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -372,21 +375,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: true);
         }
 
-#nullable enable
-        private ThreeState _shouldEmit = ThreeState.Unknown;
         internal bool ShouldEmit(ImmutableArray<BoundInitializer> boundInitializersOpt = default)
         {
-            if (_shouldEmit.HasValue())
+            if (_lazyShouldEmit.HasValue())
             {
-                return _shouldEmit.Value();
+                return _lazyShouldEmit.Value();
             }
 
-            var shouldEmit = InitializeShouldEmit(boundInitializersOpt);
-            _shouldEmit = shouldEmit.ToThreeState();
+            var shouldEmit = CalculateShouldEmit(boundInitializersOpt);
+            _lazyShouldEmit = shouldEmit.ToThreeState();
             return shouldEmit;
         }
 
-        private bool InitializeShouldEmit(ImmutableArray<BoundInitializer> boundInitializersOpt = default)
+        private bool CalculateShouldEmit(ImmutableArray<BoundInitializer> boundInitializersOpt = default)
         {
             if (boundInitializersOpt.IsDefault)
             {
