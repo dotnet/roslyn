@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             if (expression is null)
                 return;
 
-            var operation = context.SemanticModel.GetOperation(expression);
+            var operation = context.SemanticModel.GetOperation(expression, context.CancellationToken);
             if (operation is null)
                 return;
 

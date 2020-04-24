@@ -209,7 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
             static ExpressionSyntax? GetTargetExpression(IOperation operation)
             {
-                // Unwrap explicit casts because the pattern will emit those anyways
+                // Unwrap explicit casts because the pattern will emit those anyways.
+                // For instance, `(int)o == 123` would be the same `o is 123`.
                 if (operation is IConversionOperation { IsImplicit: false } op)
                     operation = op.Operand;
 
