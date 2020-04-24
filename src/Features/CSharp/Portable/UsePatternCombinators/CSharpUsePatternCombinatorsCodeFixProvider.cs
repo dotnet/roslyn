@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -72,10 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 var expression = editor.OriginalRoot.FindNode(location.SourceSpan, getInnermostNodeForTie: true);
                 var operation = semanticModel.GetOperation(expression, cancellationToken);
                 RoslynDebug.AssertNotNull(operation);
-                if (!CSharpUsePatternCombinatorsAnalyzer.Analyze(operation, out var pattern, out var target))
-                    Debug.Fail("Analysis was expected to succeed.");
+                var pattern = CSharpUsePatternCombinatorsAnalyzer.Analyze(operation);
+                RoslynDebug.AssertNotNull(pattern);
                 var patternSyntax = AsPatternSyntax(pattern).WithAdditionalAnnotations(Formatter.Annotation);
-                editor.ReplaceNode(expression, IsPatternExpression(target, patternSyntax));
+                editor.ReplaceNode(expression, IsPatternExpression(pattern.TargetExpression, patternSyntax));
             }
         }
 

@@ -15,63 +15,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
     /// </summary>
     internal abstract class AnalyzedPattern
     {
-        private AnalyzedPattern()
-        {
-        }
+        public readonly ExpressionSyntax TargetExpression;
 
-        /// <summary>
-        /// Base class for patterns that target a specific expression, i.e. non-combinators
-        /// </summary>
-        internal abstract class Test : AnalyzedPattern
-        {
-            public readonly IOperation TargetOperation;
-
-            protected Test(IOperation targetOperation)
-                => TargetOperation = targetOperation;
-        }
+        private AnalyzedPattern(ExpressionSyntax target)
+            => TargetExpression = target;
 
         /// <summary>
         /// Represents a type-pattern, constructed from is-expression
         /// </summary>
-        internal sealed class Type : Test
+        internal sealed class Type : AnalyzedPattern
         {
             public readonly TypeSyntax TypeSyntax;
 
-            public Type(TypeSyntax expression, IOperation target) : base(target)
+            public Type(TypeSyntax expression, ExpressionSyntax target) : base(target)
                 => TypeSyntax = expression;
         }
 
         /// <summary>
         /// Represents a source-pattern, constructed from C# patterns
         /// </summary>
-        internal sealed class Source : Test
+        internal sealed class Source : AnalyzedPattern
         {
             public readonly PatternSyntax PatternSyntax;
 
-            public Source(PatternSyntax patternSyntax, IOperation target) : base(target)
+            public Source(PatternSyntax patternSyntax, ExpressionSyntax target) : base(target)
                 => PatternSyntax = patternSyntax;
         }
 
         /// <summary>
         /// Represents a constant-pattern, constructed from an equality check
         /// </summary>
-        internal sealed class Constant : Test
+        internal sealed class Constant : AnalyzedPattern
         {
             public readonly ExpressionSyntax ExpressionSyntax;
 
-            public Constant(ExpressionSyntax expression, IOperation target) : base(target)
+            public Constant(ExpressionSyntax expression, ExpressionSyntax target) : base(target)
                 => ExpressionSyntax = expression;
         }
 
         /// <summary>
         /// Represents a relational-pattern, constructed from relational operators
         /// </summary>
-        internal sealed class Relational : Test
+        internal sealed class Relational : AnalyzedPattern
         {
             public readonly BinaryOperatorKind OperatorKind;
             public readonly ExpressionSyntax Value;
 
-            public Relational(BinaryOperatorKind operatorKind, ExpressionSyntax value, IOperation target) : base(target)
+            public Relational(BinaryOperatorKind operatorKind, ExpressionSyntax value, ExpressionSyntax target) : base(target)
             {
                 OperatorKind = operatorKind;
                 Value = value;
@@ -88,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             public readonly bool IsDisjunctive;
             public readonly SyntaxToken Token;
 
-            private Binary(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern, bool isDisjunctive, SyntaxToken token)
+            private Binary(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern, bool isDisjunctive, SyntaxToken token, ExpressionSyntax target) : base(target)
             {
                 Left = leftPattern;
                 Right = rightPattern;
@@ -96,11 +86,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 Token = token;
             }
 
-            public static AnalyzedPattern Create(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern, bool isDisjunctive, SyntaxToken token)
+            public static AnalyzedPattern? Create(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern, bool isDisjunctive, SyntaxToken token)
             {
+                var target = leftPattern.TargetExpression;
+                if (!SyntaxFactory.AreEquivalent(target, rightPattern.TargetExpression))
+                    return null;
+
                 return !isDisjunctive && (leftPattern, rightPattern) is (Not left, Not right)
-                    ? Not.Create(new Binary(left.Pattern, right.Pattern, isDisjunctive: true, token))
-                    : new Binary(leftPattern, rightPattern, isDisjunctive, token);
+                    ? Not.Create(new Binary(left.Pattern, right.Pattern, isDisjunctive: true, token, target))
+                    : new Binary(leftPattern, rightPattern, isDisjunctive, token, target);
             }
         }
 
@@ -111,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         {
             public readonly AnalyzedPattern Pattern;
 
-            private Not(AnalyzedPattern pattern)
+            private Not(AnalyzedPattern pattern, ExpressionSyntax target) : base(target)
                 => Pattern = pattern;
 
             private static BinaryOperatorKind Negate(BinaryOperatorKind kind)
@@ -124,12 +118,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                     var v => throw ExceptionUtilities.UnexpectedValue(v)
                 };
 
-            public static AnalyzedPattern Create(AnalyzedPattern pattern)
+            public static AnalyzedPattern? Create(AnalyzedPattern? pattern)
                 => pattern switch
                 {
+                    null => null,
                     Not p => p.Pattern,
-                    Relational p => new Relational(Negate(p.OperatorKind), p.Value, p.TargetOperation),
-                    _ => new Not(pattern)
+                    Relational p => new Relational(Negate(p.OperatorKind), p.Value, p.TargetExpression),
+                    _ => new Not(pattern, pattern.TargetExpression)
                 };
         }
     }

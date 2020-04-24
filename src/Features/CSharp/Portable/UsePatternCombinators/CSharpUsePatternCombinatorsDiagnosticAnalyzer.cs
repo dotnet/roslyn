@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             if (operation is null)
                 return;
 
-            if (!CSharpUsePatternCombinatorsAnalyzer.Analyze(operation, out var pattern, target: out _))
+            var pattern = CSharpUsePatternCombinatorsAnalyzer.Analyze(operation);
+            if (pattern is null)
                 return;
 
             if (IsTrivial(pattern))
