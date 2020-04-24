@@ -99,6 +99,34 @@
         ],
         "problemMatcher": "$msCompile",
         "group": "test"
+    },
+    {
+        "label": "run tests in current file (all frameworks)",
+        "command": "./.dotnet/dotnet",
+        "type": "shell",
+        "args": [
+          "pwsh",
+          "${workspaceRoot}/scripts/vscode-run-tests.ps1",
+          "-filePath",
+          "${file}",
+          "-filter",
+          "${fileBasenameNoExtension}"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "test"
+    },
+    {
+        "label": "run tests in current project (all frameworks)",
+        "command": "./.dotnet/dotnet",
+        "type": "shell",
+        "args": [
+          "pwsh",
+          "${workspaceRoot}/scripts/vscode-run-tests.ps1",
+          "-filePath",
+          "${file}"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "test"
     }
   ]
 }
