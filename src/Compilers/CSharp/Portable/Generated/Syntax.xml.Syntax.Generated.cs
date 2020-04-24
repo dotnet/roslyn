@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     /// <summary>Provides the base class from which the classes that represent name syntax nodes are derived. This is an abstract class.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
-    /// <item><description><see cref="SimpleNameSyntax"/></description></item>
-    /// </list>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <item><description><see cref="SimpleNameSyntax"/>
     /// <list type="bullet">
     /// <item><description><see cref="IdentifierNameSyntax"/></description></item>
-    /// <item><description><see cref="QualifiedNameSyntax"/></description></item>
     /// <item><description><see cref="GenericNameSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
+    /// <item><description><see cref="QualifiedNameSyntax"/></description></item>
     /// <item><description><see cref="AliasQualifiedNameSyntax"/></description></item>
     /// </list>
     /// </remarks>
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Provides the base class from which the classes that represent simple name syntax nodes are derived. This is an abstract class.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="IdentifierNameSyntax"/></description></item>
     /// <item><description><see cref="GenericNameSyntax"/></description></item>
@@ -324,17 +324,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Provides the base class from which the classes that represent type syntax nodes are derived. This is an abstract class.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
-    /// <item><description><see cref="NameSyntax"/></description></item>
-    /// <item><description><see cref="SimpleNameSyntax"/></description></item>
-    /// </list>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <item><description><see cref="NameSyntax"/>
+    /// <list type="bullet">
+    /// <item><description><see cref="SimpleNameSyntax"/>
     /// <list type="bullet">
     /// <item><description><see cref="IdentifierNameSyntax"/></description></item>
-    /// <item><description><see cref="QualifiedNameSyntax"/></description></item>
     /// <item><description><see cref="GenericNameSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
+    /// <item><description><see cref="QualifiedNameSyntax"/></description></item>
     /// <item><description><see cref="AliasQualifiedNameSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// <item><description><see cref="PredefinedTypeSyntax"/></description></item>
     /// <item><description><see cref="ArrayTypeSyntax"/></description></item>
     /// <item><description><see cref="PointerTypeSyntax"/></description></item>
@@ -799,22 +802,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Provides the base class from which the classes that represent expression syntax nodes are derived. This is an abstract class.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
-    /// <item><description><see cref="NameSyntax"/></description></item>
-    /// <item><description><see cref="SimpleNameSyntax"/></description></item>
-    /// <item><description><see cref="TypeSyntax"/></description></item>
-    /// <item><description><see cref="InstanceExpressionSyntax"/></description></item>
-    /// <item><description><see cref="AnonymousFunctionExpressionSyntax"/></description></item>
-    /// <item><description><see cref="LambdaExpressionSyntax"/></description></item>
-    /// <item><description><see cref="BaseObjectCreationExpressionSyntax"/></description></item>
-    /// </list>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <item><description><see cref="TypeSyntax"/>
+    /// <list type="bullet">
+    /// <item><description><see cref="NameSyntax"/>
+    /// <list type="bullet">
+    /// <item><description><see cref="SimpleNameSyntax"/>
     /// <list type="bullet">
     /// <item><description><see cref="IdentifierNameSyntax"/></description></item>
-    /// <item><description><see cref="QualifiedNameSyntax"/></description></item>
     /// <item><description><see cref="GenericNameSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
+    /// <item><description><see cref="QualifiedNameSyntax"/></description></item>
     /// <item><description><see cref="AliasQualifiedNameSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// <item><description><see cref="PredefinedTypeSyntax"/></description></item>
     /// <item><description><see cref="ArrayTypeSyntax"/></description></item>
     /// <item><description><see cref="PointerTypeSyntax"/></description></item>
@@ -822,6 +825,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="TupleTypeSyntax"/></description></item>
     /// <item><description><see cref="OmittedTypeArgumentSyntax"/></description></item>
     /// <item><description><see cref="RefTypeSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// <item><description><see cref="ParenthesizedExpressionSyntax"/></description></item>
     /// <item><description><see cref="TupleExpressionSyntax"/></description></item>
     /// <item><description><see cref="PrefixUnaryExpressionSyntax"/></description></item>
@@ -836,8 +841,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="BinaryExpressionSyntax"/></description></item>
     /// <item><description><see cref="AssignmentExpressionSyntax"/></description></item>
     /// <item><description><see cref="ConditionalExpressionSyntax"/></description></item>
+    /// <item><description><see cref="InstanceExpressionSyntax"/>
+    /// <list type="bullet">
     /// <item><description><see cref="ThisExpressionSyntax"/></description></item>
     /// <item><description><see cref="BaseExpressionSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// <item><description><see cref="LiteralExpressionSyntax"/></description></item>
     /// <item><description><see cref="MakeRefExpressionSyntax"/></description></item>
     /// <item><description><see cref="RefTypeExpressionSyntax"/></description></item>
@@ -850,13 +859,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="ElementAccessExpressionSyntax"/></description></item>
     /// <item><description><see cref="DeclarationExpressionSyntax"/></description></item>
     /// <item><description><see cref="CastExpressionSyntax"/></description></item>
+    /// <item><description><see cref="AnonymousFunctionExpressionSyntax"/>
+    /// <list type="bullet">
     /// <item><description><see cref="AnonymousMethodExpressionSyntax"/></description></item>
+    /// <item><description><see cref="LambdaExpressionSyntax"/>
+    /// <list type="bullet">
     /// <item><description><see cref="SimpleLambdaExpressionSyntax"/></description></item>
-    /// <item><description><see cref="RefExpressionSyntax"/></description></item>
     /// <item><description><see cref="ParenthesizedLambdaExpressionSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
+    /// </list>
+    /// </description></item>
+    /// <item><description><see cref="RefExpressionSyntax"/></description></item>
     /// <item><description><see cref="InitializerExpressionSyntax"/></description></item>
+    /// <item><description><see cref="BaseObjectCreationExpressionSyntax"/>
+    /// <list type="bullet">
     /// <item><description><see cref="ImplicitObjectCreationExpressionSyntax"/></description></item>
     /// <item><description><see cref="ObjectCreationExpressionSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// <item><description><see cref="AnonymousObjectCreationExpressionSyntax"/></description></item>
     /// <item><description><see cref="ArrayCreationExpressionSyntax"/></description></item>
     /// <item><description><see cref="ImplicitArrayCreationExpressionSyntax"/></description></item>
@@ -1678,7 +1699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Provides the base class from which the classes that represent instance expression syntax nodes are derived. This is an abstract class.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="ThisExpressionSyntax"/></description></item>
     /// <item><description><see cref="BaseExpressionSyntax"/></description></item>
@@ -2331,7 +2352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Provides the base class from which the classes that represent argument list syntax nodes are derived. This is an abstract class.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="ArgumentListSyntax"/></description></item>
     /// <item><description><see cref="BracketedArgumentListSyntax"/></description></item>
@@ -2712,15 +2733,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Provides the base class from which the classes that represent anonymous function expressions are derived.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following abstract syntax nodes:</para>
-    /// <list type="bullet">
-    /// <item><description><see cref="LambdaExpressionSyntax"/></description></item>
-    /// </list>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="AnonymousMethodExpressionSyntax"/></description></item>
+    /// <item><description><see cref="LambdaExpressionSyntax"/>
+    /// <list type="bullet">
     /// <item><description><see cref="SimpleLambdaExpressionSyntax"/></description></item>
     /// <item><description><see cref="ParenthesizedLambdaExpressionSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// </list>
     /// </remarks>
     public abstract partial class AnonymousFunctionExpressionSyntax : ExpressionSyntax
@@ -2859,7 +2880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Provides the base class from which the classes that represent lambda expressions are derived.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="SimpleLambdaExpressionSyntax"/></description></item>
     /// <item><description><see cref="ParenthesizedLambdaExpressionSyntax"/></description></item>
@@ -3199,7 +3220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="ImplicitObjectCreationExpressionSyntax"/></description></item>
     /// <item><description><see cref="ObjectCreationExpressionSyntax"/></description></item>
@@ -3746,7 +3767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="FromClauseSyntax"/></description></item>
     /// <item><description><see cref="LetClauseSyntax"/></description></item>
@@ -3764,7 +3785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="SelectClauseSyntax"/></description></item>
     /// <item><description><see cref="GroupClauseSyntax"/></description></item>
@@ -4671,7 +4692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="DiscardPatternSyntax"/></description></item>
     /// <item><description><see cref="DeclarationPatternSyntax"/></description></item>
@@ -5104,7 +5125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="InterpolatedStringTextSyntax"/></description></item>
     /// <item><description><see cref="InterpolationSyntax"/></description></item>
@@ -5380,11 +5401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Represents the base class for all statements syntax classes.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following abstract syntax nodes:</para>
-    /// <list type="bullet">
-    /// <item><description><see cref="CommonForEachStatementSyntax"/></description></item>
-    /// </list>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="BlockSyntax"/></description></item>
     /// <item><description><see cref="LocalFunctionStatementSyntax"/></description></item>
@@ -5401,8 +5418,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="WhileStatementSyntax"/></description></item>
     /// <item><description><see cref="DoStatementSyntax"/></description></item>
     /// <item><description><see cref="ForStatementSyntax"/></description></item>
+    /// <item><description><see cref="CommonForEachStatementSyntax"/>
+    /// <list type="bullet">
     /// <item><description><see cref="ForEachStatementSyntax"/></description></item>
     /// <item><description><see cref="ForEachVariableStatementSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// <item><description><see cref="UsingStatementSyntax"/></description></item>
     /// <item><description><see cref="FixedStatementSyntax"/></description></item>
     /// <item><description><see cref="CheckedStatementSyntax"/></description></item>
@@ -5893,7 +5914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="SingleVariableDesignationSyntax"/></description></item>
     /// <item><description><see cref="DiscardDesignationSyntax"/></description></item>
@@ -6870,7 +6891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="ForEachStatementSyntax"/></description></item>
     /// <item><description><see cref="ForEachVariableStatementSyntax"/></description></item>
@@ -7825,7 +7846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Represents a switch label within a switch statement.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="CasePatternSwitchLabelSyntax"/></description></item>
     /// <item><description><see cref="CaseSwitchLabelSyntax"/></description></item>
@@ -8649,34 +8670,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Member declaration syntax.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following abstract syntax nodes:</para>
-    /// <list type="bullet">
-    /// <item><description><see cref="BaseTypeDeclarationSyntax"/></description></item>
-    /// <item><description><see cref="TypeDeclarationSyntax"/></description></item>
-    /// <item><description><see cref="BaseFieldDeclarationSyntax"/></description></item>
-    /// <item><description><see cref="BaseMethodDeclarationSyntax"/></description></item>
-    /// <item><description><see cref="BasePropertyDeclarationSyntax"/></description></item>
-    /// </list>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="GlobalStatementSyntax"/></description></item>
     /// <item><description><see cref="NamespaceDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="BaseTypeDeclarationSyntax"/>
+    /// <list type="bullet">
+    /// <item><description><see cref="TypeDeclarationSyntax"/>
+    /// <list type="bullet">
     /// <item><description><see cref="ClassDeclarationSyntax"/></description></item>
     /// <item><description><see cref="StructDeclarationSyntax"/></description></item>
     /// <item><description><see cref="InterfaceDeclarationSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// <item><description><see cref="EnumDeclarationSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// <item><description><see cref="DelegateDeclarationSyntax"/></description></item>
     /// <item><description><see cref="EnumMemberDeclarationSyntax"/></description></item>
+    /// <item><description><see cref="BaseFieldDeclarationSyntax"/>
+    /// <list type="bullet">
     /// <item><description><see cref="FieldDeclarationSyntax"/></description></item>
     /// <item><description><see cref="EventFieldDeclarationSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
+    /// <item><description><see cref="BaseMethodDeclarationSyntax"/>
+    /// <list type="bullet">
     /// <item><description><see cref="MethodDeclarationSyntax"/></description></item>
     /// <item><description><see cref="OperatorDeclarationSyntax"/></description></item>
     /// <item><description><see cref="ConversionOperatorDeclarationSyntax"/></description></item>
     /// <item><description><see cref="ConstructorDeclarationSyntax"/></description></item>
     /// <item><description><see cref="DestructorDeclarationSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
+    /// <item><description><see cref="BasePropertyDeclarationSyntax"/>
+    /// <list type="bullet">
     /// <item><description><see cref="PropertyDeclarationSyntax"/></description></item>
     /// <item><description><see cref="EventDeclarationSyntax"/></description></item>
     /// <item><description><see cref="IndexerDeclarationSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// <item><description><see cref="IncompleteMemberSyntax"/></description></item>
     /// </list>
     /// </remarks>
@@ -9280,15 +9313,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Base class for type declaration syntax.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
-    /// <item><description><see cref="TypeDeclarationSyntax"/></description></item>
-    /// </list>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <item><description><see cref="TypeDeclarationSyntax"/>
     /// <list type="bullet">
     /// <item><description><see cref="ClassDeclarationSyntax"/></description></item>
     /// <item><description><see cref="StructDeclarationSyntax"/></description></item>
     /// <item><description><see cref="InterfaceDeclarationSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// <item><description><see cref="EnumDeclarationSyntax"/></description></item>
     /// </list>
     /// </remarks>
@@ -9337,7 +9370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Base class for type declaration syntax (class, struct, interface).</summary>
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="ClassDeclarationSyntax"/></description></item>
     /// <item><description><see cref="StructDeclarationSyntax"/></description></item>
@@ -10173,7 +10206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Provides the base class from which the classes that represent base type syntax nodes are derived. This is an abstract class.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="SimpleBaseTypeSyntax"/></description></item>
     /// </list>
@@ -10306,7 +10339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Base type for type parameter constraint syntax.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="ConstructorConstraintSyntax"/></description></item>
     /// <item><description><see cref="ClassOrStructConstraintSyntax"/></description></item>
@@ -10461,7 +10494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="FieldDeclarationSyntax"/></description></item>
     /// <item><description><see cref="EventFieldDeclarationSyntax"/></description></item>
@@ -10698,7 +10731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Base type for method declaration syntax.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="MethodDeclarationSyntax"/></description></item>
     /// <item><description><see cref="OperatorDeclarationSyntax"/></description></item>
@@ -11456,7 +11489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Base type for property declaration syntax.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="PropertyDeclarationSyntax"/></description></item>
     /// <item><description><see cref="EventDeclarationSyntax"/></description></item>
@@ -12043,7 +12076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Base type for parameter list syntax.</summary>
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="ParameterListSyntax"/></description></item>
     /// <item><description><see cref="BracketedParameterListSyntax"/></description></item>
@@ -12432,18 +12465,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// For example, the M in &lt;see cref="M" /&gt;.
     /// </summary>
     /// <remarks>
-    /// <para>This node is associated with the following abstract syntax nodes:</para>
-    /// <list type="bullet">
-    /// <item><description><see cref="MemberCrefSyntax"/></description></item>
-    /// </list>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="TypeCrefSyntax"/></description></item>
     /// <item><description><see cref="QualifiedCrefSyntax"/></description></item>
+    /// <item><description><see cref="MemberCrefSyntax"/>
+    /// <list type="bullet">
     /// <item><description><see cref="NameMemberCrefSyntax"/></description></item>
     /// <item><description><see cref="IndexerMemberCrefSyntax"/></description></item>
     /// <item><description><see cref="OperatorMemberCrefSyntax"/></description></item>
     /// <item><description><see cref="ConversionOperatorMemberCrefSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// </list>
     /// </remarks>
     public abstract partial class CrefSyntax : CSharpSyntaxNode
@@ -12573,7 +12606,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// might be a non-type member.
     /// </summary>
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="NameMemberCrefSyntax"/></description></item>
     /// <item><description><see cref="IndexerMemberCrefSyntax"/></description></item>
@@ -12841,7 +12874,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// Unlike regular parameters, cref parameters do not have names.
     /// </summary>
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="CrefParameterListSyntax"/></description></item>
     /// <item><description><see cref="CrefBracketedParameterListSyntax"/></description></item>
@@ -13040,7 +13073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="XmlElementSyntax"/></description></item>
     /// <item><description><see cref="XmlEmptyElementSyntax"/></description></item>
@@ -13376,7 +13409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="XmlTextAttributeSyntax"/></description></item>
     /// <item><description><see cref="XmlCrefAttributeSyntax"/></description></item>
@@ -13815,16 +13848,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <remarks>
-    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
-    /// <item><description><see cref="BranchingDirectiveTriviaSyntax"/></description></item>
-    /// <item><description><see cref="ConditionalDirectiveTriviaSyntax"/></description></item>
-    /// </list>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <item><description><see cref="BranchingDirectiveTriviaSyntax"/>
+    /// <list type="bullet">
+    /// <item><description><see cref="ConditionalDirectiveTriviaSyntax"/>
     /// <list type="bullet">
     /// <item><description><see cref="IfDirectiveTriviaSyntax"/></description></item>
     /// <item><description><see cref="ElifDirectiveTriviaSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// <item><description><see cref="ElseDirectiveTriviaSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// <item><description><see cref="EndIfDirectiveTriviaSyntax"/></description></item>
     /// <item><description><see cref="RegionDirectiveTriviaSyntax"/></description></item>
     /// <item><description><see cref="EndRegionDirectiveTriviaSyntax"/></description></item>
@@ -13861,14 +13897,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <remarks>
-    /// <para>This node is associated with the following abstract syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
-    /// <item><description><see cref="ConditionalDirectiveTriviaSyntax"/></description></item>
-    /// </list>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// <item><description><see cref="ConditionalDirectiveTriviaSyntax"/>
     /// <list type="bullet">
     /// <item><description><see cref="IfDirectiveTriviaSyntax"/></description></item>
     /// <item><description><see cref="ElifDirectiveTriviaSyntax"/></description></item>
+    /// </list>
+    /// </description></item>
     /// <item><description><see cref="ElseDirectiveTriviaSyntax"/></description></item>
     /// </list>
     /// </remarks>
@@ -13886,7 +13922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <remarks>
-    /// <para>This node is associated with the following syntax nodes:</para>
+    /// This node has the following derived hierarchy:
     /// <list type="bullet">
     /// <item><description><see cref="IfDirectiveTriviaSyntax"/></description></item>
     /// <item><description><see cref="ElifDirectiveTriviaSyntax"/></description></item>

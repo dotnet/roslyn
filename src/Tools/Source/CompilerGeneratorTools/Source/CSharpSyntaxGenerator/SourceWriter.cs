@@ -810,26 +810,32 @@ namespace CSharpSyntaxGenerator
                 var nd = (AbstractNode)node;
                 WriteComment($"<remarks>");
 
-                var descendantAbstractNodes = GetDescendantAbstractNodes(nd).Where(d => d != nd).ToList();
-                if (descendantAbstractNodes.Any())
-                {
-                    WriteComment($"<para>This node is associated with the following abstract syntax nodes:</para>");
-                    WriteComment($"<list type=\"bullet\">");
-
-                    foreach (var descendant in descendantAbstractNodes)
-                    {
-                        WriteComment($"<item><description><see cref=\"{descendant.Name}\"/></description></item>");
-                    }
-
-                    WriteComment($"</list>");
-                }
-
-                WriteComment($"<para>This node is associated with the following syntax nodes:</para>");
+                WriteComment($"This node has the following derived hierarchy:");
                 WriteComment($"<list type=\"bullet\">");
 
-                foreach (var descendant in GetDescendantNodes(nd))
+                void writeTypeHierarchy(TreeType node)
                 {
-                    WriteComment($"<item><description><see cref=\"{descendant.Name}\"/></description></item>");
+                    if (node is AbstractNode abstractNode)
+                    {
+                        WriteComment($"<item><description><see cref=\"{node.Name}\"/>");
+                        WriteComment($"<list type=\"bullet\">");
+                        foreach (var derived in GetImmediatelyDerivedNodes(abstractNode))
+                        {
+                            writeTypeHierarchy(derived);
+                        }
+
+                        WriteComment($"</list>");
+                        WriteComment($"</description></item>");
+                    }
+                    else
+                    {
+                        WriteComment($"<item><description><see cref=\"{node.Name}\"/></description></item>");
+                    }
+                }
+
+                foreach (var derived in GetImmediatelyDerivedNodes(nd))
+                {
+                    writeTypeHierarchy(derived);
                 }
 
                 WriteComment($"</list>");
@@ -1270,23 +1276,23 @@ namespace CSharpSyntaxGenerator
             {
                 var kinds = treeType switch
                 {
-                    AbstractNode node => self.GetDescendantNodes(node).SelectMany(node => node.Kinds),
-                    Node node => self.GetDescendantNodes(node).SelectMany(node => node.Kinds),
+                    AbstractNode node => getDescendantNodes(self, node).SelectMany(node => node.Kinds),
+                    Node node => getDescendantNodes(self, node).SelectMany(node => node.Kinds),
                     _ => Enumerable.Empty<Kind>(),
                 };
 
                 return kinds.Distinct().OrderBy(kind => (int)(SyntaxKind)Enum.Parse(typeof(SyntaxKind), kind.Name));
             }
+
+            static IEnumerable<Node> getDescendantNodes(SourceWriter self, TreeType node)
+            {
+                return self.Tree.Types.OfType<Node>().Where(n => self.IsDerivedType(node.Name, n.Name));
+            }
         }
 
-        private IEnumerable<AbstractNode> GetDescendantAbstractNodes(TreeType node)
+        private IEnumerable<TreeType> GetImmediatelyDerivedNodes(TreeType node)
         {
-            return Tree.Types.OfType<AbstractNode>().Where(n => IsDerivedType(node.Name, n.Name));
-        }
-
-        private IEnumerable<Node> GetDescendantNodes(TreeType node)
-        {
-            return Tree.Types.OfType<Node>().Where(n => IsDerivedType(node.Name, n.Name));
+            return Tree.Types.Where(n => ParentMap[n.Name] == node.Name);
         }
 
         private void WriteRedUpdateMethod(Node node)
