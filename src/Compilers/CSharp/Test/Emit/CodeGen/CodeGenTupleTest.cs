@@ -27087,5 +27087,32 @@ class C
     }
 ");
         }
+
+        [Fact]
+        [WorkItem(24517, "https://github.com/dotnet/roslyn/issues/24517")]
+        public void Issue24517()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+class C
+{
+    static void Main()
+    {
+        Expression<Func<ValueTuple<int, int>>> e1 = () => new ValueTuple<int, int>(1, 2);
+        Expression<Func<KeyValuePair<int, int>>> e2 = () => new KeyValuePair<int, int>(1, 2);
+
+        e1.Compile()();
+        e2.Compile()();
+
+        Console.WriteLine(""Done."");
+    }
+}";
+            var comp = CreateCompilation(
+                source,
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"Done.");
+        }
     }
 }

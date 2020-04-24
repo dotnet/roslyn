@@ -23090,6 +23090,33 @@ End Module
             Dim comp1 = CreateCompilation(source0, options:=TestOptions.DebugExe)
             CompileAndVerify(comp1, expectedOutput:="Done")
         End Sub
+
+        <Fact>
+        <WorkItem(24517, "https://github.com/dotnet/roslyn/issues/24517")>
+        Public Sub Issue24517()
+            Dim source0 = "
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq.Expressions
+
+Module Module1
+
+    Sub Main()
+        Dim e1 As Expression(Of Func(Of ValueTuple(Of Integer, Integer))) = Function() new ValueTuple(Of Integer, Integer)(1, 2)
+        Dim e2 As Expression(Of Func(Of KeyValuePair(Of Integer, Integer))) = Function() new KeyValuePair(Of Integer, Integer)(1, 2)
+
+        e1.Compile()()
+        e2.Compile()()
+
+        System.Console.WriteLine(""Done"")
+    End Sub
+
+End Module
+"
+
+            Dim comp1 = CreateCompilation(source0, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="Done")
+        End Sub
     End Class
 
 End Namespace
