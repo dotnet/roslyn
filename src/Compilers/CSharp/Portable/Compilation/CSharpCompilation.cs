@@ -2016,12 +2016,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableInterlocked.Enqueue(ref _moduleInitializerMethods, method);
         }
 
-        internal ImmutableQueue<SourceMethodSymbolWithAttributes> GetModuleInitializerMethods()
-        {
-            Debug.Assert(_declarationDiagnosticsFrozen);
-            return _moduleInitializerMethods;
-        }
-
         #endregion
 
         #region Binding
@@ -2824,12 +2818,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void GenerateModuleInitializer(PEModuleBuilder moduleBeingBuilt, DiagnosticBag methodBodyDiagnosticBag)
         {
-            if (GetModuleInitializerMethods() is { IsEmpty: false } moduleInitializerMethods)
+            Debug.Assert(_declarationDiagnosticsFrozen);
+
+            if (!_moduleInitializerMethods.IsEmpty)
             {
                 var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: true);
 
                 // PROTOTYPE(module-initializers): require deterministic order
-                foreach (var method in moduleInitializerMethods)
+                foreach (var method in _moduleInitializerMethods)
                 {
                     ilBuilder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
 
