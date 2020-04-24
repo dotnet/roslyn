@@ -838,12 +838,12 @@ unsafe class C
                 // (10,9): error CS8756: Function pointer 'delegate*<void>' does not take 1 arguments
                 //         p1("No arguments allowed");
                 Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, @"p1(""No arguments allowed"")").WithArguments("delegate*<void>", "1").WithLocation(10, 9),
-                // (11,9): error CS8756: Function pointer 'delegate*<string,void>' does not take 3 arguments
+                // (11,9): error CS8756: Function pointer 'delegate*<string, void>' does not take 3 arguments
                 //         p2("Too", "many", "arguments");
-                Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, @"p2(""Too"", ""many"", ""arguments"")").WithArguments("delegate*<string,void>", "3").WithLocation(11, 9),
-                // (12,9): error CS8756: Function pointer 'delegate*<string,void>' does not take 0 arguments
+                Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, @"p2(""Too"", ""many"", ""arguments"")").WithArguments("delegate*<string, void>", "3").WithLocation(11, 9),
+                // (12,9): error CS8756: Function pointer 'delegate*<string, void>' does not take 0 arguments
                 //         p2(); // Not enough arguments
-                Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, "p2()").WithArguments("delegate*<string,void>", "0").WithLocation(12, 9),
+                Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, "p2()").WithArguments("delegate*<string, void>", "0").WithLocation(12, 9),
                 // (13,12): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         p2(1); // Invalid argument type
                 Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(13, 12),
