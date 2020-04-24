@@ -4,7 +4,12 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,17 +21,39 @@ namespace Microsoft.CodeAnalysis.UnitTests
         OutOfProcess,
     }
 
-    public class DependentTypeFinderTests : ServicesTestBase
+    [UseExportProvider]
+    public class DependentTypeFinderTests : TestBase
     {
+        private static Solution AddProjectWithMetadataReferences(Solution solution, string projectName, string languageName, string code, MetadataReference metadataReference, params ProjectId[] projectReferences)
+        {
+            var suffix = languageName == LanguageNames.CSharp ? "cs" : "vb";
+            var pid = ProjectId.CreateNewId();
+            var did = DocumentId.CreateNewId(pid);
+            var pi = ProjectInfo.Create(
+                pid,
+                VersionStamp.Default,
+                projectName,
+                projectName,
+                languageName,
+                metadataReferences: new[] { metadataReference },
+                projectReferences: projectReferences.Select(p => new ProjectReference(p)));
+            return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
+        }
+
+        private static TestWorkspace GetWorkspace(TestHost host)
+        {
+            var workspace = TestWorkspace.CreateWorkspace(XElement.Parse("<Workspace></Workspace>"));
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, host == TestHost.OutOfProcess)));
+
+            return workspace;
+        }
+
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CSharp(TestHost host)
         {
-            using var workspace = new AdhocWorkspace();
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, host <> TestHost.InProcess)))
-
-
+            using var workspace = GetWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
@@ -67,7 +94,8 @@ namespace M
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedInterfaces_CSharp(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
@@ -112,7 +140,8 @@ namespace M
         [Theory, CombinatorialData]
         public async Task ImmediatelyDerivedTypes_CSharp_AliasedNames(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
@@ -156,7 +185,8 @@ namespace M
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CSharp_PortableProfile7(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
@@ -196,7 +226,8 @@ namespace M
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_VisualBasic(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, @"
@@ -237,7 +268,8 @@ End Namespace
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CrossLanguage(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
@@ -278,7 +310,8 @@ End Namespace
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedAndImplementingInterfaces_CSharp(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an interface
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
@@ -317,7 +350,8 @@ namespace M
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedInterfaces_VisualBasic(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an interface
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, @"
@@ -357,7 +391,8 @@ End Namespace
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedAndImplementingInterfaces_CrossLanguage(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an interface
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, @"

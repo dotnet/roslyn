@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<INamedTypeSymbol, Solution, ImmutableHashSet<Project>, Task<ImmutableArray<INamedTypeSymbol>>> func,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync<ImmutableArray<SerializableSymbolAndProjectId>>(async () =>
+            return RunServiceAsync(async () =>
             {
                 using (UserOperationBooster.Boost())
                 {
