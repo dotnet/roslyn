@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, declaratorSyntax, modifiers, isFieldLike: true, interfaceSpecifierSyntaxOpt: null,
                    nameTokenSyntax: declaratorSyntax.Identifier, diagnostics: diagnostics)
         {
+            Debug.Assert(declaratorSyntax.Parent is object);
+
             _name = declaratorSyntax.Identifier.ValueText;
 
             var declaratorDiagnostics = DiagnosticBag.GetInstance();
