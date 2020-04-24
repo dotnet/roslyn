@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -98,7 +100,19 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 symbolValidator: module =>
                 {
                     var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    Assert.NotNull(rootModuleType.GetMember(".cctor"));
+                    var staticConstructor = (PEMethodSymbol)rootModuleType.GetMember(".cctor");
+
+                    Assert.NotNull(staticConstructor);
+                    Assert.Equal(MethodKind.StaticConstructor, staticConstructor.MethodKind);
+
+                    var expectedFlags =
+                        MethodAttributes.Private
+                        | MethodAttributes.Static
+                        | MethodAttributes.SpecialName
+                        | MethodAttributes.RTSpecialName
+                        | MethodAttributes.HideBySig;
+
+                    Assert.Equal(expectedFlags, staticConstructor.Flags);
                 },
                 expectedOutput: @"
 C.M
