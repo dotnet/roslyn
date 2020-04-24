@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
