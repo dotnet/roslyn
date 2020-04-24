@@ -1,7 +1,7 @@
 # Module Initializers
 ## Overview
 
-A module initializer is a method that runs eagerly and one-time when an assembly is loaded, similar to a type initializer (static constructor).
+A module initializer is a method that runs before the first access of a field or invocation of a method in that module, similar to a type initializer (static constructor).
 
 A module initializer in .NET is defined by adding a `.cctor` method to the `<Module>` type. Since the `<Module>` type is not explicitly defined in user code, the language has to provide a feature in order to make it possible for users to write a module initializer.
 
@@ -17,7 +17,7 @@ using System;
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class ModuleInitializerAttribute : Attribute { }
+    public sealed class ModuleInitializerAttribute : Attribute { }
 }
 ```
 
