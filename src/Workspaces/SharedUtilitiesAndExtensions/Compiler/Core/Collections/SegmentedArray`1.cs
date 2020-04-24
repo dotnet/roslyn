@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -110,10 +112,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             set => this[index] = value;
         }
 
-        object IList.this[int index]
+        object? IList.this[int index]
         {
             get => this[index];
-            set => this[index] = (T)value;
+            set => this[index] = (T)value!;
         }
 
         public object Clone()
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         public Enumerator GetEnumerator()
             => new Enumerator(this);
 
-        int IList.Add(object value)
+        int IList.Add(object? value)
         {
             throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
@@ -173,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
 
-        bool IList.Contains(object value)
+        bool IList.Contains(object? value)
         {
             foreach (IList list in _items)
             {
@@ -195,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return false;
         }
 
-        int IList.IndexOf(object value)
+        int IList.IndexOf(object? value)
         {
             for (var i = 0; i < _items.Length; i++)
             {
@@ -225,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return -1;
         }
 
-        void IList.Insert(int index, object value)
+        void IList.Insert(int index, object? value)
         {
             throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
@@ -235,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
 
-        void IList.Remove(object value)
+        void IList.Remove(object? value)
         {
             throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
@@ -261,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
 
-        int IStructuralComparable.CompareTo(object other, IComparer comparer)
+        int IStructuralComparable.CompareTo(object? other, IComparer comparer)
         {
             if (other is null)
                 return 1;
@@ -284,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return 0;
         }
 
-        bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer)
+        bool IStructuralEquatable.Equals(object? other, IEqualityComparer comparer)
         {
             if (other is null)
                 return false;
@@ -316,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             var ret = 0;
             for (var i = Length >= 8 ? Length - 8 : 0; i < Length; i++)
             {
-                ret = Hash.Combine(comparer.GetHashCode(this[i]), ret);
+                ret = Hash.Combine(comparer.GetHashCode(this[i]!), ret);
             }
 
             return ret;
@@ -337,11 +339,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 _items = array._items;
                 _nextItemSegment = 0;
                 _nextItemIndex = 0;
-                _current = default;
+                _current = default!;
             }
 
             public T Current => _current;
-            object IEnumerator.Current => Current;
+            object? IEnumerator.Current => Current;
 
             public void Dispose()
             {
@@ -372,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             {
                 _nextItemSegment = 0;
                 _nextItemIndex = 0;
-                _current = default;
+                _current = default!;
             }
         }
 
