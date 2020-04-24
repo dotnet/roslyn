@@ -77,8 +77,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly RelatedTypeCache s_typeToImmediatelyDerivedInterfacesMap = new RelatedTypeCache();
         private static readonly RelatedTypeCache s_typeToTransitivelyDerivedInterfacesMap = new RelatedTypeCache();
 
-        private static readonly RelatedTypeCache s_typeToImmediatelyImplementingStructuresAndClassesMap = new RelatedTypeCache();
-        private static readonly RelatedTypeCache s_typeToTransitivelyImplementingStructuresAndClassesMap = new RelatedTypeCache();
+        private static readonly RelatedTypeCache s_typeToImmediatelyImplementingTypesMap = new RelatedTypeCache();
+        private static readonly RelatedTypeCache s_typeToTransitivelyImplementingTypesMap = new RelatedTypeCache();
 
         private static readonly RelatedTypeCache.CreateValueCallback s_createTypeMap =
             _ => new ConcurrentDictionary<(SymbolKey, ProjectId, IImmutableSet<Project>), AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>>(KeyEqualityComparer.Instance);

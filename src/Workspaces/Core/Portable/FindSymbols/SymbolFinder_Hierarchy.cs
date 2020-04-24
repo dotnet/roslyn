@@ -315,8 +315,39 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementationsArrayAsync(
             INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var implementingTypes = await DependentTypeFinder.FindAndCacheImplementingStructuresAndClassesAsync(
+            var implementingTypes = await DependentTypeFinder.FindAndCacheImplementingTypesAsync(
                 type, solution, projects, transitive: true, cancellationToken).ConfigureAwait(false);
+            return implementingTypes.WhereAsArray(IsAccessible);
+        }
+
+        /// <summary>
+        /// Finds the immediate, accessible <see langword="class"/> or <see langword="struct"/> types that implement the given
+        /// interface.
+        /// </summary>
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindImmediateImplementationsAsync(
+            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            if (solution == null)
+                throw new ArgumentNullException(nameof(solution));
+
+            if (solution.GetOriginatingProjectId(type) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
+
+            return await FindImmediateImplementationsArrayAsync(type, solution, projects, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc cref="FindImmediateImplementationsAsync"/>
+        /// <remarks>
+        /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
+        /// </remarks>
+        internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImmediateImplementationsArrayAsync(
+            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        {
+            var implementingTypes = await DependentTypeFinder.FindAndCacheImplementingTypesAsync(
+                type, solution, projects, transitive: false, cancellationToken).ConfigureAwait(false);
             return implementingTypes.WhereAsArray(IsAccessible);
         }
 
@@ -362,37 +393,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return results.Distinct(SymbolEquivalenceComparer.Instance).ToImmutableArray();
-        }
-
-        /// <summary>
-        /// Finds the immediate, accessible <see langword="class"/> or <see langword="struct"/> types that implement the given
-        /// interface.
-        /// </summary>
-        public static async Task<IEnumerable<INamedTypeSymbol>> FindImmediateImplementationsAsync(
-            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
-        {
-            if (type == null)
-                throw new ArgumentNullException(nameof(type));
-
-            if (solution == null)
-                throw new ArgumentNullException(nameof(solution));
-
-            if (solution.GetOriginatingProjectId(type) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
-
-            return await FindImmediateImplementationsArrayAsync(type, solution, projects, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc cref="FindImmediateImplementationsAsync"/>
-        /// <remarks>
-        /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
-        /// </remarks>
-        internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImmediateImplementationsArrayAsync(
-            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
-        {
-            var implementingTypes = await DependentTypeFinder.FindAndCacheImplementingStructuresAndClassesAsync(
-                type, solution, projects, transitive: false, cancellationToken).ConfigureAwait(false);
-            return implementingTypes.WhereAsArray(IsAccessible);
         }
     }
 }

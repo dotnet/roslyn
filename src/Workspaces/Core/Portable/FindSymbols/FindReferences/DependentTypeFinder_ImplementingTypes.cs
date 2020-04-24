@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Implementation of <see cref="SymbolFinder.FindImplementationsAsync(ISymbol, Solution, IImmutableSet{Project}, CancellationToken)"/> for 
         /// <see cref="INamedTypeSymbol"/>s
         /// </summary>
-        public static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingStructuresAndClassesAsync(
+        public static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             return FindTypesFromCacheOrComputeAsync(
                 type, solution, projects,
-                transitive ? s_typeToTransitivelyImplementingStructuresAndClassesMap : s_typeToImmediatelyImplementingStructuresAndClassesMap,
-                c => FindWithoutCachingImplementingStructuresAndClassesAsync(type, solution, projects, transitive, c),
+                transitive ? s_typeToTransitivelyImplementingTypesMap : s_typeToImmediatelyImplementingTypesMap,
+                c => FindWithoutCachingImplementingTypesAsync(type, solution, projects, transitive, c),
                 cancellationToken);
         }
 
-        private static async Task<ImmutableArray<INamedTypeSymbol>> FindWithoutCachingImplementingStructuresAndClassesAsync(
+        private static async Task<ImmutableArray<INamedTypeSymbol>> FindWithoutCachingImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     transitive: transitive,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                // We only want implementing classes/structs here, not derived interfaces.
+                // Only classes/struct implement interface types.  Derived interfaces can be found with
+                // FindDerivedInterfacesAsync.
                 return allTypes.WhereAsArray(t => t.TypeKind == TypeKind.Class || t.TypeKind == TypeKind.Struct);
             }
 
