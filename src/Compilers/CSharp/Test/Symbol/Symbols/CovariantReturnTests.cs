@@ -273,5 +273,6 @@ class Derived : Base
         // - Test other implicit reference conversion scenarios, such as Interface Base.Method() and TypeThatImplementsInterface Derived.Method(), to lock-in the proper check
         // - Test some DIM scenarios (no changed behavior)
         // - Test that UD conversions don't count (not an implicit reference conversion)
+        // - Test three levels of inheritance - overriding one, both, neither, correctly, incorrectly. https://github.com/dotnet/roslyn/pull/43576#discussion_r414074476
     }
 }
