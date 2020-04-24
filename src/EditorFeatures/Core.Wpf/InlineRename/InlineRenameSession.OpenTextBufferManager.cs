@@ -184,11 +184,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     _referenceSpanToLinkedRenameSpanMap.Clear();
                     foreach (var span in spans)
                     {
-                        var sourceText = _baseDocuments.First().GetTextSynchronously(CancellationToken.None);
-                        var triggerText = sourceText.ToString(span);
-
+                        var document = _baseDocuments.First();
                         var renameableSpan = _session._renameInfo.GetReferenceEditSpan(
-                            new InlineRenameLocation(_baseDocuments.First(), span), triggerText, CancellationToken.None);
+                            new InlineRenameLocation(document, span), GetTriggerText(document, span), CancellationToken.None);
                         var trackingSpan = new RenameTrackingSpan(
                                 _subjectBuffer.CurrentSnapshot.CreateTrackingSpan(renameableSpan.ToSpan(), SpanTrackingMode.EdgeInclusive, TrackingFidelityMode.Forward),
                                 RenameSpanKind.Reference);
@@ -209,6 +207,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 RaiseSpansChanged();
+            }
+
+            private static string GetTriggerText(Document document, TextSpan span)
+            {
+                var sourceText = document.GetTextSynchronously(CancellationToken.None);
+                return sourceText.ToString(span);
             }
 
             private void OnTextBufferChanged(object sender, TextContentChangedEventArgs args)
@@ -467,11 +471,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                             if (_referenceSpanToLinkedRenameSpanMap.ContainsKey(replacement.OriginalSpan) && kind != RenameSpanKind.Complexified)
                             {
-                                var sourceText = newDocument.GetTextSynchronously(cancellationToken);
-                                var triggerText = sourceText.ToString(replacement.NewSpan);
-
                                 var linkedRenameSpan = _session._renameInfo.GetConflictEditSpan(
-                                    new InlineRenameLocation(newDocument, replacement.NewSpan), triggerText,
+                                    new InlineRenameLocation(newDocument, replacement.NewSpan), GetTriggerText(newDocument, replacement.NewSpan),
                                     GetWithoutAttributeSuffix(_session.ReplacementText,
                                         document.GetLanguageService<LanguageServices.ISyntaxFactsService>().IsCaseSensitive), cancellationToken);
 
