@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using CodeFixGroupKey = System.Tuple<Microsoft.CodeAnalysis.Diagnostics.DiagnosticData, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority?>;
@@ -376,8 +377,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     const bool includeSuppressionFixes = true;
 
                     var fixes = this.ThreadingContext.JoinableTaskFactory.Run(
-                        () => _owner._codeFixService.GetFixesAsync(
-                                document, range.Span.ToTextSpan(), includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken));
+                        async () =>
+                        {
+                            // Immediately switch to the background so that by default all our computation work is done
+                            // there and doesn't expect to be on the UI thread.
+                            await TaskScheduler.Default;
+                            return await _owner._codeFixService.GetFixesAsync(
+                                document, range.Span.ToTextSpan(), includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken).ConfigureAwait(false);
+                        });
 
                     var filteredFixes = FilterOnUIThread(fixes, workspace);
 
@@ -789,13 +796,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     supportsFeatureService.SupportsRefactorings(_subjectBuffer) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
                 {
-                    // It may seem strange that we kick off a task, but then immediately 'Wait' on 
-                    // it. However, it's deliberate.  We want to make sure that the code runs on 
-                    // the background so that no one takes an accidentally dependency on running on 
-                    // the UI thread.
+                    // Here we use JTF to synchronously block until the async work to compute the refactorings is done.
+                    // This has a con that it allows downstream refactorings to access the UI thread using JTF, but is
+                    // necessary due to Roslyn itself needing that capability (specifically for the Add Nuget package
+                    // refactoring).
                     var refactorings = this.ThreadingContext.JoinableTaskFactory.Run(
-                        () => _owner._codeRefactoringService.GetRefactoringsAsync(
-                            document, selection, isBlocking: true, addOperationScope, cancellationToken));
+                        async () =>
+                        {
+                            // Immediately switch to the background so that by default all our computation work is done
+                            // there and doesn't expect to be on the UI thread.
+                            await TaskScheduler.Default;
+                            return await _owner._codeRefactoringService.GetRefactoringsAsync(
+                                document, selection, isBlocking: true, addOperationScope, cancellationToken).ConfigureAwait(false);
+                        });
 
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
 

@@ -274,7 +274,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             if (_workspace != null)
             {
                 _workspace.Services.GetRequiredService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
-                _workspace.Services.GetService<IPackageInstallerService>()?.Dispose();
             }
         }
 
