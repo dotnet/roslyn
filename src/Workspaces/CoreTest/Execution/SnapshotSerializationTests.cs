@@ -456,27 +456,6 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         }
 
         [Fact]
-        public void WorkspaceAnalyzer_Serialization_Desktop_Test()
-        {
-            var hostServices = MefHostServices.Create(
-                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
-
-            using var tempRoot = new TempRoot();
-            using var workspace = new AdhocWorkspace(hostServices);
-            var reference = CreateShadowCopiedAnalyzerReference(tempRoot);
-
-            var serializer = workspace.Services.GetService<ISerializerService>();
-
-            var asset = WorkspaceAnalyzerReferenceAsset.Create(reference, serializer, CancellationToken.None);
-
-            // verify checksum from custom asset builder uses different checksum than regular one
-            var expectedChecksum = Checksum.Create(
-                WellKnownSynchronizationKind.AnalyzerReference,
-                serializer.CreateChecksum(reference, CancellationToken.None));
-            Assert.Equal(expectedChecksum, asset.Checksum);
-        }
-
-        [Fact]
         public async Task SnapshotWithMissingReferencesTest()
         {
             var hostServices = MefHostServices.Create(

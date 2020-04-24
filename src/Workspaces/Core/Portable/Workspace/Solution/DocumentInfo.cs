@@ -93,22 +93,6 @@ namespace Microsoft.CodeAnalysis
                 documentServiceProvider: null);
         }
 
-        // TODO: https://github.com/dotnet/roslyn/issues/35079
-        // Used by Razor: https://github.com/dotnet/aspnetcore-tooling/blob/master/src/Razor/src/Microsoft.VisualStudio.Editor.Razor/DefaultVisualStudioMacDocumentInfoFactory.cs#L38
-        [Obsolete("This is a compatibility shim for Razor; please do not use it.")]
-        internal static DocumentInfo Create(
-            DocumentId id,
-            string name,
-            IEnumerable<string>? folders,
-            SourceCodeKind sourceCodeKind,
-            TextLoader? loader,
-            string? filePath,
-            bool isGenerated,
-            IDocumentServiceProvider? documentServiceProvider)
-        {
-            return new DocumentInfo(new DocumentAttributes(id, name, folders.ToBoxedImmutableArray(), sourceCodeKind, filePath, isGenerated), loader, documentServiceProvider);
-        }
-
         internal static DocumentInfo Create(
             DocumentId id,
             string name,
