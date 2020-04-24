@@ -2580,14 +2580,14 @@ namespace N1 {
 
             Verify(methodSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
                 "void Method(int p)",
-                 SymbolDisplayPartKind.Keyword,
-                 SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.MethodName,
-                 SymbolDisplayPartKind.Punctuation,
-                 SymbolDisplayPartKind.Keyword,
-                 SymbolDisplayPartKind.Space,
-                 SymbolDisplayPartKind.ParameterName,
-                 SymbolDisplayPartKind.Punctuation);
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
 
             Verify(delegateSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
                 "MyDelegate(int x)",
