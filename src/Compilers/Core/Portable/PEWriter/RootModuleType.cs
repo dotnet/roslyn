@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
@@ -20,17 +19,20 @@ namespace Microsoft.Cci
     /// </summary>
     internal class RootModuleType : INamespaceTypeDefinition
     {
-        private IReadOnlyList<IMethodDefinition> _methods = SpecializedCollections.EmptyReadOnlyList<IMethodDefinition>();
+        private IReadOnlyList<IMethodDefinition>? _methods;
 
         public void SetStaticConstructorBody(ImmutableArray<byte> il)
         {
-            Debug.Assert(!_methods.Any());
+            Debug.Assert(_methods is null);
 
             _methods = SpecializedCollections.SingletonReadOnlyList(
                 new RootModuleStaticConstructor(containingTypeDefinition: this, il));
         }
 
-        public IEnumerable<IMethodDefinition> GetMethods(EmitContext context) => _methods;
+        public IEnumerable<IMethodDefinition> GetMethods(EmitContext context)
+        {
+            return _methods ??= SpecializedCollections.EmptyReadOnlyList<IMethodDefinition>();
+        }
 
         public TypeDefinitionHandle TypeDef
         {
