@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeNode,
+                SyntaxKind.SwitchExpressionArm,
                 SyntaxKind.ForStatement,
                 SyntaxKind.EqualsValueClause,
                 SyntaxKind.IfStatement,
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         private static ExpressionSyntax? GetExpression(SyntaxNode node)
             => node switch
             {
+                SwitchExpressionArmSyntax n => n.Expression,
                 ForStatementSyntax n => n.Condition,
                 EqualsValueClauseSyntax n => n.Value,
                 IfStatementSyntax n => n.Condition,
