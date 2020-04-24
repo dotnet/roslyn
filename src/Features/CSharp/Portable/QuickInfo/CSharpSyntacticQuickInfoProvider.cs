@@ -12,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
 
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             }
 
             // Don't show for interpolations
-            if (token.Parent.IsKind(SyntaxKind.Interpolation, out InterpolationSyntax? interpolation) &&
+            if (token.Parent.IsInterpolation(out var interpolation) &&
                 interpolation.CloseBraceToken == token)
             {
                 return null;

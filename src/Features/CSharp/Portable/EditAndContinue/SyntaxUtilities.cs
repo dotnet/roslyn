@@ -181,12 +181,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static SyntaxNode TryGetEffectiveGetterBody(SyntaxNode declaration)
         {
-            if (declaration.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax property))
+            if (declaration.IsPropertyDeclaration(out var property))
             {
                 return TryGetEffectiveGetterBody(property.ExpressionBody, property.AccessorList);
             }
 
-            if (declaration.IsKind(SyntaxKind.IndexerDeclaration, out IndexerDeclarationSyntax indexer))
+            if (declaration.IsIndexerDeclaration(out var indexer))
             {
                 return TryGetEffectiveGetterBody(indexer.ExpressionBody, indexer.AccessorList);
             }
@@ -212,10 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static SyntaxTokenList? TryGetFieldOrPropertyModifiers(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.FieldDeclaration, out FieldDeclarationSyntax fieldDecl))
+            if (node.IsFieldDeclaration(out var fieldDecl))
                 return fieldDecl.Modifiers;
 
-            if (node.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDecl))
+            if (node.IsPropertyDeclaration(out var propertyDecl))
                 return propertyDecl.Modifiers;
 
             return null;
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static bool IsParameterlessConstructor(SyntaxNode declaration)
         {
-            if (!declaration.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax ctor))
+            if (!declaration.IsConstructorDeclaration(out var ctor))
             {
                 return false;
             }
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             // each declarator in the declaration translates to a suspension point: await DisposeAsync
             if (node.IsKind(SyntaxKind.VariableDeclarator) &&
-                node.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax localDecl) &&
+                node.Parent.Parent.IsLocalDeclarationStatement(out var localDecl) &&
                 localDecl.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
             {
                 return true;

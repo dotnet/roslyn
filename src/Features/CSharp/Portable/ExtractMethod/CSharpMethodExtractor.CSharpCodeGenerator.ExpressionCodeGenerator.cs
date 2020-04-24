@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     var enclosingStatement = GetFirstStatementOrInitializerSelectedAtCallSite();
                     var callSignature = CreateCallSignature().WithAdditionalAnnotations(callSiteAnnotation);
-                    var invocation = callSignature.IsKind(SyntaxKind.AwaitExpression, out AwaitExpressionSyntax awaitExpr) ? awaitExpr.Expression : callSignature;
+                    var invocation = callSignature.IsAwaitExpression(out var awaitExpr) ? awaitExpr.Expression : callSignature;
 
                     var sourceNode = CSharpSelectionResult.GetContainingScope();
                     Contract.ThrowIfTrue(

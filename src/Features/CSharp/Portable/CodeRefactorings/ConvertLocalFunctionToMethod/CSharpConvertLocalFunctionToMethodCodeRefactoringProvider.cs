@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 return;
             }
 
-            if (!localFunction.Parent.IsKind(SyntaxKind.Block, out BlockSyntax parentBlock))
+            if (!localFunction.Parent.IsBlock(out var parentBlock))
             {
                 return;
             }
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                     currentNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
                 }
 
-                if (node.Parent.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
+                if (node.Parent.IsInvocationExpression(out var invocation))
                 {
                     if (hasAdditionalArguments)
                     {

@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var annotatedNodesAndTokens = root.GetAnnotatedNodesAndTokens(ReferenceAnnotation);
             foreach (var nodeOrToken in annotatedNodesAndTokens)
             {
-                if (nodeOrToken.IsNode && nodeOrToken.AsNode().IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
+                if (nodeOrToken.IsNode && nodeOrToken.AsNode().IsIdentifierName(out var identifierName))
                 {
                     yield return identifierName;
                 }
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private ExpressionSyntax SkipRedundantExteriorParentheses(ExpressionSyntax expression)
         {
-            while (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesized))
+            while (expression.IsParenthesizedExpression(out var parenthesized))
             {
                 if (parenthesized.Expression == null ||
                     parenthesized.Expression.IsMissing)
