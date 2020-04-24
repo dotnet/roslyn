@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -13,11 +14,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal static partial class DependentTypeFinder
     {
-        /// <summary>
-        /// Implementation of <see cref="SymbolFinder.FindImplementationsAsync(ISymbol, Solution, IImmutableSet{Project}, CancellationToken)"/> for 
-        /// <see cref="INamedTypeSymbol"/>s
-        /// </summary>
-        public static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingStructuresAndClassesAsync(
+        public static async Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingStructuresAndClassesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            IImmutableSet<Project> projects,
+            bool transitive,
+            CancellationToken cancellationToken)
+        {
+            var result = await TryFindAndCacheRemoteTypesAsync(
+                type, solution, projects, transitive,
+                FunctionId.DependentTypeFinder_FindAndCacheImplementingStructuresAndClassesAsync,
+                nameof(IRemoteDependentTypeFinder.FindAndCacheImplementingStructuresAndClassesAsync),
+                cancellationToken).ConfigureAwait(false);
+
+            if (result.HasValue)
+                return result.Value;
+
+            return await FindAndCacheImplementingStructuresAndClassesInCurrentProcessAsync(
+                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingStructuresAndClassesInCurrentProcessAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,

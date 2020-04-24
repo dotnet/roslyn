@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -14,10 +15,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal static partial class DependentTypeFinder
     {
-        /// <summary>
-        /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync(INamedTypeSymbol, Solution, IImmutableSet{Project}, CancellationToken)"/>, which is a publically callable method.
-        /// </summary>
-        public static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedClassesAsync(
+        public static async Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedClassesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            IImmutableSet<Project> projects,
+            bool transitive,
+            CancellationToken cancellationToken)
+        {
+            var result = await TryFindAndCacheRemoteTypesAsync(
+                type, solution, projects, transitive,
+                FunctionId.DependentTypeFinder_FindAndCacheDerivedClassesAsync,
+                nameof(IRemoteDependentTypeFinder.FindAndCacheDerivedClassesAsync),
+                cancellationToken).ConfigureAwait(false);
+
+            if (result.HasValue)
+                return result.Value;
+
+            return await FindAndCacheDerivedClassesInCurrentProcessAsync(
+                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedClassesInCurrentProcessAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
