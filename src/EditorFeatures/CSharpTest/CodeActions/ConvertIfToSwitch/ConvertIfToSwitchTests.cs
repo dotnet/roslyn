@@ -2262,9 +2262,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case >= 1 and <= 5:
+            case <= 5 and >= 1:
                 return;
-            case >= 6 and <= 7:
+            case <= 7 and >= 6:
                 return;
         }
     }
