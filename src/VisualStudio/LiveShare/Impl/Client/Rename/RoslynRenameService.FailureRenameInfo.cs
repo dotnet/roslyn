@@ -34,8 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Rename
             public Glyph Glyph => Glyph.None;
             public ImmutableArray<DocumentSpan> DefinitionLocations => default;
             public string GetFinalSymbolName(string replacementText) => null;
-            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken) => default;
-            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken) => null;
+            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken) => default;
+            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken) => null;
             public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken) => null;
             public bool TryOnAfterGlobalSymbolRenamed(CodeAnalysis.Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
             public bool TryOnBeforeGlobalSymbolRenamed(CodeAnalysis.Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
