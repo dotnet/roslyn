@@ -375,10 +375,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // See https://github.com/dotnet/roslyn/issues/29589
                     const bool includeSuppressionFixes = true;
 
-                    var fixes = Task.Run(
+                    var fixes = this.ThreadingContext.JoinableTaskFactory.Run(
                         () => _owner._codeFixService.GetFixesAsync(
-                                document, range.Span.ToTextSpan(), includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken),
-                        cancellationToken).WaitAndGetResult(cancellationToken);
+                                document, range.Span.ToTextSpan(), includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken));
 
                     var filteredFixes = FilterOnUIThread(fixes, workspace);
 
@@ -794,10 +793,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // it. However, it's deliberate.  We want to make sure that the code runs on 
                     // the background so that no one takes an accidentally dependency on running on 
                     // the UI thread.
-                    var refactorings = Task.Run(
+                    var refactorings = this.ThreadingContext.JoinableTaskFactory.Run(
                         () => _owner._codeRefactoringService.GetRefactoringsAsync(
-                            document, selection, isBlocking: true, addOperationScope, cancellationToken),
-                        cancellationToken).WaitAndGetResult(cancellationToken);
+                            document, selection, isBlocking: true, addOperationScope, cancellationToken));
 
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
 
