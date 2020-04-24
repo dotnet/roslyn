@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(documents, nameof(documents)),
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projectReferences, nameof(projectReferences)),
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(metadataReferences, nameof(metadataReferences)),
-                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)),
+                PublicContract.ToBoxedImmutableArrayWithNonNullItems(analyzerReferences, nameof(analyzerReferences)),
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(additionalDocuments, nameof(additionalDocuments)),
                 analyzerConfigDocuments: SpecializedCollections.EmptyBoxedImmutableArray<DocumentInfo>(),
                 hostObjectType);
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis
             => With(metadataReferences: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(metadataReferences, nameof(metadataReferences)));
 
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference>? analyzerReferences)
-            => With(analyzerReferences: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
+            => With(analyzerReferences: PublicContract.ToBoxedImmutableArrayWithNonNullItems(analyzerReferences, nameof(analyzerReferences)));
 
         internal string GetDebuggerDisplay()
             => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
