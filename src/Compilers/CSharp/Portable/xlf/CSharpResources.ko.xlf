@@ -1894,6 +1894,11 @@
         <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PatternInaccessibleOrNotInstance_Title">
+        <source>Type does not implement the collection pattern; member is is not an accessible instance or extension method.</source>
+        <target state="new">Type does not implement the collection pattern; member is is not an accessible instance or extension method.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">[DoesNotReturn]으로 표시된 메서드는 반환하지 않아야 합니다.</target>
@@ -3317,11 +3322,6 @@
       <trans-unit id="WRN_PatternIsAmbiguous_Title">
         <source>Type does not implement the collection pattern; members are ambiguous</source>
         <target state="translated">형식은 컬렉션 패턴을 구현하지 않습니다. 멤버가 모호합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible_Title">
-        <source>Type does not implement the collection pattern; member is either static or not public</source>
-        <target state="translated">형식은 컬렉션 패턴을 구현하지 않습니다. 멤버가 public이 아니거나 static입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature">

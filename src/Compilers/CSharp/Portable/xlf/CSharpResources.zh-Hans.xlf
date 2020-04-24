@@ -1894,6 +1894,11 @@
         <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PatternInaccessibleOrNotInstance_Title">
+        <source>Type does not implement the collection pattern; member is is not an accessible instance or extension method.</source>
+        <target state="new">Type does not implement the collection pattern; member is is not an accessible instance or extension method.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">不应返回标记为 [DoesNotReturn] 的方法。</target>
@@ -3317,11 +3322,6 @@
       <trans-unit id="WRN_PatternIsAmbiguous_Title">
         <source>Type does not implement the collection pattern; members are ambiguous</source>
         <target state="translated">类型不实现集合模式；成员不明确</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible_Title">
-        <source>Type does not implement the collection pattern; member is either static or not public</source>
-        <target state="translated">类型不实现集合模式；成员静态的或非公共的</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature">

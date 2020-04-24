@@ -1140,8 +1140,8 @@
   <data name="WRN_PatternInaccessibleOrNotInstance" xml:space="preserve">
     <value>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</value>
   </data>
-  <data name="WRN_PatternStaticOrInaccessible_Title" xml:space="preserve">
-    <value>Type does not implement the collection pattern; member is either static or not public</value>
+  <data name="WRN_PatternInaccessibleOrNotInstance_Title" xml:space="preserve">
+    <value>Type does not implement the collection pattern; member is is not an accessible instance or extension method.</value>
   </data>
   <data name="WRN_PatternBadSignature" xml:space="preserve">
     <value>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</value>
