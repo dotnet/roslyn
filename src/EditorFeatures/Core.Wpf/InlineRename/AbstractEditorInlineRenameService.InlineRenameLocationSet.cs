@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -39,9 +40,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, OptionSet optionSet, CancellationToken cancellationToken)
             {
-                var conflicts = await ConflictResolver.ResolveConflictsAsync(
-                    _renameLocationSet, _renameInfo.GetFinalSymbolName(replacementText),
-                    nonConflictSymbols: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var conflicts = await _renameLocationSet.ResolveConflictsAsync(
+                    _renameInfo.GetFinalSymbolName(replacementText), nonConflictSymbols: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                if (conflicts.ErrorMessage != null)
+                    throw new ArgumentException(conflicts.ErrorMessage);
 
                 return new InlineRenameReplacementInfo(conflicts);
             }

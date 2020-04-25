@@ -10,6 +10,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Xunit.Sdk
 Imports Microsoft.CodeAnalysis.Options
 Imports Xunit.Abstractions
+Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -38,18 +39,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             _workspace = workspace
             _resolution = resolution
 
-            If resolution IsNot Nothing Then
-                _unassertedRelatedLocations = New HashSet(Of RelatedLocation)(resolution.RelatedLocations)
-            Else
-                _unassertedRelatedLocations = New HashSet(Of RelatedLocation)()
-            End If
+            _unassertedRelatedLocations = New HashSet(Of RelatedLocation)(resolution.RelatedLocations)
 
             _renameTo = renameTo
         End Sub
 
-        Public Shared Function Create(helper As ITestOutputHelper, workspaceXml As XElement, renameTo As String, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
+        Public Shared Function Create(
+                helper As ITestOutputHelper,
+                workspaceXml As XElement,
+                renameTo As String,
+                host As TestHost,
+                Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
             Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml)
             workspace.SetTestLogger(AddressOf helper.WriteLine)
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
 
             Dim engineResult As RenameEngineResult = Nothing
             Try
@@ -62,8 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim symbolAndProjectId = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, cursorPosition, CancellationToken.None).Result
-                Dim symbol = symbolAndProjectId.Symbol
+                Dim symbol = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, cursorPosition, CancellationToken.None).Result
                 If symbol Is Nothing Then
                     AssertEx.Fail("The symbol touching the $$ could not be found.")
                 End If
@@ -76,10 +80,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     Next
                 End If
 
-                Dim locations = RenameLocations.FindAsync(symbolAndProjectId, workspace.CurrentSolution, optionSet, CancellationToken.None).Result
-                Dim originalName = symbol.Name.Split("."c).Last()
+                Dim locations = Renamer.FindRenameLocationsAsync(
+                    workspace.CurrentSolution, symbol, optionSet, CancellationToken.None).Result
 
-                Dim result = ConflictResolver.ResolveConflictsAsync(locations, renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).Result
+                Dim result = locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).GetAwaiter().GetResult()
+                If result.ErrorMessage IsNot Nothing Then
+                    Throw New ArgumentException(result.ErrorMessage)
+                End If
 
                 engineResult = New RenameEngineResult(workspace, result, renameTo)
                 engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
@@ -171,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Private Sub AssertLocationReplacedWith(location As Location, replacementText As String, Optional isRenameWithinStringOrComment As Boolean = False)
             Try
                 Dim documentId = ConflictResolution.OldSolution.GetDocumentId(location.SourceTree)
-                Dim newLocation = ConflictResolution.GetTestAccessor().GetResolutionTextSpan(location.SourceSpan, documentId)
+                Dim newLocation = ConflictResolution.GetResolutionTextSpan(location.SourceSpan, documentId)
 
                 Dim newTree = ConflictResolution.NewSolution.GetDocument(documentId).GetSyntaxTreeAsync().Result
                 Dim newToken = newTree.GetRoot.FindToken(newLocation.Start, findInsideTrivia:=True)

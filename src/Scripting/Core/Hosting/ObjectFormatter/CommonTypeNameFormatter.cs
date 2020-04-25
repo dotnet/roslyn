@@ -218,13 +218,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         private void AppendArrayRank(StringBuilder sb, Type arrayType)
         {
-            sb.Append('[');
+            sb.Append(ArrayOpening);
             int rank = arrayType.GetArrayRank();
             if (rank > 1)
             {
                 sb.Append(',', rank - 1);
             }
-            sb.Append(']');
+            sb.Append(ArrayClosing);
         }
 
         private string FormatGenericTypeName(TypeInfo typeInfo, CommonTypeNameFormatterOptions options)

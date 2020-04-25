@@ -661,7 +661,7 @@ Public MustInherit Class WriteUtils
         GenerateXmlComment(writer, descriptionText, remarksText, indent)
     End Sub
 
-    ' Generate XML comment for an child
+    ' Generate XML comment for a child
     Protected Sub GenerateXmlComment(writer As TextWriter, child As ParseNodeChild, indent As Integer)
         Dim descriptionText As String = child.Description
         Dim remarksText As String = Nothing
@@ -675,21 +675,21 @@ Public MustInherit Class WriteUtils
         GenerateXmlComment(writer, descriptionText, remarksText, indent)
     End Sub
 
-    ' Generate XML comment for an child
+    ' Generate XML comment for a child
     Protected Sub GenerateWithXmlComment(writer As TextWriter, child As ParseNodeChild, indent As Integer)
         Dim descriptionText As String = "Returns a copy of this with the " + ChildPropertyName(child) + " property changed to the specified value. Returns this instance if the specified value is the same as the current value."
         Dim remarksText As String = Nothing
         GenerateXmlComment(writer, descriptionText, remarksText, indent)
     End Sub
 
-    ' Generate XML comment for an field
+    ' Generate XML comment for a field
     Protected Sub GenerateXmlComment(writer As TextWriter, field As ParseNodeField, indent As Integer)
         Dim descriptionText As String = field.Description
         Dim remarksText As String = Nothing
         GenerateXmlComment(writer, descriptionText, remarksText, indent)
     End Sub
 
-    ' Generate XML comment for an kind
+    ' Generate XML comment for a kind
     Protected Sub GenerateXmlComment(writer As TextWriter, kind As ParseNodeKind, indent As Integer)
         Dim descriptionText As String = kind.Description
         Dim remarksText As String = Nothing
