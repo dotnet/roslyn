@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     /// This means that as the project is being indexed, partial results may be returned.  However
     /// once it is fully indexed, then total results will be returned.
     /// </summary>
-    [ExportIncrementalAnalyzerProvider(nameof(SymbolTreeInfoIncrementalAnalyzerProvider), new[, Shared] { WorkspaceKind.Host, WorkspaceKind.RemoteWorkspace })]
+    [Shared]
+    [ExportIncrementalAnalyzerProvider(nameof(SymbolTreeInfoIncrementalAnalyzerProvider), new[] { WorkspaceKind.Host, WorkspaceKind.RemoteWorkspace })]
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {

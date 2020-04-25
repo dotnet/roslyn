@@ -9,8 +9,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 
 Namespace Microsoft.CodeAnalysis.CodeStyle
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.FixFormatting)>
-    <[Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.FixFormatting), [Shared]>
     Friend Class VisualBasicFormattingCodeFixProvider
         Inherits AbstractFormattingCodeFixProvider
 

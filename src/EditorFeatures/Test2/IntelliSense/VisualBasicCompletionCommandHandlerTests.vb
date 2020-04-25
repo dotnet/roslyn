@@ -975,8 +975,7 @@ End Class
             End Using
         End Function
 
-        <ExportCompletionProvider(NameOf(TriggeredCompletionProvider), LanguageNames.VisualBasic)>
-        <[Shared]>
+        <ExportCompletionProvider(NameOf(TriggeredCompletionProvider), LanguageNames.VisualBasic), [Shared]>
         <PartNotDiscoverable>
         Friend Class TriggeredCompletionProvider
             Inherits MockCompletionProvider

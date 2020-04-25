@@ -11,7 +11,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    [ExportMetadata("Extensions", new string[, Shared] { "cshtml", "razor", })]
+    [Shared]
+    [ExportMetadata("Extensions", new string[] { "cshtml", "razor", })]
     [Export(typeof(IDynamicFileInfoProvider))]
     internal sealed class RazorDynamicFileInfoProviderWrapper : IDynamicFileInfoProvider
     {

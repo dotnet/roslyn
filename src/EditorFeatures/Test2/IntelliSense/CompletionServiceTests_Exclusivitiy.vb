@@ -85,8 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Function
         End Class
 
-        <ExportCompletionProvider(NameOf(CompletionItemNonExclusiveCompletionProvider), "NoCompilation")>
-        <[Shared]>
+        <ExportCompletionProvider(NameOf(CompletionItemNonExclusiveCompletionProvider), "NoCompilation"), [Shared]>
         <PartNotDiscoverable>
         Private Class CompletionItemNonExclusiveCompletionProvider
             Inherits TestCompletionProviderWithMockExclusivity
@@ -98,8 +97,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Sub
         End Class
 
-        <ExportCompletionProvider(NameOf(CompletionItemExclusiveCompletionProvider), "NoCompilation")>
-        <[Shared]>
+        <ExportCompletionProvider(NameOf(CompletionItemExclusiveCompletionProvider), "NoCompilation"), [Shared]>
         <PartNotDiscoverable>
         Private Class CompletionItemExclusiveCompletionProvider
             Inherits TestCompletionProviderWithMockExclusivity
@@ -111,8 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Sub
         End Class
 
-        <ExportCompletionProvider(NameOf(CompletionItemExclusive2CompletionProvider), "NoCompilation")>
-        <[Shared]>
+        <ExportCompletionProvider(NameOf(CompletionItemExclusive2CompletionProvider), "NoCompilation"), [Shared]>
         <PartNotDiscoverable>
         Private Class CompletionItemExclusive2CompletionProvider
             Inherits TestCompletionProviderWithMockExclusivity

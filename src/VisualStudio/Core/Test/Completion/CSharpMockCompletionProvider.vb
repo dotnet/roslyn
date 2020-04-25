@@ -8,8 +8,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
-    <ExportCompletionProvider(NameOf(CSharpMockCompletionProvider), LanguageNames.CSharp)>
-    <[Shared]>
+    <ExportCompletionProvider(NameOf(CSharpMockCompletionProvider), LanguageNames.CSharp), [Shared]>
     <PartNotDiscoverable>
     Friend Class CSharpMockCompletionProvider
         Inherits MockCompletionProvider

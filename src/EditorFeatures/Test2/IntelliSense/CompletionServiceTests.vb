@@ -52,8 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Property
         End Class
 
-        <ExportCompletionProvider(NameOf(TestCompletionProvider), "NoCompilation")>
-        <[Shared]>
+        <ExportCompletionProvider(NameOf(TestCompletionProvider), "NoCompilation"), [Shared]>
         <PartNotDiscoverable>
         Private Class TestCompletionProvider
             Inherits CompletionProvider

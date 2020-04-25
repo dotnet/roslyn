@@ -8,8 +8,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
-    <ExportCompletionProvider(NameOf(VisualBasicMockCompletionProvider), LanguageNames.VisualBasic)>
-    <[Shared]>
+    <ExportCompletionProvider(NameOf(VisualBasicMockCompletionProvider), LanguageNames.VisualBasic), [Shared]>
     <PartNotDiscoverable>
     Friend Class VisualBasicMockCompletionProvider
         Inherits MockCompletionProvider

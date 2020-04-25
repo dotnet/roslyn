@@ -3196,8 +3196,7 @@ class C
             End Using
         End Function
 
-        <ExportCompletionProvider(NameOf(SlowProvider), LanguageNames.CSharp)>
-        <[Shared]>
+        <ExportCompletionProvider(NameOf(SlowProvider), LanguageNames.CSharp), [Shared]>
         <PartNotDiscoverable>
         Private Class SlowProvider
             Inherits CommonCompletionProvider
@@ -4466,8 +4465,7 @@ class C
             End Function
         End Class
 
-        <ExportCompletionProvider(NameOf(CompletedTaskControlledCompletionProvider), LanguageNames.CSharp)>
-        <[Shared]>
+        <ExportCompletionProvider(NameOf(CompletedTaskControlledCompletionProvider), LanguageNames.CSharp), [Shared]>
         <PartNotDiscoverable>
         Private Class CompletedTaskControlledCompletionProvider
             Inherits TaskControlledCompletionProvider
@@ -4479,8 +4477,7 @@ class C
             End Sub
         End Class
 
-        <ExportCompletionProvider(NameOf(BooleanTaskControlledCompletionProvider), LanguageNames.CSharp)>
-        <[Shared]>
+        <ExportCompletionProvider(NameOf(BooleanTaskControlledCompletionProvider), LanguageNames.CSharp), [Shared]>
         <PartNotDiscoverable>
         Private Class BooleanTaskControlledCompletionProvider
             Inherits TaskControlledCompletionProvider
@@ -6888,8 +6885,7 @@ namespace NS
             End Using
         End Function
 
-        <ExportCompletionProvider(NameOf(MultipleChangeCompletionProvider), LanguageNames.CSharp)>
-        <[Shared]>
+        <ExportCompletionProvider(NameOf(MultipleChangeCompletionProvider), LanguageNames.CSharp), [Shared]>
         <PartNotDiscoverable>
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
@@ -6933,8 +6929,7 @@ class C
             End Function
         End Class
 
-        <ExportCompletionProvider(NameOf(IntelliCodeMockProvider), LanguageNames.CSharp)>
-        <[Shared]>
+        <ExportCompletionProvider(NameOf(IntelliCodeMockProvider), LanguageNames.CSharp), [Shared]>
         <PartNotDiscoverable>
         Private Class IntelliCodeMockProvider
             Inherits CompletionProvider
@@ -6977,8 +6972,7 @@ class C
         ' Simulates a situation where IntelliCode provides items not included into the Rolsyn original list.
         ' We want to ignore these items in CommitIfUnique.
         ' This situation should not happen. Tests with this provider were added to cover protective scenarios.
-        <ExportCompletionProvider(NameOf(IntelliCodeMockWeirdProvider), LanguageNames.CSharp)>
-        <[Shared]>
+        <ExportCompletionProvider(NameOf(IntelliCodeMockWeirdProvider), LanguageNames.CSharp), [Shared]>
         <PartNotDiscoverable>
         Private Class IntelliCodeMockWeirdProvider
             Inherits IntelliCodeMockProvider
