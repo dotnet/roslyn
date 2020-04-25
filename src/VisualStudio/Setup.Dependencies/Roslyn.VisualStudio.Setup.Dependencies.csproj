@@ -15,22 +15,25 @@
     <ExtensionInstallationRoot>$(CommonExtensionInstallationRoot)</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\Dependencies</ExtensionInstallationFolder>
   </PropertyGroup>
+  <ItemGroup Label="PkgDef">
+    <PkgDefBindingRedirect Include="System.ValueTuple.dll" FusionName="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"/>
+  </ItemGroup>
   <ItemGroup>
-    <!-- 
-    Roslyn dependencies that are installed by other VS components. 
-    This project deploys them to RoslynDev hive to enable F5 scenario, 
-    but the resulting VSIX not inserted into VS.
+    <!--
+      Roslyn dependencies that are installed by other VS components. 
+      This project deploys them to RoslynDev hive to enable F5 scenario, 
+      but the resulting VSIX not inserted into VS.
     -->
-    <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader" />
-    <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.PortablePdb" />
-    <NuGetPackageToIncludeInVsix Include="System.Buffers" />
-    <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
-    <NuGetPackageToIncludeInVsix Include="System.Memory" />
-    <NuGetPackageToIncludeInVsix Include="System.Numerics.Vectors" />
-    <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
-    <NuGetPackageToIncludeInVsix Include="System.Runtime.CompilerServices.Unsafe" />
-    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
-    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.PortablePdb" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Buffers" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Memory" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Numerics.Vectors" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Runtime.CompilerServices.Unsafe" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" PkgDefEntry="BindingRedirect" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -74,6 +77,5 @@
   <ItemGroup>
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
     <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
-    <Content Include="Roslyn.VisualStudio.Setup.Dependencies.ValueTuple.pkgdef" IncludeInVSIX="true" />
   </ItemGroup>
 </Project>

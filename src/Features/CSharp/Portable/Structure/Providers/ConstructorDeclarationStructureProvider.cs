@@ -33,7 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var nextSibling = current.GetNextSibling();
 
             // Check IsNode to compress blank lines after this node if it is the last child of the parent.
-            var compressEmptyLines = !nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.ConstructorDeclaration);
+            //
+            // Whitespace between constructors is collapsed in Metadata as Source.
+            var compressEmptyLines = isMetadataAsSource
+                && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.ConstructorDeclaration));
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 constructorDeclaration,

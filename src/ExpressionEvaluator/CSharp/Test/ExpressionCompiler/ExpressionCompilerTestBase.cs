@@ -393,8 +393,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             DkmClrCompilationResultFlags expectedFlags = DkmClrCompilationResultFlags.None,
             string expectedILOpt = null,
             bool expectedGeneric = false,
-            [CallerFilePath]string expectedValueSourcePath = null,
-            [CallerLineNumber]int expectedValueSourceLine = 0)
+            [CallerFilePath] string expectedValueSourcePath = null,
+            [CallerLineNumber] int expectedValueSourceLine = 0)
         {
             ExpressionCompilerTestHelpers.VerifyLocal<MethodSymbol>(
                 testData,

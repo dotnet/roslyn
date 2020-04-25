@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         public string AssemblyName => VisualStudioProject.AssemblyName;
 
         public string GetOutputFileName()
-            => VisualStudioProject.IntermediateOutputFilePath;
+            => VisualStudioProject.CompilationOutputAssemblyFilePath;
 
         public virtual void Disconnect()
         {
