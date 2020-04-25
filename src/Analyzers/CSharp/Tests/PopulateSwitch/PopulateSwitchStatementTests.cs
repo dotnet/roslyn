@@ -979,8 +979,7 @@ class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")]
+        [Fact, WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")]
         public async Task TestAddMissingCasesForNullableEnum()
         {
             await TestInRegularAndScriptAsync(

@@ -630,8 +630,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
+        [Fact, WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task RemoveByVal1()
         {
@@ -648,8 +647,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
+        [Fact, WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task RemoveByVal2()
         {
@@ -666,8 +664,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
+        [Fact, WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task RemoveByVal_LineContinuation()
         {
@@ -815,8 +812,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544300")]
+        [Fact, WorkItem(544300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544300")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task NormalizedOperator_StructuredTrivia()
         {
@@ -827,8 +823,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
+        [Fact, WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task DontRemoveByVal()
         {
@@ -851,8 +846,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544561")]
+        [Fact, WorkItem(544561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544561")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task NormalizeOperator_Text()
         {
@@ -875,8 +869,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544557")]
+        [Fact, WorkItem(544557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544557")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task NormalizeOperator_OperatorStatement()
         {
@@ -891,8 +884,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544574")]
+        [Fact, WorkItem(544574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544574")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Reorder_OperatorTokenAndModifiers()
         {
@@ -907,8 +899,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(546521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546521")]
+        [Fact, WorkItem(546521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546521")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task SkippedTokenOperator()
         {
@@ -927,8 +918,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(547255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
+        [Fact, WorkItem(547255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task ReorderAsyncModifier()
         {
@@ -963,8 +953,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(547255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
+        [Fact, WorkItem(547255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task ReorderIteratorModifier()
         {
@@ -999,8 +988,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(611766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611766")]
+        [Fact, WorkItem(611766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611766")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task ReorderDuplicateModifiers()
         {
@@ -1027,8 +1015,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(530058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530058")]
+        [Fact, WorkItem(530058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530058")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task TestBadOperatorToken()
         {
@@ -1049,8 +1036,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(1534, "https://github.com/dotnet/roslyn/issues/1534")]
+        [Fact, WorkItem(1534, "https://github.com/dotnet/roslyn/issues/1534")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task TestColonEqualsToken()
         {

@@ -13,8 +13,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class FxCopAnalyzersSuggestedActionCallbackTests
-        <Fact>
-        <WorkItem(39092, "https://github.com/dotnet/roslyn/issues/39092")>
+        <Fact, WorkItem(39092, "https://github.com/dotnet/roslyn/issues/39092")>
         Public Sub TestIsNuGetInstalled()
             ' Verify with FxCop analyzer reference
             Dim fxcopAnalyzerReference = New CustomAnalyzerReference(fullPath:="c:\Microsoft.CodeQuality.Analyzers.dll",

@@ -6909,8 +6909,7 @@ interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
-        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
+        [Fact, WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunction_AddAsync()
         {
             var src1 = @"class Test { void M() { Task<int> local() => throw null; } }";
@@ -6920,8 +6919,7 @@ interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
-        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
+        [Fact, WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunction_RemoveAsync()
         {
             var src1 = @"class Test { void M() { async int local() { throw null; } } }";

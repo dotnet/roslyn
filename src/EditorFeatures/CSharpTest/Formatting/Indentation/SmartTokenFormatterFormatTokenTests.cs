@@ -384,8 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 indentationLine: 6);
         }
 
-        [Fact]
-        [WorkItem(537827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
+        [Fact, WorkItem(537827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task ArrayInitializer3()
         {
@@ -407,8 +406,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 12);
         }
 
-        [Fact]
-        [WorkItem(543142, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543142")]
+        [Fact, WorkItem(543142, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543142")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EnterWithTrailingWhitespace()
         {

@@ -1095,8 +1095,7 @@ $$    [|private int i = 3;|]
         public void ConstFieldVariableDeclarator2()
             => TestMissing("class C { $$const int a = 1; }");
 
-        [Fact]
-        [WorkItem(538777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
+        [Fact, WorkItem(538777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
         public void VariableDeclarator0()
             => TestMissing("class C { void Goo() { int$$ } }");
 

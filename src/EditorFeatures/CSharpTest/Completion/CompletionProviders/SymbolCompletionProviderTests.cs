@@ -2718,8 +2718,7 @@ class C { }";
             await VerifyItemExistsAsync(markup, "Alias");
         }
 
-        [Fact]
-        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
+        [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespace()
         {
@@ -2734,8 +2733,7 @@ namespace Test
             await VerifyItemIsAbsentAsync(markup, "MyAttribute");
         }
 
-        [Fact]
-        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
+        [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespace2()
         {
@@ -2753,8 +2751,7 @@ namespace Test
             await VerifyItemIsAbsentAsync(markup, "MyAttribute");
         }
 
-        [Fact]
-        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
+        [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameWhenSuffixlessFormIsKeyword()
         {
@@ -2770,8 +2767,7 @@ namespace Test
             await VerifyItemIsAbsentAsync(markup, "@namespace");
         }
 
-        [Fact]
-        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
+        [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespaceWhenSuffixlessFormIsKeyword()
         {
@@ -2787,8 +2783,7 @@ namespace Test
             await VerifyItemIsAbsentAsync(markup, "@namespace");
         }
 
-        [Fact]
-        [WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
+        [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task KeywordsUsedAsLocals()
         {
@@ -2817,8 +2812,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "int");
         }
 
-        [Fact]
-        [WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
+        [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords1()
         {
@@ -2836,8 +2830,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "from");
         }
 
-        [Fact]
-        [WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
+        [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords2()
         {
@@ -2859,8 +2852,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "where");
         }
 
-        [Fact]
-        [WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
+        [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords3()
         {
@@ -2882,8 +2874,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "where");
         }
 
-        [Fact]
-        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
+        [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterGlobalAlias()
         {
@@ -2895,8 +2886,7 @@ class Program { }";
             await VerifyItemIsAbsentAsync(markup, "MyAttribute", sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact]
-        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
+        [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterGlobalAliasWhenSuffixlessFormIsKeyword()
         {

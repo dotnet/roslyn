@@ -3821,8 +3821,7 @@ public       void       Method      (       )           {
 }");
         }
 
-        [Fact]
-        [WorkItem(538511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538511")]
+        [Fact, WorkItem(538511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538511")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task AttributeTargetSpecifier()
         {
@@ -3845,8 +3844,7 @@ public       void       Method      (       )           {
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(538635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538635")]
+        [Fact, WorkItem(538635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538635")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Finalizer()
         {
@@ -3863,8 +3861,7 @@ public       void       Method      (       )           {
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(538743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538743")]
+        [Fact, WorkItem(538743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538743")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix4442()
         {
@@ -3881,8 +3878,7 @@ public       void       Method      (       )           {
             await AssertFormatAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(538658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538658")]
+        [Fact, WorkItem(538658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538658")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix4328()
         {
@@ -3903,8 +3899,7 @@ public       void       Method      (       )           {
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(538658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538658")]
+        [Fact, WorkItem(538658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538658")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix4515()
         {
@@ -4118,8 +4113,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(539878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539878")]
+        [Fact, WorkItem(539878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539878")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5978()
         {
@@ -4164,8 +4158,7 @@ System.Console.WriteLine(""a"");
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(539878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539878")]
+        [Fact, WorkItem(539878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539878")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5979()
         {
@@ -4196,8 +4189,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(539891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539891")]
+        [Fact, WorkItem(539891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539891")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5993()
         {
@@ -4226,8 +4218,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(540315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540315")]
+        [Fact, WorkItem(540315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540315")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix6536()
         {
@@ -4248,8 +4239,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(540801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540801")]
+        [Fact, WorkItem(540801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540801")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix7211()
         {
@@ -4277,8 +4267,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(541035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541035")]
+        [Fact, WorkItem(541035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541035")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix7564_1()
         {
@@ -4306,8 +4295,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(541035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541035")]
+        [Fact, WorkItem(541035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541035")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix7564_2()
         {
@@ -4335,8 +4323,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(8385, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(8385, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NullCoalescingOperator()
         {
@@ -4358,8 +4345,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(541925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541925")]
+        [Fact, WorkItem(541925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541925")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task QueryContinuation()
         {
@@ -4414,8 +4400,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(542305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542305")]
+        [Fact, WorkItem(542305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542305")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task AttributeFormatting1()
         {
@@ -4435,8 +4420,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(542304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542304")]
+        [Fact, WorkItem(542304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542304")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task CloseBracesInArgumentList()
         {
@@ -4470,8 +4454,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
+        [Fact, WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task MissingTokens()
         {
@@ -4498,8 +4481,7 @@ class innerClass
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(542199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542199")]
+        [Fact, WorkItem(542199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542199")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task ColumnOfVeryFirstToken()
         {
@@ -4510,8 +4492,7 @@ class innerClass
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(542718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542718")]
+        [Fact, WorkItem(542718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542718")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task EmptySuppressionSpan()
         {
@@ -4528,8 +4509,7 @@ class innerClass
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(542790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542790")]
+        [Fact, WorkItem(542790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542790")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task LabelInSwitch()
         {
@@ -4570,8 +4550,7 @@ class innerClass
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(543112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543112")]
+        [Fact, WorkItem(543112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543112")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatArbitaryNode()
         {
@@ -4613,8 +4592,7 @@ class innerClass
             Assert.Equal(expected, newProperty.ToFullString());
         }
 
-        [Fact]
-        [WorkItem(543140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543140")]
+        [Fact, WorkItem(543140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543140")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task OmittedTypeArgument()
         {
@@ -4645,8 +4623,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(543131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543131")]
+        [Fact, WorkItem(543131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543131")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task TryAfterLabel()
         {
@@ -5756,8 +5733,7 @@ void bar()
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [WorkItem(545335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545335")]
+        [Fact, WorkItem(545335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545335")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task PreprocessorOnSameLine()
         {
@@ -5777,8 +5753,7 @@ void bar()
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(545626, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545626")]
+        [Fact, WorkItem(545626, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545626")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task ArraysInAttributes()
         {
@@ -5797,8 +5772,7 @@ public class A : Attribute
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
+        [Fact, WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoNewLineAfterBraceInExpression()
         {
@@ -5825,8 +5799,7 @@ public class A : Attribute
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
+        [Fact, WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoIndentForNestedUsingWithoutBraces()
         {
@@ -5857,8 +5830,7 @@ using (null)
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
+        [Fact, WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoIndentForNestedUsingWithoutBraces2()
         {
@@ -5891,8 +5863,7 @@ using (null)
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
+        [Fact, WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoIndentForNestedUsingWithoutBraces3()
         {
@@ -5925,8 +5896,7 @@ using (null)
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(546678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546678")]
+        [Fact, WorkItem(546678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546678")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task UnicodeWhitespace()
         {
@@ -5935,8 +5905,7 @@ using (null)
             await AssertFormatAsync("", code);
         }
 
-        [Fact]
-        [WorkItem(17431, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17431, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoElasticRuleOnRegularFile()
         {
@@ -5957,8 +5926,7 @@ using (null)
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(584599, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(584599, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task CaseSection()
         {
@@ -6003,8 +5971,7 @@ using (null)
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(553654, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(553654, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Bugfix_553654_LabelStatementIndenting()
         {
@@ -6039,8 +6006,7 @@ goo:
             await AssertFormatAsync(expected, code, false, changingOptions);
         }
 
-        [Fact]
-        [WorkItem(707064, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(707064, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Bugfix_707064_SpaceAfterSecondSemiColonInFor()
         {
@@ -6066,8 +6032,7 @@ goo:
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(772313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772313")]
+        [Fact, WorkItem(772313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772313")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Bugfix_772313_ReturnKeywordBeforeQueryClauseDoesNotTriggerNewLineOnFormat()
         {
@@ -6091,8 +6056,7 @@ goo:
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(772304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772304")]
+        [Fact, WorkItem(772304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772304")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Bugfix_772313_PreserveMethodParameterIndentWhenAttributePresent()
         {
@@ -6154,8 +6118,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(776513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776513")]
+        [Fact, WorkItem(776513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776513")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Bugfix_776513_CheckBraceIfNotMissingBeforeApplyingOperationForBracedBlocks()
         {
@@ -6422,8 +6385,7 @@ class Program
             await AssertFormatAsync(expectedBeforeCommaEnabled, code, changedOptionSet: optionSet);
         }
 
-        [Fact]
-        [WorkItem(772308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772308")]
+        [Fact, WorkItem(772308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772308")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Bugfix_772308_SeparateSuppressionForEachCaseLabelEvenIfEmpty()
         {
@@ -6463,8 +6425,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(844913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844913")]
+        [Fact, WorkItem(844913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844913")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task QueryExpressionInExpression()
         {
@@ -6526,8 +6487,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(843479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843479")]
+        [Fact, WorkItem(843479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843479")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task EmbeddedStatementElse()
         {
@@ -6563,8 +6523,7 @@ class C
             await AssertFormatAsync(expected, code, false, changingOptions);
         }
 
-        [Fact]
-        [WorkItem(772311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772311")]
+        [Fact, WorkItem(772311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772311")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task LineCommentAtTheEndOfLine()
         {
@@ -6600,8 +6559,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
+        [Fact, WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BlockCommentAtTheEndOfLine1()
         {
@@ -6637,8 +6595,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
+        [Fact, WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BlockCommentAtTheEndOfLine2()
         {
@@ -6674,8 +6631,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
+        [Fact, WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BlockCommentAtBeginningOfLine()
         {
@@ -6694,8 +6650,7 @@ class Program
             await AssertFormatAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(772311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772311")]
+        [Fact, WorkItem(772311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772311")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task TestTab()
         {

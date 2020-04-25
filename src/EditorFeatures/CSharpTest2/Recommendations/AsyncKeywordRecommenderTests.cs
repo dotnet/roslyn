@@ -154,8 +154,7 @@ class Goo
 }");
         }
 
-        [Fact]
-        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [Fact, WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction()
         {
@@ -169,8 +168,7 @@ class Goo
 }");
         }
 
-        [Fact]
-        [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
+        [Fact, WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction2()
@@ -185,8 +183,7 @@ class Goo
 }");
         }
 
-        [Fact]
-        [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
+        [Fact, WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction3()
@@ -201,8 +198,7 @@ class Goo
 }");
         }
 
-        [Fact]
-        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [Fact, WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction4()
@@ -217,8 +213,7 @@ class Goo
 }");
         }
 
-        [Fact]
-        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [Fact, WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction5()
@@ -236,8 +231,7 @@ class Goo
 }");
         }
 
-        [Fact]
-        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [Fact, WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction6()
@@ -252,8 +246,7 @@ class Goo
 }");
         }
 
-        [Fact]
-        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [Fact, WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction7()

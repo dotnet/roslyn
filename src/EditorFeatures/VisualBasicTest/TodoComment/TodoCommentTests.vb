@@ -124,8 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Await TestAsync(code)
         End Function
 
-        <Fact>
-        <WorkItem(606010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606010")>
+        <Fact, WorkItem(606010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606010")>
         Public Async Function TestLeftRightSingleQuote() As Task
             Dim code = <code>
          ‘[|todo　ｆｕｌｌｗｉｄｔｈ 1|]
@@ -135,8 +134,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Await TestAsync(code)
         End Function
 
-        <Fact>
-        <WorkItem(606019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606019")>
+        <Fact, WorkItem(606019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606019")>
         Public Async Function TestHalfFullTodo() As Task
             Dim code = <code>
             '[|ｔoｄo whatever|]
@@ -144,8 +142,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Await TestAsync(code)
         End Function
 
-        <Fact>
-        <WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
+        <Fact, WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
         Public Async Function TestSingleQuote_Invalid1() As Task
             Dim code = <code>
             '' todo whatever
@@ -153,8 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Await TestAsync(code)
         End Function
 
-        <Fact>
-        <WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
+        <Fact, WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
         Public Async Function TestSingleQuote_Invalid2() As Task
             Dim code = <code>
             '''' todo whatever
@@ -162,8 +158,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Await TestAsync(code)
         End Function
 
-        <Fact>
-        <WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
+        <Fact, WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
         Public Async Function TestSingleQuote_Invalid3() As Task
             Dim code = <code>
             ' '' todo whatever

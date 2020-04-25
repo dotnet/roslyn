@@ -2409,8 +2409,7 @@ struct Type<T>
                 ParseOptions(TestOptions.Regular, Options.Script));
         }
 
-        [Fact]
-        [WorkItem(261049, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/261049")]
+        [Fact, WorkItem(261049, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/261049")]
         public async Task DevDiv261049RegressionTest()
         {
             var source = @"

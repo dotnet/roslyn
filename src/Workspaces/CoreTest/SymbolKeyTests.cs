@@ -109,8 +109,7 @@ public class C
             TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
         }
 
-        [Fact]
-        [WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")]
+        [Fact, WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")]
         public void TestVBParameterizedEvent()
         {
             var source = @"

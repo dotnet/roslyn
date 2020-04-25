@@ -5,8 +5,7 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class IsKeywordRecommenderTests
 
-        <Fact>
-        <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
+        <Fact, WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IsInCaseClauseTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -17,8 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
                 </MethodBody>, "Is")
         End Function
 
-        <Fact>
-        <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
+        <Fact, WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoIsKeywordAfterCaseAfterCaseElseTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -31,8 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
                 </MethodBody>, "Is")
         End Function
 
-        <Fact>
-        <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
+        <Fact, WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IsInMiddleCaseClauseTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -43,8 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
                 </MethodBody>, "Is")
         End Function
 
-        <Fact>
-        <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
+        <Fact, WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IsInFinalCaseClauseTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -55,8 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
                 </MethodBody>, "Is")
         End Function
 
-        <Fact>
-        <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
+        <Fact, WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IsInExistingIsClauseTest() As Task
             Await VerifyRecommendationsContainAsync(

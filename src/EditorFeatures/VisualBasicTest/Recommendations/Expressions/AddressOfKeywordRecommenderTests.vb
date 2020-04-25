@@ -140,8 +140,7 @@ End Module
             Await VerifyRecommendationsContainAsync(code, "AddressOf")
         End Function
 
-        <Fact>
-        <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
+        <Fact, WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddressOfNotAfterAddressOfTest() As Task
             Dim code = <ModuleDeclaration><![CDATA[
@@ -155,8 +154,7 @@ End Function
             Await VerifyRecommendationsMissingAsync(code, "AddressOf")
         End Function
 
-        <Fact>
-        <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
+        <Fact, WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddressOfNotAfterAddressOfInDelegateCreationTest() As Task
             Dim code = <ModuleDeclaration><![CDATA[
@@ -168,8 +166,7 @@ Delegate Sub Goo()
             Await VerifyRecommendationsMissingAsync(code, "AddressOf")
         End Function
 
-        <Fact>
-        <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
+        <Fact, WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddressOfNestedInsideAddressOfExpressionTest() As Task
             Dim code = <ModuleDeclaration><![CDATA[

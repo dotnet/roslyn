@@ -103,8 +103,7 @@ class A { }";
             await AssertFormatAsync(content, expected);
         }
 
-        [Fact]
-        [WorkItem(554160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
+        [Fact, WorkItem(554160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSpanNullReference01()
         {
@@ -130,8 +129,7 @@ class A { }";
             await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
         }
 
-        [Fact]
-        [WorkItem(554160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
+        [Fact, WorkItem(554160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSpanNullReference02()
         {

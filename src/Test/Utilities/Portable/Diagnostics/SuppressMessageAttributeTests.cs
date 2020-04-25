@@ -603,8 +603,7 @@ class C
                 Diagnostic("Token", "}"));
         }
 
-        [Fact]
-        [WorkItem(6379, "https://github.com/dotnet/roslyn/issues/6379")]
+        [Fact, WorkItem(6379, "https://github.com/dotnet/roslyn/issues/6379")]
         public async Task SuppressSyntaxDiagnosticsOnEnumFieldsCSharp()
         {
             await VerifyCSharpAsync(@"

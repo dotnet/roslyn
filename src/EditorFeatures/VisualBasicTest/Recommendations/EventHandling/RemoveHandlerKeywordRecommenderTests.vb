@@ -46,8 +46,7 @@ Dim x
             Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Function() |</MethodBody>, "RemoveHandler")
         End Function
 
-        <Fact>
-        <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
+        <Fact, WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function RemoveHandlerInCustomEventTest() As Task
             Dim code = <File>
@@ -60,8 +59,7 @@ End Class</File>
             Await VerifyRecommendationsContainAsync(code, "RemoveHandler")
         End Function
 
-        <Fact>
-        <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
+        <Fact, WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotRemoveHandlerInCustomEventWithRemoveHandlerTest() As Task
             Dim code = <File>

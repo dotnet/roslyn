@@ -9317,8 +9317,7 @@ class C
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "a"));
         }
 
-        [Fact]
-        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
+        [Fact, WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunctionToAsyncLocalFunction_BlockBody_WithActiveStatement()
         {
             var src1 = @"
@@ -9354,8 +9353,7 @@ class C
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await", CSharpFeaturesResources.await_expression));
         }
 
-        [Fact]
-        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
+        [Fact, WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunctionToAsyncLocalFunction_ExpressionBody_WithActiveStatement()
         {
             var src1 = @"

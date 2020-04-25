@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NameTupleElement
         public async Task TestInCall_FirstElement_AlreadyNamed()
             => await TestMissingAsync(@"class C { void M((int arg1, int arg2) x) => M(([||]arg1: 1, 2)); }");
 
-        [Fact]
-        [WorkItem(35157, "https://github.com/dotnet/roslyn/issues/35157")]
+        [Fact, WorkItem(35157, "https://github.com/dotnet/roslyn/issues/35157")]
         public async Task TestUntypedTuple()
         {
             await TestMissingAsync(
@@ -113,8 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NameTupleElement
 }");
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestWithSelection()
         {
             await TestInRegularAndScript1Async(
@@ -165,8 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NameTupleElement
 @"class C { void M((int arg1, int arg2) x) => M((arg1: 1, 2)); }");
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestInCall_FirstComma2()
         {
             await TestInRegularAndScript1Async(

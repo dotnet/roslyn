@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
     [UseExportProvider]
     public class ReduceTokenTests
     {
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceSingleLiterals_LessThan8Digits()
         {
@@ -103,8 +102,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceSingleLiterals_LessThan8Digits_WithTypeCharacterSingle()
         {
@@ -188,8 +186,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceSingleLiterals_8Digits()
         {
@@ -259,8 +256,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceSingleLiterals_8Digits_WithTypeCharacterSingle()
         {
@@ -330,8 +326,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceSingleLiterals_GreaterThan8Digits()
         {
@@ -425,8 +420,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceSingleLiterals_GreaterThan8Digits_WithTypeCharacterSingle()
         {
@@ -520,8 +514,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceDoubleLiterals_LessThan16Digits()
         {
@@ -605,8 +598,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceDoubleLiterals_LessThan16Digits_WithTypeCharacter()
         {
@@ -690,8 +682,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceDoubleLiterals_16Digits()
         {
@@ -769,8 +760,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceDoubleLiterals_16Digits_WithTypeCharacter()
         {
@@ -848,8 +838,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceDoubleLiterals_GreaterThan16Digits()
         {
@@ -979,8 +968,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceDoubleLiterals_GreaterThan16Digits_WithTypeCharacter()
         {
@@ -1110,8 +1098,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceDecimalLiterals_LessThan30Digits()
         {
@@ -1195,8 +1182,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceDecimalLiterals_LessThan30Digits_WithTypeCharacterDecimal()
         {
@@ -1280,8 +1266,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceDecimalLiterals_30Digits()
         {
@@ -1337,8 +1322,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceDecimalLiterals_30Digits_WithTypeCharacterDecimal()
         {
@@ -1394,8 +1378,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceDecimalLiterals_GreaterThan30Digits()
         {
@@ -1451,8 +1434,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceFloatLiteralsWithNegativeExponents()
         {
@@ -1550,8 +1532,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceSingleLiteralsWithTrailingZeros()
         {
@@ -1617,8 +1598,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceDoubleLiteralsWithTrailingZeros()
         {
@@ -1684,8 +1664,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5529, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceDecimalLiteralsWithTrailingZeros()
         {
@@ -1751,8 +1730,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(623319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623319")]
+        [Fact, WorkItem(623319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623319")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceFloatingAndDecimalLiteralsWithDifferentCulture()
         {
@@ -1788,8 +1766,7 @@ End Module";
             }
         }
 
-        [Fact]
-        [WorkItem(652147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652147")]
+        [Fact, WorkItem(652147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652147")]
         public async Task ReduceFloatingAndDecimalLiteralsWithInvariantCultureNegatives()
         {
             var oldCulture = Thread.CurrentThread.CurrentCulture;
@@ -2023,8 +2000,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(14034, "https://github.com/dotnet/roslyn/issues/14034")]
+        [Fact, WorkItem(14034, "https://github.com/dotnet/roslyn/issues/14034")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceIntegersWithDigitSeparators()
         {

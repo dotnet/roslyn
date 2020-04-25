@@ -113,8 +113,7 @@ namespace Outer
             Assert.Equal("Outer.Inner.IMyClassChanged<X, Y>", viewModel.GeneratedName)
         End Function
 
-        <Fact>
-        <WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_GeneratedNameIsGeneratedFromTrimmedInterfaceName() As Task
             Dim markup = <Text><![CDATA[
 namespace Ns
@@ -189,8 +188,7 @@ class $$MyClass
             monitor.Detach()
         End Function
 
-        <Fact>
-        <WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_FileNameIsGeneratedFromTrimmedInterfaceName() As Task
             Dim markup = <Text><![CDATA[
 public class C$$
@@ -203,8 +201,7 @@ public class C$$
             Assert.Equal("IC2.cs", viewModel.FileName)
         End Function
 
-        <Fact>
-        <WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_InterfaceNameIsTrimmedOnSubmit() As Task
             Dim markup = <Text><![CDATA[
 public class C$$
@@ -218,8 +215,7 @@ public class C$$
             Assert.True(submitSucceeded, String.Format("Submit failed unexpectedly."))
         End Function
 
-        <Fact>
-        <WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_FileNameIsTrimmedOnSubmit() As Task
             Dim markup = <Text><![CDATA[
 public class C$$

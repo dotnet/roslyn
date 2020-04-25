@@ -274,8 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact]
-        [WorkItem(16594, "https://github.com/dotnet/roslyn/issues/16594")]
+        [Fact, WorkItem(16594, "https://github.com/dotnet/roslyn/issues/16594")]
         public void LocalsInSwitchWithLambda()
         {
             var source =

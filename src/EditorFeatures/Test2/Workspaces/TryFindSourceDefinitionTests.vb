@@ -111,8 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End Using
         End Function
 
-        <Fact>
-        <WorkItem(1068631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068631")>
+        <Fact, WorkItem(1068631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068631")>
         Public Async Function TestFindMethodInVisualBasicToCSharpPortableProject() As Task
             Dim workspaceDefinition =
 <Workspace>
@@ -150,8 +149,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End Using
         End Function
 
-        <Fact>
-        <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
+        <Fact, WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
         Public Async Function TestFindMethodInVisualBasicToCSharpProject_RefKindRef() As Task
             Dim workspaceDefinition =
 <Workspace>
@@ -189,8 +187,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End Using
         End Function
 
-        <Fact>
-        <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
+        <Fact, WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
         Public Async Function TestFindMethodInVisualBasicToCSharpProject_RefKindOut() As Task
             Dim workspaceDefinition =
 <Workspace>

@@ -1180,8 +1180,7 @@ End Class";
             registrationService.Unregister(workspace);
         }
 
-        [Fact]
-        [WorkItem(26244, "https://github.com/dotnet/roslyn/issues/26244")]
+        [Fact, WorkItem(26244, "https://github.com/dotnet/roslyn/issues/26244")]
         public async Task FileFromSameProjectTogetherTest()
         {
             var projectId1 = ProjectId.CreateNewId();

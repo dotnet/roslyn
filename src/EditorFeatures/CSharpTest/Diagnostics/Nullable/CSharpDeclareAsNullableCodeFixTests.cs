@@ -167,8 +167,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(26639, "https://github.com/dotnet/roslyn/issues/26639")]
+        [Fact, WorkItem(26639, "https://github.com/dotnet/roslyn/issues/26639")]
         public async Task FixReturnType_LocalFunction_ArrowBody()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -182,8 +181,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(26639, "https://github.com/dotnet/roslyn/issues/26639")]
+        [Fact, WorkItem(26639, "https://github.com/dotnet/roslyn/issues/26639")]
         public async Task FixLocalFunctionReturnType()
         {
             await TestInRegularAndScript1Async(
@@ -225,8 +223,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
+        [Fact, WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
         public async Task FixField()
         {
             await TestInRegularAndScript1Async(
@@ -417,8 +414,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
+        [Fact, WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
         public async Task FixPropertyDeclaration()
         {
             await TestInRegularAndScript1Async(
@@ -466,8 +462,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
+        [Fact, WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
         [WorkItem(30026, "https://github.com/dotnet/roslyn/issues/30026")]
         public async Task FixOptionalParameter()
         {
@@ -606,8 +601,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
+        [Fact, WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
         public async Task FixReturnType_ConditionalOperator_Function()
         {
             await TestInRegularAndScript1Async(
@@ -629,8 +623,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
+        [Fact, WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
         public async Task FixAllReturnType_ConditionalOperator_Function()
         {
             await TestInRegularAndScript1Async(
@@ -682,8 +675,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
+        [Fact, WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
         public async Task FixAllReturnType_Invocation()
         {
             await TestInRegularAndScript1Async(
@@ -739,8 +731,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(39420, "https://github.com/dotnet/roslyn/issues/39420")]
+        [Fact, WorkItem(39420, "https://github.com/dotnet/roslyn/issues/39420")]
         public async Task FixReturnType_TernaryExpression_Function()
         {
             await TestInRegularAndScript1Async(
@@ -762,8 +753,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
+        [Fact, WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
         public async Task FixReturnType_Default()
         {
             await TestInRegularAndScript1Async(
@@ -785,8 +775,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
+        [Fact, WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
         public async Task FixReturnType_DefaultWithNullableType()
         {
             await TestInRegularAndScript1Async(

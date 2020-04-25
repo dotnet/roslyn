@@ -17,8 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return GetType(EnumCompletionProvider)
         End Function
 
-        <Fact>
-        <WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")>
+        <Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_EnumTypeDotMemberAlways() As Task
             Dim markup = <Text><![CDATA[
@@ -43,8 +42,7 @@ End Enum
                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <Fact>
-        <WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")>
+        <Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_EnumTypeDotMemberNever() As Task
             Dim markup = <Text><![CDATA[
@@ -69,8 +67,7 @@ End Enum
                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <Fact>
-        <WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")>
+        <Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_EnumTypeDotMemberAdvanced() As Task
             Dim markup = <Text><![CDATA[
@@ -106,8 +103,7 @@ End Enum
                 hideAdvancedMembers:=False)
         End Function
 
-        <Fact>
-        <WorkItem(566787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566787")>
+        <Fact, WorkItem(566787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566787")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTriggeredOnOpenParen() As Task
             Dim markup = <Text><![CDATA[
@@ -131,8 +127,7 @@ End
             Await VerifyItemExistsAsync(markup, "Goo.AMember", usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact>
-        <WorkItem(674390, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674390")>
+        <Fact, WorkItem(674390, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674390")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestRightSideOfAssignment() As Task
             Dim markup = <Text><![CDATA[
@@ -153,8 +148,7 @@ End
             Await VerifyItemExistsAsync(markup, "Goo.AMember", usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact>
-        <WorkItem(530491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530491")>
+        <Fact, WorkItem(530491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530491")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDoNotCrashInObjectInitializer() As Task
             Dim markup = <Text><![CDATA[
@@ -179,8 +173,7 @@ End Module
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        <Fact>
-        <WorkItem(809332, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809332")>
+        <Fact, WorkItem(809332, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809332")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCaseStatement() As Task
             Dim markup = <Text><![CDATA[
@@ -205,8 +198,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "E.A", usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact>
-        <WorkItem(854099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854099")>
+        <Fact, WorkItem(854099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854099")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotInComment() As Task
             Dim markup = <Text><![CDATA[

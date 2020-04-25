@@ -1582,8 +1582,7 @@ public interface IFace
                 "[assembly: a]\r\nnamespace n\r\n{\r\n}");
         }
 
-        [Fact]
-        [WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")]
+        [Fact, WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")]
         public void TestAddAttributesToAccessors()
         {
             var prop = Generator.PropertyDeclaration("P", Generator.IdentifierName("T"));

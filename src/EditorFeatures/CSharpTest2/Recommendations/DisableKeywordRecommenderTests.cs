@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterNullable()
             => await VerifyKeywordAsync(@"#nullable $$");
 
-        [Fact]
-        [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
+        [Fact, WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
         public async Task TestNotAfterNullableAndNewline()
         {
             await VerifyAbsenceAsync(@"

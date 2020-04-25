@@ -208,8 +208,7 @@ namespace A
             });
         }
 
-        [Fact]
-        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
+        [Fact, WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         public void ImportKinds()
         {
             var source = @"
@@ -300,8 +299,7 @@ namespace B
             });
         }
 
-        [Fact]
-        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
+        [Fact, WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         public void ForwardToModule()
         {
             var source = @"

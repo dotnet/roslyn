@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             }
         }
 
-        [Fact]
-        [WorkItem(5666, "https://github.com/dotnet/roslyn/issues/5666")]
+        [Fact, WorkItem(5666, "https://github.com/dotnet/roslyn/issues/5666")]
         public void NoMembers()
         {
             using (new EnsureEnglishUICulture())

@@ -4451,8 +4451,7 @@ class B
                 Diagnostic(RudeEditKind.Delete, "class B", CSharpFeaturesResources.destructor));
         }
 
-        [Fact]
-        [WorkItem(789577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789577")]
+        [Fact, WorkItem(789577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789577")]
         public void ConstructorUpdate_AnonymousTypeInFieldInitializer()
         {
             var src1 = "class C { int a = F(new { A = 1, B = 2 }); C() { x = 1; } }";

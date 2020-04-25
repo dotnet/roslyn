@@ -31,8 +31,7 @@ End Class</File>
             Await VerifyRecommendationsContainAsync(code, "RaiseEvent")
         End Function
 
-        <Fact>
-        <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
+        <Fact, WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotRaiseEventInCustomEventWithRaiseEventTest() As Task
             Dim code = <File>

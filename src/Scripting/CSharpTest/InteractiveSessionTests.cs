@@ -1794,8 +1794,7 @@ typeof(Microsoft.CodeAnalysis.Scripting.Script)
             }
         }
 
-        [Fact]
-        [WorkItem(39565, "https://github.com/dotnet/roslyn/issues/39565")]
+        [Fact, WorkItem(39565, "https://github.com/dotnet/roslyn/issues/39565")]
         public async Task MethodCallWithImplicitReceiverAndOutVar()
         {
             var code = @"
@@ -1832,8 +1831,7 @@ return M();
                     Diagnostic(ErrorCode.ERR_ObjectRequired, "Value").WithArguments("Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.InteractiveSessionTests.F.Value").WithLocation(4, 9));
         }
 
-        [Fact]
-        [WorkItem(39581, "https://github.com/dotnet/roslyn/issues/39581")]
+        [Fact, WorkItem(39581, "https://github.com/dotnet/roslyn/issues/39581")]
         public void StaticLocalFunctionCannotAccessGlobalInstance()
         {
             var code = @"
@@ -1878,8 +1876,7 @@ return M();
 
         #region Exceptions
 
-        [Fact]
-        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
+        [Fact, WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
         [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException1()
         {
@@ -1902,8 +1899,7 @@ int F() => i + j;
             Assert.Equal(10, state2.ReturnValue);
         }
 
-        [Fact]
-        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
+        [Fact, WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
         [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException2()
         {
@@ -1930,8 +1926,7 @@ int F() => i + j + k;
             Assert.Equal(120, state3.ReturnValue);
         }
 
-        [Fact]
-        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
+        [Fact, WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
         [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException3()
         {
@@ -1959,8 +1954,7 @@ int F() => i + j + k + l;
             Assert.Equal(1200, state4.ReturnValue);
         }
 
-        [Fact]
-        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
+        [Fact, WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
         [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException4()
         {

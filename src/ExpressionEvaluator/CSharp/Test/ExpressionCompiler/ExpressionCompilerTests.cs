@@ -3743,8 +3743,7 @@ class C
         /// <summary>
         /// Netmodules with same name.
         /// </summary>
-        [Fact]
-        [WorkItem(30031, "https://github.com/dotnet/roslyn/issues/30031")]
+        [Fact, WorkItem(30031, "https://github.com/dotnet/roslyn/issues/30031")]
         public void NetModuleDuplicateReferences()
         {
             // Netmodule 0
@@ -5004,8 +5003,7 @@ class C
             });
         }
 
-        [Fact]
-        [WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
+        [Fact, WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
         public void FieldLikeEvent()
         {
             var source = @"
@@ -5108,8 +5106,7 @@ class C
             });
         }
 
-        [Fact]
-        [WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
+        [Fact, WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
         public void FieldLikeEvent_WinRT()
         {
             var ilSource = @"
@@ -6604,8 +6601,7 @@ class C
             });
         }
 
-        [Fact]
-        [WorkItem(22206, "https://github.com/dotnet/roslyn/issues/22206")]
+        [Fact, WorkItem(22206, "https://github.com/dotnet/roslyn/issues/22206")]
         public void RefReturnNonRefLocal()
         {
             var source = @"

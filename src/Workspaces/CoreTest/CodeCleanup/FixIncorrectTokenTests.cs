@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
     [UseExportProvider]
     public class FixIncorrectTokensTests
     {
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_WithMatchingIf()
         {
@@ -41,8 +40,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_WithMatchingIf_Directive()
         {
@@ -56,8 +54,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_WithoutMatchingIf()
         {
@@ -77,8 +74,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_WithoutMatchingIf_Directive()
         {
@@ -118,8 +114,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_SameLineAsIf_Invalid()
         {
@@ -139,8 +134,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_SameLineAsIf_Directive()
         {
@@ -152,8 +146,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_WithLeadingTrivia()
         {
@@ -179,8 +172,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_WithLeadingTrivia_Directive()
         {
@@ -198,8 +190,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_InvocationExpressionArgument()
         {
@@ -223,8 +214,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_InvalidDirectiveCases()
         {
@@ -282,8 +272,7 @@ InvocationExpression
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_WithTrailingTrivia()
         {
@@ -307,8 +296,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_WithTrailingTrivia_Directive()
         {
@@ -324,8 +312,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_WithIdentifierTokenTrailingTrivia()
         {
@@ -349,8 +336,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_InvalidDirectiveCases_02()
         {
@@ -408,8 +394,7 @@ IdentifierToken
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_WithLeadingAndTrailingTrivia()
         {
@@ -437,8 +422,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_WithLeadingAndTrailingTrivia_Directive()
         {
@@ -456,8 +440,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_WithLeadingAndTrailingInvocationExpressions()
         {
@@ -485,8 +468,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(17313, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixEndIfKeyword_WithLeadingAndTrailingInvocationExpressions_Directive()
         {
@@ -544,8 +526,7 @@ InvalidTrivia#
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5722, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5722, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixPrimitiveTypeKeywords_ValidCases()
         {
@@ -637,8 +618,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(5722, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(5722, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixPrimitiveTypeKeywords_InvalidCases()
         {
@@ -722,8 +702,7 @@ End Module
             await VerifyAsync(@"[|" + code + @"|]", expectedResult: code);
         }
 
-        [Fact]
-        [WorkItem(606015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606015")]
+        [Fact, WorkItem(606015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606015")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixFullWidthSingleQuotes()
         {
@@ -749,8 +728,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(707135, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707135")]
+        [Fact, WorkItem(707135, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707135")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixFullWidthSingleQuotes2()
         {

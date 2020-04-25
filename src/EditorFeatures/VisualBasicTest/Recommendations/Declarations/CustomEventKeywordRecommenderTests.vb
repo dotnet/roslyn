@@ -17,8 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             Await VerifyRecommendationsContainAsync(<StructureDeclaration>|</StructureDeclaration>, "Custom Event")
         End Function
 
-        <Fact>
-        <WorkItem(544999, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544999")>
+        <Fact, WorkItem(544999, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544999")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function CustomEventNotInInterfaceDeclarationTest() As Task
             Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Custom Event")

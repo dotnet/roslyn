@@ -43,8 +43,7 @@ enum Colors
             await VerifyItemExistsAsync(markup, "Colors");
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_EnumMemberAlways()
         {
@@ -73,8 +72,7 @@ public enum Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_EnumMemberNever()
         {
@@ -103,8 +101,7 @@ public enum Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_EnumMemberAdvanced()
         {

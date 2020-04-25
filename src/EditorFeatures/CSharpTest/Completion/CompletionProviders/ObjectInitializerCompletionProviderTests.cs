@@ -441,8 +441,7 @@ class Bar
             await VerifyItemIsAbsentAsync(markup, "Gibberish");
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_PropertyInObjectCreationAlways()
         {
@@ -471,8 +470,7 @@ public class Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_PropertyInObjectCreationNever()
         {
@@ -500,8 +498,7 @@ public class Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_PropertyInObjectCreationAdvanced()
         {

@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RefactoringHelpers
         }
 
         #region Locations
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestInTokenDirectlyUnderNode()
         {
             var testText = @"
@@ -36,8 +35,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestBeforeTokenDirectlyUnderNode()
         {
             var testText = @"
@@ -54,8 +52,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestAfterTokenDirectlyUnderNode()
         {
             var testText = @"
@@ -72,8 +69,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingInTokenUnderDifferentNode()
         {
             var testText = @"
@@ -91,8 +87,7 @@ class C
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestClimbRightEdge()
         {
             var testText = @"
@@ -109,8 +104,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestClimbLeftEdge()
         {
             var testText = @"
@@ -127,8 +121,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestClimbLeftEdgeComments()
         {
             var testText = @"
@@ -148,8 +141,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingInAnotherChildNode()
         {
             var testText = @"
@@ -166,8 +158,7 @@ class C
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingInTooFarBeforeInWhitespace()
         {
             var testText = @"
@@ -187,8 +178,7 @@ class C
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingInWhiteSpaceOnLineWithDifferentStatement()
         {
             var testText = @"
@@ -208,8 +198,7 @@ class C
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestNotBeforePrecedingComment()
         {
             var testText = @"
@@ -227,8 +216,7 @@ class C
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestBeforeInWhitespace1_OnSameLine()
         {
             var testText = @"
@@ -245,8 +233,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestBeforeInWhitespace1_OnPreviousLine()
         {
             var testText = @"
@@ -264,8 +251,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestBeforeInWhitespace1_NotOnMultipleLinesPrior()
         {
             var testText = @"
@@ -284,8 +270,7 @@ class C
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestBeforeInWhitespace2()
         {
             var testText = @"
@@ -303,8 +288,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingInNextTokensLeadingTrivia()
         {
             var testText = @"
@@ -323,8 +307,7 @@ class C
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestInEmptySyntaxNode()
         {
             var testText = @"
@@ -344,8 +327,7 @@ class C
         #endregion
 
         #region Selections
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestSelectedTokenDirectlyUnderNode()
         {
             var testText = @"
@@ -362,8 +344,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestPartiallySelectedTokenDirectlyUnderNode()
         {
             var testText = @"
@@ -380,8 +361,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestSelectedMultipleTokensUnderNode()
         {
             var testText = @"
@@ -398,8 +378,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingSelectedMultipleTokensWithLowerCommonAncestor()
         {
             var testText = @"
@@ -416,8 +395,7 @@ class C
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingSelectedLowerNode()
         {
             var testText = @"
@@ -434,8 +412,7 @@ class C
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingSelectedWhitespace()
         {
             var testText = @"
@@ -452,8 +429,7 @@ class C
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingSelectedWhitespace2()
         {
             var testText = @"
@@ -470,8 +446,7 @@ class C
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestCompleteSelection()
         {
             var testText = @"
@@ -488,8 +463,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestOverSelection()
         {
             var testText = @"
@@ -510,8 +484,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestOverSelectionComments()
         {
             var testText = @"
@@ -530,8 +503,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingOverSelection()
         {
             var testText = @"
@@ -550,8 +522,7 @@ class C
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingSelectionBefore()
         {
             var testText = @"
@@ -573,8 +544,7 @@ class C
         #endregion
 
         #region IsUnderselected
-        [Fact]
-        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        [Fact, WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
         public async Task TestUnderselectionOnSemicolon()
         {
             var testText = @"
@@ -588,8 +558,7 @@ class Program
             await TestNotUnderselectedAsync<ExpressionSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        [Fact, WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
         public async Task TestUnderselectionBug1()
         {
             var testText = @"
@@ -604,8 +573,7 @@ class Program
             await TestNotUnderselectedAsync<ExpressionSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        [Fact, WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
         public async Task TestUnderselectionBug2()
         {
             var testText = @"
@@ -619,8 +587,7 @@ class C {
             await TestNotUnderselectedAsync<ExpressionSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        [Fact, WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
         public async Task TestUnderselection()
         {
             var testText = @"
@@ -632,8 +599,7 @@ class C {
             await TestNotUnderselectedAsync<BinaryExpressionSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        [Fact, WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
         public async Task TestUnderselection2()
         {
             var testText = @"
@@ -647,8 +613,7 @@ class C {
         #endregion
 
         #region Attributes
-        [Fact]
-        [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
+        [Fact, WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
         public async Task TestMissingEmptyMember()
         {
             var testText = @"
@@ -660,8 +625,7 @@ public class Class1
             await TestMissingAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(38502, "https://github.com/dotnet/roslyn/issues/38502")]
+        [Fact, WorkItem(38502, "https://github.com/dotnet/roslyn/issues/38502")]
         public async Task TestIncompleteAttribute()
         {
             var testText = @"
@@ -673,8 +637,7 @@ public class Class1
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(38502, "https://github.com/dotnet/roslyn/issues/38502")]
+        [Fact, WorkItem(38502, "https://github.com/dotnet/roslyn/issues/38502")]
         public async Task TestIncompleteAttribute2()
         {
             var testText = @"
@@ -686,8 +649,7 @@ public class Class1
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(37837, "https://github.com/dotnet/roslyn/issues/37837")]
+        [Fact, WorkItem(37837, "https://github.com/dotnet/roslyn/issues/37837")]
         public async Task TestEmptyParameter()
         {
             var testText = @"
@@ -703,8 +665,7 @@ public class Class1
             await TestAsync<ParameterSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
+        [Fact, WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
         public async Task TestMissingEmptyMember2()
         {
             var testText = @"
@@ -717,8 +678,7 @@ public class Class1
             await TestMissingAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
+        [Fact, WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
         public async Task TestEmptyAttributeList()
         {
             var testText = @"
@@ -731,8 +691,7 @@ public class Class1
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestClimbLeftEdgeBeforeAttribute()
         {
             var testText = @"
@@ -750,8 +709,7 @@ class C
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestClimbLeftEdgeAfterAttribute()
         {
             var testText = @"
@@ -768,8 +726,7 @@ class C
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestClimbLeftEdgeAfterAttributeComments()
         {
             var testText = @"
@@ -788,8 +745,7 @@ class C
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestClimbLeftEdgeAfterAttributes()
         {
             var testText = @"
@@ -810,8 +766,7 @@ class C
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingBetweenAttributes()
         {
             var testText = @"
@@ -830,8 +785,7 @@ class C
             await TestMissingAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingBetweenInAttributes()
         {
             var testText = @"
@@ -848,8 +802,7 @@ class C
             await TestMissingAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingSelectedAttributes()
         {
             var testText = @"
@@ -868,8 +821,7 @@ class C
             await TestMissingAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingSelectedAttribute()
         {
             var testText = @"
@@ -886,8 +838,7 @@ class C
             await TestMissingAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestSelectedWholeNodeAndAttributes()
         {
             var testText = @"
@@ -908,8 +859,7 @@ class C
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestSelectedWholeNodeWithoutAttributes()
         {
             var testText = @"
@@ -932,8 +882,7 @@ class C
         #endregion
 
         #region Extractions general
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestExtractionsClimbing()
         {
             var testText = @"
@@ -948,8 +897,7 @@ class C
             await TestAsync<ObjectCreationExpressionSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingExtractHeaderForSelection()
         {
             var testText = @"
@@ -962,8 +910,7 @@ class C
             await TestMissingAsync<PropertyDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultipleExtractions()
         {
             var localDeclaration = "{|result:string name = \"\", b[||]b = null;|}";
@@ -992,8 +939,7 @@ class C
         #endregion
 
         #region Extractions
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestExtractFromDeclaration()
         {
             var testText = @"
@@ -1008,8 +954,7 @@ class C
             await TestAsync<ObjectCreationExpressionSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestExtractFromDeclaration2()
         {
             var testText = @"
@@ -1024,8 +969,7 @@ class C
             await TestAsync<ObjectCreationExpressionSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestExtractFromAssignment()
         {
             var testText = @"
@@ -1041,8 +985,7 @@ class C
             await TestAsync<ObjectCreationExpressionSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestExtractFromDeclarator()
         {
             var testText = @"
@@ -1057,8 +1000,7 @@ class C
             await TestAsync<ObjectCreationExpressionSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestExtractFromDeclarator2()
         {
             var testText = @"
@@ -1073,8 +1015,7 @@ class C
             await TestAsync<LocalDeclarationStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestExtractInHeaderOfProperty()
         {
             var testText = @"
@@ -1087,8 +1028,7 @@ class C
             await TestAsync<PropertyDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingExtractNotInHeaderOfProperty()
         {
             var testText = @"
@@ -1154,8 +1094,7 @@ class C
         #endregion
 
         #region TestHidden
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestNextToHidden()
         {
             var testText = @"
@@ -1176,8 +1115,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestNextToHidden2()
         {
             var testText = @"
@@ -1201,8 +1139,7 @@ class C
             await TestAsync<LocalFunctionStatementSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingHidden()
         {
             var testText = @"
@@ -1224,8 +1161,7 @@ class C
         #endregion
 
         #region Test predicate
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingPredicate()
         {
             var testText = @"
@@ -1243,8 +1179,7 @@ class C
             await TestMissingAsync<ArgumentSyntax>(testText, n => n.Parent is TupleExpressionSyntax);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestArgument()
         {
             var testText = @"
@@ -1262,8 +1197,7 @@ class C
             await TestAsync<ArgumentSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestPredicate()
         {
             var testText = @"
@@ -1279,8 +1213,7 @@ class C
         #endregion
 
         #region Test arguments
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestArgumentsExtractionsInInitializer()
         {
             var testText = @"
@@ -1293,8 +1226,7 @@ class C
             await TestAsync<ParameterSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingArgumentsExtractionsSelectInitializer()
         {
             var testText = @"
@@ -1307,8 +1239,7 @@ class C
             await TestMissingAsync<ParameterSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingArgumentsExtractionsSelectComma()
         {
             var testText = @"
@@ -1321,8 +1252,7 @@ class C
             await TestMissingAsync<ParameterSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingArgumentsExtractionsInAttributes()
         {
             var testText = @"
@@ -1335,8 +1265,7 @@ class C
             await TestMissingAsync<ParameterSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingArgumentsExtractionsSelectType1()
         {
             var testText = @"
@@ -1349,8 +1278,7 @@ class C
             await TestMissingAsync<ParameterSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingArgumentsExtractionsSelectType2()
         {
             var testText = @"
@@ -1363,8 +1291,7 @@ class C
             await TestMissingAsync<ParameterSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestArgumentsExtractionsAtTheEnd()
         {
             var testText = @"
@@ -1377,8 +1304,7 @@ class C
             await TestAsync<ParameterSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestArgumentsExtractionsBefore()
         {
             var testText = @"
@@ -1391,8 +1317,7 @@ class C
             await TestAsync<ParameterSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestArgumentsExtractionsSelectParamName()
         {
             var testText = @"
@@ -1405,8 +1330,7 @@ class C
             await TestAsync<ParameterSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestArgumentsExtractionsSelectParam1()
         {
             var testText = @"
@@ -1419,8 +1343,7 @@ class C
             await TestAsync<ParameterSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestArgumentsExtractionsSelectParam2()
         {
             var testText = @"
@@ -1433,8 +1356,7 @@ class C
             await TestAsync<ParameterSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestArgumentsExtractionsSelectParam3()
         {
             var testText = @"
@@ -1447,8 +1369,7 @@ class C
             await TestAsync<ParameterSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestArgumentsExtractionsInHeader()
         {
             var testText = @"
@@ -1464,8 +1385,7 @@ class CC
         #endregion
 
         #region Test methods
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingMethodExplicitInterfaceSelection()
         {
             var testText = @"
@@ -1478,8 +1398,7 @@ class C
             await TestMissingAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMethodCaretBeforeInterfaceSelection()
         {
             var testText = @"
@@ -1492,8 +1411,7 @@ class C
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMethodNameAndExplicitInterfaceSelection()
         {
             var testText = @"
@@ -1506,8 +1424,7 @@ class C
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMethodInHeader()
         {
             var testText = @"
@@ -1659,8 +1576,7 @@ class C
         #endregion
 
         #region Test Deep in expression
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestDeepIn()
         {
             var testText = @"
@@ -1678,8 +1594,7 @@ class C
             await TestAsync<ArgumentSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingDeepInSecondRow()
         {
             var testText = @"
@@ -1698,8 +1613,7 @@ class C
             await TestMissingAsync<ArgumentSyntax>(testText);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestDeepInExpression()
         {
             var testText = @"

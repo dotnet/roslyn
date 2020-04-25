@@ -41,8 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             Await VerifyRecommendationsContainAsync(<StructureDeclaration>|</StructureDeclaration>, "Operator")
         End Function
 
-        <Fact>
-        <WorkItem(544630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
+        <Fact, WorkItem(544630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OperatorNotInModuleTest() As Task
             Await VerifyRecommendationsMissingAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Operator")

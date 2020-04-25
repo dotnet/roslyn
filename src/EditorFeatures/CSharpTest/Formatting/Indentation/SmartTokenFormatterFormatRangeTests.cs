@@ -2580,8 +2580,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.ColonToken);
         }
 
-        [Fact]
-        [WorkItem(537804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
+        [Fact, WorkItem(537804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Colon_Label()
         {
