@@ -71,6 +71,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
                     {
                         // Ensure a newline between the statement and the statement that preceded it.
                         var updatedStatement = AddLeadingTrivia(currentBadStatement, endOfLineTrivia);
+
                         // Also place an elastic marker at the end of the statement if we're parented by a block to ensure that
                         // the `}` is properly placed.
                         if (badStatement.Parent.IsKind(SyntaxKind.Block))
