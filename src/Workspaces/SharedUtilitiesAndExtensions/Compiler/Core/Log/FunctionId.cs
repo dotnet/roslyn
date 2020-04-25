@@ -485,5 +485,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Renamer_ResolveConflictsAsync = 388,
 
         ChangeSignature_Data = 389,
+
+        AbstractEncapsulateFieldService_EncapsulateFieldsAsync = 390,
     }
 }
