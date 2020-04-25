@@ -598,14 +598,19 @@ public static class Module1
         [Fact]
         public void DecimalConstInit002()
         {
-            var source = @"
+            var source1 = @"
 class C
 {
     const decimal d1 = 0.1m;
 }
 ";
-            CompileAndVerify(source).
-                VerifyIL("C..cctor", @"
+            var source2 = @"
+class C
+{
+    static readonly decimal d1 = 0.1m;
+}
+";
+            var expectedIL = @"
 {
   // Code size       16 (0x10)
   .maxstack  5
@@ -618,7 +623,76 @@ class C
   IL_000a:  stsfld     ""decimal C.d1""
   IL_000f:  ret
 }
-");
+";
+            CompileAndVerify(source1).VerifyIL("C..cctor", expectedIL);
+            CompileAndVerify(source2).VerifyIL("C..cctor", expectedIL);
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void DecimalConstInit003()
+        {
+            var source1 = @"
+class C
+{
+    const decimal d1 = 0.0m;
+}
+";
+
+            var source2 = @"
+class C
+{
+    static readonly decimal d1 = 0.0m;
+}
+";
+
+            var expectedIL = @"
+{
+  // Code size       16 (0x10)
+  .maxstack  5
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldc.i4.1
+  IL_0005:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_000a:  stsfld     ""decimal C.d1""
+  IL_000f:  ret
+}
+";
+            CompileAndVerify(source1).VerifyIL("C..cctor", expectedIL);
+            CompileAndVerify(source2).VerifyIL("C..cctor", expectedIL);
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void DecimalConstInit004()
+        {
+            var source1 = @"
+class C
+{
+    const decimal d1 = default;
+    const decimal d2 = 0;
+}
+";
+
+            var source2 = @"
+class C
+{
+    static readonly decimal d1 = default;
+    static readonly decimal d2 = 0;
+}
+";
+            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(source1, symbolValidator: validator, options: options);
+            CompileAndVerify(source2, symbolValidator: validator, options: options);
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
