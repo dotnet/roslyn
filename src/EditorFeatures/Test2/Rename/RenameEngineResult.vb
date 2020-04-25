@@ -114,12 +114,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 host As TestHost) As ConflictResolution
 
             Dim renameOptions = RenameOptionSet.From(solution, optionSet)
+
             If host = TestHost.OutOfProcess_SplitCall Then
+                ' This tests that each portion of rename can properly marshal to/from the OOP process. It validates
+                ' features that need to call each part independently and operate on the intermediary values.
+
                 Dim locations = Renamer.FindRenameLocationsAsync(
                     solution, symbol, renameOptions, CancellationToken.None).GetAwaiter().GetResult()
 
                 Return locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).GetAwaiter().GetResult()
             Else
+                ' This tests that rename properly works when the entire call is remoted to OOP and the final result is
+                ' marshaled back.
+
                 Return Renamer.RenameSymbolAsync(
                     solution, symbol, renameTo, renameOptions,
                     nonConflictSymbols:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
