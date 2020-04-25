@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         public async Task<ImmutableArray<CodeAction>> GetEncapsulateFieldCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
-            if (fields.Length == 0)
+            if (fields.IsDefaultOrEmpty)
                 return ImmutableArray<CodeAction>.Empty;
 
             if (fields.Length == 1)
