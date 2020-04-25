@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var reference in project.AnalyzerReferences)
             {
                 var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
-                foreach (var fixer in projectCodeFixerProvider.GetFixers(project.Language))
+                foreach (var fixer in projectCodeFixerProvider.GetExtensions(project.Language))
                 {
                     var fixableIds = this.GetFixableDiagnosticIds(fixer, extensionManager);
                     foreach (var id in fixableIds)

@@ -2178,15 +2178,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitMethodInfoExpression(node As BoundMethodInfo, used As Boolean)
+            Dim method As MethodSymbol = node.Method
+
+            If method.IsTupleMethod Then
+                method = method.TupleUnderlyingMethod
+            End If
+
             _builder.EmitOpCode(ILOpCode.Ldtoken)
-            EmitSymbolToken(node.Method, node.Syntax)
+            EmitSymbolToken(method, node.Syntax)
             Dim getMethod As MethodSymbol
-            If Not node.Method.ContainingType.IsGenericType AndAlso Not node.Method.ContainingType.IsAnonymousType Then ' anonymous types are generic under the hood.
+            If Not method.ContainingType.IsGenericType AndAlso Not method.ContainingType.IsAnonymousType Then ' anonymous types are generic under the hood.
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=0) ' argument off, return value on
                 getMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle), MethodSymbol)
             Else
                 _builder.EmitOpCode(ILOpCode.Ldtoken)
-                EmitSymbolToken(node.Method.ContainingType, node.Syntax)
+                EmitSymbolToken(method.ContainingType, node.Syntax)
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=-1) ' 2 arguments off, return value on
                 getMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2), MethodSymbol)
             End If

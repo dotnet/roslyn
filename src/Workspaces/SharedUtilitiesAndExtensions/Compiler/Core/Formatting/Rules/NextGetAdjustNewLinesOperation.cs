@@ -5,7 +5,6 @@
 #nullable enable
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
@@ -17,24 +16,21 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         private readonly int _index;
         private readonly SyntaxToken _previousToken;
         private readonly SyntaxToken _currentToken;
-        private readonly AnalyzerConfigOptions _options;
 
         public NextGetAdjustNewLinesOperation(
             ImmutableArray<AbstractFormattingRule> formattingRules,
             int index,
             SyntaxToken previousToken,
-            SyntaxToken currentToken,
-            AnalyzerConfigOptions options)
+            SyntaxToken currentToken)
         {
             _formattingRules = formattingRules;
             _index = index;
             _previousToken = previousToken;
             _currentToken = currentToken;
-            _options = options;
         }
 
         private NextGetAdjustNewLinesOperation NextOperation
-            => new NextGetAdjustNewLinesOperation(_formattingRules, _index + 1, _previousToken, _currentToken, _options);
+            => new NextGetAdjustNewLinesOperation(_formattingRules, _index + 1, _previousToken, _currentToken);
 
         public AdjustNewLinesOperation? Invoke()
         {
@@ -46,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             else
             {
                 // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                return _formattingRules[_index].GetAdjustNewLinesOperation(_previousToken, _currentToken, _options, NextOperation);
+                return _formattingRules[_index].GetAdjustNewLinesOperation(_previousToken, _currentToken, NextOperation);
             }
         }
     }

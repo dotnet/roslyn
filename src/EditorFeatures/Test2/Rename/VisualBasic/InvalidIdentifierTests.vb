@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             _outputHelper = outputHelper
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamingToInvalidIdentifier()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamingToInvalidIdentifier(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -25,16 +25,16 @@ Class {|Invalid:$$C|}
 End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="`")
+                </Workspace>, host:=host, renameTo:="`")
 
                 result.AssertReplacementTextInvalid()
                 result.AssertLabeledSpansAre("Invalid", "`", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamingToInvalidIdentifier2()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamingToInvalidIdentifier2(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -44,16 +44,16 @@ Class {|Invalid:$$C|}
 End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="C[")
+                </Workspace>, host:=host, renameTo:="C[")
 
                 result.AssertReplacementTextInvalid()
                 result.AssertLabeledSpansAre("Invalid", "C[", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename), WorkItem(545164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545164")>
-        Public Sub RenamingToUnderscoreAttribute()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename), WorkItem(545164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545164")>
+        Public Sub RenamingToUnderscoreAttribute(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -64,7 +64,7 @@ Class [|$$AAttribute|]
 End Class
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="_Attribute")
+                </Workspace>, host:=host, renameTo:="_Attribute")
 
 
             End Using
