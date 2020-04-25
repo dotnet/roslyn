@@ -176,7 +176,7 @@ namespace AnalyzerRunner
                 // since the solution for analysis was modified above to change compilation options.
                 var solutionToFix = workspace.CurrentSolution;
 
-                await TestFixAllAsync(solutionToFix, diagnosticsByProject, _options.ApplyChanges, cancellationToken).ConfigureAwait(false);
+                await TestFixAllAsync(solutionToFix, diagnosticsByProject, _options.EquivalenceKey, _options.ApplyChanges, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -446,7 +446,7 @@ namespace AnalyzerRunner
             }
         }
 
-        private async Task TestFixAllAsync(Solution solution, ImmutableDictionary<ProjectId, ImmutableArray<Diagnostic>> diagnostics, bool applyChanges, CancellationToken cancellationToken)
+        private async Task TestFixAllAsync(Solution solution, ImmutableDictionary<ProjectId, ImmutableArray<Diagnostic>> diagnostics, string equivalenceKey, bool applyChanges, CancellationToken cancellationToken)
         {
             Console.WriteLine("Calculating fixes");
 
@@ -458,6 +458,15 @@ namespace AnalyzerRunner
                 foreach (var codeFix in codeFixes)
                 {
                     groups.AddRange(await CodeFixEquivalenceGroup.CreateAsync(language, codeFix, diagnostics, solution, cancellationToken).ConfigureAwait(false));
+                }
+            }
+
+            if (equivalenceKey is object)
+            {
+                Console.WriteLine($"Filtering equivalence groups to key '{equivalenceKey}'");
+                foreach (var (_, equivalenceGroups) in languageToEquivalenceGroups)
+                {
+                    equivalenceGroups.RemoveAll(group => group.CodeFixEquivalenceKey != equivalenceKey);
                 }
             }
 

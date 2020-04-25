@@ -20,6 +20,7 @@ namespace AnalyzerRunner
         public readonly bool RunConcurrent;
         public readonly bool ReportSuppressedDiagnostics;
         public readonly bool FixAll;
+        public readonly string EquivalenceKey;
         public readonly bool ApplyChanges;
         public readonly bool ShowStats;
         public readonly bool ShowCompilerDiagnostics;
@@ -44,6 +45,7 @@ namespace AnalyzerRunner
             bool runConcurrent,
             bool reportSuppressedDiagnostics,
             bool fixAll,
+            string equivalenceKey,
             bool applyChanges,
             bool showStats,
             bool showCompilerDiagnostics,
@@ -65,6 +67,7 @@ namespace AnalyzerRunner
             RunConcurrent = runConcurrent;
             ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
             FixAll = fixAll;
+            EquivalenceKey = equivalenceKey;
             ApplyChanges = applyChanges;
             ShowStats = showStats;
             ShowCompilerDiagnostics = showCompilerDiagnostics;
@@ -89,6 +92,7 @@ namespace AnalyzerRunner
             bool runConcurrent = false;
             bool reportSuppressedDiagnostics = false;
             bool fixAll = false;
+            string equivalenceKey = null;
             bool applyChanges = false;
             bool showStats = false;
             bool showCompilerDiagnostics = false;
@@ -149,6 +153,10 @@ namespace AnalyzerRunner
                     case "/fixall":
                         fixAll = true;
                         break;
+                    case var _ when arg.StartsWith("/fixall:"):
+                        fixAll = true;
+                        equivalenceKey = arg.Substring("/fixall:".Length);
+                        break;
                     case "/refactor":
                         refactoringBuilder.Add(ReadValue());
                         break;
@@ -204,6 +212,7 @@ namespace AnalyzerRunner
                 runConcurrent: runConcurrent,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics,
                 fixAll: fixAll,
+                equivalenceKey: equivalenceKey,
                 applyChanges: applyChanges,
                 showStats: showStats,
                 showCompilerDiagnostics: showCompilerDiagnostics,
