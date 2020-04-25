@@ -192,6 +192,11 @@
         <target state="translated">Konstruktor importujący powinien być oznaczony jako [Obsolete]</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="new">Place statement on following line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
         <source>Use 'null' instead of 'default'</source>
         <target state="translated">Użyj wartości „null” zamiast „default”</target>
@@ -370,6 +375,11 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked as Shared</source>
         <target state="translated">Element „{0}” jest eksportowany z MEFv2, a więc musi być oznaczony jako udostępniony</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WrapStatementsMessage">
+        <source>Statements must be placed on their own line</source>
+        <target state="new">Statements must be placed on their own line</target>
         <note />
       </trans-unit>
     </body>
