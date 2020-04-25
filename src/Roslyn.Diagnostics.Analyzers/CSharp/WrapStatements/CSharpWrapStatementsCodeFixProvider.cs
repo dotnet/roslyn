@@ -32,7 +32,8 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             context.RegisterCodeFix(
                 CodeAction.Create(
                     RoslynDiagnosticsAnalyzersResources.Place_statement_on_following_line,
-                    c => UpdateDocumentAsync(document, diagnostic, c)),
+                    c => UpdateDocumentAsync(document, diagnostic, c),
+                    RoslynDiagnosticsAnalyzersResources.Place_statement_on_following_line),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
