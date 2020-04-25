@@ -24,7 +24,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             s_localizableMessage,
             DiagnosticCategory.RoslynDiagnosticsMaintainability,
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            isEnabledByDefault: true,
             description: s_localizableMessage,
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTags.Telemetry);
