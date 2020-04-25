@@ -62,7 +62,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             var endOfLine = options.GetOption(FormattingOptions.NewLine);
             var endOfLineTrivia = SyntaxFactory.ElasticEndOfLine(endOfLine);
 
-            // var walk up the statements so that higher up changes see the changes below.
+            // Now walk up the statements so that higher up changes see the changes below.
             foreach (var badStatement in badStatements.OrderByDescending(s => s.SpanStart))
             {
                 editor.ReplaceNode(
