@@ -453,8 +453,7 @@ class Class
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [WpfFact, WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList5b()
         {
@@ -536,8 +535,7 @@ class Class
             await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [WpfFact, WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList8()
         {
@@ -566,8 +564,7 @@ get
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [WpfFact, WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList9()
         {
@@ -596,8 +593,7 @@ set
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [WpfFact, WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList10()
         {
@@ -632,8 +628,7 @@ add
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [WpfFact, WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList11()
         {
@@ -1182,8 +1177,7 @@ class Class
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(8413, "https://github.com/dotnet/roslyn/issues/8413")]
+        [WpfFact, WorkItem(8413, "https://github.com/dotnet/roslyn/issues/8413")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatementDoBlockAlone()
         {
@@ -2051,8 +2045,7 @@ class Class
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(6645, "https://github.com/dotnet/roslyn/issues/6645")]
+        [WpfFact, WorkItem(6645, "https://github.com/dotnet/roslyn/issues/6645")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TryStatement5()
         {
@@ -2424,8 +2417,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(537825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537825")]
+        [WpfFact, WorkItem(537825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537825")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task MalformedCode()
         {
@@ -2451,8 +2443,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(537804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
+        [WpfFact, WorkItem(537804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Colon_SwitchLabel()
         {
@@ -2490,8 +2481,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(584599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599")]
+        [WpfFact, WorkItem(584599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Colon_SwitchLabel_Comment()
         {
@@ -2531,8 +2521,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(584599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599")]
+        [WpfFact, WorkItem(584599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Colon_SwitchLabel_Comment2()
         {
@@ -2606,8 +2595,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.None);
         }
 
-        [WpfFact]
-        [WorkItem(538793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538793")]
+        [WpfFact, WorkItem(538793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538793")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Colon_Label2()
         {
@@ -2639,8 +2627,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(3186, "DevDiv_Projects/Roslyn")]
+        [WpfFact, WorkItem(3186, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task SemicolonInElseIfStatement()
         {
@@ -2688,8 +2675,7 @@ class Program
                 SyntaxKind.SemicolonToken);
         }
 
-        [WpfFact]
-        [WorkItem(538391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538391")]
+        [WpfFact, WorkItem(538391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538391")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task SemicolonInElseIfStatement2()
         {
@@ -2723,8 +2709,7 @@ class Program
                 SyntaxKind.SemicolonToken);
         }
 
-        [WpfFact]
-        [WorkItem(8385, "DevDiv_Projects/Roslyn")]
+        [WpfFact, WorkItem(8385, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task NullCoalescingOperator()
         {
@@ -2750,8 +2735,7 @@ class Program
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(541517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541517")]
+        [WpfFact, WorkItem(541517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541517")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task SwitchDefault()
         {
@@ -2795,8 +2779,7 @@ class Program
                 SyntaxKind.SemicolonToken);
         }
 
-        [WpfFact]
-        [WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
+        [WpfFact, WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task MissingTokens1()
         {
@@ -2823,8 +2806,7 @@ class Program
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
+        [WpfFact, WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task MissingTokens2()
         {
@@ -2838,8 +2820,7 @@ class Program
                 SyntaxKind.EqualsGreaterThanToken);
         }
 
-        [WpfFact]
-        [WorkItem(542953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542953")]
+        [WpfFact, WorkItem(542953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542953")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task UsingAlias()
         {
@@ -2853,8 +2834,7 @@ class Program
                 SyntaxKind.UsingKeyword);
         }
 
-        [WpfFact]
-        [WorkItem(542953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542953")]
+        [WpfFact, WorkItem(542953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542953")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task NoLineChangeWithSyntaxError()
         {

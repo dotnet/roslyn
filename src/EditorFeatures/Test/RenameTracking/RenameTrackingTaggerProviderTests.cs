@@ -957,8 +957,7 @@ End Enum";
             await state.AssertNoTag();
         }
 
-        [WpfFact]
-        [WorkItem(540, "https://github.com/dotnet/roslyn/issues/540")]
+        [WpfFact, WorkItem(540, "https://github.com/dotnet/roslyn/issues/540")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingDoesNotProvideDiagnosticAfterCancellation()
         {
@@ -1101,8 +1100,7 @@ class C
             await state.AssertNoTag();
         }
 
-        [WpfFact]
-        [WorkItem(762964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762964")]
+        [WpfFact, WorkItem(762964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762964")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_NoTagWhenFirstEditChangesReferenceToAnotherSymbol()
         {
@@ -1121,8 +1119,7 @@ class C
             await state.AssertNoTag();
         }
 
-        [WpfFact]
-        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [WpfFact, WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_CannotRenameToVarInCSharp()
         {
@@ -1150,8 +1147,7 @@ class C
             Assert.NotNull(await state.TryGetCodeActionAsync());
         }
 
-        [WpfFact]
-        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [WpfFact, WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_CannotRenameFromVarInCSharp()
         {
@@ -1169,8 +1165,7 @@ class C
             Assert.Null(await state.TryGetCodeActionAsync());
         }
 
-        [WpfFact]
-        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [WpfFact, WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_CanRenameToVarInVisualBasic()
         {
@@ -1188,8 +1183,7 @@ End Class";
             Assert.NotNull(await state.TryGetCodeActionAsync());
         }
 
-        [WpfFact]
-        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [WpfFact, WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_CannotRenameToDynamicInCSharp()
         {

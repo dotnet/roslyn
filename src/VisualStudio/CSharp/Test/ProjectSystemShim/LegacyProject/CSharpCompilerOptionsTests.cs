@@ -105,8 +105,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.False(options.SpecificDiagnosticOptions.ContainsKey("CS1111"));
         }
 
-        [WpfFact]
-        [WorkItem(33401, "https://github.com/dotnet/roslyn/pull/33401")]
+        [WpfFact, WorkItem(33401, "https://github.com/dotnet/roslyn/pull/33401")]
         public void ProjectOutputPathAndOutputExeNameChange()
         {
             using var environment = new TestEnvironment();

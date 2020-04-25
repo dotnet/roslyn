@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             };
         }
 
-        [WpfFact]
-        [WorkItem(539682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
+        [WpfFact, WorkItem(539682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatDocumentCommandHandler()
         {
@@ -62,8 +61,7 @@ int y;
             AssertFormatWithView(expected, code);
         }
 
-        [WpfFact]
-        [WorkItem(539682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
+        [WpfFact, WorkItem(539682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatDocumentPasteCommandHandler()
         {
@@ -90,8 +88,7 @@ int y;
             AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true);
         }
 
-        [WpfFact]
-        [WorkItem(547261, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547261")]
+        [WpfFact, WorkItem(547261, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547261")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatDocumentReadOnlyWorkspacePasteCommandHandler()
         {
@@ -118,8 +115,7 @@ int y;
             AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: false);
         }
 
-        [WpfFact]
-        [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
+        [WpfFact, WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatUsingStatementOnReturn()
         {
@@ -146,8 +142,7 @@ int y;
             AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true, isPaste: false);
         }
 
-        [WpfFact]
-        [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
+        [WpfFact, WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatUsingStatementWhenTypingCloseParen()
         {
@@ -174,8 +169,7 @@ int y;
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [WpfFact]
-        [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
+        [WpfFact, WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatNotUsingStatementOnReturn()
         {

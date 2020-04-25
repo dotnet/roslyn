@@ -106,8 +106,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             project2.Dispose();
         }
 
-        [WpfFact]
-        [WorkItem(461967, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/461967")]
+        [WpfFact, WorkItem(461967, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/461967")]
         [WorkItem(727173, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/727173")]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddingMetadataReferenceToProjectThatCannotCompileInTheIdeKeepsMetadataReference()

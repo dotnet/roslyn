@@ -2697,8 +2697,7 @@ int bar;
 
         #region "EditorBrowsable should be ignored"
 
-        [WpfFact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [WpfFact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_IgnoredWhenOverridingMethods()
         {
