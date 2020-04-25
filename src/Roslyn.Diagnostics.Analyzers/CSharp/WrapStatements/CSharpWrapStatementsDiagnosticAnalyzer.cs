@@ -80,6 +80,21 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             SyntaxTreeAnalysisContext context,
             StatementSyntax statement)
         {
+            if (!StatementNeedsWrapping(statement))
+                return false;
+
+            // Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'
+            var additionalLocations = ImmutableArray.Create(statement.GetLocation());
+            var diagnostic = Diagnostic.Create(
+                Rule,
+                statement.GetFirstToken().GetLocation(),
+                additionalLocations: additionalLocations);
+            context.ReportDiagnostic(diagnostic);
+            return true;
+        }
+
+        public static bool StatementNeedsWrapping(StatementSyntax statement)
+        {
             // Statement has to be parented by another statement (or an else-clause) to count.
             var parent = statement.Parent;
             var parentIsElseClause = parent.IsKind(SyntaxKind.ElseClause);
@@ -101,13 +116,6 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
                 return false;
             }
 
-            // Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'
-            var additionalLocations = ImmutableArray.Create(statement.GetLocation());
-            var diagnostic = Diagnostic.Create(
-                Rule,
-                statementStartToken.GetLocation(),
-                additionalLocations: additionalLocations);
-            context.ReportDiagnostic(diagnostic);
             return true;
         }
 

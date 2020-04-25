@@ -30,6 +30,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.WrapStatements
                 FixedCode = source,
             }.RunAsync();
         }
+
         [Fact]
         public async Task ErrorOnNonWrappedIfStatement()
         {
@@ -46,6 +47,83 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.WrapStatements
     {
         if (true)
             return;
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task NotOnElseIf()
+        {
+            var source = @"class TestClass
+{
+    void M()
+    {
+        if (true)
+            return;
+        else if (true)
+            return;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task ErrorOnElseWithNonIfStatementOnSameLine()
+        {
+            var source = @"class TestClass
+{
+    void M()
+    {
+        if (true)
+            return;
+        else [|return|];
+    }
+}";
+            var fixedCode = @"class TestClass
+{
+    void M()
+    {
+        if (true)
+            return;
+        else
+            return;
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task ErrorOnIfWithSingleLineBlock()
+        {
+            var source = @"class TestClass
+{
+    void M()
+    {
+        if (true) [|{|] return; }
+    }
+}";
+            var fixedCode = @"class TestClass
+{
+    void M()
+    {
+        if (true)
+        {
+            return;
+        }
     }
 }";
             await new VerifyCS.Test

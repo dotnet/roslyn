@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Diagnostics.Analyzers;
 
@@ -51,16 +52,50 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
                 return document;
             }
 
+            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+
+            // fixup this statement and all nested statements that have an issue.
+            var allStatements = statement.DescendantNodesAndSelf().OfType<StatementSyntax>();
+            var badStatements = allStatements.Where(s => CSharpWrapStatementsDiagnosticAnalyzer.StatementNeedsWrapping(s));
+
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var endOfLine = options.GetOption(FormattingOptions.NewLine);
+            var endOfLineTrivia = SyntaxFactory.ElasticEndOfLine(endOfLine);
 
-            var previousToken = statement.GetFirstToken().GetPreviousToken();
-            var newRoot = root.ReplaceToken(
-                previousToken,
-                previousToken.WithTrailingTrivia(
-                    previousToken.TrailingTrivia.Add(SyntaxFactory.ElasticEndOfLine(endOfLine))));
+            // var walk up the statements so that higher up changes see the changes below.
+            foreach (var badStatement in badStatements.OrderByDescending(s => s.SpanStart))
+            {
+                editor.ReplaceNode(
+                    badStatement,
+                    (currentBadStatement, g) =>
+                    {
+                        // Ensure a newline between the statement and the statement that preceded it.
+                        var updatedStatement = AddLeadingTrivia(currentBadStatement, endOfLineTrivia);
+                        // Also place an elastic marker at the end of the statement if we're parented by a block to ensure that
+                        // the `}` is properly placed.
+                        if (badStatement.Parent.IsKind(SyntaxKind.Block))
+                            updatedStatement = AddTrailingTrivia(updatedStatement, SyntaxFactory.ElasticMarker);
 
-            return document.WithSyntaxRoot(newRoot);
+                        return updatedStatement;
+                    });
+            }
+
+            //var newRoot = root.ReplaceTokens(
+            //    badStatements.Select(s => s.GetFirstToken().GetPreviousToken()),
+            //    (_, current) => AddTrailingTrivia(current, endOfLineTrivia));
+
+            //// If the statement was parented by a block, ensure we reformat between it's last token and the close brace
+            //// of the block as well.
+            //var statementsParentedByBlocks = badStatements.Where(s => s.Parent.IsKind(SyntaxKind.Block));
+            //newRoot = newRoot.
+
+            return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
+
+        private static SyntaxNode AddLeadingTrivia(SyntaxNode node, SyntaxTrivia trivia)
+            => node.WithLeadingTrivia(node.GetLeadingTrivia().Insert(0, trivia));
+
+        private static SyntaxNode AddTrailingTrivia(SyntaxNode node, SyntaxTrivia trivia)
+            => node.WithTrailingTrivia(node.GetTrailingTrivia().Add(trivia));
     }
 }
