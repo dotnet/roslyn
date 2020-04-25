@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestExtensionManager([Import]TestExtensionErrorHandler errorHandler)
+        public TestExtensionManager([Import] TestExtensionErrorHandler errorHandler)
         {
             _errorHandler = errorHandler;
         }

@@ -261,7 +261,7 @@ End Class
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 <Custom(2,
-    x:=1, newIntegerParameter:=12345)>
+    12345, 1)>
 Class CustomAttribute
     Inherits Attribute
     Sub New(y As Integer, newIntegerParameter As Integer, x As Integer)

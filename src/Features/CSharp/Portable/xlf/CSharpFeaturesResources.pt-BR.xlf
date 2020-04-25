@@ -632,11 +632,6 @@
         <target state="translated">Ocultar o membro base</target>
         <note />
       </trans-unit>
-      <trans-unit id="Delegate_invocation_can_be_simplified">
-        <source>Delegate invocation can be simplified.</source>
-        <target state="translated">A invocação de delegado pode ser simplificada.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Properties">
         <source>Properties</source>
         <target state="translated">Propriedades</target>

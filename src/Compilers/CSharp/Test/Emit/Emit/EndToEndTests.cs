@@ -8,6 +8,8 @@ using System.Text;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -264,6 +266,49 @@ $@"        if (F({i}))
                 {
                     var comp = CreateCompilation(source);
                     comp.VerifyDiagnostics();
+                });
+            }
+        }
+
+        [WorkItem(42361, "https://github.com/dotnet/roslyn/issues/42361")]
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void Constraints()
+        {
+            int n = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
+            {
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 420,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1100,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 200,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 520,
+                _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
+            };
+
+            RunTest(n, runTest);
+
+            static void runTest(int n)
+            {
+                // class C0<T> where T : C1<T> { }
+                // class C1<T> where T : C2<T> { }
+                // ...
+                // class CN<T> where T : C0<T> { }
+                var sourceBuilder = new StringBuilder();
+                var diagnosticsBuilder = ArrayBuilder<DiagnosticDescription>.GetInstance();
+                for (int i = 0; i <= n; i++)
+                {
+                    int next = (i == n) ? 0 : i + 1;
+                    sourceBuilder.AppendLine($"class C{i}<T> where T : C{next}<T> {{ }}");
+                    diagnosticsBuilder.Add(Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "T").WithArguments($"C{i}<T>", $"C{next}<T>", "T", "T"));
+                }
+                var source = sourceBuilder.ToString();
+                var diagnostics = diagnosticsBuilder.ToArrayAndFree();
+
+                RunInThread(() =>
+                {
+                    var comp = CreateCompilation(source);
+                    var type = comp.GetMember<NamedTypeSymbol>("C0");
+                    var typeParameter = type.TypeParameters[0];
+                    Assert.True(typeParameter.IsReferenceType);
+                    comp.VerifyDiagnostics(diagnostics);
                 });
             }
         }

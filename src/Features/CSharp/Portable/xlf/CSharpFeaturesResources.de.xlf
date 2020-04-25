@@ -632,11 +632,6 @@
         <target state="translated">Basismember ausblenden</target>
         <note />
       </trans-unit>
-      <trans-unit id="Delegate_invocation_can_be_simplified">
-        <source>Delegate invocation can be simplified.</source>
-        <target state="translated">Der Delegataufruf kann vereinfacht werden.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Properties">
         <source>Properties</source>
         <target state="translated">Eigenschaften</target>

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
-    using static WorkspacesResources;
+    using static FeaturesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
     internal partial class RegexEmbeddedCompletionProvider : CompletionProvider
@@ -33,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));
 
-        private readonly RegexEmbeddedLanguageFeatures _language;
+        private readonly RegexEmbeddedLanguage _language;
 
-        public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguageFeatures language)
+        public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language)
             => _language = language;
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)

@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportUseSiteDiagnostics(constructedType.Type.OriginalDefinition, diagnostics, syntax);
                     var type = (NamedTypeSymbol)constructedType.Type;
                     var location = syntax.Location;
-                    type.CheckConstraints(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics);
+                    type.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics));
                 }
                 else if (constructedType.Type.IsTypeParameterDisallowingAnnotation())
                 {
@@ -1622,8 +1622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             //if names match, arities match, and containing symbols match (recursively), ...
-                            if (srcSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
-                                mdSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+                            if (NameAndArityMatchRecursively(srcSymbol, mdSymbol))
                             {
                                 if (srcSymbol.Kind == SymbolKind.Namespace && mdSymbol.Kind == SymbolKind.NamedType)
                                 {
@@ -1680,8 +1679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         //if names match, arities match, and containing symbols match (recursively), ...
                         if (first != second &&
-                            first.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
-                                second.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+                            NameAndArityMatchRecursively(first, second))
                         {
                             // suppress reporting the error if we found multiple symbols from source module
                             // since an error has already been reported from the declaration

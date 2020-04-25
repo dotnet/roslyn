@@ -13,10 +13,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             _outputHelper = outputHelper
         End Sub
 
-        <Fact>
+        <Theory>
         <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMoveNextCausesConflictInForEach()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMoveNextCausesConflictInForEach(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -44,17 +44,17 @@ Class C
 End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="MovNext")
+                </Workspace>, host:=host, renameTo:="MovNext")
 
 
                 result.AssertLabeledSpansAre("foreachconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <Fact>
+        <Theory>
         <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMoveNextToChangeCasingDoesntCauseConflictInForEach()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMoveNextToChangeCasingDoesntCauseConflictInForEach(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -82,16 +82,16 @@ Class C
 End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="MOVENEXT")
+                </Workspace>, host:=host, renameTo:="MOVENEXT")
 
 
             End Using
         End Sub
 
-        <Fact>
+        <Theory>
         <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMoveNextToChangeCasingInCSDoesntCauseConflictInForEach()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMoveNextToChangeCasingInCSDoesntCauseConflictInForEach(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
 
@@ -133,16 +133,16 @@ End Class
                         </Document>
                     </Project>
 
-                </Workspace>, renameTo:="MOVENEXT")
+                </Workspace>, host:=host, renameTo:="MOVENEXT")
 
 
             End Using
         End Sub
 
-        <Fact>
+        <Theory>
         <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMoveNextInCSCauseConflictInForEach()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMoveNextInCSCauseConflictInForEach(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
 
@@ -184,7 +184,7 @@ End Class
                         </Document>
                     </Project>
 
-                </Workspace>, renameTo:="Move")
+                </Workspace>, host:=host, renameTo:="Move")
 
 
                 result.AssertLabeledSpansAre("foreachconflict", type:=RelatedLocationType.UnresolvedConflict)

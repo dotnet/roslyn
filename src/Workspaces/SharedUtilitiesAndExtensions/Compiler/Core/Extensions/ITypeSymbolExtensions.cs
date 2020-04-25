@@ -23,7 +23,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private const string DefaultBuiltInParameterName = "v";
 
         public static bool CanAddNullCheck([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
-            => type != null && (type.IsReferenceType || type.IsNullable());
+        {
+            if (type == null)
+                return false;
+
+            var isNullableValueType = type.IsNullable();
+            var isNonNullableReferenceType = type.IsReferenceType && type.NullableAnnotation != NullableAnnotation.Annotated;
+
+            return isNullableValueType || isNonNullableReferenceType;
+        }
 
         public static IList<INamedTypeSymbol> GetAllInterfacesIncludingThis(this ITypeSymbol type)
         {
@@ -702,22 +710,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 type?.AllInterfaces.Contains(iDisposableType) == true);
 
         public static ITypeSymbol WithNullableAnnotationFrom(this ITypeSymbol type, ITypeSymbol symbolForNullableAnnotation)
-        {
-#if CODE_STYLE // TODO: Remove this #if once 'WithNullableAnnotation' and 'NullableAnnotation' are available in CodeStyle layer.
-            return type;
-#else
-            return type.WithNullableAnnotation(symbolForNullableAnnotation.NullableAnnotation);
-#endif
-        }
-
-        public static ITypeSymbol WithNullableAnnotation(this ITypeSymbol type, NullableAnnotation nullableAnnotation)
-        {
-#if CODE_STYLE // TODO: Remove this #if once 'WithNullableAnnotation' is available in CodeStyle layer.
-            return type;
-#else
-            return type.WithNullableAnnotation(nullableAnnotation);
-#endif
-        }
+            => type.WithNullableAnnotation(symbolForNullableAnnotation.NullableAnnotation);
 
         [return: NotNullIfNotNull(parameterName: "symbol")]
         public static ITypeSymbol? RemoveNullableIfPresent(this ITypeSymbol? symbol)
