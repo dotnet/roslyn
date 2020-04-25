@@ -721,39 +721,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10838")]
+        [Fact]
+        [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
         public void DebuggerProxy_FrameworkTypes_Task()
         {
-            var obj = new System.Threading.Tasks.Task(TaskMethod);
+            var obj = new MockDesktopTask(TaskMethod);
 
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal(
-                @"Task(Id = *, Status = Created, Method = ""Void TaskMethod()"") { AsyncState=null, CancellationPending=false, CreationOptions=None, Exception=null, Id=*, Status=Created }",
-                FilterDisplayString(str));
+                "MockDesktopTask(Id = 1234, Status = Created, Method = \"Void TaskMethod()\") " +
+                "{ AsyncState=null, CancellationPending=false, CreationOptions=None, Exception=null, Id=1234, Status=Created }",
+                str);
 
             str = s_formatter.FormatObject(obj, SeparateLinesOptions);
-            AssertMembers(FilterDisplayString(str), @"Task(Id = *, Status = Created, Method = ""Void TaskMethod()"")",
+            AssertMembers(str, "MockDesktopTask(Id = 1234, Status = Created, Method = \"Void TaskMethod()\")",
                 "AsyncState: null",
                 "CancellationPending: false",
                 "CreationOptions: None",
                 "Exception: null",
-                "Id: *",
+                "Id: 1234",
                 "Status: Created"
             );
         }
 
         [Fact]
-        public void DebuggerProxy_FrameworkTypes_SpinLock()
+        public void DebuggerProxy_FrameworkTypes_SpinLock1()
         {
-            var obj = new SpinLock();
+            var obj = new MockDesktopSpinLock(false);
 
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
-            Assert.Equal("SpinLock(IsHeld = false) { IsHeld=false, IsHeldByCurrentThread=false, OwnerThreadID=0 }", str);
+            Assert.Equal("MockDesktopSpinLock(IsHeld = false) { IsHeld=false, IsHeldByCurrentThread=!<InvalidOperationException>, OwnerThreadID=null }", str);
 
             str = s_formatter.FormatObject(obj, SeparateLinesOptions);
-            AssertMembers(str, "SpinLock(IsHeld = false)",
+            AssertMembers(str, "MockDesktopSpinLock(IsHeld = false)",
                 "IsHeld: false",
-                "IsHeldByCurrentThread: false",
+                "IsHeldByCurrentThread: !<InvalidOperationException>",
+                "OwnerThreadID: null"
+            );
+        }
+
+        [Fact]
+        public void DebuggerProxy_FrameworkTypes_SpinLock2()
+        {
+            var obj = new MockDesktopSpinLock(true);
+
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
+            Assert.Equal("MockDesktopSpinLock(IsHeld = false) { IsHeld=false, IsHeldByCurrentThread=true, OwnerThreadID=0 }", str);
+
+            str = s_formatter.FormatObject(obj, SeparateLinesOptions);
+            AssertMembers(str, "MockDesktopSpinLock(IsHeld = false)",
+                "IsHeld: false",
+                "IsHeldByCurrentThread: true",
                 "OwnerThreadID: 0"
             );
         }
