@@ -106,6 +106,18 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             if (statement.IsKind(SyntaxKind.IfStatement) && parentIsElseClause)
                 return false;
 
+            if (parent.IsKind(SyntaxKind.Block))
+            {
+                // Blocks can be on a single line if parented by a member/accessor/lambda.
+                var blockParent = parent.Parent;
+                if (blockParent is MemberDeclarationSyntax ||
+                    blockParent is AccessorDeclarationSyntax ||
+                    blockParent is AnonymousFunctionExpressionSyntax)
+                {
+                    return false;
+                }
+            }
+
             var statementStartToken = statement.GetFirstToken();
             var previousToken = statementStartToken.GetPreviousToken();
 

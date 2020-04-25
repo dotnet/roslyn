@@ -132,5 +132,60 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.WrapStatements
                 FixedCode = fixedCode,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task NoWrappingForMemberOrLambdaBlock()
+        {
+            var source = @"
+using System;
+
+class TestClass
+{
+    void M() { return; }
+    void N()
+    {
+        Action a1 = () => { return; };
+        Action a2 = delegate () { return; };
+    }
+
+    int Prop1 { get { return 1; } }
+    int Prop2
+    {
+        get { return 1; }
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task WrappingForLocalFunction()
+        {
+            var source = @"class TestClass
+{
+    void N()
+    {
+        void Local() [|{|] return; }
+    }
+}";
+            var fixedCode = @"class TestClass
+{
+    void N()
+    {
+        void Local()
+        {
+            return;
+        }
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
     }
 }
