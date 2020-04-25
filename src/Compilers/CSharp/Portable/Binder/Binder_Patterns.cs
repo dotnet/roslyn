@@ -1337,8 +1337,83 @@ namespace Microsoft.CodeAnalysis.CSharp
                 permitDesignations = false; // prevent designators under 'or'
                 var left = BindPattern(node.LeftPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
                 var right = BindPattern(node.RightPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
-                var convertedType = commonType(node, left.ConvertedType, right.ConvertedType, diagnostics) ?? inputType;
+
+                // Compute the common type. This algorithm is quadratic, but disjunctive patterns are unlikely to be huge
+                var narrowedTypeCandidates = ArrayBuilder<TypeSymbol>.GetInstance(2);
+                collectCandidates(left, narrowedTypeCandidates);
+                collectCandidates(right, narrowedTypeCandidates);
+                var convertedType = leastSpecificType(node, narrowedTypeCandidates, diagnostics) ?? inputType;
+                narrowedTypeCandidates.Free();
+
                 return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType: inputType, convertedType: convertedType, hasErrors);
+
+                static void collectCandidates(BoundPattern pat, ArrayBuilder<TypeSymbol> candidates)
+                {
+                    if (pat is BoundBinaryPattern { Disjunction: true } p)
+                    {
+                        collectCandidates(p.Left, candidates);
+                        collectCandidates(p.Right, candidates);
+                    }
+                    else
+                    {
+                        candidates.Add(pat.ConvertedType);
+                    }
+                }
+
+                TypeSymbol? leastSpecificType(SyntaxNode node, ArrayBuilder<TypeSymbol> candidates, DiagnosticBag diagnostics)
+                {
+                    Debug.Assert(candidates.Count >= 2);
+                    HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                    TypeSymbol? bestSoFar = candidates[0];
+                    // first pass: select a candidate for which no other has been shown to be an improvement.
+                    for (int i = 1, n = candidates.Count; i < n; i++)
+                    {
+                        TypeSymbol candidate = candidates[i];
+                        bestSoFar = lessSpecificCandidate(bestSoFar, candidate, ref useSiteDiagnostics) ?? bestSoFar;
+                    }
+                    // second pass: check that it is no more specific than any candidate.
+                    for (int i = 0, n = candidates.Count; i < n; i++)
+                    {
+                        TypeSymbol candidate = candidates[i];
+                        TypeSymbol? spoiler = lessSpecificCandidate(candidate, bestSoFar, ref useSiteDiagnostics);
+                        if (spoiler is null)
+                        {
+                            bestSoFar = null;
+                            break;
+                        }
+
+                        // Our specificity criteria are transitive
+                        Debug.Assert(spoiler.Equals(bestSoFar, TypeCompareKind.ConsiderEverything));
+                    }
+
+                    diagnostics.Add(node.Location, useSiteDiagnostics);
+                    return bestSoFar;
+                }
+
+                // Given a candidate least specific type so far, attempt to refine it with a possibly less specific candidate.
+                TypeSymbol? lessSpecificCandidate(TypeSymbol bestSoFar, TypeSymbol possiblyLessSpecificCandidate, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+                {
+                    if (bestSoFar.Equals(possiblyLessSpecificCandidate, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        // When the types are equivalent, merge them.
+                        return bestSoFar.MergeEquivalentTypes(possiblyLessSpecificCandidate, VarianceKind.Out);
+                    }
+                    else if (Conversions.HasImplicitReferenceConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteDiagnostics))
+                    {
+                        // When there is an implicit reference conversion from T to U, U is less specific
+                        return possiblyLessSpecificCandidate;
+                    }
+                    else if (Conversions.HasBoxingConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteDiagnostics))
+                    {
+                        // when there is a boxing conversion from T to U, U is less specific.
+                        return possiblyLessSpecificCandidate;
+                    }
+                    else
+                    {
+                        // We have no improved candidate to offer.
+                        return null;
+                    }
+                }
             }
             else
             {
@@ -1346,20 +1421,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var leftOutputValEscape = GetValEscape(left.ConvertedType, inputValEscape);
                 var right = BindPattern(node.RightPattern, left.ConvertedType, leftOutputValEscape, permitDesignations, hasErrors, diagnostics);
                 return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType: inputType, convertedType: right.ConvertedType, hasErrors);
-            }
-
-            TypeSymbol commonType(SyntaxNode node, TypeSymbol t1, TypeSymbol t2, DiagnosticBag diagnostics)
-            {
-                if (t1.Equals(t2, TypeCompareKind.AllIgnoreOptions))
-                    return t2;
-
-                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                TypeSymbol result =
-                    (ExpressionOfTypeMatchesPatternType(Conversions, expressionType: t1, patternType: t2, ref useSiteDiagnostics, out _) == true) ? t2 :
-                    (ExpressionOfTypeMatchesPatternType(Conversions, expressionType: t2, patternType: t1, ref useSiteDiagnostics, out _) == true) ? t1 :
-                    inputType;
-                diagnostics.Add(node.Location, useSiteDiagnostics);
-                return result;
             }
         }
     }

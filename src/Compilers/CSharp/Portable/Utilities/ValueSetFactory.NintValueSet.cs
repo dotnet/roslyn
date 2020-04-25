@@ -4,11 +4,11 @@
 
 #nullable enable
 
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    using System.Text;
-    using Microsoft.CodeAnalysis.PooledObjects;
-    using Roslyn.Utilities;
     using static BinaryOperatorKind;
 
     internal static partial class ValueSetFactory
@@ -18,7 +18,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly static NintValueSet AllValues = new NintValueSet(hasSmall: true, values: NumericValueSet<int, IntTC>.AllValues, hasLarge: true);
 
             private readonly IValueSet<int> _values;
-            private readonly bool _hasSmall, _hasLarge;
+
+            /// <summary>
+            /// A value of type nint may, in a 64-bit runtime, take on values less than <see cref="System.Int32.MinValue"/>.
+            /// A value set representing values of type nint groups them all together, so that it is not possible to
+            /// distinguish one such value from another.  The flag <see cref="_hasSmall"/> is true when the set is considered
+            /// to contain all values less than <see cref="System.Int32.MinValue"/> (if any).
+            /// </summary>
+            private readonly bool _hasSmall;
+
+            /// <summary>
+            /// A value of type nint may, in a 64-bit runtime, take on values greater than <see cref="System.Int32.MaxValue"/>.
+            /// A value set representing values of type nint groups them all together, so that it is not possible to
+            /// distinguish one such value from another.  The flag <see cref="_hasLarge"/> is true when the set is considered
+            /// to contain all values greater than <see cref="System.Int32.MaxValue"/> (if any).
+            /// </summary>
+            private readonly bool _hasLarge;
 
             internal NintValueSet(bool hasSmall, IValueSet<int> values, bool hasLarge)
             {

@@ -59,16 +59,17 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             /// </remarks>
             private SyntaxNode _switchTargetExpression = null!;
             private readonly ISyntaxFacts _syntaxFacts;
-            private readonly Feature _features;
 
             protected Analyzer(ISyntaxFacts syntaxFacts, Feature features)
             {
                 _syntaxFacts = syntaxFacts;
-                _features = features;
+                Features = features;
             }
 
+            public Feature Features { get; }
+
             public bool Supports(Feature feature)
-                => (_features & feature) != 0;
+                => (Features & feature) != 0;
 
             public (ImmutableArray<AnalyzedSwitchSection>, SyntaxNode TargetExpression) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
             {
@@ -318,7 +319,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                         }
 
                     case IIsTypeOperation op
-                        when Supports(Feature.TypePattern) && CheckTargetExpression(op.ValueOperand) && op.Syntax is TIsExpressionSyntax node:
+                        when Supports(Feature.IsTypePattern) && CheckTargetExpression(op.ValueOperand) && op.Syntax is TIsExpressionSyntax node:
                         return new AnalyzedPattern.Type(node);
 
                     case IIsPatternOperation op
@@ -453,13 +454,14 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             RangePattern = 1 << 1,
             // C# 7.0 features
             SourcePattern = 1 << 2,
-            TypePattern = 1 << 3,
+            IsTypePattern = 1 << 3,
             CaseGuard = 1 << 4,
             // C# 8.0 features
             SwitchExpression = 1 << 5,
             // C# 9.0 features
             OrPattern = 1 << 6,
             AndPattern = 1 << 7,
+            TypePattern = 1 << 8,
         }
     }
 }

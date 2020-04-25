@@ -2050,15 +2050,6 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub ReferenceManagerReuse_WithPreviousSubmission()
-            Dim s1 = VisualBasicCompilation.CreateScriptCompilation("s1")
-            Dim s2 = VisualBasicCompilation.CreateScriptCompilation("s2")
-
-            Dim s3 = s2.WithScriptCompilationInfo(s2.ScriptCompilationInfo.WithPreviousScriptCompilation(s1))
-            Assert.True(s2.ReferenceManagerEquals(s3))
-        End Sub
-
-        <Fact>
         Public Sub ReferenceManagerReuse_WithXmlFileResolver()
             Dim c1 = VisualBasicCompilation.Create("c", options:=TestOptions.ReleaseDll)
 
@@ -2174,6 +2165,43 @@ End Class
 
             Dim ars = arc.ReplaceSyntaxTree(tc, ts)
             Assert.False(arc.ReferenceManagerEquals(ars))
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceManagerReuse_WithScriptCompilationInfo()
+            ' Note The following results would change if we optimized sharing more: https://github.com/dotnet/roslyn/issues/43397
+
+            Dim c1 = VisualBasicCompilation.CreateScriptCompilation("c1")
+            Assert.NotNull(c1.ScriptCompilationInfo)
+            Assert.Null(c1.ScriptCompilationInfo.PreviousScriptCompilation)
+
+            Dim c2 = c1.WithScriptCompilationInfo(Nothing)
+            Assert.Null(c2.ScriptCompilationInfo)
+            Assert.True(c2.ReferenceManagerEquals(c1))
+
+            Dim c3 = c2.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=Nothing, returnType:=GetType(Integer), globalsType:=Nothing))
+            Assert.NotNull(c3.ScriptCompilationInfo)
+            Assert.Null(c3.ScriptCompilationInfo.PreviousScriptCompilation)
+            Assert.True(c3.ReferenceManagerEquals(c2))
+
+            Dim c4 = c3.WithScriptCompilationInfo(Nothing)
+            Assert.Null(c4.ScriptCompilationInfo)
+            Assert.True(c4.ReferenceManagerEquals(c3))
+
+            Dim c5 = c4.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=c1, returnType:=GetType(Integer), globalsType:=Nothing))
+            Assert.False(c5.ReferenceManagerEquals(c4))
+
+            Dim c6 = c5.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=c1, returnType:=GetType(Boolean), globalsType:=Nothing))
+            Assert.True(c6.ReferenceManagerEquals(c5))
+
+            Dim c7 = c6.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=c2, returnType:=GetType(Boolean), globalsType:=Nothing))
+            Assert.False(c7.ReferenceManagerEquals(c6))
+
+            Dim c8 = c7.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=Nothing, returnType:=GetType(Boolean), globalsType:=Nothing))
+            Assert.False(c8.ReferenceManagerEquals(c7))
+
+            Dim c9 = c8.WithScriptCompilationInfo(Nothing)
+            Assert.True(c9.ReferenceManagerEquals(c8))
         End Sub
 
         Private Class EvolvingTestReference

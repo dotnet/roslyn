@@ -200,7 +200,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsPointerMemberAccessExpression(SyntaxNode node);
 
-        bool IsNamedParameter(SyntaxNode node);
+        bool IsNamedArgument(SyntaxNode node);
+        bool IsNameOfNamedArgument(SyntaxNode node);
         SyntaxToken? GetNameOfParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
         SyntaxNode GetParameterList(SyntaxNode node);
@@ -459,6 +460,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token);
 
         bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes);
+
+        bool IsParameterNameXmlElementSyntax(SyntaxNode node);
+
+        SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
 
         bool CanHaveAccessibility(SyntaxNode declaration);
 

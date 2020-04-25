@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SolutionService_GetSolutionAsync = 322,
         SolutionService_UpdatePrimaryWorkspaceAsync = 323,
 
-        SnapshotService_RequestAssetAsync = 324,
+        RemoteHostService_GetAssetsAsync = 324,
 
         // obsolete: CompilationService_GetCompilationAsync = 325,
         SolutionCreator_AssetDifferences = 326,
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         Intellisense_AsyncCompletion_Data = 371,
         Intellisense_CompletionProviders_Data = 372,
-        SnapshotService_IsExperimentEnabledAsync = 373,
+        RemoteHostService_IsExperimentEnabledAsync = 373,
         PartialLoad_FullyLoaded = 374,
         Liveshare_UnknownCodeAction = 375,
         Liveshare_LexicalClassifications = 376,
