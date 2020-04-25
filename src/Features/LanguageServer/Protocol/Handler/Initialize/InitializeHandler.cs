@@ -16,8 +16,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.InitializeName)]
+    [ExportLspMethod(LSP.Methods.InitializeName), Shared]
     internal class InitializeHandler : IRequestHandler<LSP.InitializeParams, LSP.InitializeResult>
     {
         private readonly ImmutableArray<Lazy<CompletionProvider, Completion.Providers.CompletionProviderMetadata>> _completionProviders;

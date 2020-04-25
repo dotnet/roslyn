@@ -12,8 +12,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Structure
 {
-    [Shared]
-    [ExportLanguageService(typeof(BlockStructureService), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(BlockStructureService), LanguageNames.FSharp), Shared]
     internal class FSharpBlockStructureService : BlockStructureService
     {
         private readonly IFSharpBlockStructureService _service;

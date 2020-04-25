@@ -14,8 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    [Shared]
-    [ExportLanguageService(typeof(ILanguageDebugInfoService), InternalLanguageNames.TypeScript)]
+    [ExportLanguageService(typeof(ILanguageDebugInfoService), InternalLanguageNames.TypeScript), Shared]
     internal sealed class VSTypeScriptLanguageDebugInfoService : ILanguageDebugInfoService
     {
         private readonly IVSTypeScriptLanguageDebugInfoServiceImplementation _implementation;

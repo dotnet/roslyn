@@ -49,8 +49,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.DocumentHighligh
         }
     }
 
-    [Shared]
-    [ExportLanguageService(typeof(IDocumentHighlightsService), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(IDocumentHighlightsService), LanguageNames.FSharp), Shared]
     internal class FSharpDocumentHighlightsService : IDocumentHighlightsService
     {
         private readonly IFSharpDocumentHighlightsService _service;

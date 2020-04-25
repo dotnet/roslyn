@@ -11,8 +11,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentFormattingName)]
+    [ExportLspMethod(LSP.Methods.TextDocumentFormattingName), Shared]
     internal class FormatDocumentHandler : FormatDocumentHandlerBase, IRequestHandler<LSP.DocumentFormattingParams, LSP.TextEdit[]>
     {
         [ImportingConstructor]

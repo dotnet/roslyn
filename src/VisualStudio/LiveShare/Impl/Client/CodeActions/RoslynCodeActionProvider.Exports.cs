@@ -10,8 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.CodeActions
 {
-    [Shared]
-    [ExportCodeRefactoringProvider(StringConstants.CSharpLspLanguageName)]
+    [ExportCodeRefactoringProvider(StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspCodeActionProvider : RoslynCodeActionProvider
     {
         [ImportingConstructor]
@@ -22,8 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.CodeActions
         }
     }
 
-    [Shared]
-    [ExportCodeRefactoringProvider(StringConstants.VBLspLanguageName)]
+    [ExportCodeRefactoringProvider(StringConstants.VBLspLanguageName), Shared]
     internal class VBLspCodeActionProvider : RoslynCodeActionProvider
     {
         [ImportingConstructor]

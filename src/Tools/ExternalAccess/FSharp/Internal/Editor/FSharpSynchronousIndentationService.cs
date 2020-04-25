@@ -12,8 +12,7 @@ using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
-    [Shared]
-    [ExportLanguageService(typeof(IIndentationService), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(IIndentationService), LanguageNames.FSharp), Shared]
     internal class FSharpSynchronousIndentationService : IIndentationService
     {
         private readonly IFSharpSynchronousIndentationService _service;

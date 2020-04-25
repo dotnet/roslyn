@@ -14,8 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 {
-    [Shared]
-    [ExportLanguageService(typeof(FSharpUnusedOpensDiagnosticAnalyzerService), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(FSharpUnusedOpensDiagnosticAnalyzerService), LanguageNames.FSharp), Shared]
     internal class FSharpUnusedOpensDiagnosticAnalyzerService : ILanguageService
     {
         private readonly IFSharpUnusedOpensDiagnosticAnalyzer _analyzer;

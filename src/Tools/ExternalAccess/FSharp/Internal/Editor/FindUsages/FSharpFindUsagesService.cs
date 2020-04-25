@@ -12,8 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsages
 {
-    [Shared]
-    [ExportLanguageService(typeof(IFindUsagesService), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(IFindUsagesService), LanguageNames.FSharp), Shared]
     internal class FSharpFindUsagesService : IFindUsagesService
     {
         private readonly IFSharpFindUsagesService _service;

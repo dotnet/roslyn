@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Handle a completion resolve request to add description.
     /// </summary>
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName)]
+    [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName), Shared]
     internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
         [ImportingConstructor]

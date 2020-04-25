@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Handles the get code actions command.
     /// </summary>
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName)]
+    [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName), Shared]
     internal class CodeActionsHandler : CodeActionsHandlerBase, IRequestHandler<LSP.CodeActionParams, object[]>
     {
         [ImportingConstructor]

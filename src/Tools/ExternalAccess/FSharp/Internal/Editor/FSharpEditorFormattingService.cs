@@ -16,8 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
-    [Shared]
-    [ExportLanguageService(typeof(IEditorFormattingService), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(IEditorFormattingService), LanguageNames.FSharp), Shared]
     internal class FSharpEditorFormattingService : IEditorFormattingService
     {
         private readonly IFSharpEditorFormattingService _service;

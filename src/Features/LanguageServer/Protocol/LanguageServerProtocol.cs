@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// Implements Language Server Protocol
     /// TODO - Make this public when we're ready.
     /// </summary>
-    [Shared]
-    [Export(typeof(LanguageServerProtocol))]
+    [Export(typeof(LanguageServerProtocol)), Shared]
     internal sealed class LanguageServerProtocol
     {
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;

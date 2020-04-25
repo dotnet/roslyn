@@ -13,8 +13,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    [Shared]
-    [ExportLanguageService(typeof(IEditorInlineRenameService), InternalLanguageNames.TypeScript)]
+    [ExportLanguageService(typeof(IEditorInlineRenameService), InternalLanguageNames.TypeScript), Shared]
     internal sealed class VSTypeScriptEditorInlineRenameService : IEditorInlineRenameService
     {
         private readonly Lazy<IVSTypeScriptEditorInlineRenameService> _service;

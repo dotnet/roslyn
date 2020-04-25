@@ -16,8 +16,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
-    [Shared]
-    [ExportLanguageService(typeof(IGoToDefinitionService), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(IGoToDefinitionService), LanguageNames.FSharp), Shared]
     internal class FSharpGoToDefinitionService : IGoToDefinitionService
     {
         private readonly IFSharpGoToDefinitionService _service;

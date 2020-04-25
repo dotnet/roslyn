@@ -13,8 +13,7 @@ using Microsoft.CodeAnalysis.NavigateTo;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
 {
-    [Shared]
-    [ExportLanguageService(typeof(INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate), LanguageNames.FSharp), Shared]
     internal class FSharpNavigateToSearchService : INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate
     {
         private readonly IFSharpNavigateToSearchService _service;

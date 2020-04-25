@@ -14,8 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
 {
-    [Shared]
-    [ExportLanguageService(typeof(IClassificationService), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(IClassificationService), LanguageNames.FSharp), Shared]
     internal class FSharpClassificationService : IClassificationService
     {
         private readonly IFSharpClassificationService _service;

@@ -15,8 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 {
-    [Shared]
-    [ExportLanguageService(typeof(FSharpDocumentDiagnosticAnalyzerService), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(FSharpDocumentDiagnosticAnalyzerService), LanguageNames.FSharp), Shared]
     internal class FSharpDocumentDiagnosticAnalyzerService : ILanguageService
     {
         private readonly IFSharpDocumentDiagnosticAnalyzer _analyzer;

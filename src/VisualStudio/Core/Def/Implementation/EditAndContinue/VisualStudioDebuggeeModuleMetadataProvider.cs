@@ -18,8 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
-    [Shared]
-    [Export(typeof(IDebuggeeModuleMetadataProvider))]
+    [Export(typeof(IDebuggeeModuleMetadataProvider)), Shared]
     [Export(typeof(VisualStudioDebuggeeModuleMetadataProvider))]
     internal sealed class VisualStudioDebuggeeModuleMetadataProvider : IDebuggeeModuleMetadataProvider
     {

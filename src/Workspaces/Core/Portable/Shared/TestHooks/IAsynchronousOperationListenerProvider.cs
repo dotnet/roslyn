@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     /// <see cref="IAsynchronousOperationListener" /> and use
     /// <see cref="AsynchronousOperationListenerProvider" /> in test to get waiter.
     /// </summary>
-    [Shared]
-    [Export(typeof(IAsynchronousOperationListenerProvider))]
+    [Export(typeof(IAsynchronousOperationListenerProvider)), Shared]
     [Export(typeof(AsynchronousOperationListenerProvider))]
     internal sealed class AsynchronousOperationListenerProvider : IAsynchronousOperationListenerProvider
     {

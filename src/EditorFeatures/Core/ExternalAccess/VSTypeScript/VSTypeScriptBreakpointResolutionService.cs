@@ -17,8 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    [Shared]
-    [ExportLanguageService(typeof(IBreakpointResolutionService), InternalLanguageNames.TypeScript)]
+    [ExportLanguageService(typeof(IBreakpointResolutionService), InternalLanguageNames.TypeScript), Shared]
     internal sealed class VSTypeScriptBreakpointResolutionService : IBreakpointResolutionService
     {
         private readonly IVSTypeScriptBreakpointResolutionServiceImplementation _implementation;

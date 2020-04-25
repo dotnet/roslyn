@@ -13,8 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.CommentSelection
 {
-    [Shared]
-    [ExportLanguageService(typeof(ICommentSelectionService), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(ICommentSelectionService), LanguageNames.FSharp), Shared]
     internal class FSharpCommentSelectionService : ICommentSelectionService
     {
         [ImportingConstructor]

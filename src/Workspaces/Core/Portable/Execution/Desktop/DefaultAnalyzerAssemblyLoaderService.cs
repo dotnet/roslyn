@@ -10,8 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [Shared]
-    [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider))]
+    [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider)), Shared]
     internal sealed class DefaultAnalyzerAssemblyLoaderService : IAnalyzerAssemblyLoaderProvider
     {
         private readonly DefaultAnalyzerAssemblyLoader _loader = new DefaultAnalyzerAssemblyLoader();

@@ -10,8 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 {
-    [Shared]
-    [Export(typeof(IFSharpDiagnosticAnalyzerService))]
+    [Export(typeof(IFSharpDiagnosticAnalyzerService)), Shared]
     internal class FSharpDiagnosticAnalyzerService : IFSharpDiagnosticAnalyzerService
     {
         private readonly Microsoft.CodeAnalysis.Diagnostics.IDiagnosticAnalyzerService _delegatee;

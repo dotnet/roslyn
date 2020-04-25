@@ -10,8 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    [Shared]
-    [Export(typeof(TestExperimentationService))]
+    [Export(typeof(TestExperimentationService)), Shared]
     [ExportWorkspaceService(typeof(IExperimentationService), WorkspaceKind.Test), PartNotDiscoverable]
     internal sealed class TestExperimentationService : IExperimentationService
     {

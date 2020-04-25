@@ -12,8 +12,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentTypeDefinitionName)]
+    [ExportLspMethod(LSP.Methods.TextDocumentTypeDefinitionName), Shared]
     internal class GoToTypeDefinitionHandler : GoToDefinitionHandlerBase, IRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
         [ImportingConstructor]

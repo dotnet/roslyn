@@ -14,8 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.WorkspaceSymbolName)]
+    [ExportLspMethod(Methods.WorkspaceSymbolName), Shared]
     internal class WorkspaceSymbolsHandler : IRequestHandler<WorkspaceSymbolParams, SymbolInformation[]>
     {
         [ImportingConstructor]

@@ -12,8 +12,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    [Shared]
-    [ExportLanguageService(typeof(VSTypeScriptDiagnosticAnalyzerLanguageService), InternalLanguageNames.TypeScript)]
+    [ExportLanguageService(typeof(VSTypeScriptDiagnosticAnalyzerLanguageService), InternalLanguageNames.TypeScript), Shared]
     internal sealed class VSTypeScriptDiagnosticAnalyzerLanguageService : ILanguageService
     {
         internal readonly IVSTypeScriptDiagnosticAnalyzerImplementation? Implementation;

@@ -169,8 +169,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         }
     }
 
-    [Shared]
-    [ExportLanguageService(typeof(IEditorInlineRenameService), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(IEditorInlineRenameService), LanguageNames.FSharp), Shared]
     internal class FSharpEditorInlineRenameService : IEditorInlineRenameService
     {
         private readonly IFSharpEditorInlineRenameService _service;

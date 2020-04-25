@@ -17,8 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implementation.Debugging
 {
-    [Shared]
-    [ExportLanguageService(typeof(IBreakpointResolutionService), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(IBreakpointResolutionService), LanguageNames.FSharp), Shared]
     internal class FSharpBreakpointResolutionService : IBreakpointResolutionService
     {
         private readonly IFSharpBreakpointResolutionService _service;

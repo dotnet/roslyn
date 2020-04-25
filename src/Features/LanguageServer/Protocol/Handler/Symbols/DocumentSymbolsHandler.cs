@@ -19,8 +19,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentDocumentSymbolName)]
+    [ExportLspMethod(Methods.TextDocumentDocumentSymbolName), Shared]
     internal class DocumentSymbolsHandler : IRequestHandler<DocumentSymbolParams, object[]>
     {
         [ImportingConstructor]

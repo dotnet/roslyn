@@ -12,8 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implementation.Debugging
 {
-    [Shared]
-    [ExportLanguageService(typeof(ILanguageDebugInfoService), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(ILanguageDebugInfoService), LanguageNames.FSharp), Shared]
     internal class FSharpLanguageDebugInfoService : ILanguageDebugInfoService
     {
         private readonly IFSharpLanguageDebugInfoService _service;

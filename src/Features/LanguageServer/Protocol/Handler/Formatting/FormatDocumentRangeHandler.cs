@@ -11,8 +11,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentRangeFormattingName)]
+    [ExportLspMethod(Methods.TextDocumentRangeFormattingName), Shared]
     internal class FormatDocumentRangeHandler : FormatDocumentHandlerBase, IRequestHandler<DocumentRangeFormattingParams, TextEdit[]>
     {
         [ImportingConstructor]

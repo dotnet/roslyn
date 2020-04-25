@@ -17,8 +17,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentSignatureHelpName)]
+    [ExportLspMethod(LSP.Methods.TextDocumentSignatureHelpName), Shared]
     internal class SignatureHelpHandler : IRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp>
     {
         private readonly IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;

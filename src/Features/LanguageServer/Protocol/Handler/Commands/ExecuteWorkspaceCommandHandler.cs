@@ -14,8 +14,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.WorkspaceExecuteCommandName)]
+    [ExportLspMethod(LSP.Methods.WorkspaceExecuteCommandName), Shared]
     internal class ExecuteWorkspaceCommandHandler : IRequestHandler<LSP.ExecuteCommandParams, object>
     {
         private readonly ImmutableDictionary<string, Lazy<IExecuteWorkspaceCommandHandler, IExecuteWorkspaceCommandHandlerMetadata>> _executeCommandHandlers;

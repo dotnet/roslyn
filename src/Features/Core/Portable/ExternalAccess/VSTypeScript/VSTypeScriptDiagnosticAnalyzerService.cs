@@ -13,8 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    [Shared]
-    [Export(typeof(IVSTypeScriptDiagnosticAnalyzerService))]
+    [Export(typeof(IVSTypeScriptDiagnosticAnalyzerService)), Shared]
     internal sealed class VSTypeScriptAnalyzerService : IVSTypeScriptDiagnosticAnalyzerService
     {
         private readonly IDiagnosticAnalyzerService _service;

@@ -18,8 +18,7 @@ using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
-    [Shared]
-    [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.FSharp), Shared]
     internal class FSharpNavigationBarItemService : INavigationBarItemService
     {
         private readonly IFSharpNavigationBarItemService _service;
