@@ -7459,5 +7459,36 @@ class Program
 }",
                 index: 3);
         }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestKeepExistingNonTrivialCodeInLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.IO;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Task.Run(() => File.Copy(""src"", [|Path.Combine(""dir"", ""file"")|]));
+    }
+}",
+@"using System.IO;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Task.Run(() =>
+        {
+            string {|Rename:destFileName|} = Path.Combine(""dir"", ""file"");
+            File.Copy(""src"", destFileName);
+        });
+    }
+}");
+        }
     }
 }

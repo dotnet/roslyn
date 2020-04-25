@@ -95,13 +95,32 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var rewrittenBody = Rewrite(
                 document, expression, newLocalName, document, oldBody, allOccurrences, cancellationToken);
 
+            var doesDelegateMethodReturnVoid =
+                document.SemanticModel.GetTypeInfo(oldLambda, cancellationToken).ConvertedType is INamedTypeSymbol delegateType &&
+                delegateType.DelegateInvokeMethod != null &&
+                delegateType.DelegateInvokeMethod.ReturnsVoid;
 
-            var newBody =
-                document.SemanticModel.GetTypeInfo(oldLambda, cancellationToken).ConvertedType is INamedTypeSymbol delegateType
-                && delegateType.DelegateInvokeMethod != null
-                && delegateType.DelegateInvokeMethod.ReturnsVoid
-                    ? SyntaxFactory.Block(declarationStatement)
-                    : SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
+            BlockSyntax newBody;
+            if (doesDelegateMethodReturnVoid)
+            {
+                // We don't need to include the rewritten body if it consists of just the identifier name. However, in all other cases,
+                // the rewritten body should be included.
+                var isRewrittenBodyTrivial = rewrittenBody.WalkDownParentheses().IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifier) &&
+                    identifier.Identifier.ValueText == newLocalName.Identifier.ValueText;
+
+                if (isRewrittenBodyTrivial)
+                {
+                    newBody = SyntaxFactory.Block(declarationStatement);
+                }
+                else
+                {
+                    newBody = SyntaxFactory.Block(declarationStatement, SyntaxFactory.ExpressionStatement(rewrittenBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+                }
+            }
+            else
+            {
+                newBody = SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
+            }
 
             // Add an elastic newline so that the formatter will place this new lambda body across multiple lines.
             newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed))
