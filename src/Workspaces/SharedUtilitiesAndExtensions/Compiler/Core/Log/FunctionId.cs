@@ -484,10 +484,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Renamer_FindRenameLocationsAsync = 387,
         Renamer_ResolveConflictsAsync = 388,
 
-        DependentTypeFinder_FindAndCacheDerivedClassesAsync = 389,
-        DependentTypeFinder_FindAndCacheDerivedInterfacesAsync = 390,
-        DependentTypeFinder_FindAndCacheImplementingTypesAsync = 391,
-
         ChangeSignature_Data = 400,
+
+        DependentTypeFinder_FindAndCacheDerivedClassesAsync = 410,
+        DependentTypeFinder_FindAndCacheDerivedInterfacesAsync = 411,
+        DependentTypeFinder_FindAndCacheImplementingTypesAsync = 412,
+
+        AbstractEncapsulateFieldService_EncapsulateFieldsAsync = 420,
     }
 }
