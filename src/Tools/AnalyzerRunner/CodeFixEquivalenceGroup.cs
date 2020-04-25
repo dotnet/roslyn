@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Roslyn.Utilities;
 
 namespace AnalyzerRunner
 {
@@ -48,7 +49,7 @@ namespace AnalyzerRunner
 
         internal int NumberOfDiagnostics { get; }
 
-        internal static async Task<ImmutableArray<CodeFixEquivalenceGroup>> CreateAsync(CodeFixProvider codeFixProvider, ImmutableDictionary<ProjectId, ImmutableArray<Diagnostic>> allDiagnostics, Solution solution, CancellationToken cancellationToken)
+        internal static async Task<ImmutableArray<CodeFixEquivalenceGroup>> CreateAsync(string language, CodeFixProvider codeFixProvider, ImmutableDictionary<ProjectId, ImmutableArray<Diagnostic>> allDiagnostics, Solution solution, CancellationToken cancellationToken)
         {
             var fixAllProvider = codeFixProvider.GetFixAllProvider();
             if (fixAllProvider == null)
@@ -56,14 +57,17 @@ namespace AnalyzerRunner
                 return ImmutableArray.Create<CodeFixEquivalenceGroup>();
             }
 
-            var relevantDocumentDiagnostics =
-                new Dictionary<ProjectId, Dictionary<string, List<Diagnostic>>>();
-            var relevantProjectDiagnostics =
-                new Dictionary<ProjectId, List<Diagnostic>>();
+            var relevantDocumentDiagnostics = new Dictionary<ProjectId, Dictionary<string, List<Diagnostic>>>();
+            var relevantProjectDiagnostics = new Dictionary<ProjectId, List<Diagnostic>>();
 
-            foreach (var projectDiagnostics in allDiagnostics)
+            foreach (var (projectId, diagnostics) in allDiagnostics)
             {
-                foreach (var diagnostic in projectDiagnostics.Value)
+                if (solution.GetProject(projectId).Language != language)
+                {
+                    continue;
+                }
+
+                foreach (var diagnostic in diagnostics)
                 {
                     if (!codeFixProvider.FixableDiagnosticIds.Contains(diagnostic.Id))
                     {
@@ -74,10 +78,10 @@ namespace AnalyzerRunner
                     {
                         var sourcePath = diagnostic.Location.GetLineSpan().Path;
 
-                        if (!relevantDocumentDiagnostics.TryGetValue(projectDiagnostics.Key, out var projectDocumentDiagnostics))
+                        if (!relevantDocumentDiagnostics.TryGetValue(projectId, out var projectDocumentDiagnostics))
                         {
                             projectDocumentDiagnostics = new Dictionary<string, List<Diagnostic>>();
-                            relevantDocumentDiagnostics.Add(projectDiagnostics.Key, projectDocumentDiagnostics);
+                            relevantDocumentDiagnostics.Add(projectId, projectDocumentDiagnostics);
                         }
 
                         if (!projectDocumentDiagnostics.TryGetValue(sourcePath, out var diagnosticsInFile))
@@ -90,10 +94,10 @@ namespace AnalyzerRunner
                     }
                     else
                     {
-                        if (!relevantProjectDiagnostics.TryGetValue(projectDiagnostics.Key, out var diagnosticsInProject))
+                        if (!relevantProjectDiagnostics.TryGetValue(projectId, out var diagnosticsInProject))
                         {
                             diagnosticsInProject = new List<Diagnostic>();
-                            relevantProjectDiagnostics.Add(projectDiagnostics.Key, diagnosticsInProject);
+                            relevantProjectDiagnostics.Add(projectId, diagnosticsInProject);
                         }
 
                         diagnosticsInProject.Add(diagnostic);

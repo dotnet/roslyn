@@ -28,6 +28,10 @@ namespace AnalyzerRunner
     {
         private readonly Options _options;
         private readonly ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _analyzers;
+
+        /// <summary>
+        /// Map from language name → code fix providers.
+        /// </summary>
         private readonly ImmutableDictionary<string, ImmutableArray<CodeFixProvider>> _codeFixes;
 
         public DiagnosticAnalyzerRunner(Options options)
@@ -446,55 +450,60 @@ namespace AnalyzerRunner
         {
             Console.WriteLine("Calculating fixes");
 
-            var codeFixers = _codeFixes;
+            var languageToEquivalenceGroups = new Dictionary<string, List<CodeFixEquivalenceGroup>>();
 
-            var equivalenceGroups = new List<CodeFixEquivalenceGroup>();
-
-            foreach (var codeFixer in codeFixers.SelectMany(pair => pair.Value))
+            foreach (var (language, codeFixes) in _codeFixes)
             {
-                equivalenceGroups.AddRange(await CodeFixEquivalenceGroup.CreateAsync(codeFixer, diagnostics, solution, cancellationToken).ConfigureAwait(true));
-            }
-
-            Console.WriteLine($"Found {equivalenceGroups.Count} equivalence groups.");
-            if (applyChanges && equivalenceGroups.Count > 1)
-            {
-                Console.Error.WriteLine("/apply can only be used with a single equivalence group.");
-                return;
-            }
-
-            Console.WriteLine("Calculating changes");
-
-            foreach (var fix in equivalenceGroups)
-            {
-                var stopwatch = PerformanceTracker.StartNew();
-                try
+                var groups = languageToEquivalenceGroups.GetOrAdd(language, _ => new List<CodeFixEquivalenceGroup>());
+                foreach (var codeFix in codeFixes)
                 {
-                    Console.WriteLine($"Calculating fix for {fix.CodeFixEquivalenceKey} using {fix.FixAllProvider} for {fix.NumberOfDiagnostics} instances.");
-                    var operations = await fix.GetOperationsAsync(cancellationToken).ConfigureAwait(true);
-                    if (applyChanges)
-                    {
-                        var applyOperations = operations.OfType<ApplyChangesOperation>().ToList();
-                        if (applyOperations.Count > 1)
-                        {
-                            Console.Error.WriteLine("/apply can only apply a single code action operation.");
-                        }
-                        else if (applyOperations.Count == 0)
-                        {
-                            Console.WriteLine("No changes were found to apply.");
-                        }
-                        else
-                        {
-                            applyOperations[0].Apply(solution.Workspace, cancellationToken);
-                        }
-                    }
-
-                    WriteLine($"Calculating changes completed in {stopwatch.Elapsed.TotalMilliseconds}ms. This is {fix.NumberOfDiagnostics / stopwatch.Elapsed.TotalSeconds:0.000} instances/second.", ConsoleColor.Yellow);
+                    groups.AddRange(await CodeFixEquivalenceGroup.CreateAsync(language, codeFix, diagnostics, solution, cancellationToken).ConfigureAwait(false));
                 }
-                catch (Exception ex)
+            }
+
+            foreach (var (language, equivalenceGroups) in languageToEquivalenceGroups)
+            {
+                Console.WriteLine($"Found {equivalenceGroups.Count} equivalence groups for {language}.");
+                if (applyChanges && equivalenceGroups.Count > 1)
                 {
-                    // Report thrown exceptions
-                    WriteLine($"The fix '{fix.CodeFixEquivalenceKey}' threw an exception after {stopwatch.Elapsed.TotalMilliseconds}ms:", ConsoleColor.Yellow);
-                    WriteLine(ex.ToString(), ConsoleColor.Yellow);
+                    Console.Error.WriteLine("/apply can only be used with a single equivalence group for each language.");
+                    return;
+                }
+
+                Console.WriteLine("Calculating changes");
+
+                foreach (var fix in equivalenceGroups)
+                {
+                    var stopwatch = PerformanceTracker.StartNew();
+                    try
+                    {
+                        Console.WriteLine($"Calculating fix for {fix.CodeFixEquivalenceKey} using {fix.FixAllProvider} for {fix.NumberOfDiagnostics} instances.");
+                        var operations = await fix.GetOperationsAsync(cancellationToken).ConfigureAwait(true);
+                        if (applyChanges)
+                        {
+                            var applyOperations = operations.OfType<ApplyChangesOperation>().ToList();
+                            if (applyOperations.Count > 1)
+                            {
+                                Console.Error.WriteLine("/apply can only apply a single code action operation.");
+                            }
+                            else if (applyOperations.Count == 0)
+                            {
+                                Console.WriteLine("No changes were found to apply.");
+                            }
+                            else
+                            {
+                                applyOperations[0].Apply(solution.Workspace, cancellationToken);
+                            }
+                        }
+
+                        WriteLine($"Calculating changes completed in {stopwatch.GetSummary(preciseMemory: true)}. This is {fix.NumberOfDiagnostics / stopwatch.Elapsed.TotalSeconds:0.000} instances/second.", ConsoleColor.Yellow);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Report thrown exceptions
+                        WriteLine($"The fix '{fix.CodeFixEquivalenceKey}' threw an exception after {stopwatch.Elapsed.TotalMilliseconds}ms:", ConsoleColor.Yellow);
+                        WriteLine(ex.ToString(), ConsoleColor.Yellow);
+                    }
                 }
             }
         }
