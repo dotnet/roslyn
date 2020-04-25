@@ -4,22 +4,19 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class ElseDirectiveKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function HashElseNotInFileTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>|</File>, "#Else")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function HashElseInFileAfterIfTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
 #If True Then
 |</File>, "#Else")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function HashElseInFileAfterElseIfTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
 #If True Then
@@ -27,8 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
 |</File>, "#Else")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function HashElseNotInFileAfterElse1Test() As Task
             Await VerifyRecommendationsMissingAsync(<File>
 #If True Then
@@ -36,8 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
 |</File>, "#Else")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function HashElseNotInFileAfterElse2Test() As Task
             Await VerifyRecommendationsMissingAsync(<File>
 #If True Then

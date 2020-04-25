@@ -4,14 +4,12 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class StepKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function StepInForLoopTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>For i = 1 To 10 |</MethodBody>, "Step")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function StepInForLoopAfterLineContinuationTest() As Task
             Await VerifyRecommendationsContainAsync(
 <MethodBody>
@@ -20,8 +18,7 @@ _
 |</MethodBody>, "Step")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function StepInForLoopAfterLineContinuationTestCommentsAfterLineContinuation() As Task
             Await VerifyRecommendationsContainAsync(
 <MethodBody>
@@ -29,8 +26,7 @@ _
 _
 |</MethodBody>, "Step")
         End Function
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function StepInForLoopNotAfterEOLTest() As Task
             Await VerifyRecommendationsMissingAsync(
 <MethodBody>
@@ -38,8 +34,7 @@ _
 |</MethodBody>, "Step")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function StepInForLoopNotAfterEOLWithLineContinuationTest() As Task
             Await VerifyRecommendationsMissingAsync(
 <MethodBody>

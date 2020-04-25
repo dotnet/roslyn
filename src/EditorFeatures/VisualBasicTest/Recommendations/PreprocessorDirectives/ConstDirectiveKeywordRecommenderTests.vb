@@ -14,8 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
             Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "#Const")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotInEnumBlockMemberDeclarationTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
                                              Enum goo

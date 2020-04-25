@@ -2199,8 +2199,7 @@ _' ByVal selector As SelectorFunc(Of K, QueryableCollection(Of T), R)) _
         End Function
 
         <WorkItem(538754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538754")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix4459() As Task
             Dim code = <Code>Option Strict Off
 Module Module1
@@ -2228,8 +2227,7 @@ End Module
         End Function
 
         <WorkItem(538675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538675")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix4352() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -2255,8 +2253,7 @@ End Module</Code>
         End Function
 
         <WorkItem(538703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538703")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix4394() As Task
             Await AssertFormatAsync("
 ''' <summary>
@@ -2537,8 +2534,7 @@ End Class</Code>
         End Function
 
         <WorkItem(539324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539324")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5232() As Task
             Dim code = <Code>Imports System
 Module M
@@ -2558,8 +2554,7 @@ End Module</Code>
         End Function
 
         <WorkItem(539353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539353")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5270() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -2587,8 +2582,7 @@ End Module</Code>
         End Function
 
         <WorkItem(539358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539358")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5277() As Task
             Dim code = <Code>
 #If True Then
@@ -2604,8 +2598,7 @@ End Module</Code>
         End Function
 
         <WorkItem(539455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539455")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5432() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -2635,8 +2628,7 @@ End Module</Code>
         End Function
 
         <WorkItem(539351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539351")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5268() As Task
             Dim code = <Code>
 #If True _
@@ -2646,8 +2638,7 @@ End Module</Code>
         End Function
 
         <WorkItem(539351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539351")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5268_1() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -2662,8 +2653,7 @@ End Module</Code>
         End Function
 
         <WorkItem(539473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539473")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5456() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -2688,8 +2678,7 @@ End Module</Code>
         End Function
 
         <WorkItem(539474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539474")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5457() As Task
             Dim code = <Code>Module module1
     Sub main()
@@ -2725,8 +2714,7 @@ End Class</Code>
         End Function
 
         <WorkItem(539503, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539503")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5492() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -2759,8 +2747,7 @@ End Module
         End Function
 
         <WorkItem(539508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539508")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5497() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -2789,8 +2776,7 @@ End Module</Code>
         End Function
 
         <WorkItem(539581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539581")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5594() As Task
             Dim code = <Code>
 &lt;Assembly : MyAttr()&gt;
@@ -2825,8 +2811,7 @@ End Module
         End Function
 
         <WorkItem(539582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539582")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5595() As Task
             Dim code = <Code>
 Imports System.Xml
@@ -2847,8 +2832,7 @@ End Module
         End Function
 
         <WorkItem(539616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539616")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5637() As Task
             Dim code = <Code>Public Class Class1
 	'this line is comment line
@@ -2867,8 +2851,7 @@ End Class</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlTest() As Task
             Await AssertFormatAsync("
 Imports System
@@ -2893,8 +2876,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlDocument() As Task
             Await AssertFormatAsync("
 Imports System
@@ -2950,8 +2932,7 @@ End Module")
 
         <WorkItem(539463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539463")>
         <WorkItem(530597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530597")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlTest5442() As Task
             Using workspace = New AdhocWorkspace()
 
@@ -2998,8 +2979,7 @@ End Module"
         End Function
 
         <WorkItem(539687, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539687")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5731() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -3029,8 +3009,7 @@ End Module</Code>
         End Function
 
         <WorkItem(539545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539545")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5547() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -3062,8 +3041,7 @@ End Module</Code>
         End Function
 
         <WorkItem(539453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539453")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5430() As Task
             Dim code = "
 Imports System
@@ -3085,8 +3063,7 @@ End Module"
         End Function
 
         <WorkItem(539889, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539889")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5989() As Task
             Dim code = <Code>Imports System
 
@@ -3110,8 +3087,7 @@ End Module
         End Function
 
         <WorkItem(539409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539409")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix6367() As Task
             Dim code = <Code>Module Program
     Sub Main(args As String())
@@ -3131,8 +3107,7 @@ End Module
         End Function
 
         <WorkItem(539409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539409")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix6367_1() As Task
             Dim code = <Code>Module Program
     Sub Main(args As String())
@@ -3144,8 +3119,7 @@ End Module
         End Function
 
         <WorkItem(540678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540678")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix7023_1() As Task
             Dim code = <Code>Module Program
     Public Operator +(x As Integer, y As Integer)
@@ -3156,8 +3130,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlTextWithEmbededExpression1() As Task
             Await AssertFormatAsync("
 Class C
@@ -3180,8 +3153,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlTextWithEmbededExpression2() As Task
             Await AssertFormatAsync("
 Class C2
@@ -3206,8 +3178,7 @@ Class C2
 End Class")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlText() As Task
             Await AssertFormatAsync("
 Class C22
@@ -3232,8 +3203,7 @@ Class C22
 End Class")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlTextWithComment() As Task
             Await AssertFormatAsync("
 Class C223
@@ -3263,8 +3233,7 @@ End Class")
         End Function
 
         <WorkItem(541628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541628")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function MultipleControlVariables() As Task
             Dim code = <Code>Module Program
     Sub Main(args As String())
@@ -3288,8 +3257,7 @@ End Module</Code>
         End Function
 
         <WorkItem(541561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541561")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function ColonTrivia() As Task
             Dim code = <Code>Module Program
                         Sub Goo3()
@@ -3310,8 +3278,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function MemberAccessInObjectMemberInitializer() As Task
             Dim code = <Code>Module Program
     Sub Main()
@@ -3328,8 +3295,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BinaryConditionalExpression() As Task
             Dim code = <Code>Module Program
     Sub Main()
@@ -3510,8 +3476,7 @@ End Class
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function FormatComment1() As Task
             Dim code = <Code>Class A
     Sub Test()
@@ -3535,8 +3500,7 @@ End Class</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Formatting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function FormatComment2() As Task
             Dim code = <Code>Class A
     Sub Test()

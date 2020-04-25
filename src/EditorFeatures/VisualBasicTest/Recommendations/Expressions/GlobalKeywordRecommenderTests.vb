@@ -62,8 +62,7 @@ Do
 Loop While |</MethodBody>, "Global")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function GlobalAfterLoopUntilTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
 Do

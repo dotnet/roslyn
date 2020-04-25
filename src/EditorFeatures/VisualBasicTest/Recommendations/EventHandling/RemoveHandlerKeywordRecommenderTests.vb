@@ -5,8 +5,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.EventHandling
     Public Class RemoveHandlerKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function RemoveHandlerHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>|</MethodBody>, "RemoveHandler",
 $"{VBFeaturesResources.RemoveHandler_statement}
@@ -14,34 +13,29 @@ $"{VBFeaturesResources.RemoveHandler_statement}
 RemoveHandler {VBWorkspaceResources.event_}, {VBWorkspaceResources.handler}")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function RemoveHandlerInMethodBodyTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "RemoveHandler")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function RemoveHandlerAfterStatementTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
 Dim x 
 |</MethodBody>, "RemoveHandler")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function RemoveHandlerMissingInClassBlockTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "RemoveHandler")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function RemoveHandlerInSingleLineLambdaTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = Sub() |</MethodBody>, "RemoveHandler")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function RemoveHandlerInSingleLineFunctionLambdaTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Function() |</MethodBody>, "RemoveHandler")
         End Function

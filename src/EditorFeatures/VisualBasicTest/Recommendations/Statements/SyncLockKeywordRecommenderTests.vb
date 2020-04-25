@@ -4,14 +4,12 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class SyncLockKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function SyncLockInMethodBodyTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "SyncLock")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function SyncLockInMultiLineLambdaTest() As Task
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>
 Private _member = Sub()
@@ -21,16 +19,14 @@ End Sub
 
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function SyncLockInSingleLineLambdaTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
 Private _member = Sub() |
                                          </ClassDeclaration>, "SyncLock")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function SyncLockInSingleLineFunctionLambdaTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
 Private _member = Function() |

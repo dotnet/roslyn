@@ -4,14 +4,12 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class IfKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IfInMethodBodyTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "If")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IfInMultiLineLambdaTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
 Dim x = Sub()
@@ -19,15 +17,13 @@ Dim x = Sub()
         End Sub</MethodBody>, "If")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IfInSingleLineLambdaTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
 Dim x = Sub() |</MethodBody>, "If")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IfAfterElseInMultiLine1Test() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
 If True Then
@@ -35,8 +31,7 @@ Else |
 End If</MethodBody>, "If")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IfAfterElseInMultiLine2Test() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
 If True Then
@@ -45,14 +40,12 @@ Else |
 End If</MethodBody>, "If")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IfAfterElseInSingleLineIfTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Stop Else |</MethodBody>, "If")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IfAfterExternalSourceDirectiveTest() As Task
             Await VerifyRecommendationsContainAsync(
 <MethodBody>

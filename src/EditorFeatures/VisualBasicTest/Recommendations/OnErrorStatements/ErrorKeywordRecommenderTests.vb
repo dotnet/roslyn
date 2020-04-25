@@ -4,15 +4,13 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class ErrorKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ErrorOptionsAfterOnTest() As Task
             ' We can always exit a Sub/Function, so it should be there
             Await VerifyRecommendationsAreExactlyAsync(<MethodBody>On |</MethodBody>, "Error Resume Next", "Error GoTo")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ErrorStatementInMethodBodyTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Error")
         End Function

@@ -4,8 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OptionStatements
     Public Class ExplicitOptionsRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OptionsAfterOptionExplicitTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<File>Option Explicit |</File>, "On", "Off")
         End Function

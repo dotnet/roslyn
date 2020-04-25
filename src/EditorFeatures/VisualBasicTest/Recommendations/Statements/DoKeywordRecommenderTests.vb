@@ -41,8 +41,7 @@ Continue |
 Loop</MethodBody>, "Do")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function DoNotAfterContinueKeywordOutsideLoopTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>
 Continue |

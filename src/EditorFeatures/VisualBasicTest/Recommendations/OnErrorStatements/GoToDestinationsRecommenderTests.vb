@@ -4,8 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class GoToDestinationsRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ZeroAndOneAfterOnErrorGotoTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<MethodBody>On Error Goto |</MethodBody>, "0", "-1")
         End Function

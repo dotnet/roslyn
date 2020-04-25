@@ -20,8 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
             Await VerifyRecommendationsContainAsync(<MethodBody>Return |</MethodBody>, "Not")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterArgument1Test() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "Not")
         End Function

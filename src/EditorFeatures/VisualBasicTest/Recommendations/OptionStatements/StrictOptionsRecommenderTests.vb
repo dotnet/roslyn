@@ -4,8 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OptionStatements
     Public Class StrictOptionsRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OptionsAfterOptionStrictTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<File>Option Strict |</File>, "On", "Off")
         End Function

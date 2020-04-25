@@ -5,26 +5,22 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class AliasKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AliasAfterLibNameInSubTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Sub goo Lib "Goo" |</ClassDeclaration>, "Alias")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AliasAfterLibNameInFunctionTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Function goo Lib "Goo" |</ClassDeclaration>, "Alias")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AliasNotAfterLibKeywordTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Sub goo Lib |</ClassDeclaration>, Array.Empty(Of String)())
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NothingAfterBrokenAliasTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Sub goo Lib "Goo" Alais |</ClassDeclaration>, Array.Empty(Of String)())
         End Function

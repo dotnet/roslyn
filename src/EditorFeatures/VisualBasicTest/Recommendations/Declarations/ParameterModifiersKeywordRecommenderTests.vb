@@ -95,8 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             Await VerifyRecommendationsAreExactlyAsync(<MethodBody>Dim x = Sub(|</MethodBody>, "ByVal", "ByRef")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NothingAfterByValInSubLambdaTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<MethodBody>Dim x = Sub(ByVal |</MethodBody>, {})
         End Function

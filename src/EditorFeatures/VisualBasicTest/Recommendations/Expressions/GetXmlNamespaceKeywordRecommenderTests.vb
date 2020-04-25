@@ -76,8 +76,7 @@ Do
 Loop Until |</MethodBody>, "GetXmlNamespace")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function GetXmlNamespaceAfterIfTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>If |</MethodBody>, "GetXmlNamespace")
         End Function

@@ -4,44 +4,38 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class UntilAndWhileKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function UntilAfterDoTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Do |</MethodBody>, "Until")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function WhileAfterDoTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Do |</MethodBody>, "While")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function UntilAfterLoopTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
 Do
 Loop |</MethodBody>, "Until")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function WhileAfterLoopTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
 Do
 Loop |</MethodBody>, "While")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function UntilAndWhileMissingInDoLoopTopTestBlockTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>
 Do Until True
 Loop |</MethodBody>, "While", "Until")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function UntilAndWhileMissingAfterInvalidLoopTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>
 Loop |</MethodBody>, "While", "Until")

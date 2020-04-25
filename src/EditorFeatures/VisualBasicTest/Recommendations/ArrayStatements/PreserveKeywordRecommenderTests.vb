@@ -5,32 +5,27 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.ArrayStatements
     Public Class PreserveKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function PreserveNotInMethodBodyTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Preserve")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function PreserveAfterReDimStatementTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>ReDim | </MethodBody>, "Preserve")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function PreserveNotAfterReDimPreserveTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>ReDim Preserve |</ClassDeclaration>, "Preserve")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function PreserveNotAfterWeirdBrokenReDimTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>ReDim x, ReDim |</MethodBody>, "Preserve")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function PreserveInSingleLineLambdaTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = Sub() ReDim |</MethodBody>, "Preserve")
         End Function

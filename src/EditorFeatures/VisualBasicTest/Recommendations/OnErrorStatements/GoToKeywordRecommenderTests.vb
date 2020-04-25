@@ -4,14 +4,12 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class GoToKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function GoToAfterOnErrorTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>On Error |</MethodBody>, "GoTo")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function GoToNotAfterOnErrorInLambdaTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<MethodBody>
 Dim x = Sub()

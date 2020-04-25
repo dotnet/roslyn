@@ -5,8 +5,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class DelegateSubFunctionKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function SubAndFunctionAfterDelegateTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Delegate |</ClassDeclaration>, "Sub", "Function")
         End Function

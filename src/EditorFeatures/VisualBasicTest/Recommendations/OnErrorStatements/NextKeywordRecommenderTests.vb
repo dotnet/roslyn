@@ -4,20 +4,17 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class NextKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NextAfterOnErrorResumeTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<MethodBody>On Error Resume |</MethodBody>, "Next")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NextAfterResumeStatementTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<MethodBody>Resume |</MethodBody>, "Next")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NextNotInLambdaAfterResumeTest() As Task
             ' On Error statements are never allowed within lambdas
             Await VerifyRecommendationsMissingAsync(<MethodBody>
@@ -26,8 +23,7 @@ Dim x = Sub()
 End Sub</MethodBody>, "Next")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NextNotInLambdaAfterOnErrorResumeTest() As Task
             ' On Error statements are never allowed within lambdas
             Await VerifyRecommendationsMissingAsync(<MethodBody>

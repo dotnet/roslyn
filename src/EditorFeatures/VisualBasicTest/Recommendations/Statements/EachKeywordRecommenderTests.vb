@@ -4,26 +4,22 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class EachKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EachNotInMethodBodyTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Each")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EachAfterForKeywordTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>For |</MethodBody>, "Each")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EachNotAfterTouchingForTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>For|</MethodBody>, "Each")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EachTouchingLoopIdentifierTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>For i|</MethodBody>, "Each")
         End Function

@@ -5,8 +5,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.EventHandling
     Public Class AddHandlerKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddHandlerHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>|</MethodBody>, "AddHandler",
 $"{VBFeaturesResources.AddHandler_statement}
@@ -14,34 +13,29 @@ $"{VBFeaturesResources.AddHandler_statement}
 AddHandler {VBWorkspaceResources.event_}, {VBWorkspaceResources.handler}")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddHandlerInMethodBodyTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "AddHandler")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddHandlerAfterStatementTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
 Dim x 
 |</MethodBody>, "AddHandler")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddHandlerMissingInClassBlockTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "AddHandler")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddHandlerInSingleLineLambdaTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = Sub() |</MethodBody>, "AddHandler")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddHandlerInSingleLineFunctionLambdaTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Function() |</MethodBody>, "AddHandler")
         End Function

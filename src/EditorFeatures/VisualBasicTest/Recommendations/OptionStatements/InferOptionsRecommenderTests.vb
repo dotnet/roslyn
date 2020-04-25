@@ -4,8 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OptionStatements
     Public Class InferOptionsRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OptionsAfterOptionInferTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<File>Option Infer |</File>, "On", "Off")
         End Function

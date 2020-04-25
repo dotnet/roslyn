@@ -4,32 +4,27 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class CaseKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function CaseAfterSelectTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Select |</MethodBody>, "Case")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoCaseAfterQuerySelectTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>Dim q = From x in "abc" Select |</MethodBody>, "Case")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoCaseElseAfterQuerySelectTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>Dim q = From x in "abc" Select |</MethodBody>, "Case Else")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function CaseNotByItselfTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Case")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function CaseInSelectBlockTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
 Select Case goo
@@ -37,8 +32,7 @@ Select Case goo
 End Select</MethodBody>, "Case")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function CaseElseInSelectBlockTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
 Select Case goo
@@ -46,8 +40,7 @@ Select Case goo
 End Select</MethodBody>, "Case Else")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function CaseElseNotInSelectBlockThatAlreadyHasCaseElseTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>
 Select Case goo
@@ -56,8 +49,7 @@ Case Else
 End Select</MethodBody>, "Case Else")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function CaseElseNotInSelectBlockIfBeforeCaseTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>
 Select Case goo
@@ -88,8 +80,7 @@ Select Case goo
 End Select</MethodBody>, "Case")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoCaseIsInSelectBlockTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>
 Select Case goo

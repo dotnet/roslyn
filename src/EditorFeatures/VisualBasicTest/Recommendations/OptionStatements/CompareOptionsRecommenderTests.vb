@@ -4,8 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OptionStatements
     Public Class CompareOptionsRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OptionsAfterOptionCompareTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<File>Option Compare |</File>, "Binary", "Text")
         End Function

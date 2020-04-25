@@ -4,14 +4,12 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class FinallyKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FinallyNotInMethodBodyTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Finally")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FinallyInTryBlockTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
 Try
@@ -19,8 +17,7 @@ Try
 End Try</MethodBody>, "Finally")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FinallyInCatchBlockTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
 Try
@@ -29,8 +26,7 @@ Catch ex As Exception
 End Try</MethodBody>, "Finally")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FinallyNotBeforeCatchBlockTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>
 Try
@@ -39,8 +35,7 @@ Catch ex As Exception
 End Try</MethodBody>, "Finally")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FinallyNotInFinallyBlockTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>
 Try
@@ -49,8 +44,7 @@ Finally
 End Try</MethodBody>, "Finally")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FinallyInTryNestedInCatch1Test() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
         Try
@@ -61,8 +55,7 @@ End Try</MethodBody>, "Finally")
             End Try</MethodBody>, "Finally")
         End Function
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FinallyInTryNestedInCatch2Test() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>
         Try
