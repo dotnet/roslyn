@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
     /// <summary>
     /// Implements a code fix for all misplaced using statements.
     /// </summary>
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MoveMisplacedUsingDirectives)]
-    [Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MoveMisplacedUsingDirectives), Shared]
     internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixProvider
     {
         private static readonly SyntaxAnnotation s_usingPlacementCodeFixAnnotation = new SyntaxAnnotation(nameof(s_usingPlacementCodeFixAnnotation));

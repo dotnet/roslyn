@@ -14,8 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Fakes
 {
-    [Export(typeof(IStreamingFindUsagesPresenter))]
-    [Shared]
+    [Export(typeof(IStreamingFindUsagesPresenter)), Shared]
     [PartNotDiscoverable]
     internal class StubStreamingFindUsagesPresenter : IStreamingFindUsagesPresenter
     {

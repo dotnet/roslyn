@@ -14,8 +14,7 @@ using Microsoft.CodeAnalysis.SymbolMapping;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 {
-    [ExportWorkspaceServiceFactory(typeof(ISymbolMappingService), WorkspaceKind.MetadataAsSource)]
-    [Shared]
+    [ExportWorkspaceServiceFactory(typeof(ISymbolMappingService), WorkspaceKind.MetadataAsSource), Shared]
     internal class SymbolMappingServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]

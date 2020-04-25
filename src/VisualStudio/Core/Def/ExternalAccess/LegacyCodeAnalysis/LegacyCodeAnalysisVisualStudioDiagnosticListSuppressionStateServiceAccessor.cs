@@ -10,8 +10,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
 {
-    [Export(typeof(ILegacyCodeAnalysisVisualStudioDiagnosticListSuppressionStateServiceAccessor))]
-    [Shared]
+    [Export(typeof(ILegacyCodeAnalysisVisualStudioDiagnosticListSuppressionStateServiceAccessor)), Shared]
     internal sealed class LegacyCodeAnalysisVisualStudioDiagnosticListSuppressionStateServiceAccessor
         : ILegacyCodeAnalysisVisualStudioDiagnosticListSuppressionStateServiceAccessor
     {

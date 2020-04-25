@@ -10,8 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService.ErrorCases
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = "Test")]
-    [Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = "Test"), Shared]
     [PartNotDiscoverable]
     internal class ExceptionInComputeRefactoringsAsync : CodeRefactoringProvider
     {

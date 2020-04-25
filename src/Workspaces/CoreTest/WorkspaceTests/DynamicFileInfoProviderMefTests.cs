@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return factory.CreateExportProvider().GetExport<IDynamicFileInfoProvider, FileExtensionsMetadata>();
         }
 
-        [ExportDynamicFileInfoProvider("cshtml", "vbhtml")]
-        [Shared]
+        [ExportDynamicFileInfoProvider("cshtml", "vbhtml"), Shared]
         [PartNotDiscoverable]
         internal class TestDynamicFileInfoProvider : IDynamicFileInfoProvider
         {

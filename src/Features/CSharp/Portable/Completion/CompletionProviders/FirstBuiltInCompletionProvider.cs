@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     /// Provides a completion provider that always appears before any built-in completion provider. This completion
     /// provider does not provide any completions.
     /// </summary>
-    [ExportCompletionProvider(nameof(FirstBuiltInCompletionProvider), LanguageNames.CSharp)]
-    [Shared]
+    [ExportCompletionProvider(nameof(FirstBuiltInCompletionProvider), LanguageNames.CSharp), Shared]
     internal sealed class FirstBuiltInCompletionProvider : CompletionProvider
     {
         [ImportingConstructor]

@@ -11,8 +11,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
 {
-    [Export(typeof(ILegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor))]
-    [Shared]
+    [Export(typeof(ILegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor)), Shared]
     internal sealed class LegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor
         : ILegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor
     {

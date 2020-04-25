@@ -11,8 +11,7 @@ using System.Composition;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceService(typeof(IWorkspaceAsynchronousOperationListenerProvider), ServiceLayer.Default)]
-    [Shared]
+    [ExportWorkspaceService(typeof(IWorkspaceAsynchronousOperationListenerProvider), ServiceLayer.Default), Shared]
     internal sealed class WorkspaceAsynchronousOperationListenerProvider : IWorkspaceAsynchronousOperationListenerProvider
     {
         private readonly IAsynchronousOperationListener _listener;

@@ -14,8 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
 {
-    [Export]
-    [Shared]
+    [Export, Shared]
     internal sealed class DebuggerFindReferencesService
     {
         private readonly IThreadingContext _threadingContext;

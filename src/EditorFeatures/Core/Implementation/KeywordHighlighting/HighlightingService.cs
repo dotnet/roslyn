@@ -13,8 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 {
-    [Export(typeof(IHighlightingService))]
-    [Shared]
+    [Export(typeof(IHighlightingService)), Shared]
     internal class HighlightingService : IHighlightingService
     {
         private readonly List<Lazy<IHighlighter, LanguageMetadata>> _highlighters;

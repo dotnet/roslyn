@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     /// <see cref="VisualStudio.Threading.JoinableTaskContext"/> is available, a new instance is constructed using the
     /// synchronization context of the current thread as the main thread.</para>
     /// </remarks>
-    [Export(typeof(IThreadingContext))]
-    [Shared]
+    [Export(typeof(IThreadingContext)), Shared]
     internal sealed class ThreadingContext : IThreadingContext
     {
         [ImportingConstructor]

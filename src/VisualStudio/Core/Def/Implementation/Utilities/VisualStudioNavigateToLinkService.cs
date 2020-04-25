@@ -12,8 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {
-    [ExportWorkspaceService(typeof(INavigateToLinkService), layer: ServiceLayer.Host)]
-    [Shared]
+    [ExportWorkspaceService(typeof(INavigateToLinkService), layer: ServiceLayer.Host), Shared]
     internal sealed class VisualStudioNavigateToLinkService : INavigateToLinkService
     {
         [ImportingConstructor]

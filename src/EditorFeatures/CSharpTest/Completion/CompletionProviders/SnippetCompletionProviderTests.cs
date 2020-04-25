@@ -128,8 +128,7 @@ class C
             await VerifyItemIsAbsentAsync(@"#!$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [ExportLanguageService(typeof(ISnippetInfoService), LanguageNames.CSharp, ServiceLayer.Host)]
-        [Shared]
+        [ExportLanguageService(typeof(ISnippetInfoService), LanguageNames.CSharp, ServiceLayer.Host), Shared]
         [PartNotDiscoverable]
         private class MockSnippetInfoService : ISnippetInfoService
         {

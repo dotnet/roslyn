@@ -11,8 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace AnalyzerRunner
 {
-    [ExportWorkspaceService(typeof(IPersistentStorageLocationService), ServiceLayer.Host)]
-    [Shared]
+    [ExportWorkspaceService(typeof(IPersistentStorageLocationService), ServiceLayer.Host), Shared]
     internal class PersistentStorageLocationService : IPersistentStorageLocationService
     {
         [ImportingConstructor]

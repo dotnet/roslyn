@@ -11,8 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    [ExportWorkspaceServiceFactory(typeof(IProjectCacheHostService), ServiceLayer.Host)]
-    [Shared]
+    [ExportWorkspaceServiceFactory(typeof(IProjectCacheHostService), ServiceLayer.Host), Shared]
     internal partial class ProjectCacheHostServiceFactory : IWorkspaceServiceFactory
     {
         private const int ImplicitCacheTimeoutInMS = 10000;

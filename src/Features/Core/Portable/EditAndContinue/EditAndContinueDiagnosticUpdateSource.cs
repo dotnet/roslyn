@@ -17,8 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    [Export(typeof(EditAndContinueDiagnosticUpdateSource))]
-    [Shared]
+    [Export(typeof(EditAndContinueDiagnosticUpdateSource)), Shared]
     internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
         [ImportingConstructor]

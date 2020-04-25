@@ -12,8 +12,7 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
-    [Export]
-    [Shared]
+    [Export, Shared]
     internal class AsyncCompletionTracker
     {
         private readonly IAsynchronousOperationListenerProvider _asynchronousOperationListenerProvider;

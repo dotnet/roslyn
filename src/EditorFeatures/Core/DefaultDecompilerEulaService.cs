@@ -13,8 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    [ExportWorkspaceService(typeof(IDecompilerEulaService), ServiceLayer.Default)]
-    [Shared]
+    [ExportWorkspaceService(typeof(IDecompilerEulaService), ServiceLayer.Default), Shared]
     internal sealed class DefaultDecompilerEulaService : IDecompilerEulaService
     {
         private bool _isAccepted;

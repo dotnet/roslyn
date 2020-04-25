@@ -11,8 +11,7 @@ using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Notification
 {
-    [ExportWorkspaceServiceFactory(typeof(INotificationService), ServiceLayer.Editor)]
-    [Shared]
+    [ExportWorkspaceServiceFactory(typeof(INotificationService), ServiceLayer.Editor), Shared]
     internal class EditorNotificationServiceFactory : IWorkspaceServiceFactory
     {
         private static readonly object s_gate = new object();

@@ -12,8 +12,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceService(typeof(ITaskSchedulerProvider), ServiceLayer.Default)]
-    [Shared]
+    [ExportWorkspaceService(typeof(ITaskSchedulerProvider), ServiceLayer.Default), Shared]
     internal sealed class TaskSchedulerProvider : ITaskSchedulerProvider
     {
         [ImportingConstructor]

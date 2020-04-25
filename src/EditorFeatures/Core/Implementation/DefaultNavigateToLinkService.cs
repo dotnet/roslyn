@@ -11,8 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation
 {
-    [ExportWorkspaceService(typeof(INavigateToLinkService), layer: ServiceLayer.Default)]
-    [Shared]
+    [ExportWorkspaceService(typeof(INavigateToLinkService), layer: ServiceLayer.Default), Shared]
     internal sealed class DefaultNavigateToLinkService : INavigateToLinkService
     {
         [ImportingConstructor]

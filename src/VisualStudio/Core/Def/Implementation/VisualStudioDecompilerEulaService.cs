@@ -19,8 +19,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    [ExportWorkspaceService(typeof(IDecompilerEulaService), ServiceLayer.Host)]
-    [Shared]
+    [ExportWorkspaceService(typeof(IDecompilerEulaService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioDecompilerEulaService : IDecompilerEulaService
     {
         private readonly IAsyncServiceProvider _serviceProvider;

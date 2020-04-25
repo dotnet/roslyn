@@ -10,8 +10,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Apex
 {
-    [Export(typeof(IApexAsynchronousOperationListenerProviderAccessor))]
-    [Shared]
+    [Export(typeof(IApexAsynchronousOperationListenerProviderAccessor)), Shared]
     internal sealed class ApexAsynchronousOperationListenerProviderAccessor : IApexAsynchronousOperationListenerProviderAccessor
     {
         private readonly AsynchronousOperationListenerProvider _implementation;

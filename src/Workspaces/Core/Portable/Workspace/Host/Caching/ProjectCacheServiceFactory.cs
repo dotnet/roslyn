@@ -8,8 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceServiceFactory(typeof(IProjectCacheService), ServiceLayer.Default)]
-    [Shared]
+    [ExportWorkspaceServiceFactory(typeof(IProjectCacheService), ServiceLayer.Default), Shared]
     internal class ProjectCacheServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]

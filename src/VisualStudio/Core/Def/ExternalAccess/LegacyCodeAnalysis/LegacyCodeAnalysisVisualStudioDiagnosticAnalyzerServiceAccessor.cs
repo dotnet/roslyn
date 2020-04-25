@@ -12,8 +12,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
 {
-    [Export(typeof(ILegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor))]
-    [Shared]
+    [Export(typeof(ILegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor)), Shared]
     internal sealed class LegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor
         : ILegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor
     {

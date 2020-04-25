@@ -11,8 +11,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
-    [ExportWorkspaceServiceFactory(typeof(IUnitTestingSolutionCrawlerServiceAccessor))]
-    [Shared]
+    [ExportWorkspaceServiceFactory(typeof(IUnitTestingSolutionCrawlerServiceAccessor)), Shared]
     internal sealed class UnitTestingSolutionCrawlerServiceAccessorFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]

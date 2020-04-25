@@ -10,8 +10,7 @@ using Microsoft.VisualStudio.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
-    [ExportWorkspaceServiceFactory(typeof(IProjectCacheHostService), ServiceLayer.Host)]
-    [Shared]
+    [ExportWorkspaceServiceFactory(typeof(IProjectCacheHostService), ServiceLayer.Host), Shared]
     internal partial class VisualStudioProjectCacheHostServiceFactory : IWorkspaceServiceFactory
     {
         private const int ImplicitCacheTimeoutInMS = 10000;

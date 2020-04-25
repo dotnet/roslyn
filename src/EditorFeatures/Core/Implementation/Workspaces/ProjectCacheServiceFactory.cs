@@ -9,8 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
-    [ExportWorkspaceServiceFactory(typeof(IProjectCacheHostService), ServiceLayer.Editor)]
-    [Shared]
+    [ExportWorkspaceServiceFactory(typeof(IProjectCacheHostService), ServiceLayer.Editor), Shared]
     internal partial class ProjectCacheHostServiceFactory : IWorkspaceServiceFactory
     {
         private const int ImplicitCacheTimeoutInMS = 10000;
