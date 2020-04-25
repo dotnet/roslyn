@@ -756,8 +756,7 @@ End Class
                 Diagnostic("Token", "RaiseEvent"));
         }
 
-        [WorkItem(1103442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103442")]
-        [Fact]
+        [Fact, WorkItem(1103442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103442")]
         public async Task SuppressSyntaxDiagnosticsOnRaiseEventAccessorBasic()
         {
             await VerifyTokenDiagnosticsBasicAsync(@"

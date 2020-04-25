@@ -1498,8 +1498,7 @@ class C
         #endregion
 
         #region Test Ifs
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultiline_IfElseIfElseSelection1()
         {
             await TestAsync<IfStatementSyntax>(
@@ -1523,8 +1522,7 @@ class C
 }");
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultiline_IfElseIfElseSelection2()
         {
             await TestAsync<IfStatementSyntax>(
@@ -1548,8 +1546,7 @@ class C
 }");
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMissingMultiline_IfElseIfElseSelection()
         {
             await TestMissingAsync<IfStatementSyntax>(

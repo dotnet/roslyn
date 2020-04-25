@@ -862,8 +862,7 @@ public class SubClass : BaseClass, IConflict
             edits.VerifyRudeDiagnostics();
         }
 
-        [WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
-        [Fact]
+        [Fact, WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
         public void Interface_AddMembersWithImplementation()
         {
             var src1 = @"
@@ -1197,8 +1196,7 @@ interface I
                  Diagnostic(RudeEditKind.InitializerUpdate, "Red", FeaturesResources.enum_value));
         }
 
-        [WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
-        [Fact]
+        [Fact, WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
         public void EnumMemberAdd()
         {
             var src1 = "enum Color { Red }";
@@ -1228,8 +1226,7 @@ interface I
                  Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.enum_value));
         }
 
-        [WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
-        [Fact]
+        [Fact, WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
         public void EnumMemberAdd3()
         {
             var src1 = "enum Color { Red, }";
@@ -1259,8 +1256,7 @@ interface I
                  Diagnostic(RudeEditKind.Renamed, "Orange", FeaturesResources.enum_value));
         }
 
-        [WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
-        [Fact]
+        [Fact, WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
         public void EnumMemberDelete()
         {
             var src1 = "enum Color { Red, Blue}";
@@ -1290,8 +1286,7 @@ interface I
                  Diagnostic(RudeEditKind.Delete, "enum Color", FeaturesResources.enum_value));
         }
 
-        [WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem(793197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
-        [Fact]
+        [Fact, WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem(793197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
         public void EnumTrailingCommaAdd()
         {
             var src1 = "enum Color { Red }";
@@ -1305,8 +1300,7 @@ interface I
             edits.VerifySemantics(ActiveStatementsDescription.Empty, NoSemanticEdits);
         }
 
-        [WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem(793197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
-        [Fact]
+        [Fact, WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem(793197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
         public void EnumTrailingCommaAdd_WithInitializer()
         {
             var src1 = "enum Color { Red = 1 }";
@@ -1320,8 +1314,7 @@ interface I
             edits.VerifySemantics(ActiveStatementsDescription.Empty, NoSemanticEdits);
         }
 
-        [WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem(793197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
-        [Fact]
+        [Fact, WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem(793197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
         public void EnumTrailingCommaDelete()
         {
             var src1 = "enum Color { Red, }";
@@ -1334,8 +1327,7 @@ interface I
             edits.VerifySemantics(ActiveStatementsDescription.Empty, NoSemanticEdits);
         }
 
-        [WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem(793197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
-        [Fact]
+        [Fact, WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem(793197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
         public void EnumTrailingCommaDelete_WithInitializer()
         {
             var src1 = "enum Color { Red = 1, }";
@@ -1910,8 +1902,7 @@ class C
             });
         }
 
-        [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
-        [Fact]
+        [Fact, WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         public void NestedClass_Insert_PInvoke()
         {
             var src1 = @"
@@ -1955,8 +1946,7 @@ class C
                 Diagnostic(RudeEditKind.InsertExtern, "public static extern explicit operator int (D d)", CSharpFeaturesResources.conversion_operator));
         }
 
-        [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
-        [Fact]
+        [Fact, WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         public void NestedClass_Insert_VirtualAbstract()
         {
             var src1 = @"
@@ -2467,8 +2457,7 @@ class C
                  Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.method));
         }
 
-        [WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
-        [Fact]
+        [Fact, WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
         public void MethodDelete_WithAttribute()
         {
             var src1 = @"
@@ -2505,8 +2494,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.method));
         }
 
-        [WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
-        [Fact]
+        [Fact, WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
         public void MethodDelete_PInvoke()
         {
             var src1 = @"
@@ -2581,8 +2569,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
-        [Fact]
+        [Fact, WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
         public void PrivateMethodInsert_WithParameters()
         {
             var src1 = @"
@@ -2620,8 +2607,7 @@ class C
                 new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.goo")) });
         }
 
-        [WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
-        [Fact]
+        [Fact, WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
         public void PrivateMethodInsert_WithAttribute()
         {
             var src1 = @"
@@ -2714,8 +2700,7 @@ class C
                 Diagnostic(RudeEditKind.InsertVirtual, "public override void F()", FeaturesResources.method));
         }
 
-        [WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
-        [Fact]
+        [Fact, WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         public void PrivateMethodInsert_PInvoke1()
         {
             var src1 = @"
@@ -3354,8 +3339,7 @@ class Test
                 Diagnostic(RudeEditKind.Update, @"Obsolete("""")", FeaturesResources.attribute));
         }
 
-        [WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
-        [Fact]
+        [Fact, WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
         public void MethodUpdate_DeleteAttribute()
         {
             var src1 = @"
@@ -3494,8 +3478,7 @@ class C : I, J
                 Diagnostic(RudeEditKind.Renamed, "void Goo()", FeaturesResources.method));
         }
 
-        [WorkItem(754255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754255")]
-        [Fact]
+        [Fact, WorkItem(754255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754255")]
         public void MethodUpdate_UpdateStackAlloc()
         {
             var src1 = @"
@@ -3564,8 +3547,7 @@ class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.method));
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [Fact]
+        [Fact, WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         public void MethodUpdate_UpdateSwitchExpression()
         {
             var src1 = @"
@@ -3788,8 +3770,7 @@ class C
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: true);
         }
 
-        [WorkItem(1087305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087305")]
-        [Fact]
+        [Fact, WorkItem(1087305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087305")]
         public void MethodUpdate_LabeledStatement()
         {
             var src1 = @"
@@ -4310,8 +4291,7 @@ class C<T>
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "public C(int a)", FeaturesResources.constructor));
         }
 
-        [WorkItem(743552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743552")]
-        [Fact]
+        [Fact, WorkItem(743552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743552")]
         public void ConstructorUpdate_AddParameter()
         {
             var src1 = @"
@@ -5183,8 +5163,7 @@ partial class C
             //    new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<NamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
         }
 
-        [WorkItem(2068, "https://github.com/dotnet/roslyn/issues/2068")]
-        [Fact]
+        [Fact, WorkItem(2068, "https://github.com/dotnet/roslyn/issues/2068")]
         public void Insert_ExternConstruct()
         {
             var src1 = "class C { }";
@@ -5935,8 +5914,7 @@ public class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [Fact]
+        [Fact, WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         public void FieldInitializerUpdate_SwitchExpressionInConstructor()
         {
             var src1 = "class C { int a = 1; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
@@ -5985,8 +5963,7 @@ public class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [Fact]
+        [Fact, WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor1()
         {
             var src1 = "class C { int a { get; } = 1; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
@@ -5998,8 +5975,7 @@ public class C
                 Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [Fact]
+        [Fact, WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor2()
         {
             var src1 = "class C { int a { get; } = 1; public C() : this(1) { var b = a switch { 0 => 0, _ => 1 }; } public C(int a) { } }";
@@ -6010,8 +5986,7 @@ public class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [Fact]
+        [Fact, WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor3()
         {
             var src1 = "class C { int a { get; } = 1; public C() { } public C(int b) { var b = a switch { 0 => 0, _ => 1 }; } }";
@@ -7709,8 +7684,7 @@ class C
                 Diagnostic(RudeEditKind.TypeUpdate, "char P", FeaturesResources.auto_property));
         }
 
-        [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
-        [Fact]
+        [Fact, WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         public void PropertyInsert_PInvoke()
         {
             var src1 = @"
@@ -7826,8 +7800,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [WorkItem(755975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755975")]
-        [Fact]
+        [Fact, WorkItem(755975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755975")]
         public void PrivatePropertyAccessorDelete()
         {
             var src1 = "class C { int _p; int P { get { return 1; } set { _p = value; } } }";
@@ -7906,8 +7879,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [WorkItem(755975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755975")]
-        [Fact]
+        [Fact, WorkItem(755975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755975")]
         public void PrivateAutoPropertyAccessorDelete1()
         {
             var src1 = "class C { int P { get; set; } }";
@@ -7949,8 +7921,7 @@ class C
                 Diagnostic(RudeEditKind.AccessorKindUpdate, "set", CSharpFeaturesResources.property_setter));
         }
 
-        [WorkItem(992578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992578")]
-        [Fact]
+        [Fact, WorkItem(992578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992578")]
         public void InsertIncompleteProperty()
         {
             var src1 = "class C { }";
@@ -8442,8 +8413,7 @@ class SampleCollection<T>
             edits.VerifyRudeDiagnostics();
         }
 
-        [WorkItem(750109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750109")]
-        [Fact]
+        [Fact, WorkItem(750109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750109")]
         public void Indexer_DeleteGetAccessor()
         {
             var src1 = @"
@@ -8549,8 +8519,7 @@ class SampleCollection<T>
             edits.VerifySemanticDiagnostics();
         }
 
-        [WorkItem(1120407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120407")]
-        [Fact]
+        [Fact, WorkItem(1120407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120407")]
         public void ConstField_Update()
         {
             var src1 = "class C { const int x = 0; }";

@@ -152,8 +152,7 @@ public class C
             });
         }
 
-        [WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
-        [Fact]
+        [Fact, WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
         public void ERR_NoSuchMemberOrExtension_CompilationReferencesSystemCore()
         {
             var source = @"
@@ -211,8 +210,7 @@ public class C
         /// this test only covers our ability to identify an assembly to attempt to load, not
         /// our ability to actually load or consume it.
         /// </remarks>
-        [WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
-        [Fact]
+        [Fact, WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
         public void ERR_NoSuchMemberOrExtension_CompilationDoesNotReferenceSystemCore()
         {
             var source = @"
@@ -507,8 +505,7 @@ class C
             Assert.Empty(references);
         }
 
-        [WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")]
-        [Fact]
+        [Fact, WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")]
         public void PseudoVariableType()
         {
             var source =
@@ -628,8 +625,7 @@ class C
             });
         }
 
-        [WorkItem(1154988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")]
-        [Fact]
+        [Fact, WorkItem(1154988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")]
         public void CompileWithRetrySameErrorReported()
         {
             var source = @" 
@@ -671,8 +667,7 @@ class C
             });
         }
 
-        [WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
-        [Fact]
+        [Fact, WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
         public void SucceedOnRetry()
         {
             var source = @" 
@@ -720,8 +715,7 @@ class C
             });
         }
 
-        [WorkItem(2547, "https://github.com/dotnet/roslyn/issues/2547")]
-        [Fact]
+        [Fact, WorkItem(2547, "https://github.com/dotnet/roslyn/issues/2547")]
         public void TryDifferentLinqLibraryOnRetry()
         {
             var source = @"
@@ -838,8 +832,7 @@ class UseLinq
 LanguageVersion.CSharp7_1);
         }
 
-        [WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")]
-        [Fact]
+        [Fact, WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")]
         public void NonTupleNoSystemRuntime()
         {
             var source =

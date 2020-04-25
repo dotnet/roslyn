@@ -822,8 +822,7 @@ class TestClass
 
             #region Patterns
 
-            [WorkItem(9244, "https://github.com/dotnet/roslyn/issues/9244")]
-            [Fact]
+            [Fact, WorkItem(9244, "https://github.com/dotnet/roslyn/issues/9244")]
             public async Task PatternIsDisabled()
             {
                 var code = @"

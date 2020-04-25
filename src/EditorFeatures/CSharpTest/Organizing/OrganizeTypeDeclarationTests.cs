@@ -666,8 +666,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Fact]
+        [Fact, WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         public async Task TestWhitespaceBetweenMethods1()
         {
             var initial =
@@ -696,8 +695,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Fact]
+        [Fact, WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         public async Task TestWhitespaceBetweenMethods2()
         {
             var initial =
@@ -728,8 +726,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Fact]
+        [Fact, WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         public async Task TestWhitespaceBetweenMethods3()
         {
             var initial =
@@ -760,8 +757,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Fact]
+        [Fact, WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         public async Task TestWhitespaceBetweenMethods4()
         {
             var initial =
@@ -794,8 +790,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Fact]
+        [Fact, WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         public async Task TestWhitespaceBetweenMethods5()
         {
             var initial =
@@ -830,8 +825,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Fact]
+        [Fact, WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         public async Task TestWhitespaceBetweenMethods6()
         {
             var initial =
@@ -868,8 +862,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Fact]
+        [Fact, WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         public async Task TestMoveComments1()
         {
             var initial =
@@ -900,8 +893,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Fact]
+        [Fact, WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         public async Task TestMoveComments2()
         {
             var initial =
@@ -934,8 +926,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Fact]
+        [Fact, WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         public async Task TestMoveDocComments1()
         {
             var initial =
@@ -966,8 +957,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Fact]
+        [Fact, WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         public async Task TestMoveDocComments2()
         {
             var initial =
@@ -1000,8 +990,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Fact]
+        [Fact, WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         public async Task TestDontMoveBanner()
         {
             var initial =
@@ -1034,8 +1023,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Fact]
+        [Fact, WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         public async Task TestDontMoveBanner2()
         {
             var initial =

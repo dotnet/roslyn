@@ -13,8 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class DependentTypeFinderTests : ServicesTestBase
     {
-        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        [Fact]
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CSharp()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
@@ -105,8 +104,7 @@ namespace M
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        [Fact]
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CSharp_PortableProfile7()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
@@ -147,8 +145,7 @@ namespace M
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        [Fact]
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_VisualBasic()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
@@ -190,8 +187,7 @@ End Namespace
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        [Fact]
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CrossLanguage()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
@@ -233,8 +229,7 @@ End Namespace
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        [Fact]
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedInterfaces_CSharp()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
@@ -274,8 +269,7 @@ namespace M
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
 
-        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        [Fact]
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedInterfaces_VisualBasic()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
@@ -316,8 +310,7 @@ End Namespace
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
 
-        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        [Fact]
+        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedInterfaces_CrossLanguage()
         {
             var solution = new AdhocWorkspace().CurrentSolution;

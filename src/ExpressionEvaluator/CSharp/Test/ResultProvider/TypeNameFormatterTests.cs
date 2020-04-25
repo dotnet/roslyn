@@ -300,8 +300,7 @@ namespace @return
             Assert.Equal("@return.@yield<@return.@false.@null>.@await", constructedAwaitType.GetTypeName(escapeKeywordIdentifiers: true));
         }
 
-        [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
-        [Fact]
+        [Fact, WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         public void DynamicAttribute_KeywordEscaping()
         {
             var attributes = new[] { true };
@@ -309,8 +308,7 @@ namespace @return
             Assert.Equal("dynamic", typeof(object).GetTypeName(MakeCustomTypeInfo(attributes), escapeKeywordIdentifiers: true));
         }
 
-        [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
-        [Fact]
+        [Fact, WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         public void DynamicAttribute_Locations()
         {
             // Standalone.
@@ -349,8 +347,7 @@ namespace N
             Assert.Equal("N.A<dynamic>.B<dynamic>[]", typeBConstructed.MakeArrayType().GetTypeName(MakeCustomTypeInfo(false, false, true, true)));
         }
 
-        [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
-        [Fact]
+        [Fact, WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         public void DynamicAttribute_InvalidFlags()
         {
             // Invalid true.
@@ -394,8 +391,7 @@ namespace N
             Assert.Equal("N.A<dynamic>.B<object>[]", typeBConstructed.MakeArrayType().GetTypeName(MakeCustomTypeInfo(false, false, true)));
         }
 
-        [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
-        [Fact]
+        [Fact, WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         public void DynamicAttribute_OtherGuid()
         {
             var typeInfo = DkmClrCustomTypeInfo.Create(Guid.NewGuid(), new ReadOnlyCollection<byte>(new byte[] { 1 }));

@@ -164,8 +164,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(846588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846588")]
-        [Fact]
+        [Fact, WorkItem(846588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846588")]
         public void Update_Leaf_Block()
         {
             var src1 = @"
@@ -586,8 +585,7 @@ class C
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "{"));
         }
 
-        [WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")]
-        [Fact]
+        [Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")]
         public void Delete_Leaf_CommentActiveStatement()
         {
             var src1 = @"
@@ -650,8 +648,7 @@ namespace N
 
         #region Constructors
 
-        [WorkItem(740949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/740949")]
-        [Fact]
+        [Fact, WorkItem(740949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/740949")]
         public void Updated_Inner_Constructor()
         {
             var src1 = @"
@@ -699,8 +696,7 @@ class Goo
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Goo f = new Goo(5*2);"));
         }
 
-        [WorkItem(741249, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/741249")]
-        [Fact]
+        [Fact, WorkItem(741249, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/741249")]
         public void Updated_Leaf_Constructor()
         {
             var src1 = @"
@@ -747,8 +743,7 @@ class Goo
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
-        [Fact]
+        [Fact, WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
         public void Updated_Leaf_Constructor_Parameter()
         {
             var src1 = @"
@@ -796,8 +791,7 @@ class Goo
                 Diagnostic(RudeEditKind.Renamed, "int b", FeaturesResources.parameter));
         }
 
-        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
-        [Fact]
+        [Fact, WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
         public void Updated_Leaf_Constructor_Parameter_DefaultValue()
         {
             var src1 = @"
@@ -845,8 +839,7 @@ class Goo
                 Diagnostic(RudeEditKind.InitializerUpdate, "int a = 42", FeaturesResources.parameter));
         }
 
-        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
-        [Fact]
+        [Fact, WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
         public void Updated_Leaf_ConstructorChaining1()
         {
             var src1 = @"
@@ -895,8 +888,7 @@ class A
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
-        [Fact]
+        [Fact, WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
         public void Updated_Leaf_ConstructorChaining2()
         {
             var src1 = @"
@@ -945,8 +937,7 @@ class A
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
-        [Fact]
+        [Fact, WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
         public void InstanceConstructorWithoutInitializer()
         {
             var src1 = @"
@@ -1342,8 +1333,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
-        [Fact]
+        [Fact, WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
         public void InstanceFieldInitializer_Leaf_Update1()
         {
             var src1 = @"
@@ -2332,8 +2322,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(755749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755749")]
-        [Fact]
+        [Fact, WorkItem(755749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755749")]
         public void Lock_Insert_Leaf()
         {
             var src1 = @"
@@ -2364,8 +2353,7 @@ class Test
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "lock (lockThis)", CSharpFeaturesResources.lock_statement));
         }
 
-        [WorkItem(755749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755749")]
-        [Fact]
+        [Fact, WorkItem(755749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755749")]
         public void Lock_Insert_Leaf2()
         {
             var src1 = @"
@@ -2552,8 +2540,7 @@ class Test
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "lock (d)", CSharpFeaturesResources.lock_statement));
         }
 
-        [WorkItem(755752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755752")]
-        [Fact]
+        [Fact, WorkItem(755752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755752")]
         public void Lock_Update_Leaf()
         {
             var src1 = @"
@@ -2766,8 +2753,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(755742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755742")]
-        [Fact]
+        [Fact, WorkItem(755742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755742")]
         public void Fixed_Insert_Leaf()
         {
             var src1 = @"
@@ -2843,8 +2829,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(755742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755742")]
-        [Fact]
+        [Fact, WorkItem(755742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755742")]
         public void Fixed_Insert_Leaf3()
         {
             var src1 = @"
@@ -2888,8 +2873,7 @@ class Test
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "fixed (int* pj = &value)", CSharpFeaturesResources.fixed_statement));
         }
 
-        [WorkItem(755742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755742")]
-        [Fact]
+        [Fact, WorkItem(755742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755742")]
         public void Fixed_Reorder_Leaf1()
         {
             var src1 = @"
@@ -2936,8 +2920,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(755746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755746")]
-        [Fact]
+        [Fact, WorkItem(755746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755746")]
         public void Fixed_Update_Leaf1()
         {
             var src1 = @"
@@ -2979,8 +2962,7 @@ class Test
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "fixed (int* p = &value)", CSharpFeaturesResources.fixed_statement));
         }
 
-        [WorkItem(755746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755746")]
-        [Fact]
+        [Fact, WorkItem(755746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755746")]
         public void Fixed_Update_Leaf2()
         {
             var src1 = @"

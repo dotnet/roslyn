@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class HoistedThisTests : ExpressionCompilerTestBase
     {
-        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
-        [Fact]
+        [Fact, WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         public void InstanceIterator_NoCapturing()
         {
             var source = @"
@@ -46,8 +45,7 @@ class C
             VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL);
         }
 
-        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
-        [Fact]
+        [Fact, WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         public void InstanceAsync_NoCapturing()
         {
             var source = @"
@@ -78,8 +76,7 @@ class C
             VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL);
         }
 
-        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
-        [Fact]
+        [Fact, WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         public void InstanceLambda_NoCapturing()
         {
             var source = @"
@@ -205,8 +202,7 @@ class C
             VerifyHasThis(source, "C.<>c__DisplayClass1_0.<M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
-        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
-        [Fact]
+        [Fact, WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         public void InstanceLambda_CapturedThis_NoDisplayClass()
         {
             var source = @"
@@ -511,8 +507,7 @@ class C : I<int>
             VerifyHasThis(source, "C.<>c__DisplayClass1_0.<I<System.Int32>.M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
-        [WorkItem(1066489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066489")]
-        [Fact]
+        [Fact, WorkItem(1066489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066489")]
         public void InstanceIterator_ExplicitInterfaceImplementation_OldName()
         {
             var ilSource = @"
@@ -746,8 +741,7 @@ static class C
             VerifyNoThis(source, "C.<>c__DisplayClass0_0.<F>b__0");
         }
 
-        [WorkItem(1072296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")]
-        [Fact]
+        [Fact, WorkItem(1072296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")]
         public void OldStyleNonCapturingLambda()
         {
             var ilSource = @"
@@ -783,8 +777,7 @@ static class C
             VerifyNoThis(context);
         }
 
-        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
-        [Fact]
+        [Fact, WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         public void LambdaLocations_Instance()
         {
             var source = @"
@@ -1035,8 +1028,7 @@ class C
             locals.Free();
         }
 
-        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
-        [Fact]
+        [Fact, WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         public void InstanceMembersInIterator()
         {
             var source =
@@ -1068,8 +1060,7 @@ class C
             });
         }
 
-        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
-        [Fact]
+        [Fact, WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         public void InstanceMembersInAsync()
         {
             var source = @"
@@ -1107,8 +1098,7 @@ class C
             });
         }
 
-        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
-        [Fact]
+        [Fact, WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         public void InstanceMembersInLambda()
         {
             var source =

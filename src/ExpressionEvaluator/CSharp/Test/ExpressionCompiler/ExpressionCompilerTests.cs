@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// <summary>
         /// Each assembly should have a unique MVID and assembly name.
         /// </summary>
-        [WorkItem(1029280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029280")]
-        [Fact]
+        [Fact, WorkItem(1029280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029280")]
         public void UniqueModuleVersionId()
         {
             var source =
@@ -106,8 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// <summary>
         /// Diagnostics should be formatted with the CurrentUICulture.
         /// </summary>
-        [WorkItem(941599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941599")]
-        [Fact]
+        [Fact, WorkItem(941599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941599")]
         public void FormatterCultureInfo()
         {
             var previousCulture = Thread.CurrentThread.CurrentCulture;
@@ -439,8 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// copy/paste of (simple cases of) RHS of assignment in Watch window,
         /// not to allow arbitrary syntax after the semicolon, not even comments.
         /// </summary>
-        [WorkItem(950242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/950242")]
-        [Fact]
+        [Fact, WorkItem(950242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/950242")]
         public void TrailingSemicolon()
         {
             var source =
@@ -1091,8 +1088,7 @@ class B : A
         /// The custom modifiers are not copied to the corresponding
         /// local in the generated method since there is no need.
         /// </remarks>
-        [WorkItem(884627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884627")]
-        [Fact]
+        [Fact, WorkItem(884627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884627")]
         public void LocalType_CustomModifiers()
         {
             var source =
@@ -1132,8 +1128,7 @@ class B : A
 }");
         }
 
-        [WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]
-        [Fact]
+        [Fact, WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]
         public void LocalType_ByRefOrPinned()
         {
             var source = @"
@@ -1284,8 +1279,7 @@ class B : A
             });
         }
 
-        [WorkItem(1034549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034549")]
-        [Fact]
+        [Fact, WorkItem(1034549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034549")]
         public void AssignLocal()
         {
             var source =
@@ -1966,8 +1960,7 @@ class C
             });
         }
 
-        [WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")]
-        [Fact]
+        [Fact, WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")]
         public void RewriteCatchLocal()
         {
             var source =
@@ -2053,8 +2046,7 @@ class C<T>
             });
         }
 
-        [WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")]
-        [Fact]
+        [Fact, WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")]
         public void RewriteSequenceTemps()
         {
             var source =
@@ -2251,8 +2243,7 @@ class C
         /// the expression compiler and so an await expression would not
         /// normally be allowed.
         /// </remarks>
-        [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        [Fact]
+        [Fact, WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
         public void Await()
         {
             var source = @"
@@ -2287,8 +2278,7 @@ class C
         /// <remarks>
         /// This would be illegal in any non-debugger context.
         /// </remarks>
-        [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        [Fact]
+        [Fact, WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
         public void AwaitInUnsafeContext()
         {
             var source = @"
@@ -2539,8 +2529,7 @@ class C<T>
             });
         }
 
-        [WorkItem(976847, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976847")]
-        [Fact]
+        [Fact, WorkItem(976847, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976847")]
         public void VarArgMethod()
         {
             var source =
@@ -2817,8 +2806,7 @@ class B : A
 }");
         }
 
-        [WorkItem(905986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/905986")]
-        [Fact]
+        [Fact, WorkItem(905986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/905986")]
         public void EvaluateLambdaClosedOverBase()
         {
             var source =
@@ -2985,8 +2973,7 @@ class B : A
             });
         }
 
-        [WorkItem(994485, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994485")]
-        [Fact]
+        [Fact, WorkItem(994485, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994485")]
         public void Repro994485()
         {
             var source = @"
@@ -3573,8 +3560,7 @@ class C
         /// <summary>
         /// DiagnosticsPass must be run on evaluation method.
         /// </summary>
-        [WorkItem(530404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530404")]
-        [Fact]
+        [Fact, WorkItem(530404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530404")]
         public void DiagnosticsPass()
         {
             var source =
@@ -3602,8 +3588,7 @@ class C
             });
         }
 
-        [WorkItem(935651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/935651")]
-        [Fact]
+        [Fact, WorkItem(935651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/935651")]
         public void EvaluatePropertySet()
         {
             var source =
@@ -3991,8 +3976,7 @@ class C
 }");
         }
 
-        [WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")]
-        [Fact]
+        [Fact, WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")]
         public void ConditionalAttribute()
         {
             var source =
@@ -4026,8 +4010,7 @@ class C
 }");
         }
 
-        [WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")]
-        [Fact]
+        [Fact, WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")]
         public void ConditionalAttribute_CollectionInitializer()
         {
             var source =
@@ -4178,8 +4161,7 @@ class C
 }");
         }
 
-        [WorkItem(984509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984509")]
-        [Fact]
+        [Fact, WorkItem(984509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984509")]
         public void LambdaContainingIncrementOperator()
         {
             var source =
@@ -4304,8 +4286,7 @@ class C<T>
 }");
         }
 
-        [WorkItem(1000946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1000946")]
-        [Fact]
+        [Fact, WorkItem(1000946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1000946")]
         public void BaseExpression()
         {
             var source = @"
@@ -4364,8 +4345,7 @@ struct S
 }");
         }
 
-        [WorkItem(1010922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010922")]
-        [Fact]
+        [Fact, WorkItem(1010922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010922")]
         public void IntOverflow()
         {
             var source = @"
@@ -4412,8 +4392,7 @@ class C
             });
         }
 
-        [WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]
-        [Fact]
+        [Fact, WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]
         public void AssignmentConversion()
         {
             var source = @"
@@ -4465,8 +4444,7 @@ class C
             });
         }
 
-        [WorkItem(1016530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016530")]
-        [Fact]
+        [Fact, WorkItem(1016530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016530")]
         public void EvaluateStatement()
         {
             var source = @"
@@ -4487,8 +4465,7 @@ class C
             Assert.Equal("error CS8115: A throw expression is not allowed in this context.", error);
         }
 
-        [WorkItem(1016555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016555")]
-        [Fact]
+        [Fact, WorkItem(1016555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016555")]
         public void UnmatchedCloseAndOpenParens()
         {
             var source =
@@ -4514,8 +4491,7 @@ class C
             });
         }
 
-        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
-        [Fact]
+        [Fact, WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         public void DateTimeFieldConstant()
         {
             var source =
@@ -4551,8 +4527,7 @@ class C
 }");
         }
 
-        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
-        [Fact]
+        [Fact, WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         public void DecimalFieldConstant()
         {
             var source = @"
@@ -4590,8 +4565,7 @@ struct S
 }");
         }
 
-        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
-        [Fact]
+        [Fact, WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         public void IteratorParameter()
         {
             var source =
@@ -4625,8 +4599,7 @@ struct S
             });
         }
 
-        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
-        [Fact]
+        [Fact, WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         public void IteratorGenericLocal()
         {
             var source =
@@ -4662,8 +4635,7 @@ struct S
             });
         }
 
-        [WorkItem(1028808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028808")]
-        [Fact]
+        [Fact, WorkItem(1028808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028808")]
         public void StaticLambdaInDisplayClass()
         {
             var source =
@@ -5251,8 +5223,7 @@ class C
 ");
         }
 
-        [WorkItem(1079749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079749")]
-        [Fact]
+        [Fact, WorkItem(1079749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079749")]
         public void RangeVariableError()
         {
             var source =
@@ -5286,8 +5257,7 @@ class C
             });
         }
 
-        [WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")]
-        [Fact]
+        [Fact, WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")]
         public void Bug1079762()
         {
             var source =
@@ -5323,8 +5293,7 @@ class C
             });
         }
 
-        [WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")]
-        [Fact]
+        [Fact, WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")]
         public void LambdaParameter()
         {
             var source =
@@ -5355,8 +5324,7 @@ class C
             });
         }
 
-        [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
-        [Fact]
+        [Fact, WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
         public void StaticTypeImport()
         {
             var source = @"
@@ -5391,8 +5359,7 @@ class C
             });
         }
 
-        [WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
-        [Fact]
+        [Fact, WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
         public void NonStateMachineTypeParameter()
         {
             var source = @"
@@ -5425,8 +5392,7 @@ class C
             });
         }
 
-        [WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
-        [Fact]
+        [Fact, WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
         public void StateMachineTypeParameter()
         {
             var source = @"
@@ -5462,8 +5428,7 @@ class C
             });
         }
 
-        [WorkItem(1085642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085642")]
-        [Fact]
+        [Fact, WorkItem(1085642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085642")]
         public void ModuleWithBadImageFormat()
         {
             var source = @"
@@ -5500,8 +5465,7 @@ class C
             }
         }
 
-        [WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]
-        [Fact]
+        [Fact, WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]
         public void MissingType()
         {
             var libSource = @"
@@ -5563,8 +5527,7 @@ public class C
             });
         }
 
-        [WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]
-        [Fact]
+        [Fact, WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]
         public void UseSiteWarning()
         {
             var signedDllOptions = TestOptions.SigningReleaseDll.
@@ -5626,8 +5589,7 @@ public class Source
             });
         }
 
-        [WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")]
-        [Fact]
+        [Fact, WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")]
         public void ObsoleteAttribute()
         {
             var source = @"
@@ -5656,8 +5618,7 @@ class C
             });
         }
 
-        [WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")]
-        [Fact]
+        [Fact, WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")]
         public void DeprecatedAttribute()
         {
             var source = @"
@@ -5717,8 +5678,7 @@ namespace Windows.Foundation.Metadata
             });
         }
 
-        [WorkItem(1089591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089591")]
-        [Fact]
+        [Fact, WorkItem(1089591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089591")]
         public void BadPdb_MissingMethod()
         {
             var source = @"
@@ -5750,8 +5710,7 @@ public class C
 ");
         }
 
-        [WorkItem(1108133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108133")]
-        [Fact]
+        [Fact, WorkItem(1108133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108133")]
         public void SymUnmanagedReaderNotImplemented()
         {
             var source = @"
@@ -5782,8 +5741,7 @@ public class C
 ");
         }
 
-        [WorkItem(1115543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115543")]
-        [Fact]
+        [Fact, WorkItem(1115543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115543")]
         public void MethodTypeParameterInLambda()
         {
             var source = @"
@@ -5823,8 +5781,7 @@ public class C<T>
             });
         }
 
-        [WorkItem(1136085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1136085")]
-        [Fact]
+        [Fact, WorkItem(1136085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1136085")]
         public void TypeofOpenGenericType()
         {
             var source = @"
@@ -5872,8 +5829,7 @@ public class C
             });
         }
 
-        [WorkItem(1068138, "DevDiv")]
-        [Fact]
+        [Fact, WorkItem(1068138, "DevDiv")]
         public void GetSymAttributeByVersion()
         {
             var source1 = @"
@@ -5972,8 +5928,7 @@ public class C
         /// <summary>
         /// Ignore accessibility in lambda rewriter.
         /// </summary>
-        [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
-        [Fact]
+        [Fact, WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
         public void LambdaRewriterIgnoreAccessibility()
         {
             var source =
@@ -6109,8 +6064,7 @@ class C
             });
         }
 
-        [WorkItem(3309, "https://github.com/dotnet/roslyn/issues/3309")]
-        [Fact]
+        [Fact, WorkItem(3309, "https://github.com/dotnet/roslyn/issues/3309")]
         public void NullAnonymousTypeInstance()
         {
             var source =
@@ -6137,8 +6091,7 @@ class C
         /// DkmClrInstructionAddress.ILOffset is set to uint.MaxValue
         /// if the instruction does not map to an IL offset.
         /// </summary>
-        [WorkItem(1185315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185315")]
-        [Fact]
+        [Fact, WorkItem(1185315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185315")]
         public void NoILOffset()
         {
             var source =
@@ -6212,8 +6165,7 @@ class C
             });
         }
 
-        [WorkItem(4098, "https://github.com/dotnet/roslyn/issues/4098")]
-        [Fact]
+        [Fact, WorkItem(4098, "https://github.com/dotnet/roslyn/issues/4098")]
         public void SelectAnonymousType()
         {
             var source =
@@ -6286,8 +6238,7 @@ class C
             });
         }
 
-        [WorkItem(2501, "https://github.com/dotnet/roslyn/issues/2501")]
-        [Fact]
+        [Fact, WorkItem(2501, "https://github.com/dotnet/roslyn/issues/2501")]
         public void ImportsInAsyncLambda()
         {
             var source =

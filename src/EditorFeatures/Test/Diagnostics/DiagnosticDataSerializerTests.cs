@@ -172,8 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             AssertDiagnostics(diagnostics, recovered);
         }
 
-        [WorkItem(6104, "https://github.com/dotnet/roslyn/issues/6104")]
-        [Fact]
+        [Fact, WorkItem(6104, "https://github.com/dotnet/roslyn/issues/6104")]
         public void DiagnosticEquivalence()
         {
 #if DEBUG

@@ -944,8 +944,7 @@ class C
             }
         }
 
-        [WorkItem(1006160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006160")]
-        [Fact]
+        [Fact, WorkItem(1006160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006160")]
         public void MultipleImplementations_DifferentImplementors()
         {
             var source =
@@ -1457,8 +1456,7 @@ class C
         /// <summary>
         /// Do not instantiate proxy type for null IEnumerable.
         /// </summary>
-        [WorkItem(1009646, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009646")]
-        [Fact]
+        [Fact, WorkItem(1009646, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009646")]
         public void IEnumerableNull()
         {
             var source =
@@ -1633,8 +1631,7 @@ class C
         /// is [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]).
         /// Note, the native EE has an empty expansion when .dmp debugging.
         /// </summary>
-        [WorkItem(1043746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043746")]
-        [Fact]
+        [Fact, WorkItem(1043746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043746")]
         public void GetProxyPropertyValueError()
         {
             var source =
@@ -1676,8 +1673,7 @@ class C : IEnumerable
         /// IEnumerable&lt;T&gt; should be expanded directly
         /// without intermediate "Results View" row.
         /// </summary>
-        [WorkItem(1114276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114276")]
-        [Fact]
+        [Fact, WorkItem(1114276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114276")]
         public void SyntheticIEnumerable()
         {
             var source =
@@ -1779,8 +1775,7 @@ class C
             }
         }
 
-        [WorkItem(4098, "https://github.com/dotnet/roslyn/issues/4098")]
-        [Fact]
+        [Fact, WorkItem(4098, "https://github.com/dotnet/roslyn/issues/4098")]
         public void IEnumerableOfAnonymousType()
         {
             var code =
