@@ -59,7 +59,9 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             if (node.ContainsDiagnostics)
                 return;
 
-            // Report on the topmost statement that has an issue.  No need to recurse further at that point.
+            // Report on the topmost statement that has an issue.  No need to recurse further at that point. Note: the
+            // fixer will fix up all statements, but we don't want to clutter things with lots of diagnostics on the
+            // same line.
             if (node is StatementSyntax statement &&
                 CheckStatementSyntax(context, statement))
             {
