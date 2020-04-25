@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 }
                 else
                 {
-                    newBody = SyntaxFactory.Block(declarationStatement, SyntaxFactory.ExpressionStatement(rewrittenBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+                    newBody = SyntaxFactory.Block(
+                        declarationStatement, SyntaxFactory.ExpressionStatement(rewrittenBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
                 }
             }
             else
