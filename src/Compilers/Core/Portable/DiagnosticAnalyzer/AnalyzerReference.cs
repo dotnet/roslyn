@@ -65,6 +65,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Gets all the source generators defined in this assembly reference.
         /// </summary>
-        public virtual ImmutableArray<ISourceGenerator> GetGenerators() { return ImmutableArray<ISourceGenerator>.Empty; }
+        public virtual ImmutableArray<ISourceGenerator> GetGenerators()
+            => ImmutableArray<ISourceGenerator>.Empty;
+
+        public virtual ImmutableArray<Diagnostic> GetLoadDiagnosticsForAllLanguages()
+            => ImmutableArray<Diagnostic>.Empty;
+
+        public virtual ImmutableArray<Diagnostic> GetLoadDiagnostics(string language)
+            => ImmutableArray<Diagnostic>.Empty;
     }
 }

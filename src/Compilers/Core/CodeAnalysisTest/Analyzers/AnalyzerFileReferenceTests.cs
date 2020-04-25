@@ -42,6 +42,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new AnalyzerFileReference(fullPath, s_analyzerLoader);
         }
 
+        private ImmutableArray<AnalyzerLoadFailureEventArgs> GetLoadFailuresUsingEventHandler(AnalyzerFileReference reference)
+        {
+            var errors = new List<AnalyzerLoadFailureEventArgs>();
+            void errorHandler(object? o, AnalyzerLoadFailureEventArgs e) => errors.Add(e);
+
+            reference.AnalyzerLoadFailed += errorHandler;
+            reference.GetAnalyzers(LanguageNames.CSharp);
+            reference.AnalyzerLoadFailed -= errorHandler;
+
+            return errors.ToImmutableArray();
+        }
+
         [Fact]
         public void AnalyzerFileReference_Errors()
         {
@@ -145,15 +157,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
 
-            List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
-            EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
-            reference.AnalyzerLoadFailed += errorHandler;
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            reference.AddAnalyzers(builder, LanguageNames.CSharp);
-            var analyzers = builder.ToImmutable();
-            reference.AnalyzerLoadFailed -= errorHandler;
+            var errors = GetLoadFailuresUsingEventHandler(reference);
 
-            Assert.Equal(2, errors.Count);
+            Assert.Equal(2, errors.Length);
             var failedTypes = errors.Where(e => e.ErrorCode == AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer).Select(e => e.TypeName);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AbstractAnalyzer", failedTypes);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.OpenGenericAnalyzer`1", failedTypes);
@@ -164,16 +170,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Path.Combine(TempRoot.Root, "random.dll"));
 
-            List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
-            EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
-            reference.AnalyzerLoadFailed += errorHandler;
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            reference.AddAnalyzers(builder, LanguageNames.CSharp);
-            var analyzers = builder.ToImmutable();
-            reference.AnalyzerLoadFailed -= errorHandler;
+            var errors = GetLoadFailuresUsingEventHandler(reference);
+            AssertEx.Equal(new[] { AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer }, errors.Select(error => error.ErrorCode));
+        }
 
-            Assert.Equal(1, errors.Count);
-            Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, errors.First().ErrorCode);
+        [Fact]
+        public void TestLoadErrors2X()
+        {
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(Path.Combine(TempRoot.Root, "random.dll"));
+
+            reference.GetAnalyzers(LanguageNames.CSharp);
+
+            var errors = GetLoadFailuresUsingEventHandler(reference);
+            AssertEx.Equal(new[] { AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer }, errors.Select(error => error.ErrorCode));
         }
 
         [Fact]
@@ -183,17 +192,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
 
-            List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
-            EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
-            reference.AnalyzerLoadFailed += errorHandler;
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            reference.AddAnalyzers(builder, LanguageNames.CSharp);
-            var analyzers = builder.ToImmutable();
-            reference.AnalyzerLoadFailed -= errorHandler;
-
+            var errors = GetLoadFailuresUsingEventHandler(reference);
             File.Delete(alphaDll.Path);
-
-            Assert.Equal(0, errors.Count);
+            Assert.Empty(errors);
         }
 
         [Fact]
@@ -251,16 +252,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var analyzerDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(analyzerDll.Path);
 
-            List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
-            EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
-            reference.AnalyzerLoadFailed += errorHandler;
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            reference.AddAnalyzers(builder, LanguageNames.CSharp);
-            var analyzers = builder.ToImmutable();
-            reference.AnalyzerLoadFailed -= errorHandler;
-
-            Assert.Equal(1, errors.Count);
-            Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, errors.First().ErrorCode);
+            var errors = GetLoadFailuresUsingEventHandler(reference);
+            AssertEx.Equal(new[] { AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer }, errors.Select(error => error.ErrorCode));
         }
 
         [Fact]

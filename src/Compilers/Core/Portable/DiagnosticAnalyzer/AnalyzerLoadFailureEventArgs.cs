@@ -5,9 +5,11 @@
 #nullable enable
 
 using System;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
+    // obsolete
     public sealed class AnalyzerLoadFailureEventArgs : EventArgs
     {
         public enum FailureErrorCode
@@ -54,6 +56,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Message = message;
             TypeName = typeNameOpt;
             Exception = exceptionOpt;
+        }
+
+        internal static AnalyzerLoadFailureEventArgs Create(Exception? exception, string? typeName)
+        {
+            if (exception == null)
+            {
+                // TODO: different error code:
+                return new AnalyzerLoadFailureEventArgs(FailureErrorCode.NoAnalyzers, CodeAnalysisResources.NoAnalyzersFound);
+            }
+
+            // unwrap:
+            exception = (exception as TargetInvocationException) ?? exception;
+
+            // remove all line breaks from the exception message
+            string message = exception.Message.Replace("\r", "").Replace("\n", "");
+
+            var errorCode = (typeName != null) ?
+                FailureErrorCode.UnableToCreateAnalyzer :
+                FailureErrorCode.UnableToLoadAnalyzer;
+
+            return new AnalyzerLoadFailureEventArgs(errorCode, message, exception, typeName);
         }
     }
 }

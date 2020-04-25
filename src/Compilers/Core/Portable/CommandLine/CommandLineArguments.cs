@@ -465,36 +465,6 @@ namespace Microsoft.CodeAnalysis
             var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             var generatorBuilder = ImmutableArray.CreateBuilder<ISourceGenerator>();
 
-            EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
-            {
-                var analyzerReference = o as AnalyzerFileReference;
-                RoslynDebug.Assert(analyzerReference is object);
-                DiagnosticInfo? diagnostic;
-                switch (e.ErrorCode)
-                {
-                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
-                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_UnableToLoadAnalyzer, analyzerReference.FullPath, e.Message);
-                        break;
-                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
-                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerCannotBeCreated, e.TypeName ?? "", analyzerReference.FullPath, e.Message);
-                        break;
-                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
-                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_NoAnalyzerInAssembly, analyzerReference.FullPath);
-                        break;
-                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:
-                    default:
-                        return;
-                }
-
-                // Filter this diagnostic based on the compilation options so that /nowarn and /warnaserror etc. take effect.
-                diagnostic = messageProvider.FilterDiagnosticInfo(diagnostic, this.CompilationOptions);
-
-                if (diagnostic != null)
-                {
-                    diagnostics.Add(diagnostic);
-                }
-            };
-
             var resolvedReferences = ArrayBuilder<AnalyzerFileReference>.GetInstance();
             foreach (var reference in AnalyzerReferences)
             {
@@ -515,10 +485,7 @@ namespace Microsoft.CodeAnalysis
             // All analyzer references are registered now, we can start loading them:
             foreach (var resolvedReference in resolvedReferences)
             {
-                resolvedReference.AnalyzerLoadFailed += errorHandler;
-                resolvedReference.AddAnalyzers(analyzerBuilder, language);
-                resolvedReference.AddGenerators(generatorBuilder, language);
-                resolvedReference.AnalyzerLoadFailed -= errorHandler;
+                resolvedReference.AddDiagnostics(diagnostics, language, messageProvider, CompilationOptions);
             }
 
             resolvedReferences.Free();
