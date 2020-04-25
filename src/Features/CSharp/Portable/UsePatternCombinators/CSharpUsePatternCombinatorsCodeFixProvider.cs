@@ -18,9 +18,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 {
