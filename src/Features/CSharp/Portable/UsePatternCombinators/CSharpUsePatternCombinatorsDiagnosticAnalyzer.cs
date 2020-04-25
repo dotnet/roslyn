@@ -4,8 +4,10 @@
 
 #nullable enable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -57,17 +59,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 ArrowExpressionClauseSyntax n => n.Expression,
                 AssignmentExpressionSyntax n => n.Right,
                 LambdaExpressionSyntax n => n.ExpressionBody,
-                ArgumentSyntax n when n.GetRefKind() == RefKind.None => n.Expression,
+                ArgumentSyntax n when n.RefKindKeyword.IsMissing => n.Expression,
                 _ => null,
             };
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             // TODO need an option for user to disable the feature
-
-            // TODO need to check language version >= C# 9.0
-
             var parentNode = context.Node;
+
+            if (!((CSharpParseOptions)parentNode.SyntaxTree.Options).LanguageVersion.IsCSharp9OrAbove())
+                return;
 
             var expression = GetExpression(parentNode);
             if (expression is null)
@@ -84,6 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             if (IsTrivial(pattern))
                 return;
 
+            if (HasIllegalPatternVariables(pattern))
+                return;
+
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 location: expression.GetLocation(),
@@ -91,6 +96,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 additionalLocations: null,
                 properties: null,
                 messageArgs: null));
+        }
+
+        private static bool HasIllegalPatternVariables(AnalyzedPattern pattern, bool permitDesignations = true)
+        {
+            switch (pattern)
+            {
+                case Not p:
+                    return HasIllegalPatternVariables(p.Pattern, permitDesignations: false);
+                case Binary p:
+                    if (p.IsDisjunctive)
+                        permitDesignations = false;
+                    return HasIllegalPatternVariables(p.Left, permitDesignations) ||
+                           HasIllegalPatternVariables(p.Right, permitDesignations);
+                case Source p when !permitDesignations:
+                    return p.PatternSyntax.DescendantNodes()
+                        .OfType<SingleVariableDesignationSyntax>()
+                        .Any(variable => !variable.Identifier.IsMissing);
+                default:
+                    return false;
+            }
         }
 
         private static bool IsTrivial(AnalyzedPattern pattern)

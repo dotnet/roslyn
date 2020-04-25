@@ -49,14 +49,15 @@ class C
         [InlineData("i is C c")]
         [InlineData("!(i > 0)")]
         [InlineData("o != null")]
+        [InlineData("!(o is C c)")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestMissingOnExpression(string expression)
         {
             await TestMissingAsync(s_initialMarkup.Replace("EXPRESSION", expression));
         }
 
-        [InlineData("!(o is C c)", "o is not C c")]
         [InlineData("!(o is C)", "o is not C")]
+        [InlineData("!(o is C _)", "o is not C _")]
         [InlineData("i == 1 || 2 == i", "i is 1 or 2")]
         [InlineData("i != 1 || 2 != i", "i is not 1 or not 2")]
         [InlineData("i != 1 && 2 != i", "i is not (1 or 2)")]
