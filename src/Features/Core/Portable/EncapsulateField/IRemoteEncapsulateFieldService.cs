@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 {
     internal interface IRemoteEncapsulateFieldService
     {
-        Task<ImmutableArray<(DocumentId documentId, ImmutableArray<TextChange> textChanges)>> EncapsulateFieldsAsync(
+        Task<(DocumentId, TextChange[])[]> EncapsulateFieldsAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             ImmutableArray<string> fieldSymbolKeys,

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,11 +13,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    using DocumentTextChanges = ImmutableArray<(DocumentId documentId, ImmutableArray<TextChange> textChanges)>;
-
     internal partial class CodeAnalysisService : IRemoteEncapsulateFieldService
     {
-        public Task<DocumentTextChanges> EncapsulateFieldsAsync(
+        public Task<(DocumentId, TextChange[])[]> EncapsulateFieldsAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             ImmutableArray<string> fieldSymbolKeys,
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         var resolved = SymbolKey.ResolveString(key, compilation, cancellationToken: cancellationToken).GetAnySymbol() as IFieldSymbol;
                         if (resolved == null)
-                            return DocumentTextChanges.Empty;
+                            return Array.Empty<(DocumentId, TextChange[])>();
 
                         fields.Add(resolved);
                     }

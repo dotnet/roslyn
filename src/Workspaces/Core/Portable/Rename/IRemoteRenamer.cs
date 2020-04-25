@@ -269,9 +269,13 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public (DocumentId documentId, string newName) RenamedDocument;
 
+        // Note: arrays are used (instead of ImmutableArray) as jsonrpc can't marshal null values to/from those types.
+        //
+        // We also flatten dictionaries into key/value tuples because jsonrpc only supports dictionaries with string keys.
+
         public DocumentId[] DocumentIds;
         public SerializableRelatedLocation[] RelatedLocations;
-        public ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> DocumentTextChanges;
+        public (DocumentId, TextChange[])[] DocumentTextChanges;
         public (DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>)[] DocumentToModifiedSpansMap;
         public (DocumentId, ImmutableArray<SerializableComplexifiedSpan>)[] DocumentToComplexifiedSpansMap;
         public (DocumentId, ImmutableArray<SerializableRelatedLocation>)[] DocumentToRelatedLocationsMap;

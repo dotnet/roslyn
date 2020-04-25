@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -10,8 +10,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    using DocumentTextChanges = ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>;
-
     internal static class RemoteUtilities
     {
         /// <summary>
@@ -19,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// the set of document text changes necessary to convert <paramref name="oldSolution"/> to <paramref
         /// name="newSolution"/>.
         /// </summary>
-        public static async Task<DocumentTextChanges> GetDocumentTextChangesAsync(
+        public static async Task<(DocumentId, TextChange[])[]> GetDocumentTextChangesAsync(
             Solution oldSolution,
             Solution newSolution,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<(DocumentId, ImmutableArray<TextChange>)>.GetInstance(out var builder);
+            using var _ = ArrayBuilder<(DocumentId, TextChange[])>.GetInstance(out var builder);
 
             var solutionChanges = newSolution.GetChanges(oldSolution);
             foreach (var projectChange in solutionChanges.GetProjectChanges())
@@ -34,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     var oldDoc = oldSolution.GetDocument(docId);
                     var newDoc = newSolution.GetDocument(docId);
                     var textChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
-                    builder.Add((docId, textChanges.ToImmutableArray()));
+                    builder.Add((docId, textChanges.ToArray()));
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToArray();
         }
 
         /// <summary>
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// a solution textually equivalent to the <c>newSolution</c> passed to <see cref="GetDocumentTextChangesAsync"/>.
         /// </summary>
         public static async Task<Solution> UpdateSolutionAsync(
-            Solution oldSolution, DocumentTextChanges documentTextChanges, CancellationToken cancellationToken)
+            Solution oldSolution, (DocumentId, TextChange[])[] documentTextChanges, CancellationToken cancellationToken)
         {
             var currentSolution = oldSolution;
             foreach (var (docId, textChanges) in documentTextChanges)

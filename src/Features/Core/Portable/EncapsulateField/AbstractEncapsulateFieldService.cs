@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var result = await client.TryRunRemoteAsync<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>>(
+                    var result = await client.TryRunRemoteAsync<(DocumentId, TextChange[])[]>(
                         WellKnownServiceHubServices.CodeAnalysisService,
                         nameof(IRemoteEncapsulateFieldService.EncapsulateFieldsAsync),
                         solution,
