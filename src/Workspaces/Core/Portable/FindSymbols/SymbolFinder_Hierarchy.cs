@@ -170,6 +170,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return ImmutableArray<ISymbol>.Empty;
         }
 
+        #region derived classes
+
         /// <summary>
         /// Finds all the derived classes of the given type. Implementations of an interface are not considered
         /// "derived", but can be found with <see cref="FindImplementationsAsync(ISymbol, Solution,
@@ -180,101 +182,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
         /// <param name="cancellationToken"></param>
         /// <returns>The derived types of the symbol. The symbol passed in is not included in this list.</returns>
-        public static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
+        public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
             INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            if (type == null)
-                throw new ArgumentNullException(nameof(type));
-
-            if (solution == null)
-                throw new ArgumentNullException(nameof(solution));
-
-            if (solution.GetOriginatingProjectId(type) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
-
-            return await DependentTypeFinder.FindAndCacheDerivedClassesAsync(
-                type, solution, projects, transitive: true, cancellationToken).ConfigureAwait(false);
+            return FindDerivedClassesAsync(type, solution, transitive: true, projects, cancellationToken);
         }
 
         /// <summary>
-        /// Finds the immediate derived classes of the given type. Implementations of an interface are not considered
+        /// Finds the derived classes of the given type. Implementations of an interface are not considered
         /// "derived", but can be found with <see cref="FindImplementationsAsync(ISymbol, Solution,
         /// IImmutableSet{Project}, CancellationToken)"/>.
         /// </summary>
         /// <param name="type">The symbol to find derived types of.</param>
         /// <param name="solution">The solution to search in.</param>
+        /// <param name="transitive">If the search should stop at immediately derived classes, or should continue past that.</param>
         /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
         /// <param name="cancellationToken"></param>
         /// <returns>The derived types of the symbol. The symbol passed in is not included in this list.</returns>
-        public static async Task<IEnumerable<INamedTypeSymbol>> FindImmediateDerivedClassesAsync(
-            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
-        {
-            if (type == null)
-                throw new ArgumentNullException(nameof(type));
-
-            if (solution == null)
-                throw new ArgumentNullException(nameof(solution));
-
-            if (solution.GetOriginatingProjectId(type) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
-
-            return await DependentTypeFinder.FindAndCacheDerivedClassesAsync(
-                type, solution, projects, transitive: false, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Finds all the derived interfaces of the given interface.
-        /// </summary>
-        /// <param name="type">The symbol to find derived types of.</param>
-        /// <param name="solution">The solution to search in.</param>
-        /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
-        /// <returns>The derived interfaces of the symbol. The symbol passed in is not included in this list.</returns>
-        public static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedInterfacesAsync(
-            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
-        {
-            if (type == null)
-                throw new ArgumentNullException(nameof(type));
-
-            if (solution == null)
-                throw new ArgumentNullException(nameof(solution));
-
-            if (solution.GetOriginatingProjectId(type) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
-
-            return await DependentTypeFinder.FindAndCacheDerivedInterfacesAsync(
-                type, solution, projects, transitive: true, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Finds the immediate derived interfaces of the given interfaces.
-        /// </summary>
-        /// <param name="type">The symbol to find derived types of.</param>
-        /// <param name="solution">The solution to search in.</param>
-        /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
-        /// <returns>The derived interfaces of the symbol. The symbol passed in is not included in this list.</returns>
-        public static async Task<IEnumerable<INamedTypeSymbol>> FindImmediateDerivedInterfacesAsync(
-            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
-        {
-            if (type == null)
-                throw new ArgumentNullException(nameof(type));
-
-            if (solution == null)
-                throw new ArgumentNullException(nameof(solution));
-
-            if (solution.GetOriginatingProjectId(type) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
-
-            return await DependentTypeFinder.FindAndCacheDerivedInterfacesAsync(
-                type, solution, projects, transitive: false, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Finds all the accessible <see langword="class"/> or <see langword="struct"/> types that implement the given
-        /// interface.
-        /// </summary>
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-        public static async Task<IEnumerable<INamedTypeSymbol>> FindImplementationsAsync(
-            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
+            INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             if (type == null)
@@ -286,27 +213,49 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (solution.GetOriginatingProjectId(type) == null)
                 throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
 
-            return await FindImplementationsArrayAsync(type, solution, projects, cancellationToken).ConfigureAwait(false);
+            return await FindDerivedClassesArrayAsync(type, solution, transitive, projects, cancellationToken).ConfigureAwait(false);
         }
 
-        /// <inheritdoc cref="FindImplementationsAsync(INamedTypeSymbol, Solution, IImmutableSet{Project}, CancellationToken)"/>
-        /// <remarks>
-        /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
-        /// </remarks>
-        internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementationsArrayAsync(
-            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        /// <inheritdoc cref="FindDerivedClassesAsync(INamedTypeSymbol, Solution, bool, IImmutableSet{Project}, CancellationToken)"/>
+        internal static async Task<ImmutableArray<INamedTypeSymbol>> FindDerivedClassesArrayAsync(
+            INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var implementingTypes = await DependentTypeFinder.FindAndCacheImplementingTypesAsync(
-                type, solution, projects, transitive: true, cancellationToken).ConfigureAwait(false);
-            return implementingTypes.WhereAsArray(IsAccessible);
+            var types = await DependentTypeFinder.FindAndCacheDerivedClassesAsync(
+                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+            return types.WhereAsArray(t => IsAccessible(t));
+        }
+
+        #endregion
+
+        #region derived interfaces
+
+        /// <summary>
+        /// Finds all the derived interfaces of the given interface.
+        /// </summary>
+        /// <param name="type">The symbol to find derived types of.</param>
+        /// <param name="solution">The solution to search in.</param>
+        /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
+        /// <returns>The derived interfaces of the symbol. The symbol passed in is not included in this list.</returns>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedInterfacesAsync(
+            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            return FindDerivedInterfacesAsync(type, solution, transitive: true, projects, cancellationToken);
         }
 
         /// <summary>
-        /// Finds the immediate, accessible <see langword="class"/> or <see langword="struct"/> types that implement the given
-        /// interface.
+        /// Finds the derived interfaces of the given interfaces.
         /// </summary>
-        public static async Task<IEnumerable<INamedTypeSymbol>> FindImmediateImplementationsAsync(
-            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        /// <param name="type">The symbol to find derived types of.</param>
+        /// <param name="solution">The solution to search in.</param>
+        /// <param name="transitive">If the search should stop at immediately derived interfaces, or should continue past that.</param>
+        /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
+        /// <returns>The derived interfaces of the symbol. The symbol passed in is not included in this list.</returns>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedInterfacesAsync(
+            INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             if (type == null)
                 throw new ArgumentNullException(nameof(type));
@@ -317,20 +266,74 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (solution.GetOriginatingProjectId(type) == null)
                 throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
 
-            return await FindImmediateImplementationsArrayAsync(type, solution, projects, cancellationToken).ConfigureAwait(false);
+            return await FindDerivedInterfacesArrayAsync(type, solution, transitive, projects, cancellationToken).ConfigureAwait(false);
         }
 
-        /// <inheritdoc cref="FindImmediateImplementationsAsync"/>
+        internal static async Task<ImmutableArray<INamedTypeSymbol>> FindDerivedInterfacesArrayAsync(
+            INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        {
+            var types = await DependentTypeFinder.FindAndCacheDerivedInterfacesAsync(
+                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+            return types.WhereAsArray(t => IsAccessible(t));
+        }
+
+        #endregion
+
+        #region interface implementations
+
+        /// <summary>
+        /// Finds all the accessible <see langword="class"/> or <see langword="struct"/> types that implement the given
+        /// interface.
+        /// </summary>
+        /// <param name="type">The symbol to find derived types of.</param>
+        /// <param name="solution">The solution to search in.</param>
+        /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static Task<IEnumerable<INamedTypeSymbol>> FindImplementationsAsync(
+            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            return FindImplementationsAsync(type, solution, transitive: true, projects, cancellationToken);
+        }
+
+        /// <summary>
+        /// Finds the accessible <see langword="class"/> or <see langword="struct"/> types that implement the given
+        /// interface.
+        /// </summary>
+        /// <param name="type">The symbol to find derived types of.</param>
+        /// <param name="solution">The solution to search in.</param>
+        /// <param name="transitive">If the search should stop at immediately derived interfaces, or should continue past that.</param>
+        /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindImplementationsAsync(
+            INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            if (solution == null)
+                throw new ArgumentNullException(nameof(solution));
+
+            if (solution.GetOriginatingProjectId(type) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
+
+            return await FindImplementationsArrayAsync(type, solution, transitive, projects, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc cref="FindImplementationsAsync(INamedTypeSymbol, Solution, IImmutableSet{Project}, CancellationToken)"/>
         /// <remarks>
         /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
         /// </remarks>
-        internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImmediateImplementationsArrayAsync(
-            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+        internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementationsArrayAsync(
+            INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var implementingTypes = await DependentTypeFinder.FindAndCacheImplementingTypesAsync(
-                type, solution, projects, transitive: false, cancellationToken).ConfigureAwait(false);
-            return implementingTypes.WhereAsArray(IsAccessible);
+            var types = await DependentTypeFinder.FindAndCacheImplementingTypesAsync(
+                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+            return types.WhereAsArray(t => IsAccessible(t));
         }
+
+        #endregion
 
         /// <summary>
         /// Finds all the accessible symbols that implement an interface or interface member.  For an <see
@@ -352,7 +355,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // method/property/event from an interface.
             if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
-                return await FindImplementationsArrayAsync(
+                return await FindImplementationsAsync(
                     namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
             }
 
