@@ -673,7 +673,16 @@ class C
     static int i = 0;
     static bool b = false;
 }";
-            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
@@ -686,7 +695,16 @@ class C
 {
     static string s = null!;
 }";
-            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
@@ -744,7 +762,16 @@ class C
 {
     static C instance = default!;
 }";
-            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
@@ -787,7 +814,16 @@ class C
 {
     static int x = 0;
 }";
-            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
@@ -826,7 +862,16 @@ class C
 {
     static S? s1 = null;
 }";
-            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]

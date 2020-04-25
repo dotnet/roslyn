@@ -9110,9 +9110,16 @@ public class Program
             );
 
             compVerifier = CompileAndVerify(source,
-                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
-                expectedOutput: "");
-            compVerifier.VerifyMemberInIL("Program..cctor", false);
+                expectedOutput: "",
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication).WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Program");
+                Assert.Null(type.GetMember(".cctor"));
+            }
+
             compVerifier.VerifyIL(qualifiedMethodName: "Program.M", sequencePoints: "Program.M", source: source,
 expectedIL: @"{
   // Code size      149 (0x95)

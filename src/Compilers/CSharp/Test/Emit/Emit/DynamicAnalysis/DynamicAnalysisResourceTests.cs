@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -965,7 +966,17 @@ class C
     static object obj = null!;
 }" + InstrumentationHelperSource;
             var emitOptions = EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage));
-            CompileAndVerify(source, emitOptions: emitOptions).VerifyMemberInIL("C..cctor()", false);
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: emitOptions,
+                symbolValidator: validator);
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.Empty(type.GetMembers(".cctor"));
+            }
         }
 
         private class SpanResult

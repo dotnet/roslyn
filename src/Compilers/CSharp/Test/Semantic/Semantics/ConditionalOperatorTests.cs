@@ -675,9 +675,18 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, expectedOutput: "1");
+            var verifier = CompileAndVerify(
+                new string[] { source },
+                expectedOutput: "1",
+                symbolValidator: validator,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
             verifier.VerifyIL("Program.Main", expectedIL);
-            verifier.VerifyMemberInIL("Program..cctor", false);
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Program");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
         [Fact]

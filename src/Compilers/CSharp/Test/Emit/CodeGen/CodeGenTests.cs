@@ -906,8 +906,16 @@ public class H
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyMemberInIL("H..cctor()", false);
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("H");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
 
@@ -14723,8 +14731,17 @@ class c1
 
 ";
 
-            CompileAndVerify(source, expectedOutput: @"")
-                .VerifyMemberInIL("Test..cctor()", false);
+            CompileAndVerify(
+                source,
+                expectedOutput: "",
+                symbolValidator: validator,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
         [WorkItem(876784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876784")]
