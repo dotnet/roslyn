@@ -10,8 +10,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
 {
     public partial class LinkedFileDiffMergingTests
     {
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestIdenticalChanges()
         {
             TestLinkedFileSet(
@@ -21,8 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestChangesInOnlyOneFile()
         {
             TestLinkedFileSet(
@@ -32,8 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestIsolatedChangesInBothFiles()
         {
             TestLinkedFileSet(
@@ -43,8 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestIdenticalEditAfterIsolatedChanges()
         {
             TestLinkedFileSet(
@@ -54,8 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestOneConflict()
         {
             TestLinkedFileSet(
@@ -72,8 +67,7 @@ a b y d e",
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestTwoConflictsOnSameLine()
         {
             TestLinkedFileSet(
@@ -90,8 +84,7 @@ a q1 c z1 e",
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestTwoConflictsOnAdjacentLines()
         {
             TestLinkedFileSet(
@@ -126,8 +119,7 @@ Four",
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestTwoConflictsOnSeparatedLines()
         {
             TestLinkedFileSet(
@@ -171,8 +163,7 @@ Five",
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestManyLinkedFilesWithOverlappingChange()
         {
             TestLinkedFileSet(
@@ -200,8 +191,7 @@ B",
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestCommentsAddedCodeCSharp()
         {
             TestLinkedFileSet(
@@ -220,8 +210,7 @@ A",
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestCommentsAddedCodeVB()
         {
             TestLinkedFileSet(
@@ -239,8 +228,7 @@ A",
                 LanguageNames.VisualBasic);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestCommentsRemovedCodeCSharp()
         {
             TestLinkedFileSet(
@@ -259,8 +247,7 @@ B",
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestCommentsRemovedCodeVB()
         {
             TestLinkedFileSet(

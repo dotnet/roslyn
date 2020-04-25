@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
     [UseExportProvider]
     public class SmartTokenFormatterFormatRangeTests
     {
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task BeginningOfFile()
         {
             var code = @"        using System;$$";
@@ -2095,8 +2094,7 @@ class Class
             await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task StringLiterals()
         {
             var code = @"class C { void M() { C.M(""Test {0}$$";
@@ -2105,8 +2103,7 @@ class Class
             await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.StringLiteralToken, SyntaxKind.None);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task CharLiterals()
         {
             var code = @"class C { void M() { C.M('}$$";
@@ -2115,8 +2112,7 @@ class Class
             await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.CharacterLiteralToken, SyntaxKind.None);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task CharLiterals1()
         {
             var code = @"''';$$";
@@ -2125,8 +2121,7 @@ class Class
             await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.EndOfFileToken, SyntaxKind.None);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Comments()
         {
             var code = @"class C { void M() { // { }$$";
@@ -2290,8 +2285,7 @@ int         nextLine            =           30          ;$$
         }
 
         [WorkItem(537779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537779")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task DisappearedTokens2()
         {
             var code = @"class Class1

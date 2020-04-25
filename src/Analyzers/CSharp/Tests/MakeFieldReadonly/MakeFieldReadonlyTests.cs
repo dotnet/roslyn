@@ -1373,8 +1373,7 @@ class MyClass
 }");
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FixAll2()
         {
             await TestInRegularAndScriptAsync(

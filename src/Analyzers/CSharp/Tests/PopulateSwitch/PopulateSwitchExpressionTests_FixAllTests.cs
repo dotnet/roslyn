@@ -12,8 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
 {
     public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
         {
             var input = @"
@@ -165,8 +164,7 @@ namespace ConsoleApplication1
             await TestInRegularAndScriptAsync(input, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
         {
             var input = @"
@@ -306,8 +304,7 @@ namespace ConsoleApplication1
             await TestInRegularAndScriptAsync(input, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
         {
             var input = @"

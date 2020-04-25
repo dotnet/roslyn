@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
     [UseExportProvider]
     public class CodeCleanupTests
     {
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task RemoveUsings()
         {
             var code = @"using System;
@@ -58,8 +57,7 @@ internal class Program
             return AssertCodeCleanupResult(expected, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task SortUsings()
         {
             var code = @"using System.Collections.Generic;
@@ -179,8 +177,7 @@ namespace M
             return AssertCodeCleanupResult(expected, code, systemUsingsFirst: true, separateUsingGroups: true);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task FixAddRemoveBraces()
         {
             var code = @"class Program
@@ -208,8 +205,7 @@ namespace M
             return AssertCodeCleanupResult(expected, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task RemoveUnusedVariable()
         {
             var code = @"class Program
@@ -230,8 +226,7 @@ namespace M
             return AssertCodeCleanupResult(expected, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task FixAccessibilityModifiers()
         {
             var code = @"class Program

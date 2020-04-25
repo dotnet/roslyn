@@ -3901,8 +3901,7 @@ void Goo()
 }");
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInNamespaceImplicitClass_FieldInitializer()
         {
             await TestInRegularAndScriptAsync(

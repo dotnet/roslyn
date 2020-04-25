@@ -3374,8 +3374,7 @@ public void M()
         }
 
         [WorkItem(293, "https://github.com/dotnet/roslyn/issues/293")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void IntroduceBaseList()
         {
             var text = @"

@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
     [UseExportProvider]
     public class NormalizeModifiersOrOperatorsTests
     {
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task PartialMethod()
         {
             var code = @"[|Class A
@@ -33,8 +32,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task PartialClass()
         {
             var code = @"[|Public Partial Class A
@@ -46,8 +44,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task DefaultProperty()
         {
             var code = @"[|Class Class1
@@ -73,8 +70,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Accessors()
         {
             var code = @"[|Public Module M
@@ -130,8 +126,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Structure()
         {
             var code = @"[|Public Partial Structure S
@@ -143,8 +138,7 @@ End Structure";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Interface()
         {
             var code = @"[|Public Interface O
@@ -174,8 +168,7 @@ End Interface";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Class()
         {
             var code = @"[|MustInherit Public  Class C
@@ -187,8 +180,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Enum()
         {
             var code = @"[|Public Class O
@@ -222,8 +214,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Method()
         {
             var code = @"[|Public Class O
@@ -241,8 +232,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Declare()
         {
             var code = @"[|Class C
@@ -256,8 +246,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Delegate()
         {
             var code = @"[|Public Class O
@@ -283,8 +272,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Event()
         {
             var code = @"[|Public Class O
@@ -298,8 +286,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Operator()
         {
             var code = @"[|Public Structure abc
@@ -315,8 +302,7 @@ End Structure";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Property()
         {
             var code = @"[|Class Class1
@@ -330,8 +316,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Accessor()
         {
             var code = @"[|Class Class1
@@ -359,8 +344,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task IncompleteMember()
         {
             var code = @"[|Class Program
@@ -374,8 +358,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Field()
         {
             var code = @"[|Class Program
@@ -389,8 +372,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task NotOverridable_Overridable_Overrides()
         {
             var code = @"[|Public Class Program
@@ -422,8 +404,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task MustOverride_MustInherit()
         {
             var code = @"[|MustInherit Public Class Program
@@ -437,8 +418,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Overloads()
         {
             var code = @"[|Public MustInherit Class Program
@@ -460,8 +440,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task NotInheritable()
         {
             var code = @"[|NotInheritable Public Class Program
@@ -473,8 +452,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Shared_Shadow_ReadOnly_Const()
         {
             var code = @"[|Class C
@@ -514,8 +492,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task WriteOnly()
         {
             var code = @"[|Class C
@@ -535,8 +512,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task WithEvent_Custom_Dim()
         {
             var code = @"[|Imports System
@@ -584,8 +560,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Widening_Narrowing()
         {
             var code = @"[|Public Structure digit
@@ -609,8 +584,7 @@ End Structure";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Static_Const_Dim()
         {
             var code = @"[|Class A
@@ -687,8 +661,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task RemoveDim()
         {
             var code = @"[|Class A
@@ -702,8 +675,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task RemoveDim_LineContinuation()
         {
             var code = @"[|Class A
@@ -723,8 +695,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task LessThanGreaterThan()
         {
             var code = @"[|Class A
@@ -744,8 +715,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task GreaterThanEquals()
         {
             var code = @"[|Class A
@@ -765,8 +735,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task LessThanEquals()
         {
             var code = @"[|Class A
@@ -786,8 +755,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task LessThanEquals_LineContinuation()
         {
             var code = @"[|Class A

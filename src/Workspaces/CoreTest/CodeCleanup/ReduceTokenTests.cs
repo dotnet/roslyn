@@ -1800,8 +1800,7 @@ End Module";
             }
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceIntegerLiteralWithLeadingZeros()
         {
             var code = @"[|
@@ -1854,8 +1853,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceIntegerLiteralWithNegativeHexOrOctalValue()
         {
             var code = @"[|
@@ -1898,8 +1896,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceIntegerLiteralWithOverflow()
         {
             var code = @"[|
@@ -1934,8 +1931,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceBinaryIntegerLiteral()
         {
             var code = @"[|

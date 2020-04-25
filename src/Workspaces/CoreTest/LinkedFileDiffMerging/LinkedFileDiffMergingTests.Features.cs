@@ -89,8 +89,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestRename()
         {
             TestLinkedFileSet(

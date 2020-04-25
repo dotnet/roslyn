@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
     [UseExportProvider]
     public class RemoveUnnecessaryLineContinuationTests
     {
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonTrivia()
         {
             var code = @"[|
@@ -30,8 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonTrivia_EndOfLine()
         {
             var code = @"[|
@@ -47,8 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonTrivia_LineContinuation()
         {
             var code = @"[|
@@ -66,8 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonTrivia_LineContinuation2()
         {
             var code = @"[|
@@ -85,8 +81,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonTrivia_LineContinuation3()
         {
             var code = @"[|
@@ -104,8 +99,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonTrivia_LineContinuation_Comment()
         {
             var code = @"[|
@@ -123,8 +117,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task LineContinuation()
         {
             var code = @"[|
@@ -140,8 +133,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task LineContinuation_MultipleLines()
         {
             var code = @"[|
@@ -159,8 +151,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task LineContinuation_MultipleLines2()
         {
             var code = @"[|
@@ -180,8 +171,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task LineContinuation_Invalid()
         {
             var code = @"[|
@@ -201,8 +191,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_SingleLine()
         {
             var code = @"[|
@@ -214,8 +203,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_SingleLine_MultipleColon()
         {
             var code = @"[|
@@ -227,8 +215,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_SingleLine_SkippedTokens()
         {
             var code = @"[|
@@ -240,8 +227,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_LineContinuation_BeforeColonToken()
         {
             var code = @"[|
@@ -255,8 +241,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_LineContinuation_BeforeColonToken2()
         {
             var code = @"[|
@@ -270,8 +255,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_LineContinuation_Comment_BeforeColonToken()
         {
             var code = @"[|
@@ -284,8 +268,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected), LanguageVersion.VisualBasic15);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_LineContinuation_Comment_BeforeColonTokenV16()
         {
             var code = @"[|
@@ -298,8 +281,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected), LanguageVersion.VisualBasic16);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_MultipleLine()
         {
             var code = @"[|
@@ -313,8 +295,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_LineContinuation_AfterColonToken()
         {
             var code = @"[|
@@ -328,8 +309,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_LineContinuation_AfterColonToken2()
         {
             var code = @"[|
@@ -345,8 +325,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_LineContinuation_AfterColonToken_MultipleLine()
         {
             var code = @"[|
@@ -362,8 +341,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_LineContinuation_AfterColonToken_Mixed()
         {
             var code = @"[|
@@ -383,8 +361,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_LineContinuation_AfterColonToken_Colon_Comment()
         {
             var code = @"[|
@@ -404,8 +381,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_LineContinuation_Mix()
         {
             var code = @"[|
@@ -425,8 +401,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ColonToken_If()
         {
             var code = @"[|
@@ -440,8 +415,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ImplicitLineContinuation()
         {
             var code = @"[|
@@ -457,8 +431,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ImplicitLineContinuation_Multiple()
         {
             var code = @"[|
@@ -476,8 +449,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task LineContinuation_Mix()
         {
             var code = @"[|Class _
@@ -577,8 +549,7 @@ End _
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task ImplicitLineContinuation_Invalid()
         {
             var code = @"[|

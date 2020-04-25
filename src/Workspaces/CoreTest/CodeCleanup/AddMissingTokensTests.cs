@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
     [UseExportProvider]
     public class AddMissingTokensTests
     {
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MultipleLineIfStatementThen()
         {
             var code = @"[|
@@ -33,8 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TypeArgumentOf()
         {
             var code = @"[|
@@ -46,8 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TypeParameterOf()
         {
             var code = @"[|Class A(T)
@@ -59,8 +56,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodDeclaration()
         {
             var code = @"Class A
@@ -105,8 +101,7 @@ Module Program
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodInvocation_Sub()
         {
             var code = @"Class A
@@ -124,8 +119,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodInvocation_Function()
         {
             var code = @"Class A
@@ -145,8 +139,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task IdentifierMethod_Return()
         {
             var code = @"Class A
@@ -172,8 +165,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task IdentifierMethod_Assign()
         {
             var code = @"Class A
@@ -201,8 +193,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task IdentifierMethod_DotName_DontAdd()
         {
             var code = @"Class A
@@ -230,8 +221,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodInvocation_DotName()
         {
             var code = @"Class A
@@ -259,8 +249,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodInvocation_Generic()
         {
             var code = @"Class A
@@ -288,8 +277,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodInvocation_Call()
         {
             var code = @"Class A
@@ -317,8 +305,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task EventHandler_AddressOf1()
         {
             var code = @"Class A
@@ -340,8 +327,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task EventHandler_AddressOf2()
         {
             var code = @"Class A
@@ -363,8 +349,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task Delegate_AddressOf()
         {
             var code = @"Class A
@@ -382,8 +367,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task EventDeclaration()
         {
             var code = @"Class A
@@ -405,8 +389,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task RaiseEvent()
         {
             var code = @"Class A
@@ -428,8 +411,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task DelegateInvocation()
         {
             var code = @"
@@ -443,8 +425,7 @@ End Class";
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task Attribute()
         {
             var code = @"[|<Obsolete>
@@ -464,8 +445,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ObjectCreation()
         {
             var code = @"[|Module Program
@@ -501,8 +481,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task Constructor()
         {
             var code = @"[|Class C
@@ -518,8 +497,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task DeclareStatement()
         {
             var code = @"[|Class C
@@ -533,8 +511,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task DelegateStatement()
         {
             var code = @"[|Class C
@@ -548,8 +525,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodStatementWithComment()
         {
             var code = @"[|Class C
@@ -565,8 +541,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MultipleLineIfStatementThenWithComment()
         {
             var code = @"[|
@@ -582,8 +557,7 @@ End Class";
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TypeArgumentOf_Comment_DontAdd()
         {
             var code = @"[|
@@ -598,8 +572,7 @@ End Class";
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TypeParameterOf_Comment()
         {
             var code = @"[|Class A( ' test
@@ -613,8 +586,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodInvocation_Function_Comment()
         {
             var code = @"Class A
@@ -634,8 +606,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task IdentifierMethod_Return_Comment()
         {
             var code = @"Class A
@@ -661,8 +632,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ImplementsClause()
         {
             var code = @"Class Program
@@ -688,8 +658,7 @@ End Interface";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task OperatorStatement()
         {
             var code = @"[|Public Structure abc
@@ -711,8 +680,7 @@ End Structure";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task PropertyAndAccessorStatement()
         {
             var code = @"[|Class Class1
@@ -742,8 +710,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task LambdaExpression()
         {
             var code = @"[|Class Class1
@@ -2688,8 +2655,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestNoParenthesesForArgument()
         {
             // making roslyn behavior same as dev12
@@ -2727,8 +2693,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestNoParenthesesForNameOf()
         {
             var code = @"[|
@@ -2748,8 +2713,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task OptionExplicitOn()
         {
             var code = @"[|Option Explicit|]";
@@ -2759,8 +2723,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task OptionInferOn()
         {
             var code = @"[|Option Infer|]";
@@ -2770,8 +2733,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task OptionStrictOn()
         {
             var code = @"[|Option Strict|]";

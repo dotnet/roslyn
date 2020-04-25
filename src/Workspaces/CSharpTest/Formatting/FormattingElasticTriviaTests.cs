@@ -91,8 +91,7 @@ class B
         }
 
         [WorkItem(1947, "https://github.com/dotnet/roslyn/issues/1947")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ElasticLineBreaksBetweenMembers()
         {
             var text = @"
@@ -138,8 +137,7 @@ public class SomeAttribute : System.Attribute { }
         }
 
         [WorkItem(408, "https://roslyn.codeplex.com/workitem/408")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatElasticTriviaBetweenPropertiesWithoutAccessors()
         {
             var expected = @"class PropertyTest

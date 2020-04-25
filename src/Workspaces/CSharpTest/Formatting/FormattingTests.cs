@@ -3924,8 +3924,7 @@ public       void       Method      (       )           {
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task CastExpressionTest()
         {
             var code = @"class Program
@@ -3945,8 +3944,7 @@ public       void       Method      (       )           {
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NamedParameter()
         {
             var code = @"class Program
@@ -3967,8 +3965,7 @@ public       void       Method      (       )           {
         }
 
         [WorkItem(539259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539259")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5143()
         {
             var code = @"class Program
@@ -3991,8 +3988,7 @@ public       void       Method      (       )           {
         }
 
         [WorkItem(539338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539338")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5251()
         {
             var code = @"class Program
@@ -4007,8 +4003,7 @@ public       void       Method      (       )           {
         }
 
         [WorkItem(539358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539358")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5277()
         {
             var code = @"
@@ -4023,8 +4018,7 @@ public       void       Method      (       )           {
         }
 
         [WorkItem(539542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539542")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5544()
         {
             var code = @"
@@ -4051,8 +4045,7 @@ class Program
         }
 
         [WorkItem(539587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539587")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5602()
         {
             var code = @"    class Bug
@@ -4073,8 +4066,7 @@ class Program
         }
 
         [WorkItem(539616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539616")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5637()
         {
             var code = @"class Bug
@@ -4094,8 +4086,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task GenericType()
         {
             var code = @"class Bug<T>
@@ -4375,8 +4366,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task QueryContinuation2()
         {
             var code = @"using System.Linq;
@@ -4662,8 +4652,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task QueryContinuation1()
         {
             var code = @"using System.Linq;
@@ -4701,8 +4690,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task TestCSharpFormattingSpacingOptions()
         {
             var text =
@@ -4769,8 +4757,7 @@ class goo : System.Object
             await AssertFormatAsync(expectedFormattedText, text);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingFixInTokenBasedForIfAndSwitchCase()
         {
             var code = @"class Class5{
@@ -4800,8 +4787,7 @@ case 1: break; case 2: break; default: break;}
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInDeconstruction()
         {
             var code = @"class Class5{
@@ -4821,8 +4807,7 @@ var(x,y)=(1,2);
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInNullableTuple()
         {
             var code = @"class Class5
@@ -4843,8 +4828,7 @@ var(x,y)=(1,2);
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInTupleArrayCreation()
         {
             var code = @"class C
@@ -4865,8 +4849,7 @@ var(x,y)=(1,2);
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInTupleArrayCreation2()
         {
             var code = @"class C
@@ -4887,8 +4870,7 @@ var(x,y)=(1,2);
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInImplicitObjectCreation()
         {
             var code = @"class C
@@ -4909,8 +4891,7 @@ var(x,y)=(1,2);
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Positional()
         {
             var code = @"class C
@@ -4925,8 +4906,7 @@ var(x,y)=(1,2);
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Positional_Singleline()
         {
             var code = @"class C
@@ -4945,8 +4925,7 @@ _ = this is  ( 1 , 2 )  ; }
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Positional_Multiline()
         {
             var code = @"class C
@@ -4968,8 +4947,7 @@ _ = this is  ( 1 ,
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Positional_Multiline2()
         {
             var code = @"class C
@@ -4991,8 +4969,7 @@ _ = this is  ( 1 ,
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Positional_Multiline3()
         {
             var code = @"class C
@@ -5016,8 +4993,7 @@ _ = this is
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Positional_Multiline4()
         {
             var code = @"class C
@@ -5039,8 +5015,7 @@ _ = this is
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Properties_Singleline()
         {
             var code = @"class C
@@ -5055,8 +5030,7 @@ _ = this is
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Properties_Multiline()
         {
             var code = @"class C
@@ -5084,8 +5058,7 @@ P2 : 2
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Properties_Multiline2()
         {
             var code = @"class C
@@ -5112,8 +5085,7 @@ P2 : 2
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Properties_Multiline3()
         {
             var code = @"class C
@@ -5256,8 +5228,7 @@ _ = this is  C(  ){}  ; }
             await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatPropertyPattern_MultilineAndEmpty()
         {
             var code = @"class C
@@ -5280,8 +5251,7 @@ _ = this is
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchExpression_IndentArms()
         {
             var code = @"class C
@@ -5312,8 +5282,7 @@ _ => false
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatPropertyPattern_FollowedByInvocation()
         {
             var code = @"class C
@@ -5335,8 +5304,7 @@ M();
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatPositionalPattern_FollowedByInvocation()
         {
             var code = @"class C
@@ -5358,8 +5326,7 @@ M();
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatPositionalPattern_FollowedByScope()
         {
             var code = @"class C
@@ -5385,8 +5352,7 @@ _ = this is (1, 2)
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchExpression_MultilineAndNoArms()
         {
             var code = @"class C
@@ -5409,8 +5375,7 @@ _ = this switch
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchExpression_ExpressionAnchoredToArm()
         {
             var code = @"class C
@@ -5447,8 +5412,7 @@ _
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchExpression_NoSpaceBeforeColonInArm()
         {
             var code = @"class C
@@ -5485,8 +5449,7 @@ _
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchExpression_ArmCommaWantsNewline()
         {
             var code = @"class C
@@ -5516,8 +5479,7 @@ _ = this switch
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchExpression_ArmCommaPreservesLines()
         {
             var code = @"class C
@@ -5579,8 +5541,7 @@ public class Test
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchWithPropertyPattern()
         {
             var code = @"class C
@@ -5608,8 +5569,7 @@ public class Test
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchWithPropertyPattern_Singleline()
         {
             var code = @"class C
@@ -5636,8 +5596,7 @@ public class Test
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchWithPropertyPattern_Singleline2()
         {
             var code = @"class C
@@ -5666,8 +5625,7 @@ public class Test
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInTupleExtension()
         {
             var code = @"static class Class5
@@ -5682,8 +5640,7 @@ public class Test
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInNestedDeconstruction()
         {
             var code = @"class Class5{
@@ -5703,8 +5660,7 @@ void bar()
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInSuppressNullableWarningExpression()
         {
             var code =

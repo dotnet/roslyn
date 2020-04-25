@@ -81,8 +81,7 @@ $@"{FeaturesResources.Exceptions_colon}
             TestFormat(comment, expected);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void MultipleExceptionTags()
         {
             var comment =
