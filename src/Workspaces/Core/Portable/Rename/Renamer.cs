@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.Rename
             optionSet ??= solution.Options;
 
             var resolution = await RenameSymbolAsync(solution, symbol, newName, optionSet, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
+
+            // This is a public entrypoint.  So if rename failed to resolve conflicts, we report that back to caller as
+            // an exception.
             if (resolution.ErrorMessage != null)
                 throw new ArgumentException(resolution.ErrorMessage);
 
