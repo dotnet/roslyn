@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public DocumentId[] DocumentIds;
         public SerializableRelatedLocation[] RelatedLocations;
-        public (DocumentId, ImmutableArray<TextChange>)[] DocumentToTextChanges;
+        public ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> DocumentTextChanges;
         public (DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>)[] DocumentToModifiedSpansMap;
         public (DocumentId, ImmutableArray<SerializableComplexifiedSpan>)[] DocumentToComplexifiedSpansMap;
         public (DocumentId, ImmutableArray<SerializableRelatedLocation>)[] DocumentToRelatedLocationsMap;
@@ -281,9 +281,11 @@ namespace Microsoft.CodeAnalysis.Rename
             if (ErrorMessage != null)
                 return new ConflictResolution(ErrorMessage);
 
+            var newSolutionWithoutRenamedDocument = await RemoteUtilities.UpdateSolutionAsync(
+                oldSolution, DocumentTextChanges, cancellationToken).ConfigureAwait(false);
             return new ConflictResolution(
                 oldSolution,
-                await CreateNewSolutionAsync(oldSolution, cancellationToken).ConfigureAwait(false),
+                newSolutionWithoutRenamedDocument,
                 ReplacementTextValid,
                 RenamedDocument,
                 DocumentIds.ToImmutableArray(),
@@ -291,18 +293,6 @@ namespace Microsoft.CodeAnalysis.Rename
                 DocumentToModifiedSpansMap.ToImmutableDictionary(t => t.Item1, t => t.Item2),
                 DocumentToComplexifiedSpansMap.ToImmutableDictionary(t => t.Item1, t => t.Item2.SelectAsArray(c => c.Rehydrate())),
                 DocumentToRelatedLocationsMap.ToImmutableDictionary(t => t.Item1, t => t.Item2.SelectAsArray(c => c.Rehydrate())));
-        }
-
-        private async Task<Solution> CreateNewSolutionAsync(Solution oldSolution, CancellationToken cancellationToken)
-        {
-            var currentSolution = oldSolution;
-            foreach (var (docId, textChanges) in this.DocumentToTextChanges)
-            {
-                var text = await oldSolution.GetDocument(docId).GetTextAsync(cancellationToken).ConfigureAwait(false);
-                currentSolution = currentSolution.WithDocumentText(docId, text.WithChanges(textChanges));
-            }
-
-            return currentSolution;
         }
     }
 
@@ -313,13 +303,14 @@ namespace Microsoft.CodeAnalysis.Rename
             if (ErrorMessage != null)
                 return new SerializableConflictResolution { ErrorMessage = ErrorMessage };
 
+            var documentTextChanges = await RemoteUtilities.GetDocumentTextChangesAsync(OldSolution, _newSolutionWithoutRenamedDocument, cancellationToken).ConfigureAwait(false);
             return new SerializableConflictResolution
             {
                 ReplacementTextValid = ReplacementTextValid,
                 RenamedDocument = _renamedDocument,
                 DocumentIds = DocumentIds.ToArray(),
                 RelatedLocations = RelatedLocations.Select(loc => SerializableRelatedLocation.Dehydrate(loc)).ToArray(),
-                DocumentToTextChanges = await GetDocumentToTextChangesAsync(cancellationToken).ConfigureAwait(false),
+                DocumentTextChanges = documentTextChanges,
                 DocumentToModifiedSpansMap = _documentToModifiedSpansMap.Select(kvp => (kvp.Key, kvp.Value)).ToArray(),
                 DocumentToComplexifiedSpansMap = _documentToComplexifiedSpansMap.Select(kvp => (kvp.Key, kvp.Value.SelectAsArray(s => SerializableComplexifiedSpan.Dehydrate(s)))).ToArray(),
                 DocumentToRelatedLocationsMap = _documentToRelatedLocationsMap.Select(kvp => (kvp.Key, kvp.Value.SelectAsArray(s => SerializableRelatedLocation.Dehydrate(s)))).ToArray(),

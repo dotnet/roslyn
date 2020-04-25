@@ -14,7 +14,9 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -90,7 +92,44 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     c => EncapsulateFieldsAsync(document, fields, updateReferences: false, c)));
         }
 
-        private async Task<Solution> EncapsulateFieldsAsync(Document document, ImmutableArray<IFieldSymbol> fields, bool updateReferences, CancellationToken cancellationToken)
+        public async Task<Solution> EncapsulateFieldsAsync(
+            Document document, ImmutableArray<IFieldSymbol> fields,
+            bool updateReferences, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
+            {
+                var solution = document.Project.Solution;
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var result = await client.TryRunRemoteAsync<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>>(
+                        WellKnownServiceHubServices.CodeAnalysisService,
+                        nameof(IRemoteEncapsulateFieldService.EncapsulateFieldsAsync),
+                        solution,
+                        new object[]
+                        {
+                            document.Id,
+                            fields.Select(f => SymbolKey.CreateString(f, cancellationToken)).ToArray(),
+                            updateReferences,
+                        },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (result.HasValue)
+                    {
+                        return await RemoteUtilities.UpdateSolutionAsync(
+                            solution, result.Value, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            return await EncapsulateFieldsInCurrentProcessAsync(
+                document, fields, updateReferences, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<Solution> EncapsulateFieldsInCurrentProcessAsync(Document document, ImmutableArray<IFieldSymbol> fields, bool updateReferences, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(fields.Length == 0);
 

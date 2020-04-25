@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
     public enum TestHost
     {
         InProcess,
-        //OutOfProcess,
+        OutOfProcess,
     }
 
     public class EncapsulateFieldTests : AbstractCSharpCodeActionTest
