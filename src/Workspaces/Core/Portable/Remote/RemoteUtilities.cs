@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
     internal static class RemoteUtilities
     {
+        /// <summary>
+        /// Given two solution snapshots (<paramref name="oldSolution"/> and <paramref name="newSolution"/>), determines
+        /// the set of document text changes necessary to convert <paramref name="oldSolution"/> to <paramref
+        /// name="newSolution"/>.
+        /// </summary>
         public static async Task<DocumentTextChanges> GetDocumentTextChangesAsync(
             Solution oldSolution,
             Solution newSolution,
@@ -36,6 +41,10 @@ namespace Microsoft.CodeAnalysis.Remote
             return builder.ToImmutable();
         }
 
+        /// <summary>
+        /// Applies the result of <see cref="GetDocumentTextChangesAsync"/> to <paramref name="oldSolution"/> to produce
+        /// a solution textually equivalent to the <c>newSolution</c> passed to <see cref="GetDocumentTextChangesAsync"/>.
+        /// </summary>
         public static async Task<Solution> UpdateSolutionAsync(
             Solution oldSolution, DocumentTextChanges documentTextChanges, CancellationToken cancellationToken)
         {
