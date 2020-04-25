@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Diagnostics.Analyzers;
 
 namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
@@ -45,14 +44,12 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             var tree = context.Tree;
             var cancellationToken = context.CancellationToken;
             var root = tree.GetRoot(cancellationToken);
-            var text = tree.GetText(cancellationToken);
 
-            Recurse(context, text, root, cancellationToken);
+            Recurse(context, root, cancellationToken);
         }
 
         private void Recurse(
             SyntaxTreeAnalysisContext context,
-            SourceText text,
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
@@ -72,7 +69,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             foreach (var child in node.ChildNodesAndTokens())
             {
                 if (child.IsNode)
-                    Recurse(context, text, child.AsNode(), cancellationToken);
+                    Recurse(context, child.AsNode(), cancellationToken);
             }
         }
 
