@@ -92,15 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 if (!SyntaxFactory.AreEquivalent(target, rightPattern.TargetExpression))
                     return null;
 
-                // We factor out not-patterns in a conjunction.
-                // For instance: `not 1 and not 2` is simplified as `not (1 or 2)`.
+                // We factor out not-patterns in binary combinators.
+                // For instance: `not a and not b` is simplified as `not (a or b)`.
+                // Likewise, `not a or not b` is simplified as `not (a and b)`.
 
-                // Note that we don't do the same for disjunction, because the result would not be the same.
-                // For instance: `not 1 or not 2` cannot be rewritten as `not (1 and 2)`.
-                // The latter could be always true while that is not the case in the original form.
-
-                return !isDisjunctive && (leftPattern, rightPattern) is (Not left, Not right)
-                    ? Not.Create(new Binary(left.Pattern, right.Pattern, isDisjunctive: true, token, target))
+                return (leftPattern, rightPattern) is (Not left, Not right)
+                    ? Not.Create(new Binary(left.Pattern, right.Pattern, !isDisjunctive, token, target))
                     : new Binary(leftPattern, rightPattern, isDisjunctive, token, target);
             }
         }
