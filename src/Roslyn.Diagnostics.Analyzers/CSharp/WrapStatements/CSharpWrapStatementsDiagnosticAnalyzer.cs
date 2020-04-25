@@ -82,13 +82,11 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             if (!StatementNeedsWrapping(statement))
                 return false;
 
-            // Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'
             var additionalLocations = ImmutableArray.Create(statement.GetLocation());
-            var diagnostic = Diagnostic.Create(
+            context.ReportDiagnostic(Diagnostic.Create(
                 Rule,
                 statement.GetFirstToken().GetLocation(),
-                additionalLocations: additionalLocations);
-            context.ReportDiagnostic(diagnostic);
+                additionalLocations: additionalLocations));
             return true;
         }
 
