@@ -103,9 +103,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             BlockSyntax newBody;
             if (doesDelegateMethodReturnVoid)
             {
-                // We don't need to include the rewritten body if it consists of just the identifier name. However, in all other cases,
-                // the rewritten body should be included.
-                var isRewrittenBodyTrivial = rewrittenBody.WalkDownParentheses().IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifier) &&
+                // We don't need to include the rewritten body if it consists of just the identifier name.
+                // However, in all other cases, the rewritten body should be included.
+                var isRewrittenBodyTrivial = rewrittenBody.WalkDownParentheses().IsKind(SyntaxKind.IdentifierName,
+                    out IdentifierNameSyntax identifier) &&
                     identifier.Identifier.ValueText == newLocalName.Identifier.ValueText;
 
                 if (isRewrittenBodyTrivial)
@@ -115,7 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 else
                 {
                     newBody = SyntaxFactory.Block(
-                        declarationStatement, SyntaxFactory.ExpressionStatement(rewrittenBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+                        declarationStatement,
+                        SyntaxFactory.ExpressionStatement(rewrittenBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
                 }
             }
             else
