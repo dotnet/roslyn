@@ -80,15 +80,6 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
                     });
             }
 
-            //var newRoot = root.ReplaceTokens(
-            //    badStatements.Select(s => s.GetFirstToken().GetPreviousToken()),
-            //    (_, current) => AddTrailingTrivia(current, endOfLineTrivia));
-
-            //// If the statement was parented by a block, ensure we reformat between it's last token and the close brace
-            //// of the block as well.
-            //var statementsParentedByBlocks = badStatements.Where(s => s.Parent.IsKind(SyntaxKind.Block));
-            //newRoot = newRoot.
-
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
