@@ -69,6 +69,25 @@
         "group": "build"
     },
     {
+        "label": "update xlf files",
+        "command": "./build.sh",
+        "type": "shell",
+        "args": [
+          "--skipAnalyzers"
+        ],
+        "windows": {
+          "command": "./build.cmd",
+          "args": [
+            "-skipAnalyzers"
+          ],
+        },
+        "options": {
+          "env": { "UpdateXlfOnBuild": "true" }
+        },
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
         "label": "run tests in current file (netcoreapp3.1)",
         "command": "./.dotnet/dotnet",
         "type": "shell",
