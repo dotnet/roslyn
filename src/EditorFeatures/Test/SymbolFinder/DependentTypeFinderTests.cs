@@ -86,7 +86,7 @@ namespace M
             Assert.NotEqual(baseClassSymbol, derivedClassSymbol.BaseType);
 
             // verify that the dependent types of `N.BaseClass` correctly resolve to `M.DerivedCLass`
-            var derivedFromBase = await SymbolFinder.FindImmediateDerivedClassesAsync(baseClassSymbol, solution);
+            var derivedFromBase = await SymbolFinder.FindDerivedClassesAsync(baseClassSymbol, solution, transitive: false);
             var derivedDependentType = derivedFromBase.Single();
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
@@ -127,7 +127,7 @@ namespace M
             Assert.NotEqual(baseClassSymbol, derivedClassSymbol.Interfaces[0]);
 
             // verify that the dependent types of `N.BaseClass` correctly resolve to `M.DerivedCLass`
-            var derivedFromBase = await SymbolFinder.FindImmediateDerivedInterfacesAsync(baseClassSymbol, solution);
+            var derivedFromBase = await SymbolFinder.FindDerivedInterfacesAsync(baseClassSymbol, solution, transitive: false);
             var derivedDependentType = derivedFromBase.Single();
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
@@ -177,7 +177,7 @@ namespace M
             Assert.NotEqual(baseClassSymbol, derivedClassSymbol.BaseType);
 
             // verify that the dependent types of `N.BaseClass` correctly resolve to `M.DerivedCLass`
-            var derivedFromBase = await SymbolFinder.FindImmediateDerivedClassesAsync(baseClassSymbol, solution);
+            var derivedFromBase = await SymbolFinder.FindDerivedClassesAsync(baseClassSymbol, solution, transitive: false);
             var derivedDependentType = derivedFromBase.Single();
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
@@ -218,7 +218,7 @@ namespace M
             Assert.NotEqual(baseClassSymbol, derivedClassSymbol.BaseType);
 
             // verify that the dependent types of `N.BaseClass` correctly resolve to `M.DerivedCLass`
-            var derivedFromBase = await SymbolFinder.FindImmediateDerivedClassesAsync(baseClassSymbol, solution);
+            var derivedFromBase = await SymbolFinder.FindDerivedClassesAsync(baseClassSymbol, solution, transitive: false);
             var derivedDependentType = derivedFromBase.Single();
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
@@ -260,7 +260,7 @@ End Namespace
             Assert.NotEqual(baseClassSymbol, derivedClassSymbol.BaseType);
 
             // verify that the dependent types of `N.BaseClass` correctly resolve to `M.DerivedCLass`
-            var derivedFromBase = await SymbolFinder.FindImmediateDerivedClassesAsync(baseClassSymbol, solution);
+            var derivedFromBase = await SymbolFinder.FindDerivedClassesAsync(baseClassSymbol, solution, transitive: false);
             var derivedDependentType = derivedFromBase.Single();
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
@@ -302,7 +302,7 @@ End Namespace
             Assert.NotEqual(baseClassSymbol, derivedClassSymbol.BaseType);
 
             // verify that the dependent types of `N.BaseClass` correctly resolve to `M.DerivedCLass`
-            var derivedFromBase = await SymbolFinder.FindImmediateDerivedClassesAsync(baseClassSymbol, solution);
+            var derivedFromBase = await SymbolFinder.FindDerivedClassesAsync(baseClassSymbol, solution, transitive: false);
             var derivedDependentType = derivedFromBase.Single();
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
@@ -343,7 +343,7 @@ namespace M
             Assert.NotEqual(baseInterfaceSymbol, implementingClassSymbol.Interfaces.Single());
 
             // verify that the implementing types of `N.IBaseInterface` correctly resolve to `M.ImplementingClass`
-            var typesThatImplementInterface = await SymbolFinder.FindImmediateImplementationsAsync(baseInterfaceSymbol, solution);
+            var typesThatImplementInterface = await SymbolFinder.FindImplementationsAsync(baseInterfaceSymbol, solution, transitive: false);
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
 
@@ -384,7 +384,7 @@ End Namespace
             Assert.NotEqual(baseInterfaceSymbol, implementingClassSymbol.Interfaces.Single());
 
             // verify that the implementing types of `N.IBaseInterface` correctly resolve to `M.ImplementingClass`
-            var typesThatImplementInterface = await SymbolFinder.FindImmediateImplementationsAsync(baseInterfaceSymbol, solution);
+            var typesThatImplementInterface = await SymbolFinder.FindImplementationsAsync(baseInterfaceSymbol, solution, transitive: false);
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
 
@@ -424,7 +424,7 @@ namespace M
             Assert.NotEqual(baseInterfaceSymbol, implementingClassSymbol.Interfaces.Single());
 
             // verify that the implementing types of `N.IBaseInterface` correctly resolve to `M.ImplementingClass`
-            var typesThatImplementInterface = await SymbolFinder.FindImmediateImplementationsAsync(baseInterfaceSymbol, solution);
+            var typesThatImplementInterface = await SymbolFinder.FindImplementationsAsync(baseInterfaceSymbol, solution, transitive: false);
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
     }

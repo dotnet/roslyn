@@ -26,8 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 if (namedType.TypeKind == TypeKind.Class)
                 {
-                    var derivedTypes = await SymbolFinder.FindImmediateDerivedClassesAsync(
-                        namedType, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var derivedTypes = await SymbolFinder.FindDerivedClassesArrayAsync(
+                        namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in derivedTypes)
                     {
                         var symbolNode = await graphBuilder.AddNodeAsync(
@@ -37,10 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
                 else if (namedType.TypeKind == TypeKind.Interface)
                 {
-                    var implementingClassesAndStructs = await SymbolFinder.FindImmediateImplementationsAsync(
-                        namedType, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    var derivedInterfaces = await SymbolFinder.FindImmediateDerivedInterfacesAsync(
-                        namedType, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var implementingClassesAndStructs = await SymbolFinder.FindImplementationsArrayAsync(
+                        namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var derivedInterfaces = await SymbolFinder.FindDerivedInterfacesArrayAsync(
+                        namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in implementingClassesAndStructs.Concat(derivedInterfaces))
                     {
                         var symbolNode = await graphBuilder.AddNodeAsync(
