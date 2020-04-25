@@ -673,6 +673,7 @@ class C
 {
     const decimal d1 = default;
     const decimal d2 = 0;
+    const decimal d3 = 0m;
 }
 ";
 
@@ -681,6 +682,7 @@ class C
 {
     static readonly decimal d1 = default;
     static readonly decimal d2 = 0;
+    static readonly decimal d3 = 0m;
 }
 ";
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
