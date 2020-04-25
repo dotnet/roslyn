@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         private static readonly CSharpParseOptions s_parseOptions = TestOptions.RegularPreview;
 
         [Fact]
-        public static void ModuleInitializersNotUsableInCSharp8()
+        public static void LastLanguageVersionNotSupportingModuleInitializersIs8()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -37,6 +37,25 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ModuleInitializer").WithArguments("module initializers").WithLocation(5, 6)
                 );
+        }
+
+        [Fact]
+        public static void FirstLanguageVersionSupportingModuleInitializersIs9()
+        {
+            var source =
+@"using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer]
+    internal static void M() { }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
