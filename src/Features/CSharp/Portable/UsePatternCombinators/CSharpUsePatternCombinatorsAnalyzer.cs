@@ -101,6 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             return DetermineConstant(op) switch
             {
                 ConstantResult.Left when op.LeftOperand.Syntax is ExpressionSyntax left
+                    // We need to flip the operator if the constant is on the left-hand-side.
+                    // This is because relational patterns only come in the prefix form.
+                    // For instance: `123 > x` would be rewritten as `x is < 123`.
                     => new Relational(Flip(op.OperatorKind), left, GetTargetExpression(op.RightOperand)),
                 ConstantResult.Right when op.RightOperand.Syntax is ExpressionSyntax right
                     => new Relational(op.OperatorKind, right, GetTargetExpression(op.LeftOperand)),
@@ -138,8 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         /// Changes the direction the operator is pointing at.
         /// </summary>
         /// <remarks>
-        /// Relational patterns only come in prefix form so we'll have to
-        /// flip the operator if the original comparison has an LHS constant.
+        /// Relational patterns only come in the prefix form so we'll have to
+        /// flip the operator if the constant happens to be on the left-hand-side.
         /// </remarks>
         public static BinaryOperatorKind Flip(BinaryOperatorKind operatorKind)
         {

@@ -83,9 +83,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             if (pattern is null)
                 return;
 
+            // Avoid rewriting trivial patterns, such as a single relational or a constant pattern.
             if (IsTrivial(pattern))
                 return;
 
+            // C# 9.0 does not support pattern variables under `not` and `or` combinators.
             if (HasIllegalPatternVariables(pattern))
                 return;
 
