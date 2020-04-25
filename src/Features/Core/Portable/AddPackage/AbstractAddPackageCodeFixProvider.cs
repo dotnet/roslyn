@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
                 searchNugetPackages &&
                 installerService.IsEnabled(document.Project.Id))
             {
-                foreach (var packageSource in installerService.GetPackageSources())
+                foreach (var packageSource in await installerService.GetPackageSourcesAsync(allowSwitchToMainThread: false, cancellationToken).ConfigureAwait(false))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 

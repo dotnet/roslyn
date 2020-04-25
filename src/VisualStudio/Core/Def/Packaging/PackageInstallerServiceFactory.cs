@@ -19,12 +19,12 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using NuGet.VisualStudio;
 using Roslyn.Utilities;
 using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
@@ -56,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
 
         private ImmutableArray<PackageSource> _packageSources;
+        private JoinableTask<ImmutableArray<PackageSource>> _packageSourcesAsync;
         private IVsPackage _nugetPackageManager;
 
         private CancellationTokenSource _tokenSource = new CancellationTokenSource();
@@ -93,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageSourceProvider = packageSourceProvider;
         }
 
-        public ImmutableArray<PackageSource> GetPackageSources()
+        public async ValueTask<ImmutableArray<PackageSource>> GetPackageSourcesAsync(bool allowSwitchToMainThread, CancellationToken cancellationToken)
         {
             // Only read from _packageSources once, since OnSourceProviderSourcesChanged could reset it to default at
             // any time while this method is running.
@@ -103,21 +104,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return packageSources;
             }
 
-            try
+            lock (_gate)
             {
-                packageSources = _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
-                    .SelectAsArray(r => new PackageSource(r.Key, r.Value));
+                if (_packageSourcesAsync is null)
+                {
+                    _packageSourcesAsync = ThreadingContext.JoinableTaskFactory.RunAsync(() => GetPackageSourcesImplAsync());
+                }
             }
-            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
+
+            if (allowSwitchToMainThread)
             {
-                // These exceptions can happen when the nuget.config file is broken.
-                packageSources = ImmutableArray<PackageSource>.Empty;
+                using var combinedToken = _tokenSource.Token.CombineWith(cancellationToken);
+                packageSources = await _packageSourcesAsync.JoinAsync(combinedToken.Token).ConfigureAwait(false);
             }
-            catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
+            else if (_packageSourcesAsync.IsCompleted)
             {
-                // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
-                // https://github.com/dotnet/roslyn/issues/40857
-                packageSources = ImmutableArray<PackageSource>.Empty;
+                packageSources = _packageSourcesAsync.GetAwaiter().GetResult();
+            }
+            else
+            {
+                // Return without caching a result
+                return ImmutableArray<PackageSource>.Empty;
             }
 
             var previousPackageSources = ImmutableInterlocked.InterlockedCompareExchange(ref _packageSources, packageSources, default);
@@ -128,6 +135,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             return packageSources;
+        }
+
+        private async Task<ImmutableArray<PackageSource>> GetPackageSourcesImplAsync()
+        {
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_tokenSource.Token);
+
+            try
+            {
+                return _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
+                    .SelectAsArray(r => new PackageSource(r.Key, r.Value));
+            }
+            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
+            {
+                // These exceptions can happen when the nuget.config file is broken.
+                return ImmutableArray<PackageSource>.Empty;
+            }
+            catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
+            {
+                // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
+                // https://github.com/dotnet/roslyn/issues/40857
+                return ImmutableArray<PackageSource>.Empty;
+            }
         }
 
         public event EventHandler PackageSourcesChanged;

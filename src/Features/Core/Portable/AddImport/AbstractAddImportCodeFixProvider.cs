@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var installerService = GetPackageInstallerService(document);
             var packageSources = searchNuGetPackages && symbolSearchService != null && installerService?.IsEnabled(document.Project.Id) == true
-                ? installerService.GetPackageSources()
+                ? await installerService.GetPackageSourcesAsync(allowSwitchToMainThread: false, context.CancellationToken).ConfigureAwait(false)
                 : ImmutableArray<PackageSource>.Empty;
 
             var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
