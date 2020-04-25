@@ -807,6 +807,38 @@ namespace CSharpSyntaxGenerator
             if (node is AbstractNode)
             {
                 var nd = (AbstractNode)node;
+                WriteComment($"<remarks>");
+
+                WriteComment($"This node has the following derived hierarchy:");
+                WriteComment($"<list type=\"bullet\">");
+
+                void writeTypeHierarchy(TreeType node)
+                {
+                    if (node is AbstractNode abstractNode)
+                    {
+                        WriteComment($"<item><description><see cref=\"{node.Name}\"/>");
+                        WriteComment($"<list type=\"bullet\">");
+                        foreach (var derived in GetImmediatelyDerivedNodes(abstractNode))
+                        {
+                            writeTypeHierarchy(derived);
+                        }
+
+                        WriteComment($"</list>");
+                        WriteComment($"</description></item>");
+                    }
+                    else
+                    {
+                        WriteComment($"<item><description><see cref=\"{node.Name}\"/></description></item>");
+                    }
+                }
+
+                foreach (var derived in GetImmediatelyDerivedNodes(nd))
+                {
+                    writeTypeHierarchy(derived);
+                }
+
+                WriteComment($"</list>");
+                WriteComment($"</remarks>");
                 WriteLine($"public abstract partial class {node.Name} : {node.Base}");
                 OpenBlock();
                 WriteLine($"internal {node.Name}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)");
@@ -1170,6 +1202,11 @@ namespace CSharpSyntaxGenerator
                 WriteLine($"public virtual {(genericResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
             CloseBlock();
+        }
+
+        private IEnumerable<TreeType> GetImmediatelyDerivedNodes(TreeType node)
+        {
+            return Tree.Types.Where(n => ParentMap[n.Name] == node.Name);
         }
 
         private void WriteRedUpdateMethod(Node node)
