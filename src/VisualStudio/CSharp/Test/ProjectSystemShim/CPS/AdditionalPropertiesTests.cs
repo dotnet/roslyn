@@ -4,7 +4,6 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Utilities;
