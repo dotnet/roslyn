@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="computeValue">Delegate to compute the value associated with a given <see cref="SourceText"/> instance.</param>
         /// <param name="sourceTextComparer">Optional equality comparer to determine equivalent <see cref="SourceText"/> instances that have the same value.
         /// If no comparer is provided, then <see cref="SourceTextComparer"/> is used by default.</param>
-        public SourceTextValueProvider(Func<SourceText, TValue> computeValue, IEqualityComparer<SourceText> sourceTextComparer = null)
+        public SourceTextValueProvider(Func<SourceText, TValue> computeValue, IEqualityComparer<SourceText>? sourceTextComparer = null)
         {
             CoreValueProvider = new AnalysisValueProvider<SourceText, TValue>(computeValue, sourceTextComparer ?? SourceTextComparer.Instance);
         }
