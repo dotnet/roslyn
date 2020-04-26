@@ -103,11 +103,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
-                location: expression.GetLocation(),
-                effectiveSeverity: ReportDiagnostic.Warn,
+                expression.GetLocation(),
+                styleOption.Notification.Severity,
                 additionalLocations: null,
-                properties: null,
-                messageArgs: null));
+                properties: null));
         }
 
         private static bool HasIllegalPatternVariables(AnalyzedPattern pattern, bool permitDesignations = true)
