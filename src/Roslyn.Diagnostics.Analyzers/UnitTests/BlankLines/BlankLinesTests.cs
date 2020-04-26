@@ -281,5 +281,105 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
                 FixedCode = fixedCode,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestNoBlankLineBetweenTokens()
+        {
+            var code =
+@"class C
+{
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestOneBlankLineBetweenTokens()
+        {
+            var code =
+@"class C
+{
+
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTwoBlankLineBetweenTokens()
+        {
+            var code =
+@"class C
+{
+[||]
+
+}";
+            var fixedCode =
+@"class C
+{
+
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestThreeBlankLineBetweenTokens()
+        {
+            var code =
+@"class C
+{
+[||]
+
+
+}";
+            var fixedCode =
+@"class C
+{
+
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFourBlankLineBetweenTokens()
+        {
+            var code =
+@"class C
+{
+[||]
+
+
+
+}";
+            var fixedCode =
+@"class C
+{
+
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
     }
 }
