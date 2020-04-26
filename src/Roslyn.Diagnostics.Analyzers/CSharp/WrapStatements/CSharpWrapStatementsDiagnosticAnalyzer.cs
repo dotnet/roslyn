@@ -76,9 +76,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             }
         }
 
-        private static bool CheckStatementSyntax(
-            SyntaxTreeAnalysisContext context,
-            StatementSyntax statement)
+        private static bool CheckStatementSyntax(SyntaxTreeAnalysisContext context, StatementSyntax statement)
         {
             if (!StatementNeedsWrapping(statement))
                 return false;
