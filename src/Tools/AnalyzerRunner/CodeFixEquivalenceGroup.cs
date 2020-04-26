@@ -78,37 +78,24 @@ namespace AnalyzerRunner
                     {
                         var sourcePath = diagnostic.Location.GetLineSpan().Path;
 
-                        if (!relevantDocumentDiagnostics.TryGetValue(projectId, out var projectDocumentDiagnostics))
-                        {
-                            projectDocumentDiagnostics = new Dictionary<string, List<Diagnostic>>();
-                            relevantDocumentDiagnostics.Add(projectId, projectDocumentDiagnostics);
-                        }
-
-                        if (!projectDocumentDiagnostics.TryGetValue(sourcePath, out var diagnosticsInFile))
-                        {
-                            diagnosticsInFile = new List<Diagnostic>();
-                            projectDocumentDiagnostics.Add(sourcePath, diagnosticsInFile);
-                        }
-
+                        var projectDocumentDiagnostics = relevantDocumentDiagnostics.GetOrAdd(projectId, _ => new Dictionary<string, List<Diagnostic>>());
+                        var diagnosticsInFile = projectDocumentDiagnostics.GetOrAdd(sourcePath, _ => new List<Diagnostic>());
                         diagnosticsInFile.Add(diagnostic);
                     }
                     else
                     {
-                        if (!relevantProjectDiagnostics.TryGetValue(projectId, out var diagnosticsInProject))
-                        {
-                            diagnosticsInProject = new List<Diagnostic>();
-                            relevantProjectDiagnostics.Add(projectId, diagnosticsInProject);
-                        }
-
+                        var diagnosticsInProject = relevantProjectDiagnostics.GetOrAdd(projectId, _ => new List<Diagnostic>());
                         diagnosticsInProject.Add(diagnostic);
                     }
                 }
             }
 
-            var documentDiagnosticsToFix =
-                relevantDocumentDiagnostics.ToImmutableDictionary(i => i.Key, i => i.Value.ToImmutableDictionary(j => j.Key, j => j.Value.ToImmutableArray(), StringComparer.OrdinalIgnoreCase));
-            var projectDiagnosticsToFix =
-                relevantProjectDiagnostics.ToImmutableDictionary(i => i.Key, i => i.Value.ToImmutableArray());
+            var documentDiagnosticsToFix = relevantDocumentDiagnostics.ToImmutableDictionary(
+                i => i.Key,
+                i => i.Value.ToImmutableDictionary(j => j.Key, j => j.Value.ToImmutableArray(), StringComparer.OrdinalIgnoreCase));
+            var projectDiagnosticsToFix = relevantProjectDiagnostics.ToImmutableDictionary(
+                i => i.Key,
+                i => i.Value.ToImmutableArray());
 
             var equivalenceKeys = new HashSet<string>();
             foreach (var diagnostic in relevantDocumentDiagnostics.Values.SelectMany(i => i.Values).SelectMany(i => i).Concat(relevantProjectDiagnostics.Values.SelectMany(i => i)))
@@ -147,7 +134,14 @@ namespace AnalyzerRunner
         {
             var codeActions = new List<CodeAction>();
 
-            await codeFixProvider.RegisterCodeFixesAsync(new CodeFixContext(solution.GetDocument(diagnostic.Location.SourceTree), diagnostic, (a, d) => codeActions.Add(a), cancellationToken)).ConfigureAwait(false);
+            await codeFixProvider
+                .RegisterCodeFixesAsync(
+                    new CodeFixContext(
+                        solution.GetDocument(diagnostic.Location.SourceTree),
+                        diagnostic,
+                        (a, d) => codeActions.Add(a),
+                        cancellationToken))
+                .ConfigureAwait(false);
 
             return codeActions;
         }

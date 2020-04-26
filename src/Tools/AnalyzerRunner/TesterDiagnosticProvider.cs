@@ -25,27 +25,15 @@ namespace AnalyzerRunner
 
         public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
         {
-            if (!_projectDiagnostics.TryGetValue(project.Id, out var filteredProjectDiagnostics))
-            {
-                filteredProjectDiagnostics = ImmutableArray<Diagnostic>.Empty;
-            }
-
-            if (!_documentDiagnostics.TryGetValue(project.Id, out var filteredDocumentDiagnostics))
-            {
-                filteredDocumentDiagnostics = ImmutableDictionary<string, ImmutableArray<Diagnostic>>.Empty;
-            }
-
+            var filteredProjectDiagnostics = _projectDiagnostics.GetValueOrDefault(project.Id, ImmutableArray<Diagnostic>.Empty);
+            var filteredDocumentDiagnostics = _documentDiagnostics.GetValueOrDefault(project.Id, ImmutableDictionary<string, ImmutableArray<Diagnostic>>.Empty);
             return Task.FromResult(filteredProjectDiagnostics.Concat(filteredDocumentDiagnostics.Values.SelectMany(i => i)));
         }
 
         public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
-            if (!_documentDiagnostics.TryGetValue(document.Project.Id, out var projectDocumentDiagnostics))
-            {
-                return Task.FromResult(Enumerable.Empty<Diagnostic>());
-            }
-
-            if (!projectDocumentDiagnostics.TryGetValue(document.FilePath, out var diagnostics))
+            if (!_documentDiagnostics.TryGetValue(document.Project.Id, out var projectDocumentDiagnostics)
+                || !projectDocumentDiagnostics.TryGetValue(document.FilePath, out var diagnostics))
             {
                 return Task.FromResult(Enumerable.Empty<Diagnostic>());
             }
