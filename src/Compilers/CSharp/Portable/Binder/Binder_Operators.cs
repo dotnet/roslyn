@@ -1495,7 +1495,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         private ConstantValue FoldEnumBinaryOperator(
             CSharpSyntaxNode syntax,
             BinaryOperatorKind kind,

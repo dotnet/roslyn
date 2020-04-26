@@ -91,7 +91,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var requestLength = args.Count + 1 + (libDirectory == null ? 0 : 1);
             var requestArgs = new List<Argument>(requestLength);
 
-
             requestArgs.Add(new Argument(ArgumentId.CurrentDirectory, 0, workingDirectory));
             requestArgs.Add(new Argument(ArgumentId.TempDirectory, 0, tempDirectory));
 

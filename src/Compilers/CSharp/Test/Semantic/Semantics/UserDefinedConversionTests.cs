@@ -360,7 +360,6 @@ Diagnostic(ErrorCode.ERR_AmbigUDConv, "default(N?)").WithArguments("N.implicit o
 Diagnostic(ErrorCode.ERR_AmbigUDConv, "default(P?)").WithArguments("P.implicit operator G(P)", "P.implicit operator G(P?)", "P?", "G?")
                 );
 
-
             // More cases where the specification indicates that a conversion should be legal,
             // but the native compiler disallows it. Roslyn follows the native compiler in these cases.
 
@@ -662,7 +661,6 @@ class Z
   }
 }
 ";
-
 
             var comp = CreateCompilation(source1 + source3);
             comp.VerifyDiagnostics();
@@ -1278,7 +1276,6 @@ class D<T> : C<T>
         return null;
     }
 }";
-
 
             var verifier = CompileAndVerify(source, expectedOutput: "23");
         }

@@ -95,7 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var rewrittenBody = Rewrite(
                 document, expression, newLocalName, document, oldBody, allOccurrences, cancellationToken);
 
-
             var newBody =
                 document.SemanticModel.GetTypeInfo(oldLambda, cancellationToken).ConvertedType is INamedTypeSymbol delegateType
                 && delegateType.DelegateInvokeMethod != null

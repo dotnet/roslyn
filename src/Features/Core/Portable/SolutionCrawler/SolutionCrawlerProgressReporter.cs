@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private void Evaluate() => ChangeProgressStatus(ref _progressEvaluateCount, ProgressStatus.Evaluating);
             private void Pause() => ChangeProgressStatus(ref _progressEvaluateCount, ProgressStatus.Paused);
 
-
             public void UpdatePendingItemCount(int pendingItemCount)
             {
                 if (_progressStartCount > 0)

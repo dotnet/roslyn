@@ -44,7 +44,6 @@ namespace BoundTreeGenerator
                     return 1;
             }
 
-
             Tree tree;
             var serializer = new XmlSerializer(typeof(Tree));
             using (var reader = XmlReader.Create(infilename, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit }))

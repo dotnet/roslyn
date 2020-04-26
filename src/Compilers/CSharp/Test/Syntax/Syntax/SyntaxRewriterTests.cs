@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestGreen(input, output, rewriter, isExpr: false);
         }
 
-
         #endregion Green Tree / SyntaxList
 
         #region Red Tree / SeparatedSyntaxList

@@ -195,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         private BoundSequence VisitIndexPatternIndexerAccess(
             SyntaxNode syntax,
             BoundExpression receiver,

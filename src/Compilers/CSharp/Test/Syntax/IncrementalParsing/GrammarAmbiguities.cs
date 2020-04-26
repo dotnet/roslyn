@@ -83,7 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
             var start = codeBefore.Length;
             var length = codeToBeReplaced.Length;
 
-
             var code = codeBefore + codeToBeReplaced + codeAfter;
 
             var originalTree = SyntaxFactory.ParseSyntaxTree(code);

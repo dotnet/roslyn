@@ -38,7 +38,6 @@ class Module1
 
 }", new MetadataReference[] { cl2, cl3 });
 
-
             var a_cs =
 @"
 

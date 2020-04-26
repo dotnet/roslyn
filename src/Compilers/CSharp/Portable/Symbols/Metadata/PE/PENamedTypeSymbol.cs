@@ -382,7 +382,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-
         internal override bool HasCodeAnalysisEmbeddedAttribute
         {
             get
@@ -1075,7 +1074,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return HandleComparer.Default.Compare(((PENamedTypeSymbol)x).Handle, ((PENamedTypeSymbol)y).Handle);
             }
         }
-
 
         private void EnsureEnumUnderlyingTypeIsLoaded(UncommonProperties uncommon)
         {
@@ -1945,7 +1943,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
         }
-
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()
         {

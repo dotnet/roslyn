@@ -254,7 +254,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // candidates either.
             AssertNone(MemberResolutionKind.LessDerived);
 
-
             //// PHASE 2: Applicability failures ////
 
             // Overload resolution performed these checks just before weeding out less-derived and worse candidates.
@@ -349,7 +348,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssertNone(MemberResolutionKind.TypeInferenceFailed);
             AssertNone(MemberResolutionKind.TypeInferenceExtensionInstanceArgument);
 
-
             //// PHASE 3: Use site errors ////
 
             // Overload resolution checks for use site errors between argument analysis and applicability testing.
@@ -364,7 +362,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Since we didn't return...
             AssertNone(MemberResolutionKind.UseSiteError);
-
 
             //// PHASE 4: Argument analysis failures and unsupported metadata ////
 

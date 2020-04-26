@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-
         public static ConstantValueTypeDiscriminator GetConstantValueTypeDiscriminator(this Cci.PrimitiveTypeCode type)
         {
             switch (type)

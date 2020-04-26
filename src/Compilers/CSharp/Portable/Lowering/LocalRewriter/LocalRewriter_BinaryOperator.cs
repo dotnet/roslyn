@@ -536,7 +536,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-
         //array length produces native uint, so the node typically implies a conversion to int32/int64.  
         //Sometimes the conversion is not necessary - i.e. when we just check for 0
         //This helper removes unnecessary implied conversion from ArrayLength node.

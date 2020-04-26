@@ -2566,7 +2566,6 @@ True");
 ");
         }
 
-
         [Fact]
         public void ConditionalMemberAccessUnConstrainedDyn()
         {
@@ -3149,7 +3148,6 @@ True
 False
 True");
         }
-
 
         [Fact]
         public void ConditionalExtensionAccessGeneric001()
@@ -4469,7 +4467,6 @@ class Program
 ";
             var comp = CompileAndVerify(source, expectedOutput: @"Success");
         }
-
 
         [Fact]
         public void ConditionalMemberAccessConditional001()
@@ -6273,7 +6270,6 @@ class C
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
             var comp = CompileAndVerify(c, expectedOutput: @"FalseTrueTrue");
         }
-
 
         [Fact]
         public void ConditionalBoolExpr06()

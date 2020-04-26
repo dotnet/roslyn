@@ -102,7 +102,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var compFile = directory.CreateFile(name);
             comp.Emit(compFile.Path);
 
-
             var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference(name));
 
             var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader());

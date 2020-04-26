@@ -823,7 +823,6 @@ class MyClass
                 "System.Int32 lambdaParam"
             };
 
-
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
 
@@ -865,7 +864,6 @@ class MyClass
                 "System.Int32 forVar",
             };
 
-
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
 
@@ -905,7 +903,6 @@ class MyClass
                 "System.Int32 number",
             };
 
-
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
 
@@ -942,7 +939,6 @@ class MyClass
                 "System.Int32 j",
                 "System.Int32 k",
             };
-
 
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);

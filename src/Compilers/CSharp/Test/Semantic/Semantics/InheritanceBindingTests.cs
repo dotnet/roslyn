@@ -2293,7 +2293,6 @@ class Derived : Base<string>
             });
         }
 
-
         [Fact]
         public void TestChangeGenericMethodParameters()
         {
@@ -2676,7 +2675,6 @@ class Derived : Base
                 // class Derived : Base
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property10.get").WithLocation(19, 7));
         }
-
 
         [Fact]
         public void TestNoImplementationOfAbstractIndexer()
@@ -6629,7 +6627,6 @@ abstract public class Class1
                 Diagnostic(ErrorCode.ERR_CantOverrideNonFunction, "Member1").WithArguments("Class1.Class2.Class3.Member1()", "Class1.Class2.Member1"));
         }
 
-
         [Fact]
         public void ImplicitMultipleInterfaceInGrandChild()
         {
@@ -6795,7 +6792,6 @@ class Class2 : I2, I1<string>
                 //     void I1<string>.Method(ref int a, long b = 3, string c = null, params List<string>[] d) { }
                 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "c").WithArguments("c"));
         }
-
 
         [Fact]
         public void TestImplicitImplSignatureMismatches2()
@@ -7972,7 +7968,6 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("I1<T, U>.Method(T, 
 //         i.Method(x, y, new int[] { x, x, x }); i.Method(x, y, x, x, x);
 Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("I1<T, U>.Method(T, System.Func<T, U>, U[])", "I1<T, U>.Method(U, System.Func<T, U>, params U[])"));
         }
-
 
         [Fact]
         public void TestImplementAmbiguousSignaturesFromSameInterface_Errors4()

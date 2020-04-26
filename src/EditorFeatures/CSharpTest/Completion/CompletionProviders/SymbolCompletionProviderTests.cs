@@ -526,7 +526,6 @@ namespace A
 
 namespace A.B.C3 { }";
 
-
             // Ideally, all the C* namespaces would be recommended but, because of how the parser
             // recovers from the missing braces, they end up with the following qualified names...
             //
@@ -9296,7 +9295,6 @@ class A {
             await VerifyItemExistsAsync(markup, "s_abc");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceMembersInFieldLikeEventInitializer()
         {
@@ -9620,7 +9618,6 @@ class C
 }", "C");
         }
 
-
         [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TupleTypeInForeach()
@@ -9634,7 +9631,6 @@ class C
     }
 }", "C");
         }
-
 
         [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

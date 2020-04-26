@@ -44,7 +44,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new decimal(5)").WithArguments("d"));
         }
 
-
         [Fact]
         public void Test13861()
         {
@@ -885,7 +884,6 @@ public struct Vector3
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-
         [WorkItem(542458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
         [Fact]
         public void OptionalValueTypeFromReferencedAssembly()
@@ -1679,7 +1677,6 @@ one
   IL_0060:  ret
 }");
         }
-
 
         [Fact]
         public void OmittedComOutParameter()

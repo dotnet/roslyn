@@ -2918,7 +2918,6 @@ class Program
 }
 ";
 
-
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (8,20): error CS8157: Cannot return 'rl' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref rl;

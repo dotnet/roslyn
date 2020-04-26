@@ -2006,7 +2006,6 @@ public partial class C
                pdbStream,
                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
 
-
             pdbStream.Position = 0;
             using (var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream))
             {

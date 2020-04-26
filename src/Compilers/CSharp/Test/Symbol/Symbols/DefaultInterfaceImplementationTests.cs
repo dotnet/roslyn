@@ -1562,7 +1562,6 @@ class Test1 : I2, I1<string?>
                                                         parseOptions: TestOptions.Regular,
                                                         targetFramework: TargetFramework.NetStandardLatest);
 
-
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
                 Assert.Equal(new[] { "I2", "I1<System.String>", "I1<System.String?>" },
@@ -1631,7 +1630,6 @@ class Test1 : I1<string?>, I2
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
                                                         targetFramework: TargetFramework.NetStandardLatest);
-
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -9757,7 +9755,6 @@ class Test1 : I1
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.Protected);
 
-
             var source3 =
 @"
 class Test2 : I1
@@ -9836,7 +9833,6 @@ class Test1 : I1
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.ProtectedOrInternal);
-
 
             var source3 =
 @"
@@ -9926,7 +9922,6 @@ class Test1 : I1
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.ProtectedAndInternal);
-
 
             var source3 =
 @"
@@ -24351,7 +24346,6 @@ class Test1 : I1
                 },
                 haveAdd: true, haveRemove: false);
 
-
             ValidateEventImplementation_101(@"
 public interface I1
 {
@@ -28874,7 +28868,6 @@ class Test1
                 //     protected internal delegate void T5();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T5").WithLocation(20, 38)
                 );
-
 
             var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
@@ -38375,7 +38368,6 @@ class Test1
                 Diagnostic(ErrorCode.ERR_BadAccess, "F3").WithArguments("I1.F3").WithLocation(15, 12)
                 );
 
-
             var source4 =
 @"
 class Test2 : I1
@@ -40181,7 +40173,6 @@ public class Test1 : I0
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
             compilation0.VerifyDiagnostics();
-
 
             var source2 =
 @"
@@ -44080,7 +44071,6 @@ class A
 
             CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
 
-
             var source3 = @"
 class I2<T>
 {
@@ -47591,7 +47581,6 @@ class Test1 : I2
                 validate(compilation2.SourceModule);
                 compilation2.VerifyDiagnostics(expected);
             }
-
 
             static void validate(ModuleSymbol m)
             {
@@ -51700,7 +51689,6 @@ class Test1 : I2
                 validate(compilation2.SourceModule);
                 compilation2.VerifyDiagnostics(expected);
             }
-
 
             static void validate(ModuleSymbol m)
             {

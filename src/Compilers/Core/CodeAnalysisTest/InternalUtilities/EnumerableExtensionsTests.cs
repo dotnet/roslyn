@@ -28,5 +28,3 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
     }
 }
 
-
-

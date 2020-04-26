@@ -37,7 +37,6 @@ namespace Microsoft.Cci
         // in support of determinism
         private bool IsDeterministic { get => _hashAlgorithmNameOpt.Name != null; }
 
-
         public PdbWriter(string fileName, Func<ISymWriterMetadataProvider, SymUnmanagedWriter> symWriterFactory, HashAlgorithmName hashAlgorithmNameOpt)
         {
             _fileName = fileName;

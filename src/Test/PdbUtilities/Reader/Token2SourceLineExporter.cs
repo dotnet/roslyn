@@ -15,7 +15,6 @@ namespace Roslyn.Test.PdbUtilities
         // NOTE: this type implementation is essentially an extraction from PdbReader 
         //       located under ndp\clr\src\ToolBox\CCI2\PdbReader folder
 
-
         private class PdbSource
         {
             internal readonly string name;

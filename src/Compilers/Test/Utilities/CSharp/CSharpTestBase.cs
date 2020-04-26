@@ -1944,7 +1944,6 @@ namespace System.Runtime.CompilerServices
                 options: options,
                 parseOptions: parseOptions);
 
-
             return comp;
         }
 

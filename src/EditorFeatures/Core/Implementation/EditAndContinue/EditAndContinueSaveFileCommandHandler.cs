@@ -53,4 +53,3 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     }
 }
 
-

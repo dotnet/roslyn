@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-
     internal abstract partial class LazyArgumentOperation
     {
         public LazyArgumentOperation(ArgumentKind argumentKind, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :

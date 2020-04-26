@@ -71,7 +71,6 @@ namespace IOperationGenerator
                     continue;
                 }
 
-
                 if (node.ChildrenOrder is null)
                 {
                     Console.WriteLine($"{node.Name} has more than 1 IOperation property and must declare an explicit ordering with the ChildrenOrder attribute.");

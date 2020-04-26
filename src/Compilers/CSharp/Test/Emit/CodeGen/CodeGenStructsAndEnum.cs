@@ -2323,7 +2323,6 @@ public class Test
 ");
         }
 
-
         [Fact]
         public void FieldLoad001()
         {

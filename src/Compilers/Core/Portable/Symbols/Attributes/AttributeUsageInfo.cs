@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-
         internal AttributeTargets ValidTargets
         {
             get

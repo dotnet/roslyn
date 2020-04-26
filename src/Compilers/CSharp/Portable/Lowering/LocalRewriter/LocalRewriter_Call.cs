@@ -485,7 +485,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKinds,
                 storesToTemps);
 
-
             // all the formal arguments, except missing optionals, are now in place. 
             // Optimize away unnecessary temporaries.
             // Necessary temporaries have their store instructions merged into the appropriate 

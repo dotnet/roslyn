@@ -89,7 +89,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return new LSP.SignatureHelp();
         }
 
-
         private static int GetActiveSignature(SignatureHelpItems items)
         {
             if (items.SelectedItemIndex.HasValue)

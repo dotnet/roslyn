@@ -3228,7 +3228,6 @@ class C
             // SPEC PROPOSAL:    the result type is B. At run-time, a is first evaluated. If a is not null, a is converted to type B, and this becomes the result.
             // SPEC PROPOSAL:    Otherwise, b is evaluated and becomes the result.
 
-
             string source = @"
 struct SnapshotPoint
 {
@@ -4130,8 +4129,6 @@ struct S
 ");
         }
 
-
-
         [Fact]
         public void TestTernary_InterfaceRegression1a()
         {
@@ -4290,7 +4287,6 @@ public class Test
 }
 ");
         }
-
 
         [Fact]
         public void TestTernary_InterfaceRegression2()

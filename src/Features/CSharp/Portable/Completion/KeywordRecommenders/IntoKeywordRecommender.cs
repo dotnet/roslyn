@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return false;
             }
 
-
             // cases:
             //   select x.|
             //   select x.i|

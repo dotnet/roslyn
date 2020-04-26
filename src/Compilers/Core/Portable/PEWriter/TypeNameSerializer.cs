@@ -73,7 +73,6 @@ namespace Microsoft.Cci
                 goto done;
             }
 
-
             if (typeReference.IsTypeSpecification())
             {
                 ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType(context);

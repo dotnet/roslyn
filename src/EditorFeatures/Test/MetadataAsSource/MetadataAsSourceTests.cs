@@ -1804,7 +1804,6 @@ Public Structure [|S|]
 End Structure");
         }
 
-
         [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestReadOnlyMethod()
@@ -1838,7 +1837,6 @@ Public Structure S <IsReadOnlyAttribute>
     Public Sub [|M|]()
 End Structure");
         }
-
 
         [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]

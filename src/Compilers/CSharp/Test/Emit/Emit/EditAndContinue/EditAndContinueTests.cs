@@ -321,7 +321,6 @@ class Bad : Bad
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
@@ -5962,7 +5961,6 @@ class C
             diff1.VerifySynthesizedMembers(
                 "<>f__AnonymousType0<<A>j__TPar, <B>j__TPar>: {Equals, GetHashCode, ToString}");
 
-
             var baselineIL = @"
 {
   // Code size       24 (0x18)
@@ -7566,7 +7564,6 @@ testData: new CompilationTestData { SymWriterFactory = _ => new MockSymUnmanaged
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)));
-
 
             var handle = MetadataTokens.BlobHandle(1);
             byte[] value0 = reader0.GetBlobBytes(handle);

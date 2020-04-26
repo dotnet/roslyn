@@ -1189,7 +1189,6 @@ class C
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
         }
 
-
         [Fact]
         public void RefLambdaInferenceDelegateCreation()
         {

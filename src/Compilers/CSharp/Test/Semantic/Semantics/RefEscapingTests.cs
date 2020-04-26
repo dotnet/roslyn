@@ -650,7 +650,6 @@ class Program
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
         }
 
-
         [Fact()]
         public void UserDefinedLogical()
         {

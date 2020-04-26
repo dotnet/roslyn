@@ -540,7 +540,6 @@ Error for double input ""{s}""
             //                          ^
             CheckOneFloat("0.99999989569187164306640625", 0x3f7ffffe);
 
-
             // This number is exactly halfway between two representable values, so it
             // should round to even in nearest mode:
             // 0.1111111111111111111111101
@@ -553,7 +552,6 @@ Error for double input ""{s}""
             //                          ^
             CheckOneFloat("0.99999992549419403076171875", 0x3f7fffff);
         }
-
 
         private static void TestRoundTripFloat(uint bits)
         {

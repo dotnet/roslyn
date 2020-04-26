@@ -568,7 +568,6 @@ public class mem033
                 );
         }
 
-
         [WorkItem(545498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545498")]
         [Fact]
         public void StructMemberNullableTypeCausesCycle()

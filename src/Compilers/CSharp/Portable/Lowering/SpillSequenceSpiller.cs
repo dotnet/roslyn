@@ -991,7 +991,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (whenNotNullBuilder == null) whenNotNullBuilder = new BoundSpillSequenceBuilder();
             if (whenNullBuilder == null) whenNullBuilder = new BoundSpillSequenceBuilder();
 
-
             BoundExpression condition;
             if (receiver.Type.IsReferenceType || receiver.Type.IsValueType || receiverRefKind == RefKind.None)
             {

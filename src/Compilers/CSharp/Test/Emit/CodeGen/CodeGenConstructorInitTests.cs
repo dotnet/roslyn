@@ -424,7 +424,6 @@ struct C
 ");
         }
 
-
         [Fact]
         public void TestInitializerInCtor004()
         {

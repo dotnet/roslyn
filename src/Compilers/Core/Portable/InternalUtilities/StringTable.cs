@@ -285,7 +285,6 @@ namespace Roslyn.Utilities
             return chars;
         }
 
-
         private static string? FindSharedEntry(char[] chars, int start, int len, int hashCode)
         {
             var arr = s_sharedTable;
@@ -495,7 +494,6 @@ namespace Roslyn.Utilities
             return e;
         }
 
-
         private string AddItem(char[] chars, int start, int len, int hashCode)
         {
             var text = new String(chars, start, len);
@@ -523,7 +521,6 @@ namespace Roslyn.Utilities
             AddCore(text, hashCode);
             return text;
         }
-
 
         private void AddCore(string chars, int hashCode)
         {

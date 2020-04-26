@@ -2705,7 +2705,6 @@ class User
     }
 }";
 
-
             CompileAndVerify(
                 source: code,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
@@ -2813,7 +2812,6 @@ public static class Program
             Assert.False(parentParameters[1].IsMetadataIn);
             Assert.False(parentParameters[2].IsMetadataIn);
             Assert.False(parentParameters[3].IsMetadataIn);
-
 
             var expectedOutput =
 @"Parent called

@@ -260,7 +260,6 @@ class Derived : Base<int, int>
                 Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(System.Collections.Generic.List<int>, params System.Collections.Generic.List<int>[])", "Derived.Method(System.Collections.Generic.List<int>, params System.Collections.Generic.List<int>[])"));
         }
 
-
         [Fact]
         public void TestAmbiguousOverridesOptionalParameters()
         {

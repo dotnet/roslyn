@@ -4434,7 +4434,6 @@ class Program
 False");
         }
 
-
         [WorkItem(540178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540178")]
         [Fact]
         public void NestedGenericLambda()
@@ -5002,7 +5001,6 @@ class D
 "
 );
         }
-
 
         [WorkItem(546211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546211")]
         [Fact]

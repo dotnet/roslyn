@@ -3357,7 +3357,6 @@ public class D
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCritical").WithArguments("SecuritySafeCritical"));
         }
 
-
         [Fact]
         public void SecuritySafeCriticalAndSecurityCriticalOnAsync()
         {
@@ -3484,7 +3483,6 @@ class Driver
                 //     public async void Goo(ref int x)
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"));
         }
-
 
         [Fact]
         public void BadAsync_MethodImpl_Synchronized()

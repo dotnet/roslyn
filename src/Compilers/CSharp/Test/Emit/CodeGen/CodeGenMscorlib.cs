@@ -599,7 +599,6 @@ namespace System.Collections
                     options: TestOptions.ReleaseDll)
                 .VerifyDiagnostics();
 
-
             //IMPORTANT: we should NOT load fields of self-containing structs like - "ldfld int int.m_value"
             CompileAndVerify(comp, verify: Verification.Skipped).
                 VerifyIL("int.CompareTo(int)", @"
@@ -736,7 +735,6 @@ namespace System
                     text,
                     options: TestOptions.ReleaseDll)
                 .VerifyDiagnostics();
-
 
             //IMPORTANT: we should NOT delegate E1.GetHashCode() to int.GetHashCode()
             //           it is entirely possible that Enum.GetHashCode and int.GetHashCode 

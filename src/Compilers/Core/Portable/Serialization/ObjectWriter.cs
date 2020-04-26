@@ -1240,7 +1240,6 @@ namespace Roslyn.Utilities
             /// </summary>
             StringType,
 
-
             Last = StringType + 1,
         }
     }

@@ -396,7 +396,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-
                 var nestedConversionsOpt = _uncommonData?._nestedConversionsOpt;
                 if (nestedConversionsOpt != null)
                 {

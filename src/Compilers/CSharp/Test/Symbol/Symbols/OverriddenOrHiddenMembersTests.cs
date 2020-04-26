@@ -1849,7 +1849,6 @@ public class MainClass
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-
         [WorkItem(539623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539623")]
         [Fact]
         public void GenericTypeWithDiffTypeParamNotHideBase()

@@ -48,4 +48,3 @@ namespace Microsoft.CodeAnalysis
     }
 }
 
-

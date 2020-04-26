@@ -895,7 +895,6 @@ oneMoreTime:
         {
             object typeCheckFailedLabel = null;
 
-
             _builder.AdjustStack(1); // Account for exception on the stack.
 
             // Open appropriate exception handler scope. (Catch or Filter)

@@ -3028,7 +3028,6 @@ public class B : A
             Assert.Equal("System.Int32 B.m()", sortedMethodGroup[0].ToTestDisplayString());
         }
 
-
         [WorkItem(538106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538106")]
         [Fact]
         public void UsingAliasNameSystemInvocExpr()
@@ -5654,7 +5653,6 @@ public class TestClass
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-
         [WorkItem(540650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540650")]
         [Fact]
         public void TypeOfExpression()
@@ -6396,7 +6394,6 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-
         [Fact]
         public void DelegateConversionExtensionMethodNoReceiver()
         {
@@ -6765,8 +6762,6 @@ class Program
             Assert.Equal(123, semanticInfo.ConstantValue);
         }
 
-
-
         [WorkItem(541400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541400")]
         [Fact]
         public void BindingAttributeParameter()
@@ -6879,7 +6874,6 @@ class C1
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
-
 
         [Fact]
         public void TestAttributeNamedArgumentValueOnMethod()
@@ -7099,7 +7093,6 @@ namespace N1
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
-
 
         [WorkItem(540770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540770")]
         [Fact]
@@ -7439,7 +7432,6 @@ class MyClass
             Assert.True(semanticInfo.ImplicitConversion.IsImplicit);
             Assert.True(semanticInfo.ImplicitConversion.IsNumeric);
 
-
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
@@ -7622,8 +7614,6 @@ namespace ClassLibrary44
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
-
-
 
         [WorkItem(541623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541623")]
         [Fact]
@@ -7971,7 +7961,6 @@ class Program
                 var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode,
                     parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
 
-
                 Assert.Null(semanticInfo.Type);
                 Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
                 Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
@@ -7987,7 +7976,6 @@ class Program
             }
             {
                 var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
-
 
                 Assert.Null(semanticInfo.Type);
                 Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
@@ -8026,7 +8014,6 @@ class Program
                 var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode,
                     parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
 
-
                 Assert.Null(semanticInfo.Type);
                 Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
                 Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
@@ -8042,7 +8029,6 @@ class Program
             }
             {
                 var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
-
 
                 Assert.Null(semanticInfo.Type);
                 Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
@@ -8778,7 +8764,6 @@ public class Test
             Assert.True(semanticInfo.IsCompileTimeConstant);
             Assert.Equal(true, semanticInfo.ConstantValue);
         }
-
 
         [Fact]
         public void SwitchCaseLabelExpression_Constant02()
@@ -11583,8 +11568,6 @@ public interface Interface1
             var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Runtime.CompilerServices.IndexerNameAttribute..ctor(System.String indexerName)", sortedMethodGroup[0].ToTestDisplayString());
 
-
-
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
@@ -12073,7 +12056,6 @@ class Program
 
             Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
         }
-
 
         [Fact, WorkItem(542843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542843")]
         public void Bug10245()

@@ -2832,7 +2832,6 @@ public class Extensions
 }
 ";
 
-
             ParseAndValidate(test,
                 // (1,17): error CS1001: Identifier expected
                 // public struct S<> 

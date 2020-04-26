@@ -1195,7 +1195,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new[] { @"a \"" b" },
                 CommandLineParser.SplitCommandLineIntoArguments(@"""a \"" b""", removeHashComments: false));
 
-
             Assert.Equal(
                 new[] { @"\a", @"b" },
                 CommandLineParser.SplitCommandLineIntoArguments(@"\a b", removeHashComments: false));

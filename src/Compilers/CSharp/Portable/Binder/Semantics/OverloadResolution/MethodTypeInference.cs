@@ -2636,7 +2636,6 @@ OuterBreak:
         // Helper methods
         //
 
-
         ////////////////////////////////////////////////////////////////////////////////
         //
         // In error recovery and reporting scenarios we sometimes end up in a situation

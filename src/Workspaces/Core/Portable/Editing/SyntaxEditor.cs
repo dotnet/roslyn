@@ -148,7 +148,6 @@ namespace Microsoft.CodeAnalysis.Editing
             _changes.Add(new ReplaceWithCollectionChange(node, computeReplacement, this));
         }
 
-
         internal void ReplaceNode<TArgument>(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> computeReplacement, TArgument argument)
         {
             CheckNodeInOriginalTreeOrTracked(node);

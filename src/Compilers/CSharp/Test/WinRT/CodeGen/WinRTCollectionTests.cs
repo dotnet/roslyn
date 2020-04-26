@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Core).GetReference(display: "SystemCore")
         };
 
-
         [Fact, WorkItem(762316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762316")]
         public void InheritFromTypeWithProjections()
         {

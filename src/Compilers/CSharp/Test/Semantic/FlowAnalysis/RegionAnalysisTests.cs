@@ -2714,8 +2714,6 @@ class C {
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
         }
 
-
-
         [WorkItem(542435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542435")]
         [Fact]
         public void NullArgsToAnalyzeControlFlowStatements()
@@ -4105,7 +4103,6 @@ class C
             Assert.Equal("p1, p2, local_1, non_nullable, ret", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
             Assert.Equal("this, p1, p2, local_0, non_nullable", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
-
 
         [WorkItem(17971, "https://github.com/dotnet/roslyn/issues/17971")]
         [Fact]

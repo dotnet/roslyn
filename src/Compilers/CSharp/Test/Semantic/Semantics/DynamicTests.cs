@@ -1052,7 +1052,6 @@ remove_Event
 ");
         }
 
-
         #endregion
 
         #region Conditional, Coalescing Expression

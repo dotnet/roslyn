@@ -1059,7 +1059,6 @@ public class X {}
 ";
             var xRef = CreateCompilation(xSource, assemblyName: "Test").EmitToImageReference();
 
-
             var libSource = @"
 public interface I
 {

@@ -3530,7 +3530,6 @@ class C
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
 
-
             token = Lex("======= Trailing\r\n>>>>>>> Actually the end").First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
@@ -3621,7 +3620,6 @@ class C
             trivia = token.LeadingTrivia[2];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
             Assert.Equal(34, trivia.Span.Length);
-
 
             token = Lex("{\r\n======= Trailing\r\ndisabled text\r\n>>>>>>> Actually the end").Skip(1).First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());

@@ -61,7 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         #endregion
 
-
         #region C# Runtime and System.Core sources
 
         private const string CSharpBinderTemplate = @"
@@ -5056,7 +5055,6 @@ class C
 
             CompileAndVerifyWithCSharp(source: source, expectedOutput: output);
         }
-
 
         [Fact]
         public void BooleanOperation_NestedOperators2()

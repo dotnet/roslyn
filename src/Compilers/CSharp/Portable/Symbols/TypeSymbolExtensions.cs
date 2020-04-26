@@ -366,7 +366,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckFullName(type.ContainingSymbol, s_expressionsNamespaceName);
         }
 
-
         /// <summary>
         /// return true if the type is constructed from a generic interface that 
         /// might be implemented by an array.

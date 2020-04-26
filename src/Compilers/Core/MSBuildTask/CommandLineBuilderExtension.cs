@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-
         /// <summary>
         /// Set a switch if its value exists by choosing from the input choices
         /// </summary>

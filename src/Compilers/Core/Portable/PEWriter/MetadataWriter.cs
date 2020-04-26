@@ -1162,7 +1162,6 @@ namespace Microsoft.Cci
 
             SerializeReturnValueAndParameters(encoder, methodReference, methodReference.ExtraParameters);
 
-
             signatureBlob = builder.ToImmutableArray();
             result = metadata.GetOrAddBlob(signatureBlob);
             _signatureIndex.Add(methodReference, KeyValuePairUtil.Create(result, signatureBlob));
@@ -2395,7 +2394,6 @@ namespace Microsoft.Cci
                     containsMetadata: fileReference.HasMetadata);
             }
         }
-
 
         private void PopulateGenericParameters(
             ImmutableArray<IGenericParameter> sortedGenericParameters)

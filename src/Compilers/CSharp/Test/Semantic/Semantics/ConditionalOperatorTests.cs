@@ -806,7 +806,6 @@ class Program
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
-
         [Fact]
         public void TestBug7196c()
         {
@@ -1252,7 +1251,6 @@ interface I<in T, out U> {{ }}";
                 }
             }
         }
-
 
         [Fact, WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")]
         public void ConditionalAccessToEvent_01()

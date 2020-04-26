@@ -254,7 +254,6 @@ namespace NA
             Assert.True(table.TypeNames.IsEmpty());
         }
 
-
         [Fact]
         public void Bug2038()
         {
@@ -348,7 +347,6 @@ public class B
                     // the equivalent node in our CountedSyntaxTree.
                     _countedSyntaxTree.AccessCount++;
                     var nodeInUnderlying = _underlyingSyntaxReference.GetSyntax(cancellationToken);
-
 
                     var token = _countedSyntaxTree.GetCompilationUnitRoot(cancellationToken).FindToken(nodeInUnderlying.SpanStart);
                     for (var node = token.Parent; node != null; node = node.Parent)

@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 loweringKind = ConditionalAccessLoweringKind.Conditional;
             }
 
-
             var previousConditionalAccessTarget = _currentConditionalAccessTarget;
             var currentConditionalAccessID = ++_currentConditionalAccessID;
 

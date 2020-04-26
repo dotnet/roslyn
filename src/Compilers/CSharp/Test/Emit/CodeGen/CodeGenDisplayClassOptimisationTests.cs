@@ -1730,7 +1730,6 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: "one");
 
-
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object

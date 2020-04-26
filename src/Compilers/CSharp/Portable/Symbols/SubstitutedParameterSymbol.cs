@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get

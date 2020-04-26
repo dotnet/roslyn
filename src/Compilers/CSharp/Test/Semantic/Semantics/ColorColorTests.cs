@@ -1823,7 +1823,6 @@ public class Example
 
         #endregion Regression cases
 
-
         private void CheckExpressionAndParent(
             string text,
             SymbolKind exprSymbolKind,

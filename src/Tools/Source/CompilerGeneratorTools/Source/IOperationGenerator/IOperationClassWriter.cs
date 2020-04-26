@@ -365,7 +365,6 @@ namespace IOperationGenerator
                     baseProperties = GetAllProperties(baseNode);
                 }
 
-
                 // Start by generating any necessary base classes
                 if (hasIOpChildren || type.IsAbstract)
                 {

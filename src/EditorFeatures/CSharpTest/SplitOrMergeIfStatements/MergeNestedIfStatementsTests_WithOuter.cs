@@ -393,7 +393,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
 }");
         }
 
-
         [Fact]
         public async Task MergedWithBitwiseOrExpressionNotParenthesized1()
         {

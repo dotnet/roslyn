@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 };
             };
 
-
             VerifyType verify = (winmd, expected) =>
             {
                 var validator = getValidator(expected);

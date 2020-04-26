@@ -3283,7 +3283,6 @@ moreArguments:
                 return false;
             }
 
-
             if (field.IsStatic)
             {
                 return method.MethodKind == MethodKind.StaticConstructor;

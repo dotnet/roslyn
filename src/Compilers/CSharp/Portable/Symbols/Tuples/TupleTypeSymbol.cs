@@ -797,7 +797,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             elementsMatchedByFields.Free();
             return members;
 
-
             // Returns the nested type at a certain depth.
             //
             // For depth=0, just return the tuple type as-is.

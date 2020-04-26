@@ -307,7 +307,6 @@ class C3
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-
         [Fact]
         public void UsingPatternExtensionMethodTest()
         {
@@ -404,7 +403,6 @@ class C2
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(11, 16)
                 );
         }
-
 
         [Fact]
         public void UsingPatternAmbiguousExtensionMethodTest()
@@ -1781,7 +1779,6 @@ class C
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(11, 30));
         }
 
-
         [WorkItem(9581, "https://github.com/dotnet/roslyn/issues/9581")]
         [Fact]
         public void TestCyclicInference()
@@ -1800,7 +1797,6 @@ class C
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "v").WithArguments("v").WithLocation(6, 24)
                 );
         }
-
 
         #region help method
 

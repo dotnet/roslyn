@@ -595,7 +595,6 @@ class User
     }
 }";
 
-
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 
             var compilation_CompilationReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });

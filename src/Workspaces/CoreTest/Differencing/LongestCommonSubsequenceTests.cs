@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             Assert.Equal(1.0, lcs.ComputeDistance(str1, str2));
         }
 
-
         [Fact]
         public void InsertAtBeginning()
         {

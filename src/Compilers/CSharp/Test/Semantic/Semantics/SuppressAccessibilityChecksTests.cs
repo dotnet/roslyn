@@ -79,7 +79,6 @@ class B
             var invocation = semanticModel.SyntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
             var position = invocation.FullSpan.Start;
 
-
             SemanticModel speculativeSemanticModel;
             var statement = SyntaxFactory.ParseStatement("var goo = new A().M();");
 
@@ -90,7 +89,6 @@ class B
 
             Assert.Equal("A", creationExpression.Type.Name);
         }
-
 
         [Fact]
         public void TestAccessChecksInsideLambdaExpression()

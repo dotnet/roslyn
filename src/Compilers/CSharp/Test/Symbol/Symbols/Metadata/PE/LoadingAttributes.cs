@@ -98,7 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 TestReferences.NetFx.v4_0_21006.mscorlib
             });
 
-
             var assembly1 = assemblies[1];
             var module0 = assemblies[0].Modules[0];
 

@@ -386,7 +386,6 @@ class C
                 var offSym = interopNS.GetTypeMember("FieldOffsetAttribute");
                 var mshSym = interopNS.GetTypeMember("MarshalAsAttribute");
 
-
                 var optSym = interopNS.GetTypeMember("OptionalAttribute");
                 var inSym = interopNS.GetTypeMember("InAttribute");
                 var outSym = interopNS.GetTypeMember("OutAttribute");

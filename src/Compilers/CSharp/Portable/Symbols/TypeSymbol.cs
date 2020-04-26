@@ -526,7 +526,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-
         public sealed override bool HasUnsupportedMetadata
         {
             get

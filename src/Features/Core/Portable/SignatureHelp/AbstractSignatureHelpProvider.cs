@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 items, applicableSpan, state, items.IndexOf(i => i.Parameters.Length >= 2));
         }
 
-
         private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames, int? selectedItem)
         {
             if (parameterNames == null)

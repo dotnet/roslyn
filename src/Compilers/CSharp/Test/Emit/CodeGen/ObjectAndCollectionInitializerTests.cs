@@ -1211,7 +1211,6 @@ class A
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-
         [Fact]
         public void DictionaryInitializerTestSideeffects001dyn()
         {
@@ -1308,7 +1307,6 @@ class A
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
-
 
         [Fact]
         public void DictionaryInitializerTestSideeffects001a()
@@ -1647,7 +1645,6 @@ get
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-
         [Fact]
         public void DictionaryInitializerTestSideeffects002()
         {
@@ -1771,7 +1768,6 @@ class A
 }
 ");
         }
-
 
         [Fact]
         public void DictionaryInitializerTest002()
@@ -2067,7 +2063,6 @@ class C
   IL_00a2:  ret
 }");
         }
-
 
         [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerJaggedArrayNestedInitializer()

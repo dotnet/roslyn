@@ -1466,7 +1466,6 @@ class C
             CompileAndVerify(src);
         }
 
-
         [Fact]
         [WorkItem(16399, "https://github.com/dotnet/roslyn/issues/16399")]
         public void RecursiveGenericLocalFunctionIterator()
@@ -2068,7 +2067,6 @@ NamedOptional();
             VerifyOutputInMain(source, "3 2", "System");
         }
 
-
         [Fact]
         [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicArgShadowing()
@@ -2421,7 +2419,6 @@ if (true)
 ";
             VerifyOutputInMain(source, "2", "System");
         }
-
 
         [Fact]
         public void Property()

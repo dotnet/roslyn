@@ -132,7 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hs.Free();
             }
 
-
             if (definitelyManaged)
             {
                 return ManagedKind.Managed;

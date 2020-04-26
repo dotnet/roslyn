@@ -2487,7 +2487,6 @@ class C
 #endregion
 }";
 
-
             var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
             Assert.NotNull(m);
 
@@ -3554,7 +3553,6 @@ namespace HelloWorld
             Assert.Equal(1, nodeOrToken.GetTrailingTrivia().Count);
             Assert.Equal(2, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
         }
-
 
         [WorkItem(6536, "https://github.com/dotnet/roslyn/issues/6536")]
         [Fact]

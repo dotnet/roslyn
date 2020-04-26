@@ -273,7 +273,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-
         /// <summary>
         /// Read all analyzer config files from the given paths.
         /// </summary>
@@ -444,7 +443,6 @@ namespace Microsoft.CodeAnalysis
 
             return embeddedTextBuilder.MoveToImmutable();
         }
-
 
         protected abstract void ResolveEmbeddedFilesFromExternalSourceDirectives(
             SyntaxTree tree,

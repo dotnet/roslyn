@@ -766,8 +766,6 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
 class D { }
 ";
 
-
-
             c = createCompilationCore(source, new[] { r1, r2 });
             Assert.Null(c.GetReferencedAssemblySymbol(r1));
             Assert.NotNull(c.GetReferencedAssemblySymbol(r2));
@@ -1036,7 +1034,6 @@ public interface I {}";
             var libSource = @"
 using System;
 public class A { }";
-
 
             var peImage = CreateCompilation(libSource, options: TestOptions.ReleaseDll, assemblyName: "CS1704").EmitToArray();
 
@@ -1450,7 +1447,6 @@ public class B : A
             var a2 = CreateCompilation(@"public class A { B B; }", new[] { refB }, assemblyName: "A");
             var refA2 = MetadataReference.CreateFromImage(a2.EmitToArray());
 
-
             var withCircularReference1 = CreateCompilation(@"public class B : A { }", new[] { refA2 }, assemblyName: "B");
             var withCircularReference2 = withCircularReference1.WithOptions(TestOptions.ReleaseDll);
             Assert.NotSame(withCircularReference1, withCircularReference2);
@@ -1829,7 +1825,6 @@ namespace A
 
             var implicitTypeCount1 = comp1.GlobalNamespace.GetMember<NamespaceSymbol>("A").GetMembers(TypeSymbol.ImplicitTypeName).Length;
             Assert.Equal(1, implicitTypeCount1);
-
 
             var tree2 = tree1.WithInsertAt(text1.Length, text2);
             var comp2 = comp1.ReplaceSyntaxTree(tree1, tree2);

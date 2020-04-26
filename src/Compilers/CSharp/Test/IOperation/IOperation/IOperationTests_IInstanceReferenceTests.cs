@@ -65,6 +65,5 @@ IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKi
             VerifyOperationTreeAndDiagnosticsForTest<BaseExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-
     }
 }

@@ -2616,7 +2616,6 @@ class C
                 );
         }
 
-
         [Fact]
         public void Lambdas_Update_CeaseCapture_This()
         {

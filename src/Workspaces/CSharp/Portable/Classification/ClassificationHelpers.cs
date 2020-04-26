@@ -178,7 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                             return false;
                         }
 
-
                         return interpolatedStringText.Parent is InterpolatedStringExpressionSyntax interpolatedString
                             && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
                     }

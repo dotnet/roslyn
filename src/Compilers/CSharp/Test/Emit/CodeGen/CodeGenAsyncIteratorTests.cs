@@ -4641,7 +4641,6 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-
         [ConditionalTheory(typeof(WindowsDesktopOnly))]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]

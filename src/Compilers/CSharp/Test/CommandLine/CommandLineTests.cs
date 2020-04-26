@@ -2085,7 +2085,6 @@ class C
                 Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a.b\0b"));
             Assert.Null(parsedArgs.PdbPath);
 
-
             parsedArgs = DefaultParse(new[] { "/pdb:a\uD800b.pdb", "/debug", "a.cs" }, WorkingDirectory);
             //parsedArgs.Errors.Verify(
             //    Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a\uD800b.pdb"));
@@ -2527,7 +2526,6 @@ print Goodbye, World";
             Assert.Equal("goo.dll", parsedArgs.MetadataReferences[1].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly, parsedArgs.MetadataReferences[1].Properties);
 
-
             parsedArgs = DefaultParse(new string[] { @"/l:goo.dll", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(2, parsedArgs.MetadataReferences.Length);
@@ -2538,7 +2536,6 @@ print Goodbye, World";
             Assert.Equal("goo.dll", parsedArgs.MetadataReferences[1].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly.WithEmbedInteropTypes(true), parsedArgs.MetadataReferences[1].Properties);
 
-
             parsedArgs = DefaultParse(new string[] { @"/addmodule:goo.dll", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(2, parsedArgs.MetadataReferences.Length);
@@ -2548,7 +2545,6 @@ print Goodbye, World";
 
             Assert.Equal("goo.dll", parsedArgs.MetadataReferences[1].Reference);
             Assert.Equal(MetadataReferenceProperties.Module, parsedArgs.MetadataReferences[1].Properties);
-
 
             parsedArgs = DefaultParse(new string[] { @"/r:a=goo.dll", "/l:b=bar.dll", "/addmodule:c=mod.dll", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -4250,7 +4246,6 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
                 Console.WriteLine(outWriter.ToString());
                 Assert.Equal(0, exitCode);
             }
-
 
             Assert.Equal(1, Directory.EnumerateFiles(dir.Path, exeName).Count());
 
@@ -7363,7 +7358,6 @@ class C
   </trustInfo>
 </assembly>";
 
-
             var expectedManifest =
 @"<?xml version=""1.0"" encoding=""utf-16""?>
 <ManifestResource Size=""476"">
@@ -9358,7 +9352,6 @@ using System.Diagnostics; // Unused.
             Assert.Equal(1, parsedArgs.Errors.Length);
             Assert.Equal((int)ErrorCode.FTL_InvalidInputFileName, parsedArgs.Errors.First().Code);
 
-
             parsedArgs = DefaultParse(new[] { "a.cs", "/out:com1.dll " }, WorkingDirectory);
             Assert.Equal(1, parsedArgs.Errors.Length);
             Assert.Equal((int)ErrorCode.FTL_InvalidInputFileName, parsedArgs.Errors.First().Code);
@@ -10967,7 +10960,6 @@ class C
     </members>
 </doc>";
             Assert.Equal(expectedDoc, content.Trim());
-
 
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);

@@ -88,7 +88,6 @@ class Program
             }
         }
 
-
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
         public void AttributeWithTypeReferenceToCurrentCompilation_WithMissingType_WithIrrelevantType()
@@ -813,7 +812,6 @@ public unsafe partial class A : C, I
             // the following should not crash
             source.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, source.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true);
         }
-
 
         [Fact, WorkItem(545326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545326")]
         public void TestAssemblyAttributes_Bug13670()
@@ -2116,7 +2114,6 @@ public class Test
                 Assert.Equal("FF", GetSingleAttributeName(event6));
                 AssertNoAttributes(event6.AddMethod);
                 AssertNoAttributes(event6.RemoveMethod);
-
 
                 AssertNoAttributes(event7);
                 Assert.Equal("GG", GetSingleAttributeName(event7.AddMethod));
@@ -3460,7 +3457,6 @@ namespace AttributeTest
                 attr = attrs.First();
                 Assert.Equal("AttributeTest.TestAttributeForReturn", attr.AttributeClass.ToDisplayString());
 
-
                 property = (PropertySymbol)type.GetMember("P2");
                 var getter = property.GetMethod;
 
@@ -4015,7 +4011,6 @@ public class Program
                 attrs.First().VerifyValue(0, TypedConstantKind.Type, cClass.AsUnboundGenericType());
             };
 
-
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
@@ -4055,7 +4050,6 @@ class Program
                 Assert.Equal(1, attrs.Count());
                 attrs.First().VerifyValue(0, TypedConstantKind.Type, bClass.AsUnboundGenericType());
             };
-
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
@@ -4503,7 +4497,6 @@ class C
                 attr = attrs.ElementAt(1);
                 Assert.Equal(1, attr.CommonConstructorArguments.Length);
                 attr.VerifyValue<object>(0, TypedConstantKind.Primitive, null);
-
 
                 // Verify B attributes
                 attrs = cClass.GetAttributes(attributeTypeB);
@@ -5019,7 +5012,6 @@ class C<T>
                 Assert.Equal("XAttribute", attribute.AttributeClass.Name);
             });
         }
-
 
         #endregion
 
@@ -7573,7 +7565,6 @@ public class X
 {
 }
 ";
-
 
             var source3 = @"
 namespace X

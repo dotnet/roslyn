@@ -64,7 +64,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             }
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task VisualBasicLanguageServiceTest()
         {

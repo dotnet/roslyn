@@ -190,7 +190,6 @@ class C
             Assert.IsType<CompilationUnitSyntax>(testReceiver.VisitedNodes[0]);
         }
 
-
         class TestSyntaxReceiver : ISyntaxReceiver
         {
             public List<SyntaxNode> VisitedNodes { get; } = new List<SyntaxNode>();

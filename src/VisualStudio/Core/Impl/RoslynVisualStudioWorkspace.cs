@@ -77,7 +77,6 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
-
             return new InvisibleEditor(ServiceProvider.GlobalProvider, textDocument.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
         }
 

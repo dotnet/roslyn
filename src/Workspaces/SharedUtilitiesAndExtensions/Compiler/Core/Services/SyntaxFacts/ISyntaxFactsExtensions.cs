@@ -220,7 +220,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsOnTypeHeader(this ISyntaxFacts syntaxFacts, SyntaxNode root, int position, out SyntaxNode typeDeclaration)
             => syntaxFacts.IsOnTypeHeader(root, position, fullHeader: false, out typeDeclaration);
 
-
         #region ISyntaxKinds forwarding methods
 
         #region trivia

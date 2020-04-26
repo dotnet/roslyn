@@ -161,7 +161,6 @@ namespace Microsoft.CodeAnalysis
                 }
                 while (curChar != 0);
 
-
                 pstring.theString = sb.ToString();
             }
 
@@ -646,7 +645,6 @@ namespace Microsoft.CodeAnalysis
                 //The documentation says that if they're not that format the behavior is undefined.
                 Version fileVersion;
                 VersionHelper.TryParse(_fileVersionContents, version: out fileVersion);
-
 
                 Version productVersion;
                 VersionHelper.TryParse(_productVersionContents, version: out productVersion);

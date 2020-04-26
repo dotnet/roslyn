@@ -1427,7 +1427,6 @@ var a = new C2();
                 comp = comp.ReplaceReference(ref1, ref2);
             });
 
-
             SyntaxTree t1 = SyntaxFactory.ParseSyntaxTree("Using System;");
             // Replace a non-existing item with another valid item and disorder the args
             Assert.Throws<ArgumentException>(
@@ -1924,7 +1923,6 @@ public class TestClass
 
             c2 = c1.WithOptions(TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
             Assert.False(c1.ReferenceManagerEquals(c2));
-
 
             c1 = CSharpCompilation.Create("c", options: TestOptions.ReleaseModule);
 

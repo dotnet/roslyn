@@ -1586,7 +1586,6 @@ class Derived : Base<int>
             TestLookupNames(text, expectedNames);
         }
 
-
         /// <summary>
         /// Given a program, calls LookupNames at each character position and verifies the results.
         /// 

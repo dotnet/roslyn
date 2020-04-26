@@ -220,7 +220,6 @@ class Program
 
         }
 
-
         [Fact]
         public void RefReturnClassInstanceProperty()
         {

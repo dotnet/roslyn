@@ -146,7 +146,6 @@ namespace ObjectFormatterFixtures
         [DebuggerDisplay("*4")]
         internal int _05_internal_property_dd { get { return 1; } }
 
-
         [DebuggerDisplay("+1")]
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public readonly int _06_public_field_dd_never;

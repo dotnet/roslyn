@@ -1266,7 +1266,6 @@ public class Test
             );
         }
 
-
         [Fact]
         public void ULongTypeSwitchArgumentExpression()
         {
@@ -1355,7 +1354,6 @@ public class Test
 }"
             );
         }
-
 
         [Fact]
         public void EnumTypeSwitchArgumentExpressionWithCasts()
@@ -4107,7 +4105,6 @@ class Program
             var comp = CreateEmptyCompilation(
                 source: new[] { Parse(text) },
                 references: new[] { AacorlibRef });
-
 
             var verifier = CompileAndVerify(comp, verify: Verification.Fails);
             verifier.VerifyIL("Program.Main", @"

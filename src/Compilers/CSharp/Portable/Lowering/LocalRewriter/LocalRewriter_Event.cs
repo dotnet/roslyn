@@ -290,7 +290,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode oldSyntax = _factory.Syntax;
             _factory.Syntax = node.Syntax;
 
-
             var ctor = _factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__ctor);
 
             if ((object)ctor != null)

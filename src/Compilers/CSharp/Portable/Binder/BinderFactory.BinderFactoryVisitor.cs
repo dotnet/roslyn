@@ -1011,7 +1011,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 XmlNameAttributeElementKind elementKind = parent.GetElementKind();
 
-
                 NodeUsage extraInfo;
                 switch (elementKind)
                 {

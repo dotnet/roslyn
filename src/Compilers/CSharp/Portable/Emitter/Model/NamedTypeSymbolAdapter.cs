@@ -133,7 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-
         Cci.INestedTypeReference Cci.ITypeReference.AsNestedTypeReference
         {
             get

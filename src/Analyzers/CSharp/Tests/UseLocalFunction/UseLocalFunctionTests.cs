@@ -3391,7 +3391,6 @@ class C
 ");
         }
 
-
         [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestWithInvalidUnrelatedCode()

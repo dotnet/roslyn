@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(node.Syntax, synthesizedLocal == null ? node.Locals : node.Locals.Add(synthesizedLocal), node.LocalFunctions, builder.ToImmutableAndFree(), node.HasErrors);
         }
 
-
         /// <summary>
         /// Visit a partial list of statements that possibly contain using declarations
         /// </summary>
@@ -99,7 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitStatement(node);
             }
         }
-
 
         public override BoundNode VisitNoOpStatement(BoundNoOpStatement node)
         {

@@ -2036,7 +2036,6 @@ public class D : B, I
             Assert.Equal(baseMethod, synthesized.ImplementingMethod);
             Assert.Equal(interfaceMethod, synthesized.ExplicitInterfaceImplementations.Single());
 
-
             // Still get a use site error if you actually call the method.
             var source2 = @"
 public class D : B, I

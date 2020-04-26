@@ -149,7 +149,6 @@ new System.Data.DataSet()
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Data").WithArguments("Data", "System"));
         }
 
-
         /// <summary>
         /// Look at base directory (or directory containing #r) before search paths.
         /// </summary>
@@ -582,7 +581,6 @@ x
                 Assert.Equal(3, result);
             }
         }
-
 
         [Fact]
         public async Task SharedLibCopy_Identical_Weak()

@@ -339,7 +339,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             set => _workspace.SetMaxLanguageVersion(Id, value);
         }
 
-
         #region Batching
 
         public BatchScope CreateBatchScope()

@@ -444,7 +444,6 @@ $$");
             await VerifyKeywordAsync(text);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestEmptyStatement()
         {

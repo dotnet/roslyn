@@ -406,7 +406,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             continue;
 
-
                         case "nullable+":
                             if (value != null)
                             {

@@ -152,7 +152,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 => project?.GetCompilationAsync(cancellationToken) ?? SpecializedTasks.Null<Compilation>();
         }
 
-
         public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, Workspace workspace)
             => constructedInterfaceMember switch
             {

@@ -50,7 +50,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         {
             _package = package ?? throw new ArgumentNullException(nameof(package));
 
-
             if (ServiceProvider.GetService(typeof(IMenuCommandService)) is OleMenuCommandService menuCommandService)
             {
                 var startMenuCmdId = new CommandID(guidTestWindowCmdSet, cmdidStartIntegrationTestService);

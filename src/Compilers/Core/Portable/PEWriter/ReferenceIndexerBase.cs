@@ -299,7 +299,6 @@ namespace Microsoft.Cci
             }
         }
 
-
         private void VisitTypeReferencesThatNeedTokens(ITypeReference typeReference)
         {
             this.typeReferenceNeedsToken = true;

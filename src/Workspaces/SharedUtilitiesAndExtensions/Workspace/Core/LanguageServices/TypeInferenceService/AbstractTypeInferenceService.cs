@@ -88,6 +88,32 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
             return InferTypeBasedOnNameIfEmpty(semanticModel, result, nameOpt);
         }
 
+/* Unmerged change from project 'Microsoft.CodeAnalysis.CodeStyle.Fixes'
+Removed:
+        public ImmutableArray<ITypeSymbol> InferTypes(
+            SemanticModel semanticModel, SyntaxNode expression,
+            string nameOpt, CancellationToken cancellationToken)
+        {
+            var result = CreateTypeInferrer(semanticModel, cancellationToken)
+                .InferTypes(expression)
+                .Select(info => info.InferredType)
+                .ToImmutableArray();
+
+            return InferTypeBasedOnNameIfEmpty(semanticModel, result, nameOpt);
+        }
+*/
+
+        public ImmutableArray<ITypeSymbol> InferTypes(
+            SemanticModel semanticModel, SyntaxNode expression,
+            string nameOpt, CancellationToken cancellationToken)
+        {
+            var result = CreateTypeInferrer(semanticModel, cancellationToken)
+                .InferTypes(expression)
+                .Select(info => info.InferredType)
+                .ToImmutableArray();
+
+            return InferTypeBasedOnNameIfEmpty(semanticModel, result, nameOpt);
+        }
 
         public ImmutableArray<ITypeSymbol> InferTypes(
             SemanticModel semanticModel, SyntaxNode expression,

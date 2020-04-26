@@ -784,7 +784,6 @@ Get 8
 }");
         }
 
-
         [Fact]
         public void StringAndSpanPatternRangeOpenEnd()
         {
@@ -3066,7 +3065,6 @@ partial class Program
     }
 }", options: TestOptions.ReleaseExe), expectedOutput: "YES");
         }
-
 
         private const string PrintIndexesAndRangesCode = @"
 partial class Program

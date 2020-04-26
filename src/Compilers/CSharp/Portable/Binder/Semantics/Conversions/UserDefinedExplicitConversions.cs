@@ -331,7 +331,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteDiagnostics = _useSiteDiagnostics;
             }
 
-
             return MostEncompassingType(u, conv => conv.FromType, ref useSiteDiagnostics);
         }
 

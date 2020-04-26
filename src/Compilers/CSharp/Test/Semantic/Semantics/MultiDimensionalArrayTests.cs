@@ -139,7 +139,6 @@ class P
             var verifier = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
-
         [Fact]
         public void TestMultiDimensionalArrayForEach()
         {

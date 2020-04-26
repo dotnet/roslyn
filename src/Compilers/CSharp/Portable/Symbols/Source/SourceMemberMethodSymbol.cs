@@ -423,7 +423,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.flags.EnsureMetadataVirtual();
         }
 
-
         protected DeclarationModifiers DeclarationModifiers
         {
             get

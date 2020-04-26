@@ -92,7 +92,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return client.RunCompilation(originalArguments, buildPaths).ExitCode;
         }
 
-
         /// <summary>
         /// Run a compilation through the compiler server and print the output
         /// to the console. If the compiler server fails, run the fallback

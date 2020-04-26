@@ -2100,7 +2100,6 @@ class C
     }
 }", CodeActionIndex);
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestAnnotatedNullableParameters1()
             => TestInRegularAndScriptAsync(
@@ -2759,7 +2758,6 @@ class C
     }
 }", CodeActionIndex);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNullableObjectWithExplicitCast()
@@ -3873,7 +3871,6 @@ csharp_prefer_static_local_function = true:silent
 
             await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }
-
 
         [Fact, WorkItem(40188, "https://github.com/dotnet/roslyn/issues/40188"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestEditorconfigSetting_StaticLocalFunction_False()

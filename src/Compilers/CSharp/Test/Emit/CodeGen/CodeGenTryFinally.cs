@@ -934,7 +934,6 @@ class C
 ");
         }
 
-
         [Fact]
         public void NestedExceptionHandlers()
         {
@@ -1847,7 +1846,6 @@ catch2
 }
 ");
         }
-
 
         [Fact]
         public void ThrowInTry()
@@ -3422,7 +3420,6 @@ class Program
 }
 ");
         }
-
 
         [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
         public void ReachableAfterFinallyButNotFromTryConditional()

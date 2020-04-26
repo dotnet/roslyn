@@ -718,7 +718,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.ContainingModule.DefaultMarshallingCharSet;
         }
 
-
         internal bool IsFromCompilation(CSharpCompilation compilation)
         {
             Debug.Assert(compilation != null);
