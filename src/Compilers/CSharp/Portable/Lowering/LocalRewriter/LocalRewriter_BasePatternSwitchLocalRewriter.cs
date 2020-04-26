@@ -552,7 +552,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LabelSymbol labelToSectionScope = GetDagNodeLabel(whenClause);
 
                 // We need the section syntax to get the section builder from the map. Unfortunately this is a bit awkward
-                SyntaxNode sectionSyntax = whenClause.Syntax is SwitchLabelSyntax l ? l.Parent : whenClause.Syntax;
+                SyntaxNode? sectionSyntax = whenClause.Syntax is SwitchLabelSyntax l ? l.Parent : whenClause.Syntax;
+                Debug.Assert(sectionSyntax is { });
                 bool foundSectionBuilder = _switchArms.TryGetValue(sectionSyntax, out ArrayBuilder<BoundStatement>? sectionBuilder);
                 Debug.Assert(foundSectionBuilder && sectionBuilder is { });
                 sectionBuilder.Add(_factory.Label(labelToSectionScope));

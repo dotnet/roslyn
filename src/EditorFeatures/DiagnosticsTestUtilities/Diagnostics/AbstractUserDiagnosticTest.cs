@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             int count,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
-            IOptionsCollection options = null,
+            OptionsCollection options = null,
             object fixProviderData = null)
         {
             return TestActionCountInAllFixesAsync(

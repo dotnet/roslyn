@@ -3,31 +3,28 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
-
-#If CODE_STYLE Then
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-#End If
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParametersAndValues
     Partial Public Class RemoveUnusedValueExpressionStatementTests
         Inherits RemoveUnusedValuesTestsBase
 
-        Private Protected Overrides ReadOnly Property PreferNone As IOptionsCollection
+        Private Protected Overrides ReadOnly Property PreferNone As OptionsCollection
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
                                 New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.None))
             End Get
         End Property
 
-        Private Protected Overrides ReadOnly Property PreferDiscard As IOptionsCollection
+        Private Protected Overrides ReadOnly Property PreferDiscard As OptionsCollection
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
                                 New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent))
             End Get
         End Property
 
-        Private Protected Overrides ReadOnly Property PreferUnusedLocal As IOptionsCollection
+        Private Protected Overrides ReadOnly Property PreferUnusedLocal As OptionsCollection
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
                                 New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Silent))

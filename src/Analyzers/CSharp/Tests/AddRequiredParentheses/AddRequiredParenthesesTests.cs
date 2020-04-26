@@ -8,12 +8,9 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
@@ -22,10 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpAddRequiredParenthesesDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider());
 
-        private Task TestMissingAsync(string initialMarkup, IOptionsCollection options)
+        private Task TestMissingAsync(string initialMarkup, OptionsCollection options)
             => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
 
-        private Task TestAsync(string initialMarkup, string expected, IOptionsCollection options)
+        private Task TestAsync(string initialMarkup, string expected, OptionsCollection options)
             => TestInRegularAndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]

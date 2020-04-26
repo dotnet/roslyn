@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _renamedSymbol = parameters.RenameSymbol;
                 _replacementTextValid = parameters.ReplacementTextValid;
                 _renameSpansTracker = parameters.RenameSpansTracker;
-                _isRenamingInStrings = parameters.OptionSet.GetOption(RenameOptions.RenameInStrings);
-                _isRenamingInComments = parameters.OptionSet.GetOption(RenameOptions.RenameInComments);
+                _isRenamingInStrings = parameters.OptionSet.RenameInStrings;
+                _isRenamingInComments = parameters.OptionSet.RenameInComments;
                 _stringAndCommentTextSpans = parameters.StringAndCommentTextSpans;
                 _renameAnnotations = parameters.RenameAnnotations;
 
@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             string replacementText,
             ISymbol renamedSymbol,
             ISymbol renameSymbol,
-            IEnumerable<SymbolAndProjectId> referencedSymbols,
+            IEnumerable<ISymbol> referencedSymbols,
             Solution baseSolution,
             Solution newSolution,
             IDictionary<Location, Location> reverseMappedLocations,
@@ -843,9 +843,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     {
                         var property = await RenameLocations.ReferenceProcessing.GetPropertyFromAccessorOrAnOverrideAsync(
                             referencedSymbol, baseSolution, cancellationToken).ConfigureAwait(false);
-                        if (property.Symbol != null)
+                        if (property != null)
                         {
-                            properties.Add(property.Symbol);
+                            properties.Add(property);
                         }
                     }
 
