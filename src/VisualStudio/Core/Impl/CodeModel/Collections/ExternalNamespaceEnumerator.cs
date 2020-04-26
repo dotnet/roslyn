@@ -46,19 +46,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         public object Clone()
-        {
-            return Create(_state, _projectId, _namespaceSymbolId);
-        }
+            => Create(_state, _projectId, _namespaceSymbolId);
 
         public bool MoveNext()
-        {
-            return _childEnumerator.MoveNext();
-        }
+            => _childEnumerator.MoveNext();
 
         public void Reset()
-        {
-            _childEnumerator.Reset();
-        }
+            => _childEnumerator.Reset();
 
         internal static IEnumerable<EnvDTE.CodeElement> ChildrenOfNamespace(CodeModelState state, ProjectId projectId, SymbolKey namespaceSymbolId)
         {

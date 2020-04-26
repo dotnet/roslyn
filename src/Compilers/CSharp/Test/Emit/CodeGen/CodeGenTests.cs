@@ -9819,7 +9819,7 @@ class MyClass
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/metadata-tools/issues/30")]
+        [Fact]
         [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         [WorkItem(538246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538246"), WorkItem(543655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543655")]
         public void FloatDoubleInfinity()
@@ -12905,7 +12905,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)-4e30f").WithArguments("-4E+30", "decimal"));
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/metadata-tools/issues/30")]
+        [Fact]
         [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void Bug14064()
         {

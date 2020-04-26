@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Editor.UnitTests.Preview.TestOnly_CompilerDiagnosticAnalyzerProviderService;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityLevel
 {
@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         // For example: "dotnet_style_object_initializer = true:suggestion   # Optional comment"
         private static readonly Regex s_optionBasedEntryPattern = new Regex(@"([\w ]+)=([\w ]+):[ ]*([\w]+)([ ]*[;#].*)?");
 
-        private static ImmutableArray<(string diagnosticId, ImmutableHashSet<IOption> codeStyleOptions)> GetIDEDiagnosticIdsAndOptions(
+        private static ImmutableArray<(string diagnosticId, ImmutableHashSet<IOption2> codeStyleOptions)> GetIDEDiagnosticIdsAndOptions(
             string languageName)
         {
             const string diagnosticIdPrefix = "IDE";
 
-            var diagnosticIdAndOptions = new List<(string diagnosticId, ImmutableHashSet<IOption> options)>();
+            var diagnosticIdAndOptions = new List<(string diagnosticId, ImmutableHashSet<IOption2> options)>();
             var uniqueDiagnosticIds = new HashSet<string>();
             foreach (var assembly in MefHostServices.DefaultAssemblies)
             {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
 
                         if (!IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnosticId, languageName, out var options))
                         {
-                            options = ImmutableHashSet<IOption>.Empty;
+                            options = ImmutableHashSet<IOption2>.Empty;
                         }
 
                         if (uniqueDiagnosticIds.Add(diagnosticId))
@@ -68,6 +68,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
 
             diagnosticIdAndOptions.Sort();
             return diagnosticIdAndOptions.ToImmutableArray();
+        }
+
+        public class FromFileLoader : IAnalyzerAssemblyLoader
+        {
+            public static FromFileLoader Instance = new FromFileLoader();
+
+            public void AddDependencyLocation(string fullPath)
+            {
+            }
+
+            public Assembly LoadFromPath(string fullPath)
+            {
+                return Assembly.LoadFrom(fullPath);
+            }
         }
 
         private static Dictionary<string, string> GetExpectedMap(string expected, out string[] expectedLines)

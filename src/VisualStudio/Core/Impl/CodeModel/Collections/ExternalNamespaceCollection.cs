@@ -89,8 +89,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         public override System.Collections.IEnumerator GetEnumerator()
-        {
-            return ExternalNamespaceEnumerator.Create(this.State, _projectId, _namespaceSymbolId);
-        }
+            => ExternalNamespaceEnumerator.Create(this.State, _projectId, _namespaceSymbolId);
     }
 }

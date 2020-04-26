@@ -526,8 +526,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp
 #if DEBUG
             ,
-            [CallerLineNumber]int createdAtLineNumber = 0,
-            [CallerFilePath]string? createdAtFilePath = null
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string? createdAtFilePath = null
 #endif
             )
         {
@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type)
         {
-            return new BoundConditionalOperator(Syntax, false, condition, consequence, alternative, default(ConstantValue), type) { WasCompilerGenerated = true };
+            return new BoundConditionalOperator(Syntax, false, condition, consequence, alternative, constantValueOpt: null, type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ComplexConditionalReceiver(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver)
@@ -1378,8 +1378,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp,
             SyntaxNode? syntaxOpt = null
 #if DEBUG
-            , [CallerLineNumber]int callerLineNumber = 0
-            , [CallerFilePath]string? callerFilePath = null
+            , [CallerLineNumber] int callerLineNumber = 0
+            , [CallerFilePath] string? callerFilePath = null
 #endif
             )
         {

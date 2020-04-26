@@ -34,9 +34,7 @@ namespace Roslyn.VisualStudio.Services.Interactive
         }
 
         private object GetService(Type type)
-        {
-            return _serviceProvider.GetService(type);
-        }
+            => _serviceProvider.GetService(type);
 
         public void ExecuteResetInteractive()
         {

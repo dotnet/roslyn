@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(PartialTypeCompletionProvider);
-        }
+            => typeof(PartialTypeCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRecommendTypesWithoutPartial()

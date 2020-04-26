@@ -23,10 +23,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 if (symbol != null)
                 {
                     var overriddenMember = symbol.OverriddenMember();
-
                     if (overriddenMember != null)
                     {
-                        var symbolNode = await graphBuilder.AddNodeForSymbolAsync(overriddenMember, relatedNode: node).ConfigureAwait(false);
+                        var symbolNode = await graphBuilder.AddNodeAsync(
+                            overriddenMember, relatedNode: node).ConfigureAwait(false);
                         graphBuilder.AddLink(node, RoslynGraphCategories.Overrides, symbolNode);
                     }
                 }

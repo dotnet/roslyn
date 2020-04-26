@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -468,7 +467,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SemanticModel.GetMemberGroup(invocation.Expression, CancellationToken)
                                      .OfType<IMethodSymbol>();
 
-                    methods = methods.Concat(memberGroupMethods).Distinct();
+                    methods = methods.Concat(memberGroupMethods).Distinct().ToList();
+                }
+
+                // Special case: if this is an argument in Enum.HasFlag, infer the Enum type that we're invoking into,
+                // as otherwise we infer "Enum" which isn't useful
+                if (methods.Any(IsEnumHasFlag))
+                {
+                    if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
+                    {
+                        var typeInfo = SemanticModel.GetTypeInfo(memberAccess.Expression, CancellationToken);
+
+                        if (typeInfo.Type != null && typeInfo.Type.IsEnumType())
+                        {
+                            return CreateResult(typeInfo.Type);
+                        }
+                    }
                 }
 
                 return InferTypeInArgument(index, methods, argumentOpt, invocation);
@@ -556,9 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgument(int index, IEnumerable<IMethodSymbol> methods, AttributeArgumentSyntax argumentOpt = null)
-            {
-                return InferTypeInAttributeArgument(index, methods.Select(m => m.Parameters), argumentOpt);
-            }
+                => InferTypeInAttributeArgument(index, methods.Select(m => m.Parameters), argumentOpt);
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArgument(int index, IEnumerable<IMethodSymbol> methods, ArgumentSyntax argumentOpt, InvocationExpressionSyntax parentInvocationExpressionToTypeInfer)
             {
@@ -1105,12 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (symbol.IsReferenceType)
                     {
-#if CODE_STYLE
-                        // TODO: Remove the #if once WithNullableAnnotation is available.
-                        return symbol;
-#else
                         return symbol.WithNullableAnnotation(NullableAnnotation.Annotated);
-#endif
                     }
                     else // it's neither a value nor reference type, so is an unconstrained generic
                     {
@@ -1120,9 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInConditionalAccessExpression(ConditionalAccessExpressionSyntax expression)
-            {
-                return InferTypes(expression);
-            }
+                => InferTypes(expression);
 
             private IEnumerable<TypeInferenceInfo> InferTypeInConditionalExpression(ConditionalExpressionSyntax conditional, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
             {
@@ -1155,9 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInDefaultExpression(DefaultExpressionSyntax defaultExpression)
-            {
-                return InferTypes(defaultExpression);
-            }
+                => InferTypes(defaultExpression);
 
             private IEnumerable<TypeInferenceInfo> InferTypeInDoStatement(DoStatementSyntax doStatement, SyntaxToken? previousToken = null)
             {
@@ -1266,9 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInImplicitArrayCreation(ImplicitArrayCreationExpressionSyntax implicitArray, SyntaxToken previousToken)
-            {
-                return InferTypes(implicitArray.SpanStart);
-            }
+                => InferTypes(implicitArray.SpanStart);
 
             private IEnumerable<TypeInferenceInfo> InferTypeInInitializerExpression(
                 InitializerExpressionSyntax initializerExpression,
@@ -1540,14 +1541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private static ImmutableArray<NullableAnnotation> GetNullableAnnotations(ImmutableArray<ITypeSymbol> elementTypes)
-            {
-                return
-#if CODE_STYLE // TODO: Remove the #if once NullableAnnotation is available.
-                    default;
-#else
-                    elementTypes.SelectAsArray(e => e.NullableAnnotation);
-#endif
-            }
+                => elementTypes.SelectAsArray(e => e.NullableAnnotation);
 
             private IEnumerable<TypeInferenceInfo> InferTypeInLockStatement(LockStatementSyntax lockStatement, SyntaxToken? previousToken = null)
             {
@@ -2238,22 +2232,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return CreateResult(SpecialType.System_Boolean);
-            }
-
-            private IEnumerable<TypeInferenceInfo> GetCollectionElementType(INamedTypeSymbol type)
-            {
-                if (type != null)
-                {
-                    var parameters = type.TypeArguments;
-
-                    var elementType = parameters.ElementAtOrDefault(0);
-                    if (elementType != null)
-                    {
-                        return SpecializedCollections.SingletonCollection(new TypeInferenceInfo(elementType));
-                    }
-                }
-
-                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
         }
     }

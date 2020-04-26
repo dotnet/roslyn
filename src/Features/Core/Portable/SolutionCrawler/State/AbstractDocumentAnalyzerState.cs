@@ -15,28 +15,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
         protected abstract string StateName { get; }
 
         protected override DocumentId GetCacheKey(Document value)
-        {
-            return value.Id;
-        }
+            => value.Id;
 
         protected override Solution GetSolution(Document value)
-        {
-            return value.Project.Solution;
-        }
+            => value.Project.Solution;
 
         protected override bool ShouldCache(Document value)
-        {
-            return value.IsOpen();
-        }
+            => value.IsOpen();
 
         protected override Task<Stream> ReadStreamAsync(IPersistentStorage storage, Document value, CancellationToken cancellationToken)
-        {
-            return storage.ReadStreamAsync(value, StateName, cancellationToken);
-        }
+            => storage.ReadStreamAsync(value, StateName, cancellationToken);
 
         protected override Task<bool> WriteStreamAsync(IPersistentStorage storage, Document value, Stream stream, CancellationToken cancellationToken)
-        {
-            return storage.WriteStreamAsync(value, StateName, stream, cancellationToken);
-        }
+            => storage.WriteStreamAsync(value, StateName, stream, cancellationToken);
     }
 }

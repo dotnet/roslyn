@@ -289,9 +289,7 @@ namespace Microsoft.CodeAnalysis.Host
                 /// Get underlying native memory directly.
                 /// </summary>
                 public IntPtr GetPointer()
-                {
-                    return (IntPtr)_start;
-                }
+                    => (IntPtr)_start;
             }
         }
     }

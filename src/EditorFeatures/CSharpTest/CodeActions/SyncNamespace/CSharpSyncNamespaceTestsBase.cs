@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
     {
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
-        protected override string GetLanguage() => LanguageNames.CSharp;
+        protected internal override string GetLanguage() => LanguageNames.CSharp;
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpSyncNamespaceCodeRefactoringProvider();
@@ -59,9 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
         }
 
         protected string CreateFolderPath(params string[] folders)
-        {
-            return string.Join(PathUtilities.DirectorySeparatorStr, folders);
-        }
+            => string.Join(PathUtilities.DirectorySeparatorStr, folders);
 
         protected async Task TestMoveFileToMatchNamespace(string initialMarkup, List<string[]> expectedFolders = null)
         {

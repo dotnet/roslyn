@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     public class SyntaxComparerTests
     {
         private static SyntaxNode MakeLiteral(int n)
-        {
-            return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(n));
-        }
+            => SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(n));
 
         [Fact]
         public void GetSequenceEdits1()

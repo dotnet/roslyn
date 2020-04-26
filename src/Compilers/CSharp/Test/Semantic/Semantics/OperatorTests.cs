@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using static Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions;
 using Xunit;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -6946,6 +6945,119 @@ public class RubyTime
 }
 ";
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// Verify operators returned from BinaryOperatorEasyOut match
+        /// the operators found from overload resolution.
+        /// </summary>
+        [Fact]
+        public void BinaryOperators_EasyOut()
+        {
+            var source =
+@"class Program
+{
+    static T F<T>() => throw null;
+    static void Main()
+    {
+        F<object>();
+        F<string>();
+        F<bool>();
+        F<char>();
+        F<sbyte>();
+        F<short>();
+        F<int>();
+        F<long>();
+        F<byte>();
+        F<ushort>();
+        F<uint>();
+        F<ulong>();
+        F<nint>();
+        F<nuint>();
+        F<float>();
+        F<double>();
+        F<decimal>();
+        F<bool?>();
+        F<char?>();
+        F<sbyte?>();
+        F<short?>();
+        F<int?>();
+        F<long?>();
+        F<byte?>();
+        F<ushort?>();
+        F<uint?>();
+        F<ulong?>();
+        F<nint?>();
+        F<nuint?>();
+        F<float?>();
+        F<double?>();
+        F<decimal?>();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var syntax = tree.GetRoot();
+            var methodBody = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Last().Body;
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(methodBody.SpanStart);
+            var diagnostics = DiagnosticBag.GetInstance();
+            var block = binder.BindEmbeddedBlock(methodBody, diagnostics);
+            diagnostics.Free();
+            var exprs = block.Statements.SelectAsArray(stmt => ((BoundExpressionStatement)stmt).Expression);
+            Assert.Equal(32, exprs.Length);
+
+            var operators = new[]
+            {
+                BinaryOperatorKind.Addition,
+                BinaryOperatorKind.Subtraction,
+                BinaryOperatorKind.Multiplication,
+                BinaryOperatorKind.Division,
+                BinaryOperatorKind.Remainder,
+                BinaryOperatorKind.LessThan,
+                BinaryOperatorKind.LessThanOrEqual,
+                BinaryOperatorKind.GreaterThan,
+                BinaryOperatorKind.GreaterThanOrEqual,
+                BinaryOperatorKind.LeftShift,
+                BinaryOperatorKind.RightShift,
+                BinaryOperatorKind.Equal,
+                BinaryOperatorKind.NotEqual,
+                BinaryOperatorKind.Or,
+                BinaryOperatorKind.And,
+                BinaryOperatorKind.Xor,
+            };
+
+            foreach (var op in operators)
+            {
+                foreach (var left in exprs)
+                {
+                    foreach (var right in exprs)
+                    {
+                        var signature1 = getBinaryOperator(binder, op, left, right, useEasyOut: true);
+                        var signature2 = getBinaryOperator(binder, op, left, right, useEasyOut: false);
+                        Assert.Equal(signature1, signature2);
+                    }
+                }
+            }
+
+            static BinaryOperatorKind getBinaryOperator(Binder binder, BinaryOperatorKind kind, BoundExpression left, BoundExpression right, bool useEasyOut)
+            {
+                var overloadResolution = new OverloadResolution(binder);
+                var result = BinaryOperatorOverloadResolutionResult.GetInstance();
+                if (useEasyOut)
+                {
+                    overloadResolution.BinaryOperatorOverloadResolution_EasyOut(kind, left, right, result);
+                }
+                else
+                {
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, left, right, result, ref useSiteDiagnostics);
+                }
+                var signature = result.Best.Signature.Kind;
+                result.Free();
+                return signature;
+            }
         }
 
         [Fact()]

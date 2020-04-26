@@ -343,6 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // TODO: Consider reusing some results of the assembly binding to improve perf
             // since most of the binding work is similar.
+            // https://github.com/dotnet/roslyn/issues/43397
 
             var compilation = new CSharpCompilation(
                 assemblyName,
@@ -614,7 +615,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            // Reference binding doesn't depend on previous submission so we can reuse it.
+            // Metadata references are inherited from the previous submission,
+            // so we can only reuse the manager if we can guarantee that these references are the same.
+            // Check if the previous script compilation doesn't change. 
+
+            // TODO: Consider comparing the metadata references if they have been bound already.
+            // https://github.com/dotnet/roslyn/issues/43397
+            bool reuseReferenceManager = ReferenceEquals(ScriptCompilationInfo?.PreviousScriptCompilation, info?.PreviousScriptCompilation);
 
             return new CSharpCompilation(
                 this.AssemblyName,
@@ -623,9 +630,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 info?.PreviousScriptCompilation,
                 info?.ReturnTypeOpt,
                 info?.GlobalsType,
-                info != null,
+                isSubmission: info != null,
                 _referenceManager,
-                reuseReferenceManager: true,
+                reuseReferenceManager,
                 syntaxAndDeclarations: _syntaxAndDeclarations);
         }
 
@@ -917,6 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO(tomat): Consider comparing #r's of the old and the new tree. If they are exactly the same we could still reuse.
             // This could be a perf win when editing a script file in the IDE. The services create a new compilation every keystroke
             // that replaces the tree with a new one.
+            // https://github.com/dotnet/roslyn/issues/43397
             var reuseReferenceManager = !oldTree.HasReferenceOrLoadDirectives() && !newTree.HasReferenceOrLoadDirectives();
             syntaxAndDeclarations = syntaxAndDeclarations.ReplaceSyntaxTree(oldTree, newTree);
 
@@ -1473,11 +1481,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                         HostObjectType.Name,
                                                                                         useCLSCompliantNameArityEncoding: true);
 
-                    symbol = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(
+                    symbol = new MissingMetadataTypeSymbol.TopLevel(
                         new MissingAssemblySymbol(AssemblyIdentity.FromAssemblyDefinition(HostObjectType.GetTypeInfo().Assembly)).Modules[0],
                         ref mdName,
-                        CreateReflectionTypeNotFoundError(HostObjectType),
-                        SpecialType.None);
+                        SpecialType.None,
+                        CreateReflectionTypeNotFoundError(HostObjectType));
                 }
 
                 Interlocked.CompareExchange(ref _lazyHostObjectTypeSymbol, symbol, null);
@@ -2079,10 +2087,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WeakReference<BinderFactory>? previousWeakReference = slot;
                 if (previousWeakReference != null && previousWeakReference.TryGetTarget(out previousFactory))
                 {
+                    Debug.Assert(slot is object);
                     return previousFactory;
                 }
 
-                if (Interlocked.CompareExchange(ref slot, newWeakReference, previousWeakReference) == previousWeakReference)
+                if (Interlocked.CompareExchange(ref slot!, newWeakReference, previousWeakReference) == previousWeakReference)
                 {
                     return newFactory;
                 }
@@ -3270,6 +3279,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreatePointerTypeSymbol(elementType.EnsureCSharpSymbolOrNull(nameof(elementType)), elementType.NullableAnnotation.ToInternalAnnotation()).GetPublicSymbol();
         }
 
+        protected override INamedTypeSymbol CommonCreateNativeIntegerTypeSymbol(bool signed)
+        {
+            return CreateNativeIntegerTypeSymbol(signed).GetPublicSymbol();
+        }
+
+        new internal NamedTypeSymbol CreateNativeIntegerTypeSymbol(bool signed)
+        {
+            return GetSpecialType(signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr).AsNativeInteger();
+        }
+
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string?> elementNames,
@@ -3569,11 +3588,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
+        internal override AnalyzerDriver CreateAnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager, SeverityFilter severityFilter)
         {
             Func<SyntaxNode, SyntaxKind> getKind = node => node.Kind();
             Func<SyntaxTrivia, bool> isComment = trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
-            return new AnalyzerDriver<SyntaxKind>(analyzers, getKind, analyzerManager, isComment);
+            return new AnalyzerDriver<SyntaxKind>(analyzers, getKind, analyzerManager, severityFilter, isComment);
         }
 
         internal void SymbolDeclaredEvent(Symbol symbol)

@@ -144,9 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 public override SyntaxNode GetSyntax(CancellationToken cancellationToken)
-                {
-                    return this.GetNode(_tree.GetRoot(cancellationToken));
-                }
+                    => this.GetNode(_tree.GetRoot(cancellationToken));
 
                 public async override Task<SyntaxNode> GetSyntaxAsync(CancellationToken cancellationToken = default)
                 {

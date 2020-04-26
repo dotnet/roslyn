@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 case BoundObjectOrCollectionValuePlaceholder implicitReceiver:
                     return CreateBoundDynamicMemberAccessOperation(implicitReceiver, typeArgumentsOpt: ImmutableArray<TypeSymbol>.Empty, memberName: "Add",
-                                                                   implicitReceiver.Syntax, type: null, value: default, isImplicit: true);
+                                                                   implicitReceiver.Syntax, type: null, value: null, isImplicit: true);
 
                 case BoundMethodGroup methodGroup:
                     return CreateBoundDynamicMemberAccessOperation(methodGroup.ReceiverOpt, TypeMap.AsTypeSymbols(methodGroup.TypeArgumentsOpt), methodGroup.Name,
@@ -1552,7 +1552,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else
             {
-                info = default;
+                info = null;
             }
 
             return info;

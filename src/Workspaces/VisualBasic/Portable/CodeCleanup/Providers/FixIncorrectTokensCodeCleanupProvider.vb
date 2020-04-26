@@ -4,11 +4,10 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
@@ -26,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Private Shared ReadOnly s_smartSingleQuotes As Char() = New Char() {s_ASCII_LSMART_Q, s_ASCII_RSMART_Q, s_UNICODE_LSMART_Q, s_UNICODE_RSMART_Q}
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="https://github.com/dotnet/roslyn/issues/42820")>
         Public Sub New()
         End Sub
 

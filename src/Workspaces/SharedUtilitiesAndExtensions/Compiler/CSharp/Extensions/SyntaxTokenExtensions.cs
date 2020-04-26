@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -18,21 +20,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsLastTokenOfNode<T>(this SyntaxToken token) where T : SyntaxNode
             => token.IsLastTokenOfNode<T>(out _);
 
-        public static bool IsLastTokenOfNode<T>(this SyntaxToken token, [NotNullWhen(true)] out T node) where T : SyntaxNode
+        public static bool IsLastTokenOfNode<T>(this SyntaxToken token, [NotNullWhen(true)] out T? node) where T : SyntaxNode
         {
-            node = token.GetAncestor<T>();
-            return node != null && token == node.GetLastToken(includeZeroWidth: true);
+            var ancestor = token.GetAncestor<T>();
+            if (ancestor == null || token != ancestor.GetLastToken(includeZeroWidth: true))
+            {
+                node = null;
+                return false;
+            }
+
+            node = ancestor;
+            return true;
         }
 
         public static bool IsKindOrHasMatchingText(this SyntaxToken token, SyntaxKind kind)
-        {
-            return token.Kind() == kind || token.HasMatchingText(kind);
-        }
+            => token.Kind() == kind || token.HasMatchingText(kind);
 
         public static bool HasMatchingText(this SyntaxToken token, SyntaxKind kind)
-        {
-            return token.ToString() == SyntaxFacts.GetText(kind);
-        }
+            => token.ToString() == SyntaxFacts.GetText(kind);
 
         public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2)
         {
@@ -65,9 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsKind(this SyntaxToken token, params SyntaxKind[] kinds)
-        {
-            return kinds.Contains(token.Kind());
-        }
+            => kinds.Contains(token.Kind());
 
         public static bool IsOpenBraceOrCommaOfObjectInitializer(this SyntaxToken token)
         {
@@ -76,9 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsOpenBraceOfAccessorList(this SyntaxToken token)
-        {
-            return token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent.IsKind(SyntaxKind.AccessorList);
-        }
+            => token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent.IsKind(SyntaxKind.AccessorList);
 
         /// <summary>
         /// Returns true if this token is something that looks like a C# keyword. This includes 
@@ -121,9 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IntersectsWith(this SyntaxToken token, int position)
-        {
-            return token.Span.IntersectsWith(position);
-        }
+            => token.Span.IntersectsWith(position);
 
         public static SyntaxToken GetPreviousTokenIfTouchingWord(this SyntaxToken token, int position)
         {
@@ -133,14 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static bool IsWord(SyntaxToken token)
-        {
-            return CSharpSyntaxFacts.Instance.IsWord(token);
-        }
+            => CSharpSyntaxFacts.Instance.IsWord(token);
 
         public static SyntaxToken GetNextNonZeroWidthTokenOrEndOfFile(this SyntaxToken token)
-        {
-            return token.GetNextTokenOrEndOfFile();
-        }
+            => token.GetNextTokenOrEndOfFile();
 
         /// <summary>
         /// Determines whether the given SyntaxToken is the first token on a line in the specified SourceText.
@@ -181,9 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsRegularStringLiteral(this SyntaxToken token)
-        {
-            return token.Kind() == SyntaxKind.StringLiteralToken && !token.IsVerbatimStringLiteral();
-        }
+            => token.Kind() == SyntaxKind.StringLiteralToken && !token.IsVerbatimStringLiteral();
 
         public static bool IsValidAttributeTarget(this SyntaxToken token)
         {

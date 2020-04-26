@@ -77,6 +77,11 @@ namespace Roslyn.Utilities
             return new Singleton.Enumerator<T>(value);
         }
 
+        public static IReadOnlyList<T> SingletonReadOnlyList<T>(T value)
+        {
+            return new Singleton.List<T>(value);
+        }
+
         public static IList<T> SingletonList<T>(T value)
         {
             return new Singleton.List<T>(value);

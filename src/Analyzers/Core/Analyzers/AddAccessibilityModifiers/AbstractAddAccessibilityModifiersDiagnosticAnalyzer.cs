@@ -5,10 +5,6 @@
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#endif
-
 namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
 {
     internal abstract class AbstractAddAccessibilityModifiersDiagnosticAnalyzer<TCompilationUnitSyntax>
@@ -17,7 +13,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
     {
         protected AbstractAddAccessibilityModifiersDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId,
-                   CodeStyleOptions.RequireAccessibilityModifiers,
+                   CodeStyleOptions2.RequireAccessibilityModifiers,
                    new LocalizableResourceString(nameof(AnalyzersResources.Add_accessibility_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Accessibility_modifiers_required), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -35,7 +31,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             var syntaxTree = context.Tree;
 
             var language = syntaxTree.Options.Language;
-            var option = context.GetOption(CodeStyleOptions.RequireAccessibilityModifiers, language);
+            var option = context.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, language);
             if (option.Value == AccessibilityModifiersRequired.Never)
             {
                 return;
@@ -44,6 +40,6 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             ProcessCompilationUnit(context, option, (TCompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken));
         }
 
-        protected abstract void ProcessCompilationUnit(SyntaxTreeAnalysisContext context, CodeStyleOption<AccessibilityModifiersRequired> option, TCompilationUnitSyntax compilationUnitSyntax);
+        protected abstract void ProcessCompilationUnit(SyntaxTreeAnalysisContext context, CodeStyleOption2<AccessibilityModifiersRequired> option, TCompilationUnitSyntax compilationUnitSyntax);
     }
 }

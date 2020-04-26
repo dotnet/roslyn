@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         internal abstract partial class RemoveSuppressionCodeAction
         {
             public static BatchFixAllProvider GetBatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-            {
-                return new BatchFixer(suppressionFixProvider);
-            }
+                => new BatchFixer(suppressionFixProvider);
 
             /// <summary>
             /// Batch fixer for pragma suppression removal code action.
@@ -31,9 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
 
                 public BatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-                {
-                    _suppressionFixProvider = suppressionFixProvider;
-                }
+                    => _suppressionFixProvider = suppressionFixProvider;
 
                 protected override async Task AddDocumentFixesAsync(
                     Document document, ImmutableArray<Diagnostic> diagnostics,

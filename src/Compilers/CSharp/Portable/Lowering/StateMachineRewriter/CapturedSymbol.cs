@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var frame = makeFrame(this.HoistedField.ContainingType);
             var field = this.HoistedField.AsMember((NamedTypeSymbol)frame.Type);
-            return new BoundFieldAccess(node, frame, field, default(ConstantValue));
+            return new BoundFieldAccess(node, frame, field, constantValueOpt: null);
         }
     }
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var frame = makeFrame(this.HoistedField.ContainingType);
             var field = this.HoistedField.AsMember((NamedTypeSymbol)frame.Type);
-            return new BoundFieldAccess(node, frame, field, default(ConstantValue));
+            return new BoundFieldAccess(node, frame, field, constantValueOpt: null);
         }
     }
 

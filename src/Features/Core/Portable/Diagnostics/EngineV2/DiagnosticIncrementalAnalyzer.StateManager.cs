@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private partial class StateManager
         {
             private readonly IPersistentStorageService _persistentStorageService;
-            private readonly HostDiagnosticAnalyzers _hostAnalyzers;
+            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
             /// <summary>
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(HostDiagnosticAnalyzers hostAnalyzers, IPersistentStorageService persistentStorageService)
+            public StateManager(IPersistentStorageService persistentStorageService, DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {
-                _hostAnalyzers = hostAnalyzers;
                 _persistentStorageService = persistentStorageService;
+                _analyzerInfoCache = analyzerInfoCache;
 
                 _hostAnalyzerStateMap = ImmutableDictionary<string, HostAnalyzerStateSets>.Empty;
                 _projectAnalyzerStateMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets>(concurrencyLevel: 2, capacity: 10);
@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// This will never create new <see cref="StateSet"/> but will return ones already created.
             /// </summary>
             public IEnumerable<StateSet> GetAllStateSets()
-            {
-                return GetAllHostStateSets().Concat(GetAllProjectStateSets());
-            }
+                => GetAllHostStateSets().Concat(GetAllProjectStateSets());
 
             /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="ProjectId"/>. 
@@ -80,9 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// this will only return <see cref="StateSet"/>s that have same language as <paramref name="project"/>.
             /// </summary>
             public IEnumerable<StateSet> GetStateSets(Project project)
-            {
-                return GetStateSets(project.Id).Where(s => s.Language == project.Language);
-            }
+                => GetStateSets(project.Id).Where(s => s.Language == project.Language);
 
             /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>. 
@@ -93,7 +89,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public IEnumerable<StateSet> GetOrUpdateStateSets(Project project)
             {
-                return GetOrCreateHostStateSets(project.Language).OrderedStateSets.Concat(GetOrUpdateProjectAnalyzerMap(project).Values);
+                var projectStateSets = GetOrUpdateProjectStateSets(project);
+                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.Concat(projectStateSets.StateSetMap.Values);
             }
 
             /// <summary>
@@ -104,7 +101,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public IEnumerable<StateSet> GetOrCreateStateSets(Project project)
             {
-                return GetOrCreateHostStateSets(project.Language).OrderedStateSets.Concat(GetOrCreateProjectStateSetMap(project).Values);
+                var projectStateSets = GetOrCreateProjectStateSets(project);
+                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.Concat(projectStateSets.StateSetMap.Values);
             }
 
             /// <summary>
@@ -115,16 +113,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public StateSet? GetOrCreateStateSet(Project project, DiagnosticAnalyzer analyzer)
             {
-                var hostStateSets = GetOrCreateHostStateSets(project.Language).StateSetMap;
-                if (hostStateSets.TryGetValue(analyzer, out var stateSet))
+                var projectStateSets = GetOrCreateProjectStateSets(project);
+                if (projectStateSets.StateSetMap.TryGetValue(analyzer, out var stateSet))
                 {
                     return stateSet;
                 }
 
-                var map = GetOrCreateProjectStateSetMap(project);
-                if (map.TryGetValue(analyzer, out var set))
+                var hostStateSetMap = GetOrCreateHostStateSets(project, projectStateSets).StateSetMap;
+                if (hostStateSetMap.TryGetValue(analyzer, out stateSet))
                 {
-                    return set;
+                    return stateSet;
                 }
 
                 return null;
@@ -136,18 +134,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public ImmutableArray<StateSet> CreateBuildOnlyProjectStateSet(Project project)
             {
-                var hostStateSets = GetOrCreateHostStateSets(project.Language).OrderedStateSets;
+                var projectStateSets = project.SupportsCompilation ?
+                    GetOrUpdateProjectStateSets(project) :
+                    ProjectAnalyzerStateSets.Default;
+                var hostStateSets = GetOrCreateHostStateSets(project, projectStateSets);
 
                 if (!project.SupportsCompilation)
                 {
                     // languages which don't use our compilation model but diagnostic framework,
                     // all their analyzer should be host analyzers. return all host analyzers
                     // for the language
-                    return hostStateSets;
+                    return hostStateSets.OrderedStateSets;
                 }
 
-                // now create analyzer to host stateset map
-                var hostStateSetMap = hostStateSets.ToDictionary(s => s.Analyzer, s => s);
+                var hostStateSetMap = hostStateSets.StateSetMap;
 
                 // create project analyzer reference identity map
                 var projectAnalyzerReferenceIds = project.AnalyzerReferences.Select(r => r.Id).ToSet();
@@ -157,17 +157,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // include compiler analyzer in build only state, if available
                 StateSet? compilerStateSet = null;
-                var compilerAnalyzer = _hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
+                var hostAnalyzers = project.Solution.State.Analyzers;
+                var compilerAnalyzer = hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
                 if (compilerAnalyzer != null && hostStateSetMap.TryGetValue(compilerAnalyzer, out compilerStateSet))
                 {
                     stateSets.Add(compilerStateSet);
                 }
 
                 // now add all project analyzers
-                stateSets.AddRange(GetOrUpdateProjectAnalyzerMap(project).Values);
+                stateSets.AddRange(projectStateSets.StateSetMap.Values);
 
                 // now add analyzers that exist in both host and project
-                var hostAnalyzersById = _hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language);
+                var hostAnalyzersById = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language);
                 foreach (var (identity, analyzers) in hostAnalyzersById)
                 {
                     if (!projectAnalyzerReferenceIds.Contains(identity))
@@ -251,9 +252,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private void RaiseProjectAnalyzerReferenceChanged(ProjectAnalyzerReferenceChangedEventArgs args)
-            {
-                ProjectAnalyzerReferenceChanged?.Invoke(this, args);
-            }
+                => ProjectAnalyzerReferenceChanged?.Invoke(this, args);
 
             private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
                 string language,

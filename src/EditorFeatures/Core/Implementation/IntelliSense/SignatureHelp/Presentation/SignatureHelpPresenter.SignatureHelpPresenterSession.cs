@@ -197,14 +197,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
 
             public void SelectPreviousItem()
-            {
-                ExecuteKeyboardCommand(IntellisenseKeyboardCommand.Up);
-            }
+                => ExecuteKeyboardCommand(IntellisenseKeyboardCommand.Up);
 
             public void SelectNextItem()
-            {
-                ExecuteKeyboardCommand(IntellisenseKeyboardCommand.Down);
-            }
+                => ExecuteKeyboardCommand(IntellisenseKeyboardCommand.Down);
 
             // Call backs from our ISignatureHelpSourceProvider.  Used to actually populate the vs
             // session.

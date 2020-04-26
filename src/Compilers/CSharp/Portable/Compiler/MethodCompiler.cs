@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.Field:
                         {
-                            SourceMemberFieldSymbol fieldSymbol = member as SourceMemberFieldSymbol;
+                            FieldSymbol fieldSymbol = member as FieldSymbol;
                             if ((object)fieldSymbol != null)
                             {
                                 if (fieldSymbol.IsConst)

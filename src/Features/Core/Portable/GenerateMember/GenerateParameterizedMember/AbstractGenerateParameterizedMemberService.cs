@@ -28,19 +28,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         protected abstract bool AreSpecialOptionsActive(SemanticModel semanticModel);
 
         protected virtual bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
-        {
-            return false;
-        }
+            => false;
 
         protected virtual string GetImplicitConversionDisplayText(State state)
-        {
-            return string.Empty;
-        }
+            => string.Empty;
 
         protected virtual string GetExplicitConversionDisplayText(State state)
-        {
-            return string.Empty;
-        }
+            => string.Empty;
 
         protected async ValueTask<ImmutableArray<CodeAction>> GetActionsAsync(Document document, State state, CancellationToken cancellationToken)
         {

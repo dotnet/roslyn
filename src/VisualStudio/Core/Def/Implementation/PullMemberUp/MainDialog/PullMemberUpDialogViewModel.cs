@@ -95,14 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         }
 
         public void SelectAllMembers()
-        {
-            SelectMembers(Members);
-        }
+            => SelectMembers(Members);
 
         public void SelectPublicMembers()
-        {
-            SelectMembers(Members.WhereAsArray(memberViewModel => memberViewModel.Symbol.DeclaredAccessibility == Accessibility.Public));
-        }
+            => SelectMembers(Members.WhereAsArray(memberViewModel => memberViewModel.Symbol.DeclaredAccessibility == Accessibility.Public));
 
         public void SetStatesOfOkButtonAndSelectAllCheckBox()
         {

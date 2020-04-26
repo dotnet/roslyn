@@ -6,11 +6,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Humanizer;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -205,9 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 current = current.WalkDownParentheses();
 
-                if (current.Kind() == SyntaxKind.IdentifierName)
+                if (current is IdentifierNameSyntax identifierName)
                 {
-                    return ((IdentifierNameSyntax)current).Identifier.ValueText.ToCamelCase();
+                    return identifierName.Identifier.ValueText.ToCamelCase();
                 }
                 else if (current is MemberAccessExpressionSyntax memberAccess)
                 {
@@ -234,6 +233,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                     return name.Identifier.ValueText.ToCamelCase();
                 }
+                else if (current.Parent is ForEachStatementSyntax foreachStatement &&
+                         foreachStatement.Expression == expression)
+                {
+                    return foreachStatement.Identifier.ValueText.ToCamelCase().Pluralize();
+                }
                 else
                 {
                     break;
@@ -255,7 +259,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // If we can't determine the type, then fallback to some placeholders.
             var type = info.Type;
-            return type.CreateParameterName(capitalize);
+            var pluralize = Pluralize(semanticModel, type);
+
+            var parameterName = type.CreateParameterName(capitalize);
+            return pluralize ? parameterName.Pluralize() : parameterName;
+        }
+
+        private static bool Pluralize(SemanticModel semanticModel, ITypeSymbol type)
+        {
+            if (type == null)
+                return false;
+
+            if (type.SpecialType == SpecialType.System_String)
+                return false;
+
+            var enumerableType = semanticModel.Compilation.IEnumerableOfTType();
+            return type.AllInterfaces.Any(i => i.OriginalDefinition.Equals(enumerableType));
         }
 
         private static string TryGenerateNameForArgumentExpression(
@@ -468,8 +487,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static TypeSyntax GetOutermostType(TypeSyntax type)
-        {
-            return type.GetAncestorsOrThis<TypeSyntax>().Last();
-        }
+            => type.GetAncestorsOrThis<TypeSyntax>().Last();
     }
 }

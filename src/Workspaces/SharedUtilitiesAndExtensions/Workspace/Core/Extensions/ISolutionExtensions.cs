@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static TextDocument? GetTextDocument(this Solution solution, DocumentId? documentId)
-        {
-            return solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId) ?? solution.GetAnalyzerConfigDocument(documentId);
-        }
+            => solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId) ?? solution.GetAnalyzerConfigDocument(documentId);
 
         public static Document GetRequiredDocument(this Solution solution, SyntaxTree syntaxTree)
             => solution.GetDocument(syntaxTree) ?? throw new InvalidOperationException();
@@ -49,6 +47,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static Document GetRequiredDocument(this Solution solution, DocumentId documentId)
         {
             var document = solution.GetDocument(documentId);
+            if (document == null)
+            {
+                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            }
+
+            return document;
+        }
+
+        public static Document GetRequiredDocument(this Project project, DocumentId documentId)
+        {
+            var document = project.GetDocument(documentId);
             if (document == null)
             {
                 throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);

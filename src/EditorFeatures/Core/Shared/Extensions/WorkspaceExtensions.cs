@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// Update the solution so that the document with the Id has the text changes
         /// </summary>
         internal static void ApplyTextChanges(this Workspace workspace, DocumentId id, TextChange textChange, CancellationToken cancellationToken)
-        {
-            workspace.ApplyTextChanges(id, SpecializedCollections.SingletonEnumerable(textChange), cancellationToken);
-        }
+            => workspace.ApplyTextChanges(id, SpecializedCollections.SingletonEnumerable(textChange), cancellationToken);
 
         internal static Solution UpdateDocument(this Solution solution, DocumentId id, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken)
         {

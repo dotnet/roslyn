@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Compilation _compilation;
 
         public DeferredDocumentationProvider(Compilation compilation)
-        {
-            _compilation = compilation;
-        }
+            => _compilation = compilation;
 
         protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
         {
@@ -29,13 +27,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         public override bool Equals(object obj)
-        {
-            return object.ReferenceEquals(this, obj);
-        }
+            => object.ReferenceEquals(this, obj);
 
         public override int GetHashCode()
-        {
-            return _compilation.GetHashCode();
-        }
+            => _compilation.GetHashCode();
     }
 }

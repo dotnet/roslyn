@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
     internal class VisualStudioErrorLogger : IErrorLoggerService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioErrorLogger()
         {
         }
@@ -34,8 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
         private bool ShouldReportCrashDumps(object source) => HasRoslynPublicKey(source);
 
         private static string ToLogFormat(Exception exception)
-        {
-            return exception.Message + Environment.NewLine + exception.StackTrace;
-        }
+            => exception.Message + Environment.NewLine + exception.StackTrace;
     }
 }

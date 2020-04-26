@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken);
         Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken);
 
-        void RemoveDocument(DocumentId documentId);
-        void RemoveProject(ProjectId projectId);
+        Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken);
+        Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
 
         bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e);
     }

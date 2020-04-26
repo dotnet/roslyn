@@ -21,21 +21,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(KeywordCompletionProvider);
-        }
+            => typeof(KeywordCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task IsCommitCharacterTest()
-        {
-            await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar: "");
-        }
+            => await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar: "");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void IsTextualTriggerCharacterTest()
-        {
-            TestCommonIsTextualTriggerCharacter();
-        }
+            => TestCommonIsTextualTriggerCharacter();
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task SendEnterThroughToEditorTest()

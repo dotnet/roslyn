@@ -44,9 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             private readonly FindUsagesContext _context;
 
             public MockStreamingFindUsagesPresenter(FindUsagesContext context)
-            {
-                _context = context;
-            }
+                => _context = context;
 
             public FindUsagesContext StartSearch(string title, bool supportsReferences)
                 => _context;

@@ -21,9 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
     internal class CSharpImplementInterfaceService : AbstractImplementInterfaceService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpImplementInterfaceService()
         {
         }
+
+        protected override string ToDisplayString(IMethodSymbol disposeImplMethod, SymbolDisplayFormat format)
+            => SymbolDisplay.ToDisplayString(disposeImplMethod, format);
 
         protected override bool TryInitializeState(
             Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken,

@@ -31,18 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         ///          will be forwarded to the managed implementation.
         /// </summary>
         internal static object CreateAggregatedObject(object managedObject)
-        {
-            return WrapperPolicy.CreateAggregatedObject(managedObject);
-        }
+            => WrapperPolicy.CreateAggregatedObject(managedObject);
 
         /// <summary>
         /// Return the RCW for the native IComWrapper instance aggregating "managedObject"
         /// if there is one. Return "null" if "managedObject" is not aggregated.
         /// </summary>
         internal static IComWrapper TryGetWrapper(object managedObject)
-        {
-            return WrapperPolicy.TryGetWrapper(managedObject);
-        }
+            => WrapperPolicy.TryGetWrapper(managedObject);
 
         internal static T GetManagedObject<T>(object value) where T : class
         {

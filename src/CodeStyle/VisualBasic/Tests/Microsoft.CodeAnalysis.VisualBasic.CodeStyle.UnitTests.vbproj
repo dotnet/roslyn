@@ -31,6 +31,7 @@
     <ProjectReference Include="..\..\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
     <ProjectReference Include="..\..\Core\CodeFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj" />
     <ProjectReference Include="..\..\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities.csproj" />
+    <ProjectReference Include="..\..\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities.csproj" />
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.vbproj" />
     <ProjectReference Include="..\CodeFixes\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.vbproj" />
   </ItemGroup>

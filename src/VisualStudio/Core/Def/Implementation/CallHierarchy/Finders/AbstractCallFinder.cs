@@ -39,18 +39,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         }
 
         internal void SetDocuments(IImmutableSet<Document> documents)
-        {
-            this.Documents = documents;
-        }
+            => this.Documents = documents;
 
         public abstract string DisplayName { get; }
 
         public virtual string SearchCategory => DisplayName;
 
         public void CancelSearch()
-        {
-            _cancellationSource.Cancel();
-        }
+            => _cancellationSource.Cancel();
 
         public void StartSearch(Workspace workspace, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)
         {

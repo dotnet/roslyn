@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         public readonly TextSpan TextSpan;
 
         public ViewTextSpan(TextSpan textSpan)
-        {
-            this.TextSpan = textSpan;
-        }
+            => this.TextSpan = textSpan;
     }
 
     internal struct DisconnectedBufferGraph

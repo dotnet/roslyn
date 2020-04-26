@@ -157,9 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             }
 
             private bool IsSupportedTheme(Guid themeId)
-            {
-                return _colorSchemes.Any(scheme => scheme.ContainsKey(themeId));
-            }
+                => _colorSchemes.Any(scheme => scheme.ContainsKey(themeId));
 
             private bool AreClassificationsDefaultableToScheme(Guid themeId, ImmutableDictionary<string, uint> schemeThemeColors)
             {

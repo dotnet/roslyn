@@ -26,9 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         private readonly IMetadataService _metadataService;
 
         public TempPECompilerService(IMetadataService metadataService)
-        {
-            _metadataService = metadataService;
-        }
+            => _metadataService = metadataService;
 
         public int CompileTempPE(string pszOutputFileName, int sourceCount, string[] fileNames, string[] fileContents, int optionCount, string[] optionNames, object[] optionValues)
         {

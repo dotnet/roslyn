@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -28,20 +29,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     {
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IForegroundNotificationService _notificationService;
-        private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
         private readonly ClassificationTypeMap _typeMap;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public SemanticClassificationBufferTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
-            ISemanticChangeNotificationService semanticChangeNotificationService,
             ClassificationTypeMap typeMap,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext)
         {
             _notificationService = notificationService;
-            _semanticChangeNotificationService = semanticChangeNotificationService;
             _typeMap = typeMap;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.Classification);
         }
@@ -49,12 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public IAccurateTagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
             this.AssertIsForeground();
-            return new Tagger(this, buffer) as IAccurateTagger<T>;
+            return new Tagger(this, buffer, _asyncListener) as IAccurateTagger<T>;
         }
 
         ITagger<T> ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
-        {
-            return CreateTagger<T>(buffer);
-        }
+            => CreateTagger<T>(buffer);
     }
 }

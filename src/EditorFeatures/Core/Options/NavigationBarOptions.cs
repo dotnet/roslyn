@@ -4,8 +4,10 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -20,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     internal class NavigationBarOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public NavigationBarOptionsProvider()
         {
         }

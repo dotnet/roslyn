@@ -16,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private Function GetNormalTypeConstructors(document As Document,
                                                    objectCreationExpression As ObjectCreationExpressionSyntax,
                                                    semanticModel As SemanticModel,
-                                                   symbolDisplayService As ISymbolDisplayService,
                                                    anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                    normalType As INamedTypeSymbol,
                                                    within As ISymbol,
@@ -25,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim accessibleConstructors = normalType.InstanceConstructors.
                                                     WhereAsArray(Function(c) c.IsAccessibleWithin(within)).
                                                     FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
-                                                    Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart)
+                                                    Sort(semanticModel, objectCreationExpression.SpanStart)
 
             If Not accessibleConstructors.Any() Then
                 Return Nothing
@@ -34,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
             Dim items = accessibleConstructors.Select(
-                Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList()
+                Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList()
 
             Dim currentConstructor = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken)
             Dim selectedItem = TryGetSelectedIndex(accessibleConstructors, currentConstructor)
@@ -43,14 +42,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         End Function
 
         Private Function ConvertNormalTypeConstructor(constructor As IMethodSymbol, objectCreationExpression As ObjectCreationExpressionSyntax, semanticModel As SemanticModel,
-                                                      symbolDisplayService As ISymbolDisplayService,
                                                       anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                       documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                                       cancellationToken As CancellationToken) As SignatureHelpItem
             Dim position = objectCreationExpression.SpanStart
             Dim item = CreateItem(
                 constructor, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 constructor.IsParams(),
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetNormalTypePreambleParts(constructor, semanticModel, position), GetSeparatorParts(),

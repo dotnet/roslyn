@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -20,9 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         protected abstract IList<bool> GetAvailableInsertionIndices(SyntaxNode destination, CancellationToken cancellationToken);
 
         private IList<bool> GetAvailableInsertionIndices<TDeclarationNode>(TDeclarationNode destination, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-        {
-            return GetAvailableInsertionIndices((SyntaxNode)destination, cancellationToken);
-        }
+            => GetAvailableInsertionIndices((SyntaxNode)destination, cancellationToken);
 
         public bool CanAddTo(ISymbol destination, Solution solution, CancellationToken cancellationToken)
         {
@@ -133,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            var declaration = default(SyntaxNode);
+            var declaration = (SyntaxNode)null;
             IList<bool> availableIndices = null;
 
             var symbol = namespaceOrType;
@@ -141,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             var declarations = _symbolDeclarationService.GetDeclarations(symbol);
 
-            var fallbackDeclaration = default(SyntaxNode);
+            var fallbackDeclaration = (SyntaxNode)null;
             if (locationOpt != null && locationOpt.IsInSource)
             {
                 var token = locationOpt.FindToken(cancellationToken);

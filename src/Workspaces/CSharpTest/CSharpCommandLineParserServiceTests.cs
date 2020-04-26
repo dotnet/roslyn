@@ -13,14 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private readonly CSharpCommandLineParserService _parser = new CSharpCommandLineParserService();
 
         private CSharpCommandLineArguments GetArguments(params string[] args)
-        {
-            return (CSharpCommandLineArguments)_parser.Parse(args, baseDirectory: s_directory, isInteractive: false, sdkDirectory: s_directory);
-        }
+            => (CSharpCommandLineArguments)_parser.Parse(args, baseDirectory: s_directory, isInteractive: false, sdkDirectory: s_directory);
 
         private CSharpParseOptions GetParseOptions(params string[] args)
-        {
-            return GetArguments(args).ParseOptions;
-        }
+            => GetArguments(args).ParseOptions;
 
         [Fact]
         public void FeaturesSingle()

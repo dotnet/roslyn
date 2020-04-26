@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal void SetWorkspace(Workspace? workspace)
-        {
-            Workspace = workspace;
-        }
+            => Workspace = workspace;
 
         internal void RaiseEvents()
         {

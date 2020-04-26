@@ -559,6 +559,12 @@ Done:
             End Get
         End Property
 
+        Private ReadOnly Property ITypeSymbol_IsNativeIntegerType As Boolean Implements ITypeSymbol.IsNativeIntegerType
+            Get
+                Return False
+            End Get
+        End Property
+
         Private ReadOnly Property ITypeSymbol_TypeKind As TypeKind Implements ITypeSymbol.TypeKind, ITypeSymbolInternal.TypeKind
             Get
                 Return Me.TypeKind

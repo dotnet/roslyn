@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractKeywordCompletionProvider<TContext> : CommonCompletionProvider
+    internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LSPCompletionProvider
     {
         private readonly ImmutableArray<IKeywordRecommender<TContext>> _keywordRecommenders;
 
@@ -31,14 +31,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private class Comparer : IEqualityComparer<CompletionItem>
         {
             public bool Equals(CompletionItem x, CompletionItem y)
-            {
-                return x.DisplayText == y.DisplayText;
-            }
+                => x.DisplayText == y.DisplayText;
 
             public int GetHashCode(CompletionItem obj)
-            {
-                return Hash.Combine(obj.DisplayText.GetHashCode(), obj.DisplayText.GetHashCode());
-            }
+                => Hash.Combine(obj.DisplayText.GetHashCode(), obj.DisplayText.GetHashCode());
         }
 
         private static readonly Comparer s_comparer = new Comparer();
@@ -115,9 +111,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
-        {
-            return Task.FromResult((TextChange?)new TextChange(item.Span, item.DisplayText));
-        }
+            => Task.FromResult((TextChange?)new TextChange(item.Span, item.DisplayText));
 
         internal abstract TextSpan GetCurrentSpan(TextSpan span, SourceText text);
     }

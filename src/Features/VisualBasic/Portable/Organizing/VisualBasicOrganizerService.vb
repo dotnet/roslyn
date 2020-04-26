@@ -14,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing
         Inherits AbstractOrganizingService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(<ImportMany()> organizers As IEnumerable(Of Lazy(Of ISyntaxOrganizer, LanguageMetadata)))
             MyBase.New(organizers.Where(Function(o) o.Metadata.Language = LanguageNames.VisualBasic).Select(Function(o) o.Value))
         End Sub

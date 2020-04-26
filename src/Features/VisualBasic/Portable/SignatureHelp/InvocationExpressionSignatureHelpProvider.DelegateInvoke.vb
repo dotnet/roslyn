@@ -14,10 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Private Function GetDelegateInvokeItems(invocationExpression As InvocationExpressionSyntax,
                                                 semanticModel As SemanticModel,
-                                                symbolDisplayService As ISymbolDisplayService,
                                                 anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                 documentationCommentFormattingService As IDocumentationCommentFormattingService,
-                                                within As ISymbol,
                                                 delegateType As INamedTypeSymbol,
                                                 cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)
             Dim invokeMethod = delegateType.DelegateInvokeMethod
@@ -28,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim position = invocationExpression.SpanStart
             Dim item = CreateItem(
                 invokeMethod, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 isVariadic:=invokeMethod.IsParams(),
                 documentationFactory:=Nothing,
                 prefixParts:=GetDelegateInvokePreambleParts(invokeMethod, semanticModel, position),

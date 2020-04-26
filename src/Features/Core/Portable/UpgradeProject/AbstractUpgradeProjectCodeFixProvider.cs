@@ -89,9 +89,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         }
 
         private bool CanUpgrade(Project project, string language, string version)
-        {
-            return project.Language == language && IsUpgrade(project, version);
-        }
+            => project.Language == language && IsUpgrade(project, version);
     }
 
     internal class ProjectOptionsChangeAction : SolutionChangeAction

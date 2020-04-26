@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -48,9 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public SyntaxNode Transform()
-        {
-            return Visit(_node);
-        }
+            => Visit(_node);
 
         private void PreprocessTriviaListMap(
             Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map,
@@ -89,14 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var triviaList = csharpTriviaData.GetTriviaList(cancellationToken);
                 var index = GetFirstEndOfLineIndexOrRightBeforeComment(triviaList);
 
-                return ValueTuple.Create(
-                    SyntaxFactory.TriviaList(CreateTriviaListFromTo(triviaList, 0, index)),
-                    SyntaxFactory.TriviaList(CreateTriviaListFromTo(triviaList, index + 1, triviaList.Count - 1)));
+                return (TriviaHelpers.CreateTriviaListFromTo(triviaList, 0, index),
+                        TriviaHelpers.CreateTriviaListFromTo(triviaList, index + 1, triviaList.Count - 1));
             }
 
             // whitespace trivia case such as spaces/tabs/new lines
             // these will always have a single text change
-            var text = pair.Value.GetTextChanges(GetTextSpan(pair.Key)).Single().NewText;
+            var text = pair.Value.GetTextChanges(GetTextSpan(pair.Key)).Single().NewText ?? "";
             var trailingTrivia = SyntaxFactory.ParseTrailingTrivia(text);
 
             var width = trailingTrivia.GetFullWidth();
@@ -120,20 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return TextSpan.FromBounds(pair.Item1.Span.End, pair.Item2.SpanStart);
         }
 
-        private IEnumerable<SyntaxTrivia> CreateTriviaListFromTo(List<SyntaxTrivia> triviaList, int startIndex, int endIndex)
-        {
-            if (startIndex > endIndex)
-            {
-                yield break;
-            }
-
-            for (var i = startIndex; i <= endIndex; i++)
-            {
-                yield return triviaList[i];
-            }
-        }
-
-        private int GetFirstEndOfLineIndexOrRightBeforeComment(List<SyntaxTrivia> triviaList)
+        private int GetFirstEndOfLineIndexOrRightBeforeComment(SyntaxTriviaList triviaList)
         {
             for (var i = 0; i < triviaList.Count; i++)
             {
@@ -160,16 +143,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             if (triviaData is TriviaDataWithList csharpTriviaData)
             {
-                return SyntaxFactory.TriviaList(csharpTriviaData.GetTriviaList(cancellationToken));
+                return csharpTriviaData.GetTriviaList(cancellationToken);
             }
 
             // whitespace trivia case such as spaces/tabs/new lines
             // these will always have single text changes
-            var text = triviaData.GetTextChanges(GetTextSpan(pair)).Single().NewText;
+            var text = triviaData.GetTextChanges(GetTextSpan(pair)).Single().NewText ?? "";
             return SyntaxFactory.ParseLeadingTrivia(text);
         }
 
-        public override SyntaxNode Visit(SyntaxNode node)
+        [return: NotNullIfNotNull("node")]
+        public override SyntaxNode? Visit(SyntaxNode? node)
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -227,8 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static SyntaxToken CreateNewToken(SyntaxTriviaList leadingTrivia, SyntaxToken token, SyntaxTriviaList trailingTrivia)
-        {
-            return token.With(leadingTrivia, trailingTrivia);
-        }
+            => token.With(leadingTrivia, trailingTrivia);
     }
 }

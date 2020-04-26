@@ -154,14 +154,10 @@ namespace Roslyn.Utilities
         }
 
         public static bool operator ==(SyntaxPath left, SyntaxPath right)
-        {
-            return object.Equals(left, right);
-        }
+            => object.Equals(left, right);
 
         public static bool operator !=(SyntaxPath left, SyntaxPath right)
-        {
-            return !object.Equals(left, right);
-        }
+            => !object.Equals(left, right);
 
         public override bool Equals(object obj)
         {
@@ -193,9 +189,7 @@ namespace Roslyn.Utilities
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(_trackKinds, Hash.Combine(_kind, GetSegmentHashCode()));
-        }
+            => Hash.Combine(_trackKinds, Hash.Combine(_kind, GetSegmentHashCode()));
 
         private int GetSegmentHashCode()
         {

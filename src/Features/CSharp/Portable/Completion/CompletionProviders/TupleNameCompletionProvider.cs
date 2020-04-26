@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -23,11 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(TupleNameCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(XmlDocCommentCompletionProvider))]
     [Shared]
-    internal class TupleNameCompletionProvider : CommonCompletionProvider
+    internal class TupleNameCompletionProvider : LSPCompletionProvider
     {
         private const string ColonString = ":";
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TupleNameCompletionProvider()
         {
         }
@@ -118,5 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 selectedItem.Span,
                 selectedItem.DisplayText));
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet<char>.Empty;
     }
 }

@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
     internal class CSharpLineSeparatorService : ILineSeparatorService
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpLineSeparatorService()
         {
         }
@@ -143,19 +145,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
         }
 
         private static bool IsBadProperty(SyntaxNode node)
-        {
-            return IsBadAccessorList(node as PropertyDeclarationSyntax);
-        }
+            => IsBadAccessorList(node as PropertyDeclarationSyntax);
 
         private static bool IsBadEvent(SyntaxNode node)
-        {
-            return IsBadAccessorList(node as EventDeclarationSyntax);
-        }
+            => IsBadAccessorList(node as EventDeclarationSyntax);
 
         private static bool IsBadIndexer(SyntaxNode node)
-        {
-            return IsBadAccessorList(node as IndexerDeclarationSyntax);
-        }
+            => IsBadAccessorList(node as IndexerDeclarationSyntax);
 
         private static bool IsBadAccessorList(BasePropertyDeclarationSyntax baseProperty)
         {

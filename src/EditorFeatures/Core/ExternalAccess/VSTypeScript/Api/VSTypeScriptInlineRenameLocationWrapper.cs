@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         private readonly InlineRenameLocation _underlyingObject;
 
         public VSTypeScriptInlineRenameLocationWrapper(InlineRenameLocation underlyingObject)
-        {
-            _underlyingObject = underlyingObject;
-        }
+            => _underlyingObject = underlyingObject;
 
         public Document Document => _underlyingObject.Document;
         public TextSpan TextSpan => _underlyingObject.TextSpan;

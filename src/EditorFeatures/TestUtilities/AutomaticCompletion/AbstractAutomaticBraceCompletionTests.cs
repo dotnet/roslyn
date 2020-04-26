@@ -92,9 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
         }
 
         internal void CheckText(IBraceCompletionSession session, string result)
-        {
-            Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
-        }
+            => Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
 
         internal void CheckReturnOnNonEmptyLine(IBraceCompletionSession session, int expectedVirtualSpace)
         {
@@ -147,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal Holder CreateSession(TestWorkspace workspace, char opening, char closing, Dictionary<OptionKey, object> changedOptionSet = null)
+        internal Holder CreateSession(TestWorkspace workspace, char opening, char closing, Dictionary<OptionKey2, object> changedOptionSet = null)
         {
             var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
             var undoManager = workspace.ExportProvider.GetExportedValue<ITextBufferUndoManagerProvider>();
@@ -189,9 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
 
             public void Dispose()
-            {
-                this.Workspace.Dispose();
-            }
+                => this.Workspace.Dispose();
         }
     }
 }

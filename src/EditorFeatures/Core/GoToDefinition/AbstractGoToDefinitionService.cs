@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         protected AbstractGoToDefinitionService(Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
-        {
-            _streamingPresenter = streamingPresenter;
-        }
+            => _streamingPresenter = streamingPresenter;
 
         public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(
             Document document, int position, CancellationToken cancellationToken)
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var isThirdPartyNavigationAllowed = IsThirdPartyNavigationAllowed(symbol, position, document, cancellationToken);
 
             return GoToDefinitionHelpers.TryGoToDefinition(symbol,
-                document.Project,
+                document.Project.Solution,
                 _streamingPresenter.Value,
                 thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
                 cancellationToken: cancellationToken);
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             var definitions = interfaceImpls.SelectMany(
                 i => GoToDefinitionHelpers.GetDefinitions(
-                    i, project, thirdPartyNavigationAllowed: false, cancellationToken)).ToImmutableArray();
+                    i, solution, thirdPartyNavigationAllowed: false, cancellationToken)).ToImmutableArray();
 
             var title = string.Format(EditorFeaturesResources._0_implemented_members,
                 FindUsagesHelpers.GetDisplayName(symbol));

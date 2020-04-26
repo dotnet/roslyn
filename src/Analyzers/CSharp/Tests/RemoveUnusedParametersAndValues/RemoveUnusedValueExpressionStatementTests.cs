@@ -2,37 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
     public partial class RemoveUnusedValueExpressionStatementTests : RemoveUnusedValuesTestsBase
     {
-        protected override IDictionary<OptionKey, object> PreferNone =>
+        private protected override OptionsCollection PreferNone =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
-                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.None));
+                   new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
 
-        protected override IDictionary<OptionKey, object> PreferDiscard =>
+        private protected override OptionsCollection PreferDiscard =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
-                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.Silent));
+                   new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent));
 
-        protected override IDictionary<OptionKey, object> PreferUnusedLocal =>
+        private protected override OptionsCollection PreferUnusedLocal =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
-                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption.Silent));
+                   new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Silent));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task ExpressionStatement_Suppressed()

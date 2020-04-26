@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -172,14 +171,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static Action<CodeAction, ImmutableArray<Diagnostic>> GetRegisterCodeFixAction(
             FixAllState fixAllState,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> result)
-            => (action, diagnostics) =>
-               {
-                   if (action != null && action.EquivalenceKey == fixAllState.CodeActionEquivalenceKey)
-                   {
-                       result.Add((diagnostics.First(), action));
-                   }
-               };
+        {
+            return (action, diagnostics) =>
+            {
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var builder);
+                builder.Push(action);
+                while (builder.Count > 0)
+                {
+                    var currentAction = builder.Pop();
+                    if (currentAction is { EquivalenceKey: var equivalenceKey }
+                        && equivalenceKey == fixAllState.CodeActionEquivalenceKey)
+                    {
+                        result.Add((diagnostics.First(), currentAction));
+                    }
 
+                    foreach (var nestedAction in currentAction.NestedCodeActions)
+                    {
+                        builder.Push(nestedAction);
+                    }
+                }
+            };
+        }
 
         protected virtual Task AddProjectFixesAsync(
             Project project, ImmutableArray<Diagnostic> diagnostics,
@@ -217,9 +229,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         public virtual string GetFixAllTitle(FixAllState fixAllState)
-        {
-            return FixAllContextHelper.GetDefaultFixAllTitle(fixAllState.Scope, fixAllState.DiagnosticIds, fixAllState.Document, fixAllState.Project);
-        }
+            => FixAllContextHelper.GetDefaultFixAllTitle(fixAllState.Scope, fixAllState.DiagnosticIds, fixAllState.Document, fixAllState.Project);
 
         public virtual async Task<Solution> TryMergeFixesAsync(
             Solution oldSolution,

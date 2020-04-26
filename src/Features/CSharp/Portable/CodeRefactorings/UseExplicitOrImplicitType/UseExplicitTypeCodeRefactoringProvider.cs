@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
     internal class UseExplicitTypeCodeRefactoringProvider : AbstractUseTypeCodeRefactoringProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public UseExplicitTypeCodeRefactoringProvider()
         {
         }
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
         protected override TypeStyleResult AnalyzeTypeName(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
             => CSharpUseExplicitTypeHelper.Instance.AnalyzeTypeName(typeName, semanticModel, optionSet, cancellationToken);
 
-        protected override Task HandleDeclarationAsync(Document document, SyntaxEditor editor, SyntaxNode node, CancellationToken cancellationToken)
+        protected override Task HandleDeclarationAsync(Document document, SyntaxEditor editor, TypeSyntax node, CancellationToken cancellationToken)
             => UseExplicitTypeCodeFixProvider.HandleDeclarationAsync(document, editor, node, cancellationToken);
     }
 }

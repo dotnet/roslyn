@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExplicitTypeForConst
         private const string CS0822 = nameof(CS0822); // Implicitly-typed variables cannot be constant
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public UseExplicitTypeForConstCodeFixProvider()
         {
         }

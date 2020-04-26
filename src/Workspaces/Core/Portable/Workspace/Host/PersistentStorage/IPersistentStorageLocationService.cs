@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal class DefaultPersistentStorageLocationService : IPersistentStorageLocationService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultPersistentStorageLocationService()
         {
         }

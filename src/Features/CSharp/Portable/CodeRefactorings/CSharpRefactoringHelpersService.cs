@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
     internal class CSharpRefactoringHelpersService : AbstractRefactoringHelpersService<ExpressionSyntax, ArgumentSyntax, ExpressionStatementSyntax>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpRefactoringHelpersService()
         {
         }

@@ -196,14 +196,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 originalEndColumn: column);
         }
 
-        public int ReportError(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")]VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
+        public int ReportError(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
         {
             ReportError2(bstrErrorMessage, bstrErrorId, nPriority, iLine, iColumn, iLine, iColumn, bstrFileName);
             return VSConstants.S_OK;
         }
 
         // TODO: Use PreserveSig instead of throwing these exceptions for common cases.
-        public void ReportError2(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")]VSTASKPRIORITY nPriority, int iStartLine, int iStartColumn, int iEndLine, int iEndColumn, string bstrFileName)
+        public void ReportError2(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority, int iStartLine, int iStartColumn, int iEndLine, int iEndColumn, string bstrFileName)
         {
             // first we check whether given error is something we can take care.
             if (!CanHandle(bstrErrorId))
@@ -329,13 +329,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         }
 
         private string GetErrorId(ExternalError error)
-        {
-            return string.Format("{0}{1:0000}", _errorCodePrefix, error.iErrorID);
-        }
+            => string.Format("{0}{1:0000}", _errorCodePrefix, error.iErrorID);
 
         private static DiagnosticSeverity GetDiagnosticSeverity(ExternalError error)
-        {
-            return error.fError != 0 ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
-        }
+            => error.fError != 0 ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
     }
 }

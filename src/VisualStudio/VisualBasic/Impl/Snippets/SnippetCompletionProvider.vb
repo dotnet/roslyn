@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions
@@ -23,13 +24,14 @@ Imports Microsoft.VisualStudio.Text.Editor
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     <ExportCompletionProviderMef1("SnippetCompletionProvider", LanguageNames.VisualBasic)>
     Partial Friend Class SnippetCompletionProvider
-        Inherits CommonCompletionProvider
+        Inherits LSPCompletionProvider
         Implements ICustomCommitCompletionProvider
 
         Private ReadOnly _threadingContext As IThreadingContext
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(threadingContext As IThreadingContext, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService)
             _threadingContext = threadingContext
             Me._editorAdaptersFactoryService = editorAdaptersFactoryService
@@ -89,8 +91,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return Char.IsLetterOrDigit(text(characterPosition)) AndAlso
-                options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
+                options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.VisualBasic)
         End Function
+
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet(Of Char).Empty
 
         Public Sub Commit(completionItem As CompletionItem,
                           textView As ITextView,

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
         : AbstractIntroduceUsingStatementCodeRefactoringProvider<StatementSyntax, LocalDeclarationStatementSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpIntroduceUsingStatementCodeRefactoringProvider()
         {
         }
@@ -24,9 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
         protected override string CodeActionTitle => CSharpFeaturesResources.Introduce_using_statement;
 
         protected override bool CanRefactorToContainBlockStatements(SyntaxNode parent)
-        {
-            return parent is BlockSyntax || parent is SwitchSectionSyntax || parent.IsEmbeddedStatementOwner();
-        }
+            => parent is BlockSyntax || parent is SwitchSectionSyntax || parent.IsEmbeddedStatementOwner();
 
         protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode parentOfStatementsToSurround)
         {

@@ -16,9 +16,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         internal static void LogRequestLatency(RequestType requestType, decimal latency)
-        {
-            s_histogramLogAggregator.IncreaseCount(requestType, latency);
-        }
+            => s_histogramLogAggregator.IncreaseCount(requestType, latency);
 
         internal static void ReportTelemetry()
         {

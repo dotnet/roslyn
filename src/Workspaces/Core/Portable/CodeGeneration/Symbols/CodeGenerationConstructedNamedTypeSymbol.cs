@@ -53,9 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         protected override CodeGenerationNamedTypeSymbol ConstructedFrom => _constructedFrom;
 
         public override INamedTypeSymbol ConstructUnboundGenericType()
-        {
-            return null;
-        }
+            => null;
 
         public override ImmutableArray<IMethodSymbol> InstanceConstructors
         {

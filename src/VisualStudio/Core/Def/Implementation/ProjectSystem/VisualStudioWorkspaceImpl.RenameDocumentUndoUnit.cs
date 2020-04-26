@@ -40,14 +40,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             public void GetDescription(out string pBstr)
-            {
-                pBstr = string.Format(ServicesVSResources.Rename_0_to_1, _fromName, _toName);
-            }
+                => pBstr = string.Format(ServicesVSResources.Rename_0_to_1, _fromName, _toName);
 
             public void GetUnitType(out Guid pClsid, out int plID)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public void OnNextAdd()
             {

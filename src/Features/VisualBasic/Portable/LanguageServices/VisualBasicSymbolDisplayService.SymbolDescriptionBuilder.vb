@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -27,13 +26,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Private Shared ReadOnly s_minimallyQualifiedFormatWithConstantsAndModifiers As SymbolDisplayFormat = s_minimallyQualifiedFormatWithConstants _
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)
 
-            Public Sub New(displayService As ISymbolDisplayService,
-                           semanticModel As SemanticModel,
+            Public Sub New(semanticModel As SemanticModel,
                            position As Integer,
                            workspace As Workspace,
                            anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                            cancellationToken As CancellationToken)
-                MyBase.New(displayService, semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
+                MyBase.New(semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
             End Sub
 
             Protected Overrides Sub AddDeprecatedPrefix()

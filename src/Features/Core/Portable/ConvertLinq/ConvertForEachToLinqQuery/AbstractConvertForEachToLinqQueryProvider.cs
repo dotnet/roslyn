@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
                 return true;
             }
 
-            converter = default;
+            converter = null;
             return false;
         }
 

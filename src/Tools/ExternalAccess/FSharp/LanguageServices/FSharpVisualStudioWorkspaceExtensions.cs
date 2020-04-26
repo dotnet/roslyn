@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices
                 }
                 else
                 {
-                    projectId = default(ProjectId);
+                    projectId = null;
                     return false;
                 }
             }
-            projectId = default(ProjectId);
+            projectId = null;
             return false;
         }
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices
                 var impl = workspace as VisualStudioWorkspaceImpl;
                 return impl.ProjectTracker.GetOrCreateProjectIdForPath(filePath, projectDisplayName);
             }
-            return default(ProjectId);
+            return null;
         }
 
         [Obsolete("When Roslyn/ProjectSystem integration is finished, don't use this.")]

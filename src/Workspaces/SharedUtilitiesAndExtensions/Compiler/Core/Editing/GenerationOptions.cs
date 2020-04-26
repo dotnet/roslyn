@@ -5,32 +5,27 @@
 #nullable enable
 
 using System.Collections.Immutable;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-namespace Microsoft.CodeAnalysis.Internal.Editing
-#else
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
+
 namespace Microsoft.CodeAnalysis.Editing
-#endif
 {
     internal class GenerationOptions
     {
-        public static readonly PerLanguageOption<bool> PlaceSystemNamespaceFirst = new PerLanguageOption<bool>(nameof(GenerationOptions),
+        public static readonly PerLanguageOption2<bool> PlaceSystemNamespaceFirst = new PerLanguageOption2<bool>(nameof(GenerationOptions),
             CodeStyleOptionGroups.Usings,
             nameof(PlaceSystemNamespaceFirst), defaultValue: true,
-            storageLocations: new OptionStorageLocation[] {
+            storageLocations: new OptionStorageLocation2[] {
                 EditorConfigStorageLocation.ForBoolOption("dotnet_sort_system_directives_first"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst")});
 
-        public static readonly PerLanguageOption<bool> SeparateImportDirectiveGroups = new PerLanguageOption<bool>(
+        public static readonly PerLanguageOption2<bool> SeparateImportDirectiveGroups = new PerLanguageOption2<bool>(
             nameof(GenerationOptions), CodeStyleOptionGroups.Usings, nameof(SeparateImportDirectiveGroups), defaultValue: false,
-            storageLocations: new OptionStorageLocation[] {
+            storageLocations: new OptionStorageLocation2[] {
                 EditorConfigStorageLocation.ForBoolOption("dotnet_separate_import_directive_groups"),
                 new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(SeparateImportDirectiveGroups)}")});
 
-        public static readonly ImmutableArray<IOption> AllOptions = ImmutableArray.Create<IOption>(
+        public static readonly ImmutableArray<IOption2> AllOptions = ImmutableArray.Create<IOption2>(
             PlaceSystemNamespaceFirst,
             SeparateImportDirectiveGroups);
     }

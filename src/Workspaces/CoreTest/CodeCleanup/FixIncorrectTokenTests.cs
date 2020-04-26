@@ -773,9 +773,7 @@ End Module
         }
 
         private static string FixLineEndings(string text)
-        {
-            return text.Replace("\r\n", "\n").Replace("\n", "\r\n");
-        }
+            => text.Replace("\r\n", "\n").Replace("\n", "\r\n");
 
         private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {

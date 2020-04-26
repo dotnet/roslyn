@@ -102,6 +102,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers}" />
                     <CheckBox x:Name="GenerateXmlDocCommentsForTripleApostrophes"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleApostrophes}" />
+                    <CheckBox x:Name="ShowRemarksInQuickInfo"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
                     <CheckBox x:Name="RenameTrackingPreview"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
                     <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
@@ -153,9 +155,6 @@
                 <StackPanel>
                     <CheckBox x:Name="DontPutOutOrRefOnStruct"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_DontPutOutOrRefOnStruct}" />
-                    <CheckBox x:Name="AllowMovingDeclaration"
-                              Visibility="Collapsed"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_AllowMovingDeclaration}" />
                 </StackPanel>
             </GroupBox>
 

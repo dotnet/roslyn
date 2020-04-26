@@ -162,9 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly string[] _formatArguments;
 
             static LocalizableStringWithArguments()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(LocalizableStringWithArguments), reader => new LocalizableStringWithArguments(reader));
-            }
+                => ObjectBinder.RegisterTypeReader(typeof(LocalizableStringWithArguments), reader => new LocalizableStringWithArguments(reader));
 
             public LocalizableStringWithArguments(LocalizableString messageFormat, params object[] formatArguments)
             {

@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)
-        {
-            return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
-        }
+            => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
 
         internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
             TestWorkspace workspace, TestParameters parameters)

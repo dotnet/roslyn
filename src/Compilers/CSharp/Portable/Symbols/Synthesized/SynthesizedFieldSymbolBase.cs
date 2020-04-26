@@ -63,6 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type, typeWithAnnotations.CustomModifiers.Length));
             }
 
+            if (type.ContainsNativeInteger())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type));
+            }
+
             if (type.ContainsTupleNames() &&
                 compilation.HasTupleNamesAttributes(BindingDiagnosticBag.Discarded, Location.None) &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))

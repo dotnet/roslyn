@@ -7,22 +7,12 @@ using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
-
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle
-#else
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
-#endif
 {
     internal static partial class CSharpCodeStyleOptions
     {
-        public static CodeStyleOption<ExpressionBodyPreference> ParseExpressionBodyPreference(
-            string optionString, CodeStyleOption<ExpressionBodyPreference> @default)
+        public static CodeStyleOption2<ExpressionBodyPreference> ParseExpressionBodyPreference(
+            string optionString, CodeStyleOption2<ExpressionBodyPreference> @default)
         {
             // optionString must be similar to true:error or when_on_single_line:suggestion.
             if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(optionString,
@@ -34,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                     if (bool.TryParse(value, out var boolValue))
                     {
                         return boolValue
-                            ? new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, notificationOpt)
-                            : new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, notificationOpt);
+                            ? new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, notificationOpt)
+                            : new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, notificationOpt);
                     }
 
                     if (value == "when_on_single_line")
                     {
-                        return new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, notificationOpt);
+                        return new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, notificationOpt);
                     }
                 }
             }
@@ -48,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             return @default;
         }
 
-        private static string GetExpressionBodyPreferenceEditorConfigString(CodeStyleOption<ExpressionBodyPreference> value)
+        private static string GetExpressionBodyPreferenceEditorConfigString(CodeStyleOption2<ExpressionBodyPreference> value)
         {
             var notificationString = value.Notification.ToEditorConfigString();
             return value.Value switch
@@ -60,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             };
         }
 
-        public static CodeStyleOption<AddImportPlacement> ParseUsingDirectivesPlacement(
-            string optionString, CodeStyleOption<AddImportPlacement> @default)
+        public static CodeStyleOption2<AddImportPlacement> ParseUsingDirectivesPlacement(
+            string optionString, CodeStyleOption2<AddImportPlacement> @default)
         {
             // optionString must be similar to outside_namespace:error or inside_namespace:suggestion.
             if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
@@ -72,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 {
                     return value switch
                     {
-                        "inside_namespace" => new CodeStyleOption<AddImportPlacement>(AddImportPlacement.InsideNamespace, notificationOpt),
-                        "outside_namespace" => new CodeStyleOption<AddImportPlacement>(AddImportPlacement.OutsideNamespace, notificationOpt),
+                        "inside_namespace" => new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, notificationOpt),
+                        "outside_namespace" => new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, notificationOpt),
                         _ => throw new NotSupportedException(),
                     };
                 }
@@ -82,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             return @default;
         }
 
-        public static string GetUsingDirectivesPlacementEditorConfigString(CodeStyleOption<AddImportPlacement> value)
+        public static string GetUsingDirectivesPlacementEditorConfigString(CodeStyleOption2<AddImportPlacement> value)
         {
             var notificationString = value.Notification.ToEditorConfigString();
             return value.Value switch
@@ -93,9 +83,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             };
         }
 
-        private static CodeStyleOption<PreferBracesPreference> ParsePreferBracesPreference(
+        private static CodeStyleOption2<PreferBracesPreference> ParsePreferBracesPreference(
             string optionString,
-            CodeStyleOption<PreferBracesPreference> defaultValue)
+            CodeStyleOption2<PreferBracesPreference> defaultValue)
         {
             if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
                 optionString,
@@ -107,21 +97,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                     if (bool.TryParse(value, out var boolValue))
                     {
                         return boolValue
-                            ? new CodeStyleOption<PreferBracesPreference>(PreferBracesPreference.Always, notificationOption)
-                            : new CodeStyleOption<PreferBracesPreference>(PreferBracesPreference.None, notificationOption);
+                            ? new CodeStyleOption2<PreferBracesPreference>(PreferBracesPreference.Always, notificationOption)
+                            : new CodeStyleOption2<PreferBracesPreference>(PreferBracesPreference.None, notificationOption);
                     }
                 }
 
                 if (value == "when_multiline")
                 {
-                    return new CodeStyleOption<PreferBracesPreference>(PreferBracesPreference.WhenMultiline, notificationOption);
+                    return new CodeStyleOption2<PreferBracesPreference>(PreferBracesPreference.WhenMultiline, notificationOption);
                 }
             }
 
             return defaultValue;
         }
 
-        private static string GetPreferBracesPreferenceEditorConfigString(CodeStyleOption<PreferBracesPreference> value)
+        private static string GetPreferBracesPreferenceEditorConfigString(CodeStyleOption2<PreferBracesPreference> value)
         {
             var notificationString = value.Notification.ToEditorConfigString();
             return value.Value switch

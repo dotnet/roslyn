@@ -7,49 +7,29 @@
 using System;
 using System.Collections.Immutable;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
 namespace Microsoft.CodeAnalysis.Options
-#endif
 {
-    /// <summary>
-    /// Marker interface for <see cref="Option{T}"/>
-    /// </summary>
-    internal interface ILanguageSpecificOption : IOptionWithGroup
+    /// <inheritdoc cref="Option2{T}"/>
+    public class Option<T> : ILanguageSpecificOption<T>
     {
-    }
+        private readonly OptionDefinition _optionDefinition;
 
-    /// <summary>
-    /// An global option. An instance of this class can be used to access an option value from an OptionSet.
-    /// </summary>
-    public class Option<T> : ILanguageSpecificOption
-    {
-        /// <summary>
-        /// Feature this option is associated with.
-        /// </summary>
-        public string Feature { get; }
+        /// <inheritdoc cref="OptionDefinition.Feature"/>
+        public string Feature => _optionDefinition.Feature;
 
-        /// <summary>
-        /// Optional group/sub-feature for this option.
-        /// </summary>
-        internal OptionGroup Group { get; }
+        /// <inheritdoc cref="OptionDefinition.Group"/>
+        internal OptionGroup Group => _optionDefinition.Group;
 
-        /// <summary>
-        /// The name of the option.
-        /// </summary>
-        public string Name { get; }
+        /// <inheritdoc cref="OptionDefinition.Name"/>
+        public string Name => _optionDefinition.Name;
 
-        /// <summary>
-        /// The default value of the option.
-        /// </summary>
-        public T DefaultValue { get; }
+        /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
+        public T DefaultValue => (T)_optionDefinition.DefaultValue!;
 
-        /// <summary>
-        /// The type of the option value.
-        /// </summary>
-        public Type Type => typeof(T);
+        /// <inheritdoc cref="OptionDefinition.Type"/>
+        public Type Type => _optionDefinition.Type;
 
+        /// <inheritdoc cref="Option2{T}.StorageLocations"/>
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         [Obsolete("Use a constructor that specifies an explicit default value.")]
@@ -70,38 +50,48 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         internal Option(string feature, OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+            : this(feature, group, name, defaultValue, storageLocations.ToImmutableArray())
         {
-            if (string.IsNullOrWhiteSpace(feature))
-            {
-                throw new ArgumentNullException(nameof(feature));
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException(nameof(name));
-            }
-
-            this.Feature = feature;
-            this.Group = group ?? throw new ArgumentNullException(nameof(group));
-            this.Name = name;
-            this.DefaultValue = defaultValue;
-            this.StorageLocations = storageLocations.ToImmutableArray();
         }
+
+        internal Option(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
+            : this(new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: false), storageLocations)
+        {
+        }
+
+        internal Option(OptionDefinition optionDefinition, ImmutableArray<OptionStorageLocation> storageLocations)
+        {
+            _optionDefinition = optionDefinition;
+            this.StorageLocations = storageLocations;
+        }
+
+        OptionGroup IOptionWithGroup.Group => this.Group;
 
         object? IOption.DefaultValue => this.DefaultValue;
 
         bool IOption.IsPerLanguage => false;
 
-        OptionGroup IOptionWithGroup.Group => this.Group;
+        OptionDefinition IOption2.OptionDefinition => _optionDefinition;
 
-        public override string ToString()
+        bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
+
+        public override string ToString() => _optionDefinition.ToString();
+
+        public override int GetHashCode() => _optionDefinition.GetHashCode();
+
+        public override bool Equals(object? obj) => Equals(obj as IOption2);
+
+        private bool Equals(IOption2? other)
         {
-            return string.Format("{0} - {1}", this.Feature, this.Name);
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return _optionDefinition == other?.OptionDefinition;
         }
 
         public static implicit operator OptionKey(Option<T> option)
-        {
-            return new OptionKey(option);
-        }
+            => new OptionKey(option);
     }
 }

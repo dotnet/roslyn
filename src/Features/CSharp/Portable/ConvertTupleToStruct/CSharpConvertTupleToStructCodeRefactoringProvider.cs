@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
             NamespaceDeclarationSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpConvertTupleToStructCodeRefactoringProvider()
         {
         }
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
             NameSyntax nameNode, SyntaxToken openParen, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParen)
         {
             return SyntaxFactory.ObjectCreationExpression(
-                nameNode, SyntaxFactory.ArgumentList(openParen, arguments, closeParen), initializer: default);
+                nameNode, SyntaxFactory.ArgumentList(openParen, arguments, closeParen), initializer: null);
         }
     }
 }

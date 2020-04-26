@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
@@ -57,7 +58,15 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         public static void ReportFatal(Exception exception)
         {
-            _ = CaptureLogFiles();
+            try
+            {
+                CaptureFilesInMemory(CollectServiceHubLogFilePaths());
+            }
+            catch
+            {
+                // ignore any exceptions (e.g. OOM)
+            }
+
             FailFast.OnFatalException(exception);
         }
 
@@ -89,8 +98,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 return;
             }
 
-            var logFilePaths = CaptureLogFiles();
-
             var faultEvent = new FaultEvent(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
                 description: "Roslyn NonFatal Watson",
@@ -102,7 +109,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                     faultUtility.AddProcessDump(currentProcess.Id);
 
                     // add ServiceHub log files:
-                    foreach (var path in logFilePaths)
+                    foreach (var path in CollectServiceHubLogFilePaths())
                     {
                         faultUtility.AddFile(path);
                     }
@@ -119,39 +126,48 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             session.PostEvent(faultEvent);
         }
 
-        private static List<string> CaptureLogFiles()
+        private static List<string> CollectServiceHubLogFilePaths()
         {
-            var result = new List<string>();
-            CollectServiceHubLogFiles(result);
-            CaptureFilesInMemory(result);
-            return result;
-        }
+            var paths = new List<string>();
 
-        private static void CollectServiceHubLogFiles(List<string> paths)
-        {
             try
             {
                 var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
                 if (!Directory.Exists(logPath))
                 {
-                    return;
+                    return paths;
                 }
 
                 // attach all log files that are modified less than 1 day before.
                 var now = DateTime.UtcNow;
                 var oneDay = TimeSpan.FromDays(1);
 
-                foreach (var file in Directory.EnumerateFiles(logPath, "*.log"))
+                foreach (var path in Directory.EnumerateFiles(logPath, "*.log"))
                 {
                     try
                     {
-                        var lastWrite = File.GetLastWriteTimeUtc(file);
+                        var name = Path.GetFileNameWithoutExtension(path);
+
+                        // TODO: https://github.com/dotnet/roslyn/issues/42582 
+                        // name our services more consistently to simplify filtering
+
+                        // filter logs that are not relevant to Roslyn investigation
+                        if (!name.Contains("-" + WellKnownServiceHubServices.NamePrefix) &&
+                            !name.Contains("-CodeLens") &&
+                            !name.Contains("-pythia") &&
+                            !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
+                            !name.Contains("-hub"))
+                        {
+                            continue;
+                        }
+
+                        var lastWrite = File.GetLastWriteTimeUtc(path);
                         if (now - lastWrite > oneDay)
                         {
                             continue;
                         }
 
-                        paths.Add(file);
+                        paths.Add(path);
                     }
                     catch
                     {
@@ -163,6 +179,8 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             {
                 // ignore failures
             }
+
+            return paths;
         }
 
         private static void CaptureFilesInMemory(IEnumerable<string> paths)

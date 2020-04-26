@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 checksum, _concatenatedNames, _nodes, _spellCheckerTask, _inheritanceMap, _extensionMethodOfComplexType, _simpleTypeNameToExtensionMethodMap);
         }
 
-        public Task<ImmutableArray<SymbolAndProjectId>> FindAsync(
+        public Task<ImmutableArray<ISymbol>> FindAsync(
             SearchQuery query, IAssemblySymbol assembly, ProjectId assemblyProjectId, SymbolFilter filter, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -175,12 +175,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             return this.FindAsync(
-                query, new AsyncLazy<IAssemblySymbol>(assembly),
-                assemblyProjectId, filter, cancellationToken);
+                query, new AsyncLazy<IAssemblySymbol>(assembly), filter, cancellationToken);
         }
 
-        public async Task<ImmutableArray<SymbolAndProjectId>> FindAsync(
-            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, ProjectId assemblyProjectId,
+        public async Task<ImmutableArray<ISymbol>> FindAsync(
+            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly,
             SymbolFilter filter, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -189,9 +188,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var symbols = await FindCoreAsync(query, lazyAssembly, cancellationToken).ConfigureAwait(false);
 
-            return DeclarationFinder.FilterByCriteria(
-                symbols.SelectAsArray(s => new SymbolAndProjectId(s, assemblyProjectId)),
-                filter);
+            return DeclarationFinder.FilterByCriteria(symbols, filter);
         }
 
         private Task<ImmutableArray<ISymbol>> FindCoreAsync(
@@ -203,17 +200,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // If the query has a specific string provided, then call into the SymbolTreeInfo
             // helpers optimized for lookup based on an exact name.
-            switch (query.Kind)
+            return query.Kind switch
             {
-                case SearchKind.Exact:
-                    return this.FindAsync(lazyAssembly, query.Name, ignoreCase: false, cancellationToken: cancellationToken);
-                case SearchKind.ExactIgnoreCase:
-                    return this.FindAsync(lazyAssembly, query.Name, ignoreCase: true, cancellationToken: cancellationToken);
-                case SearchKind.Fuzzy:
-                    return this.FuzzyFindAsync(lazyAssembly, query.Name, cancellationToken);
-            }
-
-            throw new InvalidOperationException();
+                SearchKind.Exact => this.FindAsync(lazyAssembly, query.Name, ignoreCase: false, cancellationToken: cancellationToken),
+                SearchKind.ExactIgnoreCase => this.FindAsync(lazyAssembly, query.Name, ignoreCase: true, cancellationToken: cancellationToken),
+                SearchKind.Fuzzy => this.FuzzyFindAsync(lazyAssembly, query.Name, cancellationToken),
+                _ => throw new InvalidOperationException(),
+            };
         }
 
         /// <summary>
@@ -316,9 +309,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private StringSlice GetNameSlice(int nodeIndex)
-            => GetNameSlice(_concatenatedNames, _nodes, nodeIndex);
-
         private static StringSlice GetNameSlice(
             string concatenatedNames, ImmutableArray<Node> nodes, int nodeIndex)
         {
@@ -404,7 +394,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             out ImmutableArray<Node> sortedNodes)
         {
             // Generate index numbers from 0 to Count-1
-            int[]? tmp = new int[unsortedNodes.Length];
+            var tmp = new int[unsortedNodes.Length];
             for (var i = 0; i < tmp.Length; i++)
             {
                 tmp[i] = i;

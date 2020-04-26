@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SymbolTreeInfoIncrementalAnalyzerProvider()
         {
         }
@@ -291,11 +292,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 metadataInfo.ReferencingProjects.Add(project.Id);
             }
 
-            public override void RemoveProject(ProjectId projectId)
+            public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
-                _projectToInfo.TryRemove(projectId, out var info);
-
+                _projectToInfo.TryRemove(projectId, out _);
                 RemoveMetadataReferences(projectId);
+
+                return Task.CompletedTask;
             }
 
             private void RemoveMetadataReferences(ProjectId projectId)
@@ -307,7 +309,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                         if (kvp.Value.ReferencingProjects.Count == 0)
                         {
                             // This metadata dll isn't referenced by any project.  We can just dump it.
-                            _metadataPathToInfo.TryRemove(kvp.Key, out var unneeded);
+                            _metadataPathToInfo.TryRemove(kvp.Key, out _);
                         }
                     }
                 }

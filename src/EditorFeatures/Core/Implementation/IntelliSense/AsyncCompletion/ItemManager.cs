@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 GetHighlightedList(matchResults), index, filters,
                 hardSelect ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected,
                 centerSelection: true,
-                uniqueItem: moreThanOneMatchWithSamePriority ? default : bestMatchResult.GetValueOrDefault().VSCompletionItem);
+                uniqueItem: moreThanOneMatchWithSamePriority ? null : bestMatchResult.GetValueOrDefault().VSCompletionItem);
         }
 
         private static ImmutableArray<CompletionItemWithHighlight> GetHighlightedList(ImmutableArray<MatchResult> matchResults)
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             return new FilteredCompletionModel(
                 ImmutableArray<CompletionItemWithHighlight>.Empty, selectedItemIndex: 0,
-                filters, selection, centerSelection: true, uniqueItem: default);
+                filters, selection, centerSelection: true, uniqueItem: null);
         }
 
         private static ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(

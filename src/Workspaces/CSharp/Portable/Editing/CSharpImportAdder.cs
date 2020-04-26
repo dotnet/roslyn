@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
     internal class CSharpImportAdder : ImportAdderService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpImportAdder()
         {
         }

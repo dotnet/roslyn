@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -21,15 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         private readonly Microsoft.VisualStudio.Language.Intellisense.Utilities.IWaitContext _platformWaitContext = new UncancellableWaitContext();
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public TestWaitIndicator()
-        {
-            _waitContext = new UncancellableWaitContext();
-        }
+            => _waitContext = new UncancellableWaitContext();
 
         IWaitContext IWaitIndicator.StartWait(string title, string message, bool allowCancel, bool showProgress)
-        {
-            return _waitContext;
-        }
+            => _waitContext;
 
         WaitIndicatorResult IWaitIndicator.Wait(string title, string message, bool allowCancel, bool showProgress, Action<IWaitContext> action)
         {
@@ -46,9 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         }
 
         VisualStudioIndicator.IWaitContext VisualStudioIndicator.IWaitIndicator.StartWait(string title, string message, bool allowCancel)
-        {
-            return _platformWaitContext;
-        }
+            => _platformWaitContext;
 
         VisualStudioIndicator.WaitIndicatorResult VisualStudioIndicator.IWaitIndicator.Wait(string title, string message, bool allowCancel, Action<VisualStudioIndicator.IWaitContext> action)
         {

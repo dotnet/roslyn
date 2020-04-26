@@ -2218,7 +2218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return result
         End Function
 
-        ' Parses the as-clause and initializer for both locals, fields an properties
+        ' Parses the as-clause and initializer for both locals, fields and properties
         ' Properties allow Attributes before the type and allow implicit line continuations before "FROM", otherwise, fields and
         ' properties allow the same syntax.
         Private Sub ParseFieldOrPropertyAsClauseAndInitializer(isProperty As Boolean, allowAsNewWith As Boolean, ByRef optionalAsClause As AsClauseSyntax, ByRef optionalInitializer As EqualsValueSyntax)

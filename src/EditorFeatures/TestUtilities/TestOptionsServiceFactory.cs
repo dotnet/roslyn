@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         private readonly ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>> _providers;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestOptionsServiceFactory(
             [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders)
         {

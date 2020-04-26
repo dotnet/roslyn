@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -158,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// no members with this name, returns an empty ImmutableArray. Never returns Null.</returns>
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            return GetMembers().WhereAsArray(m => m.Name == name);
+            return GetMembers().WhereAsArray((m, name) => m.Name == name, name);
         }
 
         internal sealed override IEnumerable<FieldSymbol> GetFieldsToEmit()
@@ -531,6 +530,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
+
+        internal override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+        internal override NamedTypeSymbol? NativeIntegerUnderlyingType => null;
 
         protected sealed override ISymbol CreateISymbol()
         {

@@ -3,9 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateConstructorFromMembers
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PickMembers
 Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructorFromMembers
 
@@ -366,8 +366,8 @@ End Class", chosenSymbols:={"i"})
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestWithDialog1WithNullCheck() As Task
-            Dim options = New Dictionary(Of OptionKey, Object)
-            options(New OptionKey(GenerateConstructorFromMembersOptions.AddNullChecks, language:=LanguageNames.VisualBasic)) = True
+            Dim options = New OptionsCollection(LanguageNames.VisualBasic)
+            options.Add(GenerateConstructorFromMembersOptions.AddNullChecks, True)
 
             Dim parameters = New TestParameters()
             parameters = parameters.WithOptions(options)

@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.PreferFrameworkType;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -20,24 +19,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PreferFrame
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpPreferFrameworkTypeDiagnosticAnalyzer(), new PreferFrameworkTypeCodeFixProvider());
 
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
+        private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
+        private readonly CodeStyleOption2<bool> offWithInfo = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion);
 
-        private IDictionary<OptionKey, object> NoFrameworkType => OptionsSet(
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Suggestion),
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, onWithInfo, GetLanguage()));
+        private OptionsCollection NoFrameworkType
+            => new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Suggestion },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, onWithInfo },
+            };
 
-        private IDictionary<OptionKey, object> FrameworkTypeEverywhere => OptionsSet(
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Suggestion),
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, offWithInfo, GetLanguage()));
+        private OptionsCollection FrameworkTypeEverywhere
+            => new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Suggestion },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, offWithInfo },
+            };
 
-        private IDictionary<OptionKey, object> FrameworkTypeInDeclaration => OptionsSet(
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Suggestion),
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, onWithInfo, GetLanguage()));
+        private OptionsCollection FrameworkTypeInDeclaration
+            => new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Suggestion },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, onWithInfo },
+            };
 
-        private IDictionary<OptionKey, object> FrameworkTypeInMemberAccess => OptionsSet(
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Suggestion),
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, offWithInfo, GetLanguage()));
+        private OptionsCollection FrameworkTypeInMemberAccess
+            => new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Suggestion },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, offWithInfo },
+            };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
         public async Task NotWhenOptionsAreNotSet()

@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     internal class CSharpEditorClassificationService : AbstractClassificationService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpEditorClassificationService()
         {
         }

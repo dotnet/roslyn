@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
         }
 
         private void TestFormat(string xmlFragment, string expected)
-        {
-            TestFormat(xmlFragment, expected, expected);
-        }
+            => TestFormat(xmlFragment, expected, expected);
 
         [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void CTag()

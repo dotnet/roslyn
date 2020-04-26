@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
             var allInterfaces = selectedNodeSymbol.ContainingType.AllInterfaces;
             var baseClass = selectedNodeSymbol.ContainingType.BaseType;
 
-            INamedTypeSymbol destination = default;
+            INamedTypeSymbol destination = null;
             if (DestinationName == null)
             {
                 destination = allInterfaces.FirstOrDefault() ?? baseClass;

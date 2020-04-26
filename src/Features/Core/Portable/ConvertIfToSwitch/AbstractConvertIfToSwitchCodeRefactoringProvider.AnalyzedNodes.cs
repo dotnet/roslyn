@@ -70,9 +70,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 public readonly TIsExpressionSyntax IsExpressionSyntax;
 
                 public Type(TIsExpressionSyntax expression)
-                {
-                    IsExpressionSyntax = expression;
-                }
+                    => IsExpressionSyntax = expression;
             }
 
             /// <summary>
@@ -83,9 +81,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 public readonly TPatternSyntax PatternSyntax;
 
                 public Source(TPatternSyntax patternSyntax)
-                {
-                    PatternSyntax = patternSyntax;
-                }
+                    => PatternSyntax = patternSyntax;
             }
 
             /// <summary>
@@ -96,9 +92,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 public readonly TExpressionSyntax ExpressionSyntax;
 
                 public Constant(TExpressionSyntax expression)
-                {
-                    ExpressionSyntax = expression;
-                }
+                    => ExpressionSyntax = expression;
             }
 
             /// <summary>

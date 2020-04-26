@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -53,16 +55,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         // what indentation to use as a starting indentation. (we always use 0 for formatting whole tree case)
         private List<IndentBlockOperation> _initialIndentBlockOperations;
 
-        private readonly string _language;
-
-        public FormattingContext(AbstractFormatEngine engine, TokenStream tokenStream, string language)
+        public FormattingContext(AbstractFormatEngine engine, TokenStream tokenStream)
         {
             Contract.ThrowIfNull(engine);
             Contract.ThrowIfNull(tokenStream);
 
             _engine = engine;
             _tokenStream = tokenStream;
-            _language = language;
 
             _relativeIndentationTree = new ContextIntervalTree<RelativeIndentationData, FormattingContextIntervalIntrospector>(new FormattingContextIntervalIntrospector());
 
@@ -110,8 +109,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var initialOperation = indentationOperations[0];
                 var baseIndentationFinder = new BottomUpBaseIndentationFinder(
                                                 formattingRules,
-                                                this.Options.GetOption(FormattingOptions.TabSize),
-                                                this.Options.GetOption(FormattingOptions.IndentationSize),
+                                                this.Options.GetOption(FormattingOptions2.TabSize),
+                                                this.Options.GetOption(FormattingOptions2.IndentationSize),
                                                 _tokenStream);
                 var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
                     rootNode,
@@ -204,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var inseparableRegionStartingPosition = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ? _tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken).FullSpan.Start : operation.BaseToken.FullSpan.Start;
                 var relativeIndentationGetter = new Lazy<int>(() =>
                 {
-                    var indentationDelta = operation.IndentationDeltaOrPosition * this.Options.GetOption(FormattingOptions.IndentationSize);
+                    var indentationDelta = operation.IndentationDeltaOrPosition * this.Options.GetOption(FormattingOptions2.IndentationSize);
 
                     // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine
                     var baseIndentation = _tokenStream.GetCurrentColumn(operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ?
@@ -237,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (indentationData == null)
             {
                 // no previous indentation
-                var indentation = operation.IndentationDeltaOrPosition * this.Options.GetOption(FormattingOptions.IndentationSize);
+                var indentation = operation.IndentationDeltaOrPosition * this.Options.GetOption(FormattingOptions2.IndentationSize);
                 _indentationTree.AddIntervalInPlace(new SimpleIndentationData(intervalTreeSpan, indentation));
                 _indentationMap.Add(intervalTreeSpan);
                 return;
@@ -246,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // get indentation based on its previous indentation
             var indentationGetter = new Lazy<int>(() =>
             {
-                var indentationDelta = operation.IndentationDeltaOrPosition * this.Options.GetOption(FormattingOptions.IndentationSize);
+                var indentationDelta = operation.IndentationDeltaOrPosition * this.Options.GetOption(FormattingOptions2.IndentationSize);
 
                 return indentationData.Indentation + indentationDelta;
             }, isThreadSafe: true);
@@ -420,9 +419,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public int GetBaseIndentation(SyntaxToken token)
-        {
-            return GetBaseIndentation(token.SpanStart);
-        }
+            => GetBaseIndentation(token.SpanStart);
 
         public int GetBaseIndentation(int position)
         {
@@ -437,9 +434,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public IEnumerable<IndentBlockOperation> GetAllRelativeIndentBlockOperations()
-        {
-            return _relativeIndentationTree.GetIntervalsThatIntersectWith(this.TreeData.StartPosition, this.TreeData.EndPosition, new FormattingContextIntervalIntrospector()).Select(i => i.Operation);
-        }
+            => _relativeIndentationTree.GetIntervalsThatIntersectWith(this.TreeData.StartPosition, this.TreeData.EndPosition, new FormattingContextIntervalIntrospector()).Select(i => i.Operation);
 
         public bool TryGetEndTokenForRelativeIndentationSpan(SyntaxToken token, int maxChainDepth, out SyntaxToken endToken, CancellationToken cancellationToken)
         {
@@ -474,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private AnchorData GetAnchorData(SyntaxToken token)
+        private AnchorData? GetAnchorData(SyntaxToken token)
         {
             var span = token.Span;
 
@@ -572,12 +567,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             return lastEndToken;
         }
 
-        private AnchorData FindAnchorSpanOnSameLineAfterToken(TokenData tokenData)
+        private AnchorData? FindAnchorSpanOnSameLineAfterToken(TokenData tokenData)
         {
             // every token after given token on same line is implicitly dependent to the token.
             // check whether one of them is an anchor token.
 
-            AnchorData lastBaseAnchorData = null;
+            AnchorData? lastBaseAnchorData = null;
             while (tokenData.IndexInStream >= 0)
             {
                 if (_anchorBaseTokenMap.TryGetValue(tokenData.Token, out var tempAnchorData))
@@ -658,9 +653,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public bool IsFormattingDisabled(TextSpan textSpan)
-        {
-            return _suppressFormattingTree.HasIntervalThatIntersectsWith(textSpan.Start, textSpan.Length);
-        }
+            => _suppressFormattingTree.HasIntervalThatIntersectsWith(textSpan.Start, textSpan.Length);
 
         public bool IsFormattingDisabled(int pairIndex)
         {

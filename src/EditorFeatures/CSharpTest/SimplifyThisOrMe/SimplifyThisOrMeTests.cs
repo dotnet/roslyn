@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -85,7 +86,7 @@ class C
         [|this|].SomeProperty = 1;
     }
 }",
-                options: Option(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning),
+                options: Option(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Warning),
                 diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);
         }
@@ -419,9 +420,12 @@ class D
     </Project>
 </Workspace>";
 
-            var options = OptionsSet(
-                SingleOption(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Suggestion),
-                SingleOption(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Suggestion));
+            var options =
+                new OptionsCollection(GetLanguage())
+                {
+                    { CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Suggestion },
+                    { CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Suggestion },
+                };
 
             await TestInRegularAndScriptAsync(
                 initialMarkup: input,

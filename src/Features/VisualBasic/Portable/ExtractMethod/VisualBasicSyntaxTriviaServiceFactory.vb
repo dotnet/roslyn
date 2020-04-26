@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

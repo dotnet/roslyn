@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             public bool IsEnabled()
-            {
-                return !(_lazyInstance is null);
-            }
+                => !(_lazyInstance is null);
 
             public Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             {
@@ -61,9 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             private AsyncLazy<RemoteHostClient> CreateNewLazyRemoteHostClient()
-            {
-                return new AsyncLazy<RemoteHostClient>(c => _remoteHostClientFactory.CreateAsync(_workspace, c), cacheResult: true);
-            }
+                => new AsyncLazy<RemoteHostClient>(c => _remoteHostClientFactory.CreateAsync(_workspace, c), cacheResult: true);
         }
     }
 }

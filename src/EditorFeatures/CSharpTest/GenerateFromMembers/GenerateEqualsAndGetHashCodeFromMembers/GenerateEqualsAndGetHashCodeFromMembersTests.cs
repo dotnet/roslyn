@@ -421,9 +421,10 @@ struct ReallyLongName
 
     string S { get; }|]
 }",
-@"using System.Collections.Generic;
+@"using System;
+using System.Collections.Generic;
 
-struct ReallyLongName
+struct ReallyLongName : IEquatable<ReallyLongName>
 {
     int i;
 
@@ -431,17 +432,188 @@ struct ReallyLongName
 
     public override bool Equals(object obj)
     {
-        if (!(obj is ReallyLongName))
-        {
-            return false;
+        return obj is ReallyLongName name && Equals(name);
+    }
+
+    public bool Equals(ReallyLongName other)
+    {
+        return i == other.i &&
+               S == other.S;
+    }
+
+    public static bool operator ==(ReallyLongName left, ReallyLongName right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(ReallyLongName left, ReallyLongName right)
+    {
+        return !(left == right);
+    }
+}");
         }
 
-        var name = (ReallyLongName)obj;
-        return i == name.i &&
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualsStructCSharpLatest()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+
+struct ReallyLongName
+{
+    [|int i;
+
+    string S { get; }|]
+}",
+@"using System;
+using System.Collections.Generic;
+
+struct ReallyLongName : IEquatable<ReallyLongName>
+{
+    int i;
+
+    string S { get; }
+
+    public override bool Equals(object obj)
+    {
+        return obj is ReallyLongName name && Equals(name);
+    }
+
+    public bool Equals(ReallyLongName other)
+    {
+        return i == other.i &&
+               S == other.S;
+    }
+
+    public static bool operator ==(ReallyLongName left, ReallyLongName right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(ReallyLongName left, ReallyLongName right)
+    {
+        return !(left == right);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualsStructAlreadyImplementsIEquatable()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+struct ReallyLongName : IEquatable<ReallyLongName>
+{
+    [|int i;
+
+    string S { get; }|]
+}",
+@"using System;
+using System.Collections.Generic;
+
+struct ReallyLongName : IEquatable<ReallyLongName>
+{
+    int i;
+
+    string S { get; }
+
+    public override bool Equals(object obj)
+    {
+        return obj is ReallyLongName name &&
+               i == name.i &&
                S == name.S;
     }
+
+    public static bool operator ==(ReallyLongName left, ReallyLongName right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(ReallyLongName left, ReallyLongName right)
+    {
+        return !(left == right);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualsStructAlreadyHasOperators()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+struct ReallyLongName
+{
+    [|int i;
+
+    string S { get; }|]
+
+    public static bool operator ==(ReallyLongName left, ReallyLongName right) => false;
+    public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
 }",
-parameters: CSharp6Implicit);
+@"using System;
+using System.Collections.Generic;
+
+struct ReallyLongName : IEquatable<ReallyLongName>
+{
+    int i;
+
+    string S { get; }
+
+    public override bool Equals(object obj)
+    {
+        return obj is ReallyLongName name && Equals(name);
+    }
+
+    public bool Equals(ReallyLongName other)
+    {
+        return i == other.i &&
+               S == other.S;
+    }
+
+    public static bool operator ==(ReallyLongName left, ReallyLongName right) => false;
+    public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualsStructAlreadyImplementsIEquatableAndHasOperators()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+struct ReallyLongName : IEquatable<ReallyLongName>
+{
+    [|int i;
+
+    string S { get; }|]
+
+    public static bool operator ==(ReallyLongName left, ReallyLongName right) => false;
+    public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
+}",
+@"using System;
+using System.Collections.Generic;
+
+struct ReallyLongName : IEquatable<ReallyLongName>
+{
+    int i;
+
+    string S { get; }
+
+    public override bool Equals(object obj)
+    {
+        return obj is ReallyLongName name &&
+               i == name.i &&
+               S == name.S;
+    }
+
+    public static bool operator ==(ReallyLongName left, ReallyLongName right) => false;
+    public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2164,26 +2336,36 @@ struct S
 {
     [|int j;|]
 }",
-@"using System.Collections.Generic;
+@"using System;
+using System.Collections.Generic;
 
-struct S
+struct S : IEquatable<S>
 {
     int j;
 
     public override bool Equals(object obj)
     {
-        if (!(obj is S))
-        {
-            return false;
-        }
+        return obj is S && Equals((S)obj);
+    }
 
-        var s = (S)obj;
-        return j == s.j;
+    public bool Equals(S other)
+    {
+        return j == other.j;
     }
 
     public override int GetHashCode()
     {
         return 1424088837 + j.GetHashCode();
+    }
+
+    public static bool operator ==(S left, S right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(S left, S right)
+    {
+        return !(left == right);
     }
 }",
 index: 1,
@@ -2196,6 +2378,7 @@ parameters: CSharp6Implicit);
             await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
+
 struct S
 {
     [|int j;|]
@@ -2203,24 +2386,34 @@ struct S
 @"using System;
 using System.Collections.Generic;
 namespace System { public struct HashCode { } }
-struct S
+
+struct S : IEquatable<S>
 {
     int j;
 
     public override bool Equals(object obj)
     {
-        if (!(obj is S))
-        {
-            return false;
-        }
+        return obj is S && Equals((S)obj);
+    }
 
-        var s = (S)obj;
-        return j == s.j;
+    public bool Equals(S other)
+    {
+        return j == other.j;
     }
 
     public override int GetHashCode()
     {
         return HashCode.Combine(j);
+    }
+
+    public static bool operator ==(S left, S right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(S left, S right)
+    {
+        return !(left == right);
     }
 }",
 index: 1,
@@ -2261,19 +2454,33 @@ namespace System { public struct HashCode { } }
         <Document>
 using System;
 
-struct S
+struct S : IEquatable&lt;S&gt;
 {
     int j;
 
     public override bool Equals(object obj)
     {
-        return obj is S s &amp;&amp;
-               j == s.j;
+        return obj is S s &amp;&amp; Equals(s);
+    }
+
+    public bool Equals(S other)
+    {
+        return j == other.j;
     }
 
     public override int GetHashCode()
     {
         return HashCode.Combine(j);
+    }
+
+    public static bool operator ==(S left, S right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(S left, S right)
+    {
+        return !(left == right);
     }
 }
         </Document>
@@ -2316,19 +2523,35 @@ namespace System { internal struct HashCode { } }
     <Project Language=""C#"" CommonReferences=""true"" Name=""P2"">
         <ProjectReference>P1</ProjectReference>
         <Document>
-struct S
+using System;
+
+struct S : IEquatable&lt;S&gt;
 {
     int j;
 
     public override bool Equals(object obj)
     {
-        return obj is S s &amp;&amp;
-               j == s.j;
+        return obj is S s &amp;&amp; Equals(s);
+    }
+
+    public bool Equals(S other)
+    {
+        return j == other.j;
     }
 
     public override int GetHashCode()
     {
         return 1424088837 + j.GetHashCode();
+    }
+
+    public static bool operator ==(S left, S right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(S left, S right)
+    {
+        return !(left == right);
     }
 }
         </Document>
@@ -2344,6 +2567,7 @@ parameters: CSharp6Implicit);
             await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
+
 struct S
 {
     [|int j, k, l, m, n, o, p, q;|]
@@ -2351,31 +2575,41 @@ struct S
 @"using System;
 using System.Collections.Generic;
 namespace System { public struct HashCode { } }
-struct S
+
+struct S : IEquatable<S>
 {
     int j, k, l, m, n, o, p, q;
 
     public override bool Equals(object obj)
     {
-        if (!(obj is S))
-        {
-            return false;
-        }
+        return obj is S && Equals((S)obj);
+    }
 
-        var s = (S)obj;
-        return j == s.j &&
-               k == s.k &&
-               l == s.l &&
-               m == s.m &&
-               n == s.n &&
-               o == s.o &&
-               p == s.p &&
-               q == s.q;
+    public bool Equals(S other)
+    {
+        return j == other.j &&
+               k == other.k &&
+               l == other.l &&
+               m == other.m &&
+               n == other.n &&
+               o == other.o &&
+               p == other.p &&
+               q == other.q;
     }
 
     public override int GetHashCode()
     {
         return HashCode.Combine(j, k, l, m, n, o, p, q);
+    }
+
+    public static bool operator ==(S left, S right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(S left, S right)
+    {
+        return !(left == right);
     }
 }",
 index: 1,
@@ -2388,6 +2622,7 @@ parameters: CSharp6Implicit);
             await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
+
 struct S
 {
     [|int j, k, l, m, n, o, p, q, r;|]
@@ -2395,27 +2630,27 @@ struct S
 @"using System;
 using System.Collections.Generic;
 namespace System { public struct HashCode { } }
-struct S
+
+struct S : IEquatable<S>
 {
     int j, k, l, m, n, o, p, q, r;
 
     public override bool Equals(object obj)
     {
-        if (!(obj is S))
-        {
-            return false;
-        }
+        return obj is S && Equals((S)obj);
+    }
 
-        var s = (S)obj;
-        return j == s.j &&
-               k == s.k &&
-               l == s.l &&
-               m == s.m &&
-               n == s.n &&
-               o == s.o &&
-               p == s.p &&
-               q == s.q &&
-               r == s.r;
+    public bool Equals(S other)
+    {
+        return j == other.j &&
+               k == other.k &&
+               l == other.l &&
+               m == other.m &&
+               n == other.n &&
+               o == other.o &&
+               p == other.p &&
+               q == other.q &&
+               r == other.r;
     }
 
     public override int GetHashCode()
@@ -2432,6 +2667,16 @@ struct S
         hash.Add(r);
         return hash.ToHashCode();
     }
+
+    public static bool operator ==(S left, S right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(S left, S right)
+    {
+        return !(left == right);
+    }
 }",
 index: 1,
 parameters: CSharp6Implicit);
@@ -2444,6 +2689,7 @@ parameters: CSharp6Implicit);
             await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
+
 struct S
 {
     [|int j, k, l, m, n, o, p, q, r;|]
@@ -2451,27 +2697,27 @@ struct S
 @"using System;
 using System.Collections.Generic;
 namespace System { public struct HashCode { } }
-struct S
+
+struct S : IEquatable<S>
 {
     int j, k, l, m, n, o, p, q, r;
 
     public override bool Equals(object obj)
     {
-        if (!(obj is S))
-        {
-            return false;
-        }
+        return obj is S && Equals((S)obj);
+    }
 
-        S s = (S)obj;
-        return j == s.j &&
-               k == s.k &&
-               l == s.l &&
-               m == s.m &&
-               n == s.n &&
-               o == s.o &&
-               p == s.p &&
-               q == s.q &&
-               r == s.r;
+    public bool Equals(S other)
+    {
+        return j == other.j &&
+               k == other.k &&
+               l == other.l &&
+               m == other.m &&
+               n == other.n &&
+               o == other.o &&
+               p == other.p &&
+               q == other.q &&
+               r == other.r;
     }
 
     public override int GetHashCode()
@@ -2487,6 +2733,16 @@ struct S
         hash.Add(q);
         hash.Add(r);
         return hash.ToHashCode();
+    }
+
+    public static bool operator ==(S left, S right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(S left, S right)
+    {
+        return !(left == right);
     }
 }",
 index: 1,
@@ -2527,16 +2783,31 @@ struct Program
 {
     [|int a;|]
 }",
-@"using System.Collections.Generic;
+@"using System;
+using System.Collections.Generic;
 
-struct Program
+struct Program : IEquatable<Program>
 {
     int a;
 
     public override bool Equals(object obj)
     {
-        return obj is Program program &&
-               a == program.a;
+        return obj is Program program && Equals(program);
+    }
+
+    public bool Equals(Program other)
+    {
+        return a == other.a;
+    }
+
+    public static bool operator ==(Program left, Program right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(Program left, Program right)
+    {
+        return !(left == right);
     }
 }");
         }
@@ -2694,6 +2965,178 @@ namespace N
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 parameters: CSharpLatestImplicit);
+        }
+
+        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPartialTypes1()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document>
+partial class Goo
+{
+    int bar;
+    [||]
+}
+        </Document>
+        <Document>
+partial class Goo
+{
+
+
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+partial class Goo
+{
+    int bar;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Goo goo &&
+               bar == goo.bar;
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+        ",
+chosenSymbols: new[] { "bar" },
+index: 1);
+        }
+
+        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPartialTypes2()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document>
+partial class Goo
+{
+    int bar;
+
+}
+        </Document>
+        <Document>
+partial class Goo
+{
+
+[||]
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+partial class Goo
+{
+    public override bool Equals(object obj)
+    {
+        return obj is Goo goo &&
+               bar == goo.bar;
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+        ",
+chosenSymbols: new[] { "bar" },
+index: 1);
+        }
+
+        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPartialTypes3()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document>
+partial class Goo
+{
+
+[||]
+}
+        </Document>
+        <Document>
+partial class Goo
+{
+    int bar;
+
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+partial class Goo
+{
+    public override bool Equals(object obj)
+    {
+        return obj is Goo goo &&
+               bar == goo.bar;
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+        ",
+chosenSymbols: new[] { "bar" },
+index: 1);
+        }
+
+        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPartialTypes4()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document>
+partial class Goo
+{
+
+
+}
+        </Document>
+        <Document>
+partial class Goo
+{
+    int bar;
+[||]
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+partial class Goo
+{
+    int bar;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Goo goo &&
+               bar == goo.bar;
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+        ",
+chosenSymbols: new[] { "bar" },
+index: 1);
         }
     }
 }

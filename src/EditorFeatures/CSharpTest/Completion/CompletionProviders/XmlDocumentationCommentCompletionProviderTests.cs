@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(XmlDocCommentCompletionProvider);
-        }
+            => typeof(XmlDocCommentCompletionProvider);
 
         private async Task VerifyItemsExistAsync(string markup, params string[] items)
         {

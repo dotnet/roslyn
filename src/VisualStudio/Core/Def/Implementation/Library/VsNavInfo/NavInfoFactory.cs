@@ -15,14 +15,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         internal AbstractLibraryService LibraryService { get; }
 
         public NavInfoFactory(AbstractLibraryService libraryService)
-        {
-            LibraryService = libraryService;
-        }
+            => LibraryService = libraryService;
 
         public IVsNavInfo CreateForProject(Project project)
-        {
-            return new NavInfo(this, libraryName: GetLibraryName(project));
-        }
+            => new NavInfo(this, libraryName: GetLibraryName(project));
 
         public IVsNavInfo CreateForReference(MetadataReference reference)
         {
@@ -61,9 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         }
 
         public IVsNavInfo CreateForAssembly(IAssemblySymbol assemblySymbol)
-        {
-            return new NavInfo(this, libraryName: assemblySymbol.Identity.GetDisplayName());
-        }
+            => new NavInfo(this, libraryName: assemblySymbol.Identity.GetDisplayName());
 
         public IVsNavInfo CreateForNamespace(INamespaceSymbol namespaceSymbol, Project project, Compilation compilation, bool useExpandedHierarchy = false)
         {
@@ -170,9 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         }
 
         public IVsNavInfo Create(string libraryName, string referenceOwnerName, string namespaceName, string className, string memberName)
-        {
-            return new NavInfo(this, libraryName, referenceOwnerName, namespaceName, className, memberName);
-        }
+            => new NavInfo(this, libraryName, referenceOwnerName, namespaceName, className, memberName);
 
         /// <summary>
         /// Returns a display name for the given project, walking its parent IVsHierarchy chain and

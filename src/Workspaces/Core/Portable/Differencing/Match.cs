@@ -342,23 +342,17 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         public bool TryGetNewNode(TNode oldNode, out TNode newNode)
-        {
-            return _oneToTwo.TryGetValue(oldNode, out newNode);
-        }
+            => _oneToTwo.TryGetValue(oldNode, out newNode);
 
         public bool TryGetOldNode(TNode newNode, out TNode oldNode)
-        {
-            return _twoToOne.TryGetValue(newNode, out oldNode);
-        }
+            => _twoToOne.TryGetValue(newNode, out oldNode);
 
         /// <summary>
         /// Returns an edit script (a sequence of edits) that transform <see cref="OldRoot"/> subtree 
         /// to <see cref="NewRoot"/> subtree.
         /// </summary>
         public EditScript<TNode> GetTreeEdits()
-        {
-            return new EditScript<TNode>(this);
-        }
+            => new EditScript<TNode>(this);
 
         /// <summary>
         /// Returns an edit script (a sequence of edits) that transform a sequence of nodes <paramref name="oldNodes"/>

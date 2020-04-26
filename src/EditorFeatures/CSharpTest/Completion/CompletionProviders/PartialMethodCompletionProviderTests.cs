@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(PartialMethodCompletionProvider);
-        }
+            => typeof(PartialMethodCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoPartialMethods1()
@@ -487,7 +485,7 @@ partial class Bar
             var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
                 CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
-                new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent))));
+                new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent))));
 
             var text = @"using System;
 partial class Bar

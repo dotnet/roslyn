@@ -20,12 +20,8 @@ using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Diagnostics;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -37,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal abstract Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters);
 
-        protected async Task TestDiagnosticsAsync(
+        private protected async Task TestDiagnosticsAsync(
             string initialMarkup, TestParameters parameters = default, params DiagnosticDescription[] expected)
         {
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
@@ -78,6 +74,42 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             var (dxs, _, _) = await GetDiagnosticAndFixesAsync(workspace, parameters);
             return dxs;
+        }
+
+        protected void AddAnalyzerToWorkspace(Workspace workspace, DiagnosticAnalyzer analyzer, TestParameters parameters)
+        {
+            AnalyzerReference[] analyzeReferences;
+            if (analyzer != null)
+            {
+                Contract.ThrowIfTrue(parameters.runProviderOutOfProc, $"Out-of-proc testing is not supported since {analyzer} can't be serialized.");
+
+                analyzeReferences = new[] { new AnalyzerImageReference(ImmutableArray.Create(analyzer)) };
+            }
+            else
+            {
+                // create a serializable analyzer reference:
+                analyzeReferences = new[]
+                {
+                    new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp).GetType().Assembly.Location, FromFileLoader.Instance),
+                    new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic).GetType().Assembly.Location, FromFileLoader.Instance)
+                };
+            }
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(analyzeReferences));
+        }
+
+        private class FromFileLoader : IAnalyzerAssemblyLoader
+        {
+            public static FromFileLoader Instance = new FromFileLoader();
+
+            public void AddDependencyLocation(string fullPath)
+            {
+            }
+
+            public Assembly LoadFromPath(string fullPath)
+            {
+                return Assembly.LoadFrom(fullPath);
+            }
         }
 
         protected Document GetDocumentAndSelectSpan(TestWorkspace workspace, out TextSpan span)
@@ -242,12 +274,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 : new FixAllState(fixAllProvider, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider);
         }
 
-        protected Task TestActionCountInAllFixesAsync(
+        private protected Task TestActionCountInAllFixesAsync(
             string initialMarkup,
             int count,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
-            IDictionary<OptionKey, object> options = null,
+            OptionsCollection options = null,
             object fixProviderData = null)
         {
             return TestActionCountInAllFixesAsync(

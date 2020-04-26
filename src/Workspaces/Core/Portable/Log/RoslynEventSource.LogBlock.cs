@@ -103,9 +103,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             /// return next unique pair id
             /// </summary>
             private static int GetNextUniqueBlockId()
-            {
-                return Interlocked.Increment(ref s_lastUniqueBlockId);
-            }
+                => Interlocked.Increment(ref s_lastUniqueBlockId);
 
             private void OnStart()
             {

@@ -116,9 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         }
 
         private static TestTaggerEventSource CreateEventSource()
-        {
-            return new TestTaggerEventSource();
-        }
+            => new TestTaggerEventSource();
 
         private sealed class TestTag : TextMarkerTag
         {
@@ -154,9 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             }
 
             protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
-            {
-                return _eventSource;
-            }
+                => _eventSource;
 
             protected override Task ProduceTagsAsync(TaggerContext<TestTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
             {
@@ -181,9 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             }
 
             public void SendUpdateEvent()
-            {
-                this.RaiseChanged();
-            }
+                => this.RaiseChanged();
 
             public override void Connect()
             {

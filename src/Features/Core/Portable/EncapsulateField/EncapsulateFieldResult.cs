@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         private readonly AsyncLazy<AbstractEncapsulateFieldService.Result> _resultGetter;
 
         public EncapsulateFieldResult(Func<CancellationToken, Task<AbstractEncapsulateFieldService.Result>> resultGetter)
-        {
-            _resultGetter = new AsyncLazy<AbstractEncapsulateFieldService.Result>(c => resultGetter(c), cacheResult: true);
-        }
+            => _resultGetter = new AsyncLazy<AbstractEncapsulateFieldService.Result>(c => resultGetter(c), cacheResult: true);
 
         public async Task<string> GetNameAsync(CancellationToken cancellationToken)
         {

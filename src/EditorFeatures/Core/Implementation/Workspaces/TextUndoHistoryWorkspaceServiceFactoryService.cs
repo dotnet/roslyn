@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,29 +17,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TextUndoHistoryWorkspaceServiceFactoryService(ITextUndoHistoryRegistry textUndoHistoryRegistry)
-        {
-            _textUndoHistoryRegistry = textUndoHistoryRegistry;
-        }
+            => _textUndoHistoryRegistry = textUndoHistoryRegistry;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new TextUndoHistoryWorkspaceService(_textUndoHistoryRegistry);
-        }
+            => new TextUndoHistoryWorkspaceService(_textUndoHistoryRegistry);
 
         private class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
         {
             private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
 
             public TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry textUndoHistoryRegistry)
-            {
-                _textUndoHistoryRegistry = textUndoHistoryRegistry;
-            }
+                => _textUndoHistoryRegistry = textUndoHistoryRegistry;
 
             public bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, out ITextUndoHistory undoHistory)
-            {
-                return _textUndoHistoryRegistry.TryGetHistory(textBuffer, out undoHistory);
-            }
+                => _textUndoHistoryRegistry.TryGetHistory(textBuffer, out undoHistory);
         }
     }
 }

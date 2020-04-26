@@ -4,6 +4,7 @@
 
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Organizing.Organizers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -13,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
         Inherits AbstractSyntaxNodeOrganizer(Of TypeBlockSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

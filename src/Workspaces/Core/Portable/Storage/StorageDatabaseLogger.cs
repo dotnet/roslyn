@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Storage
         private readonly ConcurrentDictionary<Type, Exception> _set = new ConcurrentDictionary<Type, Exception>(concurrencyLevel: 2, capacity: 10);
 
         internal static void LogException(Exception ex)
-        {
-            Instance.LogExceptionWorker(ex);
-        }
+            => Instance.LogExceptionWorker(ex);
 
         private void LogExceptionWorker(Exception ex)
         {

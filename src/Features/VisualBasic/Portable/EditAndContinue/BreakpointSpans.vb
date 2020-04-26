@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Text
 Imports System.Threading
-Imports System.Xml.Schema
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
     Friend Module BreakpointSpans

@@ -3,18 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Xml.Linq;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
-#else
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-#endif
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
 namespace Microsoft.CodeAnalysis.CodeStyle
-#endif
 {
     /// <summary>
     /// Defines the known values for <see cref="CSharpCodeStyleOptions.PreferBraces"/>.
@@ -26,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         /// <remarks>
         /// <para>The value <c>0</c> is important for serialization compatibility in
-        /// <see cref="CodeStyleOption{T}.FromXElement(XElement)"/>. Prior to the use of this enum, the serialized value
+        /// <see cref="CodeStyleOption2{T}.FromXElement(XElement)"/>. Prior to the use of this enum, the serialized value
         /// was the <see cref="bool"/> value <see langword="false"/>.</para>
         /// </remarks>
         None = 0,
@@ -43,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         /// <remarks>
         /// <para>The value <c>1</c> is important for serialization compatibility in
-        /// <see cref="CodeStyleOption{T}.FromXElement(XElement)"/>. Prior to the use of this enum, the serialized value
+        /// <see cref="CodeStyleOption2{T}.FromXElement(XElement)"/>. Prior to the use of this enum, the serialized value
         /// was the <see cref="bool"/> value <see langword="true"/>.</para>
         /// </remarks>
         Always = 1,

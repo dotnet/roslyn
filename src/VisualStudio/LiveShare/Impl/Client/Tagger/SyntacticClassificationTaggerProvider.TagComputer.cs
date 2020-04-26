@@ -88,9 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
             }
 
             internal void IncrementReferenceCount()
-            {
-                this._taggerReferenceCount++;
-            }
+                => this._taggerReferenceCount++;
 
             internal void DecrementReferenceCountAndDisposeIfNecessary()
             {
@@ -222,9 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
             }
 
             private void OnDocumentOpened(object sender, DocumentEventArgs args)
-            {
-                EnqueueProcessSnapshot(args.Document.Id);
-            }
+                => EnqueueProcessSnapshot(args.Document.Id);
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
             {

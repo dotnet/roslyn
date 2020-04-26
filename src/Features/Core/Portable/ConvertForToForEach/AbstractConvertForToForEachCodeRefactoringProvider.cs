@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 return true;
             }
 
-            iterationType = default;
+            iterationType = null;
             return false;
         }
 
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 return true;
             }
 
-            iterationType = default;
+            iterationType = null;
             return false;
         }
 

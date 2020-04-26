@@ -104,9 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static bool IsArgumentListTriggerCharacter(char character)
-        {
-            return character == ' ' || character == '(' || character == '[';
-        }
+            => character == ' ' || character == '(' || character == '[';
 
         protected abstract CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect);
 

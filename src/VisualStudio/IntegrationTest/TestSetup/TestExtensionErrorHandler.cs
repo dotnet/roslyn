@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
@@ -14,6 +15,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
     public class TestExtensionErrorHandler : IExtensionErrorHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestExtensionErrorHandler()
         {
         }

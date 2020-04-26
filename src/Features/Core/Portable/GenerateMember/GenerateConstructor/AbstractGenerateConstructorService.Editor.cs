@@ -14,11 +14,9 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 {
@@ -84,13 +82,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             internal async Task<(Document, bool addedFields)> GetEditAsync()
             {
+                var document = _document.Document;
+
                 // Get naming rule for generating fields and parameters
-                var rules = await _document.Document.GetNamingRulesAsync(
-                    FallbackNamingRules.RefactoringMatchLookupRules, _cancellationToken).ConfigureAwait(false);
-                var fieldNamingRule = rules.Where(c => c.SymbolSpecification.AppliesTo(new SymbolKindOrTypeKind(SymbolKind.Field),
-                    DeclarationModifiers.None, Accessibility.Private)).First();
-                var parameterNamingRule = rules.Where(c => c.SymbolSpecification.AppliesTo(new SymbolKindOrTypeKind(SymbolKind.Parameter),
-                    DeclarationModifiers.None, Accessibility.NotApplicable)).First();
+                var fieldNamingRule = await document.GetApplicableNamingRuleAsync(
+                    SymbolKind.Field, Accessibility.Private, _cancellationToken).ConfigureAwait(false);
+                var parameterNamingRule = await document.GetApplicableNamingRuleAsync(
+                    SymbolKind.Parameter, Accessibility.NotApplicable, _cancellationToken).ConfigureAwait(false);
 
                 // See if there's an accessible base constructor that would accept these
                 // types, then just call into that instead of generating fields.

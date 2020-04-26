@@ -561,7 +561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             typeArguments.CheckTypeArguments(Me.Arity)
         End Sub
 
-        ' Apply type substitution to a generic method to create an method symbol with the given type parameters supplied.
+        ' Apply type substitution to a generic method to create a method symbol with the given type parameters supplied.
         Public Overridable Function Construct(typeArguments As ImmutableArray(Of TypeSymbol)) As MethodSymbol
             CheckCanConstructAndTypeArguments(typeArguments)
 

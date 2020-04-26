@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static IEnumerable<SyntaxTrivia> WithoutElasticTrivia(IEnumerable<SyntaxTrivia> list)
-        {
-            return list.Where(t => !t.IsElastic());
-        }
+            => list.Where(t => !t.IsElastic());
     }
 }

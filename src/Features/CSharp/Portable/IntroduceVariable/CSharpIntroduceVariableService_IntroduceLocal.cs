@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var declarationStatement = SyntaxFactory.LocalDeclarationStatement(
                 modifiers,
                 SyntaxFactory.VariableDeclaration(
-                    this.GetTypeSyntax(document, expression, cancellationToken),
+                    GetTypeSyntax(document, expression, cancellationToken),
                     SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(
                         newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                         null,

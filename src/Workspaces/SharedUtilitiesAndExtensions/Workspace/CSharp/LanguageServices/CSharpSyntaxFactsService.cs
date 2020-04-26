@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -67,9 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private bool _addedFirstCloseCurly = false;
 
                 public AddFirstMissingCloseBraceRewriter(SyntaxNode contextNode)
-                {
-                    _contextNode = contextNode;
-                }
+                    => _contextNode = contextNode;
 
                 public override SyntaxNode Visit(SyntaxNode node)
                 {

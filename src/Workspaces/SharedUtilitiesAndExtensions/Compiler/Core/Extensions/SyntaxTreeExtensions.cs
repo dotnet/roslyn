@@ -35,9 +35,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsScript(this SyntaxTree syntaxTree)
-        {
-            return syntaxTree.Options.Kind != SourceCodeKind.Regular;
-        }
+            => syntaxTree.Options.Kind != SourceCodeKind.Regular;
 
         /// <summary>
         /// Returns the identifier, keyword, contextual keyword or preprocessor keyword touching this

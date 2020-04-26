@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 SymbolKind.Event);
 
         public NamingStyleRules(ImmutableArray<NamingRule> namingRules)
-        {
-            NamingRules = namingRules;
-        }
+            => NamingRules = namingRules;
 
         internal bool TryGetApplicableRule(ISymbol symbol, out NamingRule applicableRule)
         {

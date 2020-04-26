@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         IChainedCommandHandler<BackTabKeyCommandArgs>
     {
         public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return GetCommandState(nextHandler);
-        }
+            => GetCommandState(nextHandler);
 
         public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
@@ -52,9 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public CommandState GetCommandState(BackTabKeyCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return GetCommandState(nextHandler);
-        }
+            => GetCommandState(nextHandler);
 
         public void ExecuteCommand(BackTabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {

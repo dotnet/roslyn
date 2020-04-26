@@ -79,56 +79,38 @@ $$");
 
         [Fact]
         public async Task TestNotAfterPragma()
-        {
-            await VerifyAbsenceAsync(@"#pragma $$");
-        }
+            => await VerifyAbsenceAsync(@"#pragma $$");
 
         [Fact]
         public async Task TestNotAfterPragmaWarning()
-        {
-            await VerifyAbsenceAsync(@"#pragma warning $$");
-        }
+            => await VerifyAbsenceAsync(@"#pragma warning $$");
 
         [Fact]
         public async Task TestAfterPragmaWarningDisable()
-        {
-            await VerifyKeywordAsync(@"#pragma warning disable $$");
-        }
+            => await VerifyKeywordAsync(@"#pragma warning disable $$");
 
         [Fact]
         public async Task TestAfterPragmaWarningEnable()
-        {
-            await VerifyKeywordAsync(@"#pragma warning enable $$");
-        }
+            => await VerifyKeywordAsync(@"#pragma warning enable $$");
 
         [Fact]
         public async Task TestAfterPragmaWarningRestore()
-        {
-            await VerifyKeywordAsync(@"#pragma warning restore $$");
-        }
+            => await VerifyKeywordAsync(@"#pragma warning restore $$");
 
         [Fact]
         public async Task TestAfterPragmaWarningSafeOnly()
-        {
-            await VerifyAbsenceAsync(@"#pragma warning safeonly $$");
-        }
+            => await VerifyAbsenceAsync(@"#pragma warning safeonly $$");
 
         [Fact]
         public async Task TestNotAfterPragmaWarningSafeOnlyNullable()
-        {
-            await VerifyAbsenceAsync(@"#pragma warning safeonly nullable $$");
-        }
+            => await VerifyAbsenceAsync(@"#pragma warning safeonly nullable $$");
 
         [Fact]
         public async Task TestNotAfterPragmaWarningRestoreNullable()
-        {
-            await VerifyAbsenceAsync(@"#pragma warning restore nullable, $$");
-        }
+            => await VerifyAbsenceAsync(@"#pragma warning restore nullable, $$");
 
         [Fact]
         public async Task TestNotAfterPragmaWarningDisableId()
-        {
-            await VerifyAbsenceAsync(@"#pragma warning disable 114, $$");
-        }
+            => await VerifyAbsenceAsync(@"#pragma warning disable 114, $$");
     }
 }

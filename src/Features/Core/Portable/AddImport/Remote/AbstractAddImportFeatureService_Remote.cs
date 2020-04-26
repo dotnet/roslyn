@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             private readonly ISymbolSearchService _symbolSearchService;
 
             public RemoteSymbolSearchService(ISymbolSearchService symbolSearchService)
-            {
-                _symbolSearchService = symbolSearchService;
-            }
+                => _symbolSearchService = symbolSearchService;
 
             public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
             {

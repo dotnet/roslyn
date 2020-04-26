@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -10,8 +12,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class MergedAliases
     {
-        public ArrayBuilder<string> AliasesOpt;
-        public ArrayBuilder<string> RecursiveAliasesOpt;
+        public ArrayBuilder<string>? AliasesOpt;
+        public ArrayBuilder<string>? RecursiveAliasesOpt;
         public ArrayBuilder<MetadataReference> MergedReferencesOpt;
 
         /// <summary>
@@ -33,6 +35,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal void Merge(MetadataReference reference)
         {
+            ArrayBuilder<string> aliases;
             if (reference.Properties.HasRecursiveAliases)
             {
                 if (RecursiveAliasesOpt == null)
@@ -41,6 +44,8 @@ namespace Microsoft.CodeAnalysis
                     RecursiveAliasesOpt.AddRange(reference.Properties.Aliases);
                     return;
                 }
+
+                aliases = RecursiveAliasesOpt;
             }
             else
             {
@@ -50,10 +55,12 @@ namespace Microsoft.CodeAnalysis
                     AliasesOpt.AddRange(reference.Properties.Aliases);
                     return;
                 }
+
+                aliases = AliasesOpt;
             }
 
             Merge(
-                aliases: reference.Properties.HasRecursiveAliases ? RecursiveAliasesOpt : AliasesOpt,
+                aliases: aliases,
                 newAliases: reference.Properties.Aliases);
 
             (MergedReferencesOpt ??= ArrayBuilder<MetadataReference>.GetInstance()).Add(reference);

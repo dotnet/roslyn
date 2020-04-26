@@ -72,9 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         }
 
         public SolutionPreviewResult GetSolutionPreviews(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
-        {
-            return GetSolutionPreviews(oldSolution, newSolution, DefaultZoomLevel, cancellationToken);
-        }
+            => GetSolutionPreviews(oldSolution, newSolution, DefaultZoomLevel, cancellationToken);
 
         public SolutionPreviewResult GetSolutionPreviews(Solution oldSolution, Solution newSolution, double zoomLevel, CancellationToken cancellationToken)
         {
@@ -255,9 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         }
 
         public Task<DifferenceViewerPreview> CreateAddedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
-        {
-            return CreateAddedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
-        }
+            => CreateAddedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
 
         private async ValueTask<DifferenceViewerPreview> CreateAddedDocumentPreviewViewCoreAsync(ITextBuffer newBuffer, PreviewWorkspace workspace, TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
@@ -275,7 +271,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var changedBuffer = _projectionBufferFactoryService.CreatePreviewProjectionBuffer(
                 sourceSpans: new List<object> { firstLine, "\r\n", span }, registryService: _contentTypeRegistryService);
 
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             return await CreateNewDifferenceViewerAsync(null, workspace, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
         private async Task<DifferenceViewerPreview> CreateAddedTextDocumentPreviewViewAsync<TDocument>(
@@ -289,7 +287,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // openTextDocument must be called from the main thread
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             var newBuffer = await createBufferAsync(document, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
             // Create PreviewWorkspace around the buffer to be displayed in the diff preview
             // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
@@ -297,7 +297,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 document.Project.Solution.WithTextDocumentText(document.Id, newBuffer.AsTextContainer().CurrentText));
             openTextDocument(rightWorkspace, document.Id);
 
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             return await CreateAddedDocumentPreviewViewCoreAsync(newBuffer, rightWorkspace, document, zoomLevel, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
         public Task<DifferenceViewerPreview> CreateAddedDocumentPreviewViewAsync(Document document, double zoomLevel, CancellationToken cancellationToken)
@@ -328,9 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         }
 
         public Task<DifferenceViewerPreview> CreateRemovedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
-        {
-            return CreateRemovedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
-        }
+            => CreateRemovedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
 
         private async ValueTask<DifferenceViewerPreview> CreateRemovedDocumentPreviewViewCoreAsync(ITextBuffer oldBuffer, PreviewWorkspace workspace, TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
@@ -348,7 +348,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var changedBuffer = _projectionBufferFactoryService.CreatePreviewProjectionBuffer(
                 sourceSpans: new List<object> { firstLine, "\r\n" }, registryService: _contentTypeRegistryService);
 
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             return await CreateNewDifferenceViewerAsync(workspace, null, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
         private async Task<DifferenceViewerPreview> CreateRemovedTextDocumentPreviewViewAsync<TDocument>(
@@ -374,7 +376,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // the diff view would long have been dismissed by the time user edits the code)
             // resulting in crashes. Instead we create a new buffer from the same content.
             // TODO: We could use ITextBufferCloneService instead here to clone the original buffer.
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             var oldBuffer = await createBufferAsync(document, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
             // Create PreviewWorkspace around the buffer to be displayed in the diff preview
             // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
@@ -385,7 +389,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var leftWorkspace = new PreviewWorkspace(leftSolution);
             openTextDocument(leftWorkspace, leftDocument.Id);
 
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             return await CreateRemovedDocumentPreviewViewCoreAsync(oldBuffer, leftWorkspace, leftDocument, zoomLevel, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
         public Task<DifferenceViewerPreview> CreateRemovedDocumentPreviewViewAsync(Document document, double zoomLevel, CancellationToken cancellationToken)
@@ -422,9 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         }
 
         public Task<DifferenceViewerPreview> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
-        {
-            return CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, DefaultZoomLevel, cancellationToken);
-        }
+            => CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, DefaultZoomLevel, cancellationToken);
 
         public async Task<DifferenceViewerPreview> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, double zoomLevel, CancellationToken cancellationToken)
         {
@@ -441,8 +445,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // the diff view would long have been dismissed by the time user edits the code)
             // resulting in crashes. Instead we create a new buffer from the same content.
             // TODO: We could use ITextBufferCloneService instead here to clone the original buffer.
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             var oldBuffer = await CreateNewBufferAsync(oldDocument, cancellationToken);
             var newBuffer = await CreateNewBufferAsync(newDocument, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
             // Convert the diffs to be line based.  
             // Compute the diffs between the old text and the new.
@@ -452,8 +458,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // We also need to show the spans that are in conflict.
             var originalSpans = GetOriginalSpans(diffResult, cancellationToken);
             var changedSpans = GetChangedSpans(diffResult, cancellationToken);
-            var description = default(string);
-            var allSpans = default(NormalizedSpanCollection);
+            var description = (string)null;
+            var allSpans = (NormalizedSpanCollection)null;
 
             if (newDocument.SupportsSyntaxTree)
             {
@@ -507,9 +513,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 newDocument.WithText(newBuffer.AsTextContainer().CurrentText).Project.Solution);
             rightWorkspace.OpenDocument(newDocument.Id);
 
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             return await CreateChangedDocumentViewAsync(
                 oldBuffer, newBuffer, description, originalLineSpans, changedLineSpans,
                 leftWorkspace, rightWorkspace, zoomLevel, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
         // NOTE: We are only sharing this code between additional documents and analyzer config documents,
@@ -540,8 +548,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // the diff view would long have been dismissed by the time user edits the code)
             // resulting in crashes. Instead we create a new buffer from the same content.
             // TODO: We could use ITextBufferCloneService instead here to clone the original buffer.
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             var oldBuffer = await CreateNewPlainTextBufferAsync(oldDocument, cancellationToken);
             var newBuffer = await CreateNewPlainTextBufferAsync(newDocument, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
             // Convert the diffs to be line based.  
             // Compute the diffs between the old text and the new.
@@ -569,9 +579,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 withDocumentText(oldDocument.Project.Solution, oldDocument.Id, newBuffer.AsTextContainer().CurrentText, PreservationMode.PreserveValue));
             openTextDocument(rightWorkSpace, newDocument.Id);
 
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             return await CreateChangedDocumentViewAsync(
                 oldBuffer, newBuffer, description, originalLineSpans, changedLineSpans,
                 leftWorkspace, rightWorkSpace, zoomLevel, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
         public Task<DifferenceViewerPreview> CreateChangedAdditionalDocumentPreviewViewAsync(TextDocument oldDocument, TextDocument newDocument, double zoomLevel, CancellationToken cancellationToken)
@@ -629,7 +641,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 description,
                 changedSpans.ToArray());
 
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             return await CreateNewDifferenceViewerAsync(leftWorkspace, rightWorkspace, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
         private static void AttachAnnotationsToBuffer(
@@ -648,7 +662,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             var text = await document.State.GetTextAsync(cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
             return _textBufferFactoryService.CreateTextBuffer(text.ToString(), contentType);
         }
 
@@ -659,7 +675,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             var contentType = _textBufferFactoryService.TextContentType;
 
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             var text = await document.State.GetTextAsync(cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
             return _textBufferFactoryService.CreateTextBuffer(text.ToString(), contentType);
         }
 

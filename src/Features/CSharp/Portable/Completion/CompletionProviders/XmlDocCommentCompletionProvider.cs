@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider<DocumentationCommentTriviaSyntax>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XmlDocCommentCompletionProvider() : base(s_defaultRules)
         {
         }
@@ -38,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var c = text[characterPosition];
             return c == '<' || c == '"' || CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('<', '"', ' ');
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
             Document document, int position,

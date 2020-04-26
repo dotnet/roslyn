@@ -571,6 +571,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ERRID.ERR_InvalidDebugInfo
             End Get
         End Property
+
+        ' Generators
+        Public Overrides ReadOnly Property WRN_GeneratorFailedDuringInitialization As Integer
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property WRN_GeneratorFailedDuringGeneration As Integer
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
     End Class
 
 End Namespace

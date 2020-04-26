@@ -47,9 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         }
 
         protected override bool IsParentAnAttribute(SyntaxNode node)
-        {
-            return node.IsParentKind(SyntaxKind.Attribute);
-        }
+            => node.IsParentKind(SyntaxKind.Attribute);
 
         private void ClassifyTypeSyntax(
             NameSyntax name,
@@ -165,6 +163,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
                         return true;
                     }
+                }
+            }
+
+            if (name.IsNint || name.IsNuint)
+            {
+                if (symbol is ITypeSymbol type && type.IsNativeIntegerType)
+                {
+                    classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
+                    return true;
                 }
             }
 

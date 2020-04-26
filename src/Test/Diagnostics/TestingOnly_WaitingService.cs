@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -18,6 +19,7 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
         private readonly AsynchronousOperationListenerProvider _provider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestingOnly_WaitingService(IAsynchronousOperationListenerProvider provider)
         {
             _provider = (AsynchronousOperationListenerProvider)provider;

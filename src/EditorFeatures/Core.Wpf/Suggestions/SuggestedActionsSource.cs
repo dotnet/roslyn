@@ -427,9 +427,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private ImmutableArray<CodeRefactoring> FilterOnUIThread(ImmutableArray<CodeRefactoring> refactorings, Workspace workspace)
-            {
-                return refactorings.Select(r => FilterOnUIThread(r, workspace)).WhereNotNull().ToImmutableArray();
-            }
+                => refactorings.Select(r => FilterOnUIThread(r, workspace)).WhereNotNull().ToImmutableArray();
 
             private CodeRefactoring? FilterOnUIThread(CodeRefactoring refactoring, Workspace workspace)
             {
@@ -666,7 +664,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // to avoid clutter in the light bulb menu.
                     var wrappingSuggestedAction = new SuggestedActionWithNestedActions(
                         ThreadingContext, _owner, workspace, _subjectBuffer, this,
-                        codeAction: new SolutionChangeAction(EditorFeaturesWpfResources.Suppress_or_Configure_issues, createChangedSolution: _ => null),
+                        codeAction: new NoChangeAction(EditorFeaturesWpfResources.Suppress_or_Configure_issues),
                         nestedActionSets: suppressionSets.ToImmutable());
 
                     // Combine the spans and the category of each of the nested suggested actions
@@ -1021,9 +1019,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private void OnTextViewClosed(object sender, EventArgs e)
-            {
-                Dispose();
-            }
+                => Dispose();
 
             private void OnWorkspaceChanged(object sender, EventArgs e)
             {

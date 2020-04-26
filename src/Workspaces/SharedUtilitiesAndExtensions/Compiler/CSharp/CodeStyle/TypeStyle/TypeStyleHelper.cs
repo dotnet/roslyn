@@ -12,14 +12,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #else
-using Microsoft.CodeAnalysis.Options;
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
 #endif
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle.TypeStyle
-#else
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
-#endif
 {
     internal static class TypeStyleHelper
     {

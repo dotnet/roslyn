@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -31,9 +33,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public static TreeData Create(SyntaxTrivia trivia, int initialColumn)
-        {
-            return new StructuredTrivia(trivia, initialColumn);
-        }
+            => new StructuredTrivia(trivia, initialColumn);
 
         private readonly SyntaxNode _root;
         private readonly SyntaxToken _firstToken;
@@ -54,14 +54,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         public SyntaxNode Root => _root;
 
         public bool IsFirstToken(SyntaxToken token)
-        {
-            return _firstToken == token;
-        }
+            => _firstToken == token;
 
         public bool IsLastToken(SyntaxToken token)
-        {
-            return _lastToken == token;
-        }
+            => _lastToken == token;
 
         public int StartPosition
         {
@@ -74,8 +70,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public IEnumerable<SyntaxToken> GetApplicableTokens(TextSpan textSpan)
-        {
-            return this.Root.DescendantTokens(textSpan);
-        }
+            => this.Root.DescendantTokens(textSpan);
     }
 }

@@ -455,5 +455,9 @@ namespace Roslyn.Test.Utilities
         }
 
         public override int ERR_InvalidHashAlgorithmName => throw new NotImplementedException();
+
+        public override int WRN_GeneratorFailedDuringGeneration => throw new NotImplementedException();
+
+        public override int WRN_GeneratorFailedDuringInitialization => throw new NotImplementedException();
     }
 }

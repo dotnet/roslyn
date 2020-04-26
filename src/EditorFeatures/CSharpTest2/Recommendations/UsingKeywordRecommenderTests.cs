@@ -84,9 +84,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterUsingKeyword()
-        {
-            await VerifyAbsenceAsync(@"using $$");
-        }
+            => await VerifyAbsenceAsync(@"using $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPreviousUsing()
