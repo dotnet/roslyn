@@ -100,10 +100,24 @@ namespace Roslyn.Diagnostics.Analyzers.BlankLines
                     // 3. we have three newlines (following non-structured trivia).
 
                     if (i == 0 ||
-                        leadingTrivia[i - 1].HasStructure ||
-                        IsEndOfLine(leadingTrivia, i + 2))
+                        leadingTrivia[i - 1].HasStructure)
                     {
                         firstBadTrivia = leadingTrivia[i];
+                        return true;
+                    }
+
+                    if (IsEndOfLine(leadingTrivia, i + 2))
+                    {
+                        // Report on the second newline.  This is for cases like:
+                        //
+                        //      // comment
+                        //
+                        //
+                        //      public
+                        //
+                        // The first newline follows the comment.  But we want to report the issue on the start of the
+                        // next line.
+                        firstBadTrivia = leadingTrivia[i + 1];
                         return true;
                     }
                 }

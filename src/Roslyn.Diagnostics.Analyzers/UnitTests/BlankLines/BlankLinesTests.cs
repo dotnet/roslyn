@@ -381,5 +381,112 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
                 FixedCode = fixedCode,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestNoBlankLineAfterComment()
+        {
+            var code =
+@"class C
+{
+    // comment
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestOneBlankLineAfterComment()
+        {
+            var code =
+@"class C
+{
+    // comment
+
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTwoBlankLineAfterComment()
+        {
+            var code =
+@"class C
+{
+    // comment
+[||]
+
+}";
+            var fixedCode =
+@"class C
+{
+    // comment
+
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestThreeBlankLineAfterComment()
+        {
+            var code =
+@"class C
+{
+    // comment
+[||]
+
+
+}";
+            var fixedCode =
+@"class C
+{
+    // comment
+
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFourBlankLineAfterComment()
+        {
+            var code =
+@"class C
+{
+    // comment
+[||]
+
+
+}";
+            var fixedCode =
+@"class C
+{
+    // comment
+
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
     }
 }
