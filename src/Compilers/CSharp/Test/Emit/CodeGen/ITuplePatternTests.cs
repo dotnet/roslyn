@@ -191,6 +191,5 @@ public class C : ITuple
   IL_0061:  ret
 }");
         }
-
     }
 }

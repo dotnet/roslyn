@@ -8014,7 +8014,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.State[slot] = state;
                     }
                 }
-
             }
         }
 

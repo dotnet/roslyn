@@ -128,6 +128,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
             }
         }
-
     }
 }

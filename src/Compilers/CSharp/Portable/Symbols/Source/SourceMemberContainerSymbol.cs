@@ -371,7 +371,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     result |= mods;
                 }
-
             }
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)

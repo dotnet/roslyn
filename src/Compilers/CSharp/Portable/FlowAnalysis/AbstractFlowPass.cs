@@ -1899,7 +1899,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
             }
-
         }
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)

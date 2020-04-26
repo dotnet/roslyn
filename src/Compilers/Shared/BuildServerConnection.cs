@@ -834,5 +834,4 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
     }
-
 }

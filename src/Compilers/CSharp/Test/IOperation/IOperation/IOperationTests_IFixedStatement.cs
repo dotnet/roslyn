@@ -914,6 +914,5 @@ Block[B7] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
         }
-
     }
 }

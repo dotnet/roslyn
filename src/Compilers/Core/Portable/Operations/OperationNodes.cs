@@ -67,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 return _lazyChildrenInterlocked;
             }
-
         }
     }
 
@@ -113,7 +112,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public ArrayInitializerOperation(ImmutableArray<IOperation> elementValues, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
             this(elementValues, semanticModel, syntax, type: null, constantValue, isImplicit)
         { }
-
     }
 
     internal abstract partial class BaseConversionOperation : Operation, IConversionOperation
@@ -974,7 +972,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public DiscardPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
             this(inputType, semanticModel, syntax, type: null, constantValue: default, isImplicit)
         { }
-
     }
 
     internal sealed partial class RangeOperation : BaseRangeOperation

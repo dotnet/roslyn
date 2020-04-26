@@ -121,6 +121,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
         }
-
     }
 }

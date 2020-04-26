@@ -88,7 +88,6 @@ namespace BuildBoss
                     textWriter.WriteLine($"\tDo not use {propertyName}");
                     return false;
                 }
-
             }
 
             return true;

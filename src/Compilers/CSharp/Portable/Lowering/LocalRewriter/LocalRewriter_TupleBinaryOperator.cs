@@ -470,7 +470,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expr.Syntax, expr, conversion, enclosing.Checked, enclosing.ExplicitCastInCode,
                     conversionGroupOpt: null, constantValueOpt: null, type: type.Type);
             }
-
         }
 
         /// <summary>

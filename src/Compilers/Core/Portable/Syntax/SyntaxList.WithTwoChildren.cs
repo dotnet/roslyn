@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.Syntax
                         return null;
                 }
             }
-
         }
     }
 }

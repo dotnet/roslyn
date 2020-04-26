@@ -847,7 +847,6 @@ class Test<T> where T : unmanaged
                 default:
                     throw ExceptionUtilities.UnexpectedValue(accessibility);
             }
-
         }
 
         private void AssertNoIsUnmanagedAttributeExists(AssemblySymbol assembly)

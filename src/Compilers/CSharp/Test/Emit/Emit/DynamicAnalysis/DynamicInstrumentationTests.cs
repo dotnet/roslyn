@@ -3345,6 +3345,5 @@ True
             trees.Free();
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
         }
-
     }
 }

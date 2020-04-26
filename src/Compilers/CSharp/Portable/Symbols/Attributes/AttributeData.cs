@@ -787,7 +787,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return true;
         }
-
     }
 
     internal static class AttributeDataExtensions

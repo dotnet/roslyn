@@ -253,7 +253,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         _perSymbolAnalyzerActionsCache = new ConcurrentDictionary<(INamespaceOrTypeSymbol, DiagnosticAnalyzer), AnalyzerActions>();
                     }
-
                 }, cancellationToken);
 
                 // create the primary driver task. 

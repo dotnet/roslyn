@@ -284,7 +284,6 @@ class C
                     {
                         N(SyntaxKind.IdentifierToken, "B");
                     }
-
                 }
                 N(SyntaxKind.GreaterThanToken);
                 N(SyntaxKind.IdentifierName);

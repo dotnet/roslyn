@@ -52,6 +52,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null; // TODO: but what if hasErrors?  Have we lost that?
             }
         }
-
     }
 }

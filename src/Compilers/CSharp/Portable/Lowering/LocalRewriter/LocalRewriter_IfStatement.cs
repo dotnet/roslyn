@@ -97,7 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(new BoundLabelStatement(syntax, afterif));
                 return new BoundStatementList(syntax, builder.ToImmutableAndFree(), hasErrors);
             }
-
         }
     }
 }

@@ -113,6 +113,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                 underlyingTupleTypeChain.Free();
             }
         }
-
     }
 }

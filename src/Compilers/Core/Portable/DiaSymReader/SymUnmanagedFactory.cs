@@ -227,6 +227,5 @@ namespace Microsoft.DiaSymReader
 
             return instance;
         }
-
     }
 }

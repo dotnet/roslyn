@@ -534,6 +534,5 @@ class Test
             }
             EOF();
         }
-
     }
 }

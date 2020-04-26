@@ -25,5 +25,4 @@ namespace Microsoft.CodeAnalysis
             base.Visit(node);
         }
     }
-
 }

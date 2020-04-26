@@ -24034,7 +24034,6 @@ public interface I1
                 Assert.False(accessor.IsOverride);
                 Assert.Equal(Accessibility.ProtectedAndInternal, accessor.DeclaredAccessibility);
             }
-
         }
 
         [Fact]

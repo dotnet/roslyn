@@ -23,6 +23,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expectedOutput: isWin8 ? expectedOutput : null,
                 verify: isWin8 ? Verification.Passes : Verification.Fails);
         }
-
     }
 }

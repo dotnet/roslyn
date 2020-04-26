@@ -646,7 +646,5 @@ Block[B7] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
-
-
     }
 }

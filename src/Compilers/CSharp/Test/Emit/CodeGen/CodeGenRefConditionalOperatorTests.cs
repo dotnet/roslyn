@@ -1199,6 +1199,5 @@ class C
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Bob").WithArguments("(int Alice, int)", "Bob").WithLocation(9, 32)
                );
         }
-
     }
 }
