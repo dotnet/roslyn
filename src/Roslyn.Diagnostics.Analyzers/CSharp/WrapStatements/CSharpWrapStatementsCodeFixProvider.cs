@@ -86,7 +86,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
 
             // fixup this statement and all nested statements that have an issue.
             var descendentStatements = startStatement.DescendantNodesAndSelf().OfType<StatementSyntax>();
-            var badStatements = descendentStatements.Where(s => CSharpWrapStatementsDiagnosticAnalyzer.StatementNeedsWrapping(s)).ToSet();
+            var badStatements = descendentStatements.Where(s => CSharpWrapStatementsDiagnosticAnalyzer.StatementNeedsWrapping(s));
 
             // Walk from lower statements to higher so the higher up changes see the changes below.
             foreach (var badStatement in badStatements.OrderByDescending(s => s.SpanStart))
@@ -129,18 +129,14 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
                                 AddLeadingTrivia(currentBlock.OpenBraceToken, SyntaxFactory.ElasticMarker));
                         }
 
-                        currentBlock = currentBlock.WithCloseBraceToken(
+                        return currentBlock.WithCloseBraceToken(
                             AddLeadingTrivia(currentBlock.CloseBraceToken, SyntaxFactory.ElasticMarker));
-                        return currentBlock;
                     });
             }
         }
 
         private static SyntaxNode AddLeadingTrivia(SyntaxNode node, SyntaxTrivia trivia)
             => node.WithLeadingTrivia(node.GetLeadingTrivia().Insert(0, trivia));
-
-        private static SyntaxNode AddTrailingTrivia(SyntaxNode node, SyntaxTrivia trivia)
-            => node.WithTrailingTrivia(node.GetTrailingTrivia().Add(trivia));
 
         private static SyntaxToken AddLeadingTrivia(SyntaxToken token, SyntaxTrivia trivia)
             => token.WithLeadingTrivia(token.LeadingTrivia.Insert(0, trivia));
