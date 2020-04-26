@@ -6,6 +6,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 ArrowExpressionClauseSyntax n => n.Expression,
                 AssignmentExpressionSyntax n => n.Right,
                 LambdaExpressionSyntax n => n.ExpressionBody,
-                ArgumentSyntax n when n.RefKindKeyword.IsMissing => n.Expression,
+                ArgumentSyntax n when n.GetRefKind() == RefKind.None => n.Expression,
                 _ => null,
             };
 
@@ -123,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             => pattern switch
             {
                 Not { Pattern: Constant _ } => true,
+                Not { Pattern: Source { PatternSyntax: ConstantPatternSyntax _ } } => true,
                 Not _ => false,
                 Binary _ => false,
                 _ => true

@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UsePatternCombinators;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -14,8 +15,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
 {
     public class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        private static readonly ParseOptions CSharp9 = TestOptions.RegularPreview;
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUsePatternCombinatorsDiagnosticAnalyzer(), new CSharpUsePatternCombinatorsCodeFixProvider());
+
+        private Task TestMissingInCSharp9Async(string initialMarkup)
+            => TestMissingAsync(initialMarkup, new TestParameters(CSharp9));
+
+        private Task TestInCSharp9Async(string initialMarkup, string expectedMarkup)
+            => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parseOptions: CSharp9);
 
         private static readonly string s_initialMarkup = @"
 using System;
@@ -35,31 +44,35 @@ class C
     void Assignment() { _ = EXPRESSION; }
     void Do() { do ; while (EXPRESSION); }
     void While() { while (EXPRESSION) ; }
-    void When() { _ = o switch { _ when EXPRESSION => 0 }; }
+    bool When() => o switch { _ when EXPRESSION => EXPRESSION };
     bool Return() { return EXPRESSION; }
     IEnumerable<bool> YieldReturn() { yield return EXPRESSION; }
     Func<object, bool> SimpleLambda() => o => EXPRESSION;
     Func<bool> ParenthesizedLambda() => () => EXPRESSION;
+    int i;
+    object o;
 }
 ";
 
         [InlineData("i == 0")]
         [InlineData("i > 0")]
-        [InlineData("i is C")]
-        [InlineData("i is C c")]
-        [InlineData("!(i > 0)")]
+        [InlineData("o is C")]
+        [InlineData("o is C c")]
         [InlineData("o != null")]
         [InlineData("!(o is C c)")]
+        [InlineData("!(o is null)")]
+        [InlineData("o is int ii || o is long jj")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestMissingOnExpression(string expression)
         {
-            await TestMissingAsync(s_initialMarkup.Replace("EXPRESSION", expression));
+            await TestMissingInCSharp9Async(s_initialMarkup.Replace("EXPRESSION", expression));
         }
 
+        [InlineData("o is int ii && o is long jj", "o is int ii and long jj")]
         [InlineData("!(o is C)", "o is not C")]
         [InlineData("!(o is C _)", "o is not C _")]
         [InlineData("i == 1 || 2 == i", "i is 1 or 2")]
-        [InlineData("i != 1 || 2 != i", "i is not 1 or not 2")]
+        [InlineData("i != 1 || 2 != i", "i is not (1 and 2)")]
         [InlineData("i != 1 && 2 != i", "i is not (1 or 2)")]
         [InlineData("!(i != 1 && 2 != i)", "i is 1 or 2")]
         [InlineData("i < 1 && 2 <= i", "i is < 1 and >= 2")]
@@ -68,7 +81,7 @@ class C
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestOnExpression(string expression, string expected)
         {
-            await TestInRegularAndScriptAsync(
+            await TestInCSharp9Async(
                 s_initialMarkup.Replace("EXPRESSION", expression),
                 s_initialMarkup.Replace("EXPRESSION", expected));
         }
@@ -76,7 +89,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestMultiline()
         {
-            await TestInRegularAndScript1Async(
+            await TestInCSharp9Async(
 @"class C
 {
     bool M0(int variable)
