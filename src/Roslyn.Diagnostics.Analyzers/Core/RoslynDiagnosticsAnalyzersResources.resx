@@ -339,4 +339,10 @@
   <data name="ExposeMemberForTestingTitle" xml:space="preserve">
     <value>Expose member for testing</value>
   </data>
+  <data name="BlankLinesMessage" xml:space="preserve">
+    <value>Avoid multiple blank lines</value>
+  </data>
+  <data name="Remove_extra_blank_lines" xml:space="preserve">
+    <value>Remove extra blank lines</value>
+  </data>
 </root>
