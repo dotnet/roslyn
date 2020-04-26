@@ -13,8 +13,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Add_file_banner">
-        <source>Add file banner</source>
-        <target state="translated">Adicionar faixa de arquivo</target>
+        <source>Add file header</source>
+        <target state="needs-review-translation">Adicionar faixa de arquivo</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_Name_Violation_colon_0">
