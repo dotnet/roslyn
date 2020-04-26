@@ -187,5 +187,31 @@ class TestClass
                 FixedCode = fixedCode,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task ErrorOnNonWrappedIfStatementWithEmptyBlock()
+        {
+            var source = @"class TestClass
+{
+    void M()
+    {
+        if (true) [|{|] }
+    }
+}";
+            var fixedCode = @"class TestClass
+{
+    void M()
+    {
+        if (true)
+        {
+        }
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
     }
 }

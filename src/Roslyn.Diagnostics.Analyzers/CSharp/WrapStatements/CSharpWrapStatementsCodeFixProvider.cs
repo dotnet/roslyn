@@ -72,6 +72,14 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
                         // Ensure a newline between the statement and the statement that preceded it.
                         var updatedStatement = AddLeadingTrivia(currentBadStatement, endOfLineTrivia);
 
+                        // Ensure that if we wrap an empty block that the trailing brace is on a new line as well.
+                        if (updatedStatement is BlockSyntax blockSyntax &&
+                            blockSyntax.Statements.Count == 0)
+                        {
+                            updatedStatement = blockSyntax.WithCloseBraceToken(
+                                AddLeadingTrivia(blockSyntax.CloseBraceToken, SyntaxFactory.ElasticMarker));
+                        }
+
                         // Also place an elastic marker at the end of the statement if we're parented by a block to ensure that
                         // the `}` is properly placed.
                         if (badStatement.Parent.IsKind(SyntaxKind.Block))
@@ -89,5 +97,9 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
 
         private static SyntaxNode AddTrailingTrivia(SyntaxNode node, SyntaxTrivia trivia)
             => node.WithTrailingTrivia(node.GetTrailingTrivia().Add(trivia));
+
+        private static SyntaxToken AddLeadingTrivia(SyntaxToken token, SyntaxTrivia trivia)
+            => token.WithLeadingTrivia(token.LeadingTrivia.Insert(0, trivia));
+
     }
 }
