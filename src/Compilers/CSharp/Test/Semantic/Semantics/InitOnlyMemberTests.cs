@@ -44,6 +44,10 @@ public class C
                 //     public string Property { get; init; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "init").WithArguments("init-only setters").WithLocation(4, 35)
                 );
+
+            var property = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
+            Assert.False(property.GetMethod.IsInitOnly);
+            Assert.True(property.SetMethod.IsInitOnly);
         }
 
         [Fact]
@@ -89,6 +93,67 @@ public class C
                 //     public string Property3 { init => throw null; init => throw null; }
                 Diagnostic(ErrorCode.ERR_DuplicateAccessor, "init").WithLocation(6, 51)
                 );
+
+            var members = ((NamedTypeSymbol)comp.GlobalNamespace.GetMember("C")).GetMembers();
+            AssertEx.SetEqual(members.ToTestDisplayStrings(),
+                new[] {
+                "System.String C.Property { set; }",
+                "void C.Property.set",
+                "System.String C.Property2 { init; }",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.Property2.set",
+                "System.String C.Property3 { init; }",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.Property3.set",
+                "C..ctor()"
+            });
+
+            var property = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
+            Assert.False(property.SetMethod.IsInitOnly);
+
+            var property2 = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property2");
+            Assert.True(property2.SetMethod.IsInitOnly);
+
+            var property3 = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property3");
+            Assert.True(property3.SetMethod.IsInitOnly);
+        }
+
+        [Fact]
+        public void InThisOrBaseConstructorInitializer()
+        {
+            string source = @"
+public class C
+{
+    public string Property { init { throw null; } }
+    public C() : this(Property = null) // 1
+    {
+    }
+
+    public C(string s)
+    {
+    }
+}
+public class Derived : C
+{
+    public Derived() : base(Property = null) // 2
+    {
+    }
+
+    public Derived(int i) : base(base.Property = null) // 3
+    {
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,23): error CS0120: An object reference is required for the non-static field, method, or property 'C.Property'
+                //     public C() : this(Property = null) // 1
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Property").WithArguments("C.Property").WithLocation(5, 23),
+                // (15,29): error CS0120: An object reference is required for the non-static field, method, or property 'C.Property'
+                //     public Derived() : base(Property = null) // 2
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Property").WithArguments("C.Property").WithLocation(15, 29),
+                // (19,34): error CS1512: Keyword 'base' is not available in the current context
+                //     public Derived(int i) : base(base.Property = null) // 3
+                Diagnostic(ErrorCode.ERR_BaseInBadContext, "base").WithLocation(19, 34)
+                );
         }
 
         [Fact]
@@ -120,7 +185,7 @@ public class Other
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9),
                 // (20,17): error CS0122: 'C.C()' is inaccessible due to its protection level
@@ -129,7 +194,7 @@ public class Other
                 // (20,23): error CS0272: The property or indexer 'C.Property' cannot be used in this context because the set accessor is inaccessible
                 //         _ = new C() { Property = null }; // 2, 3
                 Diagnostic(ErrorCode.ERR_InaccessibleSetter, "Property").WithArguments("C.Property").WithLocation(20, 23),
-                // (21,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (21,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         c.Property = null; // 4
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(21, 9)
                 );
@@ -172,16 +237,16 @@ public class Derived : C
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9),
                 // (20,23): error CS1540: Cannot access protected member 'C.Property' via a qualifier of type 'C'; the qualifier must be of type 'Derived' (or derived from it)
                 //         _ = new C() { Property = null }; // 2
                 Diagnostic(ErrorCode.ERR_BadProtectedAccess, "Property").WithArguments("C.Property", "C", "Derived").WithLocation(20, 23),
-                // (21,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (21,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         c.Property = null; // 3, 4
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(21, 9),
-                // (22,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (22,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property = null; // 5
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(22, 9),
                 // (27,23): error CS1540: Cannot access protected member 'C.Property' via a qualifier of type 'C'; the qualifier must be of type 'Derived' (or derived from it)
@@ -230,10 +295,14 @@ public class Derived : C<string>
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (10,9): error CS8802: Init-only member 'C<string>.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (10,9): error CS8802: Init-only property or indexer 'C<string>.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C<string>.Property").WithLocation(10, 9)
                 );
+
+            var property = (PropertySymbol)comp.GlobalNamespace.GetTypeMember("Derived").BaseTypeNoUseSiteDiagnostics.GetMember("Property");
+            Assert.False(property.GetMethod.IsInitOnly);
+            Assert.True(property.SetMethod.IsInitOnly);
         }
 
         [Fact]
@@ -259,10 +328,14 @@ public class CWithoutInit : I<string> // 1
                 // public class CWithoutInit : I<string> // 1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I<string>").WithArguments("CWithoutInit", "I<string>.Property.set", "CWithoutInit.Property.set").WithLocation(10, 29)
                 );
+
+            var property = (PropertySymbol)comp.GlobalNamespace.GetMember("I.Property");
+            Assert.False(property.GetMethod.IsInitOnly);
+            Assert.True(property.SetMethod.IsInitOnly);
         }
 
         [Fact]
-        public void InLambdaOrLocalFunction()
+        public void InLambdaOrLocalFunction_InMethodOrDerivedConstructor()
         {
             string source = @"
 public class C<T>
@@ -302,18 +375,75 @@ public class Derived : C<string>
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (12,13): error CS8802: Init-only member 'C<string>.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (12,13): error CS8802: Init-only property or indexer 'C<string>.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C<string>.Property").WithLocation(12, 13),
-                // (18,13): error CS8802: Init-only member 'C<string>.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (18,13): error CS8802: Init-only property or indexer 'C<string>.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             Property = null; // 2
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C<string>.Property").WithLocation(18, 13),
-                // (26,13): error CS8802: Init-only member 'C<string>.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (26,13): error CS8802: Init-only property or indexer 'C<string>.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             Property = null; // 3
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C<string>.Property").WithLocation(26, 13),
-                // (32,13): error CS8802: Init-only member 'C<string>.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (32,13): error CS8802: Init-only property or indexer 'C<string>.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             Property = null; // 4
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C<string>.Property").WithLocation(32, 13)
+                );
+        }
+
+        [Fact]
+        public void InLambdaOrLocalFunction_InConstructorOrInit()
+        {
+            string source = @"
+public class C<T>
+{
+    public string Property { get; init; }
+
+    C()
+    {
+        System.Action a = () =>
+        {
+            Property = null; // 1
+        };
+
+        local();
+        void local()
+        {
+            Property = null; // 2
+        }
+    }
+
+    public string Other
+    {
+        init
+        {
+            System.Action a = () =>
+            {
+                Property = null; // 3
+            };
+
+            local();
+            void local()
+            {
+                Property = null; // 4
+            }
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,13): error CS8802: Init-only property or indexer 'C<T>.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //             Property = null; // 1
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C<T>.Property").WithLocation(10, 13),
+                // (16,13): error CS8802: Init-only property or indexer 'C<T>.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //             Property = null; // 2
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C<T>.Property").WithLocation(16, 13),
+                // (26,17): error CS8802: Init-only property or indexer 'C<T>.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //                 Property = null; // 3
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C<T>.Property").WithLocation(26, 17),
+                // (32,17): error CS8802: Init-only property or indexer 'C<T>.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //                 Property = null; // 4
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C<T>.Property").WithLocation(32, 17)
                 );
         }
 
@@ -427,34 +557,38 @@ class Derived2 : Derived
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9),
-                // (21,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (21,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             Property = null; // 2
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(21, 13),
-                // (34,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (34,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             Property = null; // 3
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(34, 13),
-                // (39,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (39,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             Property = null; // 4
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(39, 13),
                 // (43,33): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.Property'
                 //     public string otherField = (Property = null); // 5
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Property").WithArguments("C.Property").WithLocation(43, 33),
-                // (54,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (54,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property = null; // 6
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(54, 9),
-                // (66,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (66,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             Property = null; // 7
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(66, 13),
-                // (79,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (79,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             Property = null; // 8
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(79, 13),
-                // (84,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (84,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             Property = null; // 9
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(84, 13)
                 );
+
+            var property = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
+            Assert.False(property.GetMethod.IsInitOnly);
+            Assert.True(property.SetMethod.IsInitOnly);
         }
 
         [Fact]
@@ -504,6 +638,11 @@ public class C
                 //     public static string Property { get; init; }
                 Diagnostic(ErrorCode.ERR_BadInitAccessor, "init").WithLocation(4, 42)
                 );
+
+            var property = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
+            Assert.False(property.GetMethod.IsInitOnly);
+            // PROTOTYPE(init-only): confirm during public API discussion for IsInitOnly
+            Assert.False(property.SetMethod.IsInitOnly);
         }
 
         [Fact]
@@ -557,19 +696,19 @@ public class Caller
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (9,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (9,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         c.Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(9, 9),
-                // (16,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (16,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             c.Property = null; // 2
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(16, 13),
-                // (24,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (24,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         c.Property = null; // 3
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(24, 9),
-                // (31,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (31,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             c.Property = null; // 4
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(31, 13),
-                // (41,18): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (41,18): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //                 (c.Property = null)  // 5
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(41, 18)
                 );
@@ -596,13 +735,13 @@ public class C
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,10): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (8,10): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         (Property, (Property, Property)) = (null, (null, null)); // 1, 2, 3
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 10),
-                // (8,21): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (8,21): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         (Property, (Property, Property)) = (null, (null, null)); // 1, 2, 3
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 21),
-                // (8,31): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (8,31): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         (Property, (Property, Property)) = (null, (null, null)); // 1, 2, 3
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 31)
                 );
@@ -653,7 +792,7 @@ public class C
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property += 42; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9)
                 );
@@ -680,7 +819,7 @@ public class C
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property |= true; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9)
                 );
@@ -707,7 +846,7 @@ public class C
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property ??= null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9)
                 );
@@ -734,7 +873,7 @@ public class C
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property++; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9)
                 );
@@ -747,7 +886,9 @@ public class C
 public class C
 {
     ref int Property1 { get; init; }
-    ref int Property3 { init; }
+    ref int Property2 { init; }
+    ref int Property3 { get => throw null; init => throw null; }
+    ref int Property4 { init => throw null; }
 }
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
@@ -759,8 +900,14 @@ public class C
                 //     ref int Property1 { get; init; }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithArguments("C.Property1.set").WithLocation(4, 30),
                 // (5,13): error CS8146: Properties which return by reference must have a get accessor
-                //     ref int Property3 { init; }
-                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property3").WithArguments("C.Property3").WithLocation(5, 13)
+                //     ref int Property2 { init; }
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property2").WithArguments("C.Property2").WithLocation(5, 13),
+                // (6,44): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref int Property3 { get => throw null; init => throw null; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithArguments("C.Property3.set").WithLocation(6, 44),
+                // (7,13): error CS8146: Properties which return by reference must have a get accessor
+                //     ref int Property4 { init => throw null; }
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property4").WithArguments("C.Property4").WithLocation(7, 13)
                 );
         }
 
@@ -794,12 +941,15 @@ public class C
                 var c = (NamedTypeSymbol)m.GlobalNamespace.GetMember("C");
 
                 var property = (PropertySymbol)c.GetMembers("Property").Single();
-                // PROTOTYPE(records): adjust SymbolDisplayVisitor once we have a public IsInitOnly API
-                Assert.Equal("System.String C.Property { get; set; }", property.ToTestDisplayString());
+                Assert.Equal("System.String C.Property { get; init; }", property.ToTestDisplayString());
+                Assert.Equal(0, property.CustomModifierCount());
                 var propertyAttributes = property.GetAttributes().Select(a => a.ToString());
                 AssertEx.Empty(propertyAttributes);
 
-                var getterAttributes = property.GetMethod.GetAttributes().Select(a => a.ToString());
+                var getter = property.GetMethod;
+                Assert.Empty(property.GetMethod.ReturnTypeWithAnnotations.CustomModifiers);
+                Assert.False(getter.IsInitOnly);
+                var getterAttributes = getter.GetAttributes().Select(a => a.ToString());
                 if (isSource)
                 {
                     AssertEx.Empty(getterAttributes);
@@ -809,6 +959,8 @@ public class C
                     AssertEx.Equal(new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute" }, getterAttributes);
                 }
 
+                var setter = property.SetMethod;
+                Assert.True(setter.IsInitOnly);
                 var setterAttributes = property.SetMethod.GetAttributes().Select(a => a.ToString());
                 var modifier = property.SetMethod.ReturnTypeWithAnnotations.CustomModifiers.Single();
                 Assert.Equal("System.Runtime.CompilerServices.IsExternalInit", modifier.Modifier.ToTestDisplayString());
@@ -908,23 +1060,27 @@ class Derived2 : Derived
     void M()
     {
         Property = null; // 7
+        base.Property = null; // 8
     }
 
     Derived2()
     {
         Property = null;
+        base.Property = null;
     }
 
     public string InitOnlyProperty2
     {
         get
         {
-            Property = null; // 8
+            Property = null; // 9
+            base.Property = null; // 10
             return null;
         }
         init
         {
             Property = null;
+            base.Property = null;
         }
     }
 
@@ -932,12 +1088,14 @@ class Derived2 : Derived
     {
         get
         {
-            Property = null; // 9
+            Property = null; // 11
+            base.Property = null; // 12
             return null;
         }
         set
         {
-            Property = null; // 10
+            Property = null; // 13
+            base.Property = null; // 14
         }
     }
 }
@@ -947,36 +1105,48 @@ class Derived2 : Derived
                 parseOptions: TestOptions.RegularPreview);
 
             comp.VerifyDiagnostics(
-                // (8,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         c.Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(8, 9),
-                // (13,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (13,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         c.Property = null; // 2
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(13, 9),
-                // (20,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (20,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             c.Property = null; // 3
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(20, 13),
-                // (25,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (25,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             c.Property = null; // 4
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(25, 13),
-                // (33,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (33,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             c.Property = null; // 5
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(33, 13),
-                // (38,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (38,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             c.Property = null; // 6
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(38, 13),
-                // (51,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (51,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property = null; // 7
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(51, 9),
-                // (63,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
-                //             Property = null; // 8
-                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(63, 13),
-                // (76,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (52,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         base.Property = null; // 8
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "base.Property").WithArguments("C.Property").WithLocation(52, 9),
+                // (65,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             Property = null; // 9
-                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(76, 13),
-                // (81,13): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
-                //             Property = null; // 10
-                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(81, 13)
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(65, 13),
+                // (66,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //             base.Property = null; // 10
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "base.Property").WithArguments("C.Property").WithLocation(66, 13),
+                // (80,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //             Property = null; // 11
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(80, 13),
+                // (81,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //             base.Property = null; // 12
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "base.Property").WithArguments("C.Property").WithLocation(81, 13),
+                // (86,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //             Property = null; // 13
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(86, 13),
+                // (87,13): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //             base.Property = null; // 14
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "base.Property").WithArguments("C.Property").WithLocation(87, 13)
                 );
         }
 
@@ -1090,6 +1260,7 @@ public class Base
 {
     public virtual string Property { get; set; }
 }
+
 public class DerivedWithInit : Base
 {
     public override string Property { get; init; } // 1
@@ -1098,6 +1269,7 @@ public class DerivedWithoutInit : Base
 {
     public override string Property { get; set; }
 }
+
 public class DerivedWithInitSetterOnly : Base
 {
     public override string Property { init { } } // 2
@@ -1106,20 +1278,32 @@ public class DerivedWithoutInitSetterOnly : Base
 {
     public override string Property { set { } }
 }
+
 public class DerivedGetterOnly : Base
 {
     public override string Property { get => null; }
+}
+public class DerivedDerivedWithInit : DerivedGetterOnly
+{
+    public override string Property { init { } } // 3
+}
+public class DerivedDerivedWithoutInit : DerivedGetterOnly
+{
+    public override string Property { set { } }
 }
 ";
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,28): error CS8803: 'DerivedWithInit.Property' must match by init-only of overridden member 'Base.Property'
+                // (9,28): error CS8803: 'DerivedWithInit.Property' must match by init-only of overridden member 'Base.Property'
                 //     public override string Property { get; init; } // 1
-                Diagnostic(ErrorCode.ERR_CantChangeInitOnlyOnOverride, "Property").WithArguments("DerivedWithInit.Property", "Base.Property").WithLocation(8, 28),
-                // (16,28): error CS8803: 'DerivedWithInitSetterOnly.Property' must match by init-only of overridden member 'Base.Property'
+                Diagnostic(ErrorCode.ERR_CantChangeInitOnlyOnOverride, "Property").WithArguments("DerivedWithInit.Property", "Base.Property").WithLocation(9, 28),
+                // (18,28): error CS8803: 'DerivedWithInitSetterOnly.Property' must match by init-only of overridden member 'Base.Property'
                 //     public override string Property { init { } } // 2
-                Diagnostic(ErrorCode.ERR_CantChangeInitOnlyOnOverride, "Property").WithArguments("DerivedWithInitSetterOnly.Property", "Base.Property").WithLocation(16, 28)
+                Diagnostic(ErrorCode.ERR_CantChangeInitOnlyOnOverride, "Property").WithArguments("DerivedWithInitSetterOnly.Property", "Base.Property").WithLocation(18, 28),
+                // (31,28): error CS8803: 'DerivedDerivedWithInit.Property' must match by init-only of overridden member 'DerivedGetterOnly.Property'
+                //     public override string Property { init { } } // 3
+                Diagnostic(ErrorCode.ERR_CantChangeInitOnlyOnOverride, "Property").WithArguments("DerivedDerivedWithInit.Property", "DerivedGetterOnly.Property").WithLocation(31, 28)
                 );
         }
 
@@ -1668,6 +1852,12 @@ public class C
                 //         init { }
                 Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "init").WithLocation(6, 9)
                 );
+
+            var members = ((NamedTypeSymbol)comp.GlobalNamespace.GetMember("C")).GetMembers();
+            AssertEx.SetEqual(members.ToTestDisplayStrings(), new[] {
+                "event System.Action C.Event",
+                "C..ctor()"
+            });
         }
 
         [Fact]
@@ -1711,13 +1901,13 @@ public class D
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (14,9): error CS8802: Init-only member 'C.this[int]' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (14,9): error CS8802: Init-only property or indexer 'C.this[int]' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         this[43] = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "this[43]").WithArguments("C.this[int]").WithLocation(14, 9),
-                // (25,9): error CS8802: Init-only member 'C.this[int]' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (25,9): error CS8802: Init-only property or indexer 'C.this[int]' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         this[45] = null; // 2
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "this[45]").WithArguments("C.this[int]").WithLocation(25, 9),
-                // (33,9): error CS8802: Init-only member 'C.this[int]' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                // (33,9): error CS8802: Init-only property or indexer 'C.this[int]' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         c2[47] = null; // 3
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c2[47]").WithArguments("C.this[int]").WithLocation(33, 9)
                 );
@@ -2182,6 +2372,515 @@ public class Derived2 : C
                 //     public override int Property { init { throw null; } }
                 Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived2.Property", "C.Property").WithLocation(8, 25)
                 );
+
+            var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
+            Assert.Null(property0.GetMethod);
+            Assert.True(property0.SetMethod.HasUseSiteError);
+            Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
+
+            var property1 = (PropertySymbol)comp.GlobalNamespace.GetMember("Derived.Property");
+            Assert.Null(property1.GetMethod);
+            Assert.False(property1.SetMethod.HasUseSiteError);
+            Assert.False(property1.SetMethod.Parameters[0].Type.IsErrorType());
+
+            var property2 = (PropertySymbol)comp.GlobalNamespace.GetMember("Derived2.Property");
+            Assert.Null(property2.GetMethod);
+            Assert.False(property2.SetMethod.HasUseSiteError);
+            Assert.False(property2.SetMethod.Parameters[0].Type.IsErrorType());
+        }
+
+        [Fact]
+        public void ModReqOnSetAccessorParameter_AndProperty()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit C extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance void set_Property ( int32 modreq(System.Runtime.CompilerServices.IsExternalInit) 'value' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance int32 modreq(System.Runtime.CompilerServices.IsExternalInit) Property()
+    {
+        .set instance void C::set_Property(int32 modreq(System.Runtime.CompilerServices.IsExternalInit))
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+
+            string source = @"
+public class Derived : C
+{
+    public override int Property { set { throw null; } }
+}
+public class Derived2 : C
+{
+    public override int Property { init { throw null; } }
+}
+";
+
+            var reference = CreateMetadataReferenceFromIlSource(il);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,25): error CS0569: 'Derived.Property': cannot override 'C.Property' because it is not supported by the language
+                //     public override int Property { set { throw null; } }
+                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived.Property", "C.Property").WithLocation(4, 25),
+                // (8,25): error CS0569: 'Derived2.Property': cannot override 'C.Property' because it is not supported by the language
+                //     public override int Property { init { throw null; } }
+                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived2.Property", "C.Property").WithLocation(8, 25)
+                );
+
+            var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
+            Assert.Null(property0.GetMethod);
+            Assert.True(property0.SetMethod.HasUseSiteError);
+            Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
+
+            var property1 = (PropertySymbol)comp.GlobalNamespace.GetMember("Derived.Property");
+            Assert.Null(property1.GetMethod);
+            Assert.False(property1.SetMethod.HasUseSiteError);
+            Assert.False(property1.SetMethod.Parameters[0].Type.IsErrorType());
+
+            var property2 = (PropertySymbol)comp.GlobalNamespace.GetMember("Derived2.Property");
+            Assert.Null(property2.GetMethod);
+            Assert.False(property2.SetMethod.HasUseSiteError);
+            Assert.False(property2.SetMethod.Parameters[0].Type.IsErrorType());
+        }
+
+        [Fact]
+        public void ModReqOnSetAccessorParameter_IndexerParameter()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit C extends System.Object
+{
+    .custom instance void System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6d 00 00 )
+    .method public hidebysig specialname newslot virtual instance void set_Item ( int32 modreq(System.Runtime.CompilerServices.IsExternalInit)  i, int32 'value' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance int32 Item(int32 modreq(System.Runtime.CompilerServices.IsExternalInit) i)
+    {
+        .set instance void C::set_Item(int32 modreq(System.Runtime.CompilerServices.IsExternalInit), int32)
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Reflection.DefaultMemberAttribute extends System.Attribute
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor ( string memberName ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Attribute extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+
+            string source = @"
+public class Derived : C
+{
+    public override int this[int i] { set { throw null; } }
+}
+public class Derived2 : C
+{
+    public override int this[int i] { init { throw null; } }
+}
+";
+
+            var reference = CreateMetadataReferenceFromIlSource(il);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,25): error CS0115: 'Derived.this[int]': no suitable method found to override
+                //     public override int this[int i] { set { throw null; } }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("Derived.this[int]").WithLocation(4, 25),
+                // (8,25): error CS0115: 'Derived2.this[int]': no suitable method found to override
+                //     public override int this[int i] { init { throw null; } }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("Derived2.this[int]").WithLocation(8, 25)
+                );
+
+            var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.this[]");
+            Assert.Null(property0.GetMethod);
+            Assert.True(property0.SetMethod.HasUseSiteError);
+            Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
+        }
+
+        [Fact]
+        public void ModReqOnIndexerValue()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit C extends System.Object
+{
+    .custom instance void System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6d 00 00 )
+    .method public hidebysig specialname newslot virtual instance void set_Item ( int32 i, int32 modreq(System.Runtime.CompilerServices.IsExternalInit) 'value' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance int32 Item(int32 i)
+    {
+        .set instance void C::set_Item(int32, int32 modreq(System.Runtime.CompilerServices.IsExternalInit))
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Reflection.DefaultMemberAttribute extends System.Attribute
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor ( string memberName ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Attribute extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+
+            string source = @"
+public class Derived : C
+{
+    public override int this[int i] { set { throw null; } }
+}
+public class Derived2 : C
+{
+    public override int this[int i] { init { throw null; } }
+}
+";
+
+            var reference = CreateMetadataReferenceFromIlSource(il);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,25): error CS0569: 'Derived.this[int]': cannot override 'C.this[int]' because it is not supported by the language
+                //     public override int this[int i] { set { throw null; } }
+                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "this").WithArguments("Derived.this[int]", "C.this[int]").WithLocation(4, 25),
+                // (8,25): error CS0569: 'Derived2.this[int]': cannot override 'C.this[int]' because it is not supported by the language
+                //     public override int this[int i] { init { throw null; } }
+                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "this").WithArguments("Derived2.this[int]", "C.this[int]").WithLocation(8, 25)
+                );
+
+            var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.this[]");
+            Assert.Null(property0.GetMethod);
+            Assert.True(property0.SetMethod.HasUseSiteError);
+            Assert.True(property0.SetMethod.Parameters[1].Type.IsErrorType());
+        }
+
+        [Fact]
+        public void ModReqOnStaticMethod()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit C extends System.Object
+{
+    .method public hidebysig specialname newslot virtual static void modreq(System.Runtime.CompilerServices.IsExternalInit) set_Property ( int32 'value' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance int32 Property()
+    {
+        .set void modreq(System.Runtime.CompilerServices.IsExternalInit) C::set_Property(int32)
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+
+            var reference = CreateMetadataReferenceFromIlSource(il);
+            var comp = CreateCompilation("", references: new[] { reference }, parseOptions: TestOptions.RegularPreview,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var property = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
+            Assert.False(property.SetMethod.IsInitOnly);
+        }
+
+        [Fact]
+        public void ModReqOnMethodParameter()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit C extends System.Object
+{
+    .method public hidebysig newslot virtual instance void M ( int32 modreq(System.Runtime.CompilerServices.IsExternalInit) i ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            string source = @"
+public class Derived : C
+{
+    public override void M() { }
+}
+";
+
+            var reference = CreateMetadataReferenceFromIlSource(il);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,26): error CS0115: 'Derived.M()': no suitable method found to override
+                //     public override void M() { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M").WithArguments("Derived.M()").WithLocation(4, 26)
+                );
+
+            var method0 = (PEMethodSymbol)comp.GlobalNamespace.GetMember("C.M");
+            Assert.True(method0.HasUseSiteError);
+            Assert.True(method0.Parameters[0].Type.IsErrorType());
+        }
+
+        [Fact]
+        public void ModReqOnInitOnlySetterOfRefProperty()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit C extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance int32& get_Property () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname newslot virtual instance void set_Property ( int32& modreq(System.Runtime.CompilerServices.IsExternalInit) 'value' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance int32& Property()
+    {
+        .get instance int32& C::get_Property()
+        .set instance void C::set_Property(int32& modreq(System.Runtime.CompilerServices.IsExternalInit))
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            string source = @"
+public class D
+{
+    void M(C c, ref int i)
+    {
+        _ = c.get_Property();
+        c.set_Property(i); // 1
+
+        _ = c.Property; // 2
+        c.Property = i; // 3
+    }
+}
+";
+
+            var reference = CreateMetadataReferenceFromIlSource(il);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0570: 'C.set_Property(?)' is not supported by the language
+                //         c.set_Property(i); // 1
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(?)").WithLocation(7, 11),
+                // (9,15): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(?)'
+                //         _ = c.Property; // 2
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(?)").WithLocation(9, 15),
+                // (10,11): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(?)'
+                //         c.Property = i; // 3
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(?)").WithLocation(10, 11)
+                );
+
+            var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
+            Assert.False(property0.HasUseSiteError);
+            Assert.True(property0.MustCallMethodsDirectly);
+            Assert.False(property0.GetMethod.HasUseSiteError);
+            Assert.True(property0.SetMethod.HasUseSiteError);
+            Assert.False(property0.SetMethod.IsInitOnly);
+        }
+
+        [Fact]
+        public void ModReqOnRefProperty()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit C extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance int32& modreq(System.Runtime.CompilerServices.IsExternalInit) get_Property () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname newslot virtual instance void set_Property ( int32& modreq(System.Runtime.CompilerServices.IsExternalInit) 'value' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance int32& modreq(System.Runtime.CompilerServices.IsExternalInit) Property()
+    {
+        .get instance int32& modreq(System.Runtime.CompilerServices.IsExternalInit) C::get_Property()
+        .set instance void C::set_Property(int32& modreq(System.Runtime.CompilerServices.IsExternalInit))
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            string source = @"
+public class D
+{
+    void M(C c, ref int i)
+    {
+        _ = c.get_Property();
+        c.set_Property(i); // 1
+
+        _ = c.Property; // 2
+        c.Property = i; // 3
+    }
+}
+";
+
+            var reference = CreateMetadataReferenceFromIlSource(il);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0570: 'C.set_Property(?)' is not supported by the language
+                //         c.set_Property(i); // 1
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(?)").WithLocation(7, 11),
+                // (9,15): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(?)'
+                //         _ = c.Property; // 2
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(?)").WithLocation(9, 15),
+                // (10,11): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(?)'
+                //         c.Property = i; // 3
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(?)").WithLocation(10, 11)
+                );
+
+            var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
+            Assert.False(property0.HasUseSiteError);
+            Assert.Empty(property0.RefCustomModifiers);
+
+            Assert.True(property0.MustCallMethodsDirectly);
+            Assert.False(property0.GetMethod.HasUseSiteError);
+            Assert.True(property0.GetMethod.ReturnsByRef);
+            Assert.False(property0.GetMethod.ReturnType.IsErrorType());
+
+            Assert.True(property0.SetMethod.HasUseSiteError);
+            Assert.False(property0.SetMethod.IsInitOnly);
+            Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
         }
 
         [Fact]
@@ -2230,16 +2929,14 @@ public class Derived : C
 {
     public override int Property { get { throw null; } }
 }
-public class Derived2 : C
-{
-    public override int Property { get { throw null; } }
-}
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
             var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
+            // PROTOTYPE(init-only): can we make this more restrictive (ie. disallow aside from the return value of an instance setter)?
             comp.VerifyDiagnostics();
 
+            // PROTOTYPE(init-only): getter should probably have use-site error
             var property = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.False(property.GetMethod.IsInitOnly);
             Assert.False(property.SetMethod.IsInitOnly);
@@ -2250,6 +2947,49 @@ public class Derived2 : C
         {
             Assert.True(SyntaxFacts.IsAccessorDeclaration(SyntaxKind.InitAccessorDeclaration));
             Assert.True(SyntaxFacts.IsAccessorDeclarationKeyword(SyntaxKind.InitKeyword));
+        }
+
+        [Fact]
+        public void NoCascadingErrorsInStaticConstructor()
+        {
+            string source = @"
+public class C
+{
+    public string Property { get { throw null; } init { throw null; } }
+    static C()
+    {
+        Property = null; // 1
+        this.Property = null; // 2
+    }
+}
+public class D : C
+{
+    static D()
+    {
+        Property = null; // 3
+        this.Property = null; // 4
+        base.Property = null; // 5
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.Property'
+                //         Property = null; // 1
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Property").WithArguments("C.Property").WithLocation(7, 9),
+                // (8,9): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
+                //         this.Property = null; // 2
+                Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(8, 9),
+                // (15,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.Property'
+                //         Property = null; // 3
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Property").WithArguments("C.Property").WithLocation(15, 9),
+                // (16,9): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
+                //         this.Property = null; // 4
+                Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(16, 9),
+                // (17,9): error CS1511: Keyword 'base' is not available in a static method
+                //         base.Property = null; // 5
+                Diagnostic(ErrorCode.ERR_BaseInStaticMeth, "base").WithLocation(17, 9)
+                );
         }
     }
 }

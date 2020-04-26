@@ -43,8 +43,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignmentInitOnly">
-        <source>Init-only member '{0}' can only be assigned from a constructor, object initialization or 'with' expression of that type.</source>
-        <target state="new">Init-only member '{0}' can only be assigned from a constructor, object initialization or 'with' expression of that type.</target>
+        <source>Init-only property or indexer '{0}' can only be assigned from a constructor, object initialization or 'with' expression of that type.</source>
+        <target state="new">Init-only property or indexer '{0}' can only be assigned from a constructor, object initialization or 'with' expression of that type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">

@@ -160,7 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.OpenBraceToken);
 
                 AddAccessor(symbol, symbol.GetMethod, SyntaxKind.GetKeyword);
-                AddAccessor(symbol, symbol.SetMethod, SyntaxKind.SetKeyword);
+                // PROTOTYPE(records): adjust SymbolDisplayVisitor once we have a public IsInitOnly API
+                var keywordForSetAccessor = ((Symbols.PublicModel.MethodSymbol)symbol.SetMethod).UnderlyingMethodSymbol.IsInitOnly ? SyntaxKind.InitKeyword : SyntaxKind.SetKeyword;
+                AddAccessor(symbol, symbol.SetMethod, keywordForSetAccessor);
 
                 AddSpace();
                 AddPunctuation(SyntaxKind.CloseBraceToken);

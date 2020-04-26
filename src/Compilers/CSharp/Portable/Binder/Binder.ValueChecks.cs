@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                return method.MethodKind == MethodKind.PropertySet && method.IsInitOnly;
+                return method.IsInitOnly;
             }
         }
 
@@ -949,7 +949,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Addendum: Assignment is also allowed for get-only autoprops in their constructor
 
-            var propertySymbol = GetPropertySymbol(expr, out BoundExpression receiver, out SyntaxNode propertySyntax);
+            BoundExpression receiver;
+            SyntaxNode propertySyntax;
+            var propertySymbol = GetPropertySymbol(expr, out receiver, out propertySyntax);
 
             Debug.Assert((object)propertySymbol != null);
             Debug.Assert(propertySyntax != null);
@@ -1113,10 +1115,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                bool isInitOnlySetter = method.MethodKind == MethodKind.PropertySet && method.IsInitOnly;
-                if (method.IsConstructor() || isInitOnlySetter)
+                Debug.Assert(!method.IsStatic);
+                Debug.Assert(!method.IsInitOnly || method.MethodKind == MethodKind.PropertySet);
+                if (method.IsConstructor() || method.IsInitOnly)
                 {
-                    // ok: setting on `this` or `base` from a constructor or init-only setter
+                    // ok: setting on `this` or `base` from an instance constructor or init-only setter
                     return true;
                 }
 

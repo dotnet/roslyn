@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly bool _isAutoPropertyAccessor;
         private readonly bool _isExpressionBodied;
-        private readonly bool _isInitOnly;
+        private readonly bool _usesInit;
 
         public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
             NamedTypeSymbol containingType,
@@ -221,8 +221,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var hasBody = syntax.Body != null;
             var hasExpressionBody = syntax.ExpressionBody != null;
             _isExpressionBodied = !hasBody && hasExpressionBody;
-            _isInitOnly = syntax.Keyword.IsKind(SyntaxKind.InitKeyword);
-            if (_isInitOnly)
+            _usesInit = syntax.Keyword.IsKind(SyntaxKind.InitKeyword);
+            if (_usesInit)
             {
                 Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInitOnlySetters, diagnostics, syntax.Keyword.GetLocation());
             }
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsInitOnly => _isInitOnly;
+        internal override bool IsInitOnly => !IsStatic && _usesInit;
 
         private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation,
             bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Auto-implemented accessor '{0}' cannot be marked 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_AutoSetterCantBeReadOnly, location, this);
             }
-            else if (IsInitOnly && IsStatic)
+            else if (_usesInit && IsStatic)
             {
                 // The 'init' accessor is not valid on static members
                 diagnostics.Add(ErrorCode.ERR_BadInitAccessor, location);

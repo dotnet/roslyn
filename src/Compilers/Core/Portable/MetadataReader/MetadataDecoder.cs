@@ -1187,7 +1187,7 @@ tryAgain:
             var allowedRequiredModifiers = AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute;
             if (isReturn)
             {
-                // PROTOTYPE(init-only): can we make this more restrictive (ie. disallow aside from the return value of a setter)?
+                // PROTOTYPE(init-only): can we make this more restrictive (ie. disallow aside from the return value of an instance setter)?
                 allowedRequiredModifiers |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
             }
 
@@ -1200,10 +1200,17 @@ tryAgain:
             if (typeCode == SignatureTypeCode.ByReference)
             {
                 info.IsByRef = true;
-                info.RefCustomModifiers = info.CustomModifiers;
+
+                var modifiers = info.CustomModifiers;
+                if (!modifiers.IsDefault)
+                {
+                    modifiers = modifiers.WhereAsArray(m => IsAcceptedInAttributeModifierType(m.Modifier));
+                }
+                info.RefCustomModifiers = modifiers;
+
                 info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
             }
-            else if ((inAttributeFound & AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) != 0)
+            else if ((inAttributeFound & ~AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0)
             {
                 // This cannot be placed on CustomModifiers, just RefCustomModifiers
                 throw new UnsupportedSignatureContent();
