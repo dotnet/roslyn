@@ -335,7 +335,7 @@ class C
         private static readonly string s_preferSwitchExpression = $@"
 class C
 {{
-    int M1()
+    void M1()
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
@@ -346,7 +346,7 @@ class C
         }}
 //]
     }}
-    int M2()
+    void M2()
     {{
 //[
         // {ServicesVSResources.Over_colon}
@@ -365,14 +365,14 @@ class C
         private static readonly string s_preferPatternMatching = $@"
 class C
 {{
-    bool M1()
+    void M1()
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
         return num is 1 or 2;
 //]
     }}
-    bool M2()
+    void M2()
     {{
 //[
         // {ServicesVSResources.Over_colon}
