@@ -41,26 +41,16 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             return Task.CompletedTask;
         }
 
-        private static async Task<Document> UpdateDocumentAsync(
-            Document document,
-            Diagnostic diagnostic,
-            CancellationToken cancellationToken)
-        {
-            var newRoot = await FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken).ConfigureAwait(false);
-            return document.WithSyntaxRoot(newRoot);
-        }
+        private static async Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+            => document.WithSyntaxRoot(await FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken).ConfigureAwait(false));
 
-        public static async Task<SyntaxNode> FixAllAsync(
-            Document document,
-            ImmutableArray<Diagnostic> diagnostics,
-            CancellationToken cancellationToken)
+        public static async Task<SyntaxNode> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var endOfLine = options.GetOption(FormattingOptions.NewLine);
-            var endOfLineTrivia = SyntaxFactory.ElasticEndOfLine(endOfLine);
+            var endOfLineTrivia = SyntaxFactory.ElasticEndOfLine(options.GetOption<string>(FormattingOptions.NewLine));
 
             foreach (var diagnostic in diagnostics)
                 FixOne(editor, diagnostic, endOfLineTrivia, cancellationToken);
@@ -140,6 +130,5 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
 
         private static SyntaxToken AddLeadingTrivia(SyntaxToken token, SyntaxTrivia trivia)
             => token.WithLeadingTrivia(token.LeadingTrivia.Insert(0, trivia));
-
     }
 }
