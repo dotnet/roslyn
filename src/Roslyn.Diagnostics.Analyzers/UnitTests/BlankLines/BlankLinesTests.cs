@@ -600,5 +600,121 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestNoBlankLineAfterDocComment()
+        {
+            var code =
+@"
+/// <summary/>
+class C
+{
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestOneBlankLineAfterDocComment()
+        {
+            var code =
+@"
+/// <summary/>
+
+class C
+{
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTwoBlankLineAfterDocComment()
+        {
+            var code =
+@"
+/// <summary/>
+[||]
+
+class C
+{
+}";
+            var fixedCode =
+@"
+/// <summary/>
+
+class C
+{
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestThreeBlankLineAfterDocComment()
+        {
+            var code =
+@"
+/// <summary/>
+[||]
+
+
+class C
+{
+}";
+            var fixedCode =
+@"
+/// <summary/>
+
+class C
+{
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFourBlankLineAfterDocComment()
+        {
+            var code =
+@"
+/// <summary/>
+[||]
+
+
+
+class C
+{
+}";
+            var fixedCode =
+@"
+/// <summary/>
+
+class C
+{
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
     }
 }
