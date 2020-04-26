@@ -2872,6 +2872,7 @@ public class D
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.False(property0.HasUseSiteError);
             Assert.Empty(property0.RefCustomModifiers);
+            Assert.Equal("System.Runtime.CompilerServices.IsExternalInit", property0.TypeWithAnnotations.CustomModifiers.Single().Modifier.ToTestDisplayString());
 
             Assert.True(property0.MustCallMethodsDirectly);
             Assert.False(property0.GetMethod.HasUseSiteError);

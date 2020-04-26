@@ -6083,6 +6083,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Generator failed to initialize.</value>
   </data>
   <data name="ERR_AssignmentInitOnly" xml:space="preserve">
-    <value>Init-only property or indexer '{0}' can only be assigned from a constructor, object initialization or 'with' expression of that type.</value>
+    <value>Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</value>
   </data>
 </root>

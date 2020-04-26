@@ -1201,14 +1201,19 @@ tryAgain:
             {
                 info.IsByRef = true;
 
-                var modifiers = info.CustomModifiers;
-                if (!modifiers.IsDefault)
+                var refModifiers = info.CustomModifiers;
+                if (!refModifiers.IsDefault)
                 {
-                    modifiers = modifiers.WhereAsArray(m => IsAcceptedInAttributeModifierType(m.Modifier));
+                    refModifiers = refModifiers.WhereAsArray(m => IsAcceptedInAttributeModifierType(m.Modifier));
                 }
-                info.RefCustomModifiers = modifiers;
+                info.RefCustomModifiers = refModifiers;
 
-                info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
+                var customModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
+                if (!info.CustomModifiers.IsDefault)
+                {
+                    customModifiers = customModifiers.IsDefault ? info.CustomModifiers : info.CustomModifiers.AddRange(customModifiers);
+                }
+                info.CustomModifiers = customModifiers;
             }
             else if ((inAttributeFound & ~AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0)
             {
