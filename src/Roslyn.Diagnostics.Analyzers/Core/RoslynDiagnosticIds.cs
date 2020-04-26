@@ -49,5 +49,7 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string DoNotCallGetTestAccessorRuleId = "RS0043";
         public const string CreateTestAccessorRuleId = "RS0044";
         public const string ExposeMemberForTestingRuleId = "RS0045";
+
+        public const string BracePlacementRuleId = "RS0046";
     }
 }
