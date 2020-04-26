@@ -158,5 +158,128 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
                 FixedCode = fixedCode,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestNoBlankLineAtEndOfFile_1()
+        {
+            var code =
+@"class C
+{
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNoBlankLineAtEndOfFile_2()
+        {
+            var code =
+@"class C
+{
+}
+";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestOneBlankLineAtEndOfFile()
+        {
+            var code =
+@"class C
+{
+}
+
+";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTwoBlankLineAtEndOfFile()
+        {
+            var code =
+@"class C
+{
+}
+[||]
+
+";
+            var fixedCode =
+@"class C
+{
+}
+
+";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestThreeBlankLineAtEndOfFile()
+        {
+            var code =
+@"class C
+{
+}
+[||]
+
+
+";
+            var fixedCode =
+@"class C
+{
+}
+
+";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFourBlankLineAtEndOfFile()
+        {
+            var code =
+@"class C
+{
+}
+[||]
+
+
+
+";
+            var fixedCode =
+@"class C
+{
+}
+
+";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
     }
 }
