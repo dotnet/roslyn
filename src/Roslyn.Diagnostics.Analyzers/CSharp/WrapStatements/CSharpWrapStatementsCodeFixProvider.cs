@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Diagnostics.Analyzers;
@@ -87,30 +88,15 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             var descendentStatements = startStatement.DescendantNodesAndSelf().OfType<StatementSyntax>();
             var badStatements = descendentStatements.Where(s => CSharpWrapStatementsDiagnosticAnalyzer.StatementNeedsWrapping(s)).ToSet();
 
-            var ancestorBlocks = startStatement.AncestorsAndSelf().OfType<BlockSyntax>();
-
-            var badStatementsAndAncestors = badStatements.Concat(ancestorBlocks).Distinct();
-
-            // Now walk up the statements so that higher up changes see the changes below. We'll walk both the
-            // statements that are explicitly bad, as well as any block statements above it.
-            foreach (var statement in badStatementsAndAncestors.OrderByDescending(s => s.SpanStart))
+            // Walk from lower statements to higher so the higher up changes see the changes below.
+            foreach (var badStatement in badStatements.OrderByDescending(s => s.SpanStart))
             {
-                if (!badStatements.Contains(statement))
-                {
-                    // this is an ancestor block.  Place an elastic marker on it so that if it needs to be reformatted
-                    // because of the change in the child, it will be.
-                    editor.ReplaceNode(
-                        statement,
-                        (current, g) => AddLeadingTrivia(current, SyntaxFactory.ElasticMarker));
-                    continue;
-                }
-
                 editor.ReplaceNode(
-                    statement,
-                    (currentStatement, g) =>
+                    badStatement,
+                    (currentBadStatement, _) =>
                     {
                         // Ensure a newline between the statement and the statement that preceded it.
-                        var updatedStatement = AddLeadingTrivia(currentStatement, endOfLineTrivia);
+                        var updatedStatement = AddLeadingTrivia(currentBadStatement, endOfLineTrivia);
 
                         // Ensure that if we wrap an empty block that the trailing brace is on a new line as well.
                         if (updatedStatement is BlockSyntax blockSyntax &&
@@ -120,12 +106,32 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
                                 AddLeadingTrivia(blockSyntax.CloseBraceToken, SyntaxFactory.ElasticMarker));
                         }
 
-                        // Also place an elastic marker at the end of the statement if we're parented by a block to ensure that
-                        // the `}` is properly placed.
-                        if (currentStatement.GetLastToken().GetNextToken().IsKind(SyntaxKind.CloseBraceToken))
-                            updatedStatement = AddTrailingTrivia(updatedStatement, SyntaxFactory.ElasticMarker);
-
                         return updatedStatement;
+                    });
+            }
+
+            // Now walk up all our containing blocks ensuring that they wrap over multiple lines
+            var ancestorBlocks = startStatement.AncestorsAndSelf().OfType<BlockSyntax>();
+            foreach (var block in ancestorBlocks)
+            {
+                var openBrace = block.OpenBraceToken;
+                var previousToken = openBrace.GetPreviousToken();
+
+                editor.ReplaceNode(
+                    block,
+                    (current, _) =>
+                    {
+                        // If the block's open { is not already on a new line, add an elastic marker so it will be placed there.
+                        var currentBlock = (BlockSyntax)current;
+                        if (!CSharpWrapStatementsDiagnosticAnalyzer.ContainsEndOfLineBetween(previousToken, openBrace))
+                        {
+                            currentBlock = currentBlock.WithOpenBraceToken(
+                                AddLeadingTrivia(currentBlock.OpenBraceToken, SyntaxFactory.ElasticMarker));
+                        }
+
+                        currentBlock = currentBlock.WithCloseBraceToken(
+                            AddLeadingTrivia(currentBlock.CloseBraceToken, SyntaxFactory.ElasticMarker));
+                        return currentBlock;
                     });
             }
         }

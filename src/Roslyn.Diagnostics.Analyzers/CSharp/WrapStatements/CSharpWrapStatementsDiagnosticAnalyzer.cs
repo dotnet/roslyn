@@ -105,11 +105,11 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
                 return false;
 
             var statementStartToken = statement.GetFirstToken();
-            var previousToken = statementStartToken.GetPreviousToken();
 
             // we have to have a newline between the start of this statement and the previous statement.
-            if (ContainsEndOfLine(previousToken.TrailingTrivia) ||
-                ContainsEndOfLine(statementStartToken.LeadingTrivia))
+            if (ContainsEndOfLineBetween(
+                    statementStartToken.GetPreviousToken(),
+                    statementStartToken))
             {
                 return false;
             }
@@ -133,6 +133,10 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
 
             return true;
         }
+
+        public static bool ContainsEndOfLineBetween(SyntaxToken previous, SyntaxToken next)
+            => ContainsEndOfLine(previous.TrailingTrivia) ||
+               ContainsEndOfLine(next.LeadingTrivia);
 
         private static bool ContainsEndOfLine(SyntaxTriviaList triviaList)
         {
