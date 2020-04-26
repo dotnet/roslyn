@@ -3192,7 +3192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
         }
 
-        public BoundBlock CreateBlockFromExpression(ExpressionSyntax body, BoundExpression expression, DiagnosticBag diagnostics)
+        public BoundBlock CreateBlockFromExpression(ExpressionSyntax body, BoundExpression expression, BindingDiagnosticBag diagnostics)
         {
             Binder bodyBinder = this.GetBinder(body);
             Debug.Assert(bodyBinder != null);

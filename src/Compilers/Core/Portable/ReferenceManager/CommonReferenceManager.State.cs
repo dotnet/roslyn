@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
         /// associated with a key in the map.
         /// The keys are a subset of keys from <see cref="_lazyReferencedAssembliesMap"/>.
         /// </summary>
-        private ImmutableDictionary<MetadataReference, ImmutableArray<MetadataReference>> _lazyMergedAssemblyReferencesMap;
+        private ImmutableDictionary<MetadataReference, ImmutableArray<MetadataReference>>? _lazyMergedAssemblyReferencesMap;
 
         /// <summary>
         /// Unified assemblies referenced directly by the source module of the compilation.
@@ -331,6 +331,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 AssertBound();
+                Debug.Assert(_lazyMergedAssemblyReferencesMap != null);
                 return _lazyMergedAssemblyReferencesMap;
             }
         }
@@ -424,7 +425,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<TAssemblySymbol> referencedAssemblies,
             ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies,
             ImmutableArray<UnifiedAssembly<TAssemblySymbol>> unifiedAssemblies,
-            Dictionary<MetadataReference, ImmutableArray<MetadataReference>> mergedAssemblyReferencesMapOpt)
+            Dictionary<MetadataReference, ImmutableArray<MetadataReference>>? mergedAssemblyReferencesMapOpt)
         {
             AssertUnbound();
 
@@ -471,7 +472,7 @@ namespace Microsoft.CodeAnalysis
             out Dictionary<MetadataReference, int> referencedAssembliesMap,
             out Dictionary<MetadataReference, int> referencedModulesMap,
             out ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies,
-            out Dictionary<MetadataReference, ImmutableArray<MetadataReference>> mergedAssemblyReferencesMapOpt)
+            out Dictionary<MetadataReference, ImmutableArray<MetadataReference>>? mergedAssemblyReferencesMapOpt)
         {
             referencedAssembliesMap = new Dictionary<MetadataReference, int>(referenceMap.Length);
             referencedModulesMap = new Dictionary<MetadataReference, int>(referencedModuleCount);

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (reference.Properties.Kind == MetadataImageKind.Assembly)
                 {
-                    Symbol symbol = GetBoundReferenceManager().GetReferencedAssemblySymbol(reference);
+                    Symbol? symbol = GetBoundReferenceManager().GetReferencedAssemblySymbol(reference);
                     if (symbol is object && usedAssemblies.Contains((AssemblySymbol)symbol) &&
                         setOfReferences.Add(reference) &&
                         mergedAssemblyReferencesMap.TryGetValue(reference, out ImmutableArray<MetadataReference> merged))

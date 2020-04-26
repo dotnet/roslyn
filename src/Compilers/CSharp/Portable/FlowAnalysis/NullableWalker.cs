@@ -2463,9 +2463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
-            var discardedDiagnostics = new DiagnosticBag();
-            var expr = _binder.BindObjectCreationForErrorRecovery(node, discardedDiagnostics);
-            discardedDiagnostics.Free();
+            var expr = _binder.BindObjectCreationForErrorRecovery(node, BindingDiagnosticBag.Discarded);
             Visit(expr);
             SetResultType(node, TypeWithState.Create(expr.Type, NullableFlowState.NotNull));
             return null;

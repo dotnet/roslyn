@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     {
         public ArrayBuilder<string>? AliasesOpt;
         public ArrayBuilder<string>? RecursiveAliasesOpt;
-        public ArrayBuilder<MetadataReference> MergedReferencesOpt;
+        public ArrayBuilder<MetadataReference>? MergedReferencesOpt;
 
         /// <summary>
         /// Adds aliases of a specified reference to the merged set of aliases.

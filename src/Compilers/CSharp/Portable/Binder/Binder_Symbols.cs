@@ -866,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If the node is "nint" or "nuint", return the corresponding native integer symbol.
         /// Otherwise return null.
         /// </summary>
-        private NamedTypeSymbol BindNativeIntegerSymbolIfAny(IdentifierNameSyntax node, DiagnosticBag diagnostics)
+        private NamedTypeSymbol BindNativeIntegerSymbolIfAny(IdentifierNameSyntax node, BindingDiagnosticBag diagnostics)
         {
             SpecialType specialType;
             switch (node.Identifier.Text)
