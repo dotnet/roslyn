@@ -661,5 +661,96 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BracePlacement
                 FixedCode = fixedCode
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task RealCode1()
+        {
+            var code =
+@"
+#nullable enable
+
+using System;
+
+#if CODE_STYLE
+using System.Collections.Generic;
+#endif
+
+namespace Microsoft.CodeAnalysis.Options
+{
+    internal interface IOption { }
+
+    internal interface IOption2
+#if !CODE_STYLE
+    : IOption
+#endif
+    {
+        string OptionDefinition { get; }
+
+#if CODE_STYLE
+        string Feature { get; }
+        string Name { get; }
+        Type Type { get; }
+        object? DefaultValue { get; }
+        bool IsPerLanguage { get; }
+
+        List<string> StorageLocations { get; }
+#endif
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task RealCode2()
+        {
+            var code =
+@"
+#define CODE_STYLE
+#nullable enable
+
+using System;
+
+#if CODE_STYLE
+using System.Collections.Generic;
+#endif
+
+namespace Microsoft.CodeAnalysis.Options
+{
+    internal interface IOption { }
+
+    internal interface IOption2
+#if !CODE_STYLE
+    : IOption
+#endif
+    {
+        string OptionDefinition { get; }
+
+#if CODE_STYLE
+        string Feature { get; }
+        string Name { get; }
+        Type Type { get; }
+        object? DefaultValue { get; }
+        bool IsPerLanguage { get; }
+
+        List<string> StorageLocations { get; }
+#endif
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
     }
 }

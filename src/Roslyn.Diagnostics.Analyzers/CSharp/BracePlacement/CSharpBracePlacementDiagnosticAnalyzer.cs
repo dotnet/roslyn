@@ -6,7 +6,6 @@ using Analyzer.Utilities;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Diagnostics.Analyzers;
@@ -124,7 +123,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.BracePlacement
                 return false;
 
             // they're multiple lines apart.  This i not ok if those lines are all whitespace.
-            for (var currentLine = firstBraceLine + 1; currentLine < secondBraceLine - 1; currentLine++)
+            for (var currentLine = firstBraceLine + 1; currentLine < secondBraceLine; currentLine++)
             {
                 if (!IsAllWhitespace(lines[currentLine]))
                     return false;
