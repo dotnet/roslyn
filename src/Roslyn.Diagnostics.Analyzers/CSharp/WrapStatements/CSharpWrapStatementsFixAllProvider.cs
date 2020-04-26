@@ -14,10 +14,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
         protected override string CodeActionTitle
             => RoslynDiagnosticsAnalyzersResources.Place_statement_on_following_line;
 
-        protected override Task<SyntaxNode> FixAllInDocumentAsync(
-            FixAllContext fixAllContext,
-            Document document,
-            ImmutableArray<Diagnostic> diagnostics)
+        protected override Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
         {
             return CSharpWrapStatementsCodeFixProvider.FixAllAsync(
                 document, diagnostics, fixAllContext.CancellationToken);
