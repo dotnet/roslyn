@@ -41,6 +41,7 @@ class C
     void Argument3() => Test(_ => EXPRESSION);
     void For() { for (; EXPRESSION; ); }
     void Local() { var local = EXPRESSION; }
+    void Conditional() { _ = EXPRESSION ? true : false; }
     void Assignment() { _ = EXPRESSION; }
     void Do() { do ; while (EXPRESSION); }
     void While() { while (EXPRESSION) ; }

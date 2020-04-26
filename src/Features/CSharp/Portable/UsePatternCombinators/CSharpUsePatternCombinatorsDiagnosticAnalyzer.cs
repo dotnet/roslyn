@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeNode,
                 SyntaxKind.SwitchExpressionArm,
+                SyntaxKind.ConditionalExpression,
                 SyntaxKind.ForStatement,
                 SyntaxKind.EqualsValueClause,
                 SyntaxKind.IfStatement,
@@ -38,8 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 SyntaxKind.DoStatement,
                 SyntaxKind.ReturnStatement,
                 SyntaxKind.YieldReturnStatement,
-                SyntaxKind.SimpleAssignmentExpression,
                 SyntaxKind.ArrowExpressionClause,
+                SyntaxKind.SimpleAssignmentExpression,
                 SyntaxKind.SimpleLambdaExpression,
                 SyntaxKind.ParenthesizedLambdaExpression,
                 SyntaxKind.Argument);
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             => node switch
             {
                 SwitchExpressionArmSyntax n => n.Expression,
+                ConditionalExpressionSyntax n => n.Condition,
                 ForStatementSyntax n => n.Condition,
                 EqualsValueClauseSyntax n => n.Value,
                 IfStatementSyntax n => n.Condition,
