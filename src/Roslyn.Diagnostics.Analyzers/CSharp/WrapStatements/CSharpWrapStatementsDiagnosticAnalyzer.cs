@@ -107,9 +107,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             var statementStartToken = statement.GetFirstToken();
 
             // we have to have a newline between the start of this statement and the previous statement.
-            if (ContainsEndOfLineBetween(
-                    statementStartToken.GetPreviousToken(),
-                    statementStartToken))
+            if (ContainsEndOfLineBetween(statementStartToken.GetPreviousToken(), statementStartToken))
             {
                 return false;
             }
