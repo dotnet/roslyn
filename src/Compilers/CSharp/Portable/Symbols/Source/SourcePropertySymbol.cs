@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     string fieldName = GeneratedNames.MakeBackingFieldName(_sourceName);
-                    bool isInitOnly = setSyntax?.Keyword.IsKind(SyntaxKind.InitKeyword) == true;
+                    bool isInitOnly = !IsStatic && setSyntax?.Keyword.IsKind(SyntaxKind.InitKeyword) == true;
                     BackingField = new SynthesizedBackingFieldSymbol(this,
                                                                           fieldName,
                                                                           isReadOnly: isGetterOnly || isInitOnly,

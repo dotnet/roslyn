@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AddAccessor(symbol, symbol.GetMethod, SyntaxKind.GetKeyword);
                 // PROTOTYPE(records): adjust SymbolDisplayVisitor once we have a public IsInitOnly API
-                var keywordForSetAccessor = ((Symbols.PublicModel.MethodSymbol)symbol.SetMethod).UnderlyingMethodSymbol.IsInitOnly ? SyntaxKind.InitKeyword : SyntaxKind.SetKeyword;
+                var keywordForSetAccessor = ((Symbols.PublicModel.MethodSymbol)symbol.SetMethod)?.UnderlyingMethodSymbol.IsInitOnly == true ? SyntaxKind.InitKeyword : SyntaxKind.SetKeyword;
                 AddAccessor(symbol, symbol.SetMethod, keywordForSetAccessor);
 
                 AddSpace();

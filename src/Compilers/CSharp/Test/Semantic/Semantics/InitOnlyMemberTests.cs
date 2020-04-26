@@ -2360,6 +2360,14 @@ public class Derived2 : C
 {
     public override int Property { init { throw null; } }
 }
+public class D
+{
+    void M(C c)
+    {
+        c.Property = 42;
+        c.set_Property(42);
+    }
+}
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
@@ -2370,11 +2378,18 @@ public class Derived2 : C
                 Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived.Property", "C.Property").WithLocation(4, 25),
                 // (8,25): error CS0569: 'Derived2.Property': cannot override 'C.Property' because it is not supported by the language
                 //     public override int Property { init { throw null; } }
-                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived2.Property", "C.Property").WithLocation(8, 25)
+                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived2.Property", "C.Property").WithLocation(8, 25),
+                // (14,11): error CS1546: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor method 'C.set_Property(?)'
+                //         c.Property = 42;
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Property").WithArguments("C.Property", "C.set_Property(?)").WithLocation(14, 11),
+                // (15,11): error CS0570: 'C.set_Property(?)' is not supported by the language
+                //         c.set_Property(42);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(?)").WithLocation(15, 11)
                 );
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.Null(property0.GetMethod);
+            Assert.True(property0.MustCallMethodsDirectly);
             Assert.True(property0.SetMethod.HasUseSiteError);
             Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
 
@@ -2432,6 +2447,14 @@ public class Derived2 : C
 {
     public override int Property { init { throw null; } }
 }
+public class D
+{
+    void M(C c)
+    {
+        c.Property = 42;
+        c.set_Property(42);
+    }
+}
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
@@ -2442,20 +2465,31 @@ public class Derived2 : C
                 Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived.Property", "C.Property").WithLocation(4, 25),
                 // (8,25): error CS0569: 'Derived2.Property': cannot override 'C.Property' because it is not supported by the language
                 //     public override int Property { init { throw null; } }
-                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived2.Property", "C.Property").WithLocation(8, 25)
+                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived2.Property", "C.Property").WithLocation(8, 25),
+                // (14,11): error CS1546: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor method 'C.set_Property(?)'
+                //         c.Property = 42;
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Property").WithArguments("C.Property", "C.set_Property(?)").WithLocation(14, 11),
+                // (15,11): error CS0570: 'C.set_Property(?)' is not supported by the language
+                //         c.set_Property(42);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(?)").WithLocation(15, 11)
                 );
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
+            Assert.False(property0.HasUseSiteError);
+            Assert.True(property0.MustCallMethodsDirectly);
+            Assert.Equal("System.Int32", property0.Type.ToTestDisplayString());
             Assert.Null(property0.GetMethod);
             Assert.True(property0.SetMethod.HasUseSiteError);
             Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
 
             var property1 = (PropertySymbol)comp.GlobalNamespace.GetMember("Derived.Property");
+            Assert.False(property1.HasUseSiteError);
             Assert.Null(property1.GetMethod);
             Assert.False(property1.SetMethod.HasUseSiteError);
             Assert.False(property1.SetMethod.Parameters[0].Type.IsErrorType());
 
             var property2 = (PropertySymbol)comp.GlobalNamespace.GetMember("Derived2.Property");
+            Assert.False(property2.HasUseSiteError);
             Assert.Null(property2.GetMethod);
             Assert.False(property2.SetMethod.HasUseSiteError);
             Assert.False(property2.SetMethod.Parameters[0].Type.IsErrorType());
@@ -2529,6 +2563,14 @@ public class Derived2 : C
 {
     public override int this[int i] { init { throw null; } }
 }
+public class D
+{
+    void M(C c)
+    {
+        c[42] = 43;
+        c.set_Item(42, 43);
+    }
+}
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
@@ -2539,10 +2581,18 @@ public class Derived2 : C
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("Derived.this[int]").WithLocation(4, 25),
                 // (8,25): error CS0115: 'Derived2.this[int]': no suitable method found to override
                 //     public override int this[int i] { init { throw null; } }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("Derived2.this[int]").WithLocation(8, 25)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("Derived2.this[int]").WithLocation(8, 25),
+                // (14,9): error CS1546: Property, indexer, or event 'C.this[?]' is not supported by the language; try directly calling accessor method 'C.set_Item(?, ?)'
+                //         c[42] = 43;
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "c[42]").WithArguments("C.this[?]", "C.set_Item(?, ?)").WithLocation(14, 9),
+                // (15,11): error CS0570: 'C.set_Item(?, ?)' is not supported by the language
+                //         c.set_Item(42, 43);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("C.set_Item(?, ?)").WithLocation(15, 11)
                 );
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.this[]");
+            Assert.True(property0.HasUseSiteError);
+            Assert.True(property0.MustCallMethodsDirectly);
             Assert.Null(property0.GetMethod);
             Assert.True(property0.SetMethod.HasUseSiteError);
             Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
@@ -2630,6 +2680,8 @@ public class Derived2 : C
                 );
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.this[]");
+            Assert.False(property0.HasUseSiteError);
+            Assert.True(property0.MustCallMethodsDirectly);
             Assert.Null(property0.GetMethod);
             Assert.True(property0.SetMethod.HasUseSiteError);
             Assert.True(property0.SetMethod.Parameters[1].Type.IsErrorType());
@@ -2641,7 +2693,7 @@ public class Derived2 : C
             string il = @"
 .class public auto ansi beforefieldinit C extends System.Object
 {
-    .method public hidebysig specialname newslot virtual static void modreq(System.Runtime.CompilerServices.IsExternalInit) set_Property ( int32 'value' ) cil managed
+    .method public hidebysig static void modreq(System.Runtime.CompilerServices.IsExternalInit) M () cil managed
     {
         IL_0000: ldnull
         IL_0001: throw
@@ -2651,11 +2703,6 @@ public class Derived2 : C
     {
         IL_0000: ldnull
         IL_0001: throw
-    }
-
-    .property instance int32 Property()
-    {
-        .set void modreq(System.Runtime.CompilerServices.IsExternalInit) C::set_Property(int32)
     }
 }
 
@@ -2668,13 +2715,25 @@ public class Derived2 : C
     }
 }
 ";
+            string source = @"
+public class D
+{
+    void M2()
+    {
+        C.M();
+    }
+}
+";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation("", references: new[] { reference }, parseOptions: TestOptions.RegularPreview,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
 
-            var property = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
-            Assert.False(property.SetMethod.IsInitOnly);
+            // PROTOTYPE(init-only): decoding should be more restrictive
+            var method = (PEMethodSymbol)comp.GlobalNamespace.GetMember("C.M");
+            Assert.False(method.IsInitOnly);
+            Assert.False(method.HasUseSiteError);
+            //Assert.True(method.ReturnType.IsErrorType());
         }
 
         [Fact]
@@ -2871,10 +2930,10 @@ public class D
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.False(property0.HasUseSiteError);
+            Assert.True(property0.MustCallMethodsDirectly);
             Assert.Empty(property0.RefCustomModifiers);
             Assert.Equal("System.Runtime.CompilerServices.IsExternalInit", property0.TypeWithAnnotations.CustomModifiers.Single().Modifier.ToTestDisplayString());
 
-            Assert.True(property0.MustCallMethodsDirectly);
             Assert.False(property0.GetMethod.HasUseSiteError);
             Assert.True(property0.GetMethod.ReturnsByRef);
             Assert.False(property0.GetMethod.ReturnType.IsErrorType());
@@ -2937,10 +2996,12 @@ public class Derived : C
             // PROTOTYPE(init-only): can we make this more restrictive (ie. disallow aside from the return value of an instance setter)?
             comp.VerifyDiagnostics();
 
-            // PROTOTYPE(init-only): getter should probably have use-site error
+            // PROTOTYPE(init-only): getter should have use-site error
             var property = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.False(property.GetMethod.IsInitOnly);
+            Assert.False(property.GetMethod.HasUseSiteError);
             Assert.False(property.SetMethod.IsInitOnly);
+            Assert.False(property.SetMethod.HasUseSiteError);
         }
 
         [Fact]
