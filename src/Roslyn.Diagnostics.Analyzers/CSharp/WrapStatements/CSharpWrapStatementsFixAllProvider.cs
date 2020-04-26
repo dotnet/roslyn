@@ -16,6 +16,5 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
 
         protected override Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             => CSharpWrapStatementsCodeFixProvider.FixAllAsync(document, diagnostics, fixAllContext.CancellationToken);
-        }
     }
 }
