@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
@@ -103,18 +104,6 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             if (statement.IsKind(SyntaxKind.IfStatement) && parentIsElseClause)
                 return false;
 
-            if (parent.IsKind(SyntaxKind.Block))
-            {
-                // Blocks can be on a single line if parented by a member/accessor/lambda.
-                var blockParent = parent.Parent;
-                if (blockParent is MemberDeclarationSyntax ||
-                    blockParent is AccessorDeclarationSyntax ||
-                    blockParent is AnonymousFunctionExpressionSyntax)
-                {
-                    return false;
-                }
-            }
-
             var statementStartToken = statement.GetFirstToken();
             var previousToken = statementStartToken.GetPreviousToken();
 
@@ -123,6 +112,23 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
                 ContainsEndOfLine(statementStartToken.LeadingTrivia))
             {
                 return false;
+            }
+
+            // Looks like a statement that might need wrapping.  However, we do suppress wrapping for a few well known
+            // acceptable cases.
+
+            if (parent.IsKind(SyntaxKind.Block))
+            {
+                // Blocks can be on a single line if parented by a member/accessor/lambda.
+                // And if they only contain a single statement at most within them.
+                var blockParent = parent.Parent;
+                if (blockParent is MemberDeclarationSyntax ||
+                    blockParent is AccessorDeclarationSyntax ||
+                    blockParent is AnonymousFunctionExpressionSyntax)
+                {
+                    if (parent.DescendantNodes().OfType<StatementSyntax>().Count() <= 1)
+                        return false;
+                }
             }
 
             return true;

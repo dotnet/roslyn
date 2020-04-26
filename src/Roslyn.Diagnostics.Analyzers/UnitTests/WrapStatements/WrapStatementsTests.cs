@@ -213,5 +213,39 @@ class TestClass
                 FixedCode = fixedCode,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task WrapLambdaWithNestedStatement()
+        {
+            var source = @"
+using System;
+
+class TestClass
+{
+    void N()
+    {
+        Action a1 = () => { [|if|] (true) return; };
+    }
+}";
+            var fixedCode = @"
+using System;
+
+class TestClass
+{
+    void N()
+    {
+        Action a1 = () =>
+        {
+            if (true)
+                return;
+        };
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
     }
 }
