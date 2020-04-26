@@ -49,10 +49,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             Recurse(context, root, cancellationToken);
         }
 
-        private void Recurse(
-            SyntaxTreeAnalysisContext context,
-            SyntaxNode node,
-            CancellationToken cancellationToken)
+        private void Recurse(SyntaxTreeAnalysisContext context, SyntaxNode node, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
