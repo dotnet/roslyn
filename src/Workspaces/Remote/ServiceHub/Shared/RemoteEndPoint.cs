@@ -192,10 +192,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, Func<ObjectWriter, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)
             => WriteDataToNamedPipeAsync(pipeName, data,
-                async (s, d, c) =>
+                async (stream, data, cancellationToken) =>
                 {
-                    using var objectWriter = new ObjectWriter(s, leaveOpen: true, c);
-                    await dataWriter(objectWriter, d, c).ConfigureAwait(false);
+                    using var objectWriter = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
+                    await dataWriter(objectWriter, data, cancellationToken).ConfigureAwait(false);
                 }, cancellationToken);
 
         public static async Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, Func<Stream, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)
