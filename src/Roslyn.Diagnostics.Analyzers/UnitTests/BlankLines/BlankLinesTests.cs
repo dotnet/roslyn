@@ -30,11 +30,51 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
                 FixedCode = code,
             }.RunAsync();
         }
+
         [Fact]
-        public async Task TestMultipleBlankLineAtTopOfFile()
+        public async Task TestTwoBlankLineAtTopOfFile()
         {
             var code =
 @"[||]
+
+// comment";
+            var fixedCode =
+@"
+// comment";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestThreeBlankLineAtTopOfFile()
+        {
+            var code =
+@"[||]
+
+
+// comment";
+            var fixedCode =
+@"
+// comment";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFourBlankLineAtTopOfFile()
+        {
+            var code =
+@"[||]
+
+
 
 // comment";
             var fixedCode =
