@@ -488,5 +488,117 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
                 FixedCode = fixedCode,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestNoBlankLineAfterDirective()
+        {
+            var code =
+@"class C
+{
+    #nullable enable
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestOneBlankLineAfterDirective()
+        {
+            var code =
+@"class C
+{
+    #nullable enable
+
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTwoBlankLineAfterDirective()
+        {
+            var code =
+@"class C
+{
+    #nullable enable
+[||]
+
+}";
+            var fixedCode =
+@"class C
+{
+    #nullable enable
+
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestThreeBlankLineAfterDirective()
+        {
+            var code =
+@"class C
+{
+    #nullable enable
+[||]
+
+
+}";
+            var fixedCode =
+@"class C
+{
+    #nullable enable
+
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFourBlankLineAfterDirective()
+        {
+            var code =
+@"class C
+{
+    #nullable enable
+[||]
+
+
+}";
+            var fixedCode =
+@"class C
+{
+    #nullable enable
+
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
     }
 }
