@@ -25,7 +25,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             => ImmutableArray.Create(RoslynDiagnosticIds.WrapStatementsRuleId);
 
         public override FixAllProvider GetFixAllProvider()
-            => WellKnownFixAllProviders.BatchFixer;
+            => new CSharpWrapStatementsFixAllProvider();
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -45,25 +45,49 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             Diagnostic diagnostic,
             CancellationToken cancellationToken)
         {
+            var newRoot = await FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken).ConfigureAwait(false);
+            return document.WithSyntaxRoot(newRoot);
+        }
+
+        public static async Task<SyntaxNode> FixAllAsync(
+            Document document,
+            ImmutableArray<Diagnostic> diagnostics,
+            CancellationToken cancellationToken)
+        {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var endOfLine = options.GetOption(FormattingOptions.NewLine);
+            var endOfLineTrivia = SyntaxFactory.ElasticEndOfLine(endOfLine);
+
+            foreach (var diagnostic in diagnostics)
+                FixOne(editor, diagnostic, endOfLineTrivia, cancellationToken);
+
+            return editor.GetChangedRoot();
+        }
+
+        private static void FixOne(
+            SyntaxEditor editor,
+            Diagnostic diagnostic,
+            SyntaxTrivia endOfLineTrivia,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var root = editor.OriginalRoot;
             var node = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
             if (!(node is StatementSyntax startStatement))
             {
                 Debug.Fail("Couldn't find statement in fixer");
-                return document;
+                return;
             }
-
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
             // fixup this statement and all nested statements that have an issue.
             var descendentStatements = startStatement.DescendantNodesAndSelf().OfType<StatementSyntax>();
             var badStatements = descendentStatements.Where(s => CSharpWrapStatementsDiagnosticAnalyzer.StatementNeedsWrapping(s)).ToSet();
 
             var ancestorBlocks = startStatement.AncestorsAndSelf().OfType<BlockSyntax>();
-
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var endOfLine = options.GetOption(FormattingOptions.NewLine);
-            var endOfLineTrivia = SyntaxFactory.ElasticEndOfLine(endOfLine);
 
             var badStatementsAndAncestors = badStatements.Concat(ancestorBlocks).Distinct();
 
@@ -104,8 +128,6 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
                         return updatedStatement;
                     });
             }
-
-            return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
         private static SyntaxNode AddLeadingTrivia(SyntaxNode node, SyntaxTrivia trivia)

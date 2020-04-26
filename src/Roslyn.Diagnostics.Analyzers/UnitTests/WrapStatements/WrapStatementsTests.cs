@@ -247,5 +247,33 @@ class TestClass
                 FixedCode = fixedCode,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task FixAll1()
+        {
+            var source = @"class TestClass
+{
+    void M()
+    {
+        if (true) [|return|];
+        if (true) [|return|];
+    }
+}";
+            var fixedCode = @"class TestClass
+{
+    void M()
+    {
+        if (true)
+            return;
+        if (true)
+            return;
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
     }
 }
