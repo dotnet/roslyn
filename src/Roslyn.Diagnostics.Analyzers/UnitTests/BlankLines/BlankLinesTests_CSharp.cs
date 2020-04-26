@@ -1,9 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Roslyn.Diagnostics.CSharp.Analyzers.BlankLines;
 using Test.Utilities;
@@ -11,11 +7,11 @@ using Xunit;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 {
-    using VerifyCS = CSharpCodeFixVerifier<
+    using Verify = CSharpCodeFixVerifier<
         CSharpBlankLinesDiagnosticAnalyzer,
         CSharpBlankLinesCodeFixProvider>;
 
-    public class BlankLinesTests
+    public class BlankLinesTests_CSharp
     {
         [Fact]
         public async Task TestOneBlankLineAtTopOfFile()
@@ -24,7 +20,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 @"
 // comment";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -42,7 +38,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 @"
 // comment";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -61,7 +57,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 @"
 // comment";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -81,7 +77,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 @"
 // comment";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -95,7 +91,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 @"
 ";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -113,7 +109,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 @"
 ";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -132,7 +128,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 @"
 ";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -152,7 +148,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 @"
 ";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -167,7 +163,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 {
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -183,7 +179,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 }
 ";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -200,7 +196,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 ";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -224,7 +220,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 ";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -249,7 +245,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 ";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -275,7 +271,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 ";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -290,7 +286,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 {
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -306,7 +302,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -328,7 +324,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -351,7 +347,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -375,7 +371,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -391,7 +387,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
     // comment
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -408,7 +404,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -432,7 +428,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -457,7 +453,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -482,7 +478,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -498,7 +494,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
     #nullable enable
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -516,7 +512,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -541,7 +537,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -567,7 +563,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -593,7 +589,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
 
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -611,7 +607,7 @@ class C
 {
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -629,7 +625,7 @@ class C
 {
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -655,7 +651,7 @@ class C
 {
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -682,7 +678,7 @@ class C
 {
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -710,7 +706,7 @@ class C
 {
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -728,7 +724,7 @@ class C
 {
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -751,7 +747,7 @@ class C
 {
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = code,
@@ -789,7 +785,7 @@ class C
 {
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -831,7 +827,7 @@ class C
 {
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -877,7 +873,7 @@ class C
 {
 }";
 
-            await new VerifyCS.Test()
+            await new Verify.Test()
             {
                 TestCode = code,
                 FixedCode = fixedCode,
