@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     internal interface IRemoteRenamer
     {
+        /// <summary>
+        /// Runs the entire rename operation OOP and returns the final result. More efficient (due to less back and
+        /// forth marshaling) when the intermediary results of rename are not needed. To get the individual parts of
+        /// rename remoted use <see cref="FindRenameLocationsAsync"/> and <see cref="ResolveConflictsAsync"/>.
+        /// </summary>
         Task<SerializableConflictResolution> RenameSymbolAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId symbolAndProjectId,
