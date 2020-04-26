@@ -42,16 +42,12 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
 
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
-            var tree = context.Tree;
-            var cancellationToken = context.CancellationToken;
-            var root = tree.GetRoot(cancellationToken);
-
-            Recurse(context, root, cancellationToken);
+            Recurse(context, context.Tree.GetRoot(context.CancellationToken));
         }
 
-        private void Recurse(SyntaxTreeAnalysisContext context, SyntaxNode node, CancellationToken cancellationToken)
+        private void Recurse(SyntaxTreeAnalysisContext context, SyntaxNode node)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            context.CancellationToken.ThrowIfCancellationRequested();
 
             // Don't bother analyzing nodes that have syntax errors in them.
             if (node.ContainsDiagnostics)
@@ -69,7 +65,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             foreach (var child in node.ChildNodesAndTokens())
             {
                 if (child.IsNode)
-                    Recurse(context, child.AsNode(), cancellationToken);
+                    Recurse(context, child.AsNode());
             }
         }
 
@@ -103,9 +99,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
 
             // we have to have a newline between the start of this statement and the previous statement.
             if (ContainsEndOfLineBetween(statementStartToken.GetPreviousToken(), statementStartToken))
-            {
                 return false;
-            }
 
             // Looks like a statement that might need wrapping.  However, we do suppress wrapping for a few well known
             // acceptable cases.
