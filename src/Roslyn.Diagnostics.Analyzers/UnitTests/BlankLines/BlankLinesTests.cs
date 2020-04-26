@@ -716,5 +716,173 @@ class C
                 FixedCode = fixedCode,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestNoBlankLineAllConstructs()
+        {
+            var code =
+@"/// <summary/>
+//
+#nullable enable
+class C
+{
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestOneBlankLineAllConstructs()
+        {
+            var code =
+@"
+/// <summary/>
+
+//
+
+#nullable enable
+
+class C
+{
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTwoBlankLineAllConstructs()
+        {
+            var code =
+@"[||]
+
+/// <summary/>
+
+
+//
+
+
+#nullable enable
+
+
+class C
+{
+}";
+            var fixedCode =
+@"
+/// <summary/>
+
+//
+
+#nullable enable
+
+class C
+{
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestThreeBlankLineAllConstructs()
+        {
+            var code =
+@"[||]
+
+
+/// <summary/>
+
+
+
+//
+
+
+
+#nullable enable
+
+
+
+class C
+{
+}";
+            var fixedCode =
+@"
+/// <summary/>
+
+//
+
+#nullable enable
+
+class C
+{
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFourBlankLineAllConstructs()
+        {
+            var code =
+@"[||]
+
+
+
+/// <summary/>
+
+
+
+
+//
+
+
+
+
+#nullable enable
+
+
+
+
+class C
+{
+}";
+            var fixedCode =
+@"
+/// <summary/>
+
+//
+
+#nullable enable
+
+class C
+{
+}";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
     }
 }
