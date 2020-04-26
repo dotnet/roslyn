@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Roslyn.Diagnostics.Analyzers.BlankLines;
 
 namespace Roslyn.Diagnostics.CSharp.Analyzers.BlankLines
 {

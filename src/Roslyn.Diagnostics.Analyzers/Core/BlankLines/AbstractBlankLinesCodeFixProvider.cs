@@ -8,9 +8,8 @@ using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Roslyn.Diagnostics.Analyzers;
 
-namespace Roslyn.Diagnostics.CSharp.Analyzers.BlankLines
+namespace Roslyn.Diagnostics.Analyzers.BlankLines
 {
     public abstract class AbstractBlankLinesCodeFixProvider : CodeFixProvider
     {
