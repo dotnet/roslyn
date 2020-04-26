@@ -69,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            // TODO need an option for user to disable the feature
             var parentNode = context.Node;
             var syntaxTree = parentNode.SyntaxTree;
             var cancellationToken = context.CancellationToken;
