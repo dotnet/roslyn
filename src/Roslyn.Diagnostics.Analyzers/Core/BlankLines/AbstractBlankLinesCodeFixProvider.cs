@@ -129,11 +129,5 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.BlankLines
             var trivia = triviaList[index];
             return IsEndOfLine(trivia);
         }
-
-        private static SyntaxNode AddLeadingTrivia(SyntaxNode node, SyntaxTrivia trivia)
-            => node.WithLeadingTrivia(node.GetLeadingTrivia().Insert(0, trivia));
-
-        private static SyntaxNode AddTrailingTrivia(SyntaxNode node, SyntaxTrivia trivia)
-            => node.WithTrailingTrivia(node.GetTrailingTrivia().Add(trivia));
     }
 }
