@@ -180,7 +180,7 @@ function Get-ProjectFile([object]$fileInfo) {
   Set-Location $fileInfo.Directory
   try {
     while ($true) {
-      # search up from the current file for a folder containing a csproj
+      # search up from the current file for a folder containing a project file
       $files = Get-ChildItem *.csproj,*.vbproj
       if ($files) {
         return $files[0]
