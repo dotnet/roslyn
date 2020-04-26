@@ -59,22 +59,22 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
             var descendentStatements = startStatement.DescendantNodesAndSelf().OfType<StatementSyntax>();
             var badStatements = descendentStatements.Where(s => CSharpWrapStatementsDiagnosticAnalyzer.StatementNeedsWrapping(s)).ToSet();
 
-            var ancestorStatements = startStatement.AncestorsAndSelf().OfType<StatementSyntax>();
+            var ancestorBlocks = startStatement.AncestorsAndSelf().OfType<BlockSyntax>();
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var endOfLine = options.GetOption(FormattingOptions.NewLine);
             var endOfLineTrivia = SyntaxFactory.ElasticEndOfLine(endOfLine);
 
-            var badStatementsAndAncestors = badStatements.Concat(ancestorStatements).Distinct();
+            var badStatementsAndAncestors = badStatements.Concat(ancestorBlocks).Distinct();
 
-            // var walk up the statements so that higher up changes see the changes below. We'll walk both the
+            // Now walk up the statements so that higher up changes see the changes below. We'll walk both the
             // statements that are explicitly bad, as well as any block statements above it.
             foreach (var statement in badStatementsAndAncestors.OrderByDescending(s => s.SpanStart))
             {
                 if (!badStatements.Contains(statement))
                 {
-                    // this is an ancestor statement (like a containing block).  Place an elastic marker on it so that
-                    // if it needs to be reformatted because of the change in the child, it will be.
+                    // this is an ancestor block.  Place an elastic marker on it so that if it needs to be reformatted
+                    // because of the change in the child, it will be.
                     editor.ReplaceNode(
                         statement,
                         (current, g) => AddLeadingTrivia(current, SyntaxFactory.ElasticMarker));
