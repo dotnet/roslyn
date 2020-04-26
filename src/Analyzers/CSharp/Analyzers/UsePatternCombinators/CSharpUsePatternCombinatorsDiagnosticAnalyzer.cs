@@ -6,6 +6,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,9 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
     {
         public CSharpUsePatternCombinatorsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
-                option: null,
-                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_pattern_matching),
-                    CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+                CSharpCodeStyleOptions.PreferPatternMatching,
+                LanguageNames.CSharp,
+                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -69,15 +71,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         {
             // TODO need an option for user to disable the feature
             var parentNode = context.Node;
+            var syntaxTree = parentNode.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
 
-            if (!((CSharpParseOptions)parentNode.SyntaxTree.Options).LanguageVersion.IsCSharp9OrAbove())
+            if (!((CSharpParseOptions)syntaxTree.Options).LanguageVersion.IsCSharp9OrAbove())
+                return;
+
+            var styleOption = context.Options.GetOption(CSharpCodeStyleOptions.PreferPatternMatching, syntaxTree, cancellationToken);
+            if (!styleOption.Value)
                 return;
 
             var expression = GetExpression(parentNode);
             if (expression is null)
                 return;
 
-            var operation = context.SemanticModel.GetOperation(expression, context.CancellationToken);
+            var operation = context.SemanticModel.GetOperation(expression, cancellationToken);
             if (operation is null)
                 return;
 
