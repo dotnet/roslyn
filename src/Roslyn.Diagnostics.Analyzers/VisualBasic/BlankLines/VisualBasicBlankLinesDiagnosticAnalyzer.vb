@@ -7,7 +7,7 @@ Imports Roslyn.Diagnostics.Analyzers.BlankLines
 
 Namespace Roslyn.Diagnostics.VisualBasic.Analyzers.BlankLines
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Public Class VisualbasicBlankLinesDiagnosticAnalyzer
+    Public Class VisualBasicBlankLinesDiagnosticAnalyzer
         Inherits AbstractBlankLinesDiagnosticAnalyzer
 
         Protected Overrides Function IsEndOfLine(trivia As SyntaxTrivia) As Boolean
