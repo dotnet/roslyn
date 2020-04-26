@@ -2299,7 +2299,6 @@ BC30068: Expression is a value and therefore cannot be the target of an assignme
 </expected>)
         End Sub
 
-
         <WorkItem(575055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575055")>
         <Fact>
         Public Sub BC30068ERR_IdentifierWithSameNameDifferentScope()
@@ -2325,7 +2324,6 @@ End Module
                                                                                                  Diagnostic(ERRID.ERR_LValueRequired, "i"),
                                                                                                  Diagnostic(ERRID.ERR_LValueRequired, "i"))
         End Sub
-
 
         ' change error 30098 to 30068
         <WorkItem(538107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538107")>
@@ -2651,7 +2649,6 @@ End Module
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-
 </expected>)
         End Sub
 
@@ -2689,7 +2686,6 @@ End Module
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-
 </expected>)
         End Sub
 
@@ -5139,7 +5135,6 @@ End Module        </file>
             CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedEOS, "{"),
                                                                                                  Diagnostic(ERRID.ERR_TypeMismatch2, "{1, 2, 3}").WithArguments("Integer()", "System.Collections.Generic.List(Of Integer)"))
 
-
             ' This 2nd scenario will produce 1 error because it passed the parsing stage and now 
             ' fails in the binding
             source =
@@ -5155,7 +5150,6 @@ End Module        </file>
 </compilation>
             CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeMismatch2, "{1, 2, 3}").WithArguments("Integer()", "System.Collections.Generic.List(Of Integer)"))
         End Sub
-
 
         <Fact(), WorkItem(542069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542069")>
         Public Sub BC30337ERR_ForLoopType1()
@@ -24100,7 +24094,6 @@ Font)
 
             Dim bindInfo1 As SemanticInfoSummary = semanticModel.GetSemanticInfoSummary(DirectCast(node, ExpressionSyntax))
 
-
         End Sub
 
         <WorkItem(566606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566606")>
@@ -24110,10 +24103,8 @@ Font)
                 CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation>
                     <file name="a.vb">
-
                     </file>
                 </compilation>)
-
 
             Dim text = <![CDATA[
 Imports System                        
@@ -24215,8 +24206,6 @@ End Namespace
                                                                      options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True)).VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeClashesWithVbCoreType4, "HideModuleNameAttribute").WithArguments("class", "HideModuleNameAttribute", "class", "HideModuleNameAttribute"),
                                                                                                                                          Diagnostic(ERRID.ERR_UndefinedType1, "Attribute").WithArguments("Attribute"),
                                                                                                                                          Diagnostic(ERRID.ERR_OverrideNotNeeded3, "TypeId").WithArguments("property", "TypeId"))
-
-
 
         End Sub
 

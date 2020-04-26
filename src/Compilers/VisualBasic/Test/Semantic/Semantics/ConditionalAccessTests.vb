@@ -611,7 +611,6 @@ Null
 }
 ]]>)
 
-
             verifier.VerifyIL("Module1.Test8",
             <![CDATA[
 {
@@ -3343,7 +3342,6 @@ End Class
                                                                                          TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                                                                                          TestOptions.ReleaseExe.ParseOptions)
 
-
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
 ---
@@ -4061,7 +4059,6 @@ C1
 ---------
 ]]>)
         End Sub
-
 
         <Fact()>
         Public Sub CodeGen_07()

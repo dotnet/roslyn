@@ -334,7 +334,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-
         ''' <summary>
         ''' Returns interface methods explicitly implemented by this method.
         ''' </summary>

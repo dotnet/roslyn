@@ -1344,6 +1344,5 @@ Block[B6] - Exit
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
-
     End Class
 End Namespace

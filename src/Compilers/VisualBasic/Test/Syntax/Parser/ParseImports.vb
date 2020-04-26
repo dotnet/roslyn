@@ -119,7 +119,6 @@ Imports Roslyn.Compilers.Common
             <error id="30203"/>
         </errors>)
 
-
         VerifySyntaxKinds(tree.GetRoot().DescendantNodes.OfType(Of ImportsStatementSyntax).First,
                           SyntaxKind.ImportsStatement,
                                 SyntaxKind.ImportsKeyword,

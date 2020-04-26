@@ -528,7 +528,6 @@ done
 ]]>)
         End Sub
 
-
         <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntFix_Implicit_01()
             Dim source =
@@ -1339,7 +1338,6 @@ done
 ]]>)
         End Sub
 
-
         <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntTruncate_Implicit_01()
             Dim source =
@@ -1935,7 +1933,6 @@ done
 }
 ]]>)
         End Sub
-
 
         <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntCeiling_Implicit_01()
@@ -2549,7 +2546,6 @@ done
 ]]>)
         End Sub
 
-
         <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntFloor_Implicit_01()
             Dim source =
@@ -3160,7 +3156,6 @@ done
 }
 ]]>)
         End Sub
-
 
         <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntRound_Implicit_01()
@@ -3776,7 +3771,6 @@ done
 ]]>)
         End Sub
 
-
         <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub CIntInt_Implicit_01()
@@ -4387,7 +4381,6 @@ done
 }
 ]]>)
         End Sub
-
 
         <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>

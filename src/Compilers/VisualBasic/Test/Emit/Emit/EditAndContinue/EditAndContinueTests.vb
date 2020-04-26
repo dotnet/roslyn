@@ -3401,8 +3401,6 @@ End Class
 ]]></file>
                            </compilation>
 
-
-
             Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
@@ -5298,8 +5296,6 @@ End Class")
 }
 ")
         End Sub
-
-
 
     End Class
 End Namespace

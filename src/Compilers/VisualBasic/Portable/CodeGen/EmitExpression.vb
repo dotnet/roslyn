@@ -1750,7 +1750,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Return AllowedToTakeRef(left, AddressKind.Writeable) AndAlso Not (left.Kind = BoundKind.ArrayAccess AndAlso left.Type.TypeKind = TypeKind.TypeParameter)
         End Function
 
-
         Private Sub InPlaceInit(target As BoundExpression, used As Boolean)
             Dim temp = Me.EmitAddress(target, AddressKind.Writeable)
             Debug.Assert(temp Is Nothing, "temp is not expected when in-place assigning")

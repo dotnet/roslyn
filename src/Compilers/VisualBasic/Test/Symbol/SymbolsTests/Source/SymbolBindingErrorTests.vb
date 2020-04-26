@@ -140,7 +140,6 @@ BC31422: 'System.Void' can only be used in a GetType expression.
                              </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
 
-
         End Sub
 
         <WorkItem(538814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538814")>

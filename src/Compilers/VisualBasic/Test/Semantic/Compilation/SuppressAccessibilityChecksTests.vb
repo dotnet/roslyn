@@ -16,6 +16,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Private Function GetSemanticModelWithIgnoreAccessibility() As SemanticModel
 
+' Unmerged change from project 'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests(net472)' 
+' Removed:
+'             Dim compilationA = CreateVisualBasicCompilation(<![CDATA[
+' Class A
+' 
+'     Private _num As Integer
+' 
+'     Private Function M() As A
+' 
+'         Return New A()
+'     
+'     End Function
+' End Class
+' ]]>.Value)
+' 
+'             Dim referenceA = MetadataReference.CreateFromStream(compilationA.EmitToStream())
+
+            Dim compilationA = CreateVisualBasicCompilation(<![CDATA[
+Class A
+
+    Private _num As Integer
+
+    Private Function M() As A
+
+        Return New A()
+    
+    End Function
+End Class
+]]>.Value)
+
+            Dim referenceA = MetadataReference.CreateFromStream(compilationA.EmitToStream())
 
             Dim compilationA = CreateVisualBasicCompilation(<![CDATA[
 Class A

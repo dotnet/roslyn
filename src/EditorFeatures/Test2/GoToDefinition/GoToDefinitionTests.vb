@@ -99,7 +99,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                     Assert.False(presenterCalled)
                 End If
 
-
             End Using
         End Sub
 
@@ -2528,7 +2527,6 @@ End Class
 
         </Document>
     </Project>
-
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBAssembly">
         <Document>
 Namespace Importable

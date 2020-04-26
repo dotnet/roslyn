@@ -1209,7 +1209,6 @@ class C
     </Project>
 </Workspace>
 
-
             Await TestAPIAndFeature(input, kind, host)
         End Function
 

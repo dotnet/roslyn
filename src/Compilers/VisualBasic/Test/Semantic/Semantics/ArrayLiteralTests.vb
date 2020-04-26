@@ -464,7 +464,6 @@ End Module
 
         End Sub
 
-
         <Fact()>
         Public Sub TestUserDefinedNarrowFromInteger()
             Dim source =
@@ -769,13 +768,11 @@ End Module
 Public Shared Narrowing Operator CType(ByVal x As Integer()) As C
                              ]]>)
 
-
             comp = comp.WithOptions(_strictOn)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_NarrowingConversionDisallowed2, "{1, 2, 3, 4, 5}").WithArguments("Integer()", "Module1.C")
                 )
         End Sub
-
 
         <Fact()>
         Public Sub TestArrayLiteralInvolvesNarrowingFromNumericConstantAllWidening()
@@ -1170,7 +1167,6 @@ Widening Operator CType(ByVal x As Short())
 Widening Operator CType(ByVal x As Short())
             ]]>)
 
-
         End Sub
 
         <Fact()>
@@ -1282,7 +1278,6 @@ Function Goo2Param(of System.Int64[])(x as System.Int64[], y as System.Int64[])
 
         End Sub
 
-
         ' Tests inferring generic parameter type via user defined conversion in C.
         <Fact()>
         Public Sub TestArrayLiteralGenericParameterAndUserDefinedConversion()
@@ -1366,7 +1361,6 @@ End Module
 Widening Operator CType(ByVal x As Integer())
 m+C[]
             ]]>)
-
 
             comp = comp.WithOptions(_strictOn)
             CompileAndVerify(comp, expectedOutput:=<![CDATA[
@@ -1573,7 +1567,6 @@ End Module
             compilation = compilation.WithOptions(_strictOn)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ArrayInitNoType, "{AddressOf Goo}"))
         End Sub
-
 
         <WorkItem(544566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544566")>
         <Fact()>
@@ -2105,5 +2098,4 @@ End Module
 
     End Class
 End Namespace
-
 

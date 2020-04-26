@@ -2887,7 +2887,6 @@ _Default:
         ''' <param name="node">The for each syntax node.</param>
         Friend MustOverride Function GetForEachStatementInfoWorker(node As ForEachBlockSyntax) As ForEachStatementInfo
 
-
         ''' <summary>
         ''' Gets the semantic information of an Await expression.
         ''' </summary>

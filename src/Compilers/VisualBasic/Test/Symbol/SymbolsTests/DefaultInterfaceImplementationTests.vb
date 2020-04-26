@@ -338,7 +338,6 @@ End Class
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
-
         <Fact>
         <WorkItem(35827, "https://github.com/dotnet/roslyn/issues/35827")>
         Public Sub MethodImplementation_09()
@@ -2369,7 +2368,6 @@ class Test
 End Class
 ]]></file>
 </compilation>
-
 
             Dim pia2 As String =
 "

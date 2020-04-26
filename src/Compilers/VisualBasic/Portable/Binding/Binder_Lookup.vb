@@ -848,7 +848,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        TypeSymbol.Equals(iFaceOriginal, inpcSymbol, TypeCompareKind.ConsiderEverything)
             End Function
 
-
             ''' <summary>
             ''' Lookup a member name in a submission chain.
             ''' </summary>
@@ -984,7 +983,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End While
 
             End Sub
-
 
             ' See Semantics::LookupDefaultPropertyInInterface.
             Private Shared Sub LookupDefaultPropertyInInterface(
@@ -1582,7 +1580,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Next
                     Next
 ExitForFor:
-
                     If ambiguityDiagnostics IsNot Nothing Then
                         lookupResult.SetFrom(New SingleLookupResult(LookupResultKind.Ambiguous, symbols.First, ambiguityDiagnostics))
                     End If
@@ -1826,8 +1823,6 @@ ExitForFor:
                 CompactAndAppend(knownSymbols, newSymbols)
                 newResult.Clear()
             End Sub
-
-
 
             ''' <summary>
             ''' first.Where(t IsNot Nothing).Concat(second.Where(t IsNot Nothing))

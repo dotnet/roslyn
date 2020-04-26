@@ -713,7 +713,6 @@ End Module
     </file>
 </compilation>
 
-
             Dim expected =
 <expected>
 BC42019: Operands of type Object used for operator '-'; runtime errors could occur.
@@ -1284,7 +1283,6 @@ End Class
 
         <Fact()>
         Public Sub CheckedIntrinsicSymbols()
-
 
             Dim source =
 <compilation>

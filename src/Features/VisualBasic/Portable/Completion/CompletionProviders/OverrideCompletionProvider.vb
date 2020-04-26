@@ -51,7 +51,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return syntaxTree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken)
         End Function
 
-
         Public Overrides Function FindStartingToken(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxToken
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
             Return token.GetPreviousTokenIfTouchingWord(position)

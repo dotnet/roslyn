@@ -21,7 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return nextOperation.Invoke()
         End Function
 
-
         Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             If UnderStructuredTrivia(previousToken, currentToken) Then
                 If previousToken.Kind = SyntaxKind.HashToken AndAlso SyntaxFacts.IsPreprocessorKeyword(CType(currentToken.Kind, SyntaxKind)) Then

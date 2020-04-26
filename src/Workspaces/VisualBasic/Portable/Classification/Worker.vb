@@ -167,7 +167,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End If
         End Sub
 
-
         Private Sub ClassifyDisabledMergeCode(trivia As SyntaxTrivia, triviaText As String)
             Dim equalsLineLength = 0
             Dim length = triviaText.Length

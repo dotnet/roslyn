@@ -170,7 +170,6 @@ End Module
 <expected>
 </expected>)
 
-
             CompileAndVerify(compilation, <![CDATA[
 1
 1
@@ -968,7 +967,6 @@ BC30518: Overload resolution failed because no accessible 'M1' can be called wit
 
         End Sub
 
-
         <Fact>
         Public Sub Test11()
 
@@ -1002,7 +1000,6 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
-
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
     <![CDATA[
@@ -1019,7 +1016,6 @@ BC36918: Single-line statement lambdas must include exactly one statement.
 </expected>)
 
         End Sub
-
 
         <Fact>
         Public Sub Test12()
@@ -1476,7 +1472,6 @@ BC36670: Nested sub does not have a signature that is compatible with delegate '
                                      ~~~~~~~~~~~~~~~
 </expected>)
         End Sub
-
 
         <Fact>
         Public Sub Error_BC36625()

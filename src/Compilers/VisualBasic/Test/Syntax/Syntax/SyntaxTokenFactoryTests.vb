@@ -26,7 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(keywordToken.LeadingTrivia.Count, 1)
             Assert.Equal(keywordToken.TrailingTrivia.Count, 1)
 
-
             ' check that trivia works
             keywordToken = SyntaxFactory.Token(New SyntaxTriviaList(SyntaxFactory.WhitespaceTrivia(" ")), SyntaxKind.AddHandlerKeyword)
             Assert.Equal(keywordToken.LeadingTrivia.Count, 1)
@@ -39,7 +38,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             keywordToken = SyntaxFactory.Token(New SyntaxTriviaList(SyntaxFactory.WhitespaceTrivia(" ")), SyntaxKind.AddHandlerKeyword, trailing:=New SyntaxTriviaList(SyntaxFactory.WhitespaceTrivia(" ")))
             Assert.Equal(keywordToken.LeadingTrivia.Count, 1)
             Assert.Equal(keywordToken.TrailingTrivia.Count, 1)
-
 
             ' check that trivia works
             keywordToken = SyntaxFactory.Token(New SyntaxTriviaList(SyntaxFactory.WhitespaceTrivia(" ")), SyntaxKind.AddHandlerKeyword, SyntaxFacts.GetText(SyntaxKind.AddHandlerKeyword).ToUpperInvariant)
@@ -72,7 +70,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(punctuationToken.LeadingTrivia.Count, 1)
             Assert.Equal(punctuationToken.TrailingTrivia.Count, 1)
 
-
             ' check that trivia works
             punctuationToken = SyntaxFactory.Token(New SyntaxTriviaList(SyntaxFactory.WhitespaceTrivia(" ")), SyntaxKind.ExclamationToken)
             Assert.Equal(punctuationToken.LeadingTrivia.Count, 1)
@@ -85,7 +82,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             punctuationToken = SyntaxFactory.Token(New SyntaxTriviaList(SyntaxFactory.WhitespaceTrivia(" ")), SyntaxKind.ExclamationToken, trailing:=New SyntaxTriviaList(SyntaxFactory.WhitespaceTrivia(" ")))
             Assert.Equal(punctuationToken.LeadingTrivia.Count, 1)
             Assert.Equal(punctuationToken.TrailingTrivia.Count, 1)
-
 
             ' check that trivia works
             punctuationToken = SyntaxFactory.Token(New SyntaxTriviaList(SyntaxFactory.WhitespaceTrivia(" ")), SyntaxKind.ExclamationToken, SyntaxFacts.GetText(SyntaxKind.ExclamationToken).ToUpperInvariant)
@@ -155,7 +151,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim deepTrivia = From d In expr.GetDirectives().SelectMany(Function(d)
                                                                            Return d.DescendantTrivia.Where(Function(tr) tr.Kind = SyntaxKind.WhitespaceTrivia)
                                                                        End Function).ToList
-
 
             ' replace deep trivia with double-whitespace trivia
             Dim twoSpace = SyntaxFactory.Whitespace("  ")

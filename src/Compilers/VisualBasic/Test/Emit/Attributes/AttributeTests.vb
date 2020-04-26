@@ -204,7 +204,6 @@ Imports System.Runtime.CompilerServices
     </file>
 </compilation>
 
-
             Dim attributeValidator = Sub(m As ModuleSymbol)
                                          Dim assembly = m.ContainingSymbol
                                          Dim compilerServicesNS = GetSystemRuntimeCompilerServicesNamespace(m)
@@ -452,7 +451,6 @@ End Class
                         Assert.Equal(1, set_P.Parameters(0).GetAttributes().Length)
                         Assert.Equal(1, set_P.Parameters(1).GetAttributes().Length)
                     End Sub
-
 
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator(True), symbolValidator:=attributeValidator(False))
         End Sub
@@ -3813,7 +3811,6 @@ End Structure
 } // end of class Library1.Goo
 ]]>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation>
     <file name="a.vb">
@@ -4298,7 +4295,6 @@ End Class
     </file>
 </compilation>
 
-
             Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(source2, {New VisualBasicCompilationReference(compilation1)})
             CompileAndVerify(compilation2, symbolValidator:=validator)
 
@@ -4318,7 +4314,6 @@ End Class
 ]]>
     </file>
 </compilation>
-
 
             Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(source3, {New VisualBasicCompilationReference(compilation1)})
             CompileAndVerify(compilation3, symbolValidator:=validator)

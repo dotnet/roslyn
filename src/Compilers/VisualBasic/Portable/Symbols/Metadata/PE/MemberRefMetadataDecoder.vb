@@ -180,7 +180,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Nothing
         End Function
 
-
         Private Shared Function MethodSymbolMatchesParamInfo(candidateMethod As MethodSymbol, targetParamInfo As ParamInfo(Of TypeSymbol)()) As Boolean
             Dim numParams As Integer = targetParamInfo.Length - 1
             If candidateMethod.ParameterCount <> numParams Then
@@ -271,5 +270,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
     End Class
 End Namespace
-
 

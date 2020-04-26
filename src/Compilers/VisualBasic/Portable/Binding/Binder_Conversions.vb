@@ -583,7 +583,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
 DoneWithDiagnostics:
-
             If (convKind.Key And ConversionKind.UserDefined) <> 0 Then
                 Return CreateUserDefinedConversion(tree, argument, convKind, isExplicit, targetType, reportArrayLiteralElementNarrowingConversion, diagnostics)
             End If
@@ -785,7 +784,6 @@ DoneWithDiagnostics:
             ' (3) and if the source type implemented exactly one binding of it...
             Dim source As NamedTypeSymbol = matchingGenericInstantiation
             Dim destination As NamedTypeSymbol = targetNamedType
-
 
             Dim oneVariantDifference As VarianceSuggestionTypeParameterInfo = Nothing ' for Di/Si/Ti
             Dim oneInvariantConvertibleDifference As TypeParameterSymbol = Nothing 'for Dj/Sj/Tj where Sj<Dj
@@ -1146,7 +1144,6 @@ DoneWithDiagnostics:
 
             Return New BoundConversion(tree, argument, convKind.Key, CheckOverflow, isExplicit, DirectCast(Nothing, ConstantValue), targetType)
         End Function
-
 
         ''' <summary>
         ''' Handle expression reclassification, if any applicable.

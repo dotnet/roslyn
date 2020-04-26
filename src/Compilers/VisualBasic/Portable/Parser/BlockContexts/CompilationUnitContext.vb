@@ -430,7 +430,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return rewritten
             End Function
 
-
             Private Function VerifyRegionPlacement(original As VisualBasicSyntaxNode, rewritten As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
                 Dim containingBlock = _declarationBlocksBeingVisited.Peek()
 

@@ -127,7 +127,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 binary = DirectCast(child, BoundBinaryOperator)
             Loop
 
-
             Dim left = DirectCast(Me.Visit(child), BoundExpression)
 
             Do

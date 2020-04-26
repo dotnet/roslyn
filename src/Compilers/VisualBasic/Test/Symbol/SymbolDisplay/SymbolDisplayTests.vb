@@ -670,7 +670,6 @@ end namespace
                                                                      Return method.Construct(c2Type)
                                                                  End Function
 
-
             Dim format = New SymbolDisplayFormat(
                 extensionMethodStyle:=SymbolDisplayExtensionMethodStyle.InstanceMethod,
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance,
@@ -994,7 +993,6 @@ end class
                 })
         End Sub
 
-
         <Fact()>
         Public Sub TestEscapeKeywordIdentifiers()
             Dim text =
@@ -1052,7 +1050,6 @@ end namespace
                         typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
                         miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)
 
-
             ' outer class needs escaping
             TestSymbolDescription(
                 text,
@@ -1080,7 +1077,6 @@ end namespace
                 {
                     SymbolDisplayPartKind.ClassName
                 })
-
 
             findSymbol = Function(globalns) globalns.LookupNestedNamespace({"N1"}).
                             GetTypeMembers("Integer").Single().
@@ -1115,7 +1111,6 @@ end namespace
                     SymbolDisplayPartKind.ClassName,
                     SymbolDisplayPartKind.Punctuation
                 })
-
 
             format = New SymbolDisplayFormat(
                                 memberOptions:=SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeAccessibility Or SymbolDisplayMemberOptions.IncludeParameters,
@@ -1173,7 +1168,6 @@ end namespace
                     SymbolDisplayPartKind.Punctuation
                 })
 
-
             findSymbol = Function(globalns) globalns.LookupNestedNamespace({"Global"})
 
             format = New SymbolDisplayFormat(
@@ -1218,7 +1212,6 @@ end namespace
                 {
                     SymbolDisplayPartKind.Keyword
                 })
-
 
             findSymbol = Function(globalns) globalns.LookupNestedNamespace({"Global"}).LookupNestedNamespace({"Integer"})
 
@@ -1339,7 +1332,6 @@ end class
                 {SymbolDisplayPartKind.MethodName})
         End Sub
 
-
         <Fact()>
         Public Sub TestExplicitMethodImplNameAndInterface()
             Dim text =
@@ -1369,8 +1361,6 @@ end class
                 "I_M",
                 {SymbolDisplayPartKind.MethodName})
         End Sub
-
-
 
         <Fact()>
         Public Sub TestExplicitMethodImplNameAndInterfaceAndType()
@@ -2490,7 +2480,6 @@ End Enum
                 SymbolDisplayPartKind.StructName
                 })
 
-
         End Sub
 
         <Fact()>
@@ -2724,8 +2713,6 @@ End Enum
     </compilation>
             Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns) globalns.GetMember(Of NamedTypeSymbol)("C").
                         GetMember(Of MethodSymbol)("M")
-
-
 
             Dim format = New SymbolDisplayFormat(
                 memberOptions:=SymbolDisplayMemberOptions.IncludeParameters,
@@ -3560,7 +3547,6 @@ End Namespace
                 "N3",
                 text.Value.IndexOf("C2", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.NamespaceName}, True)
-
 
             Dim findGOO As Func(Of NamespaceSymbol, Symbol) = Function(globalns)
                                                                   Return globalns.LookupNestedNamespace({"OUTER"}).

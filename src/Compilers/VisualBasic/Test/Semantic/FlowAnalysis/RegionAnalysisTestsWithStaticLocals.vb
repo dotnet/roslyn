@@ -3069,8 +3069,6 @@ End Module
             Assert.True(dataFlowResults.Succeeded)
         End Sub
 
-
-
 #Region "ObjectInitializer"
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
@@ -4232,7 +4230,6 @@ End Module
     </file>
 </compilation>)
 
-
             Assert.True(dataFlowResults.Succeeded)
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.VariablesDeclared))
             Assert.Empty(dataFlowResults.AlwaysAssigned)
@@ -4970,7 +4967,6 @@ End Module
             Assert.Equal("an", GetSymbolNamesJoined(dataFlowResults.ReadOutside))
             Assert.Equal("Me, an", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
-
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>

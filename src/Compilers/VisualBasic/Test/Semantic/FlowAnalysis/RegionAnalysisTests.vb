@@ -3785,7 +3785,6 @@ End Class
             </file>
 </compilation>)
 
-
             Dim controlResults1 = results1.Item1
             Dim dataResults1 = results1.Item2
             Dim controlResults2 = results2.Item1
@@ -3886,7 +3885,6 @@ Class Class1(Of T)
 End Class
             </file>
 </compilation>)
-
 
             Dim controlResults1 = results1.Item1
             Dim dataResults1 = results1.Item2
@@ -6997,7 +6995,6 @@ End Module
     </file>
 </compilation>)
 
-
             Assert.True(dataFlowResults.Succeeded)
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.VariablesDeclared))
             Assert.Empty(dataFlowResults.AlwaysAssigned)
@@ -7599,7 +7596,6 @@ End Module
             Assert.Equal("X", GetSymbolNamesJoined(dataFlowResults.ReadOutside))
             Assert.Equal("X", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
-
 
 #Region "Anonymous Type, Lambda"
 

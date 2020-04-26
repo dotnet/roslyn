@@ -918,7 +918,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return receiver
         End Function
 
-
         ''' <summary>
         ''' Adjusts receiver of a call or a member access if it is a value
         '''  * will turn Unknown property access into Get property access
@@ -1787,7 +1786,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ReportDiagnostic(diagnostics, expr.Syntax, err)
         End Sub
-
 
         Public Shared Function ExpressionRefersToReadonlyVariable(
             node As BoundExpression,
@@ -3964,7 +3962,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim expressionType As TypeSymbol = GetExpressionType(symbolReference, symbols(i), constantFieldsInProgress, diagnostics)
 
-
                 If expressionType IsNot Nothing Then
                     If commonType Is Nothing Then
                         commonType = expressionType
@@ -4487,7 +4484,6 @@ lElseClause:
             ' "Winner" information might be useful if you are calculating the dominant type of "{}" and "{Nothing}"
             ' and you need to know who the winner is so you can report appropriate warnings on him.
 
-
             ' The dominant type of a list of elements means:
             ' (1) for each element, attempt to classify it as a value in a context where the target
             ' type is unknown. So unbound lambdas get classified as anonymous delegates, and array literals get
@@ -4568,7 +4564,6 @@ lElseClause:
                     ' this will pick up AddressOf expressions.
                 End If
             Next
-
 
             ' Here we calculate the dominant type.
             ' Note: if there were no candidate types in the list, this will fail with errorReason = NoneBest.

@@ -374,7 +374,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return currentModuleResult
         End Function
 
-
         Private Shared Function IsAcceptableSystemTypeSymbol(candidate As NamedTypeSymbol) As Boolean
             Return candidate.Kind <> SymbolKind.ErrorType AndAlso Not (TypeOf candidate Is MissingMetadataTypeSymbol)
 

@@ -277,7 +277,6 @@ Delegate Sub E1()
 ~~~~~~~~~~~~~~~~~
 </expected>)
 
-
             CompilationUtils.AssertTheseCompileDiagnostics(compilation,
 <expected>
 BC30002: Type 'System.AsyncCallback' is not defined.
@@ -367,7 +366,6 @@ BC32023: Expression is of type 'Integer()', which is not a collection type.
     for each e in x
                   ~
 </expected>)
-
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>

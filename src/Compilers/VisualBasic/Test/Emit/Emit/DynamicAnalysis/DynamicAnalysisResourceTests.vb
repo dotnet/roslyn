@@ -682,7 +682,6 @@ End Class
                         New SpanResult(23, 28, 23, 32, "1234"))
         End Sub
 
-
         <Fact>
         Public Sub TestImplicitConstructorsWithLambdasSpans()
             Dim testSource As XElement = <file name="c.vb">

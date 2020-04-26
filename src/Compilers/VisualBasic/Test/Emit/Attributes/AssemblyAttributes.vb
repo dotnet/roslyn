@@ -1001,7 +1001,6 @@ end class
                            Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute))
                        End Sub)
 
-
         compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -1048,7 +1047,6 @@ end class
 <expected>
 BC37215: Cryptographic failure while creating hashes.
 </expected>)
-
 
         Dim comp = CreateVisualBasicCompilation("AlgorithmIdAttribute",
         <![CDATA[<Assembly: System.Reflection.AssemblyAlgorithmIdAttribute(System.Configuration.Assemblies.AssemblyHashAlgorithm.MD5)>]]>,
@@ -1770,7 +1768,6 @@ Imports System
 <Assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text := "str1", Text2 := "str1")> ' duplicate
                     ]]>.Value
 
-
         Dim defaultImportsString As String = <![CDATA[
 Imports System
 ]]>.Value
@@ -1976,7 +1973,6 @@ End Class
         Dim metadata = m.Module
         Dim metadataReader = metadata.GetMetadataReader()
 
-
         Dim token As EntityHandle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere")
         Assert.False(token.IsNil())   'could the type ref be located? If not then the attribute's not there.
 
@@ -2019,7 +2015,6 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
 <Assembly:System.Reflection.AssemblyDescriptionAttribute("Module1")>
     ]]></file>
 </compilation>
-
 
         Dim mod2Source =
 <compilation name="M2">
@@ -2072,7 +2067,6 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
     ]]></file>
 </compilation>
 
-
         Dim mod2Source =
 <compilation name="M2">
     <file><![CDATA[
@@ -2119,7 +2113,6 @@ BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M1.netmodule' wil
 <Assembly:System.Reflection.AssemblyDescriptionAttribute("Module1")>
     ]]></file>
 </compilation>
-
 
         Dim mod2Source =
 <compilation name="M2">
@@ -2169,7 +2162,6 @@ BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M2.netmodule' wil
 <Assembly:System.Reflection.AssemblyDescriptionAttribute("Module1")>
     ]]></file>
 </compilation>
-
 
         Dim mod2Source =
 <compilation name="M2">

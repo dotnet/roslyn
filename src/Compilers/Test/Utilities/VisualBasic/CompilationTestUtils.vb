@@ -392,7 +392,6 @@ Friend Module CompilationUtils
             Assert.StartsWith(bindText, node.ToString)
         End If
 
-
         Return DirectCast(node, TNode)
     End Function
 
@@ -540,7 +539,6 @@ Friend Module CompilationUtils
 
         Return summary
     End Function
-
 
     Public Function GetSemanticInfoSummary(compilation As Compilation, node As SyntaxNode) As SemanticInfoSummary
         Dim tree = node.SyntaxTree

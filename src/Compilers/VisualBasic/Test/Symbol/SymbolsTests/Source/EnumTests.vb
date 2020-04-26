@@ -198,7 +198,6 @@ BC30439: Constant expression not representable in type 'Byte'.
 
 </errors>)
 
-
             comp = CompilationUtils.CreateCompilationWithMscorlib40(text, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(comp, <errors>
@@ -981,7 +980,6 @@ End Enum
                     Diagnostic(ERRID.ERR_InvInsideEnum, "goo:"))
         End Sub
 
-
         <WorkItem(540557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540557")>
         <Fact>
         Public Sub EnumInDifferentFile()
@@ -1004,7 +1002,6 @@ Module M1
 End Module
 
     </file>
-
     <file name="color.vb">
 Public Enum Color    
     red    

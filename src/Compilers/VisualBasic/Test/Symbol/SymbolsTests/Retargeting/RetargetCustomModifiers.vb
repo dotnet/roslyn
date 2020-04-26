@@ -17,7 +17,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 #If Not Retargeting Then
     Public Class RetargetCustomModifiers

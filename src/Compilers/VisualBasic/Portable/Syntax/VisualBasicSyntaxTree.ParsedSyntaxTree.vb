@@ -43,7 +43,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic),
                            Optional cloneRoot As Boolean = True)
 
-
                 Debug.Assert(syntaxRoot IsNot Nothing)
                 Debug.Assert(options IsNot Nothing)
                 Debug.Assert(textOpt Is Nothing OrElse textOpt.Encoding Is encodingOpt AndAlso textOpt.ChecksumAlgorithm = checksumAlgorithm)

@@ -610,7 +610,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-
         ''' <summary>
         ''' Get the fully qualified namespace name using the spelling used in the declaration enclosing the given
         ''' syntax tree and location.

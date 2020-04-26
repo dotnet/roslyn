@@ -1650,7 +1650,6 @@ End Namespace")
 End Namespace")
         End Sub
 
-
         <Fact>
         Public Sub TestCompilationUnits()
             VerifySyntax(Of CompilationUnitSyntax)(

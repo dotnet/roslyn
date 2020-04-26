@@ -936,7 +936,6 @@ End Module
     expectedOutput:="Public")
         End Sub
 
-
         <Fact>
         Public Sub Bug4249()
 
@@ -1157,7 +1156,6 @@ BC32045: 'goo' has no type parameters and so cannot have type arguments.
         goo(Of Integer)()
            ~~~~~~~~~~~~
                                                </errors>)
-
 
         End Sub
 
@@ -1593,7 +1591,6 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
-
             AssertTheseDiagnostics(compilation,
                                                <errors>
 BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property Color(x As Integer) As Module1.Color'.
@@ -1656,10 +1653,8 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
-
             AssertNoDiagnostics(compilation)
         End Sub
-
 
         <Fact>
         Public Sub ColorColorOverloadedAddressOf()

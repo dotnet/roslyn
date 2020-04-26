@@ -647,7 +647,6 @@ BC31447: Class 'B(Of S).C(Of U)' cannot reference itself in Inherits clause.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
 
-
         <Fact>
         Public Sub InterfaceClassMutualContainment()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -742,7 +741,6 @@ BC30916: Type 'C1' is not supported because it either directly or indirectly inh
             Dim C2 = TestReferences.SymbolsTests.CyclicInheritance.Class2
             Dim C3 = TestReferences.SymbolsTests.CyclicInheritance.Class3
 
-
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="Compilation">
     <file name="a.vb">
@@ -780,7 +778,6 @@ BC30916: Type 'C3' is not supported because it either directly or indirectly inh
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
 
-
         <Fact>
         Public Sub CyclicInterfaces3()
             Dim C1 = TestReferences.SymbolsTests.CyclicInheritance.Class1
@@ -807,7 +804,6 @@ BC30916: Type 'I1' is not supported because it either directly or indirectly inh
 
         End Sub
 
-
 #If Retargeting Then
         <Fact(skip:=SkipReason.AlreadyTestingRetargeting)>
         Public Sub CyclicRetargeted4()
@@ -816,7 +812,6 @@ BC30916: Type 'I1' is not supported because it either directly or indirectly inh
         Public Sub CyclicRetargeted4()
 #End If
             Dim ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll
-
 
             Dim Comp = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="ClassB">
@@ -849,7 +844,6 @@ End Class
 </compilation>,
 New MetadataReference() {TestReferences.NetFx.v4_0_30319.mscorlib, ClassAv2, New VisualBasicCompilationReference(Comp)})
 
-
             Dim [global] = Comp2.GlobalNamespace
             Dim B2 = [global].GetTypeMembers("ClassB", 0).Single()
             Dim C = [global].GetTypeMembers("ClassC", 0).Single()
@@ -871,7 +865,6 @@ BC30916: Type 'ClassB' is not supported because it either directly or indirectly
             Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString(EnsureEnglishUICulture.PreferredOrNull))
 
         End Sub
-
 
         <Fact>
         Public Sub CyclicRetargeted5()
@@ -933,7 +926,6 @@ BC30916: Type 'ClassB' is not supported because it either directly or indirectly
             Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString(EnsureEnglishUICulture.PreferredOrNull))
         End Sub
 
-
 #If retargeting Then
         <Fact(skip:="Already using Feature")> 
            Public Sub CyclicRetargeted6()
@@ -953,7 +945,6 @@ End Class
     </file>
 </compilation>,
 {TestReferences.NetFx.v4_0_30319.mscorlib, ClassAv2})
-
 
             Dim global1 = Comp.GlobalNamespace
             Dim B1 = global1.GetTypeMembers("ClassB", 0).Single()
@@ -1034,7 +1025,6 @@ New MetadataReference() {TestReferences.NetFx.v4_0_30319.mscorlib, ClassAv1, New
             er = errorBase1.ErrorInfo
             Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString(EnsureEnglishUICulture.PreferredOrNull))
 
-
             Dim ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll
 
             Dim Comp2 = CompilationUtils.CreateEmptyCompilationWithReferences(
@@ -1085,7 +1075,6 @@ End Class
     </compilation>,
     {TestReferences.NetFx.v4_0_30319.mscorlib, ClassAv2})
 
-
             Dim global1 = Comp.GlobalNamespace
             Dim B1 = global1.GetTypeMembers("ClassB", 0).Single()
             Dim A1 = global1.GetTypeMembers("ClassA", 0).Single()
@@ -1127,7 +1116,6 @@ End Class
             Assert.Same(C.BaseType, B2)
             Assert.Same(B2.BaseType, A2)
         End Sub
-
 
         <WorkItem(538503, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538503")>
         <Fact>
@@ -1263,7 +1251,6 @@ End Interface
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-
         '
         ' .{C1} .{C1}
         '  \   /
@@ -1357,7 +1344,6 @@ BC30685: 'C1' is ambiguous across the inherited interfaces 'IA' and 'I0'.
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
-
 
         '
         ' .{C1}    .
@@ -1669,7 +1655,6 @@ End Class
 
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
-
 
         <Fact>
         Public Sub TypeFromInterfaceUnreachableAmbiguityIsOk()

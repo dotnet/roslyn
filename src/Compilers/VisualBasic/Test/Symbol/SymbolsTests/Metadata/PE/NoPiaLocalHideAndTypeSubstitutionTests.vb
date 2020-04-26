@@ -155,7 +155,6 @@ End Module
     </file>
 </compilation>
 
-
             Dim localConsumer = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef,
                                                                                  {TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                                   TestReferences.SymbolsTests.NoPia.ExternalAsm1})
@@ -268,7 +267,6 @@ End Interface
     ]]></file>
 </compilation>
 
-
             Dim localType = CreateCompilationWithMscorlib40(compilationDef1)
 
             Dim compilationDef2 =
@@ -290,7 +288,6 @@ End Interface
         End Sub
 
     End Class
-
 
     Friend Module Extensions
 

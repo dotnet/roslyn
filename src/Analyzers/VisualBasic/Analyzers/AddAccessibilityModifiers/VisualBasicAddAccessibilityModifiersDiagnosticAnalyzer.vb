@@ -33,7 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
         Private Sub ProcessMember(context As SyntaxTreeAnalysisContext,
                               [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), member As StatementSyntax)
 
-
             If member.Kind() = SyntaxKind.NamespaceBlock Then
                 Dim namespaceBlock = DirectCast(member, NamespaceBlockSyntax)
                 ProcessMembers(context, [option], namespaceBlock.Members)

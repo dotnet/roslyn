@@ -142,7 +142,13 @@ Public Class XmlInternalSyntax
             Assert.Equal(SyntaxKind.XmlTextLiteralToken, tkStrVal3a.Kind)
             Assert.Equal(" ", tkStrVal3a.ToString())
 
-            Dim tkStrVal4 = s.ScanXmlStringDouble()
+            Dim tkStrVal4 = s.ScanXml
+' Unmerged change from project 'Microsoft.CodeAnalysis.VisualBasic.Syntax.UnitTests(net472)' 
+' Before:
+'     <Fact>
+' After:
+'     <Fact>
+StringDouble()
             Assert.Equal(SyntaxKind.XmlEntityLiteralToken, tkStrVal4.Kind)
             Assert.Equal("&#x2F", tkStrVal4.ToString())
             Assert.Equal("/", tkStrVal4.ValueText)
@@ -317,7 +323,6 @@ Public Class XmlInternalSyntax
             Assert.Equal(ChrW(8221), tk.ToFullString())
         End Using
     End Sub
-
 
     <Fact>
     Public Sub ScannerXml_CharEntity()

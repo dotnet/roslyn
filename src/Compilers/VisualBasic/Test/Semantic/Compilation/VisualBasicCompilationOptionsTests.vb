@@ -248,7 +248,6 @@ BC2014: the value '<%= "blah" & ChrW(0) & "goo" %>' is invalid for option 'Scrip
 BC2014: the value '' is invalid for option 'ScriptClassName'
 </expected>)
 
-
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:=Nothing).Errors.IsEmpty)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:=("blah" & ChrW(0) & "goo")).Errors,
@@ -260,7 +259,6 @@ BC2014: the value '<%= "blah" & ChrW(0) & "goo" %>' is invalid for option 'MainT
 <expected>
 BC2014: the value '' is invalid for option 'MainTypeName'
 </expected>)
-
 
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:=Nothing).Errors.IsEmpty)
 
@@ -280,7 +278,6 @@ BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'OutputKind'
 <expected>
 BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'OutputKind'
 </expected>)
-
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=CType(Int32.MaxValue, OptimizationLevel)).Errors,
 <expected>

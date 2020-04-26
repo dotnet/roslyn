@@ -295,7 +295,6 @@ End Module
             compilation.VerifyDiagnostics()
         End Sub
 
-
         <Fact>
         Public Sub ImplicitInLambdaInInitializer()
             Dim compilation = CompileAndVerify(
@@ -607,7 +606,6 @@ BC30616: Variable 'X' hides a variable in an enclosing block.
 ]]></expected>)
         End Sub
 
-
         <Fact>
         Public Sub HidingEnclosingBlock3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -820,8 +818,6 @@ done
 
             compilation.VerifyDiagnostics()
         End Sub
-
-
 
 #Region "GetSemanticInfo Tests"
 

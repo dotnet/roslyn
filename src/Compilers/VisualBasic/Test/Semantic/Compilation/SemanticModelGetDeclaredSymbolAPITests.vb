@@ -494,7 +494,6 @@ Class M
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-
         ' Ensure local symbols gotten from same Binding instance are same object.
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
@@ -540,7 +539,6 @@ Class M
 
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
-
 
         <WorkItem(540580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540580")>
         <Fact()>
@@ -627,7 +625,6 @@ End Class
             End Namespace
         End Class
     </file>
-
 </compilation>, options:=options)
 
             Dim expectedErrors = <errors>
@@ -814,7 +811,6 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
            End Namespace
         End Class
     </file>
-
 </compilation>, options:=options)
 
             Dim expectedErrors = <errors>
@@ -884,7 +880,6 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
             Dim nsSymbol10 = GetNamespaceSymbol(compilation, bindingsB, "b.vb", "Global'lone global")
             Assert.NotNull(nsSymbol10)
             Assert.Equal("Global", nsSymbol10.ToTestDisplayString())
-
 
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
         End Sub
@@ -976,7 +971,6 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
            End Namespace
         End Class
     </file>
-
 </compilation>, options:=options)
 
             Dim expectedDeclErrors =
@@ -1232,7 +1226,6 @@ End Class
         End Namespace
 
     </file>
-
 </compilation>, options:=options)
 
             Dim expectedErrors =
@@ -1618,7 +1611,6 @@ End Class
             Assert.NotNull(OnErrorGoto1)
         End Sub
 
-
         <WorkItem(541238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541238")>
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromAliasDecl()
@@ -1832,7 +1824,6 @@ End Namespace
         End Namespace
 
     </file>
-
 </compilation>, options:=options)
 
             Dim expectedErrors =
@@ -1987,7 +1978,6 @@ End Module
             End Class
         End Namespace
     </file>
-
 </compilation>, options:=options)
 
             Dim expectedErrors =
@@ -2607,7 +2597,6 @@ Namespace System
 End Namespace
     </file>
 </compilation>)
-
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim rootA = treeA.GetCompilationUnitRoot()
