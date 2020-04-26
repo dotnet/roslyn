@@ -18,7 +18,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
     public class BlankLinesTests
     {
         [Fact]
-        public async Task TestSingleBlankLineAtTopOfFile()
+        public async Task TestOneBlankLineAtTopOfFile()
         {
             var code =
 @"
@@ -80,6 +80,77 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BlankLines
             var fixedCode =
 @"
 // comment";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestOneBlankLineAtTopOfEmptyFile()
+        {
+            var code =
+@"
+";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTwoBlankLinesAtTopOfEmptyFile()
+        {
+            var code =
+@"[||]
+
+";
+            var fixedCode =
+@"
+";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestThreeBlankLinesAtTopOfEmptyFile()
+        {
+            var code =
+@"[||]
+
+
+";
+            var fixedCode =
+@"
+";
+
+            await new VerifyCS.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFourBlankLinesAtTopOfEmptyFile()
+        {
+            var code =
+@"[||]
+
+
+
+";
+            var fixedCode =
+@"
+";
 
             await new VerifyCS.Test()
             {
