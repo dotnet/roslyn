@@ -133,8 +133,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
         }
 
         public static bool ContainsEndOfLineBetween(SyntaxToken previous, SyntaxToken next)
-            => ContainsEndOfLine(previous.TrailingTrivia) ||
-               ContainsEndOfLine(next.LeadingTrivia);
+            => ContainsEndOfLine(previous.TrailingTrivia) || ContainsEndOfLine(next.LeadingTrivia);
 
         private static bool ContainsEndOfLine(SyntaxTriviaList triviaList)
         {
