@@ -2262,9 +2262,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case >= 1 and <= 5:
+            case <= 5 and >= 1:
                 return;
-            case >= 6 and <= 7:
+            case <= 7 and >= 6:
                 return;
         }
     }
@@ -2487,6 +2487,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         {
             case 0:
             case (< 10 or > 20) and (>= 30 or <= 40):
+                return;
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestInequality()
+        {
+            var source =
+@"class C
+{
+    void M(int i)
+    {
+        [||]if ((i > 123 && i < 456) && i != 0 || i == 10)
+        {
+            return;
+        }
+    }
+}";
+
+
+            var fixedSource =
+ @"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case > 123 and < 456 when i != 0:
+            case 10:
                 return;
         }
     }
