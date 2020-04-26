@@ -17,7 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
     {
         public static AnalyzedPattern? Analyze(IOperation operation)
         {
-            return ParsePattern(operation);
+            var pattern = ParsePattern(operation);
+            return pattern?.Target.Syntax is ExpressionSyntax
+                ? pattern
+                : null;
         }
 
         private enum ConstantResult
@@ -61,10 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                     return Not.Create(ParsePattern(op.Operand));
 
                 case IIsTypeOperation { Syntax: BinaryExpressionSyntax { Right: TypeSyntax type } } op:
-                    return new Type(type, GetTargetExpression(op.ValueOperand));
+                    return new Type(type, GetTarget(op.ValueOperand));
 
                 case IIsPatternOperation { Pattern: { Syntax: PatternSyntax pattern } } op:
-                    return new Source(pattern, GetTargetExpression(op.Value));
+                    return new Source(pattern, GetTarget(op.Value));
 
                 case IParenthesizedOperation op:
                     return ParsePattern(op.Operand);
@@ -104,9 +107,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                     // We need to flip the operator if the constant is on the left-hand-side.
                     // This is because relational patterns only come in the prefix form.
                     // For instance: `123 > x` would be rewritten as `x is < 123`.
-                    => new Relational(Flip(op.OperatorKind), left, GetTargetExpression(op.RightOperand)),
+                    => new Relational(Flip(op.OperatorKind), left, GetTarget(op.RightOperand)),
                 ConstantResult.Right when op.RightOperand.Syntax is ExpressionSyntax right
-                    => new Relational(op.OperatorKind, right, GetTargetExpression(op.LeftOperand)),
+                    => new Relational(op.OperatorKind, right, GetTarget(op.LeftOperand)),
                 _ => null
             };
         }
@@ -116,9 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             return DetermineConstant(op) switch
             {
                 ConstantResult.Left when op.LeftOperand.Syntax is ExpressionSyntax left
-                    => new Constant(left, GetTargetExpression(op.RightOperand)),
+                    => new Constant(left, GetTarget(op.RightOperand)),
                 ConstantResult.Right when op.RightOperand.Syntax is ExpressionSyntax right
-                    => new Constant(right, GetTargetExpression(op.LeftOperand)),
+                    => new Constant(right, GetTarget(op.LeftOperand)),
                 _ => null
             };
         }
@@ -164,14 +167,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 : operation.ConstantValue.HasValue;
         }
 
-        private static ExpressionSyntax GetTargetExpression(IOperation operation)
+        private static IOperation GetTarget(IOperation operation)
         {
             // Unwrap explicit casts because the pattern will emit those anyways.
             // For instance, `(int)o == 123` would be the same as `o is 123`.
-            if (operation is IConversionOperation { IsImplicit: false } op)
-                operation = op.Operand;
-
-            return (ExpressionSyntax)operation.Syntax;
+            return operation is IConversionOperation { IsImplicit: false } op
+                ? op.Operand
+                : operation;
         }
     }
 }

@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 var pattern = CSharpUsePatternCombinatorsAnalyzer.Analyze(operation);
                 RoslynDebug.AssertNotNull(pattern);
                 var patternSyntax = AsPatternSyntax(pattern).WithAdditionalAnnotations(Formatter.Annotation);
-                editor.ReplaceNode(expression, IsPatternExpression(pattern.TargetExpression, patternSyntax));
+                editor.ReplaceNode(expression, IsPatternExpression((ExpressionSyntax)pattern.Target.Syntax, patternSyntax));
             }
         }
 
