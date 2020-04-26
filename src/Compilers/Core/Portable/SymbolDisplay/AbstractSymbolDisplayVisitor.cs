@@ -205,7 +205,8 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                     {
                         usedFieldsAndValues.Add(fieldAndValue);
                         result -= valueAtIndex;
-                        if (result == 0) break;
+                        if (result == 0)
+                            break;
                     }
                 }
             }

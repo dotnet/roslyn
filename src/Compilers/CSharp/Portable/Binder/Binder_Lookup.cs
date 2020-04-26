@@ -1103,7 +1103,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!TypeSymbol.Equals(baseType, derivedType, TypeCompareKind.ConsiderEverything2));
             for (NamedTypeSymbol b = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics); (object)b != null; b = b.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
-                if (TypeSymbol.Equals(b, baseType, TypeCompareKind.ConsiderEverything2)) return true;
+                if (TypeSymbol.Equals(b, baseType, TypeCompareKind.ConsiderEverything2))
+                    return true;
             }
             return baseType.IsInterface && GetBaseInterfaces(derivedType, basesBeingResolved, ref useSiteDiagnostics).Contains(baseType);
         }
@@ -1158,7 +1159,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     hidingSymbols.Add(sym); // not hidden
-symIsHidden:;
+symIsHidden:
+                    ;
                 }
             }
             else

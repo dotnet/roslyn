@@ -113,7 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     snapshotIndex = (~snapshotIndex) - 1;
 
                     // If there was none in the snapshots before the target position, just take index 0
-                    if (snapshotIndex < 0) snapshotIndex = 0;
+                    if (snapshotIndex < 0)
+                        snapshotIndex = 0;
                 }
 
                 return _incrementalSnapshots[snapshotIndex].snapshot;

@@ -48,7 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private bool DumpAndCleanup()
         {
             _treeEnumerator = null; // Prevent redundant errors across different test helpers
-            foreach (var _ in EnumerateNodes(_node!, dump: true)) { }
+            foreach (var _ in EnumerateNodes(_node!, dump: true))
+            {
+            }
             return false;
         }
 

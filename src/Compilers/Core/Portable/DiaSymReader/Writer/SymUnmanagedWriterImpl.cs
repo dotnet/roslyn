@@ -208,11 +208,16 @@ namespace Microsoft.DiaSymReader
                 throw new ArgumentOutOfRangeException(nameof(documentIndex));
             }
 
-            if (offsets == null) throw new ArgumentNullException(nameof(offsets));
-            if (startLines == null) throw new ArgumentNullException(nameof(startLines));
-            if (startColumns == null) throw new ArgumentNullException(nameof(startColumns));
-            if (endLines == null) throw new ArgumentNullException(nameof(endLines));
-            if (endColumns == null) throw new ArgumentNullException(nameof(endColumns));
+            if (offsets == null)
+                throw new ArgumentNullException(nameof(offsets));
+            if (startLines == null)
+                throw new ArgumentNullException(nameof(startLines));
+            if (startColumns == null)
+                throw new ArgumentNullException(nameof(startColumns));
+            if (endLines == null)
+                throw new ArgumentNullException(nameof(endLines));
+            if (endColumns == null)
+                throw new ArgumentNullException(nameof(endColumns));
 
             if (count < 0 || count > startLines.Length || count > startColumns.Length || count > endLines.Length || count > endColumns.Length)
             {
@@ -473,8 +478,10 @@ namespace Microsoft.DiaSymReader
             ReadOnlySpan<int> yieldOffsets,
             ReadOnlySpan<int> resumeOffsets)
         {
-            if (yieldOffsets == null) throw new ArgumentNullException(nameof(yieldOffsets));
-            if (resumeOffsets == null) throw new ArgumentNullException(nameof(resumeOffsets));
+            if (yieldOffsets == null)
+                throw new ArgumentNullException(nameof(yieldOffsets));
+            if (resumeOffsets == null)
+                throw new ArgumentNullException(nameof(resumeOffsets));
 
             if (yieldOffsets.Length != resumeOffsets.Length)
             {

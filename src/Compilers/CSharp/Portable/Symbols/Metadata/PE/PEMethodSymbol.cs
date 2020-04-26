@@ -207,7 +207,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool InitializeDoesNotReturn(bool value)
             {
                 int bitsToSet = IsDoesNotReturnPopulatedBit;
-                if (value) bitsToSet |= DoesNotReturnBit;
+                if (value)
+                    bitsToSet |= DoesNotReturnBit;
 
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }

@@ -26,9 +26,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 for (int b = -1; b < 2; b++) // number of bits more or less than that number of words
                 {
                     int n = BitVector.BitsPerWord * a + b;
-                    if (n < 0) continue;
+                    if (n < 0)
+                        continue;
                     BitVector arr = BitVector.AllSet(n);
-                    if (n > 0) Assert.True(arr[n - 1]);
+                    if (n > 0)
+                        Assert.True(arr[n - 1]);
                     Assert.False(arr[n]);
                 }
             }

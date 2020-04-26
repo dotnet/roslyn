@@ -445,7 +445,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // overloads a method from metadata which uses custom modifiers.
                 if (PeekNextChar() == '{')
                 {
-                    for (; _index < _name.Length && _name[_index] != '}'; ++_index) { }
+                    for (; _index < _name.Length && _name[_index] != '}'; ++_index)
+                    {
+                    }
                 }
             }
 

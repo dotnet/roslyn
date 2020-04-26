@@ -790,7 +790,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 NamespaceOrTypeSymbol container = outer.Container;
                 NamespaceSymbol ns = ((NamespaceSymbol)container).GetNestedNamespace(name);
-                if ((object)ns == null) return outer;
+                if ((object)ns == null)
+                    return outer;
                 return new InContainerBinder(ns, outer, node, inUsing: inUsing);
             }
 

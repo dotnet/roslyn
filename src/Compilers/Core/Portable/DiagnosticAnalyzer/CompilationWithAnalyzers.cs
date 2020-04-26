@@ -1093,7 +1093,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (eventQueue.Count > 0)
             {
-                while (eventQueue.TryDequeue(out _)) ;
+                while (eventQueue.TryDequeue(out _))
+                    ;
             }
 
             if (!eventQueue.IsCompleted)

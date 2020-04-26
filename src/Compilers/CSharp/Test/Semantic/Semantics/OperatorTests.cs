@@ -4929,7 +4929,8 @@ public class X
     }
 }";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "True"); ;
+            CompileAndVerify(comp, expectedOutput: "True");
+            ;
 
             source = @"
 using System;

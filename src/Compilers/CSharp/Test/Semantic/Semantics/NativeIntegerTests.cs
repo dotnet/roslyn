@@ -4445,7 +4445,8 @@ $@"{{
                     destType.EndsWith("?") &&
                     (usesIntPtrOrUIntPtr(sourceType) || usesIntPtrOrUIntPtr(destType)));
 #if DEBUG
-                if (!verify) return;
+                if (!verify)
+                    return;
 #endif
                 convert(
                     sourceType,
@@ -6983,8 +6984,10 @@ $@"class MyInt
             static DiagnosticDescription[] getBadBinaryOpsDiagnostics(string op, string leftType, string rightType, bool includeBadBinaryOps = true, bool includeVoidError = false)
             {
                 var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
-                if (includeBadBinaryOps) builder.Add(Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, leftType, rightType));
-                if (includeVoidError) builder.Add(Diagnostic(ErrorCode.ERR_VoidError, $"x {op} y"));
+                if (includeBadBinaryOps)
+                    builder.Add(Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, leftType, rightType));
+                if (includeVoidError)
+                    builder.Add(Diagnostic(ErrorCode.ERR_VoidError, $"x {op} y"));
                 return builder.ToArrayAndFree();
             }
 
@@ -9678,7 +9681,8 @@ $@"public class Library
                 var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                if (expectedDiagnostics.Length > 0) return;
+                if (expectedDiagnostics.Length > 0)
+                    return;
 
                 string sourceB =
 @"class Program
@@ -9719,7 +9723,8 @@ class Program
                 var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                if (expectedDiagnostics.Length > 0) return;
+                if (expectedDiagnostics.Length > 0)
+                    return;
 
                 CompileAndVerify(comp, expectedOutput: expectedResult);
             }

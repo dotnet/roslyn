@@ -235,10 +235,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var annotations = FlowAnalysisAnnotations.None;
             if (attributeData != null)
             {
-                if (attributeData.HasAllowNullAttribute) annotations |= FlowAnalysisAnnotations.AllowNull;
-                if (attributeData.HasDisallowNullAttribute) annotations |= FlowAnalysisAnnotations.DisallowNull;
-                if (attributeData.HasMaybeNullAttribute) annotations |= FlowAnalysisAnnotations.MaybeNull;
-                if (attributeData.HasNotNullAttribute) annotations |= FlowAnalysisAnnotations.NotNull;
+                if (attributeData.HasAllowNullAttribute)
+                    annotations |= FlowAnalysisAnnotations.AllowNull;
+                if (attributeData.HasDisallowNullAttribute)
+                    annotations |= FlowAnalysisAnnotations.DisallowNull;
+                if (attributeData.HasMaybeNullAttribute)
+                    annotations |= FlowAnalysisAnnotations.MaybeNull;
+                if (attributeData.HasNotNullAttribute)
+                    annotations |= FlowAnalysisAnnotations.NotNull;
             }
             return annotations;
         }

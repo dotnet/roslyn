@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_strict.HasValue) return _strict.Value;
+                if (_strict.HasValue)
+                    return _strict.Value;
                 bool value = _binder.Compilation.FeatureStrictEnabled;
                 _strict = value;
                 return value;
@@ -929,7 +930,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (TypeSymbol arg in typeArguments)
             {
-                if (!_binder.IsAccessible(arg, ref useSiteDiagnostics)) return false;
+                if (!_binder.IsAccessible(arg, ref useSiteDiagnostics))
+                    return false;
             }
             return true;
         }
@@ -2986,7 +2988,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ArgumentAnalysisResultKind.RequiredParameterMissing:
                     case ArgumentAnalysisResultKind.NoCorrespondingParameter:
                     case ArgumentAnalysisResultKind.DuplicateNamedArgument:
-                        if (!completeResults) goto default;
+                        if (!completeResults)
+                            goto default;
                         // When we are producing more complete results, and we have the wrong number of arguments, we push on
                         // through type inference so that lambda arguments can be bound to their delegate-typed parameters,
                         // thus improving the API and intellisense experience.

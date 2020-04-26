@@ -178,8 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             locals.Add(cachedState);
-            if ((object)cachedThis != null) locals.Add(cachedThis);
-            if ((object)_exprRetValue != null) locals.Add(_exprRetValue);
+            if ((object)cachedThis != null)
+                locals.Add(cachedThis);
+            if ((object)_exprRetValue != null)
+                locals.Add(_exprRetValue);
 
             var newBody =
                 F.SequencePoint(

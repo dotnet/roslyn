@@ -776,7 +776,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Accessibility EffectiveAccessibility()
         {
             var result = DeclaredAccessibility;
-            if (result == Accessibility.Private) return Accessibility.Private;
+            if (result == Accessibility.Private)
+                return Accessibility.Private;
             for (Symbol container = this.ContainingType; (object)container != null; container = container.ContainingType)
             {
                 switch (container.DeclaredAccessibility)
@@ -2129,13 +2130,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckFiniteFlatteningGraph(DiagnosticBag diagnostics)
         {
             Debug.Assert(ReferenceEquals(this, this.OriginalDefinition));
-            if (AllTypeArgumentCount() == 0) return;
+            if (AllTypeArgumentCount() == 0)
+                return;
             var instanceMap = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(ReferenceEqualityComparer.Instance);
             instanceMap.Add(this, this);
             foreach (var m in this.GetMembersUnordered())
             {
                 var f = m as FieldSymbol;
-                if ((object)f == null || !f.IsStatic || f.Type.TypeKind != TypeKind.Struct) continue;
+                if ((object)f == null || !f.IsStatic || f.Type.TypeKind != TypeKind.Struct)
+                    continue;
                 var type = (NamedTypeSymbol)f.Type;
                 if (InfiniteFlatteningGraph(this, type, instanceMap))
                 {
@@ -2149,7 +2152,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool InfiniteFlatteningGraph(SourceMemberContainerTypeSymbol top, NamedTypeSymbol t, Dictionary<NamedTypeSymbol, NamedTypeSymbol> instanceMap)
         {
-            if (!t.ContainsTypeParameter()) return false;
+            if (!t.ContainsTypeParameter())
+                return false;
             NamedTypeSymbol oldInstance;
             var tOriginal = t.OriginalDefinition;
             if (instanceMap.TryGetValue(tOriginal, out oldInstance))
@@ -2165,9 +2169,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     foreach (var m in t.GetMembersUnordered())
                     {
                         var f = m as FieldSymbol;
-                        if ((object)f == null || !f.IsStatic || f.Type.TypeKind != TypeKind.Struct) continue;
+                        if ((object)f == null || !f.IsStatic || f.Type.TypeKind != TypeKind.Struct)
+                            continue;
                         var type = (NamedTypeSymbol)f.Type;
-                        if (InfiniteFlatteningGraph(top, type, instanceMap)) return true;
+                        if (InfiniteFlatteningGraph(top, type, instanceMap))
+                            return true;
                     }
                     return false;
                 }
@@ -2247,13 +2253,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool All<T>(SyntaxList<T> list, Func<T, bool> predicate) where T : CSharpSyntaxNode
         {
-            foreach (var t in list) { if (predicate(t)) return true; };
+            foreach (var t in list)
+            {
+                if (predicate(t))
+                    return true;
+            };
             return false;
         }
 
         private static bool ContainsModifier(SyntaxTokenList modifiers, SyntaxKind modifier)
         {
-            foreach (var m in modifiers) { if (m.IsKind(modifier)) return true; };
+            foreach (var m in modifiers)
+            {
+                if (m.IsKind(modifier))
+                    return true;
+            };
             return false;
         }
 

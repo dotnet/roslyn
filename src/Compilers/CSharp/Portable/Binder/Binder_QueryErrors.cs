@@ -136,7 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (parent.Kind() == SyntaxKind.JoinClause)
                 {
                     var join = (JoinClauseSyntax)parent;
-                    if (join.LeftExpression.Span.Contains(node.Span) && join.Identifier.ValueText == node.Identifier.ValueText) return true;
+                    if (join.LeftExpression.Span.Contains(node.Span) && join.Identifier.ValueText == node.Identifier.ValueText)
+                        return true;
                 }
             }
 
@@ -152,7 +153,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (parent.Kind() == SyntaxKind.JoinClause)
                 {
                     var join = (JoinClauseSyntax)parent;
-                    if (join.RightExpression.Span.Contains(node.Span)) return true;
+                    if (join.RightExpression.Span.Contains(node.Span))
+                        return true;
                 }
             }
 

@@ -702,7 +702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public SymbolInfo GetSpeculativeSymbolInfo(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
         {
-            if (!CanGetSemanticInfo(expression, isSpeculative: true)) return SymbolInfo.None;
+            if (!CanGetSemanticInfo(expression, isSpeculative: true))
+                return SymbolInfo.None;
 
             Binder binder;
             ImmutableArray<Symbol> crefSymbols;
@@ -1683,7 +1684,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Symbol RemapSymbolIfNecessary(Symbol symbol)
         {
-            if (!Compilation.NullableSemanticAnalysisEnabled) return symbol;
+            if (!Compilation.NullableSemanticAnalysisEnabled)
+                return symbol;
 
             switch (symbol)
             {
@@ -3370,9 +3372,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var query = (BoundQueryClause)boundNode;
                         var builder = ArrayBuilder<Symbol>.GetInstance();
-                        if (query.Operation != null && (object)query.Operation.ExpressionSymbol != null) builder.Add(query.Operation.ExpressionSymbol);
-                        if ((object)query.DefinedSymbol != null) builder.Add(query.DefinedSymbol);
-                        if (query.Cast != null && (object)query.Cast.ExpressionSymbol != null) builder.Add(query.Cast.ExpressionSymbol);
+                        if (query.Operation != null && (object)query.Operation.ExpressionSymbol != null)
+                            builder.Add(query.Operation.ExpressionSymbol);
+                        if ((object)query.DefinedSymbol != null)
+                            builder.Add(query.DefinedSymbol);
+                        if (query.Cast != null && (object)query.Cast.ExpressionSymbol != null)
+                            builder.Add(query.Cast.ExpressionSymbol);
                         symbols = builder.ToImmutableAndFree();
                     }
                     break;

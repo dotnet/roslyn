@@ -671,8 +671,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(PEModule module, ParameterHandle handle)
         {
             FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None;
-            if (module.HasAttribute(handle, AttributeDescription.AllowNullAttribute)) annotations |= FlowAnalysisAnnotations.AllowNull;
-            if (module.HasAttribute(handle, AttributeDescription.DisallowNullAttribute)) annotations |= FlowAnalysisAnnotations.DisallowNull;
+            if (module.HasAttribute(handle, AttributeDescription.AllowNullAttribute))
+                annotations |= FlowAnalysisAnnotations.AllowNull;
+            if (module.HasAttribute(handle, AttributeDescription.DisallowNullAttribute))
+                annotations |= FlowAnalysisAnnotations.DisallowNull;
 
             if (module.HasAttribute(handle, AttributeDescription.MaybeNullAttribute))
             {

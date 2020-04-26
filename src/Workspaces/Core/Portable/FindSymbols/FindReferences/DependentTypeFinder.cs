@@ -80,7 +80,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 lazy = dictionary.GetOrAdd(key,
                     new AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>(
                         c => GetSymbolKeysAndProjectIdsAsync(solution, findAsync, c),
-                        cacheResult: true)); ;
+                        cacheResult: true));
+                ;
             }
 
             // Otherwise, someone else computed the symbols and cached the results as symbol 

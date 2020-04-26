@@ -365,7 +365,10 @@ namespace Microsoft.CodeAnalysis
                 // int.MaxValue chars so compression or encoding would have to be abysmal for
                 // this to overflow. We'd probably be lucky to even get this far but if we do
                 // we should fail fast.
-                checked { BytesWritten += count; }
+                checked
+                {
+                    BytesWritten += count;
+                }
             }
 
             public override void WriteByte(byte value)
@@ -373,7 +376,10 @@ namespace Microsoft.CodeAnalysis
                 base.WriteByte(value);
 
                 // same rationale for checked arithmetic as above.
-                checked { BytesWritten++; };
+                checked
+                {
+                    BytesWritten++;
+                };
             }
 
             public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)

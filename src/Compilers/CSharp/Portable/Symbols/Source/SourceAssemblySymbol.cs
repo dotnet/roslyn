@@ -1415,7 +1415,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     netModuleAttributesBag.SetEarlyDecodedWellKnownAttributeData(null);
                     netModuleAttributesBag.SetDecodedWellKnownAttributeData(wellKnownData);
                     netModuleAttributesBag.SetAttributes(attributesFromNetModules);
-                    if (netModuleAttributesBag.IsEmpty) netModuleAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
+                    if (netModuleAttributesBag.IsEmpty)
+                        netModuleAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
                 }
                 else
                 {
@@ -2550,7 +2551,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static string DefaultValue(TypeSymbol type)
         {
             // TODO: localize these strings
-            if (type.IsReferenceType) return "null";
+            if (type.IsReferenceType)
+                return "null";
             switch (type.SpecialType)
             {
                 case SpecialType.System_Boolean:

@@ -621,21 +621,30 @@ namespace Microsoft.CodeAnalysis
 
             private IEnumerable<KeyValuePair<string, string>> GetVerStrings()
             {
-                if (_commentsContents != null) yield return new KeyValuePair<string, string>("Comments", _commentsContents);
-                if (_companyNameContents != null) yield return new KeyValuePair<string, string>("CompanyName", _companyNameContents);
-                if (_fileDescriptionContents != null) yield return new KeyValuePair<string, string>("FileDescription", _fileDescriptionContents);
+                if (_commentsContents != null)
+                    yield return new KeyValuePair<string, string>("Comments", _commentsContents);
+                if (_companyNameContents != null)
+                    yield return new KeyValuePair<string, string>("CompanyName", _companyNameContents);
+                if (_fileDescriptionContents != null)
+                    yield return new KeyValuePair<string, string>("FileDescription", _fileDescriptionContents);
 
                 yield return new KeyValuePair<string, string>("FileVersion", _fileVersionContents);
 
-                if (_internalNameContents != null) yield return new KeyValuePair<string, string>("InternalName", _internalNameContents);
-                if (_legalCopyrightContents != null) yield return new KeyValuePair<string, string>("LegalCopyright", _legalCopyrightContents);
-                if (_legalTrademarksContents != null) yield return new KeyValuePair<string, string>("LegalTrademarks", _legalTrademarksContents);
-                if (_originalFileNameContents != null) yield return new KeyValuePair<string, string>("OriginalFilename", _originalFileNameContents);
-                if (_productNameContents != null) yield return new KeyValuePair<string, string>("ProductName", _productNameContents);
+                if (_internalNameContents != null)
+                    yield return new KeyValuePair<string, string>("InternalName", _internalNameContents);
+                if (_legalCopyrightContents != null)
+                    yield return new KeyValuePair<string, string>("LegalCopyright", _legalCopyrightContents);
+                if (_legalTrademarksContents != null)
+                    yield return new KeyValuePair<string, string>("LegalTrademarks", _legalTrademarksContents);
+                if (_originalFileNameContents != null)
+                    yield return new KeyValuePair<string, string>("OriginalFilename", _originalFileNameContents);
+                if (_productNameContents != null)
+                    yield return new KeyValuePair<string, string>("ProductName", _productNameContents);
 
                 yield return new KeyValuePair<string, string>("ProductVersion", _productVersionContents);
 
-                if (_assemblyVersionContents != null) yield return new KeyValuePair<string, string>("Assembly Version", _assemblyVersionContents.ToString());
+                if (_assemblyVersionContents != null)
+                    yield return new KeyValuePair<string, string>("Assembly Version", _assemblyVersionContents.ToString());
             }
 
             private uint FileType { get { return (_isDll) ? VFT_DLL : VFT_APP; } }

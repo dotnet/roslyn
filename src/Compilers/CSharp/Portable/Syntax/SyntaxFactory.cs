@@ -1685,7 +1685,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseName();
-                if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
+                if (consumeFullText)
+                    node = parser.ConsumeUnexpectedTokens(node);
                 return (NameSyntax)node.CreateRed();
             }
         }
@@ -1699,7 +1700,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseTypeName();
-                if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
+                if (consumeFullText)
+                    node = parser.ConsumeUnexpectedTokens(node);
                 return (TypeSyntax)node.CreateRed();
             }
         }
@@ -1718,7 +1720,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseExpression();
-                if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
+                if (consumeFullText)
+                    node = parser.ConsumeUnexpectedTokens(node);
                 return (ExpressionSyntax)node.CreateRed();
             }
         }
@@ -1737,7 +1740,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseStatement();
-                if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
+                if (consumeFullText)
+                    node = parser.ConsumeUnexpectedTokens(node);
                 return (StatementSyntax)node.CreateRed();
             }
         }
@@ -1800,7 +1804,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseParenthesizedParameterList();
-                if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
+                if (consumeFullText)
+                    node = parser.ConsumeUnexpectedTokens(node);
                 return (ParameterListSyntax)node.CreateRed();
             }
         }
@@ -1819,7 +1824,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseBracketedParameterList();
-                if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
+                if (consumeFullText)
+                    node = parser.ConsumeUnexpectedTokens(node);
                 return (BracketedParameterListSyntax)node.CreateRed();
             }
         }
@@ -1838,7 +1844,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseParenthesizedArgumentList();
-                if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
+                if (consumeFullText)
+                    node = parser.ConsumeUnexpectedTokens(node);
                 return (ArgumentListSyntax)node.CreateRed();
             }
         }
@@ -1857,7 +1864,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseBracketedArgumentList();
-                if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
+                if (consumeFullText)
+                    node = parser.ConsumeUnexpectedTokens(node);
                 return (BracketedArgumentListSyntax)node.CreateRed();
             }
         }
@@ -1876,7 +1884,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseAttributeArgumentList();
-                if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
+                if (consumeFullText)
+                    node = parser.ConsumeUnexpectedTokens(node);
                 return (AttributeArgumentListSyntax)node.CreateRed();
             }
         }

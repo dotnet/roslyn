@@ -282,7 +282,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void SetAnalyzedNullability(BoundExpression expr, VisitResult result, bool? isLvalue = null)
         {
-            if (expr == null || _disableNullabilityAnalysis) return;
+            if (expr == null || _disableNullabilityAnalysis)
+                return;
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993: This assert is essential for ensuring that we aren't
@@ -1631,7 +1632,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (targetSlot >= this.State.Capacity) Normalize(ref this.State);
+                if (targetSlot >= this.State.Capacity)
+                    Normalize(ref this.State);
 
                 var newState = valueType.State;
                 SetStateAndTrackForFinally(ref this.State, targetSlot, newState);
@@ -2131,7 +2133,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             localFunctionState.Visited = true;
 
-            if (!localFunc.WasCompilerGenerated) EnterParameters(localFuncSymbol.Parameters);
+            if (!localFunc.WasCompilerGenerated)
+                EnterParameters(localFuncSymbol.Parameters);
 
             // State changes to captured variables are recorded, as calls to local functions
             // transition the state of captured variables if the variables have state changes
@@ -4666,7 +4669,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayBuilder<T>? initBuilder<T>(ImmutableArray<T> arrayOpt)
             {
-                if (arrayOpt.IsDefault) { return null; }
+                if (arrayOpt.IsDefault)
+                {
+                    return null;
+                }
                 var builder = ArrayBuilder<T>.GetInstance(parametersOpt.Length);
                 builder.AddRange(arrayOpt);
                 return builder;
@@ -9021,7 +9027,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 set
                 {
                     // No states should be modified in unreachable code, as there is only one unreachable state.
-                    if (!this.Reachable) return;
+                    if (!this.Reachable)
+                        return;
                     slot *= 2;
                     _state[slot] = (value != NullableFlowState.NotNull);
                     _state[slot + 1] = (value == NullableFlowState.MaybeDefault);

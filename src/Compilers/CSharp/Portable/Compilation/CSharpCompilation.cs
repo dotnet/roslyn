@@ -440,7 +440,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _syntaxAndDeclarations = syntaxAndDeclarations;
 
             Debug.Assert(_lazyAssemblySymbol is null);
-            if (EventQueue != null) EventQueue.TryEnqueue(new CompilationStartedEvent(this));
+            if (EventQueue != null)
+                EventQueue.TryEnqueue(new CompilationStartedEvent(this));
         }
 
         internal override void ValidateDebugEntryPoint(IMethodSymbol debugEntryPoint, DiagnosticBag diagnostics)
@@ -2108,7 +2109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CompleteTree(SyntaxTree tree)
         {
-            if (_lazyCompilationUnitCompletedTrees == null) Interlocked.CompareExchange(ref _lazyCompilationUnitCompletedTrees, new HashSet<SyntaxTree>(), null);
+            if (_lazyCompilationUnitCompletedTrees == null)
+                Interlocked.CompareExchange(ref _lazyCompilationUnitCompletedTrees, new HashSet<SyntaxTree>(), null);
             lock (_lazyCompilationUnitCompletedTrees)
             {
                 if (_lazyCompilationUnitCompletedTrees.Add(tree))

@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static bool HasSideEffects([NotNullWhen(true)] BoundStatement? statement)
         {
-            if (statement == null) return false;
+            if (statement == null)
+                return false;
             switch (statement.Kind)
             {
                 case BoundKind.NoOpStatement:
@@ -58,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var block = (BoundBlock)statement;
                         foreach (var stmt in block.Statements)
                         {
-                            if (HasSideEffects(stmt)) return true;
+                            if (HasSideEffects(stmt))
+                                return true;
                         }
                         return false;
                     }

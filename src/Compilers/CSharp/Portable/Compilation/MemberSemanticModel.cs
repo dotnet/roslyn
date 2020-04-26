@@ -691,10 +691,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private T GetRemappedSymbol<T>(T originalSymbol) where T : Symbol
         {
-            if (!Compilation.NullableSemanticAnalysisEnabled) return originalSymbol;
+            if (!Compilation.NullableSemanticAnalysisEnabled)
+                return originalSymbol;
 
             EnsureNullabilityAnalysisPerformedIfNecessary();
-            if (_lazyRemappedSymbols is null) return originalSymbol;
+            if (_lazyRemappedSymbols is null)
+                return originalSymbol;
 
             if (_lazyRemappedSymbols.TryGetValue(originalSymbol, out Symbol remappedSymbol))
             {
@@ -1013,7 +1015,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private QueryClauseInfo GetQueryClauseInfo(BoundQueryClause bound)
         {
-            if (bound == null) return default(QueryClauseInfo);
+            if (bound == null)
+                return default(QueryClauseInfo);
             var castInfo = (bound.Cast == null) ? SymbolInfo.None : GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bound.Cast, bound.Cast, boundNodeForSyntacticParent: null, binderOpt: null);
             var operationInfo = GetSymbolInfoForQuery(bound);
             return new QueryClauseInfo(castInfo: castInfo, operationInfo: operationInfo);
@@ -1253,7 +1256,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode bindableNode = this.GetBindableSyntaxNode(node);
             BoundExpression boundExpr = this.GetLowerBoundNode(bindableNode) as BoundExpression;
 
-            if (boundExpr == null) return default(Optional<object>);
+            if (boundExpr == null)
+                return default(Optional<object>);
 
             ConstantValue constantValue = boundExpr.ConstantValue;
             return constantValue == null || constantValue.IsBad
@@ -1977,7 +1981,8 @@ done:
                 boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, takeSnapshots: true, out var snapshotManager, ref remappedSymbols);
 #if DEBUG
                 // Don't actually cache the results if the nullable analysis is not enabled in debug mode.
-                if (!Compilation.NullableSemanticAnalysisEnabled) return;
+                if (!Compilation.NullableSemanticAnalysisEnabled)
+                    return;
 #endif
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
             }
@@ -2223,14 +2228,16 @@ done:
                     case SyntaxKind.RefExpression:
                     case SyntaxKind.RefType:
                         var pp = parent.Parent;
-                        if (pp == null) break;
+                        if (pp == null)
+                            break;
                         parent = pp;
                         break;
                     default:
                         goto foundParent;
                 }
             }
-foundParent:;
+foundParent:
+            ;
 
             var bindableParent = this.GetBindableSyntaxNode(parent);
             Debug.Assert(bindableParent != null);

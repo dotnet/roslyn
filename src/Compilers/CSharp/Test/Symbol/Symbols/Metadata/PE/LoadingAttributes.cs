@@ -1127,7 +1127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             attrs = (from a in mtd.GetAttributes()
                      where a.AttributeConstructor.Equals((MethodSymbol)mctors[2])
-                     select a).ToList(); ;
+                     select a).ToList();
+            ;
             Assert.Equal(1, attrs.Count);
             // [AllInheritMultiple(-008, 255)] ' p3 is optional
             attrSym = attrs.First();
@@ -1138,7 +1139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             attrs = (from a in mtd.GetAttributes()
                      where a.AttributeConstructor.Equals((MethodSymbol)mctors[3])
-                     select a).ToList(); ;
+                     select a).ToList();
+            ;
             Assert.Equal(1, attrs.Count);
             // [AllInheritMultiple(+007, 256)] ' p3, p4 optional
             attrSym = attrs.First();

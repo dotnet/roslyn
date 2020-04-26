@@ -6254,7 +6254,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var s in symbols)
                 {
                     var m = s as MethodSymbol;
-                    if ((object)m != null) builder.Add(m);
+                    if ((object)m != null)
+                        builder.Add(m);
                 }
                 var methods = builder.ToImmutableAndFree();
 

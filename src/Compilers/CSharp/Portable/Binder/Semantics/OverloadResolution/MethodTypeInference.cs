@@ -455,7 +455,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(type.HasType);
 
-            if (type.TypeKind != TypeKind.TypeParameter) return false;
+            if (type.TypeKind != TypeKind.TypeParameter)
+                return false;
 
             TypeParameterSymbol typeParameter = (TypeParameterSymbol)type.Type;
             int ordinal = typeParameter.Ordinal;
@@ -2895,7 +2896,10 @@ OuterBreak:
             {
                 // We do a equality test ignoring dynamic and tuple names differences,
                 // but dynamic and object are not considered equal for backwards compatibility.
-                if (x.Type.IsDynamic() ^ y.Type.IsDynamic()) { return false; }
+                if (x.Type.IsDynamic() ^ y.Type.IsDynamic())
+                {
+                    return false;
+                }
 
                 return x.Equals(y, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
             }

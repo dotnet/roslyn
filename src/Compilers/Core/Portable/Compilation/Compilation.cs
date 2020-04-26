@@ -3124,7 +3124,8 @@ namespace Microsoft.CodeAnalysis
 
         internal string GetMessage(ITypeSymbol source, ITypeSymbol destination)
         {
-            if (source == null || destination == null) return this.AssemblyName ?? "";
+            if (source == null || destination == null)
+                return this.AssemblyName ?? "";
             return string.Format("{0}: {1} {2} -> {3} {4}", this.AssemblyName, source.TypeKind.ToString(), source.Name, destination.TypeKind.ToString(), destination.Name);
         }
 

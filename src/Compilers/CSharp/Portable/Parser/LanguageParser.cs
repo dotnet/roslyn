@@ -2133,7 +2133,8 @@ tryAgain:
                         return _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type);
                     }
 
-parse_member_name:;
+parse_member_name:
+                    ;
                     // If we've seen the ref keyword, we know we must have an indexer, method, or property.
                     if (!sawRef)
                     {
@@ -2261,8 +2262,10 @@ parse_member_name:;
             TypeSyntax type,
             SyntaxToken identifierOrThisOpt)
         {
-            if (type.Kind != SyntaxKind.IdentifierName) return false;
-            if (identifierOrThisOpt.Kind != SyntaxKind.IdentifierToken) return false;
+            if (type.Kind != SyntaxKind.IdentifierName)
+                return false;
+            if (identifierOrThisOpt.Kind != SyntaxKind.IdentifierToken)
+                return false;
 
             var identifier = ((IdentifierNameSyntax)type).Identifier;
             var contextualKind = identifier.ContextualKind;
@@ -6042,7 +6045,8 @@ done:
                         goto done; // token not consumed
                 }
             }
-done:;
+done:
+            ;
 
             Debug.Assert(type != null);
             return type;
@@ -11663,7 +11667,8 @@ tryAgain:
 
         internal TNode ConsumeUnexpectedTokens<TNode>(TNode node) where TNode : CSharpSyntaxNode
         {
-            if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken) return node;
+            if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken)
+                return node;
             SyntaxListBuilder<SyntaxToken> b = _pool.Allocate<SyntaxToken>();
             while (this.CurrentToken.Kind != SyntaxKind.EndOfFileToken)
             {

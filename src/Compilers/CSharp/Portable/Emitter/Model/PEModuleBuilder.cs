@@ -589,7 +589,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     // Since we need to allow multiple constructions of the same generic type at the source
                     // level, we need to de-dup the original definitions before emitting.
-                    if (!seenTopLevelTypes.Add(originalDefinition)) continue;
+                    if (!seenTopLevelTypes.Add(originalDefinition))
+                        continue;
 
                     // Return all nested types.
                     // Note the order: depth first, children in reverse order (to match dev10, not a requirement).

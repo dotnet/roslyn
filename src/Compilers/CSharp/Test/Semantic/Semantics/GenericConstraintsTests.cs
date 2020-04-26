@@ -2407,7 +2407,8 @@ public class C1 : I1
     {
         x.Dispose();
     }
-}", references: new[] { reference }).EmitToImageReference(); ;
+}", references: new[] { reference }).EmitToImageReference();
+            ;
 
             CompileAndVerify(@"
 struct S : System.IDisposable

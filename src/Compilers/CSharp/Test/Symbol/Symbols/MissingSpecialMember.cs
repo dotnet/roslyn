@@ -533,7 +533,8 @@ namespace System
 
             foreach (SpecialMember special in Enum.GetValues(typeof(SpecialMember)))
             {
-                if (special == SpecialMember.Count) continue; // Not a real value;
+                if (special == SpecialMember.Count)
+                    continue; // Not a real value;
 
                 var symbol = comp.GetSpecialTypeMember(special);
                 if (special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces)
@@ -965,7 +966,8 @@ namespace System
                         // Not always available.
                         continue;
                 }
-                if (wkm == WellKnownMember.Count) continue; // Not a real value.
+                if (wkm == WellKnownMember.Count)
+                    continue; // Not a real value.
 
                 var symbol = comp.GetWellKnownTypeMember(wkm);
                 Assert.True((object)symbol != null, $"Unexpected null for {wkm}");

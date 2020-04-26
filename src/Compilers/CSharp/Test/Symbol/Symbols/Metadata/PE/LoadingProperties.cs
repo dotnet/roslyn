@@ -381,11 +381,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             VirtualnessModifiers mods = VirtualnessModifiers.None;
 
-            if (symbol.IsAbstract) mods |= VirtualnessModifiers.Abstract;
-            if (symbol.IsVirtual) mods |= VirtualnessModifiers.Virtual;
+            if (symbol.IsAbstract)
+                mods |= VirtualnessModifiers.Abstract;
+            if (symbol.IsVirtual)
+                mods |= VirtualnessModifiers.Virtual;
 
-            if (symbol.IsSealed) mods |= VirtualnessModifiers.Sealed;
-            else if (symbol.IsOverride) mods |= VirtualnessModifiers.Override;
+            if (symbol.IsSealed)
+                mods |= VirtualnessModifiers.Sealed;
+            else if (symbol.IsOverride)
+                mods |= VirtualnessModifiers.Override;
 
             return mods;
         }

@@ -381,7 +381,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool Equals(Symbol symbol, TypeCompareKind compareKind)
         {
-            if ((object)this == symbol) return true;
+            if ((object)this == symbol)
+                return true;
 
             return symbol is LambdaSymbol lambda
                 && lambda._syntax == _syntax

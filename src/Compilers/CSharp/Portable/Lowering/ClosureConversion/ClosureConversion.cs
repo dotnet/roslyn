@@ -1098,7 +1098,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var effect in node.SideEffects)
             {
                 var replacement = (BoundExpression)this.Visit(effect);
-                if (replacement != null) prologue.Add(replacement);
+                if (replacement != null)
+                    prologue.Add(replacement);
             }
 
             var newValue = (BoundExpression)this.Visit(node.Value);
@@ -1613,9 +1614,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // the lambda captures at most the "this" of the enclosing method.  We cache its delegate in a local variable.
                         var cacheLocal = F.SynthesizedLocal(type, kind: SynthesizedLocalKind.CachedAnonymousMethodDelegate);
-                        if (_addedLocals == null) _addedLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+                        if (_addedLocals == null)
+                            _addedLocals = ArrayBuilder<LocalSymbol>.GetInstance();
                         _addedLocals.Add(cacheLocal);
-                        if (_addedStatements == null) _addedStatements = ArrayBuilder<BoundStatement>.GetInstance();
+                        if (_addedStatements == null)
+                            _addedStatements = ArrayBuilder<BoundStatement>.GetInstance();
                         cache = F.Local(cacheLocal);
                         _addedStatements.Add(F.Assignment(cache, F.Null(type)));
                     }

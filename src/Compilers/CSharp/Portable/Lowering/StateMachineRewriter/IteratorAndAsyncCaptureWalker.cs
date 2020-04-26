@@ -358,7 +358,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void AddVariable(Symbol local)
             {
-                if ((object)local != null) _localsInScope.Add(local);
+                if ((object)local != null)
+                    _localsInScope.Add(local);
             }
 
             public override BoundNode VisitSequence(BoundSequence node)

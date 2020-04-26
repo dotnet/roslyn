@@ -478,7 +478,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool Equals(Symbol symbol, TypeCompareKind compareKind)
         {
-            if ((object)this == symbol) return true;
+            if ((object)this == symbol)
+                return true;
 
             var localFunction = symbol as LocalFunctionSymbol;
             return localFunction?.Syntax == Syntax;

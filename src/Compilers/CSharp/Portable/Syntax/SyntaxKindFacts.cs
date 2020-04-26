@@ -197,7 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsAnyToken(SyntaxKind kind)
         {
-            if (kind >= SyntaxKind.TildeToken && kind < SyntaxKind.EndOfLineTrivia) return true;
+            if (kind >= SyntaxKind.TildeToken && kind < SyntaxKind.EndOfLineTrivia)
+                return true;
             switch (kind)
             {
                 case SyntaxKind.InterpolatedStringToken:

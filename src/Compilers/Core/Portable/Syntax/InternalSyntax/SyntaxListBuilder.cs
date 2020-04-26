@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         public void Add(GreenNode? item)
         {
-            if (item == null) return;
+            if (item == null)
+                return;
 
             if (item.IsList)
             {
@@ -136,7 +137,8 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             int currentSize = _nodes.Length;
             int requiredSize = this.Count + additionalCount;
 
-            if (requiredSize <= currentSize) return;
+            if (requiredSize <= currentSize)
+                return;
 
             int newSize =
                 requiredSize < 8 ? 8 :

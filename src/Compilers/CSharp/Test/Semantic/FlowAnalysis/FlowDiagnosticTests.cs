@@ -383,7 +383,8 @@ class Program
             foreach (var e in this.FlowDiagnostics(comp))
             {
                 count[(int)e.Severity]++;
-                if (!warnings.ContainsKey(e.Code)) warnings[e.Code] = 0;
+                if (!warnings.ContainsKey(e.Code))
+                    warnings[e.Code] = 0;
                 warnings[e.Code] += 1;
             }
 

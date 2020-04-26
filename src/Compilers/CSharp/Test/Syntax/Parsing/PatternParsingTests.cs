@@ -2867,8 +2867,10 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 var builder = new StringBuilder();
                 for (int i = 0; i < nProps; i++)
                 {
-                    if (i != 0) builder.Append(", ");
-                    if (needNames || random.Next(5) == 0) builder.Append("N: ");
+                    if (i != 0)
+                        builder.Append(", ");
+                    if (needNames || random.Next(5) == 0)
+                        builder.Append("N: ");
                     builder.Append(makePattern(maxDepth - 1));
                 }
                 return builder.ToString();
@@ -2898,7 +2900,8 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         bool parensPart = random.Next(2) == 0;
                         bool propsPart = random.Next(2) == 0;
                         bool name = random.Next(2) == 0;
-                        if (!parensPart && !propsPart && !(nameType && name)) continue;
+                        if (!parensPart && !propsPart && !(nameType && name))
+                            continue;
                         return $"{(nameType ? "N" : "")} {(parensPart ? $"({makeProps(maxDepth, false)})" : "")} {(propsPart ? $"{{ {makeProps(maxDepth, true)} }}" : "")} {(name ? "n" : "")}";
                     }
                 }

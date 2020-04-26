@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             foreach (var member in type.GetMembers())
             {
                 // Skip accessors since those are covered by associated symbol.
-                if (member.IsAccessor()) continue;
+                if (member.IsAccessor())
+                    continue;
                 Visit(member);
             }
         }
@@ -189,7 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             builder.Append("[");
 
             var name = attribute.AttributeClass.Name;
-            if (name.EndsWith("Attribute")) name = name.Substring(0, name.Length - 9);
+            if (name.EndsWith("Attribute"))
+                name = name.Substring(0, name.Length - 9);
             builder.Append(name);
 
             var arguments = attribute.ConstructorArguments.ToImmutableArray();

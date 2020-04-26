@@ -350,7 +350,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(expr.Kind() == SyntaxKind.TupleExpression || expr.Kind() == SyntaxKind.DeclarationExpression || expr.Kind() == SyntaxKind.IdentifierName);
                 var parent = expr.Parent;
-                if (parent == null) { return null; }
+                if (parent == null)
+                {
+                    return null;
+                }
 
                 switch (parent.Kind())
                 {

@@ -181,7 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (DoNotVisit(symbol)) return;
+            if (DoNotVisit(symbol))
+                return;
 
             if (IsTrue(GetDeclaredOrInheritedCompliance(symbol)))
             {
@@ -230,7 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (DoNotVisit(symbol)) return;
+            if (DoNotVisit(symbol))
+                return;
 
             Debug.Assert(!symbol.IsImplicitClass);
 
@@ -296,7 +298,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (DoNotVisit(symbol)) return;
+            if (DoNotVisit(symbol))
+                return;
 
             Compliance compliance = GetDeclaredOrInheritedCompliance(symbol);
 
@@ -315,7 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!VisitTypeOrMember(symbol, compliance)) return;
+            if (!VisitTypeOrMember(symbol, compliance))
+                return;
 
             if (IsTrue(compliance))
             {
@@ -350,11 +354,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (DoNotVisit(symbol)) return;
+            if (DoNotVisit(symbol))
+                return;
 
             Compliance compliance = GetDeclaredOrInheritedCompliance(symbol);
 
-            if (!VisitTypeOrMember(symbol, compliance)) return;
+            if (!VisitTypeOrMember(symbol, compliance))
+                return;
 
             // Rule 28 requires that the accessors "adhere to a special naming pattern".
             // We don't actually need to do anything here, because they automatically
@@ -372,7 +378,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (DoNotVisit(symbol)) return;
+            if (DoNotVisit(symbol))
+                return;
 
             Compliance compliance = GetDeclaredOrInheritedCompliance(symbol);
 
@@ -386,18 +393,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or they explicitly implement interface accessors - we don't check non-public
             // members.
 
-            if (!VisitTypeOrMember(symbol, compliance)) return;
+            if (!VisitTypeOrMember(symbol, compliance))
+                return;
         }
 
         public override void VisitField(FieldSymbol symbol)
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (DoNotVisit(symbol)) return;
+            if (DoNotVisit(symbol))
+                return;
 
             Compliance compliance = GetDeclaredOrInheritedCompliance(symbol);
 
-            if (!VisitTypeOrMember(symbol, compliance)) return;
+            if (!VisitTypeOrMember(symbol, compliance))
+                return;
 
             if (IsTrue(compliance))
             {
@@ -665,7 +675,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckForMeaninglessOnParameter(ImmutableArray<ParameterSymbol> parameters)
         {
-            if (parameters.IsEmpty) return;
+            if (parameters.IsEmpty)
+                return;
 
             int startPos = 0;
 
@@ -810,7 +821,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // it was only supposed to happen for interface types?
                 foreach (NamedTypeSymbol @interface in type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys) // NOTE: would be hand-rolled in a standalone component.
                 {
-                    if (!IsAccessibleOutsideAssembly(@interface)) continue;
+                    if (!IsAccessibleOutsideAssembly(@interface))
+                        continue;
 
                     foreach (Symbol member in @interface.GetMembersUnordered())
                     {
@@ -921,7 +933,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             System.Diagnostics.Debug.Assert(IsTrue(GetDeclaredOrInheritedCompliance(symbol)));
             System.Diagnostics.Debug.Assert(IsAccessibleOutsideAssembly(symbol));
 
-            if (!symbol.CanBeReferencedByName || symbol.IsOverride) return;
+            if (!symbol.CanBeReferencedByName || symbol.IsOverride)
+                return;
 
             string name = symbol.Name;
 

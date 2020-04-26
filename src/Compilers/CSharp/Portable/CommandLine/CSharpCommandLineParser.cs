@@ -247,7 +247,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (name)
                     {
                         case "-": // csi -- script.csx
-                            if (value != null) break;
+                            if (value != null)
+                                break;
                             if (arg == "-")
                             {
                                 if (Console.IsInputRedirected)
@@ -268,12 +269,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "i":
                         case "i+":
-                            if (value != null) break;
+                            if (value != null)
+                                break;
                             interactiveMode = true;
                             continue;
 
                         case "i-":
-                            if (value != null) break;
+                            if (value != null)
+                                break;
                             interactiveMode = false;
                             continue;
 

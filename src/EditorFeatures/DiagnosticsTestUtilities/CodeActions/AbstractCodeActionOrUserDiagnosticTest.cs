@@ -424,7 +424,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 foreach (var diagnostic in diagnosticsWithTag)
                 {
                     var documentOffset = initialMarkupWithoutSpans.IndexOf(diagnosticsWithTag.First().Location.SourceTree.ToString());
-                    if (documentOffset == -1) continue;
+                    if (documentOffset == -1)
+                        continue;
 
                     segments.Add((documentOffset + diagnostic.Location.SourceSpan.Start, "{|" + markupKey + ":"));
                     segments.Add((documentOffset + diagnostic.Location.SourceSpan.End, "|}"));

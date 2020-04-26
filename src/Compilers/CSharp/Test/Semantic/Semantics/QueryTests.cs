@@ -1653,7 +1653,8 @@ class Query
     }
 }";
             var compilation = CreateCompilation(csSource);
-            foreach (var dd in compilation.GetDiagnostics()) Console.WriteLine(dd);
+            foreach (var dd in compilation.GetDiagnostics())
+                Console.WriteLine(dd);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

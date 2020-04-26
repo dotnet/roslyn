@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         c.IsTupleConversion || c.IsTupleLiteralConversion:
                     {
                         // Push tuple conversions down to the elements.
-                        if (!IsLikeTupleExpression(o, out tuple)) return false;
+                        if (!IsLikeTupleExpression(o, out tuple))
+                            return false;
                         var underlyingConversions = c.UnderlyingConversions;
                         var resultTypes = conversion.Type.TupleElementTypesWithAnnotations;
                         var builder = ArrayBuilder<BoundExpression>.GetInstance(tuple.Arguments.Length);

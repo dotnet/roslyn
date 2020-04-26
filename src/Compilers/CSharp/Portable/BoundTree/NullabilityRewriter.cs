@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private T GetUpdatedSymbol<T>(BoundNode expr, T sym) where T : Symbol?
         {
-            if (sym is null) return sym;
+            if (sym is null)
+                return sym;
 
             Symbol? updatedSymbol = null;
             if (_snapshotManager?.TryGetUpdatedSymbol(expr, sym, out updatedSymbol) != true)

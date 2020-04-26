@@ -80,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NonMonotonicState = ReachableBottomState();
             }
 
-            if (!localFunc.WasCompilerGenerated) EnterParameters(localFuncSymbol.Parameters);
+            if (!localFunc.WasCompilerGenerated)
+                EnterParameters(localFuncSymbol.Parameters);
 
             // State changes to captured variables are recorded, as calls to local functions
             // transition the state of captured variables if the variables have state changes

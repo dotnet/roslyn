@@ -1090,7 +1090,8 @@ class C
         Console.WriteLine(s[0]);
         Console.WriteLine(s[1]);
     }
-}", TestOptions.ReleaseExe); ;
+}", TestOptions.ReleaseExe);
+            ;
             var verifier = CompileAndVerify(comp, expectedOutput: @"f
 g
 f

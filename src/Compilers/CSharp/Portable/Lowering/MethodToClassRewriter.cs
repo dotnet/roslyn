@@ -111,7 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<LocalSymbol> RewriteLocals(ImmutableArray<LocalSymbol> locals)
         {
-            if (locals.IsEmpty) return locals;
+            if (locals.IsEmpty)
+                return locals;
             var newLocals = ArrayBuilder<LocalSymbol>.GetInstance();
             RewriteLocals(locals, newLocals);
             return newLocals.ToImmutableAndFree();

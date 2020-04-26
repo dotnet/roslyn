@@ -639,8 +639,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
-            if ((object)t2 == this) return true;
-            if ((object)t2 == null) return false;
+            if ((object)t2 == this)
+                return true;
+            if ((object)t2 == null)
+                return false;
 
             if ((comparison & TypeCompareKind.IgnoreDynamic) != 0)
             {
@@ -655,7 +657,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             NamedTypeSymbol other = t2 as NamedTypeSymbol;
-            if ((object)other == null) return false;
+            if ((object)other == null)
+                return false;
 
             // Compare OriginalDefinitions.
             var thisOriginalDefinition = this.OriginalDefinition;

@@ -131,7 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsCapturedInLocalFunction(int slot)
         {
-            if (slot <= 0) return false;
+            if (slot <= 0)
+                return false;
 
             // Find the root slot, since that would be the only
             // slot, if any, that is captured in a local function

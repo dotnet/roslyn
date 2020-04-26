@@ -42,10 +42,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Debug.Assert((value & ~(FlowAnalysisAnnotations.DisallowNull | FlowAnalysisAnnotations.AllowNull | FlowAnalysisAnnotations.MaybeNull | FlowAnalysisAnnotations.NotNull)) == 0);
 
                 int bitsToSet = FlowAnalysisAnnotationsCompletionBit;
-                if ((value & FlowAnalysisAnnotations.DisallowNull) != 0) bitsToSet |= PackedFlags.HasDisallowNullAttribute;
-                if ((value & FlowAnalysisAnnotations.AllowNull) != 0) bitsToSet |= PackedFlags.HasAllowNullAttribute;
-                if ((value & FlowAnalysisAnnotations.MaybeNull) != 0) bitsToSet |= PackedFlags.HasMaybeNullAttribute;
-                if ((value & FlowAnalysisAnnotations.NotNull) != 0) bitsToSet |= PackedFlags.HasNotNullAttribute;
+                if ((value & FlowAnalysisAnnotations.DisallowNull) != 0)
+                    bitsToSet |= PackedFlags.HasDisallowNullAttribute;
+                if ((value & FlowAnalysisAnnotations.AllowNull) != 0)
+                    bitsToSet |= PackedFlags.HasAllowNullAttribute;
+                if ((value & FlowAnalysisAnnotations.MaybeNull) != 0)
+                    bitsToSet |= PackedFlags.HasMaybeNullAttribute;
+                if ((value & FlowAnalysisAnnotations.NotNull) != 0)
+                    bitsToSet |= PackedFlags.HasNotNullAttribute;
 
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
@@ -54,10 +58,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 int theBits = _bits; // Read this.bits once to ensure the consistency of the value and completion flags.
                 value = FlowAnalysisAnnotations.None;
-                if ((theBits & PackedFlags.HasDisallowNullAttribute) != 0) value |= FlowAnalysisAnnotations.DisallowNull;
-                if ((theBits & PackedFlags.HasAllowNullAttribute) != 0) value |= FlowAnalysisAnnotations.AllowNull;
-                if ((theBits & PackedFlags.HasMaybeNullAttribute) != 0) value |= FlowAnalysisAnnotations.MaybeNull;
-                if ((theBits & PackedFlags.HasNotNullAttribute) != 0) value |= FlowAnalysisAnnotations.NotNull;
+                if ((theBits & PackedFlags.HasDisallowNullAttribute) != 0)
+                    value |= FlowAnalysisAnnotations.DisallowNull;
+                if ((theBits & PackedFlags.HasAllowNullAttribute) != 0)
+                    value |= FlowAnalysisAnnotations.AllowNull;
+                if ((theBits & PackedFlags.HasMaybeNullAttribute) != 0)
+                    value |= FlowAnalysisAnnotations.MaybeNull;
+                if ((theBits & PackedFlags.HasNotNullAttribute) != 0)
+                    value |= FlowAnalysisAnnotations.NotNull;
 
                 var result = (theBits & FlowAnalysisAnnotationsCompletionBit) != 0;
                 Debug.Assert(value == 0 || result);
@@ -337,10 +345,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(PEModule module, FieldDefinitionHandle handle)
         {
             FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None;
-            if (module.HasAttribute(handle, AttributeDescription.AllowNullAttribute)) annotations |= FlowAnalysisAnnotations.AllowNull;
-            if (module.HasAttribute(handle, AttributeDescription.DisallowNullAttribute)) annotations |= FlowAnalysisAnnotations.DisallowNull;
-            if (module.HasAttribute(handle, AttributeDescription.MaybeNullAttribute)) annotations |= FlowAnalysisAnnotations.MaybeNull;
-            if (module.HasAttribute(handle, AttributeDescription.NotNullAttribute)) annotations |= FlowAnalysisAnnotations.NotNull;
+            if (module.HasAttribute(handle, AttributeDescription.AllowNullAttribute))
+                annotations |= FlowAnalysisAnnotations.AllowNull;
+            if (module.HasAttribute(handle, AttributeDescription.DisallowNullAttribute))
+                annotations |= FlowAnalysisAnnotations.DisallowNull;
+            if (module.HasAttribute(handle, AttributeDescription.MaybeNullAttribute))
+                annotations |= FlowAnalysisAnnotations.MaybeNull;
+            if (module.HasAttribute(handle, AttributeDescription.NotNullAttribute))
+                annotations |= FlowAnalysisAnnotations.NotNull;
             return annotations;
         }
 

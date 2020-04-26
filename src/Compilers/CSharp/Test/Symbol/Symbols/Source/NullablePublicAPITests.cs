@@ -1039,7 +1039,8 @@ class C
             comp3.VerifyDiagnostics(nullableDisabledErrors);
             verifyCompilation(comp3);
 
-            if (!testMetadata) return;
+            if (!testMetadata)
+                return;
 
             var comp1Emit = comp1.EmitToImageReference();
             var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue());
@@ -1159,7 +1160,8 @@ class C
 
                 context.RegisterSyntaxNodeAction(syntaxContext =>
                 {
-                    if (syntaxContext.Node.ToString() != "o") return;
+                    if (syntaxContext.Node.ToString() != "o")
+                        return;
                     var info = syntaxContext.SemanticModel.GetTypeInfo(syntaxContext.Node);
                     Assert.True(syntaxContext.SemanticModel.TryGetSpeculativeSemanticModel(syntaxContext.Node.SpanStart, newSource, out var specModel));
                     var specInfo = specModel.GetTypeInfo(oReference);

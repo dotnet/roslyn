@@ -112,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fromExpression = null;
                 rangeVariable = null;
                 selectOrGroup = null;
-                foreach (var b in allRangeVariables.Values) b.Free();
+                foreach (var b in allRangeVariables.Values)
+                    b.Free();
                 allRangeVariables.Clear();
                 clauses.Clear();
             }

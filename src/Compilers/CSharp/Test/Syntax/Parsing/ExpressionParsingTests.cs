@@ -2267,7 +2267,8 @@ class C
                     {
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.PredefinedType); N(SyntaxKind.IntKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.IntKeyword);
                             N(SyntaxKind.VariableDeclarator);
                             {
                                 N(SyntaxKind.IdentifierToken);
@@ -2279,12 +2280,15 @@ class C
                                     {
                                         N(SyntaxKind.LeftShiftExpression);
                                         {
-                                            N(SyntaxKind.NumericLiteralExpression); N(SyntaxKind.NumericLiteralToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            N(SyntaxKind.NumericLiteralToken);
                                             N(SyntaxKind.LessThanLessThanToken);
-                                            N(SyntaxKind.NumericLiteralExpression); N(SyntaxKind.NumericLiteralToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            N(SyntaxKind.NumericLiteralToken);
                                         }
                                         N(SyntaxKind.LessThanLessThanToken);
-                                        N(SyntaxKind.NumericLiteralExpression); N(SyntaxKind.NumericLiteralToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        N(SyntaxKind.NumericLiteralToken);
                                     }
                                 }
                             }

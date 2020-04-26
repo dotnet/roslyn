@@ -139,7 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (receiver.Kind == BoundKind.Conversion)
             {
                 BoundConversion conversion = (BoundConversion)receiver;
-                if (conversion.ExplicitCastInCode) break;
+                if (conversion.ExplicitCastInCode)
+                    break;
                 receiver = conversion.Operand;
             }
 
@@ -239,7 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                if (method.Parameters[i].RefKind != RefKind.None && (argumentRefKindsOpt.IsDefault || argumentRefKindsOpt[i] == RefKind.None)) return true;
+                if (method.Parameters[i].RefKind != RefKind.None && (argumentRefKindsOpt.IsDefault || argumentRefKindsOpt[i] == RefKind.None))
+                    return true;
             }
 
             return false;
@@ -329,9 +331,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool ConvertedHasEqual(BinaryOperatorKind oldOperatorKind, BoundNode node, out TypeSymbol type)
         {
             type = null;
-            if (node.Kind != BoundKind.Conversion) return false;
+            if (node.Kind != BoundKind.Conversion)
+                return false;
             var conv = (BoundConversion)node;
-            if (conv.ExplicitCastInCode) return false;
+            if (conv.ExplicitCastInCode)
+                return false;
             NamedTypeSymbol nt = conv.Operand.Type as NamedTypeSymbol;
             if ((object)nt == null || !nt.IsReferenceType || nt.IsInterface)
             {
@@ -344,7 +348,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var sym in t.GetMembers(opName))
                 {
                     MethodSymbol op = sym as MethodSymbol;
-                    if ((object)op == null || op.MethodKind != MethodKind.UserDefinedOperator) continue;
+                    if ((object)op == null || op.MethodKind != MethodKind.UserDefinedOperator)
+                        continue;
                     var parameters = op.GetParameters();
                     if (parameters.Length == 2 && TypeSymbol.Equals(parameters[0].Type, t, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(parameters[1].Type, t, TypeCompareKind.ConsiderEverything2))
                     {

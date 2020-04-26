@@ -7016,7 +7016,8 @@ class C
   IL_0023:  call       ""void System.Console.WriteLine(object)""
   IL_0028:  ret
 }
-"); ;
+");
+            ;
         }
 
         [Fact]
@@ -17203,7 +17204,8 @@ class C
   IL_0077:  call       ""void System.Console.WriteLine(object)""
   IL_007c:  ret
 }
-"); ;
+");
+            ;
         }
 
         [Fact]
@@ -17910,7 +17912,8 @@ class C
   IL_003b:  call       ""void System.Console.WriteLine(object)""
   IL_0040:  ret
 }
-"); ;
+");
+            ;
         }
 
         [Fact]
@@ -17979,7 +17982,8 @@ class C
   IL_003e:  call       ""void System.Console.WriteLine(object)""
   IL_0043:  ret
 }
-"); ;
+");
+            ;
         }
 
         [Fact]

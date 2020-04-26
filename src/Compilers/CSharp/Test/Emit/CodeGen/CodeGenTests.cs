@@ -14738,7 +14738,8 @@ class c1
   .maxstack  0
   IL_0000:  ret
 }                                                                                           
-"); ;
+");
+            ;
         }
 
         [WorkItem(876784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876784")]
