@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (speculationAnalyzer.SemanticRootOfOriginalExpression.ContainsDiagnostics)
                 return false;
 
+            // Look for simple patterns that are known to be absolutely safe to always remove.
+            if (CastCanDefinitelyBeRemoved(castNode, castedExpressionNode, semanticModel, cancellationToken))
+                return true;
+
+            // Then look for patterns for cases where we never want to remove casts.
             if (CastMustBePreserved(castNode, castedExpressionNode, semanticModel, cancellationToken))
                 return false;
 
@@ -314,6 +319,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
+        private static bool CastCanDefinitelyBeRemoved(
+            ExpressionSyntax castNode,
+            ExpressionSyntax castedExpressionNode,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            // castNode is:             `(Type)expr` or `expr as Type`.
+            // castedExpressionnode is: `expr`
+
+            // The type in `(Type)...` or `... as Type`
+            var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
+
+            // The type in `(...)expr` or `expr as ...`
+            var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
+
+            if (IsEnumToNumericCastThatCanDefinitelyBeRemoved(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, cancellationToken))
+                return true;
+
+            return false;
+        }
+
+        private static bool IsEnumToNumericCastThatCanDefinitelyBeRemoved(
+            ExpressionSyntax castNode,
+            ExpressionSyntax castedExpressionNode,
+            ITypeSymbol castType,
+            ITypeSymbol castedExpressionType,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            // if we have `(E)~(int)e` then the cast to (int) is not necessary as enums always support `~`.
+
+            if (!castedExpressionType.IsEnumType(out var castedEnumType))
+                return false;
+
+            if (!Equals(castType, castedEnumType.EnumUnderlyingType))
+                return false;
+
+            if (!castNode.WalkUpParentheses().IsParentKind(SyntaxKind.BitwiseNotExpression, out PrefixUnaryExpressionSyntax prefixUnary))
+                return false;
+
+            if (!prefixUnary.WalkUpParentheses().IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax parentCast))
+                return false;
+
+            // `(int)` in `(E?)~(int)e` is also redundant.
+            var parentCastType = semanticModel.GetTypeInfo(parentCast.Type, cancellationToken).Type;
+            if (parentCastType.IsNullable(out var underlyingType))
+                parentCastType = underlyingType;
+
+            return castedEnumType.Equals(parentCastType);
+        }
+
         private static bool CastMustBePreserved(
             ExpressionSyntax castNode,
             ExpressionSyntax castedExpressionNode,
@@ -343,11 +399,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castType.Kind == SymbolKind.DynamicType)
                 return true;
 
+            // If we're changing between numeric and enum types, then we need to preserve the cast as the type is
+            // definitely changing, even if the internal memory representation might be the same.
+            if (IsNumericToEnumConversion(castType, castedExpressionType))
+                return true;
+
             // If removing the cast would cause the compiler to issue a specific warning, then we have to preserve it.
             if (CastRemovalWouldCauseSignExtensionWarning(castNode, semanticModel, cancellationToken))
                 return true;
 
             return false;
+        }
+
+        private static bool IsNumericToEnumConversion(
+            ITypeSymbol castType, ITypeSymbol castedExpressionType)
+        {
+            if (castType.IsNullable(out var underlyingCastType))
+                castType = underlyingCastType;
+
+            if (castedExpressionType.IsNullable(out var underlyingCastedExpressionType))
+                castedExpressionType = underlyingCastedExpressionType;
+
+            if (!castType.IsEnumType() && !castedExpressionType.IsEnumType())
+                return false;
+
+            return castType.IsNumericType() || castedExpressionType.IsNumericType();
         }
 
         private static bool WouldChangeDefaultOrNullInConditional(ExpressionSyntax expression)

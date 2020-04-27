@@ -4896,6 +4896,78 @@ enum Sign
             }.RunAsync();
         }
 
+        [WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastOnValidUnaryOperatorEnumValue_Nullable()
+        {
+            var source =
+@"
+enum Sign
+    {
+        Positive = 1,
+        Negative = -1
+    }
+
+    class T
+    {
+        void Goo()
+        {
+            Sign mySign = Sign.Positive;
+            Sign? invertedSign = (Sign?)(~[|(int)|] mySign);
+        }
+    }";
+            var fixedSource =
+@"
+enum Sign
+    {
+        Positive = 1,
+        Negative = -1
+    }
+
+    class T
+    {
+        void Goo()
+        {
+            Sign mySign = Sign.Positive;
+            Sign? invertedSign = (Sign?)(~mySign);
+        }
+    }";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEnumCastToDifferentRepresentation()
+        {
+            var source =
+@"
+enum Sign
+    {
+        Positive = 1,
+        Negative = -1
+    }
+
+    class T
+    {
+        void Goo()
+        {
+            Sign mySign = Sign.Positive;
+            Sign invertedSign = (Sign) ( ~(long) mySign );
+        }
+    }";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+            }.RunAsync();
+        }
+
         [WorkItem(25456, "https://github.com/dotnet/roslyn/issues/25456#issuecomment-373549735")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontIntroduceDefaultLiteralInSwitchCase()
