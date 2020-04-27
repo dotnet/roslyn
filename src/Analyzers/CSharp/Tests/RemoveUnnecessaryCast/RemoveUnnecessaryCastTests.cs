@@ -7152,6 +7152,38 @@ public class sign
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryCastInConditional13()
+        {
+            var source =
+@"class C
+{
+    void M(bool x, int? z)
+    {
+        var y = x ? (long?)z : null;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryCastInConditional14()
+        {
+            var source =
+@"class C
+{
+    void M(bool x, int? z)
+    {
+        var y = x ? (long?)z : default;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnecessaryCastInConditional1()
         {
             var source =
@@ -7268,6 +7300,54 @@ public class sign
     void M(bool x)
     {
         int? y = x ? 1 : 0;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
+        }
+
+        [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveUnnecessaryCastInConditional6()
+        {
+            var source =
+@"class C
+{
+    void M(bool x, int? z)
+    {
+        int? y = x ? [|(int?)|]z : null;
+    }
+}";
+            var fixedCode =
+@"class C
+{
+    void M(bool x, int? z)
+    {
+        int? y = x ? z : null;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
+        }
+
+        [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveUnnecessaryCastInConditional7()
+        {
+            var source =
+@"class C
+{
+    void M(bool x, int? z)
+    {
+        int? y = x ? [|(int?)|]z : default;
+    }
+}";
+            var fixedCode =
+@"class C
+{
+    void M(bool x, int? z)
+    {
+        int? y = x ? z : default;
     }
 }";
 
