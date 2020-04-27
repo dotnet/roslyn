@@ -299,7 +299,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
   </PropertyGroup>
   <ItemGroup>
     <SourceRoot Include=""X\""/>
-    <SourceRoot Include=""Y\"" NestedRoot=""X\""/>
+    <SourceRoot Include=""Y\"" ContainingRoot=""X\"" NestedRoot=""A""/>
+    <SourceRoot Include=""Z\"" ContainingRoot=""X\"" NestedRoot=""B""/>
   </ItemGroup>
 </Project>
 ");
@@ -323,6 +324,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 {
                     @"X\",
                     @"Y\",
+                    @"Z\",
                 });
         }
 
