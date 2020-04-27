@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                     showProgress: false,
                     action: context => GoToDefinitionHelpers.TryGoToDefinition(
                         _definitions,
-                        _document.Project,
+                        _document.Project.Solution,
                         _definitions[0].NameDisplayParts.GetFullText(),
                         _presenter,
                         context.CancellationToken)

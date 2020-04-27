@@ -86,13 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private readonly ArrayBuilder<BoundStatement> _statements = ArrayBuilder<BoundStatement>.GetInstance();
 
-            public IsPatternExpressionGeneralLocalRewriter(SyntaxNode node, LocalRewriter localRewriter) : base(node, localRewriter)
+            public IsPatternExpressionGeneralLocalRewriter(
+                SyntaxNode node,
+                LocalRewriter localRewriter) : base(node, localRewriter, generateInstrumentation: false)
             {
             }
 
             protected override ArrayBuilder<BoundStatement> BuilderForSection(SyntaxNode section) => _statements;
-
-            protected override bool GenerateSequencePoints => false;
 
             public new void Free()
             {
@@ -151,13 +151,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly ArrayBuilder<BoundExpression> _conjunctBuilder;
 
             public IsPatternExpressionLinearLocalRewriter(BoundIsPatternExpression node, LocalRewriter localRewriter)
-                : base(node.Syntax, localRewriter)
+                : base(node.Syntax, localRewriter, generateInstrumentation: false)
             {
                 _conjunctBuilder = ArrayBuilder<BoundExpression>.GetInstance();
                 _sideEffectBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             }
-
-            protected override bool GenerateSequencePoints => false;
 
             public new void Free()
             {

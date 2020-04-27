@@ -1253,9 +1253,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsPatternContext(this SyntaxTree syntaxTree, SyntaxToken leftToken, int position)
+        public static bool IsAtStartOfPattern(this SyntaxTree syntaxTree, SyntaxToken leftToken, int position)
         {
             leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            if (leftToken.IsKind(SyntaxKind.OpenParenToken))
+            {
+                if (leftToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesizedExpression))
+                {
+                    // If we're dealing with an expression surrounded by one or more sets of open parentheses, we need to
+                    // walk up the parens in order to see if we're actually at the start of a valid pattern or not.
+                    return IsAtStartOfPattern(syntaxTree, parenthesizedExpression.GetFirstToken().GetPreviousToken(), parenthesizedExpression.SpanStart);
+                }
+
+#if !CODE_STYLE
+                // e is ((($$ 1 or 2)))
+                if (leftToken.Parent.IsKind(SyntaxKind.ParenthesizedPattern))
+                {
+                    return true;
+                }
+#endif
+            }
 
             // case $$
             // is $$
@@ -1286,7 +1304,115 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+#if !CODE_STYLE
+            // e is 1 and $$
+            // e is 1 or $$
+            if (leftToken.IsKind(SyntaxKind.AndKeyword) || leftToken.IsKind(SyntaxKind.OrKeyword))
+            {
+                return leftToken.Parent is BinaryPatternSyntax;
+            }
+
+            // e is not $$
+            if (leftToken.IsKind(SyntaxKind.NotKeyword) && leftToken.Parent.IsKind(SyntaxKind.NotPattern))
+            {
+                return true;
+            }
+#endif
+
             return false;
+        }
+
+        public static bool IsAtEndOfPattern(this SyntaxTree syntaxTree, SyntaxToken leftToken, int position)
+        {
+#if CODE_STYLE
+            return false;
+#else
+            var originalLeftToken = leftToken;
+            leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            var patternSyntax = leftToken.GetAncestor<PatternSyntax>();
+            if (patternSyntax != null)
+            {
+                var lastTokenInPattern = patternSyntax.GetLastToken();
+
+                // This check should cover the majority of cases, e.g.:
+                // e is 1 $$
+                // e is >= 0 $$
+                // e is { P: (1 $$
+                // e is { P: (1) $$
+                if (leftToken == lastTokenInPattern)
+                {
+                    // Patterns such as 'e is not $$', 'e is 1 or $$', and 'e is ($$' should be invalid here
+                    // as they are incomplete patterns.
+                    return !(leftToken.IsKind(SyntaxKind.OrKeyword) ||
+                        leftToken.IsKind(SyntaxKind.AndKeyword) ||
+                        leftToken.IsKind(SyntaxKind.NotKeyword) ||
+                        leftToken.IsKind(SyntaxKind.OpenParenToken));
+                }
+
+                // We want to make sure that IsAtEndOfPattern returns true even when the user is in the middle of typing a keyword
+                // after a pattern.
+                // For example, with the keyword 'and', we want to make sure that 'e is int an$$' is still recognized as valid.
+                if (lastTokenInPattern.Parent is SingleVariableDesignationSyntax variableDesignationSyntax &&
+                    originalLeftToken.Parent == variableDesignationSyntax)
+                {
+                    return patternSyntax is DeclarationPatternSyntax || patternSyntax is RecursivePatternSyntax;
+                }
+            }
+
+            // e is C.P $$
+            // e is int $$
+            if (leftToken.IsLastTokenOfNode<TypeSyntax>(out var typeSyntax))
+            {
+                // If typeSyntax is part of a qualified name, we want to get the fully-qualified name so that we can
+                // later accurately perform the check comparing the right side of the BinaryExpressionSyntax to
+                // the typeSyntax.
+                while (typeSyntax.Parent is TypeSyntax parentTypeSyntax)
+                {
+                    typeSyntax = parentTypeSyntax;
+                }
+
+                if (typeSyntax.Parent is BinaryExpressionSyntax binaryExpressionSyntax &&
+                    binaryExpressionSyntax.OperatorToken.IsKind(SyntaxKind.IsKeyword) &&
+                    binaryExpressionSyntax.Right == typeSyntax && !typeSyntax.IsVar)
+                {
+                    return true;
+                }
+            }
+
+            // We need to include a special case for switch statement cases, as some are not currently parsed as patterns, e.g. case (1 $$
+            if (IsAtEndOfSwitchStatementPattern(leftToken))
+            {
+                return true;
+            }
+
+            return false;
+
+            static bool IsAtEndOfSwitchStatementPattern(SyntaxToken leftToken)
+            {
+                var node = leftToken.Parent;
+
+                // Walking up the tree for expressions such as 'case (((N.C.P $$'
+                while (node.IsParentKind(SyntaxKind.SimpleMemberAccessExpression))
+                {
+                    node = node.Parent;
+                }
+
+                // Getting rid of the extra parentheses to deal with cases such as 'case (((1 $$'
+                while (node.IsParentKind(SyntaxKind.ParenthesizedExpression))
+                {
+                    node = node.Parent;
+                }
+
+                // case (1 $$
+                if (node.IsParentKind(SyntaxKind.CaseSwitchLabel) && node.Parent.IsParentKind(SyntaxKind.SwitchSection))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+#endif
         }
 
         private static SyntaxToken FindTokenOnLeftOfNode(SyntaxNode node)
@@ -1850,7 +1976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsConstantExpressionContext(this SyntaxTree syntaxTree, int position,
             SyntaxToken tokenOnLeftOfPosition)
         {
-            if (IsPatternContext(syntaxTree, tokenOnLeftOfPosition, position))
+            if (IsAtStartOfPattern(syntaxTree, tokenOnLeftOfPosition, position))
             {
                 return true;
             }

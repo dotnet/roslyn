@@ -39,8 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected BaseSwitchLocalRewriter(
                 SyntaxNode node,
                 LocalRewriter localRewriter,
-                ImmutableArray<SyntaxNode> arms)
-                : base(node, localRewriter)
+                ImmutableArray<SyntaxNode> arms,
+                bool generateInstrumentation)
+                : base(node, localRewriter, generateInstrumentation)
             {
                 foreach (var arm in arms)
                 {
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We start each switch block of a switch statement with a hidden sequence point so that
                     // we do not appear to be in the previous switch block when we begin.
-                    if (GenerateSequencePoints)
+                    if (GenerateInstrumentation)
                         armBuilder.Add(_factory.HiddenSequencePoint());
 
                     _switchArms.Add(arm, armBuilder);

@@ -23050,6 +23050,46 @@ End Class"
             End Select
         End Sub
 
+        <Fact>
+        <WorkItem(27322, "https://github.com/dotnet/roslyn/issues/27322")>
+        Public Sub Issue27322()
+            Dim source0 = "
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq.Expressions
+
+Module Module1
+
+    Sub Main()
+        Dim tupleA = (1, 3)
+        Dim tupleB = (1, ""123"".Length)
+
+        Dim ok1 As Expression(Of Func(Of Integer)) = Function() tupleA.Item1
+        Dim ok2 As Expression(Of Func(Of Integer)) = Function() tupleA.GetHashCode()
+        Dim ok3 As Expression(Of Func(Of Tuple(Of Integer, Integer))) = Function() tupleA.ToTuple()
+        Dim ok4 As Expression(Of Func(Of Boolean)) = Function() Equals(tupleA, tupleB)
+        Dim ok5 As Expression(Of Func(Of Integer)) = Function() Comparer(Of (Integer, Integer)).Default.Compare(tupleA, tupleB)
+        ok1.Compile()()
+        ok2.Compile()()
+        ok3.Compile()()
+        ok4.Compile()()
+        ok5.Compile()()
+
+        Dim err1 As Expression(Of Func(Of Boolean)) = Function() tupleA.Equals(tupleB)
+        Dim err2 As Expression(Of Func(Of Integer)) = Function() tupleA.CompareTo(tupleB)
+
+        err1.Compile()()
+        err2.Compile()()
+
+        System.Console.WriteLine(""Done"")
+    End Sub
+
+End Module
+"
+
+            Dim comp1 = CreateCompilation(source0, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="Done")
+        End Sub
     End Class
 
 End Namespace

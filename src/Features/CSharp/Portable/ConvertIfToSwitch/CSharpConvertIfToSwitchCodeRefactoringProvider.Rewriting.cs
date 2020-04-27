@@ -23,27 +23,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
     {
         private static readonly Dictionary<BinaryOperatorKind, SyntaxKind> s_operatorMap = new Dictionary<BinaryOperatorKind, SyntaxKind>
         {
-            { BinaryOperatorKind.NotEquals, SyntaxKind.ExclamationEqualsToken },
             { BinaryOperatorKind.LessThan, SyntaxKind.LessThanToken },
             { BinaryOperatorKind.GreaterThan, SyntaxKind.GreaterThanToken },
             { BinaryOperatorKind.LessThanOrEqual, SyntaxKind.LessThanEqualsToken },
             { BinaryOperatorKind.GreaterThanOrEqual, SyntaxKind.GreaterThanEqualsToken },
         };
 
-        public override SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<AnalyzedSwitchSection> sections)
+        public override SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<AnalyzedSwitchSection> sections, Feature feature)
         {
             return ReturnStatement(
                 SwitchExpression(
                     (ExpressionSyntax)target,
-                    SeparatedList(sections.Select(AsSwitchExpressionArmSyntax))));
+                    SeparatedList(sections.Select(section => AsSwitchExpressionArmSyntax(section, feature)))));
         }
 
-        private static SwitchExpressionArmSyntax AsSwitchExpressionArmSyntax(AnalyzedSwitchSection section)
+        private static SwitchExpressionArmSyntax AsSwitchExpressionArmSyntax(AnalyzedSwitchSection section, Feature feature)
         {
             if (section.Labels.IsDefault)
                 return SwitchExpressionArm(DiscardPattern(), AsExpressionSyntax(section.Body));
 
-            var pattern = AsPatternSyntax(section.Labels[0].Pattern);
+            var pattern = AsPatternSyntax(section.Labels[0].Pattern, feature);
             var whenClause = AsWhenClause(section.Labels[0]);
 
             Debug.Assert(whenClause == null || section.Labels.Length == 1, "We shouldn't have guards when we're combining multiple cases into a single arm");
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             {
                 var label = section.Labels[i];
                 Debug.Assert(label.Guards.Length == 0, "We shouldn't have guards when we're combining multiple cases into a single arm");
-                var nextPattern = AsPatternSyntax(label.Pattern);
+                var nextPattern = AsPatternSyntax(label.Pattern, feature);
                 pattern = BinaryPattern(SyntaxKind.OrPattern, pattern.Parenthesize(), nextPattern.Parenthesize());
             }
 
@@ -89,24 +88,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
         private static WhenClauseSyntax? AsWhenClause(ExpressionSyntax? expression)
             => expression is null ? null : WhenClause(expression);
 
-        public override SyntaxNode AsSwitchLabelSyntax(AnalyzedSwitchLabel label)
+        public override SyntaxNode AsSwitchLabelSyntax(AnalyzedSwitchLabel label, Feature feature)
             => CasePatternSwitchLabel(
-                AsPatternSyntax(label.Pattern),
+                AsPatternSyntax(label.Pattern, feature),
                 AsWhenClause(label),
                 Token(SyntaxKind.ColonToken));
 
-        private static PatternSyntax AsPatternSyntax(AnalyzedPattern pattern)
+        private static PatternSyntax AsPatternSyntax(AnalyzedPattern pattern, Feature feature)
             => pattern switch
             {
-                AnalyzedPattern.And p => BinaryPattern(SyntaxKind.AndPattern, AsPatternSyntax(p.LeftPattern).Parenthesize(), AsPatternSyntax(p.RightPattern).Parenthesize()),
+                AnalyzedPattern.And p => BinaryPattern(SyntaxKind.AndPattern, AsPatternSyntax(p.LeftPattern, feature).Parenthesize(), AsPatternSyntax(p.RightPattern, feature).Parenthesize()),
                 AnalyzedPattern.Constant p => ConstantPattern(p.ExpressionSyntax),
                 AnalyzedPattern.Source p => p.PatternSyntax,
+                AnalyzedPattern.Type p when feature.HasFlag(Feature.TypePattern) => TypePattern((TypeSyntax)p.IsExpressionSyntax.Right),
                 AnalyzedPattern.Type p => DeclarationPattern((TypeSyntax)p.IsExpressionSyntax.Right, DiscardDesignation()),
                 AnalyzedPattern.Relational p => RelationalPattern(Token(s_operatorMap[p.OperatorKind]), p.Value),
-                AnalyzedPattern.Range p => BinaryPattern(
-                    SyntaxKind.AndPattern,
-                    RelationalPattern(Token(SyntaxKind.GreaterThanEqualsToken), p.LowerBound).Parenthesize(),
-                    RelationalPattern(Token(SyntaxKind.LessThanEqualsToken), p.HigherBound).Parenthesize()),
                 var p => throw ExceptionUtilities.UnexpectedValue(p)
             };
 

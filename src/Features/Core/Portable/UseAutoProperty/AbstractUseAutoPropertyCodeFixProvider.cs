@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -85,9 +84,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var solution = context.Document.Project.Solution;
-            var fieldLocations = await Renamer.GetRenameLocationsAsync(
-                solution, SymbolAndProjectId.Create(fieldSymbol, fieldDocument.Project.Id),
-                solution.Options, cancellationToken).ConfigureAwait(false);
+            var fieldLocations = await Renamer.FindRenameLocationsAsync(
+                solution, fieldSymbol, optionSet: null, cancellationToken).ConfigureAwait(false);
 
             // First, create the updated property we want to replace the old property with
             var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(fieldSymbol, fieldLocations, property, cancellationToken);

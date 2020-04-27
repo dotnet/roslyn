@@ -156,6 +156,12 @@
   <data name="Autoselect_disabled_due_to_possible_tuple_type_element_creation" xml:space="preserve">
     <value>Autoselect disabled due to possible tuple type element creation.</value>
   </data>
+  <data name="pattern_variable" xml:space="preserve">
+    <value>&lt;pattern variable&gt;</value>
+  </data>
+  <data name="Autoselect_disabled_due_to_potential_pattern_variable_declaration" xml:space="preserve">
+    <value>Autoselect disabled due to potential pattern variable declaration.</value>
+  </data>
   <data name="range_variable" xml:space="preserve">
     <value>&lt;range variable&gt;</value>
   </data>

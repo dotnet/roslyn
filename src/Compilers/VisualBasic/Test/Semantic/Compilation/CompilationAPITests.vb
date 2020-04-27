@@ -1213,7 +1213,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             comp = comp.AddReferences(ref1)
             Assert.Equal(1, comp.References.Count)
 
-            ' Replace an non-existing item with another invalid item
+            ' Replace a non-existing item with another invalid item
             Assert.Throws(Of ArgumentException)(Sub()
                                                     comp = comp.ReplaceReference(ref2, ref1)
                                                 End Sub)
@@ -1221,7 +1221,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Assert.Equal(1, comp.References.Count)
         End Sub
 
-        '' Replace an non-existing item with null
+        '' Replace a non-existing item with null
         <WorkItem(537567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")>
         <Fact>
         Public Sub NegReference4()
@@ -1241,7 +1241,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
                End Sub)
         End Sub
 
-        '' Replace an non-existing item with another valid item
+        '' Replace a non-existing item with another valid item
         <WorkItem(537566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537566")>
         <Fact>
         Public Sub NegReference5()
@@ -1257,7 +1257,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Dim s1 = "Imports System.Text"
             Dim t1 = Parse(s1)
 
-            ' Replace an non-existing item with another valid item and disorder the args
+            ' Replace a non-existing item with another valid item and disorder the args
             Assert.Throws(Of ArgumentException)(Sub()
                                                     comp.ReplaceSyntaxTree(newTree:=VisualBasicSyntaxTree.ParseText("Imports System"), oldTree:=t1)
                                                 End Sub)

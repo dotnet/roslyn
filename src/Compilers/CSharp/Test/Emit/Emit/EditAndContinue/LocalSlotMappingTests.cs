@@ -4076,7 +4076,7 @@ class C
       IL_001b:  ldloc.1
       IL_001c:  brtrue.s   IL_0020
       IL_001e:  br.s       IL_0027
-      IL_0020:  br.s       IL_0022
+     ~IL_0020:  br.s       IL_0022
      -IL_0022:  ldloc.0
       IL_0023:  stloc.s    V_4
       IL_0025:  br.s       IL_002c
@@ -4152,7 +4152,7 @@ class C
       IL_000e:  unbox.any  ""int""
       IL_0013:  stloc.0
      ~IL_0014:  br.s       IL_0016
-      IL_0016:  br.s       IL_0018
+     ~IL_0016:  br.s       IL_0018
       IL_0018:  ldc.i4.1
       IL_0019:  brtrue.s   IL_001c
      -IL_001b:  nop
@@ -4242,7 +4242,7 @@ class C
      -IL_001a:  stfld      ""int C.<G>d__0.<>1__state""
       IL_001f:  ldloc.0
       IL_0020:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
-     ~IL_0025:  ldloca.s   V_0
+      IL_0025:  ldloca.s   V_0
       IL_0027:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<C.<G>d__0>(ref C.<G>d__0)""
       IL_002c:  ldloc.0
       IL_002d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
@@ -4285,30 +4285,30 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.G", @"
-{
-  // Code size       56 (0x38)
-  .maxstack  2
-  .locals init (C.<G>d__0 V_0)
- ~IL_0000:  newobj     ""C.<G>d__0..ctor()""
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.0
- ~IL_0007:  ldarg.0
-  IL_0008:  stfld      ""System.Threading.Tasks.Task<object> C.<G>d__0.o""
-  IL_000d:  ldloc.0
- -IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
-  IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
-  IL_0018:  ldloc.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<G>d__0.<>1__state""
-  IL_001f:  ldloc.0
-  IL_0020:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
-  IL_0025:  ldloca.s   V_0
-  IL_0027:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<C.<G>d__0>(ref C.<G>d__0)""
-  IL_002c:  ldloc.0
-  IL_002d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
-  IL_0032:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
-  IL_0037:  ret
-}
+    {
+      // Code size       56 (0x38)
+      .maxstack  2
+      .locals init (C.<G>d__0 V_0)
+     ~IL_0000:  newobj     ""C.<G>d__0..ctor()""
+      IL_0005:  stloc.0
+      IL_0006:  ldloc.0
+     ~IL_0007:  ldarg.0
+      IL_0008:  stfld      ""System.Threading.Tasks.Task<object> C.<G>d__0.o""
+      IL_000d:  ldloc.0
+     -IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
+      IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+      IL_0018:  ldloc.0
+      IL_0019:  ldc.i4.m1
+      IL_001a:  stfld      ""int C.<G>d__0.<>1__state""
+      IL_001f:  ldloc.0
+      IL_0020:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+      IL_0025:  ldloca.s   V_0
+      IL_0027:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<C.<G>d__0>(ref C.<G>d__0)""
+      IL_002c:  ldloc.0
+     <IL_002d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+      IL_0032:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
+      IL_0037:  ret
+    }
 ", methodToken: diff1.UpdatedMethods.Single());
         }
 
@@ -4367,7 +4367,7 @@ class C
      ~IL_000e:  ldloc.s    V_6
       IL_0010:  brfalse.s  IL_0014
       IL_0012:  br.s       IL_0032
-      IL_0014:  ldc.i4.1
+     ~IL_0014:  ldc.i4.1
       IL_0015:  brtrue.s   IL_0018
      -IL_0017:  nop
      ~IL_0018:  ldloc.0

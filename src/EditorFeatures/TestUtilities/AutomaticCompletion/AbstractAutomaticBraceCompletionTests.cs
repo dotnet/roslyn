@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
 using Microsoft.VisualStudio.Text.Operations;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
             if (result != null)
             {
-                Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
+                AssertEx.EqualOrDiff(result, session.SubjectBuffer.CurrentSnapshot.GetText());
             }
         }
 

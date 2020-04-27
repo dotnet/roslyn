@@ -3241,6 +3241,94 @@ System.Int64
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
+        [Fact, WorkItem(43377, "https://github.com/dotnet/roslyn/issues/43377")]
+        public void OutputType_02()
+        {
+            var source = @"#nullable enable
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        // The narrowed type of an or pattern combines the narrowed type of all subpatterns
+        // beneath all of the or combinators.
+
+        // Identity conversions
+        object o = new Dictionary<object, object>();
+        { if (o is (Dictionary<object, dynamic> or Dictionary<dynamic?, object?>) and var i) M(i); } // System.Collections.Generic.Dictionary<object, object>
+
+        // Boxing conversions
+        o = 1;
+        { if (o is (long or IComparable) and var i) M(i); } // System.IComparable
+        { if (o is (IComparable or long) and var i) M(i); } // System.IComparable
+
+        // Incomparable types
+        o = 1L;
+        { if (o is (IEquatable<string> or long) and var i) M(i); } // System.Object
+        { if (o is (long or IEquatable<string>) and var i) M(i); } // System.Object
+        o = new Derived1();
+        { if (o is (Derived1 or Derived2) and var i) M(i); } // System.Object
+
+        // Implicit reference conversions
+        o = new Derived1();
+        { if (o is (Derived1 or Base) and var i) M(i); } // Base
+        { if (o is (Base or Derived1) and var i) M(i); } // Base
+
+        // Implicit reference conversions involving variance
+        o = new X();
+        { if (o is (IIn<Derived1> or IIn<Base>) and var i) M(i); } // IIn<Derived1>
+        { if (o is (IIn<Base> or IIn<Derived1>) and var i) M(i); } // IIn<Derived1>
+        { if (o is (IOut<Derived1> or IOut<Base>) and var i) M(i); } // IOut<Base>
+        { if (o is (IOut<Base> or IOut<Derived1>) and var i) M(i); } // IOut<Base>
+
+        // Multiple layers of or patterns
+        o = new Derived1();
+        { if (o is (Derived1 or Derived2 or Base) and var i) M(i); } // Base
+        { if (o is ((Derived1 or Derived2) or Base) and var i) M(i); } // Base
+        { if (o is (Base or (Derived1 or Derived2)) and var i) M(i); } // Base
+        { if (o is (Derived1 or Base or Derived2) and var i) M(i); } // Base
+        { if (o is ((Derived1 or Derived2) or (Derived1 or Derived2) or Base or (Derived1 or Derived2)) and var i) M(i); } // Base
+
+    }
+    static void M<T>(T t)
+    {
+        Console.WriteLine(typeof(T));
+    }
+}
+class Base { }
+class Derived1 : Base { }
+class Derived2 : Base { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class X : IIn<Base>, IOut<Base> { }
+";
+            var expectedOutput =
+@"System.Collections.Generic.Dictionary`2[System.Object,System.Object]
+System.IComparable
+System.IComparable
+System.Object
+System.Object
+System.Object
+Base
+Base
+IIn`1[Derived1]
+IIn`1[Derived1]
+IOut`1[Base]
+IOut`1[Base]
+Base
+Base
+Base
+Base
+Base
+";
+            var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
         [Fact]
         public void DoNotShareTempMutatedThroughReceiver_01()
         {
