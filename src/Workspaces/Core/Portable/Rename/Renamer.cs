@@ -49,13 +49,18 @@ namespace Microsoft.CodeAnalysis.Rename
         public static async Task<RenameDocumentActionSet> RenameDocumentAsync(
             Document document,
             string newDocumentName,
-            IReadOnlyList<string> newDocumentFolders,
+            IReadOnlyList<string> newDocumentFolders = null,
             OptionSet optionSet = null,
             CancellationToken cancellationToken = default)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
+            }
+
+            if (newDocumentName is null)
+            {
+                throw new ArgumentNullException(nameof(newDocumentName));
             }
 
             using var _ = ArrayBuilder<RenameDocumentAction>.GetInstance(out var actions);
@@ -74,13 +79,14 @@ namespace Microsoft.CodeAnalysis.Rename
                 actions.AddIfNotNull(action);
             }
 
+            newDocumentFolders ??= document.Folders;
             optionSet ??= document.Project.Solution.Options;
 
             return new RenameDocumentActionSet(
                 actions.ToImmutable(),
                 document.Id,
                 newDocumentName,
-                document.Folders.ToImmutableArray(),
+                newDocumentFolders.ToImmutableArray(),
                 optionSet);
         }
 

@@ -206,7 +206,7 @@ namespace Test.Path
     }
 }
 
-namesapce Other.Namespace
+namespace Other.Namespace
 {
     class C3
     {
@@ -226,11 +226,58 @@ namespace Test.Path.After.Test
     }
 }
 
-namesapce Other.Namespace
+namespace Other.Namespace
 {
     class C3
+    {
+    }
+}",
+       documentPath: @"Test\Path\Document.cs",
+       documentName: @"Document.cs",
+       newDocumentPath: @"Test\Path\After\Test\Document.cs");
+
+        [Fact]
+        public Task CSharp_RenameDocument_RenameMultipleNamespaces3()
+       => TestRenameDocument(
+@"namespace Test.Path
 {
+    class C
+    {
+    }
 }
+
+namespace Other.Namespace
+{
+    class C2
+    {
+    }
+}
+
+namespace Test.Path
+{
+    class C3
+    {
+    }
+}",
+@"namespace Test.Path.After.Test
+{
+    class C
+    {
+    }
+}
+
+namespace Other.Namespace
+{
+    class C2
+    {
+    }
+}
+
+namespace Test.Path.After.Test
+{
+    class C3
+    {
+    }
 }",
        documentPath: @"Test\Path\Document.cs",
        documentName: @"Document.cs",

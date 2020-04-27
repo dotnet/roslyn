@@ -41,7 +41,15 @@ namespace Microsoft.CodeAnalysis.Rename
             internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var solution = document.Project.Solution;
-                var matchingTypeDeclaration = await GetMatchingTypeDeclarationAsync(document, _analysis.OriginalSymbolName, cancellationToken).ConfigureAwait(false);
+
+                // Get only types matching the original document name by
+                // passing a document back with the original name. That way
+                // even if the document name changed, we're updating the types
+                // that are the same name as the analysis
+                var matchingTypeDeclaration = await GetMatchingTypeDeclarationAsync(
+                    document.WithName(_analysis.OriginalDocumentName),
+                    _analysis.OriginalSymbolName,
+                    cancellationToken).ConfigureAwait(false);
 
                 if (matchingTypeDeclaration is object)
                 {
@@ -80,10 +88,10 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 // TODO: Detect naming conflicts ahead of time
                 var documentWithNewName = document.WithName(newDocumentName);
-                var originalSymbolName = Path.GetFileNameWithoutExtension(document.Name);
+                var originalSymbolName = WorkspacePathUtilities.GetTypeNameFromDocumentName(document);
                 var newTypeName = WorkspacePathUtilities.GetTypeNameFromDocumentName(documentWithNewName);
 
-                if (newTypeName is null)
+                if (originalSymbolName is null || newTypeName is null)
                 {
                     return null;
                 }
