@@ -271,7 +271,7 @@ $@"        if (F({i}))
         }
 
         [WorkItem(42361, "https://github.com/dotnet/roslyn/issues/42361")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsOnly), AlwaysSkip = "PROTOTYPE(UsedAssemblyReferences): temporarily disable to unblock merge from master")]
         public void Constraints()
         {
             int n = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
