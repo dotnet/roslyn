@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
                 public static readonly State Empty = new State(
                     compilation: null, declarationOnlyCompilation: null,
                     generatorDriver: new TrackedGeneratorDriver(null),
-                    assemblyAndModuleSet: null);
+                    unrootedSymbolSet: null);
 
                 /// <summary>
                 /// A strong reference to the declaration-only compilation. This compilation isn't used to produce symbols,
@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis
                 public TrackedGeneratorDriver GeneratorDriver { get; }
 
                 /// <summary>
-                /// Weak table of the assembly and module symbols that this compilation tracker has created.  This can
-                /// be used to determine which project an assembly symbol came from after the fact.  This is needed as
-                /// the compilation an assembly came from can be GC'ed and further requests to get that compilation (or
-                /// any of it's assemblies) may produce new assembly symbols.
+                /// Weak table of the assembly, module and dynamic symbols that this compilation tracker has created.
+                /// This can be used to determine which project an assembly symbol came from after the fact.  This is
+                /// needed as the compilation an assembly came from can be GC'ed and further requests to get that
+                /// compilation (or any of it's assemblies) may produce new assembly symbols.
                 /// </summary>
                 /// <remarks>
                 /// Ideally this would just be <c>ConditionalWeakSet&lt;ISymbol&gt;</c>.  Effectively we just want to
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
                 /// from.  However, ConditionalWeakTable is the best tool we have, so we simulate a set by just using a
                 /// table and mapping the keys to the <see langword="null"/> value.
                 /// </remarks>
-                public readonly ConditionalWeakTable<ISymbol, object?>? AssemblyAndModuleSet;
+                public readonly ConditionalWeakTable<ISymbol, object?>? UnrootedSymbolSet;
 
                 /// <summary>
                 /// Specifies whether <see cref="FinalCompilation"/> and all compilations it depends on contain full information or not. This can return
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>>? compilation,
                     Compilation? declarationOnlyCompilation,
                     TrackedGeneratorDriver generatorDriver,
-                    ConditionalWeakTable<ISymbol, object?>? assemblyAndModuleSet)
+                    ConditionalWeakTable<ISymbol, object?>? unrootedSymbolSet)
                 {
                     // Declaration-only compilations should never have any references
                     Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation = compilation;
                     DeclarationOnlyCompilation = declarationOnlyCompilation;
                     GeneratorDriver = generatorDriver;
-                    AssemblyAndModuleSet = assemblyAndModuleSet;
+                    UnrootedSymbolSet = unrootedSymbolSet;
                 }
 
                 public static State Create(
@@ -115,12 +115,18 @@ namespace Microsoft.CodeAnalysis
                         : (ValueSource<Optional<Compilation>>)new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
 
-                public static ConditionalWeakTable<ISymbol, object?> GetAssemblyAndModuleSet(Compilation compilation)
+                public static ConditionalWeakTable<ISymbol, object?> GetUnrootedSymbols(Compilation compilation)
                 {
                     var result = new ConditionalWeakTable<ISymbol, object?>();
 
                     var compAssembly = compilation.Assembly;
                     result.Add(compAssembly, null);
+
+                    // The dynamic type is also unrooted (i.e. doesn't point back at the compilation or source
+                    // assembly).  So we have to keep track of it so we can get back from it to a project in case the 
+                    // underlying compilation is GC'ed.
+                    if (compilation.Language == LanguageNames.CSharp)
+                        result.Add(compilation.DynamicType, null);
 
                     foreach (var reference in compilation.References)
                     {
@@ -150,7 +156,7 @@ namespace Microsoft.CodeAnalysis
                     : base(compilation: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
                            generatorDriver: inProgressGeneratorDriver,
-                           GetAssemblyAndModuleSet(inProgressCompilation))
+                           GetUnrootedSymbols(inProgressCompilation))
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
                     Contract.ThrowIfFalse(intermediateProjects.Length > 0);
@@ -168,7 +174,7 @@ namespace Microsoft.CodeAnalysis
                     : base(compilation: null,
                            declarationOnlyCompilation: declarationOnlyCompilation,
                            generatorDriver: new TrackedGeneratorDriver(null),
-                           assemblyAndModuleSet: null)
+                           unrootedSymbolSet: null)
                 {
                 }
             }
@@ -183,7 +189,7 @@ namespace Microsoft.CodeAnalysis
                     : base(new WeakValueSource<Compilation>(declarationCompilation),
                            declarationCompilation.Clone().RemoveAllReferences(),
                            generatorDriver,
-                           GetAssemblyAndModuleSet(declarationCompilation))
+                           GetUnrootedSymbols(declarationCompilation))
                 {
                 }
             }
