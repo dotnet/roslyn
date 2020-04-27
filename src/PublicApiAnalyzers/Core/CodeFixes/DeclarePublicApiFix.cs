@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             .Where(d => d.Location.IsInSource)
                             .GroupBy(d => d.Location.SourceTree);
 
-                    var newSymbolNames = new List<string>();
+                    var newSymbolNames = new SortedSet<string>();
                     var symbolNamesToRemoveBuilder = PooledHashSet<string>.GetInstance();
 
                     foreach (IGrouping<SyntaxTree, Diagnostic> grouping in groupedDiagnostics)
