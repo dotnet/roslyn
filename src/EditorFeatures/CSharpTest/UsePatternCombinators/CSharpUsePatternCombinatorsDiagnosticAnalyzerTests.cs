@@ -91,6 +91,8 @@ class C
         [InlineData("!(o is C _)", "o is not C _")]
         [InlineData("i == (0x02 | 0x04) || i != 0", "i is (0x02 | 0x04) or not 0")]
         [InlineData("i == 1 || 2 == i", "i is 1 or 2")]
+        [InlineData("i == (short)1 || (short)2 == i", "i is ((short)1) or ((short)2)")]
+        [InlineData("nullable == 1 || 2 == nullable", "nullable is 1 or 2")]
         [InlineData("i != 1 || 2 != i", "i is not (1 and 2)")]
         [InlineData("i != 1 && 2 != i", "i is not (1 or 2)")]
         [InlineData("!(i != 1 && 2 != i)", "i is 1 or 2")]
