@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 SyntaxKind.LogicalAndExpression,
                 SyntaxKind.LogicalOrExpression,
                 SyntaxKind.LogicalNotExpression,
-                SyntaxKind.IsPatternExpression,
-                SyntaxKind.ParenthesizedExpression,
-                SyntaxKind.IsExpression);
+                SyntaxKind.ParenthesizedExpression);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
