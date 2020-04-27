@@ -6070,4 +6070,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
     <value>Generator failed to initialize.</value>
   </data>
+  <data name="IDS_FeatureCovariantReturnsForOverrides" xml:space="preserve">
+    <value>covariant returns</value>
+  </data>
 </root>
