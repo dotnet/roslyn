@@ -2934,7 +2934,7 @@ public class D
             Assert.Empty(property0.RefCustomModifiers);
             Assert.Equal("System.Runtime.CompilerServices.IsExternalInit", property0.TypeWithAnnotations.CustomModifiers.Single().Modifier.ToTestDisplayString());
 
-            Assert.False(property0.GetMethod.HasUseSiteError);
+            Assert.False(property0.GetMethod.HasUseSiteError); // PROTOTYPE(init-only): decoding should be more restrictive
             Assert.True(property0.GetMethod.ReturnsByRef);
             Assert.False(property0.GetMethod.ReturnType.IsErrorType());
 
