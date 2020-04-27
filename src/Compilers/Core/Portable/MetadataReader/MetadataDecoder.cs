@@ -1211,7 +1211,9 @@ tryAgain:
                 var customModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
                 if (!info.CustomModifiers.IsDefault)
                 {
-                    customModifiers = info.CustomModifiers.AddRange(customModifiers.NullToEmpty());
+                    customModifiers = info.CustomModifiers
+                        .WhereAsArray(m => !IsAcceptedInAttributeModifierType(m.Modifier))
+                        .AddRange(customModifiers.NullToEmpty());
                 }
                 info.CustomModifiers = customModifiers;
             }

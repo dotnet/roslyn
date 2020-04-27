@@ -681,13 +681,14 @@ public class C
 {
     public int Property { get; init; }
 
-    C()
+    public C()
     {
         System.Console.Write(""Main "");
     }
 }";
             string main = @"
 public class D
+{
     static void Main()
     {
         var c = new C() { Property = 42 };
