@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         {
         }
 
-        public override string Title => "Extract to new base class";
+        public override string Title => FeaturesResources.Extract_new_base_class;
     }
 }
