@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis
             var service = workspace.Services.GetService<IDocumentNavigationService>();
 
             var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, navigationBehavior != NavigationBehavior.Normal);
-            options = options.WithChangedOption(NavigationOptions.ActivateProvisionalTab, navigationBehavior == NavigationBehavior.PreviewWithActivation);
+            options = options.WithChangedOption(NavigationOptions.ActivateProvisionalTab, navigationBehavior == NavigationBehavior.PreviewWithFocus);
 
-            return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, navigationOptions);
+            return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options);
         }
 
         public static async Task<bool> IsHiddenAsync(

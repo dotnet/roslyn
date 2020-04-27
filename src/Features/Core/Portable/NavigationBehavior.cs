@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis
         /// Useful for cases where the user might be going through a list of items and we want to
         /// make the context visible but not make focus changes
         /// </summary>
-        PreviewWithoutActivation,
+        PreviewWithoutFocus,
 
         /// <summary>
         /// The destination will navigate using a preview window and activate 
         /// </summary>
-        PreviewWithActivation
+        PreviewWithFocus
     }
 }

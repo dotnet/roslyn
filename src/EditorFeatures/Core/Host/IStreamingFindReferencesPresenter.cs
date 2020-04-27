@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // If we're directly going to a location we need to activate the preview so
                 // that focus follows to the new cursor position. This behavior is expected
                 // because we are only going to navigate once successfully
-                if (item.TryNavigateTo(workspace, NavigationBehavior.PreviewWithActivation))
+                if (item.TryNavigateTo(workspace, NavigationBehavior.PreviewWithFocus))
                 {
                     return true;
                 }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // There was only one location to navigate to.  Just directly go to that location.
                 // If we're directly going to a location we need to activate the preview so
                 // that focus follows to the new cursor position.
-                return nonExternalItems[0].TryNavigateTo(workspace, NavigationBehavior.PreviewWithActivation);
+                return nonExternalItems[0].TryNavigateTo(workspace, NavigationBehavior.PreviewWithFocus);
             }
 
             if (presenter != null)
