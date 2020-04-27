@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // is preserved.
             //
             // When adding/updating checks keep the above in mind to determine where the check should go.
-            var castHasNoRuntimeImpact = CastHasNoRuntimeImpact(
+            var castHasRuntimeImpact = CastHasRuntimeImpact(
                 speculationAnalyzer, castNode, castedExpressionNode, semanticModel, cancellationToken);
-            if (!castHasNoRuntimeImpact)
+            if (castHasRuntimeImpact)
                 return false;
 
             // Cast has no runtime effect.  But it may change static semantics.  Only allow removal if static semantics
@@ -68,6 +68,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             return true;
+        }
+
+        private static bool CastHasRuntimeImpact(
+            SpeculationAnalyzer speculationAnalyzer,
+            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
+            SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            return !CastHasNoRuntimeImpact(speculationAnalyzer, castNode, castedExpressionNode, semanticModel, cancellationToken);
         }
 
         private static bool CastHasNoRuntimeImpact(
