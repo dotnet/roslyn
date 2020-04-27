@@ -69,7 +69,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
                 // Make sure the last page only contains the number of elements required for the desired length. This
                 // collection is not resizeable so any additional padding would be a waste of space.
-                _items[^1] = new T[length & s_offsetMask];
+                //
+                // Avoid using (length & s_offsetMask) because it doesn't handle a last page size of s_segmentSize.
+                var lastPageSize = length - ((_items.Length - 1) << s_segmentShift);
+
+                _items[^1] = new T[lastPageSize];
                 _length = length;
             }
         }

@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 yield return new object[] { 1 };
                 yield return new object[] { 10 };
                 yield return new object[] { 100 };
+                yield return new object[] { SegmentedArray<IntPtr>.TestAccessor.SegmentSize / 2 };
+                yield return new object[] { SegmentedArray<IntPtr>.TestAccessor.SegmentSize };
+                yield return new object[] { SegmentedArray<IntPtr>.TestAccessor.SegmentSize * 2 };
                 yield return new object[] { 100000 };
             }
         }
