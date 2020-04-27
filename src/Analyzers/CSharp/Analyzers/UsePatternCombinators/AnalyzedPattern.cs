@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         {
             public readonly TypeSyntax TypeSyntax;
 
-            public Type(TypeSyntax expression, IOperation target) : base(target)
-                => TypeSyntax = expression;
+            public Type(TypeSyntax type, IOperation target) : base(target)
+                => TypeSyntax = type;
         }
 
         /// <summary>
