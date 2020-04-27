@@ -7733,7 +7733,7 @@ public class sign
             var source =
 @"class Program
 {
-    public void M()
+    public void M(int x, int z)
     {
         var v = $""x {[|(object)|]1} z"";
     }
@@ -7741,7 +7741,7 @@ public class sign
             var fixedCode =
 @"class Program
 {
-    public void M()
+    public void M(int x, int z)
     {
         var v = $""x {1} z"";
     }
@@ -7756,7 +7756,7 @@ public class sign
             var source =
 @"class Program
 {
-    public void M()
+    public void M(int x, int z)
     {
         var v = $""x {([|(object)|]1)} z"";
     }
@@ -7764,7 +7764,7 @@ public class sign
             var fixedCode =
 @"class Program
 {
-    public void M()
+    public void M(int x, int z)
     {
         var v = $""x {1} z"";
     }
