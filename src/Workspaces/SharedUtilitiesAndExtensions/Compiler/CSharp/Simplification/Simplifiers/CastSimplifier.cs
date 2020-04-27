@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -67,10 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 IsDynamicAssignment(castNode, semanticModel, cancellationToken))
             {
                 return false;
-            }
 
-            if (PointerCastDefinitelyCantBeRemoved(castNode, castedExpressionNode))
-                return false;
+            }
 
             if (CastPassedToParamsArrayDefinitelyCantBeRemoved(castNode, castType, semanticModel, cancellationToken))
                 return false;
@@ -412,7 +411,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (CastRemovalWouldCauseSignExtensionWarning(castNode, semanticModel, cancellationToken))
                 return true;
 
+            // *(T*)null.  Can't remove this case.
+            if (IsDereferenceOfNullPointerCast(castNode, castedExpressionNode))
+                return true;
+
             return false;
+        }
+
+        private static bool IsDereferenceOfNullPointerCast(ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode)
+        {
+            return castNode.WalkUpParentheses().IsParentKind(SyntaxKind.PointerIndirectionExpression) &&
+                   castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression);
         }
 
         private static bool IsNumericToEnumConversion(
@@ -739,18 +748,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             {
                 var locationType = semanticModel.GetTypeInfo(elementAccess.Expression, cancellationToken);
                 return locationType.Type?.Kind == SymbolKind.ArrayType;
-            }
-
-            return false;
-        }
-
-        private static bool PointerCastDefinitelyCantBeRemoved(
-            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode)
-        {
-            if (castNode.WalkUpParentheses().IsParentKind(SyntaxKind.PointerIndirectionExpression) &&
-                castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression))
-            {
-                return true;
             }
 
             return false;
