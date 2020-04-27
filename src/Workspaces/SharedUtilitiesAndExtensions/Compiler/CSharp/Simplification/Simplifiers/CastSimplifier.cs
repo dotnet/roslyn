@@ -51,9 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var expressionTypeInfo = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
 
-            if (EnumCastDefinitelyCantBeRemoved(castNode, expressionType, castType))
-                return false;
-
             if (CastRemovalWouldCauseSignExtensionWarning(castNode, semanticModel, cancellationToken))
                 return false;
 
@@ -333,6 +330,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // The type in `(Type)...` or `... as Type`
             var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
 
+            // The type in `(...)expr` or `expr as ...`
+            var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
+
             // If we don't understand the type, we must keep it.
             if (castType == null)
                 return true;
@@ -346,6 +346,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // disallow touching them entirely.
             if (castType.Kind == SymbolKind.DynamicType)
                 return true;
+
+            if (EnumCastMustBePreserved(castNode, castType, castedExpressionType))
+                return false;
 
             return false;
         }
@@ -676,19 +679,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool EnumCastDefinitelyCantBeRemoved(
-            ExpressionSyntax castNode, ITypeSymbol expressionType, ITypeSymbol castType)
+        private static bool EnumCastMustBePreserved(
+            ExpressionSyntax castNode, ITypeSymbol castType, ITypeSymbol expressionType)
         {
             if (expressionType is null || !expressionType.IsEnumType())
-            {
                 return false;
-            }
 
             var outerExpression = castNode.WalkUpParentheses();
             if (outerExpression.IsParentKind(SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
             {
-                // -(NumericType)value
-                // +(NumericType)value
+                // TODO(cyrusn):
+                //
+                //  1. This cast could still be removed if it's an identity cast.
+                //  2. Why does this not check `~` as well?
+
+                // -(SomeType)enum_expr
+                // +(SomeType)enum_expr
                 return true;
             }
 
