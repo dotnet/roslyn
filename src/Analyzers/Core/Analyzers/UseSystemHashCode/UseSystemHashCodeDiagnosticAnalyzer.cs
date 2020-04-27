@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -55,6 +56,9 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             // `return HashCode.Combine(x)`.
             if (elementCount == 1 && statements.Length < 2)
                 return;
+
+            // We've got multiple members to hash, or multiple statements that can be reduced at this point.
+            Debug.Assert(elementCount >= 2 || statements.Length >= 2);
 
             var syntaxTree = operation.Syntax.SyntaxTree;
             var cancellationToken = context.CancellationToken;
