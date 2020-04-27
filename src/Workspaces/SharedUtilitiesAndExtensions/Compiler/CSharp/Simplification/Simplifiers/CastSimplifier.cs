@@ -42,10 +42,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (speculationAnalyzer.SemanticRootOfOriginalExpression.ContainsDiagnostics)
                 return false;
 
-            // If this changes semantics, then we can't remove it.
+            // Now perform basic checks looking for a few things:
+            //
+            // 1. casts that must stay because removal will produce actually illegal code.
+            // 2. casts that must stay because they have runtime impact (i.e. could cause exceptions to be thrown).
+            // 3. casts that *seem* unnecessary because they don't violate the above, and the cast seems like it has no
+            //    effect at runtime (i.e. casting a `string` to `object`).  Note: just because the cast seems like it
+            //    will have not runtime impact doesn't mean we can remove it.  It still may be necessary to preserve the
+            //    meaning of the code (for example for overload resolution).  That check will occur after this.
+            //
+            // This is the fundamental separation between CastHasNoRuntimeImpact and
+            // speculationAnalyzer.ReplacementChangesSemantics.  The former is simple and is only asking if the cast
+            // seems like it would have no impact *at runtime*.  The latter ensures that the static meaning of the code
+            // is preserved.
+            //
+            // When adding/updating checks keep the above in mind to determine where the check should go.
+            var castHasNoRuntimeImpact = CastHasNoRuntimeImpact(
+                speculationAnalyzer, castNode, castedExpressionNode, semanticModel, cancellationToken);
+            if (!castHasNoRuntimeImpact)
+                return false;
+
+            // Cast has no runtime effect.  But it may change static semantics.  Only allow removal if static semantics
+            // don't change.
             if (speculationAnalyzer.ReplacementChangesSemantics())
                 return false;
 
+            return true;
+        }
+
+        private static bool CastHasNoRuntimeImpact(
+            SpeculationAnalyzer speculationAnalyzer,
+            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
+            SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
             // Look for simple patterns that are known to be absolutely safe to always remove.
             if (CastCanDefinitelyBeRemoved(castNode, castedExpressionNode, semanticModel, cancellationToken))
                 return true;
