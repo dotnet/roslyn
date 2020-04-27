@@ -14701,7 +14701,7 @@ using System;
             var source = @"
 enum MyEnum { first, second, last }
 struct MyStruct { int intStructMember; }
-public class Test
+public unsafe class Test
 {
     static bool boolMember = false;
     static char charMember = '\0';
@@ -14713,13 +14713,37 @@ public class Test
     static uint uintMember = 0;
     static long longMember = 0L;
     static ulong ulongMember = 0;
-    static decimal decimalMember = default(decimal);
+    static nint nintMember = 0;
+    static nuint nuintMember = 0;
+    static decimal decimalMember = 0m;
     static string strMember = null;
     static object objMember = null;
     static float floatMember = 0.0F;
     static double doubleMember = 0.0D;
     static MyEnum enumMember = MyEnum.first;
-    MyStruct structMember = default(MyStruct);
+
+    static bool boolMember2 = default(bool);
+    static char charMember2 = default(char);
+    static sbyte sbyteMember2 = default(sbyte);
+    static byte byteMember2 = default(byte);
+    static short shortMember2 = default(short);
+    static ushort ushortMember2 = default(ushort);
+    static int intMember2 = default(int);
+    static uint uintMember2 = default(uint);
+    static long longMember2 = default(long);
+    static ulong ulongMember2 = default(ulong);
+    static nint nintMember2 = default(nint);
+    static nuint nuintMember2 = default(nuint);
+    static decimal decimalMember2 = default(decimal);
+    static string strMember2 = default(string);
+    static object objMember2 = default(object);
+    static float floatMember2 = default(float);
+    static double doubleMember2 = default(double);
+    static MyEnum enumMember2 = default(MyEnum);
+    static MyStruct structMember2 = default(MyStruct);
+    static System.IntPtr intPtrMember2 = default(System.IntPtr);
+    static System.UIntPtr uintPtrMember2 = default(System.UIntPtr);
+    static void* voidPtrMember2 = default(void*);
 }
 
 class c1
@@ -14735,7 +14759,8 @@ class c1
                 source,
                 expectedOutput: "",
                 symbolValidator: validator,
-                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+                options: TestOptions.UnsafeDebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview);
 
             void validator(ModuleSymbol module)
             {

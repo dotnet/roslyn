@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -393,6 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!(ContainingType is SourceMemberContainerTypeSymbol sourceType))
                 {
+                    Debug.Assert(ContainingType is SynthesizedClosureEnvironment);
                     return true;
                 }
 

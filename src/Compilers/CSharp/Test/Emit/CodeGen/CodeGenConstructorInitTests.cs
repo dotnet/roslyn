@@ -882,28 +882,6 @@ class C
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
-        public void SkipSynthesizedStaticConstructor_07()
-        {
-            string source = @"
-#nullable enable
-class C
-{
-    static int x = 0;
-}";
-            CompileAndVerify(
-                source,
-                symbolValidator: validator,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-
-            void validator(ModuleSymbol module)
-            {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
-                Assert.Null(type.GetMember(".cctor"));
-            }
-        }
-
-        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
-        [Fact]
         public void SkipSynthesizedStaticConstructor_08()
         {
             string source = @"
@@ -937,6 +915,7 @@ struct S
 class C
 {
     static S? s1 = null;
+    static S? s2 = default(S?);
 }";
             CompileAndVerify(
                 source,
@@ -965,9 +944,7 @@ struct S
 class C
 {
     static S? s1 = default;
-    static S? s2 = default(S?);
-    static S? s3 = null;
-    static S? s4 = new S?();
+    static S? s2 = new S?();
 }";
             // note: we could make the synthesized constructor smarter and realize that
             // nothing needs to be emitted for these initializers.
@@ -1126,6 +1103,38 @@ class C
   // Code size        1 (0x1)
   .maxstack  0
   IL_0000:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_16()
+        {
+            string source = @"
+unsafe class C
+{
+    static System.IntPtr s1 = (System.IntPtr)0;
+    static System.UIntPtr s2 = (System.UIntPtr)0;
+    static void* s3 = (void*)0;
+}";
+            // note: we could make the synthesized constructor smarter and realize that
+            // nothing needs to be emitted for the `(void*)0` initializer.
+            // but it doesn't serve any realistic scenarios at this time.
+            CompileAndVerify(source, options: TestOptions.UnsafeDebugDll).VerifyIL("C..cctor()", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
+  IL_0006:  stsfld     ""System.IntPtr C.s1""
+  IL_000b:  ldc.i4.0
+  IL_000c:  conv.i8
+  IL_000d:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(ulong)""
+  IL_0012:  stsfld     ""System.UIntPtr C.s2""
+  IL_0017:  ldc.i4.0
+  IL_0018:  conv.i
+  IL_0019:  stsfld     ""void* C.s3""
+  IL_001e:  ret
 }");
         }
 
