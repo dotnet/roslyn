@@ -55,6 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
             return statement;
         }
 
+        protected override ExpressionSyntax ConvertToExpression(IThrowOperation throwOperation)
+            => CSharpUseConditionalExpressionHelpers.ConvertToExpression(throwOperation);
+
 #if CODE_STYLE
         protected override ISyntaxFormattingService GetSyntaxFormattingService()
             => CSharpSyntaxFormattingService.Instance;

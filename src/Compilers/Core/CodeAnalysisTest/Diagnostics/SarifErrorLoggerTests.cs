@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void DescriptorIdCollisionImpl()
         {
             var descriptors = new[] {
-                // Toughest case: generation of TST001-001 collides with with actual TST001-001 and must be bumped to TST001-002
+                // Toughest case: generation of TST001-001 collides with actual TST001-001 and must be bumped to TST001-002
                 new DiagnosticDescriptor("TST001-001",    "_TST001-001_",     "", "", DiagnosticSeverity.Warning, true),
                 new DiagnosticDescriptor("TST001",        "_TST001_",         "", "", DiagnosticSeverity.Warning, true),
                 new DiagnosticDescriptor("TST001",        "_TST001-002_",     "", "", DiagnosticSeverity.Warning, true),

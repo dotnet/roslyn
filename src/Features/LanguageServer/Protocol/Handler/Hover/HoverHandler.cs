@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -55,24 +54,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // local functions
             // TODO - This should return correctly formatted markdown from quick info.
-            // https://github.com/dotnet/roslyn/projects/45#card-20033878
+            // https://github.com/dotnet/roslyn/issues/43387
             static string GetMarkdownString(QuickInfoItem info)
-            {
-                var stringBuilder = new StringBuilder();
-                var description = info.Sections.FirstOrDefault(s => QuickInfoSectionKinds.Description.Equals(s.Kind))?.Text ?? string.Empty;
-                var documentation = info.Sections.FirstOrDefault(s => QuickInfoSectionKinds.DocumentationComments.Equals(s.Kind))?.Text ?? string.Empty;
-
-                if (!string.IsNullOrEmpty(description))
-                {
-                    stringBuilder.Append(description);
-                    if (!string.IsNullOrEmpty(documentation))
-                    {
-                        stringBuilder.Append("\r\n> ").Append(documentation);
-                    }
-                }
-
-                return stringBuilder.ToString();
-            }
+                => string.Join("\r\n", info.Sections.Select(section => section.Text).Where(text => !string.IsNullOrEmpty(text)));
         }
     }
 }

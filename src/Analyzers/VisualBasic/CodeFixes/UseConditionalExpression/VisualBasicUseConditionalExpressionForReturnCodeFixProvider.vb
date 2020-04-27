@@ -26,9 +26,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Public Sub New()
         End Sub
 
-        Protected Overrides Function IsRef(returnOperation As IReturnOperation) As Boolean
-            ' VB does not have ref returns.
-            Return False
+        Protected Overrides Function ConvertToExpression(throwOperation As IThrowOperation) As ExpressionSyntax
+            ' VB does not have throw expressions
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Protected Overrides Function GetMultiLineFormattingRule() As AbstractFormattingRule

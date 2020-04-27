@@ -4,8 +4,8 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.SQLite.Interop;
 using Roslyn.Utilities;
-using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 {
@@ -30,23 +30,25 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
     internal struct SqlStatement
     {
         private readonly SqlConnection _connection;
-        private readonly sqlite3_stmt _rawStatement;
+        private readonly SafeSqliteStatementHandle _rawStatement;
 
-        public SqlStatement(SqlConnection connection, sqlite3_stmt statement)
+        public SqlStatement(SqlConnection connection, SafeSqliteStatementHandle statement)
         {
             _connection = connection;
             _rawStatement = statement;
         }
 
         internal void Close_OnlyForUseBySqlConnection()
-            => _connection.ThrowIfNotOk(raw.sqlite3_finalize(_rawStatement));
+        {
+            _rawStatement.Dispose();
+        }
 
         public void Reset()
-            => _connection.ThrowIfNotOk(raw.sqlite3_reset(_rawStatement));
+            => _connection.ThrowIfNotOk(NativeMethods.sqlite3_reset(_rawStatement));
 
         public Result Step(bool throwOnError = true)
         {
-            var stepResult = (Result)raw.sqlite3_step(_rawStatement);
+            var stepResult = NativeMethods.sqlite3_step(_rawStatement);
 
             // Anything other than DONE or ROW is an error when stepping.
             // throw if the caller wants that, or just return the value
@@ -64,30 +66,30 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
         }
 
         internal void BindStringParameter(int parameterIndex, string value)
-            => _connection.ThrowIfNotOk(raw.sqlite3_bind_text(_rawStatement, parameterIndex, value));
+            => _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_text(_rawStatement, parameterIndex, value));
 
         internal void BindInt64Parameter(int parameterIndex, long value)
-            => _connection.ThrowIfNotOk(raw.sqlite3_bind_int64(_rawStatement, parameterIndex, value));
+            => _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_int64(_rawStatement, parameterIndex, value));
 
         // SQLite PCL does not expose sqlite3_bind_blob function that takes a length.  So we explicitly
         // DLL import it here.  See https://github.com/ericsink/SQLitePCL.raw/issues/135
 
         internal void BindBlobParameter(int parameterIndex, byte[] value, int length)
-            => _connection.ThrowIfNotOk(sqlite3_bind_blob(_rawStatement.ptr, parameterIndex, value, length, new IntPtr(-1)));
+            => _connection.ThrowIfNotOk(sqlite3_bind_blob(_rawStatement, parameterIndex, value, length, new IntPtr(-1)));
 
         [DllImport("e_sqlite3.dll", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int sqlite3_bind_blob(IntPtr stmt, int index, byte[] val, int nSize, IntPtr nTransient);
+        public static extern int sqlite3_bind_blob(SafeSqliteStatementHandle stmt, int index, byte[] val, int nSize, IntPtr nTransient);
 
         internal byte[] GetBlobAt(int columnIndex)
-            => raw.sqlite3_column_blob(_rawStatement, columnIndex);
+            => NativeMethods.sqlite3_column_blob(_rawStatement, columnIndex);
 
         internal int GetInt32At(int columnIndex)
-            => raw.sqlite3_column_int(_rawStatement, columnIndex);
+            => NativeMethods.sqlite3_column_int(_rawStatement, columnIndex);
 
         internal long GetInt64At(int columnIndex)
-            => raw.sqlite3_column_int64(_rawStatement, columnIndex);
+            => NativeMethods.sqlite3_column_int64(_rawStatement, columnIndex);
 
         internal string GetStringAt(int columnIndex)
-            => raw.sqlite3_column_text(_rawStatement, columnIndex);
+            => NativeMethods.sqlite3_column_text(_rawStatement, columnIndex);
     }
 }

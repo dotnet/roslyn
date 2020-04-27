@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
@@ -94,7 +95,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 ' Create a second project referencing this same DLL. We'll make this one even more complicated by using the same path for both the
                 ' regular OutputFilePath and the IntermediateOutputFilePath
                 Dim project2 = environment.ProjectFactory.CreateAndAddToWorkspace("project2", LanguageNames.CSharp)
-                project2.IntermediateOutputFilePath = ReferencePath
+                project2.CompilationOutputAssemblyFilePath = ReferencePath
                 project2.OutputFilePath = ReferencePath
 
                 Assert.Empty(getReferencingProject().ProjectReferences)
@@ -105,6 +106,36 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 Assert.Equal(project2.Id, Assert.Single(getReferencingProject().ProjectReferences).ProjectId)
                 Assert.Empty(getReferencingProject().MetadataReferences)
+            End Using
+        End Sub
+
+        ' This is a test for a potential race between two operations; with 20 iterations on my machine either all would fail
+        ' or one might pass, it seems the race is easy enough to hit without the fix.
+        <WpfTheory>
+        <CombinatorialData>
+        Public Sub ProjectBeingAddedWhileOutputPathBeingUpdatedDoesNotRace(<CombinatorialRange(0, 20)> iteration As Integer)
+            Using environment = New TestEnvironment()
+                Dim referencingProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencingProject", LanguageNames.CSharp)
+                Dim referencedProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencedProject", LanguageNames.CSharp)
+
+                ' First: have a single project producing this DLL, and ensure we wired up correctly
+                Const ReferencePath = "C:\project.dll"
+                referencingProject.AddMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
+                Dim getReferencingProject = Function() environment.Workspace.CurrentSolution.GetProject(referencingProject.Id)
+                Assert.Single(getReferencingProject().MetadataReferences)
+
+                ' We will simultaneously start the setting of an output path (which converts the metadata reference
+                ' to a project reference) along with the removal of the project that contains the reference.
+
+                Dim task1 = Task.Run(Sub()
+                                         referencedProject.OutputFilePath = ReferencePath
+                                     End Sub)
+
+                Dim task2 = Task.Run(Sub()
+                                         referencingProject.RemoveFromWorkspace()
+                                     End Sub)
+
+                Task.WaitAll(task1, task2)
             End Using
         End Sub
     End Class

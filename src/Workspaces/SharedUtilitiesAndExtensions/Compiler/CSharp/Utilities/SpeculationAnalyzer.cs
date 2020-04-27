@@ -426,6 +426,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // expression type are not broken.
 
                 var newSwitchStatement = (SwitchStatementSyntax)currentReplacedNode;
+                var previousReplacedExpression = (ExpressionSyntax)previousReplacedNode;
+
+                // it is never legal to use `default/null` in a switch statement's expression.
+                if (previousReplacedExpression.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression))
+                    return true;
 
                 var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
                 var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();

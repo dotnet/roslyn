@@ -172,6 +172,11 @@
         <target state="new">Use 'is null' check</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_local_function">
+        <source>Use local function</source>
+        <target state="new">Use local function</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="new">Use pattern matching</target>

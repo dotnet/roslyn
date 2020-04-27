@@ -35,10 +35,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
             return CreateSolutionService(pinnedSolutionInfo).GetSolutionAsync(pinnedSolutionInfo, cancellationToken);
         }
 
-        protected Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
+        protected Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken, [CallerMemberName] string? callerName = null)
             => base.RunServiceAsync(callAsync, cancellationToken);
 
-        protected Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
+        protected Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken, [CallerMemberName] string? callerName = null)
             => base.RunServiceAsync(callAsync, cancellationToken);
     }
 }

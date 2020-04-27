@@ -6,6 +6,9 @@
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
+    /// <summary>
+    /// A value of null indicates that the operation has been cancelled.
+    /// </summary>
     internal sealed class ChangeSignatureOptionsResult
     {
         public readonly bool PreviewChanges;

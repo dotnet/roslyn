@@ -13,7 +13,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -34,19 +36,56 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         private const string s_metadataNameSeparators = " .,:<`>()\r\n";
 
-        /// <summary>
-        /// Performs the renaming of the symbol in the solution, identifies renaming conflicts and automatically
-        /// resolves them where possible.
-        /// </summary>
-        /// <param name="renameLocationSet">The locations to perform the renaming at.</param>
-        /// <param name="replacementText">The new name of the identifier</param>
-        /// <param name="nonConflictSymbols">Used after renaming references. References that now bind to any of these
-        /// symbols are not considered to be in conflict. Useful for features that want to rename existing references to
-        /// point at some existing symbol. Normally this would be a conflict, but this can be used to override that
-        /// behavior.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A conflict resolution containing the new solution.</returns>
-        public static Task<ConflictResolution> ResolveConflictsAsync(
+        internal static async Task<ConflictResolution> ResolveConflictsAsync(
+            RenameLocations renameLocationSet,
+            string replacementText,
+            ImmutableHashSet<ISymbol> nonConflictSymbols,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
+            {
+                var solution = renameLocationSet.Solution;
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var result = await client.TryRunRemoteAsync<SerializableConflictResolution>(
+                        WellKnownServiceHubServices.CodeAnalysisService,
+                        nameof(IRemoteRenamer.ResolveConflictsAsync),
+                        solution,
+                        new object[]
+                        {
+                            renameLocationSet.Dehydrate(solution, cancellationToken),
+                            replacementText,
+                            nonConflictSymbols?.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
+                        },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (result.HasValue)
+                    {
+                        return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            return await ResolveConflictsInCurrentProcessAsync(
+                renameLocationSet, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<ConflictResolution> ResolveConflictsInCurrentProcessAsync(
+            RenameLocations renameLocationSet,
+            string replacementText,
+            ImmutableHashSet<ISymbol> nonConflictSymbols,
+            CancellationToken cancellationToken)
+        {
+            var resolution = await ResolveMutableConflictsAsync(
+                renameLocationSet, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+            return resolution.ToConflictResolution();
+        }
+
+        private static Task<MutableConflictResolution> ResolveMutableConflictsAsync(
             RenameLocations renameLocationSet,
             string replacementText,
             ImmutableHashSet<ISymbol> nonConflictSymbols,
@@ -59,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             if (renameSymbolDeclarationLocation == null)
             {
                 // Symbol "{0}" is not from source.
-                throw new ArgumentException(string.Format(WorkspacesResources.Symbol_0_is_not_from_source, renameLocationSet.Symbol.Name));
+                return Task.FromResult(new MutableConflictResolution(string.Format(WorkspacesResources.Symbol_0_is_not_from_source, renameLocationSet.Symbol.Name)));
             }
 
             var session = new Session(
@@ -109,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return true;
         }
 
-        private static bool IsRenameValid(ConflictResolution conflictResolution, ISymbol renamedSymbol)
+        private static bool IsRenameValid(MutableConflictResolution conflictResolution, ISymbol renamedSymbol)
         {
             // if we rename an identifier and it now binds to a symbol from metadata this should be treated as
             // an invalid rename.
@@ -123,11 +162,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             SemanticModel semanticModel,
             Location originalDeclarationLocation,
             int newDeclarationLocationStartingPosition,
-            ConflictResolution conflictResolution,
+            MutableConflictResolution conflictResolution,
             CancellationToken cancellationToken)
         {
             {
-                var renameRewriterService = conflictResolution.NewSolution.Workspace.Services.GetLanguageServices(renamedSymbol.Language).GetService<IRenameRewriterLanguageService>();
+                var renameRewriterService = conflictResolution.CurrentSolution.Workspace.Services.GetLanguageServices(renamedSymbol.Language).GetService<IRenameRewriterLanguageService>();
                 var implicitUsageConflicts = renameRewriterService.ComputePossibleImplicitUsageConflicts(renamedSymbol, semanticModel, originalDeclarationLocation, newDeclarationLocationStartingPosition, cancellationToken);
                 foreach (var implicitUsageConflict in implicitUsageConflicts)
                 {
@@ -167,14 +206,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         private static async Task AddDeclarationConflictsAsync(
             ISymbol renamedSymbol,
             ISymbol renameSymbol,
-            IEnumerable<SymbolAndProjectId> referencedSymbols,
-            ConflictResolution conflictResolution,
+            IEnumerable<ISymbol> referencedSymbols,
+            MutableConflictResolution conflictResolution,
             IDictionary<Location, Location> reverseMappedLocations,
             CancellationToken cancellationToken)
         {
             try
             {
-                var project = conflictResolution.NewSolution.GetProject(renamedSymbol.ContainingAssembly, cancellationToken);
+                var project = conflictResolution.CurrentSolution.GetProject(renamedSymbol.ContainingAssembly, cancellationToken);
 
                 if (renamedSymbol.ContainingSymbol.IsKind(SymbolKind.NamedType))
                 {
@@ -238,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         renameSymbol,
                         referencedSymbols,
                         conflictResolution.OldSolution,
-                        conflictResolution.NewSolution,
+                        conflictResolution.CurrentSolution,
                         reverseMappedLocations,
                         cancellationToken).ConfigureAwait(false);
 
@@ -259,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
         }
 
-        private static void AddConflictingSymbolLocations(IEnumerable<ISymbol> conflictingSymbols, ConflictResolution conflictResolution, IDictionary<Location, Location> reverseMappedLocations)
+        private static void AddConflictingSymbolLocations(IEnumerable<ISymbol> conflictingSymbols, MutableConflictResolution conflictResolution, IDictionary<Location, Location> reverseMappedLocations)
         {
             foreach (var newSymbol in conflictingSymbols)
             {

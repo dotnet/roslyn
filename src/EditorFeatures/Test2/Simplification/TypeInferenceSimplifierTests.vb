@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     Imports System
                     Imports I = System.Int32
                     Module Program
-                        Public Dim x = 5
+                        Public Dim x As Integer = 5
                         Function Goo() As Integer
                         End Function
                         Sub Main(args As String())
@@ -557,7 +557,7 @@ End Namespace
               <text>
 Namespace X
     Module Program
-        Public Dim t = A.getInt()
+        Public Dim t as Integer = A.getInt()
         Sub Main(args As String())
         End Sub
     End Module
@@ -606,7 +606,7 @@ End Namespace
 Namespace Y
     Namespace X
         Module Program
-            Public Dim t = A.getInt()
+            Public Dim t as Integer = A.getInt()
             Sub Main(args As String())
             End Function
         End Module

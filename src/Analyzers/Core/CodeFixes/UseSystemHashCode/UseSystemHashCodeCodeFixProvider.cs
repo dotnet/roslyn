@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 var method = semanticModel.GetDeclaredSymbol(methodDecl, cancellationToken);
                 var methodBlock = declarationService.GetDeclarations(method)[0].GetSyntax(cancellationToken);
 
-                var (accessesBase, members) = analyzer.GetHashedMembers(method, operation);
+                var (accessesBase, members, _) = analyzer.GetHashedMembers(method, operation);
                 if (accessesBase || !members.IsDefaultOrEmpty)
                 {
                     // Produce the new statements for the GetHashCode method and replace the
