@@ -191,7 +191,7 @@ class A
 {{
     bool Method(int value)
     {{
-        return value is not  3  or  not  5;
+        return value is not 3  or  not 5;
     }}
 }}
 ";
@@ -250,7 +250,7 @@ class A
 {{
     bool Method(int value)
     {{
-        return value is (not  3)  or  (not  5);
+        return value is (not 3)  or  (not 5);
     }}
 }}
 ";
@@ -277,7 +277,7 @@ class A
 {{
     bool Method(int value)
     {{
-        return value is ( not  3 )  or  ( not  5 );
+        return value is ( not 3 )  or  ( not 5 );
     }}
 }}
 ";

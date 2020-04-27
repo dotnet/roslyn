@@ -323,19 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // For spacing after the 'not' pattern operator
             if (previousToken.Parent.IsKind(SyntaxKindEx.NotPattern))
             {
-                switch (_options.SpacingAroundBinaryOperator)
-                {
-                    case BinaryOperatorSpacingOptions.Single:
-                    case BinaryOperatorSpacingOptions.Remove:
-                        return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-
-                    case BinaryOperatorSpacingOptions.Ignore:
-                        return CreateAdjustSpacesOperation(1, AdjustSpacesOption.PreserveSpaces);
-
-                    default:
-                        System.Diagnostics.Debug.Assert(false, "Invalid BinaryOperatorSpacingOptions");
-                        break;
-                }
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // No space after $" and $@" and @$" at the start of an interpolated string
