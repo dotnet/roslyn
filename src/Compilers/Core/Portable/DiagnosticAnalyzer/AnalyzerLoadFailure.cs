@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public Exception? Exception { get; }
 
-        public AnalyzerLoadFailure(ErrorCode code, string? typeName, Exception? exception)
+        internal AnalyzerLoadFailure(ErrorCode code, string? typeName, Exception? exception)
         {
             Debug.Assert((typeName != null) == (code == ErrorCode.TypeLoadFailure || code == ErrorCode.InvalidImplementation));
             Debug.Assert((exception != null) == (code == ErrorCode.AssemblyLoadFailure || code == ErrorCode.TypeLoadFailure));

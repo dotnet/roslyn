@@ -170,10 +170,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override ImmutableArray<ISourceGenerator> GetGenerators()
             => _generators.GetExtensions(language: null).Extensions;
 
-        public override ImmutableArray<AnalyzerLoadFailure> GetLoadErrorsForAllLanguages()
+        public override ImmutableArray<AnalyzerLoadFailure> GetLoadFailuresForAllLanguages()
             => GetLoadErrorsImpl(language: null);
 
-        public override ImmutableArray<AnalyzerLoadFailure> GetLoadErrors(string language)
+        public override ImmutableArray<AnalyzerLoadFailure> GetLoadFailures(string language)
             => GetLoadErrorsImpl(ValidateLanguage(language));
 
         private ImmutableArray<AnalyzerLoadFailure> GetLoadErrorsImpl(string? language)

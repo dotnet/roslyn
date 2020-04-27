@@ -68,10 +68,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public virtual ImmutableArray<ISourceGenerator> GetGenerators()
             => ImmutableArray<ISourceGenerator>.Empty;
 
-        public virtual ImmutableArray<Diagnostic> GetLoadDiagnosticsForAllLanguages()
-            => ImmutableArray<Diagnostic>.Empty;
+        /// <summary>
+        /// Returns all load failures encountered when loading analyzers for all languages.
+        /// Loads analyzers if they have not been loaded yet.
+        /// </summary>
+        public virtual ImmutableArray<AnalyzerLoadFailure> GetLoadFailuresForAllLanguages()
+            => ImmutableArray<AnalyzerLoadFailure>.Empty;
 
-        public virtual ImmutableArray<Diagnostic> GetLoadDiagnostics(string language)
-            => ImmutableArray<Diagnostic>.Empty;
+        /// <summary>
+        /// Returns all load failures encountered when loading analyzers for the specified <paramref name="language"/>.
+        /// Loads analyzers if they have not been loaded yet.
+        /// </summary>
+        public virtual ImmutableArray<AnalyzerLoadFailure> GetLoadFailures(string language)
+            => ImmutableArray<AnalyzerLoadFailure>.Empty;
     }
 }
