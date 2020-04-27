@@ -8911,7 +8911,7 @@ class Program
      -IL_015e:  ldc.i4.2
       IL_015f:  stloc.s    V_8
       IL_0161:  br.s       IL_01ad
-      IL_0163:  br.s       IL_0165
+     ~IL_0163:  br.s       IL_0165
      -IL_0165:  ldc.i4.3
       IL_0166:  stloc.s    V_8
       IL_0168:  br.s       IL_01ad
@@ -8930,15 +8930,15 @@ class Program
      -IL_018c:  ldc.i4.6
       IL_018d:  stloc.s    V_8
       IL_018f:  br.s       IL_01ad
-      IL_0191:  br.s       IL_0193
+     ~IL_0191:  br.s       IL_0193
      -IL_0193:  ldc.i4.7
       IL_0194:  stloc.s    V_8
       IL_0196:  br.s       IL_01ad
-      IL_0198:  br.s       IL_019a
+     ~IL_0198:  br.s       IL_019a
      -IL_019a:  ldc.i4.8
       IL_019b:  stloc.s    V_8
       IL_019d:  br.s       IL_01ad
-      IL_019f:  br.s       IL_01a1
+     ~IL_019f:  br.s       IL_01a1
      -IL_01a1:  ldc.i4.s   9
       IL_01a3:  stloc.s    V_8
       IL_01a5:  br.s       IL_01ad
@@ -8973,18 +8973,18 @@ class Program
               <slot kind=""0"" offset=""447"" />
               <slot kind=""0"" offset=""539"" />
               <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
+              <slot kind=""35"" offset=""23"" />
+              <slot kind=""35"" offset=""23"" ordinal=""1"" />
+              <slot kind=""35"" offset=""23"" ordinal=""2"" />
+              <slot kind=""35"" offset=""23"" ordinal=""3"" />
+              <slot kind=""35"" offset=""23"" ordinal=""4"" />
+              <slot kind=""35"" offset=""23"" ordinal=""5"" />
+              <slot kind=""35"" offset=""23"" ordinal=""6"" />
+              <slot kind=""35"" offset=""23"" ordinal=""7"" />
+              <slot kind=""35"" offset=""23"" ordinal=""8"" />
+              <slot kind=""35"" offset=""23"" ordinal=""9"" />
+              <slot kind=""35"" offset=""23"" ordinal=""10"" />
+              <slot kind=""35"" offset=""23"" ordinal=""11"" />
             </encLocalSlotMap>
           </customDebugInfo>
           <sequencePoints>
@@ -9010,6 +9010,7 @@ class Program
             <entry offset=""0x157"" hidden=""true"" document=""1"" />
             <entry offset=""0x159"" startLine=""27"" startColumn=""37"" endLine=""27"" endColumn=""38"" document=""1"" />
             <entry offset=""0x15e"" startLine=""30"" startColumn=""23"" endLine=""30"" endColumn=""24"" document=""1"" />
+            <entry offset=""0x163"" hidden=""true"" document=""1"" />
             <entry offset=""0x165"" startLine=""33"" startColumn=""27"" endLine=""33"" endColumn=""28"" document=""1"" />
             <entry offset=""0x16a"" startLine=""36"" startColumn=""20"" endLine=""36"" endColumn=""21"" document=""1"" />
             <entry offset=""0x16f"" startLine=""39"" startColumn=""17"" endLine=""39"" endColumn=""25"" document=""1"" />
@@ -9018,8 +9019,11 @@ class Program
             <entry offset=""0x182"" hidden=""true"" document=""1"" />
             <entry offset=""0x187"" startLine=""39"" startColumn=""29"" endLine=""39"" endColumn=""30"" document=""1"" />
             <entry offset=""0x18c"" startLine=""40"" startColumn=""19"" endLine=""40"" endColumn=""20"" document=""1"" />
+            <entry offset=""0x191"" hidden=""true"" document=""1"" />
             <entry offset=""0x193"" startLine=""41"" startColumn=""35"" endLine=""41"" endColumn=""36"" document=""1"" />
+            <entry offset=""0x198"" hidden=""true"" document=""1"" />
             <entry offset=""0x19a"" startLine=""42"" startColumn=""28"" endLine=""42"" endColumn=""29"" document=""1"" />
+            <entry offset=""0x19f"" hidden=""true"" document=""1"" />
             <entry offset=""0x1a1"" startLine=""45"" startColumn=""56"" endLine=""45"" endColumn=""57"" document=""1"" />
             <entry offset=""0x1a7"" startLine=""47"" startColumn=""18"" endLine=""47"" endColumn=""20"" document=""1"" />
             <entry offset=""0x1b0"" startLine=""24"" startColumn=""9"" endLine=""48"" endColumn=""11"" document=""1"" />
@@ -9372,7 +9376,10 @@ public class C
                     C V_14,
                     object V_15,
                     C.<>c__DisplayClass0_3 V_16, //CS$<>8__locals3
-                    int V_17)
+                    object V_17,
+                    C V_18,
+                    object V_19,
+                    int V_20)
      -IL_0000:  nop
      ~IL_0001:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
       IL_0006:  stloc.0
@@ -9454,7 +9461,7 @@ public class C
       IL_00e0:  unbox.any  ""int""
       IL_00e5:  stfld      ""int C.<>c__DisplayClass0_2.<q>5__5""
      ~IL_00ea:  br.s       IL_00ec
-      IL_00ec:  br.s       IL_00ee
+     ~IL_00ec:  br.s       IL_00ee
      -IL_00ee:  ldloc.s    V_8
       IL_00f0:  ldftn      ""int C.<>c__DisplayClass0_2.<M>b__2()""
       IL_00f6:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
@@ -9473,27 +9480,27 @@ public class C
      ~IL_0116:  newobj     ""C.<>c__DisplayClass0_3..ctor()""
       IL_011b:  stloc.s    V_16
       IL_011d:  call       ""object C.F()""
-      IL_0122:  stloc.s    V_15
+      IL_0122:  stloc.s    V_17
       IL_0124:  ldc.i4.1
       IL_0125:  brtrue.s   IL_0128
      -IL_0127:  nop
-     ~IL_0128:  ldloc.s    V_15
+     ~IL_0128:  ldloc.s    V_17
       IL_012a:  isinst     ""C""
-      IL_012f:  stloc.s    V_14
-      IL_0131:  ldloc.s    V_14
+      IL_012f:  stloc.s    V_18
+      IL_0131:  ldloc.s    V_18
       IL_0133:  brfalse.s  IL_016f
-      IL_0135:  ldloc.s    V_14
+      IL_0135:  ldloc.s    V_18
       IL_0137:  callvirt   ""object C.P.get""
-      IL_013c:  stloc.s    V_13
-     ~IL_013e:  ldloc.s    V_13
+      IL_013c:  stloc.s    V_19
+     ~IL_013e:  ldloc.s    V_19
       IL_0140:  isinst     ""int""
       IL_0145:  brfalse.s  IL_016f
       IL_0147:  ldloc.s    V_16
-      IL_0149:  ldloc.s    V_13
+      IL_0149:  ldloc.s    V_19
       IL_014b:  unbox.any  ""int""
       IL_0150:  stfld      ""int C.<>c__DisplayClass0_3.<r>5__6""
      ~IL_0155:  br.s       IL_0157
-      IL_0157:  br.s       IL_0159
+     ~IL_0157:  br.s       IL_0159
      -IL_0159:  ldloc.s    V_16
       IL_015b:  ldftn      ""int C.<>c__DisplayClass0_3.<M>b__3()""
       IL_0161:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
@@ -9509,7 +9516,7 @@ public class C
      -IL_0179:  ldloc.s    V_9
       IL_017b:  stloc.3
       IL_017c:  br.s       IL_0198
-      IL_017e:  br.s       IL_0180
+     ~IL_017e:  br.s       IL_0180
      -IL_0180:  ldloc.2
       IL_0181:  ldftn      ""int C.<>c__DisplayClass0_1.<M>b__1()""
       IL_0187:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
@@ -9547,9 +9554,9 @@ public class C
       IL_01cd:  brtrue.s   IL_01d0
      -IL_01cf:  nop
      ~IL_01d0:  ldloc.1
-      IL_01d1:  stloc.s    V_17
+      IL_01d1:  stloc.s    V_20
       IL_01d3:  br.s       IL_01d5
-     -IL_01d5:  ldloc.s    V_17
+     -IL_01d5:  ldloc.s    V_20
       IL_01d7:  ret
     }
 ");
@@ -9569,19 +9576,22 @@ public class C
               <slot kind=""temp"" />
               <slot kind=""30"" offset=""238"" ordinal=""1"" />
               <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
+              <slot kind=""35"" offset=""22"" />
+              <slot kind=""35"" offset=""22"" ordinal=""1"" />
+              <slot kind=""35"" offset=""22"" ordinal=""2"" />
+              <slot kind=""35"" offset=""22"" ordinal=""3"" />
               <slot kind=""30"" offset=""63"" />
               <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
-              <slot kind=""temp"" />
+              <slot kind=""35"" offset=""63"" />
+              <slot kind=""35"" offset=""63"" ordinal=""1"" />
+              <slot kind=""35"" offset=""63"" ordinal=""2"" />
+              <slot kind=""35"" offset=""63"" ordinal=""3"" />
+              <slot kind=""35"" offset=""63"" ordinal=""4"" />
+              <slot kind=""35"" offset=""63"" ordinal=""5"" />
               <slot kind=""30"" offset=""238"" ordinal=""2"" />
+              <slot kind=""35"" offset=""238"" />
+              <slot kind=""35"" offset=""238"" ordinal=""1"" />
+              <slot kind=""35"" offset=""238"" ordinal=""2"" />
               <slot kind=""21"" offset=""0"" />
             </encLocalSlotMap>
             <encLambdaMap>
@@ -9613,6 +9623,7 @@ public class C
             <entry offset=""0xbd"" hidden=""true"" document=""1"" />
             <entry offset=""0xd3"" hidden=""true"" document=""1"" />
             <entry offset=""0xea"" hidden=""true"" document=""1"" />
+            <entry offset=""0xec"" hidden=""true"" document=""1"" />
             <entry offset=""0xee"" startLine=""11"" startColumn=""59"" endLine=""11"" endColumn=""73"" document=""1"" />
             <entry offset=""0x104"" startLine=""12"" startColumn=""27"" endLine=""12"" endColumn=""29"" document=""1"" />
             <entry offset=""0x10d"" startLine=""7"" startColumn=""20"" endLine=""21"" endColumn=""10"" document=""1"" />
@@ -9622,10 +9633,12 @@ public class C
             <entry offset=""0x128"" hidden=""true"" document=""1"" />
             <entry offset=""0x13e"" hidden=""true"" document=""1"" />
             <entry offset=""0x155"" hidden=""true"" document=""1"" />
+            <entry offset=""0x157"" hidden=""true"" document=""1"" />
             <entry offset=""0x159"" startLine=""16"" startColumn=""40"" endLine=""16"" endColumn=""50"" document=""1"" />
             <entry offset=""0x16f"" startLine=""17"" startColumn=""27"" endLine=""17"" endColumn=""29"" document=""1"" />
             <entry offset=""0x178"" startLine=""9"" startColumn=""18"" endLine=""13"" endColumn=""19"" document=""1"" />
             <entry offset=""0x179"" startLine=""14"" startColumn=""18"" endLine=""18"" endColumn=""19"" document=""1"" />
+            <entry offset=""0x17e"" hidden=""true"" document=""1"" />
             <entry offset=""0x180"" startLine=""19"" startColumn=""31"" endLine=""19"" endColumn=""41"" document=""1"" />
             <entry offset=""0x194"" startLine=""20"" startColumn=""18"" endLine=""20"" endColumn=""19"" document=""1"" />
             <entry offset=""0x19b"" startLine=""7"" startColumn=""9"" endLine=""26"" endColumn=""11"" document=""1"" />
@@ -11030,7 +11043,7 @@ class C
             <encLocalSlotMap>
               <slot kind=""0"" offset=""13"" />
               <slot kind=""temp"" />
-              <slot kind=""temp"" />
+              <slot kind=""35"" offset=""16"" />
               <slot kind=""temp"" />
             </encLocalSlotMap>
           </customDebugInfo>
@@ -11038,6 +11051,7 @@ class C
             <entry offset=""0x0"" startLine=""1"" startColumn=""32"" endLine=""1"" endColumn=""99"" document=""1"" />
             <entry offset=""0xb"" startLine=""1"" startColumn=""45"" endLine=""1"" endColumn=""99"" document=""1"" />
             <entry offset=""0xc"" hidden=""true"" document=""1"" />
+            <entry offset=""0x11"" hidden=""true"" document=""1"" />
             <entry offset=""0x14"" startLine=""1"" startColumn=""64"" endLine=""1"" endColumn=""89"" document=""1"" />
             <entry offset=""0x15"" hidden=""true"" document=""1"" />
             <entry offset=""0x1b"" startLine=""1"" startColumn=""78"" endLine=""1"" endColumn=""79"" document=""1"" />

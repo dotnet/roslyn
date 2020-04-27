@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private readonly Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
 
-            protected override bool GenerateSequencePoints => true;
-
             public static BoundStatement Rewrite(LocalRewriter localRewriter, BoundSwitchStatement node)
             {
                 var rewriter = new SwitchStatementLocalRewriter(node, localRewriter);
@@ -65,7 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private SwitchStatementLocalRewriter(BoundSwitchStatement node, LocalRewriter localRewriter)
-                : base(node.Syntax, localRewriter, node.SwitchSections.SelectAsArray(section => section.Syntax))
+                : base(node.Syntax, localRewriter, node.SwitchSections.SelectAsArray(section => section.Syntax),
+                      // Only add instrumentation (such as sequence points) if the node is not compiler-generated.
+                      generateInstrumentation: localRewriter.Instrument && !node.WasCompilerGenerated)
             {
             }
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
                 // the code to handle the decision dag. This is necessary so that jumps back from a `when` clause into
                 // the decision dag do not appear to jump back up to the enclosing construct.
-                if (GenerateSequencePoints)
+                if (GenerateInstrumentation)
                 {
                     // Since there may have been no code to evaluate the input, add a no-op for any previous sequence point to bind to.
                     if (result.Count == 0)
@@ -161,15 +161,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerVariables.AddRange(_tempAllocator.AllTemps());
 
                 _factory.Syntax = node.Syntax;
-                result.Add(_factory.HiddenSequencePoint());
+                if (GenerateInstrumentation)
+                    result.Add(_factory.HiddenSequencePoint());
+
                 result.Add(_factory.Label(node.BreakLabel));
                 BoundStatement translatedSwitch = _factory.Block(outerVariables.ToImmutableAndFree(), node.InnerLocalFunctions, result.ToImmutableAndFree());
 
-                // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
-                if (!node.WasCompilerGenerated && _localRewriter.Instrument)
-                {
+                if (GenerateInstrumentation)
                     translatedSwitch = _localRewriter._instrumenter.InstrumentSwitchStatement(node, translatedSwitch);
-                }
 
                 return translatedSwitch;
             }
