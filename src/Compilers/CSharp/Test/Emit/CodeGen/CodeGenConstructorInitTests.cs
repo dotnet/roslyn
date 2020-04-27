@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -944,7 +945,6 @@ struct S
 class C
 {
     static S? s1 = default;
-    static S? s2 = new S?();
 }";
             // note: we could make the synthesized constructor smarter and realize that
             // nothing needs to be emitted for these initializers.
@@ -960,6 +960,33 @@ class C
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void SkipSynthesizedStaticConstructor_11()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static S? s1 = new S?();
+}";
+            // note: we could make the synthesized constructor smarter and realize that
+            // nothing needs to be emitted for these initializers.
+            // but it doesn't serve any realistic scenarios at this time.
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_12()
         {
             string source = @"
 #nullable enable
@@ -989,7 +1016,7 @@ class C
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
-        public void SkipSynthesizedStaticConstructor_12()
+        public void SkipSynthesizedStaticConstructor_13()
         {
             string source = @"
 #nullable enable
@@ -1019,7 +1046,7 @@ class C
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
-        public void SkipSynthesizedStaticConstructor_13()
+        public void SkipSynthesizedStaticConstructor_14()
         {
             string source = @"
 #nullable enable
@@ -1049,7 +1076,7 @@ class C
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
-        public void SkipSynthesizedStaticConstructor_14()
+        public void SkipSynthesizedStaticConstructor_15()
         {
             string source = @"
 #nullable enable
@@ -1079,7 +1106,7 @@ class C
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
-        public void SkipSynthesizedStaticConstructor_15()
+        public void SkipSynthesizedStaticConstructor_16()
         {
             string source = @"
 #nullable enable
@@ -1108,7 +1135,7 @@ class C
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
-        public void SkipSynthesizedStaticConstructor_16()
+        public void SkipSynthesizedStaticConstructor_17()
         {
             string source = @"
 unsafe class C
@@ -1120,7 +1147,7 @@ unsafe class C
             // note: we could make the synthesized constructor smarter and realize that
             // nothing needs to be emitted for the `(void*)0` initializer.
             // but it doesn't serve any realistic scenarios at this time.
-            CompileAndVerify(source, options: TestOptions.UnsafeDebugDll).VerifyIL("C..cctor()", @"
+            CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, verify: Verification.Skipped).VerifyIL("C..cctor()", @"
 {
   // Code size       31 (0x1f)
   .maxstack  1
