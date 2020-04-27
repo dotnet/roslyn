@@ -6,6 +6,7 @@
 
 using System.IO;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -285,14 +286,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 File.ReadAllText(sourceLinkJsonPath));
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        [ConditionalTheory(typeof(DotNetSdkAvailable))]
+        [CombinatorialData]
         [WorkItem(43476, "https://github.com/dotnet/roslyn/issues/43476")]
-        public void InitializeSourceRootMappedPathsReturnsSourceMap()
+        public void InitializeSourceRootMappedPathsReturnsSourceMap(bool deterministicSourcePaths)
         {
-            ProjectDir.CreateFile("Project2.csproj").WriteAllText(@"
+            ProjectDir.CreateFile("Project2.csproj").WriteAllText($@"
 <Project Sdk='Microsoft.NET.Sdk'>
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <DeterministicSourcePaths>{deterministicSourcePaths}</DeterministicSourcePaths>
   </PropertyGroup>
   <ItemGroup>
     <SourceRoot Include=""X\""/>

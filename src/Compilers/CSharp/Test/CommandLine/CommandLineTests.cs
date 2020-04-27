@@ -10563,9 +10563,9 @@ class C {
             parsedArgs.Errors.Verify();
             Assert.Equal(KeyValuePairUtil.Create("K1" + s, "V1" + s), parsedArgs.PathMap[0]);
 
-            parsedArgs = DefaultParse(new[] { $"/pathmap:goo{s}=/", "a.cs" }, WorkingDirectory);
+            parsedArgs = DefaultParse(new[] { $"/pathmap:abc{s}=/", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("goo" + s, "/"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("abc" + s, "/"), parsedArgs.PathMap[0]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:K1=V1,K2=V2", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -10603,7 +10603,7 @@ class C {
 
             parsedArgs = DefaultParse(new[] { "/pathmap:\"supporting spaces=is hard\"", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("supporting spaces\\", "is hard\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("supporting spaces" + s, "is hard" + s), parsedArgs.PathMap[0]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:\"K 1=V 1\",\"K 2=V 2\"", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
