@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             => context.RegisterSyntaxNodeAction(AnalyzeNode,
                 SyntaxKind.LogicalAndExpression,
                 SyntaxKind.LogicalOrExpression,
-                SyntaxKind.LogicalNotExpression,
-                SyntaxKind.ParenthesizedExpression);
+                SyntaxKind.LogicalNotExpression);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
@@ -52,9 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             var styleOption = context.Options.GetOption(CSharpCodeStyleOptions.PreferPatternMatching, syntaxTree, cancellationToken);
             if (!styleOption.Value)
                 return;
-
-            // Walk down parentheses so we can get the operation node
-            expression = expression.WalkDownParentheses();
 
             var operation = context.SemanticModel.GetOperation(expression, cancellationToken);
             if (operation is null)
@@ -100,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             }
         }
 
-        private static bool IsTopmostExpression(SyntaxNode node)
+        private static bool IsTopmostExpression(ExpressionSyntax node)
         {
-            return node.Parent switch
+            return node.WalkUpParentheses().Parent switch
             {
                 LambdaExpressionSyntax _ => true,
                 AssignmentExpressionSyntax _ => true,
