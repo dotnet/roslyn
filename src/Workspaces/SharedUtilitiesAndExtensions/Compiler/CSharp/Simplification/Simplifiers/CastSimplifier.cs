@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -55,21 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var castType = castTypeInfo.Type;
             var expressionTypeInfo = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
-
-            // We do not remove any cast on 
-            // 1. Dynamic Expressions
-            // 2. If there is any other argument which is dynamic
-            // 3. Dynamic Invocation
-            // 4. Assignment to dynamic
-            if ((expressionType != null &&
-                (expressionType.IsErrorType() ||
-                 expressionType.Kind == SymbolKind.DynamicType)) ||
-                IsDynamicInvocation(castNode, semanticModel, cancellationToken) ||
-                IsDynamicAssignment(castNode, semanticModel, cancellationToken))
-            {
-                return false;
-
-            }
 
             if (CastPassedToParamsArrayDefinitelyCantBeRemoved(castNode, castType, semanticModel, cancellationToken))
                 return false;
@@ -399,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // `dynamic` changes the semantics of everything and is rarely safe to remove. We could consider removing
             // absolutely safe casts (i.e. `(dynamic)(dynamic)a`), but it's likely not worth the effort, so we just
             // disallow touching them entirely.
-            if (castType.Kind == SymbolKind.DynamicType)
+            if (InvolvesDynamic(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, cancellationToken))
                 return true;
 
             // If we're changing between numeric and enum types, then we need to preserve the cast as the type is
@@ -416,6 +400,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
 
             return false;
+        }
+
+        private static bool InvolvesDynamic(
+            ExpressionSyntax castNode,
+            ExpressionSyntax castedExpressionNode,
+            ITypeSymbol castType,
+            ITypeSymbol castedExpressionType,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            // We do not remove any cast on 
+            // 1. Dynamic Expressions
+            // 2. If there is any other argument which is dynamic
+            // 3. Dynamic Invocation
+            // 4. Assignment to dynamic
+
+            if (castType?.Kind == SymbolKind.DynamicType || castedExpressionType?.Kind == SymbolKind.DynamicType)
+                return true;
+
+            return IsDynamicInvocation(castNode, semanticModel, cancellationToken) ||
+                   IsDynamicAssignment(castNode, semanticModel, cancellationToken);
         }
 
         private static bool IsDereferenceOfNullPointerCast(ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode)
@@ -787,26 +792,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         private static bool IsDynamicInvocation(
             ExpressionSyntax castExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (castExpression.IsParentKind(SyntaxKind.Argument) &&
-                castExpression.Parent.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList) &&
-                castExpression.Parent.Parent.Parent.IsKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
+            if (castExpression.WalkUpParentheses().IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument) &&
+                argument.IsParentKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList) &&
+                argument.Parent.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
             {
-                var typeInfo = default(TypeInfo);
-
-                if (castExpression.Parent.Parent.IsParentKind(SyntaxKind.InvocationExpression))
-                {
-                    typeInfo = semanticModel.GetTypeInfo((InvocationExpressionSyntax)castExpression.Parent.Parent.Parent, cancellationToken);
-                }
-
-                if (castExpression.Parent.Parent.IsParentKind(SyntaxKind.ElementAccessExpression))
-                {
-                    typeInfo = semanticModel.GetTypeInfo((ElementAccessExpressionSyntax)castExpression.Parent.Parent.Parent, cancellationToken);
-                }
-
-                if (typeInfo.Type != null && typeInfo.Type.Kind == SymbolKind.DynamicType)
-                {
-                    return true;
-                }
+                var typeInfo = semanticModel.GetTypeInfo(argument.Parent.Parent, cancellationToken);
+                return typeInfo.Type?.Kind == SymbolKind.DynamicType;
             }
 
             return false;
@@ -814,6 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsDynamicAssignment(ExpressionSyntax castExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            castExpression = castExpression.WalkUpParentheses();
             if (castExpression.IsRightSideOfAnyAssignExpression())
             {
                 var assignmentExpression = (AssignmentExpressionSyntax)castExpression.Parent;
