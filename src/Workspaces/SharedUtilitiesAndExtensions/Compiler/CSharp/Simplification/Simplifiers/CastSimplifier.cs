@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -347,9 +346,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castType.Kind == SymbolKind.DynamicType)
                 return true;
 
-            if (EnumCastMustBePreserved(castNode, castType, castedExpressionType))
-                return false;
-
             return false;
         }
 
@@ -673,44 +669,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castNode.WalkUpParentheses().IsParentKind(SyntaxKind.PointerIndirectionExpression) &&
                 castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression))
             {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool EnumCastMustBePreserved(
-            ExpressionSyntax castNode, ITypeSymbol castType, ITypeSymbol expressionType)
-        {
-            if (expressionType is null || !expressionType.IsEnumType())
-                return false;
-
-            var outerExpression = castNode.WalkUpParentheses();
-            if (outerExpression.IsParentKind(SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
-            {
-                // TODO(cyrusn):
-                //
-                //  1. This cast could still be removed if it's an identity cast.
-                //  2. Why does this not check `~` as well?
-
-                // -(SomeType)enum_expr
-                // +(SomeType)enum_expr
-                return true;
-            }
-
-            if (castType.IsNumericType() && !outerExpression.IsParentKind(SyntaxKind.CastExpression))
-            {
-                if (outerExpression.Parent is BinaryExpressionSyntax
-                    || outerExpression.Parent is PrefixUnaryExpressionSyntax)
-                {
-                    // Let the parent code handle this, since it could be something like this:
-                    //
-                    //   (int)enumValue > 0
-                    //   ~(int)enumValue
-                    return false;
-                }
-
-                // Explicit enum cast to numeric type, but not part of a chained cast or binary expression
                 return true;
             }
 
