@@ -166,5 +166,14 @@ namespace Analyzer.Utilities
         /// Boolean option to configure if the naming heuristic should be used for CA1303 (https://docs.microsoft.com/en-us/visualstudio/code-quality/ca1303).
         /// </summary>
         public const string UseNamingHeuristic = "use_naming_heuristic";
+
+        /// <summary>
+        /// String option to configure names of additional methods (separated by '|') for CA1806 (https://docs.microsoft.com/visualstudio/code-quality/ca1806).
+        /// Allowed method name formats:
+        ///   1. Method name only (includes all methods with the name, regardless of the containing type or namespace)
+        ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
+        ///      with an optional "M:" prefix.
+        /// </summary>
+        public const string AdditionalUseResultsMethods = "additional_use_results_methods";
     }
 }
