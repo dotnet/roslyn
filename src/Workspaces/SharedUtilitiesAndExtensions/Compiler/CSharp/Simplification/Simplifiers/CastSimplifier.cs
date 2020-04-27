@@ -75,7 +75,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
             SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            // Look for patterns we know will never cause any runtime changes.
+            if (CastDefinitelyHasNoRuntimeImpact(castNode, castedExpressionNode, semanticModel, cancellationToken))
+                return false;
+
             return !CastHasNoRuntimeImpact(speculationAnalyzer, castNode, castedExpressionNode, semanticModel, cancellationToken);
+        }
+
+        private static bool CastDefinitelyHasNoRuntimeImpact(
+            ExpressionSyntax castNode,
+            ExpressionSyntax castedExpressionNode,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            // castNode is:             `(Type)expr` or `expr as Type`.
+            // castedExpressionnode is: `expr`
+
+            // The type in `(Type)...` or `... as Type`
+            var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
+
+            // The type in `(...)expr` or `expr as ...`
+            var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
+
+            // $"x {(object)y} z"    It's always safe to remove this `(object)` cast as this cast happens automatically.
+            if (IsObjectCastInInterpolation(castNode, castType))
+                return true;
+
+            // if we have `(E)~(int)e` then the cast to (int) is not necessary as enums always support `~`
+            if (IsEnumToNumericCastThatCanDefinitelyBeRemoved(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, cancellationToken))
+                return true;
+
+            return false;
         }
 
         private static bool CastHasNoRuntimeImpact(
@@ -83,10 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
             SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            // Look for simple patterns that are known to be absolutely safe to always remove.
-            if (CastCanDefinitelyBeRemoved(castNode, castedExpressionNode, semanticModel, cancellationToken))
-                return true;
-
             // Then look for patterns for cases where we never want to remove casts.
             if (CastMustBePreserved(castNode, castedExpressionNode, semanticModel, cancellationToken))
                 return false;
@@ -328,31 +354,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     return true;
                 }
             }
-
-            return false;
-        }
-
-        private static bool CastCanDefinitelyBeRemoved(
-            ExpressionSyntax castNode,
-            ExpressionSyntax castedExpressionNode,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            // castNode is:             `(Type)expr` or `expr as Type`.
-            // castedExpressionnode is: `expr`
-
-            // The type in `(Type)...` or `... as Type`
-            var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
-
-            // The type in `(...)expr` or `expr as ...`
-            var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
-
-            // $"x {(object)y} z"    It's always safe to remove this `(object)` cast.
-            if (IsObjectCastInInterpolation(castNode, castType))
-                return true;
-
-            if (IsEnumToNumericCastThatCanDefinitelyBeRemoved(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, cancellationToken))
-                return true;
 
             return false;
         }
