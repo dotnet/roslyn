@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MoveMembers;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -26,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveMembers
         public string? DestinationName { get; set; }
 
         [ImportingConstructor]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in tests")]
         public TestMoveMembersOptionService(
             [Import(AllowDefault = true)] IEnumerable<(string name, bool makeAbstract)>? selection = null,
             [Import(AllowDefault = true)] string? destinationName = null)

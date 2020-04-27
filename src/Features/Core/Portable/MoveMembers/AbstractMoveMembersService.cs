@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.MoveMembers
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var selectedMemberNode = await GetSelectedMemberNodeAsync(document, selection, cancellationToken).ConfigureAwait(false);
-            var selectedMember = selectedMemberNode is null 
-                ? null 
+            var selectedMember = selectedMemberNode is null
+                ? null
                 : semanticModel.GetDeclaredSymbol(selectedMemberNode) ?? semanticModel.GetSymbolInfo(selectedMemberNode).Symbol;
 
             if (MemberAndDestinationValidator.IsMemberValid(selectedMember))
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.MoveMembers
                 var selectedType = selectedMember.ContainingType;
                 var destinationAnalysisResults = AnalyzeDestinations(destinations);
 
-                return new MoveMembersAnalysisResult(selectedType, selectedMember, selectedMemberNode, destinationAnalysisResults);
+                return new MoveMembersAnalysisResult(selectedType, selectedMember, selectedMemberNode!, destinationAnalysisResults);
             }
             else
             {
@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis.MoveMembers
         public async Task<MoveMembersResult> MoveMembersAsync(Document document, MoveMembersOptions membersOptions, CancellationToken cancellationToken)
         {
             var errorResult = CheckOptionValidity(document, membersOptions, cancellationToken);
-
             if (errorResult is object)
             {
                 return errorResult;

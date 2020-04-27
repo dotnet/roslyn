@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return moveMembersOptionService.GetMoveMembersOptions(
                 _document,
                 _analysisResult,
-                MoveMembersEntryPoint.ExtractInterface);
+                MoveMembersEntryPoint.ExtractInterface)
+                ?? MoveMembersOptions.Cancelled;
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)

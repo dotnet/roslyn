@@ -11,6 +11,10 @@ namespace Microsoft.CodeAnalysis.MoveMembers
 {
     internal class MoveMembersOptions
     {
+        public static readonly MoveMembersOptions Cancelled = new MoveMembersOptions(null!, default, false, null!, null!, isCancelled: true);
+
+        public bool IsCancelled { get; }
+
         /// <summary>
         /// Destination of where members should be pulled up to.
         /// </summary>
@@ -57,6 +61,18 @@ namespace Microsoft.CodeAnalysis.MoveMembers
             INamedTypeSymbol originalType,
             DocumentId? destinationDocument = null,
             string? newFileName = null)
+            : this(destination, membersToMove, isNewType, fromTypeNode, originalType, isCancelled: false, destinationDocument, newFileName)
+        { }
+
+        private MoveMembersOptions(
+            INamedTypeSymbol destination,
+            ImmutableArray<MemberAnalysisResult> membersToMove,
+            bool isNewType,
+            SyntaxNode fromTypeNode,
+            INamedTypeSymbol originalType,
+            bool isCancelled,
+            DocumentId? destinationDocument = null,
+            string? newFileName = null)
         {
             Destination = destination;
             MembersToMove = membersToMove;
@@ -66,6 +82,7 @@ namespace Microsoft.CodeAnalysis.MoveMembers
             FromTypeNode = fromTypeNode;
             OriginalType = originalType;
             NewFileName = newFileName;
+            IsCancelled = isCancelled;
         }
     }
 }

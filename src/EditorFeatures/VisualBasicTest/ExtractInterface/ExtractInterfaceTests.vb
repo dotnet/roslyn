@@ -1385,7 +1385,7 @@ End Interface
             Using testState = ExtractInterfaceTestState.Create(markup, LanguageNames.VisualBasic, compilationOptions:=Nothing)
                 Dim result = Await testState.GetTypeAnalysisResultAsync(typeDiscoveryRule)
                 If (expectedExtractable) Then
-                    Assert.True(result.)
+                    Assert.NotNull(result)
                 Else
                     Assert.Null(result)
                 End If

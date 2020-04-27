@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveMembers
     class CSharpMoveMembersService : AbstractMoveMembersService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpMoveMembersService()
         {
         }

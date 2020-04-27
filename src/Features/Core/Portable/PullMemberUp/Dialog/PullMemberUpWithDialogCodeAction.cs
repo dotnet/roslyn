@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             public override object GetOptions(CancellationToken cancellationToken)
             {
                 var moveMembersOptionService = _service ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IMoveMembersOptionService>();
-                return moveMembersOptionService.GetMoveMembersOptions(_document, _analysisResult, MoveMembersEntryPoint.PullMembersUp);
+                return moveMembersOptionService.GetMoveMembersOptions(_document, _analysisResult, MoveMembersEntryPoint.PullMembersUp)
+                    ?? MoveMembersOptions.Cancelled;
             }
 
             protected async override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
