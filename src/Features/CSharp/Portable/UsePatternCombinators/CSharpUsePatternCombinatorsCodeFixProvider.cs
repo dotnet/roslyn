@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpUsePatternCombinatorsCodeFixProvider()
-            : base(supportsFixAll: true)
         {
         }
 
         private static SyntaxKind MapToSyntaxKind(BinaryOperatorKind kind)
-            => kind switch
+        {
+            return kind switch
             {
                 BinaryOperatorKind.LessThan => SyntaxKind.LessThanToken,
                 BinaryOperatorKind.GreaterThan => SyntaxKind.GreaterThanToken,
@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 BinaryOperatorKind.GreaterThanOrEqual => SyntaxKind.GreaterThanEqualsToken,
                 _ => throw ExceptionUtilities.UnexpectedValue(kind)
             };
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId);
@@ -79,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         }
 
         private static PatternSyntax AsPatternSyntax(AnalyzedPattern pattern)
-            => pattern switch
+        {
+            return pattern switch
             {
                 Binary p => BinaryPattern(
                     p.IsDisjunctive ? SyntaxKind.OrPattern : SyntaxKind.AndPattern,
@@ -94,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 Not p => UnaryPattern(AsPatternSyntax(p.Pattern).Parenthesize()),
                 var p => throw ExceptionUtilities.UnexpectedValue(p)
             };
+        }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

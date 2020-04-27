@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 SyntaxKind.Argument);
 
         private static ExpressionSyntax? GetExpression(SyntaxNode node)
-            => node switch
+        {
+            return node switch
             {
                 SwitchExpressionArmSyntax n => n.Expression,
                 ConditionalExpressionSyntax n => n.Condition,
@@ -66,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 ArgumentSyntax n when n.GetRefKind() == RefKind.None => n.Expression,
                 _ => null,
             };
+        }
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
@@ -129,7 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         }
 
         private static bool IsTrivial(AnalyzedPattern pattern)
-            => pattern switch
+        {
+            return pattern switch
             {
                 Not { Pattern: Constant _ } => true,
                 Not { Pattern: Source { PatternSyntax: ConstantPatternSyntax _ } } => true,
@@ -137,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 Binary _ => false,
                 _ => true
             };
+        }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;

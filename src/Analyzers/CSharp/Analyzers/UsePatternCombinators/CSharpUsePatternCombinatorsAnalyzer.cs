@@ -77,11 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         private static AnalyzedPattern? ParseBinaryPattern(IBinaryOperation op, bool isDisjunctive, SyntaxToken token)
         {
             var leftPattern = ParsePattern(op.LeftOperand);
-            if (leftPattern == null)
+            if (leftPattern is null)
                 return null;
 
             var rightPattern = ParsePattern(op.RightOperand);
-            if (rightPattern == null)
+            if (rightPattern is null)
                 return null;
 
             return Binary.Create(leftPattern, rightPattern, isDisjunctive, token);
