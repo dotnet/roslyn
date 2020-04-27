@@ -27,13 +27,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUsePatternCombinatorsDiagnosticAnalyzer(), new CSharpUsePatternCombinatorsCodeFixProvider());
 
-        private Task TestAllMissingAsync(string initialMarkup, ParseOptions parseOptions = null, bool enabled = true)
-            => TestMissingAsync(initialMarkup, new TestParameters(
+        private Task TestAllMissingOnExpressionAsync(string expression, ParseOptions parseOptions = null, bool enabled = true)
+            => TestMissingAsync(FromExpression(expression), new TestParameters(
                 parseOptions: parseOptions ?? CSharp9, options: enabled ? PreferPatternMatching : null));
 
         private Task TestAllAsync(string initialMarkup, string expectedMarkup)
             => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup,
                 parseOptions: CSharp9, options: PreferPatternMatching);
+
+        private Task TestAllOnExpressionAsync(string expression, string expected)
+            => TestAllAsync(FromExpression(expression), FromExpression(expected));
 
         private static string FromExpression(string expression)
         {
@@ -52,7 +55,7 @@ class C
     void Argument3() => Test(_ => EXPRESSION);
     void For() { for (; EXPRESSION; ); }
     void Local() { var local = EXPRESSION; }
-    void Conditional() { _ = EXPRESSION ? true : false; }
+    void Conditional() { _ = EXPRESSION ? EXPRESSION : EXPRESSION; }
     void Assignment() { _ = EXPRESSION; }
     void Do() { do ; while (EXPRESSION); }
     void While() { while (EXPRESSION) ; }
@@ -62,6 +65,7 @@ class C
     Func<object, bool> SimpleLambda() => o => EXPRESSION;
     Func<bool> ParenthesizedLambda() => () => EXPRESSION;
     int i;
+    int? nullable;
     object o;
 }
 ";
@@ -79,7 +83,7 @@ class C
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestMissingOnExpression(string expression)
         {
-            await TestAllMissingAsync(FromExpression(expression));
+            await TestAllMissingOnExpressionAsync(expression);
         }
 
         [InlineData("o is int ii && o is long jj", "o is int ii and long jj")]
@@ -96,19 +100,19 @@ class C
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestOnExpression(string expression, string expected)
         {
-            await TestAllAsync(FromExpression(expression), FromExpression(expected));
+            await TestAllOnExpressionAsync(expression, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestMissingIfDisabled()
         {
-            await TestAllMissingAsync(FromExpression("o == 1 || o == 2"), enabled: false);
+            await TestAllMissingOnExpressionAsync("o == 1 || o == 2", enabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestMissingOnCSharp8()
         {
-            await TestAllMissingAsync(FromExpression("o == 1 || o == 2"), parseOptions: TestOptions.Regular8);
+            await TestAllMissingOnExpressionAsync("o == 1 || o == 2", parseOptions: TestOptions.Regular8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
@@ -143,6 +147,34 @@ class C
         return variable is not (0 or
                1 or
                2);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        public async Task TestParenthesized()
+        {
+            await TestAllAsync(
+@"class C
+{
+    bool M0(int v)
+    {
+        return {|FixAllInDocument:(v == 0 || v == 1 || v == 2)|};
+    }
+    bool M1(int v)
+    {
+        return (v == 0) || (v == 1) || (v == 2);
+    }
+}",
+@"class C
+{
+    bool M0(int v)
+    {
+        return (v is 0 or 1 or 2);
+    }
+    bool M1(int v)
+    {
+        return v is 0 or 1 or 2;
     }
 }");
         }

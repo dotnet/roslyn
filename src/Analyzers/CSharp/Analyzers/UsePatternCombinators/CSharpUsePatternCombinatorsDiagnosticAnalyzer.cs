@@ -7,6 +7,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -33,13 +34,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 SyntaxKind.LogicalAndExpression,
                 SyntaxKind.LogicalOrExpression,
                 SyntaxKind.LogicalNotExpression,
-                SyntaxKind.ParenthesizedExpression,
                 SyntaxKind.IsPatternExpression,
+                SyntaxKind.ParenthesizedExpression,
                 SyntaxKind.IsExpression);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            var expression = context.Node;
+            var expression = (ExpressionSyntax)context.Node;
 
             if (!IsTopmostExpression(expression))
                 return;
@@ -53,6 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             var styleOption = context.Options.GetOption(CSharpCodeStyleOptions.PreferPatternMatching, syntaxTree, cancellationToken);
             if (!styleOption.Value)
                 return;
+
+            // Walk down parentheses so we can get the operation node
+            expression = expression.WalkDownParentheses();
 
             var operation = context.SemanticModel.GetOperation(expression, cancellationToken);
             if (operation is null)
