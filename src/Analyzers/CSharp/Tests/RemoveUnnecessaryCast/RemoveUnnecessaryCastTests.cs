@@ -7726,5 +7726,51 @@ public class sign
 
             await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task ObjectCastInInterpolation1()
+        {
+            var source =
+@"class Program
+{
+    public void M()
+    {
+        var v = $""x {[|(object)|]1} z"";
+    }
+}";
+            var fixedCode =
+@"class Program
+{
+    public void M()
+    {
+        var v = $""x {1} z"";
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task ObjectCastInInterpolation2()
+        {
+            var source =
+@"class Program
+{
+    public void M()
+    {
+        var v = $""x {([|(object)|]1)} z"";
+    }
+}";
+            var fixedCode =
+@"class Program
+{
+    public void M()
+    {
+        var v = $""x {1} z"";
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
+        }
     }
 }

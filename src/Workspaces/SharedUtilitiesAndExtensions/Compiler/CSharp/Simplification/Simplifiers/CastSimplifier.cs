@@ -75,14 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (CastPassedToParamsArrayDefinitelyCantBeRemoved(castNode, castType, semanticModel, cancellationToken))
                 return false;
 
-            // A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
-            // in order to call string.Format(...) anyway.
-            if (castType?.SpecialType == SpecialType.System_Object &&
-                castNode.WalkUpParentheses().IsParentKind(SyntaxKind.Interpolation))
-            {
-                return true;
-            }
-
             if (speculationAnalyzer.ReplacementChangesSemantics())
                 return false;
 
@@ -334,10 +326,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // The type in `(...)expr` or `expr as ...`
             var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
 
+            // $"x {(object)y} z"    It's always safe to remove this `(object)` cast.
+            if (IsObjectCastInInterpolation(castNode, castType))
+                return true;
+
             if (IsEnumToNumericCastThatCanDefinitelyBeRemoved(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, cancellationToken))
                 return true;
 
             return false;
+        }
+
+        private static bool IsObjectCastInInterpolation(ExpressionSyntax castNode, ITypeSymbol castType)
+        {
+            // A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
+            // in order to call string.Format(...) anyway.
+            return castType?.SpecialType == SpecialType.System_Object &&
+                   castNode.WalkUpParentheses().IsParentKind(SyntaxKind.Interpolation);
         }
 
         private static bool IsEnumToNumericCastThatCanDefinitelyBeRemoved(
