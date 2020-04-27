@@ -3672,11 +3672,10 @@ Class C
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameVarNotSupported(host As TestHost)
-            Assert.ThrowsAny(Of ArgumentException)(Sub()
-                                                       Dim result = RenameEngineResult.Create(_outputHelper,
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
-                        <Document><![CDATA[
+            Dim result = RenameEngineResult.Create(_outputHelper,
+<Workspace>
+    <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
+        <Document><![CDATA[
 using System;
 
 namespace X
@@ -3691,9 +3690,8 @@ namespace X
 }
 ]]>]
                         </Document>
-                    </Project>
-                </Workspace>, host:=host, renameTo:="Int32")
-                                                   End Sub)
+    </Project>
+</Workspace>, host:=host, renameTo:="Int32", expectFailure:=True)
         End Sub
 
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
@@ -3731,11 +3729,10 @@ namespace X
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameDynamicNotSupported(host As TestHost)
-            Assert.ThrowsAny(Of ArgumentException)(Sub()
-                                                       Dim result = RenameEngineResult.Create(_outputHelper,
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
-                        <Document><![CDATA[
+            Dim result = RenameEngineResult.Create(_outputHelper,
+<Workspace>
+    <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
+        <Document><![CDATA[
 using System;
 
 namespace X
@@ -3750,9 +3747,8 @@ namespace X
 }
 ]]>]
                         </Document>
-                    </Project>
-                </Workspace>, host:=host, renameTo:="Int32")
-                                                   End Sub)
+    </Project>
+</Workspace>, host:=host, renameTo:="Int32", expectFailure:=True)
         End Sub
 
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>

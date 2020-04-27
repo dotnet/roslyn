@@ -5,6 +5,9 @@
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Public Enum TestHost
         InProcess
-        OutOfProcess
+        ' Work out of process, marshaling to/from RenameSymbolAsync
+        OutOfProcess_SingleCall
+        ' Work out of process, marshaling to/from FindRenameLocations, then marshaling to/from ResolveConflictsAsync
+        OutOfProcess_SplitCall
     End Enum
 End Namespace
