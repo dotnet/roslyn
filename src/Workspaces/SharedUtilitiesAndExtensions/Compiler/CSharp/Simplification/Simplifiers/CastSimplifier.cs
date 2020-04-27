@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -105,17 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (expressionToCastType.IsExplicit)
             {
                 // Explicit reference conversions can cause an exception or data loss, hence can never be removed.
-                if (expressionToCastType.IsReference)
-                    return false;
-
-                // Unboxing conversions can cause a null ref exception, hence can never be removed.
-                if (expressionToCastType.IsUnboxing)
-                    return false;
-
-                // Don't remove any explicit numeric casts.
-                // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
-                if (expressionToCastType.IsNumeric)
-                    return false;
+                return false;
             }
 
             if (expressionToCastType.IsPointer || expressionToCastType.IsIntPtr)
