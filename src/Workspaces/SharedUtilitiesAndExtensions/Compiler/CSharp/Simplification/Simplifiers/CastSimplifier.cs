@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                cast is BinaryExpressionSyntax binaryExpression ? IsUnnecessaryAsCast(binaryExpression, semanticModel, cancellationToken) : false;
 
         public static bool IsUnnecessaryCast(CastExpressionSyntax cast, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => IsUnnecessaryCast(cast, cast.Expression, semanticModel, cancellationToken);
+            => IsCastSafeToRemove(cast, cast.Expression, semanticModel, cancellationToken);
 
         public static bool IsUnnecessaryAsCast(BinaryExpressionSyntax cast, SemanticModel semanticModel, CancellationToken cancellationToken)
             => cast.Kind() == SyntaxKind.AsExpression &&
-               IsUnnecessaryCast(cast, cast.Left, semanticModel, cancellationToken);
+               IsCastSafeToRemove(cast, cast.Left, semanticModel, cancellationToken);
 
-        private static bool IsUnnecessaryCast(
+        private static bool IsCastSafeToRemove(
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
             SemanticModel semanticModel, CancellationToken cancellationToken)
         {
