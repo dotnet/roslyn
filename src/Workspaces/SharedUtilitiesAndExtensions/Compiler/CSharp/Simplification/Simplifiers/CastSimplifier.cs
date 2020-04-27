@@ -50,9 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var expressionTypeInfo = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
 
-            if (CastRemovalWouldCauseSignExtensionWarning(castNode, semanticModel, cancellationToken))
-                return false;
-
             // We do not remove any cast on 
             // 1. Dynamic Expressions
             // 2. If there is any other argument which is dynamic
@@ -344,6 +341,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // absolutely safe casts (i.e. `(dynamic)(dynamic)a`), but it's likely not worth the effort, so we just
             // disallow touching them entirely.
             if (castType.Kind == SymbolKind.DynamicType)
+                return true;
+
+            // If removing the cast would cause the compiler to issue a specific warning, then we have to preserve it.
+            if (CastRemovalWouldCauseSignExtensionWarning(castNode, semanticModel, cancellationToken))
                 return true;
 
             return false;
