@@ -7772,5 +7772,28 @@ public class sign
 
             await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestIdentityDoubleCast()
+        {
+            var source =
+@"class Program
+{
+    public void M(object x)
+    {
+        var v = [|(int)|](int)x;
+    }
+}";
+            var fixedCode =
+@"class Program
+{
+    public void M(object x)
+    {
+        var v = (int)x;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
+        }
     }
 }
