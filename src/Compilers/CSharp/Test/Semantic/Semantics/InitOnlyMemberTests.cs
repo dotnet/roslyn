@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         // Spec: https://github.com/dotnet/csharplang/blob/master/proposals/init.md
 
         // PROTOTYPE(init-only): test allowed from 'with' expression
-        // PROTOTYPE(init-only): public API, confirm behavior of IsReadOnly and IsInitOnly
+        // PROTOTYPE(init-only): public API, confirm behavior of IsInitOnly and test on each leaf type of wrapped symbol
 
         // PROTOTYPE(init-only): open issues:
         // PROTOTYPE(init-only): queue discussion on init methods (`init void Init()`) and collection initializers (`init void Add()`)
@@ -97,14 +97,14 @@ public class C
             var members = ((NamedTypeSymbol)comp.GlobalNamespace.GetMember("C")).GetMembers();
             AssertEx.SetEqual(members.ToTestDisplayStrings(),
                 new[] {
-                "System.String C.Property { set; }",
-                "void C.Property.set",
-                "System.String C.Property2 { init; }",
-                "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.Property2.set",
-                "System.String C.Property3 { init; }",
-                "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.Property3.set",
-                "C..ctor()"
-            });
+                    "System.String C.Property { set; }",
+                    "void C.Property.set",
+                    "System.String C.Property2 { init; }",
+                    "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.Property2.set",
+                    "System.String C.Property3 { init; }",
+                    "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.Property3.set",
+                    "C..ctor()"
+                });
 
             var property = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.False(property.SetMethod.IsInitOnly);
@@ -592,7 +592,7 @@ class Derived2 : Derived
         }
 
         [Fact]
-        public void EvaluationOrder()
+        public void EvaluationInitOnlySetter()
         {
             string source = @"
 public class C
@@ -621,6 +621,137 @@ public class C
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Main 42 43");
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void EvaluationInitOnlySetter_OverrideAutoProp(bool emitImage)
+        {
+            string parent = @"
+public class Base
+{
+    public virtual int Property { get; init; }
+}";
+
+            string source = @"
+public class C : Base
+{
+    int field;
+    public override int Property
+    {
+        get { System.Console.Write(""get:"" + field + "" ""); return field; }
+        init { field = value; System.Console.Write(""set:"" + value + "" ""); }
+    }
+
+    public C()
+    {
+        System.Console.Write(""Main "");
+    }
+}";
+
+            string main = @"
+public class D
+{
+    static void Main()
+    {
+        var c = new C() { Property = 42 };
+        _ = c.Property;
+    }
+}
+";
+            var libComp = CreateCompilation(new[] { parent, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, main }, references: new[] { emitImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() },
+                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "Main set:42 get:42");
+
+            libComp = CreateCompilation(new[] { parent, source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { main }, references: new[] { emitImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() },
+                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "Main set:42 get:42");
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void EvaluationInitOnlySetter_AutoProp(bool emitImage)
+        {
+            string source = @"
+public class C
+{
+    public int Property { get; init; }
+
+    C()
+    {
+        System.Console.Write(""Main "");
+    }
+}";
+            string main = @"
+public class D
+    static void Main()
+    {
+        var c = new C() { Property = 42 };
+        System.Console.Write($""{c.Property}"");
+    }
+}
+";
+            var libComp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { main }, references: new[] { emitImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() },
+                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "Main 42");
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void EvaluationInitOnlySetter_Implementation(bool emitImage)
+        {
+            string parent = @"
+public interface I
+{
+    int Property { get; init; }
+}";
+
+            string source = @"
+public class C : I
+{
+    int field;
+    public int Property
+    {
+        get { System.Console.Write(""get:"" + field + "" ""); return field; }
+        init { field = value; System.Console.Write(""set:"" + value + "" ""); }
+    }
+
+    public C()
+    {
+        System.Console.Write(""Main "");
+    }
+}";
+
+            string main = @"
+public class D
+{
+    static void Main()
+    {
+        M<C>();
+    }
+
+    static void M<T>() where T : I, new()
+    {
+        var t = new T() { Property = 42 };
+        _ = t.Property;
+    }
+}
+";
+            var libComp = CreateCompilation(new[] { parent, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, main }, references: new[] { emitImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() },
+                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "Main set:42 get:42");
+
+            libComp = CreateCompilation(new[] { parent, source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { main }, references: new[] { emitImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() },
+                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "Main set:42 get:42");
         }
 
         [Fact]
