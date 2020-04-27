@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -42,14 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (speculationAnalyzer.SemanticRootOfOriginalExpression.ContainsDiagnostics)
                 return false;
 
-            var castTypeInfo = semanticModel.GetTypeInfo(castNode, cancellationToken);
-            var castType = castTypeInfo.Type;
-
-            // Case:
-            // 1 . Console.WriteLine(await (dynamic)task); Any Dynamic Cast will not be removed.
-            if (castType == null || castType.Kind == SymbolKind.DynamicType || castType.IsErrorType())
+            if (CastMustBePreserved(castNode, castedExpressionNode, semanticModel, cancellationToken))
                 return false;
 
+            var castTypeInfo = semanticModel.GetTypeInfo(castNode, cancellationToken);
+            var castType = castTypeInfo.Type;
             var expressionTypeInfo = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
 
@@ -319,6 +317,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     return true;
                 }
             }
+
+            return false;
+        }
+
+        private static bool CastMustBePreserved(
+            ExpressionSyntax castNode,
+            ExpressionSyntax castedExpressionNode,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            // castNode is:             `(Type)expr` or `expr as Type`.
+            // castedExpressionnode is: `expr`
+
+            // The type in `(Type)...` or `... as Type`
+            var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
+
+            // If we don't understand the type, we must keep it.
+            if (castType == null)
+                return true;
+
+            // If we've got an error for some reason, then we don't want to touch this at all.
+            if (castType.IsErrorType())
+                return true;
+
+            // `dynamic` changes the semantics of everything and is rarely safe to remove. We could consider removing
+            // absolutely safe casts (i.e. `(dynamic)(dynamic)a`), but it's likely not worth the effort, so we just
+            // disallow touching them entirely.
+            if (castType.Kind == SymbolKind.DynamicType)
+                return true;
 
             return false;
         }
