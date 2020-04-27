@@ -158,13 +158,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void DequeueAsyncWithCancellation()
+        public async Task DequeueAsyncWithCancellation()
         {
             var queue = new AsyncQueue<int>();
             var cts = new CancellationTokenSource();
             var task = queue.DequeueAsync(cts.Token);
             Assert.False(task.IsCanceled);
             cts.Cancel();
+            await Assert.ThrowsAsync<TaskCanceledException>(() => task);
             Assert.Equal(TaskStatus.Canceled, task.Status);
         }
 

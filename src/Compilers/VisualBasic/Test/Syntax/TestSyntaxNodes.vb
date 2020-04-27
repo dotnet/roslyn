@@ -591,7 +591,7 @@ End Class
             Assert.Equal("( ) ", arglist.ToFullString)
         End Sub
 
-        'helper to check an singleton separated list of one type name "goo"
+        'helper to check a singleton separated list of one type name "goo"
         Private Sub CheckSingletonSeparatedList(seplist As SeparatedSyntaxList(Of TypeSyntax), start As Integer)
             Assert.NotNull(seplist)
             Assert.Equal(1, seplist.Count)

@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -15,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation),
                                                             node As SyntaxNode,
-                                                            options As AnalyzerConfigOptions,
                                                             ByRef nextOperation As NextAnchorIndentationOperationAction)
             nextOperation.Invoke()
 
@@ -50,7 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation),
                                                       node As SyntaxNode,
-                                                      options As AnalyzerConfigOptions,
                                                       ByRef nextOperation As NextIndentBlockOperationAction)
             nextOperation.Invoke()
 

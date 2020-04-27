@@ -10,9 +10,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     {
         public bool Succeeded { get; }
         public Solution? UpdatedSolution { get; }
-        public string? Name { get; }
         public Glyph? Glyph { get; }
         public bool PreviewChanges { get; }
+
+        /// <summary>
+        /// Name of the symbol. Needed here for the Preview Changes dialog.
+        /// </summary>
+        public string? Name { get; }
 
         public ChangeSignatureResult(bool succeeded, Solution? updatedSolution = null, string? name = null, Glyph? glyph = null, bool previewChanges = false)
         {

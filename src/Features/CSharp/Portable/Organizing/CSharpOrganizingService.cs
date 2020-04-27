@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpOrganizingService(
-            [ImportMany]IEnumerable<Lazy<ISyntaxOrganizer, LanguageMetadata>> organizers)
+            [ImportMany] IEnumerable<Lazy<ISyntaxOrganizer, LanguageMetadata>> organizers)
             : base(organizers.Where(o => o.Metadata.Language == LanguageNames.CSharp).Select(o => o.Value))
         {
         }

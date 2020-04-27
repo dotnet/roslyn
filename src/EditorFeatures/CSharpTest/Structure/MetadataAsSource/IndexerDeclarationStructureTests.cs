@@ -77,5 +77,23 @@ class Goo
                 Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestIndexer3()
+        {
+            const string code = @"
+class C
+{
+    $${|#0:public string this[int index]{|textspan:
+    {
+        get { }
+    }|#0}
+|}
+    int Value => 0;
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
     }
 }

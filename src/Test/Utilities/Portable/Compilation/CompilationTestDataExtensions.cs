@@ -23,8 +23,8 @@ namespace Roslyn.Test.Utilities
         internal static void VerifyIL(
             this CompilationTestData.MethodData method,
             string expectedIL,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             const string moduleNamePlaceholder = "{#Module#}";
             string actualIL = GetMethodIL(method);

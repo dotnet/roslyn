@@ -53,6 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            // (throw ...) -> throw ...
+            if (expression.IsKind(SyntaxKind.ThrowExpression))
+                return true;
+
             // (x); -> x;
             if (node.IsParentKind(SyntaxKind.ExpressionStatement))
             {

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,18 +13,19 @@ namespace Microsoft.CodeAnalysis.Serialization
 {
     internal sealed class SolutionStateChecksums : ChecksumWithChildren
     {
-        public SolutionStateChecksums(Checksum infoChecksum, Checksum optionsChecksum, ProjectChecksumCollection projectChecksums)
-            : this((object)infoChecksum, (object)optionsChecksum, projectChecksums)
+        public SolutionStateChecksums(Checksum infoChecksum, Checksum optionsChecksum, ProjectChecksumCollection projectChecksums, AnalyzerReferenceChecksumCollection analyzerReferenceChecksums)
+            : this(new object[] { infoChecksum, optionsChecksum, projectChecksums, analyzerReferenceChecksums })
         {
         }
 
-        public SolutionStateChecksums(params object[] children) : base(WellKnownSynchronizationKind.SolutionStateChecksums, children)
+        public SolutionStateChecksums(object[] children) : base(WellKnownSynchronizationKind.SolutionStateChecksums, children)
         {
         }
 
-        public Checksum Info => (Checksum)Children[0];
+        public Checksum Attributes => (Checksum)Children[0];
         public Checksum Options => (Checksum)Children[1];
         public ProjectChecksumCollection Projects => (ProjectChecksumCollection)Children[2];
+        public AnalyzerReferenceChecksumCollection AnalyzerReferences => (AnalyzerReferenceChecksumCollection)Children[3];
 
         public async Task FindAsync(
             SolutionState state,
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Serialization
                 result[Checksum] = this;
             }
 
-            if (searchingChecksumsLeft.Remove(Info))
+            if (searchingChecksumsLeft.Remove(Attributes))
             {
-                result[Info] = state.SolutionAttributes;
+                result[Attributes] = state.SolutionAttributes;
             }
 
             if (searchingChecksumsLeft.Remove(Options))
@@ -57,6 +57,11 @@ namespace Microsoft.CodeAnalysis.Serialization
             if (searchingChecksumsLeft.Remove(Projects.Checksum))
             {
                 result[Projects.Checksum] = Projects;
+            }
+
+            if (searchingChecksumsLeft.Remove(AnalyzerReferences.Checksum))
+            {
+                result[AnalyzerReferences.Checksum] = AnalyzerReferences;
             }
 
             foreach (var (_, projectState) in state.ProjectStates)
@@ -72,9 +77,11 @@ namespace Microsoft.CodeAnalysis.Serialization
                 await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
                 if (searchingChecksumsLeft.Count == 0)
                 {
-                    return;
+                    break;
                 }
             }
+
+            ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
         }
     }
 
@@ -181,59 +188,13 @@ namespace Microsoft.CodeAnalysis.Serialization
                 result[AnalyzerConfigDocuments.Checksum] = AnalyzerConfigDocuments;
             }
 
-            Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
-            Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
-            Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
+            ChecksumCollection.Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
+            ChecksumCollection.Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
+            ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
 
-            await FindAsync(state.DocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-            await FindAsync(state.AdditionalDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-            await FindAsync(state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task FindAsync<TKey, TValue>(
-            ImmutableSortedDictionary<TKey, TValue> documentStates,
-            HashSet<Checksum> searchingChecksumsLeft,
-            Dictionary<Checksum, object> result,
-            CancellationToken cancellationToken) where TValue : TextDocumentState
-        {
-            foreach (var (_, state) in documentStates)
-            {
-                Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
-
-                await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-                if (searchingChecksumsLeft.Count == 0)
-                {
-                    return;
-                }
-            }
-        }
-
-        private static void Find<T>(
-            IReadOnlyList<T> values,
-            ChecksumWithChildren checksums,
-            HashSet<Checksum> searchingChecksumsLeft,
-            Dictionary<Checksum, object> result,
-            CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfFalse(values.Count == checksums.Children.Count);
-
-            for (var i = 0; i < checksums.Children.Count; i++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (searchingChecksumsLeft.Count == 0)
-                {
-                    return;
-                }
-
-                var checksum = (Checksum)checksums.Children[i];
-                var value = values[i];
-
-                if (searchingChecksumsLeft.Remove(checksum))
-                {
-                    result[checksum] = value;
-                }
-            }
+            await ChecksumCollection.FindAsync(state.DocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await ChecksumCollection.FindAsync(state.AdditionalDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await ChecksumCollection.FindAsync(state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
     }
 

@@ -256,6 +256,9 @@
   <data name="Indexing_can_be_simplified" xml:space="preserve">
     <value>Indexing can be simplified</value>
   </data>
+  <data name="Use_local_function" xml:space="preserve">
+    <value>Use local function</value>
+  </data>
   <data name="Use_index_operator" xml:space="preserve">
     <value>Use index operator</value>
   </data>

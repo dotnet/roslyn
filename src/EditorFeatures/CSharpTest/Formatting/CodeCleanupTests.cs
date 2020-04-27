@@ -254,15 +254,21 @@ namespace M
 
         protected static async Task AssertCodeCleanupResult(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false)
         {
-            var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(
-                    TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(CodeCleanupAnalyzerProviderService)))
-                .CreateExportProvider();
+            var exportProvider = ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic).CreateExportProvider();
 
             using var workspace = TestWorkspace.CreateCSharp(code, exportProvider: exportProvider);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst)
-                .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateUsingGroups)));
+
+            var solution = workspace.CurrentSolution
+                .WithOptions(workspace.Options
+                    .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst)
+                    .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateUsingGroups))
+                .WithAnalyzerReferences(new[]
+                {
+                    new AnalyzerFileReference(typeof(CSharpCompilerDiagnosticAnalyzer).Assembly.Location, FromFileLoader.Instance),
+                    new AnalyzerFileReference(typeof(UseExpressionBodyDiagnosticAnalyzer).Assembly.Location, FromFileLoader.Instance)
+                });
+
+            workspace.TryApplyChanges(solution);
 
             // register this workspace to solution crawler so that analyzer service associate itself with given workspace
             var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
@@ -283,39 +289,16 @@ namespace M
             Assert.Equal(expected, actual.ToString());
         }
 
-        [Export(typeof(IHostDiagnosticAnalyzerPackageProvider))]
-        private class CodeCleanupAnalyzerProviderService : IHostDiagnosticAnalyzerPackageProvider
+        public class FromFileLoader : IAnalyzerAssemblyLoader
         {
-            private readonly HostDiagnosticAnalyzerPackage _info;
+            public static FromFileLoader Instance = new FromFileLoader();
 
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public CodeCleanupAnalyzerProviderService()
-                => _info = new HostDiagnosticAnalyzerPackage("CodeCleanup", GetCompilerAnalyzerAssemblies().Distinct().ToImmutableArray());
-
-            private static IEnumerable<string> GetCompilerAnalyzerAssemblies()
+            public void AddDependencyLocation(string fullPath)
             {
-                yield return typeof(CSharpCompilerDiagnosticAnalyzer).Assembly.Location;
-                yield return typeof(UseExpressionBodyDiagnosticAnalyzer).Assembly.Location;
             }
 
-            public IAnalyzerAssemblyLoader GetAnalyzerAssemblyLoader()
-                => FromFileLoader.Instance;
-
-            public ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
-                => ImmutableArray.Create(_info);
-
-            public class FromFileLoader : IAnalyzerAssemblyLoader
-            {
-                public static FromFileLoader Instance = new FromFileLoader();
-
-                public void AddDependencyLocation(string fullPath)
-                {
-                }
-
-                public Assembly LoadFromPath(string fullPath)
-                    => Assembly.LoadFrom(fullPath);
-            }
+            public Assembly LoadFromPath(string fullPath)
+                => Assembly.LoadFrom(fullPath);
         }
     }
 }
