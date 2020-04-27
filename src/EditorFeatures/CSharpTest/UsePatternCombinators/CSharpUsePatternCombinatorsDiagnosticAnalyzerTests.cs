@@ -118,73 +118,73 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
-        public async Task TestMultiline_01()
+        public async Task TestMultilineTrivia_01()
         {
             await TestAllAsync(
 @"class C
 {
     bool M0(int variable)
     {
-        return {|FixAllInDocument:variable == 0 ||
-               variable == 1 ||
-               variable == 2|};
+        return {|FixAllInDocument:variable == 0 || /*1*/
+               variable == 1 || /*2*/
+               variable == 2|}; /*3*/
     }
     bool M1(int variable)
     {
-        return variable != 0 &&
-               variable != 1 &&
-               variable != 2;
+        return variable != 0 && /*1*/
+               variable != 1 && /*2*/
+               variable != 2; /*3*/
     }
 }",
 @"class C
 {
     bool M0(int variable)
     {
-        return variable is 0 or
-               1 or
-               2;
+        return variable is 0 or /*1*/
+               1 or /*2*/
+               2; /*3*/
     }
     bool M1(int variable)
     {
-        return variable is not (0 or
-               1 or
-               2);
+        return variable is not (0 or /*1*/
+               1 or /*2*/
+               2); /*3*/
     }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
-        public async Task TestMultiline_02()
+        public async Task TestMultilineTrivia_02()
         {
             await TestAllAsync(
 @"class C
 {
     bool M0(int variable)
     {
-        return {|FixAllInDocument:variable == 0
-            || variable == 1
-            || variable == 2|};
+        return {|FixAllInDocument:variable == 0 /*1*/
+            || variable == 1 /*2*/
+            || variable == 2|}; /*3*/
     }
     bool M1(int variable)
     {
-        return variable != 0
-            && variable != 1
-            && variable != 2;
+        return variable != 0 /*1*/
+            && variable != 1 /*2*/
+            && variable != 2; /*3*/
     }
 }",
 @"class C
 {
     bool M0(int variable)
     {
-        return variable is 0
-            or 1
-            or 2;
+        return variable is 0 /*1*/
+            or 1 /*2*/
+            or 2; /*3*/
     }
     bool M1(int variable)
     {
-        return variable is not (0
-            or 1
-            or 2);
+        return variable is not (0 /*1*/
+            or 1 /*2*/
+            or 2); /*3*/
     }
 }");
         }
