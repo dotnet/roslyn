@@ -144,6 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         /// <remarks>
         /// Relational patterns only come in the prefix form so we'll have to
         /// flip the operator if the constant happens to be on the left-hand-side.
+        /// For instance: `123 > x` would be rewritten as `x is < 123`.
         /// </remarks>
         public static BinaryOperatorKind Flip(BinaryOperatorKind operatorKind)
         {
@@ -166,4 +167,3 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         }
     }
 }
-
