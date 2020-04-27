@@ -31,48 +31,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeNode,
-                SyntaxKind.SwitchExpressionArm,
-                SyntaxKind.ConditionalExpression,
-                SyntaxKind.ForStatement,
-                SyntaxKind.EqualsValueClause,
-                SyntaxKind.IfStatement,
-                SyntaxKind.WhenClause,
-                SyntaxKind.WhileStatement,
-                SyntaxKind.DoStatement,
-                SyntaxKind.ReturnStatement,
-                SyntaxKind.YieldReturnStatement,
-                SyntaxKind.ArrowExpressionClause,
-                SyntaxKind.SimpleAssignmentExpression,
-                SyntaxKind.SimpleLambdaExpression,
-                SyntaxKind.ParenthesizedLambdaExpression,
-                SyntaxKind.Argument);
-
-        private static ExpressionSyntax? GetExpression(SyntaxNode node)
-        {
-            return node switch
-            {
-                SwitchExpressionArmSyntax n => n.Expression,
-                ConditionalExpressionSyntax n => n.Condition,
-                ForStatementSyntax n => n.Condition,
-                EqualsValueClauseSyntax n => n.Value,
-                IfStatementSyntax n => n.Condition,
-                WhenClauseSyntax n => n.Condition,
-                WhileStatementSyntax n => n.Condition,
-                DoStatementSyntax n => n.Condition,
-                ReturnStatementSyntax n => n.Expression,
-                YieldStatementSyntax n => n.Expression,
-                ArrowExpressionClauseSyntax n => n.Expression,
-                AssignmentExpressionSyntax n => n.Right,
-                LambdaExpressionSyntax n => n.ExpressionBody,
-                ArgumentSyntax n when n.GetRefKind() == RefKind.None => n.Expression,
-                _ => null,
-            };
-        }
+                SyntaxKind.LogicalAndExpression,
+                SyntaxKind.LogicalOrExpression,
+                SyntaxKind.LogicalNotExpression,
+                SyntaxKind.ParenthesizedExpression,
+                SyntaxKind.IsPatternExpression,
+                SyntaxKind.IsExpression);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            var parentNode = context.Node;
-            var syntaxTree = parentNode.SyntaxTree;
+            var expression = context.Node;
+
+            if (!IsTopmostExpression(expression))
+                return;
+
+            var syntaxTree = expression.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
             if (!((CSharpParseOptions)syntaxTree.Options).LanguageVersion.IsCSharp9OrAbove())
@@ -80,10 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
             var styleOption = context.Options.GetOption(CSharpCodeStyleOptions.PreferPatternMatching, syntaxTree, cancellationToken);
             if (!styleOption.Value)
-                return;
-
-            var expression = GetExpression(parentNode);
-            if (expression is null)
                 return;
 
             var operation = context.SemanticModel.GetOperation(expression, cancellationToken);
@@ -128,6 +97,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 default:
                     return false;
             }
+        }
+
+        private static bool IsTopmostExpression(SyntaxNode node)
+        {
+            return node.Parent switch
+            {
+                LambdaExpressionSyntax _ => true,
+                AssignmentExpressionSyntax _ => true,
+                ConditionalExpressionSyntax _ => true,
+                ExpressionSyntax _ => false,
+                _ => true
+            };
         }
 
         private static bool IsTrivial(AnalyzedPattern pattern)
