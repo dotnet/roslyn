@@ -33,9 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return this;
-        }
+            => this;
 
         public Solution PreviewChanges(
             string title,

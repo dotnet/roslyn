@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Emit
                   tolerateErrors,
                   includePrivateMembers,
                   instrumentationKinds,
-                  pdbChecksumAlgorithm: default)
+                  pdbChecksumAlgorithm: null)
         {
         }
 

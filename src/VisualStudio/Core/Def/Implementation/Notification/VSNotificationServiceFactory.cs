@@ -24,10 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
         private static VSDialogService s_singleton;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VSNotificationServiceFactory(SVsServiceProvider serviceProvider)
-        {
-            _uiShellService = (IVsUIShell)serviceProvider.GetService(typeof(SVsUIShell));
-        }
+            => _uiShellService = (IVsUIShell)serviceProvider.GetService(typeof(SVsUIShell));
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
@@ -52,9 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
             public Action<string, string, NotificationSeverity> NotificationCallback { get; set; }
 
             public VSDialogService(IVsUIShell uiShellService)
-            {
-                _uiShellService = uiShellService;
-            }
+                => _uiShellService = uiShellService;
 
             public void SendNotification(
                 string message,

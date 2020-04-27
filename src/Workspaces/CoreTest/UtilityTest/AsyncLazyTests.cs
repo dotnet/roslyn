@@ -30,23 +30,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void SynchronousContinuationsDoNotRunWithinGetValueCallForCompletedTask()
-        {
-            SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.RanToCompletion);
-        }
+            => SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.RanToCompletion);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void SynchronousContinuationsDoNotRunWithinGetValueCallForCancelledTask()
-        {
-            SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.Canceled);
-        }
+            => SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.Canceled);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void SynchronousContinuationsDoNotRunWithinGetValueCallForFaultedTask()
-        {
-            SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.Faulted);
-        }
+            => SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.Faulted);
 
         private void SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus expectedTaskStatus)
         {
@@ -131,16 +125,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void GetValueThrowsCorrectExceptionDuringCancellation()
-        {
-            GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: false);
-        }
+            => GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: false);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void GetValueThrowsCorrectExceptionDuringCancellationWithSynchronousComputation()
-        {
-            GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: true);
-        }
+            => GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: true);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]

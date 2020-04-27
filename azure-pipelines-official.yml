@@ -18,6 +18,7 @@ variables:
     value: .NETCore
   - name: _DotNetValidationArtifactsCategory
     value: .NETCoreValidation
+  - group: DotNet-Roslyn-SDLValidation-Params
 
 stages:
 - stage: build
@@ -123,7 +124,7 @@ stages:
       inputs:
         filePath: 'eng\publish-assets.ps1'
         arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
-      condition: succeeded()
+      condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
 
     # Publish OptProf configuration files
     - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
@@ -291,3 +292,17 @@ stages:
       enableSourceLinkValidation: false
       validateDependsOn:
         - SetValidateDependency
+      # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
+      SDLValidationParameters:
+        enable: true
+        params: >-
+          -SourceToolsList @("policheck","credscan")
+          -TsaInstanceURL $(_TsaInstanceURL)
+          -TsaProjectName $(_TsaProjectName)
+          -TsaNotificationEmail $(_TsaNotificationEmail)
+          -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
+          -TsaBugAreaPath $(_TsaBugAreaPath)
+          -TsaIterationPath $(_TsaIterationPath)
+          -TsaRepositoryName $(_TsaRepositoryName)
+          -TsaCodebaseName $(_TsaCodebaseName)
+          -TsaPublish $True

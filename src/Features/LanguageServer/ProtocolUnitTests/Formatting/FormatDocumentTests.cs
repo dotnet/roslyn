@@ -4,7 +4,6 @@
 
 using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -34,11 +33,11 @@ void M()
         int i = 1;
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var documentURI = locations["caret"].Single().Uri;
-            var documentText = await solution.GetDocumentFromURI(documentURI).GetTextAsync();
+            var documentText = await workspace.CurrentSolution.GetDocumentFromURI(documentURI).GetTextAsync();
 
-            var results = await RunFormatDocumentAsync(solution, documentURI);
+            var results = await RunFormatDocumentAsync(workspace.CurrentSolution, documentURI);
             var actualText = ApplyTextEdits(results, documentText);
             Assert.Equal(expected, actualText);
         }

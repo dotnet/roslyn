@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(this.ClassificationType, this.TextSpan.GetHashCode());
-        }
+            => Hash.Combine(this.ClassificationType, this.TextSpan.GetHashCode());
 
         public override bool Equals(object? obj)
         {
@@ -39,8 +37,6 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public bool Equals(ClassifiedSpan other)
-        {
-            return this.ClassificationType == other.ClassificationType && this.TextSpan == other.TextSpan;
-        }
+            => this.ClassificationType == other.ClassificationType && this.TextSpan == other.TextSpan;
     }
 }

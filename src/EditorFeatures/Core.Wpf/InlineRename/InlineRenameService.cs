@@ -153,9 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         internal class ActiveSessionChangedEventArgs : EventArgs
         {
             public ActiveSessionChangedEventArgs(InlineRenameSession previousSession)
-            {
-                this.PreviousSession = previousSession;
-            }
+                => this.PreviousSession = previousSession;
 
             public InlineRenameSession PreviousSession { get; }
         }

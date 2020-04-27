@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -26,17 +27,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(DeclarationNameCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(TupleNameCompletionProvider))]
     [Shared]
-    internal partial class DeclarationNameCompletionProvider : CommonCompletionProvider
+    internal partial class DeclarationNameCompletionProvider : LSPCompletionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DeclarationNameCompletionProvider()
         {
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, insertedCharacterPosition, options);
-        }
+            => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, insertedCharacterPosition, options);
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {

@@ -82,18 +82,14 @@ StackTrace:
             }
 
             internal void TestOnly_Dispose()
-            {
-                Dispose();
-            }
+                => Dispose();
 
 #if DEBUG
             private Thread _thread;
             private string _stackTrace;
 
             private void DebugRecordInitialStackTrace()
-            {
-                _stackTrace = new StackTrace().ToString();
-            }
+                => _stackTrace = new StackTrace().ToString();
 
             private void DebugRecordCurrentThread()
             {
@@ -106,9 +102,7 @@ StackTrace:
             }
 
             private void DebugVerifyThread()
-            {
-                Contract.ThrowIfFalse(Thread.CurrentThread == _thread);
-            }
+                => Contract.ThrowIfFalse(Thread.CurrentThread == _thread);
 #else
             private void DebugRecordInitialStackTrace()
             {

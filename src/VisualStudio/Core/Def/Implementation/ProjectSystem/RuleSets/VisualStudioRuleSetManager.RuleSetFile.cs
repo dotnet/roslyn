@@ -138,9 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             public void Dispose()
-            {
-                RemoveFromRuleSetManagerAndDisconnectFileTrackers();
-            }
+                => RemoveFromRuleSetManagerAndDisconnectFileTrackers();
 
             private void RemoveFromRuleSetManagerAndDisconnectFileTrackers()
             {

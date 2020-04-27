@@ -39,9 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         }
 
         IWorkspaceService IWorkspaceServiceFactory.CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return this;
-        }
+            => this;
 
         private static Image GetSeverityIconForDiagnostic(DiagnosticData diagnostic)
         {
@@ -126,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                     return Guid.Parse(Guids.VisualBasicOptionPageNamingStyleIdString);
                 }
             }
-            else if (optionName == nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration))
+            else if (optionName == nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration))
             {
                 if (optionLanguage == LanguageNames.CSharp)
                 {

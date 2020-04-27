@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
         private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public NavigableSymbolService(
             IWaitIndicator waitIndicator,
             IStreamingFindUsagesPresenter streamingPresenter)

@@ -15,14 +15,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
         internal class TestState : IDisposable
         {
             public TestState(TestWorkspace workspace)
-            {
-                Workspace = workspace;
-            }
+                => Workspace = workspace;
 
             public void Dispose()
-            {
-                Workspace?.Dispose();
-            }
+                => Workspace?.Dispose();
 
             public TestWorkspace Workspace { get; }
             public TestHostDocument TestInvocationDocument => Workspace.Documents.Single();

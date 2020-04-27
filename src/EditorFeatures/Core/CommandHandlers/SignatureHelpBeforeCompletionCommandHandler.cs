@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.SignatureHelpBeforeCompletion)]
     [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
+    // Ensure roslyn comes after LSP to allow them to provide results.
+    // https://github.com/dotnet/roslyn/issues/42338
+    [Order(After = "LSP SignatureHelpCommandHandler")]
     internal class SignatureHelpBeforeCompletionCommandHandler :
         AbstractSignatureHelpCommandHandler,
         IChainedCommandHandler<TypeCharCommandArgs>,
@@ -51,8 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             IThreadingContext threadingContext,
             [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters,
+            IAsyncCompletionBroker completionBroker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, signatureHelpProviders, signatureHelpPresenters, listenerProvider)
+            : base(threadingContext, signatureHelpProviders, signatureHelpPresenters, completionBroker, listenerProvider)
         {
         }
 

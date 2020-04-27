@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -15,9 +14,7 @@ namespace Roslyn.Test.Utilities
         private readonly string _text;
 
         public TestTextLoader(string text = "test")
-        {
-            _text = text;
-        }
+            => _text = text;
 
         public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             => Task.FromResult(TextAndVersion.Create(SourceText.From(_text), VersionStamp.Create()));

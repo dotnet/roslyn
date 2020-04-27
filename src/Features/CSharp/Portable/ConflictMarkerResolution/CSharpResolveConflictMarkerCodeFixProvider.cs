@@ -4,10 +4,12 @@
 
 #nullable enable
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ConflictMarkerResolution;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
 {
@@ -17,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
         private const string CS8300 = nameof(CS8300); // Merge conflict marker encountered
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpResolveConflictMarkerCodeFixProvider()
             : base(CSharpSyntaxKinds.Instance, CS8300)
         {

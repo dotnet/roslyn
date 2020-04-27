@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterOperationAction(AnalyzeOperation, this.OperationKind);
+            => context.RegisterOperationAction(AnalyzeOperation, OperationKind);
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
@@ -53,15 +53,18 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                 !tree.OverlapsHiddenPosition(switchBlock.Span, context.CancellationToken))
             {
                 Debug.Assert(missingCases || missingDefaultCase);
-                var properties = ImmutableDictionary<string, string>.Empty
+                var properties = ImmutableDictionary<string, string?>.Empty
                     .Add(PopulateSwitchStatementHelpers.MissingCases, missingCases.ToString())
                     .Add(PopulateSwitchStatementHelpers.MissingDefaultCase, missingDefaultCase.ToString());
 
+#pragma warning disable CS8620 // Mismatch in nullability of 'properties' parameter and argument types - Parameter type for 'properties' has been updated to 'ImmutableDictionary<string, string?>?' in newer version of Microsoft.CodeAnalysis (3.7.x).
                 var diagnostic = Diagnostic.Create(
                     Descriptor,
                     GetDiagnosticLocation(switchBlock),
                     properties: properties,
                     additionalLocations: new[] { switchBlock.GetLocation() });
+#pragma warning restore CS8620
+
                 context.ReportDiagnostic(diagnostic);
             }
         }

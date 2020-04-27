@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
     internal class XmlTagCompletionCommandHandler : AbstractXmlTagCompletionCommandHandler
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public XmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory)
             : base(undoHistory)
         {

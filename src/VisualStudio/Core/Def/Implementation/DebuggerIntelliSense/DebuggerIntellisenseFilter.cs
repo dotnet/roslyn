@@ -160,9 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         protected override ITextView ConvertTextView()
-        {
-            return _context.DebuggerTextView;
-        }
+            => _context.DebuggerTextView;
 
         internal void SetContext(AbstractDebuggerIntelliSenseContext context)
         {

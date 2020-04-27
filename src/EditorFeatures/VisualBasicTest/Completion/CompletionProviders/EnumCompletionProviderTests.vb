@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(EnumCompletionProvider)
+        End Function
+
         <Fact>
         <WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
@@ -480,8 +484,74 @@ End Module</Text>.Value
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        Friend Overrides Function GetCompletionProviderType() As Type
-            Return GetType(EnumCompletionProvider)
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
+        Public Async Function TestInCollectionInitializer1() As Task
+            Dim markup = <Text><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Sub Main()
+        Dim y = New List(Of DayOfWeek) From {
+            $$
+        }
+    End Sub
+End Class
+]]></Text>.Value
+            Await VerifyItemExistsAsync(markup, "DayOfWeek.Monday")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
+        Public Async Function TestInCollectionInitializer2() As Task
+            Dim markup = <Text><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Sub Main()
+        Dim y = New List(Of DayOfWeek) From {
+            DayOfWeek.Monday, $$
+        }
+    End Sub
+End Class
+]]></Text>.Value
+            Await VerifyItemExistsAsync(markup, "DayOfWeek.Monday")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
+        Public Async Function TestInCollectionInitializer3() As Task
+            Dim markup = <Text><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Sub Main()
+        Dim y = New List(Of DayOfWeek) From {
+            DayOfWeek.Monday,
+            $$
+        }
+    End Sub
+End Class
+]]></Text>.Value
+            Await VerifyItemExistsAsync(markup, "DayOfWeek.Monday")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInEnumHasFlag() As Task
+            Dim markup = <Text><![CDATA[
+Imports System.IO
+
+Class C
+    Sub Main()
+        Dim f As FileInfo
+        f.Attributes.HasFlag($$
+    End Sub
+End Class
+]]></Text>.Value
+            Await VerifyItemExistsAsync(markup, "FileAttributes.Hidden")
         End Function
     End Class
 End Namespace

@@ -2,12 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 Imports Microsoft.CodeAnalysis.PickMembers
-Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructorFromMembers
     Public Class GenerateEqualsAndGetHashCodeFromMembersTests
@@ -87,6 +85,112 @@ End Class",
     End Function
 End Class",
 index:=1)
+        End Function
+
+        <WorkItem(30396, "https://github.com/dotnet/roslyn/issues/30396")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestStructure() As Task
+            Await TestInRegularAndScriptAsync(
+"Structure Z
+    [|Private a As Integer|]
+End Structure",
+"Imports System
+
+Structure Z
+    Implements IEquatable(Of Z)
+
+    Private a As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Return (TypeOf obj Is Z) AndAlso Equals(DirectCast(obj, Z))
+    End Function
+
+    Public Function Equals(other As Z) As Boolean Implements IEquatable(Of Z).Equals
+        Return a = other.a
+    End Function
+
+    Public Shared Operator =(left As Z, right As Z) As Boolean
+        Return left.Equals(right)
+    End Operator
+
+    Public Shared Operator <>(left As Z, right As Z) As Boolean
+        Return Not left = right
+    End Operator
+End Structure")
+        End Function
+
+        <WorkItem(30396, "https://github.com/dotnet/roslyn/issues/30396")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestStructureThatAlreadyImplementsInterface() As Task
+            Await TestInRegularAndScriptAsync(
+"Structure Z
+    Implements IEquatable(Of Z)
+
+    [|Private a As Integer|]
+End Structure",
+"Imports System
+
+Structure Z
+    Implements IEquatable(Of Z), IEquatable(Of Z)
+
+    Private a As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Return (TypeOf obj Is Z) AndAlso Equals(DirectCast(obj, Z))
+    End Function
+
+    Public Function Equals(other As Z) As Boolean Implements IEquatable(Of Z).Equals
+        Return a = other.a
+    End Function
+
+    Public Shared Operator =(left As Z, right As Z) As Boolean
+        Return left.Equals(right)
+    End Operator
+
+    Public Shared Operator <>(left As Z, right As Z) As Boolean
+        Return Not left = right
+    End Operator
+End Structure")
+        End Function
+
+        <WorkItem(30396, "https://github.com/dotnet/roslyn/issues/30396")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestStructureThatAlreadyHasOperators() As Task
+            Await TestInRegularAndScriptAsync(
+"Structure Z
+    [|Private a As Integer|]
+
+    Public Shared Operator =(left As Z, right As Z) As Boolean
+        Return left.Equals(right)
+    End Operator
+
+    Public Shared Operator <>(left As Z, right As Z) As Boolean
+        Return Not left = right
+    End Operator
+End Structure",
+"Imports System
+
+Structure Z
+    Implements IEquatable(Of Z)
+
+    Private a As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Return (TypeOf obj Is Z) AndAlso Equals(DirectCast(obj, Z))
+    End Function
+
+    Public Function Equals(other As Z) As Boolean Implements IEquatable(Of Z).Equals
+        Return a = other.a
+    End Function
+
+    Public Shared Operator =(left As Z, right As Z) As Boolean
+        Return left.Equals(right)
+    End Operator
+
+    Public Shared Operator <>(left As Z, right As Z) As Boolean
+        Return Not left = right
+    End Operator
+End Structure")
         End Function
 
         <WorkItem(545205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545205")>

@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
     public class InteractiveBraceHighlightingTests
     {
         private IEnumerable<T> Enumerable<T>(params T[] array)
-        {
-            return array;
-        }
+            => array;
 
         private async Task<IEnumerable<ITagSpan<BraceHighlightTag>>> ProduceTagsAsync(
             TestWorkspace workspace,

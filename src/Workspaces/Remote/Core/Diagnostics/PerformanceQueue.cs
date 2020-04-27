@@ -136,14 +136,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
 
             public void Update(IEnumerable<(string analyzerId, TimeSpan timeSpan)> rawData, int unitCount)
-            {
-                Reset(_performanceMap, Convert(rawData), unitCount);
-            }
+                => Reset(_performanceMap, Convert(rawData), unitCount);
 
             public void AppendAnalyzers(HashSet<int> analyzerSet)
-            {
-                analyzerSet.UnionWith(_performanceMap.Keys);
-            }
+                => analyzerSet.UnionWith(_performanceMap.Keys);
 
             public double? GetTimeSpanInMillisecond(int assignedAnalyzerNumber)
             {
@@ -174,9 +170,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
 
             private static IEnumerable<(int assignedAnalyzerNumber, TimeSpan timeSpan)> Convert(IEnumerable<(string analyzerId, TimeSpan timeSpan)> rawData)
-            {
-                return rawData.Select(kv => (AnalyzerNumberAssigner.Instance.GetUniqueNumber(kv.analyzerId), kv.timeSpan));
-            }
+                => rawData.Select(kv => (AnalyzerNumberAssigner.Instance.GetUniqueNumber(kv.analyzerId), kv.timeSpan));
         }
 
         /// <summary>
@@ -199,9 +193,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
 
             public int GetUniqueNumber(DiagnosticAnalyzer analyzer)
-            {
-                return GetUniqueNumber(analyzer.GetAnalyzerId());
-            }
+                => GetUniqueNumber(analyzer.GetAnalyzerId());
 
             public int GetUniqueNumber(string analyzerName)
             {

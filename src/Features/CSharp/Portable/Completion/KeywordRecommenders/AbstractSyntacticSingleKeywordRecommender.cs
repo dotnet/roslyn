@@ -25,15 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             bool isValidInPreprocessorContext = false,
             bool shouldFormatOnCommit = false)
         {
-            this.KeywordKind = keywordKind;
+            KeywordKind = keywordKind;
             _isValidInPreprocessorContext = isValidInPreprocessorContext;
-            this.ShouldFormatOnCommit = shouldFormatOnCommit;
+            ShouldFormatOnCommit = shouldFormatOnCommit;
         }
 
         protected virtual Task<bool> IsValidContextAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(IsValidContext(position, context, cancellationToken));
-        }
+            => Task.FromResult(IsValidContext(position, context, cancellationToken));
 
         protected virtual bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken) => false;
 
@@ -42,12 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             CSharpSyntaxContext context,
             CancellationToken cancellationToken)
         {
-            var syntaxKind = await this.RecommendKeywordAsync(position, context, cancellationToken).ConfigureAwait(false);
+            var syntaxKind = await RecommendKeywordAsync(position, context, cancellationToken).ConfigureAwait(false);
             if (syntaxKind.HasValue)
             {
                 return SpecializedCollections.SingletonEnumerable(
                     new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value),
-                        shouldFormatOnCommit: this.ShouldFormatOnCommit,
+                        shouldFormatOnCommit: ShouldFormatOnCommit,
                         matchPriority: ShouldPreselect(context, cancellationToken) ? SymbolMatchPriority.Keyword : MatchPriority.Default));
             }
 
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return null;
             }
 
-            return this.KeywordKind;
+            return KeywordKind;
         }
 
         internal TestAccessor GetTestAccessor()
@@ -83,9 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             private readonly AbstractSyntacticSingleKeywordRecommender _recommender;
 
             public TestAccessor(AbstractSyntacticSingleKeywordRecommender recommender)
-            {
-                _recommender = recommender;
-            }
+                => _recommender = recommender;
 
             internal async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context)
             {

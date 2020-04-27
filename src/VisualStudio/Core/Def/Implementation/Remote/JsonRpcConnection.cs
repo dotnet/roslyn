@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -23,20 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         // communication channel related to service information
         private readonly RemoteEndPoint _serviceEndPoint;
 
-        // communication channel related to snapshot information
-        private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remoteDataRpc;
-
         public JsonRpcConnection(
             Workspace workspace,
             TraceSource logger,
             object? callbackTarget,
-            Stream serviceStream,
-            ReferenceCountedDisposable<RemotableDataJsonRpc> dataRpc)
+            Stream serviceStream)
         {
-            Contract.ThrowIfNull(dataRpc);
-
             _workspace = workspace;
-            _remoteDataRpc = dataRpc;
             _serviceEndPoint = new RemoteEndPoint(serviceStream, logger, callbackTarget);
             _serviceEndPoint.UnexpectedExceptionThrown += UnexpectedExceptionThrown;
             _serviceEndPoint.StartListening();
@@ -59,7 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // dispose service and snapshot channels
             _serviceEndPoint.UnexpectedExceptionThrown -= UnexpectedExceptionThrown;
             _serviceEndPoint.Dispose();
-            _remoteDataRpc.Dispose();
 
             base.DisposeImpl();
         }

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -26,6 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             private readonly IFindUsagesContext _context;
             private readonly DefinitionItem _definition;
 
+            public IStreamingProgressTracker ProgressTracker
+                => _context.ProgressTracker;
+
             public FindLiteralsProgressAdapter(
                 IFindUsagesContext context, DefinitionItem definition)
             {
@@ -40,9 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 await _context.OnReferenceFoundAsync(new SourceReferenceItem(
                     _definition, documentSpan, SymbolUsageInfo.None)).ConfigureAwait(false);
             }
-
-            public Task ReportProgressAsync(int current, int maximum)
-                => _context.ReportProgressAsync(current, maximum);
         }
 
         /// <summary>
@@ -69,6 +70,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
+            public IStreamingProgressTracker ProgressTracker
+                => _context.ProgressTracker;
+
             public FindReferencesProgressAdapter(
                 IThreadingContext threadingContext, Solution solution,
                 IFindUsagesContext context, FindReferencesSearchOptions options)
@@ -86,38 +90,38 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public Task OnFindInDocumentStartedAsync(Document document) => Task.CompletedTask;
             public Task OnFindInDocumentCompletedAsync(Document document) => Task.CompletedTask;
 
-            // Simple context forwarding functions.
-            public Task ReportProgressAsync(int current, int maximum) =>
-                _context.ReportProgressAsync(current, maximum);
-
             // More complicated forwarding functions.  These need to map from the symbols
             // used by the FAR engine to the INavigableItems used by the streaming FAR 
             // feature.
 
-            private async Task<DefinitionItem> GetDefinitionItemAsync(SymbolAndProjectId definition)
+            private async Task<DefinitionItem> GetDefinitionItemAsync(ISymbol definition)
             {
-                using (await _gate.DisposableWaitAsync(_context.CancellationToken).ConfigureAwait(false))
+                var cancellationToken = _context.CancellationToken;
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    if (!_definitionToItem.TryGetValue(definition.Symbol, out var definitionItem))
+                    if (!_definitionToItem.TryGetValue(definition, out var definitionItem))
                     {
-                        definitionItem = await definition.Symbol.ToClassifiedDefinitionItemAsync(
-                            _solution.GetProject(definition.ProjectId), includeHiddenLocations: false,
-                            _options, _context.CancellationToken).ConfigureAwait(false);
+                        definitionItem = await definition.ToClassifiedDefinitionItemAsync(
+                            _solution,
+                            isPrimary: _definitionToItem.Count == 0,
+                            includeHiddenLocations: false,
+                            _options,
+                            _context.CancellationToken).ConfigureAwait(false);
 
-                        _definitionToItem[definition.Symbol] = definitionItem;
+                        _definitionToItem[definition] = definitionItem;
                     }
 
                     return definitionItem;
                 }
             }
 
-            public async Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
+            public async Task OnDefinitionFoundAsync(ISymbol definition)
             {
                 var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
                 await _context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
 
-            public async Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
+            public async Task OnReferenceFoundAsync(ISymbol definition, ReferenceLocation location)
             {
                 var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
                 var referenceItem = await location.TryCreateSourceReferenceItemAsync(

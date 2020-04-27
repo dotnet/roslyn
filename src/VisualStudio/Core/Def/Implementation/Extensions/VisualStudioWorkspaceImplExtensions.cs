@@ -87,9 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
             private readonly ImageMoniker _imageMoniker;
 
             public VsImageMonikerImageList(ImageMoniker imageMoniker)
-            {
-                _imageMoniker = imageMoniker;
-            }
+                => _imageMoniker = imageMoniker;
 
             public int ImageCount
             {

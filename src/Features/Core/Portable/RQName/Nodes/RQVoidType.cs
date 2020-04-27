@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         private RQVoidType() { }
 
         public override SimpleTreeNode ToSimpleTree()
-        {
-            return new SimpleLeafNode(RQNameStrings.Void);
-        }
+            => new SimpleLeafNode(RQNameStrings.Void);
     }
 }

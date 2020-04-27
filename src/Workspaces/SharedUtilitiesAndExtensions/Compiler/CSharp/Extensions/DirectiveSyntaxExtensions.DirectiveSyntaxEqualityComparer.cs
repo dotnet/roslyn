@@ -18,14 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             public bool Equals(DirectiveTriviaSyntax x, DirectiveTriviaSyntax y)
-            {
-                return x.SpanStart == y.SpanStart;
-            }
+                => x.SpanStart == y.SpanStart;
 
             public int GetHashCode(DirectiveTriviaSyntax obj)
-            {
-                return obj.SpanStart;
-            }
+                => obj.SpanStart;
         }
     }
 }

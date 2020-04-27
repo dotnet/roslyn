@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
-using Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -15,19 +14,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
     public class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EnumDeclarationSyntax>
     {
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new MetadataEnumDeclarationStructureProvider();
+        internal override AbstractSyntaxStructureProvider CreateProvider() => new EnumDeclarationStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task NoCommentsOrAttributes()
         {
             const string code = @"
-enum $$E
+{|hint:enum $$E{|textspan:
 {
     A,
     B
-}";
+}|}|}";
 
-            await VerifyNoBlockSpansAsync(code);
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -35,14 +35,15 @@ enum $$E
         {
             const string code = @"
 {|hint:{|textspan:[Bar]
-|}enum $$E|}
+|}{|#0:enum $$E|}{|textspan2:
 {
     A,
     B
-}";
+}|}|#0}";
 
             await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -52,14 +53,15 @@ enum $$E
 {|hint:{|textspan:// Summary:
 //     This is a summary.
 [Bar]
-|}enum $$E|}
+|}{|#0:enum $$E|}{|textspan2:
 {
     A,
     B
-}";
+}|}|#0}";
 
             await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -69,14 +71,35 @@ enum $$E
 {|hint:{|textspan:// Summary:
 //     This is a summary.
 [Bar]
-|}public enum $$E|}
+|}{|#0:public enum $$E|}{|textspan2:
 {
     A,
     B
-}";
+}|}|#0}";
 
             await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [InlineData("enum")]
+        [InlineData("struct")]
+        [InlineData("class")]
+        [InlineData("interface")]
+        public async Task TestEnum3(string typeKind)
+        {
+            var code = $@"
+{{|#0:$$enum E{{|textspan:
+{{
+}}|#0}}
+|}}
+{typeKind} Following
+{{
+}}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
     }
 }

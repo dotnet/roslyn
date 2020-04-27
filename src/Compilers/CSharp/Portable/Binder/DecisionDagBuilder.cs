@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new RemainingTestsForCase(
                 Index: c.Index, Syntax: c.Syntax,
-                RemainingTests: c.RemainingTests.WhereAsArray(d => !(d is BoundDagEvaluation e2) || e2 != e),
+                RemainingTests: c.RemainingTests.WhereAsArray((d, e) => !(d is BoundDagEvaluation e2) || e2 != e, e),
                 Bindings: c.Bindings, WhenClause: c.WhenClause, CaseLabel: c.CaseLabel);
         }
 

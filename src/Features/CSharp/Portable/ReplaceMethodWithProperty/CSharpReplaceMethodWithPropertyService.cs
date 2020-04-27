@@ -22,14 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
     internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWithPropertyService<MethodDeclarationSyntax>, IReplaceMethodWithPropertyService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpReplaceMethodWithPropertyService()
         {
         }
 
         public void RemoveSetMethod(SyntaxEditor editor, SyntaxNode setMethodDeclaration)
-        {
-            editor.RemoveNode(setMethodDeclaration);
-        }
+            => editor.RemoveNode(setMethodDeclaration);
 
         public void ReplaceGetMethodWithProperty(
             DocumentOptionSet documentOptions,

@@ -144,7 +144,7 @@ $$";
 ";
             var expected = @"
     /*
-     *$$*/
+     * $$*/
 ";
             Verify(code, expected);
         }
@@ -243,7 +243,7 @@ $$*
             var expected = @"
     /*
      *
-     * $$
+     *$$
 ";
             Verify(code, expected);
         }
@@ -342,7 +342,7 @@ $$*
             var expected = @"
     /*
   
-     * $$*
+     $$*
      */
 ";
             Verify(code, expected);
@@ -359,7 +359,7 @@ $$*
             var expected = @"
     /*
      *************
-     * $$
+     *$$
      */
 ";
             Verify(code, expected);
@@ -376,7 +376,7 @@ $$*
             var expected = @"
     /**
      *
-     * $$
+     *$$
      */
 ";
             Verify(code, expected);
@@ -392,7 +392,7 @@ $$*
             var expected = @"
     /**
       *
-      * $$
+      *$$
 ";
             Verify(code, expected);
         }
@@ -454,7 +454,7 @@ $$*
             var expected = @"
     /*
   
-     * $$*/
+     $$*/
 ";
             Verify(code, expected);
         }
@@ -528,7 +528,7 @@ $$*";
     /*$$ ";
             var expected = @"
     /*
-     *$$";
+     * $$";
             Verify(code, expected);
         }
 
@@ -566,7 +566,7 @@ $$*";
 ";
             var expected = @"
     /*
-     *$$*/
+     * $$*/
 ";
             VerifyTabs(code, expected);
         }
@@ -678,6 +678,44 @@ $$*";
      *<tab> 
      *<tab> $$
      */
+";
+            VerifyTabs(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public void InLanguageConstructTrailingTrivia()
+        {
+            var code = @"
+class C
+{
+    int i; /*$$
+}
+";
+            var expected = @"
+class C
+{
+    int i; /*
+            * $$
+}
+";
+            Verify(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public void InLanguageConstructTrailingTrivia_Tabs()
+        {
+            var code = @"
+class C
+{
+<tab>int i; /*$$
+}
+";
+            var expected = @"
+class C
+{
+<tab>int i; /*
+<tab>        * $$
+}
 ";
             VerifyTabs(code, expected);
         }

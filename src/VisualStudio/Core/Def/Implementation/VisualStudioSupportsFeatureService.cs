@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -22,35 +23,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
         private class VisualStudioTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public VisualStudioTextBufferSupportsFeatureService()
             {
             }
 
             public bool SupportsCodeFixes(ITextBuffer textBuffer)
-            {
-                return SupportsCodeFixesWorker(GetContainedDocumentId(textBuffer));
-            }
+                => SupportsCodeFixesWorker(GetContainedDocumentId(textBuffer));
 
             public bool SupportsRefactorings(ITextBuffer textBuffer)
-            {
-                return SupportsRefactoringsWorker(GetContainedDocumentId(textBuffer));
-            }
+                => SupportsRefactoringsWorker(GetContainedDocumentId(textBuffer));
 
             public bool SupportsRename(ITextBuffer textBuffer)
             {
                 var sourceTextContainer = textBuffer.AsTextContainer();
                 if (Workspace.TryGetWorkspace(sourceTextContainer, out var workspace))
                 {
-                    return SupportsRenameWorker(workspace.GetRelatedDocumentIds(sourceTextContainer).ToImmutableArray());
+                    var documentId = workspace.GetDocumentIdInCurrentContext(sourceTextContainer);
+                    return SupportsRenameWorker(workspace.CurrentSolution.GetRelatedDocumentIds(documentId));
                 }
 
                 return false;
             }
 
             public bool SupportsNavigationToAnyPosition(ITextBuffer textBuffer)
-            {
-                return SupportsNavigationToAnyPositionWorker(GetContainedDocumentId(textBuffer));
-            }
+                => SupportsNavigationToAnyPositionWorker(GetContainedDocumentId(textBuffer));
 
             private static DocumentId GetContainedDocumentId(ITextBuffer textBuffer)
             {
@@ -69,40 +66,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
         private class VisualStudioDocumentSupportsFeatureService : IDocumentSupportsFeatureService
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public VisualStudioDocumentSupportsFeatureService()
             {
             }
 
             public bool SupportsCodeFixes(Document document)
-            {
-                return SupportsCodeFixesWorker(document.Id);
-            }
+                => SupportsCodeFixesWorker(document.Id);
 
             public bool SupportsRefactorings(Document document)
-            {
-                return SupportsRefactoringsWorker(document.Id);
-            }
+                => SupportsRefactoringsWorker(document.Id);
 
             public bool SupportsRename(Document document)
-            {
-                return SupportsRenameWorker(document.Project.Solution.GetRelatedDocumentIds(document.Id));
-            }
+                => SupportsRenameWorker(document.Project.Solution.GetRelatedDocumentIds(document.Id));
 
             public bool SupportsNavigationToAnyPosition(Document document)
-            {
-                return SupportsNavigationToAnyPositionWorker(document.Id);
-            }
+                => SupportsNavigationToAnyPositionWorker(document.Id);
         }
 
         private static bool SupportsCodeFixesWorker(DocumentId id)
-        {
-            return ContainedDocument.TryGetContainedDocument(id) == null;
-        }
+            => ContainedDocument.TryGetContainedDocument(id) == null;
 
         private static bool SupportsRefactoringsWorker(DocumentId id)
-        {
-            return ContainedDocument.TryGetContainedDocument(id) == null;
-        }
+            => ContainedDocument.TryGetContainedDocument(id) == null;
 
         private static bool SupportsRenameWorker(ImmutableArray<DocumentId> ids)
         {
@@ -111,8 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
         }
 
         private static bool SupportsNavigationToAnyPositionWorker(DocumentId id)
-        {
-            return ContainedDocument.TryGetContainedDocument(id) == null;
-        }
+            => ContainedDocument.TryGetContainedDocument(id) == null;
     }
 }

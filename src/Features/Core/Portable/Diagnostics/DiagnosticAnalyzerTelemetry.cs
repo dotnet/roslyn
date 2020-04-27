@@ -8,7 +8,10 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Internal.Log;
+
+#if NETSTANDARD2_0
 using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -64,9 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<Type, Data> _analyzerInfoMap;
 
         public DiagnosticAnalyzerTelemetry()
-        {
-            _analyzerInfoMap = ImmutableDictionary<Type, Data>.Empty;
-        }
+            => _analyzerInfoMap = ImmutableDictionary<Type, Data>.Empty;
 
         public void UpdateAnalyzerActionsTelemetry(DiagnosticAnalyzer analyzer, AnalyzerTelemetryInfo analyzerTelemetryInfo, bool isTelemetryCollectionAllowed)
         {

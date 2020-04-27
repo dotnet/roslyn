@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Serialization;
@@ -62,6 +61,11 @@ namespace Microsoft.CodeAnalysis
         /// The path to the reference assembly output file.
         /// </summary>
         public string? OutputRefFilePath => Attributes.OutputRefFilePath;
+
+        /// <summary>
+        /// The path to the compiler output file (module or assembly).
+        /// </summary>
+        public CompilationOutputFilePaths CompilationOutputFilePaths => Attributes.CompilationOutputFilePaths;
 
         /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
@@ -223,22 +227,23 @@ namespace Microsoft.CodeAnalysis
                     filePath,
                     outputFilePath,
                     outputRefFilePath,
+                    compilationOutputFilePaths: default,
                     defaultNamespace: null,
                     isSubmission,
                     hasAllInformation: true,
                     runAnalyzers: true),
                 compilationOptions,
                 parseOptions,
-                documents.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(documents)),
-                projectReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(projectReferences)),
-                metadataReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(metadataReferences)),
-                analyzerReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerReferences)),
-                additionalDocuments.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(additionalDocuments)),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(documents, nameof(documents)),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projectReferences, nameof(projectReferences)),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(metadataReferences, nameof(metadataReferences)),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(additionalDocuments, nameof(additionalDocuments)),
                 analyzerConfigDocuments: SpecializedCollections.EmptyBoxedImmutableArray<DocumentInfo>(),
                 hostObjectType);
         }
 
-        private ProjectInfo With(
+        internal ProjectInfo With(
             ProjectAttributes? attributes = null,
             Optional<CompilationOptions?> compilationOptions = default,
             Optional<ParseOptions?> parseOptions = default,
@@ -306,6 +311,9 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithOutputRefFilePath(string? outputRefFilePath)
             => With(attributes: Attributes.With(outputRefPath: outputRefFilePath));
 
+        public ProjectInfo WithCompilationOutputFilePaths(in CompilationOutputFilePaths paths)
+            => With(attributes: Attributes.With(compilationOutputPaths: paths));
+
         public ProjectInfo WithDefaultNamespace(string? defaultNamespace)
             => With(attributes: Attributes.With(defaultNamespace: defaultNamespace));
 
@@ -322,22 +330,22 @@ namespace Microsoft.CodeAnalysis
             => With(parseOptions: parseOptions);
 
         public ProjectInfo WithDocuments(IEnumerable<DocumentInfo>? documents)
-            => With(documents: documents.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(documents)));
+            => With(documents: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(documents, nameof(documents)));
 
         public ProjectInfo WithAdditionalDocuments(IEnumerable<DocumentInfo>? additionalDocuments)
-            => With(additionalDocuments: additionalDocuments.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(additionalDocuments)));
+            => With(additionalDocuments: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(additionalDocuments, nameof(additionalDocuments)));
 
         public ProjectInfo WithAnalyzerConfigDocuments(IEnumerable<DocumentInfo>? analyzerConfigDocuments)
-            => With(analyzerConfigDocuments: analyzerConfigDocuments.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerConfigDocuments)));
+            => With(analyzerConfigDocuments: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerConfigDocuments, nameof(analyzerConfigDocuments)));
 
         public ProjectInfo WithProjectReferences(IEnumerable<ProjectReference>? projectReferences)
-            => With(projectReferences: projectReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(projectReferences)));
+            => With(projectReferences: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projectReferences, nameof(projectReferences)));
 
         public ProjectInfo WithMetadataReferences(IEnumerable<MetadataReference>? metadataReferences)
-            => With(metadataReferences: metadataReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(metadataReferences)));
+            => With(metadataReferences: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(metadataReferences, nameof(metadataReferences)));
 
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference>? analyzerReferences)
-            => With(analyzerReferences: analyzerReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerReferences)));
+            => With(analyzerReferences: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
 
         internal string GetDebuggerDisplay()
             => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
@@ -391,6 +399,11 @@ namespace Microsoft.CodeAnalysis
             public string? OutputRefFilePath { get; }
 
             /// <summary>
+            /// Paths to the compiler output files.
+            /// </summary>
+            public CompilationOutputFilePaths CompilationOutputFilePaths { get; }
+
+            /// <summary>
             /// The default namespace of the project.
             /// </summary>
             public string? DefaultNamespace { get; }
@@ -421,6 +434,7 @@ namespace Microsoft.CodeAnalysis
                 string? filePath,
                 string? outputFilePath,
                 string? outputRefFilePath,
+                CompilationOutputFilePaths compilationOutputFilePaths,
                 string? defaultNamespace,
                 bool isSubmission,
                 bool hasAllInformation,
@@ -435,6 +449,7 @@ namespace Microsoft.CodeAnalysis
                 FilePath = filePath;
                 OutputFilePath = outputFilePath;
                 OutputRefFilePath = outputRefFilePath;
+                CompilationOutputFilePaths = compilationOutputFilePaths;
                 DefaultNamespace = defaultNamespace;
                 IsSubmission = isSubmission;
                 HasAllInformation = hasAllInformation;
@@ -442,13 +457,14 @@ namespace Microsoft.CodeAnalysis
             }
 
             public ProjectAttributes With(
-                VersionStamp? version = default,
+                VersionStamp? version = null,
                 string? name = null,
                 string? assemblyName = null,
                 string? language = null,
                 Optional<string?> filePath = default,
                 Optional<string?> outputPath = default,
                 Optional<string?> outputRefPath = default,
+                Optional<CompilationOutputFilePaths> compilationOutputPaths = default,
                 Optional<string?> defaultNamespace = default,
                 Optional<bool> isSubmission = default,
                 Optional<bool> hasAllInformation = default,
@@ -461,6 +477,7 @@ namespace Microsoft.CodeAnalysis
                 var newFilepath = filePath.HasValue ? filePath.Value : FilePath;
                 var newOutputPath = outputPath.HasValue ? outputPath.Value : OutputFilePath;
                 var newOutputRefPath = outputRefPath.HasValue ? outputRefPath.Value : OutputRefFilePath;
+                var newCompilationOutputPaths = compilationOutputPaths.HasValue ? compilationOutputPaths.Value : CompilationOutputFilePaths;
                 var newDefaultNamespace = defaultNamespace.HasValue ? defaultNamespace.Value : DefaultNamespace;
                 var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : IsSubmission;
                 var newHasAllInformation = hasAllInformation.HasValue ? hasAllInformation.Value : HasAllInformation;
@@ -473,6 +490,7 @@ namespace Microsoft.CodeAnalysis
                     newFilepath == FilePath &&
                     newOutputPath == OutputFilePath &&
                     newOutputRefPath == OutputRefFilePath &&
+                    newCompilationOutputPaths == CompilationOutputFilePaths &&
                     newDefaultNamespace == DefaultNamespace &&
                     newIsSubmission == IsSubmission &&
                     newHasAllInformation == HasAllInformation &&
@@ -490,6 +508,7 @@ namespace Microsoft.CodeAnalysis
                     newFilepath,
                     newOutputPath,
                     newOutputRefPath,
+                    newCompilationOutputPaths,
                     newDefaultNamespace,
                     newIsSubmission,
                     newHasAllInformation,
@@ -511,6 +530,7 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteString(FilePath);
                 writer.WriteString(OutputFilePath);
                 writer.WriteString(OutputRefFilePath);
+                CompilationOutputFilePaths.WriteTo(writer);
                 writer.WriteString(DefaultNamespace);
                 writer.WriteBoolean(IsSubmission);
                 writer.WriteBoolean(HasAllInformation);
@@ -531,12 +551,26 @@ namespace Microsoft.CodeAnalysis
                 var filePath = reader.ReadString();
                 var outputFilePath = reader.ReadString();
                 var outputRefFilePath = reader.ReadString();
+                var compilationOutputFilePaths = CompilationOutputFilePaths.ReadFrom(reader);
                 var defaultNamespace = reader.ReadString();
                 var isSubmission = reader.ReadBoolean();
                 var hasAllInformation = reader.ReadBoolean();
                 var runAnalyzers = reader.ReadBoolean();
 
-                return new ProjectAttributes(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, outputRefFilePath, defaultNamespace, isSubmission, hasAllInformation, runAnalyzers);
+                return new ProjectAttributes(
+                    projectId,
+                    VersionStamp.Create(),
+                    name,
+                    assemblyName,
+                    language,
+                    filePath,
+                    outputFilePath,
+                    outputRefFilePath,
+                    compilationOutputFilePaths,
+                    defaultNamespace,
+                    isSubmission,
+                    hasAllInformation,
+                    runAnalyzers);
             }
 
             Checksum IChecksummedObject.Checksum

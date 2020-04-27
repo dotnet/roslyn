@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string CommonReferencesWinRTAttributeName = "CommonReferencesWinRT";
         private const string CommonReferencesNet45AttributeName = "CommonReferencesNet45";
         private const string CommonReferencesPortableAttributeName = "CommonReferencesPortable";
-        private const string CommonReferenceFacadeSystemRuntimeAttributeName = "CommonReferenceFacadeSystemRuntime";
+        private const string CommonReferencesNetCoreApp30Name = "CommonReferencesNetCoreApp30";
+        private const string CommonReferencesNetStandard20Name = "CommonReferencesNetStandard20";
         private const string FilePathAttributeName = "FilePath";
         private const string FoldersAttributeName = "Folders";
         private const string KindAttributeName = "Kind";

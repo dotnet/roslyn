@@ -104,10 +104,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             End If
 
             ' set proper diagnostic ids.
-            If replacementSyntax.HasAnnotations(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)) Then
+            If replacementSyntax.HasAnnotations(NameOf(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration)) Then
                 inDeclaration = True
                 diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId
-            ElseIf replacementSyntax.HasAnnotations(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)) Then
+            ElseIf replacementSyntax.HasAnnotations(NameOf(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)) Then
                 inDeclaration = False
                 diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId
             ElseIf expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then

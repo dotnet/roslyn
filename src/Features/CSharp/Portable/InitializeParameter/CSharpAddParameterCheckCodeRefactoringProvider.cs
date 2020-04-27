@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,12 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.ChangeSignature)]
     internal class CSharpAddParameterCheckCodeRefactoringProvider :
         AbstractAddParameterCheckCodeRefactoringProvider<
+            BaseTypeDeclarationSyntax,
             ParameterSyntax,
             StatementSyntax,
             ExpressionSyntax,
             BinaryExpressionSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpAddParameterCheckCodeRefactoringProvider()
         {
         }
@@ -29,14 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override bool IsFunctionDeclaration(SyntaxNode node)
             => InitializeParameterHelpers.IsFunctionDeclaration(node);
 
-        protected override SyntaxNode GetTypeBlock(SyntaxNode node)
-            => node;
-
         protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
             => InitializeParameterHelpers.GetBody(functionDeclaration);
 
-        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, IMethodSymbol method, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
-            => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, method, statementToAddAfterOpt, statement);
+        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
+            => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, returnsVoid, statementToAddAfterOpt, statement);
 
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);

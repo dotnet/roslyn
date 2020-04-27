@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
             => new InlineTemporaryCodeRefactoringProvider();
 
         private async Task TestFixOneAsync(string initial, string expected)
-        {
-            await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected));
-        }
+            => await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected));
 
         private string GetTreeText(string initial)
         {
@@ -32,32 +30,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         }
 
         private SyntaxNode GetNodeToFix(dynamic initialRoot, int declaratorIndex)
-        {
-            return initialRoot.Members[0].Members[0].Body.Statements[0].Declaration.Variables[declaratorIndex];
-        }
+            => initialRoot.Members[0].Members[0].Body.Statements[0].Declaration.Variables[declaratorIndex];
 
         private SyntaxNode GetFixedNode(dynamic fixedRoot)
-        {
-            return fixedRoot.Members[0].Members[0].BodyOpt;
-        }
+            => fixedRoot.Members[0].Members[0].BodyOpt;
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotWithNoInitializer1()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x; System.Console.WriteLine(x); }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x; System.Console.WriteLine(x); }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotWithNoInitializer2()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = ; System.Console.WriteLine(x); }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = ; System.Console.WriteLine(x); }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotOnSecondWithNoInitializer()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 42, [||]y; System.Console.WriteLine(y); }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 42, [||]y; System.Console.WriteLine(y); }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotOnField()
@@ -91,27 +79,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task SingleStatement()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 27; }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 27; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_First()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 0, y = 1, z = 2; }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 0, y = 1, z = 2; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_Second()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, [||]y = 1, z = 2; }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, [||]y = 1, z = 2; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_Last()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, y = 1, [||]z = 2; }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, y = 1, [||]z = 2; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping1()

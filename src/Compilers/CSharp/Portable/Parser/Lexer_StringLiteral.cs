@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (lexer.TextWindow.PeekChar(1) == '"' || lexer.TextWindow.PeekChar(1) == '@' && lexer.TextWindow.PeekChar(2) == '"')
                             {
                                 bool isVerbatimSubstring = lexer.TextWindow.PeekChar(1) == '@';
-                                var interpolations = default(ArrayBuilder<Interpolation>);
+                                var interpolations = (ArrayBuilder<Interpolation>)null;
                                 var info = default(TokenInfo);
                                 bool wasVerbatim = this.isVerbatim;
                                 bool wasAllowNewlines = this.allowNewlines;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -17,8 +19,12 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected readonly TreeData TreeInfo;
         protected readonly AnalyzerConfigOptions Options;
 
-        private readonly Whitespace[] _spaces = new Whitespace[SpaceCacheSize];
-        private readonly Whitespace[,] _whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
+        protected readonly bool UseTabs;
+        protected readonly int TabSize;
+        protected readonly int IndentationSize;
+
+        private readonly Whitespace[] _spaces;
+        private readonly Whitespace?[,] _whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
 
         protected AbstractTriviaDataFactory(TreeData treeInfo, AnalyzerConfigOptions options)
         {
@@ -28,6 +34,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             this.TreeInfo = treeInfo;
             this.Options = options;
 
+            UseTabs = options.GetOption(FormattingOptions2.UseTabs);
+            TabSize = options.GetOption(FormattingOptions2.TabSize);
+            IndentationSize = options.GetOption(FormattingOptions2.IndentationSize);
+
+            _spaces = new Whitespace[SpaceCacheSize];
             for (var i = 0; i < SpaceCacheSize; i++)
             {
                 _spaces[i] = new Whitespace(this.Options, space: i, elastic: false, language: treeInfo.Root.Language);
@@ -67,16 +78,16 @@ namespace Microsoft.CodeAnalysis.Formatting
                               useTriviaAsItIs &&
                               lineBreaks > 0 &&
                               lineBreaks <= LineBreakCacheSize &&
-                              indentation % this.Options.GetOption(FormattingOptions.IndentationSize) == 0;
+                              indentation % IndentationSize == 0;
 
             if (canUseCache)
             {
-                var indentationLevel = indentation / this.Options.GetOption(FormattingOptions.IndentationSize);
+                var indentationLevel = indentation / IndentationSize;
                 if (indentationLevel < IndentationLevelCacheSize)
                 {
                     var lineIndex = lineBreaks - 1;
                     EnsureWhitespaceTriviaInfo(lineIndex, indentationLevel);
-                    return _whitespaces[lineIndex, indentationLevel];
+                    return _whitespaces[lineIndex, indentationLevel]!;
                 }
             }
 
@@ -94,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // set up caches
             if (_whitespaces[lineIndex, indentationLevel] == null)
             {
-                var indentation = indentationLevel * this.Options.GetOption(FormattingOptions.IndentationSize);
+                var indentation = indentationLevel * IndentationSize;
                 var triviaInfo = new Whitespace(this.Options, lineBreaks: lineIndex + 1, indentation: indentation, elastic: false, language: this.TreeInfo.Root.Language);
                 Interlocked.CompareExchange(ref _whitespaces[lineIndex, indentationLevel], triviaInfo, null);
             }

@@ -3,17 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers.CSharpAddAccessibilityModifiersDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers.CSharpAddAccessibilityModifiersCodeFixProvider>;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CodeStyle;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifiers
 {
@@ -315,7 +310,7 @@ namespace Outer
                 },
                 Options =
                 {
-                    { CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }
@@ -337,7 +332,7 @@ namespace Test
 }",
                 Options =
                 {
-                    { CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }
@@ -359,7 +354,7 @@ namespace Test
 }",
                 Options =
                 {
-                    { CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }
@@ -375,7 +370,7 @@ internal class [|C1|] { }",
 class C1 { }",
                 Options =
                 {
-                    { CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }

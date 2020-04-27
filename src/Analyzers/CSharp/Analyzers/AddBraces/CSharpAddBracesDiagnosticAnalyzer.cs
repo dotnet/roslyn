@@ -5,18 +5,12 @@
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using FormattingRangeHelper = Microsoft.CodeAnalysis.CSharp.Utilities.FormattingRangeHelper;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 {

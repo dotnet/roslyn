@@ -66,9 +66,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     protected override void PauseOnGlobalOperation()
-                    {
-                        SolutionCrawlerLogger.LogGlobalOperation(Processor._logAggregator);
-                    }
+                        => SolutionCrawlerLogger.LogGlobalOperation(Processor._logAggregator);
 
                     protected abstract Task HigherQueueOperationTask { get; }
                     protected abstract bool HigherQueueHasWorkItem { get; }

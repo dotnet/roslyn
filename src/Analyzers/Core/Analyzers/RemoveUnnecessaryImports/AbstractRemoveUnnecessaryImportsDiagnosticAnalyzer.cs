@@ -162,9 +162,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         }
 
         protected virtual Func<SyntaxNode, SyntaxToken> GetLastTokenDelegateForContiguousSpans()
-        {
-            return null;
-        }
+            => null;
 
         // Create one diagnostic for each unnecessary span that will be classified as Unnecessary
         private IEnumerable<Diagnostic> CreateClassificationDiagnostics(

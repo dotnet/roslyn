@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static partial class ITextBufferExtensions
     {
-        internal static bool GetFeatureOnOffOption(this ITextBuffer buffer, Option<bool> option)
+        internal static bool GetFeatureOnOffOption(this ITextBuffer buffer, Option2<bool> option)
         {
             var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             return option.DefaultValue;
         }
 
-        internal static bool GetFeatureOnOffOption(this ITextBuffer buffer, PerLanguageOption<bool> option)
+        internal static bool GetFeatureOnOffOption(this ITextBuffer buffer, PerLanguageOption2<bool> option)
         {
             // Add a FailFast to help diagnose 984249.  Hopefully this will let us know what the issue is.
             try

@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ActiveStatementTaggerProvider(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+            => _threadingContext = threadingContext;
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
             => new ActiveStatementTagger(_threadingContext, buffer) as ITagger<T>;

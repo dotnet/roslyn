@@ -2156,7 +2156,7 @@ End Module
 
         <WorkItem(707189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707189")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Async Function TestRemoveUnnecessaryCastFromInvocationStatement2() As Task
+        Public Async Function DoNotRemoveUnnecessaryCastFromInvocationStatement2() As Task
             Dim markup =
 <File>
 Interface I1
@@ -2172,23 +2172,7 @@ Class M
     End Sub
 End Class
 </File>
-
-            Dim expected =
-<File>
-Interface I1
-Sub Goo()
-End Interface
-Class M
-    Implements I1
-    Shared Sub Main()
-        Call New M().Goo()
-    End Sub
- 
-    Public Sub Goo() Implements I1.Goo
-    End Sub
-End Class
-</File>
-            Await TestAsync(markup, expected)
+            Await TestMissingAsync(markup)
         End Function
 
         <WorkItem(768895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768895")>
@@ -2385,11 +2369,7 @@ End Class
 
         <WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Async Function TestRemoveCastToInterfaceForSealedType1() As Task
-            ' Note: The cast below can be removed because C is sealed and the
-            ' unspecified optional parameters of I.Goo() and C.Goo() have the
-            ' same default values.
-
+        Public Async Function DoNotRemoveCastToInterfaceForSealedType1() As Task
             Dim markup =
 <File>
 Imports System
@@ -2409,35 +2389,12 @@ NotInheritable Class C
     End Sub
 End Class
 </File>
-
-            Dim expected =
-<File>
-Imports System
-
-Interface I
-    Sub Goo(Optional x As Integer = 0)
-End Interface
-
-NotInheritable Class C
-    Implements I
-    Public Sub Goo(Optional x As Integer = 0) Implements I.Goo
-        Console.WriteLine(x)
-    End Sub
-
-    Private Shared Sub Main()
-        Call New C().Goo()
-    End Sub
-End Class
-</File>
-            Await TestAsync(markup, expected)
+            Await TestMissingAsync(markup)
         End Function
 
         <WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Async Function TestRemoveCastToInterfaceForSealedType2() As Task
-            ' Note: The cast below can be removed because C is sealed and the
-            ' interface member has no parameters.
-
+        Public Async Function DoNotRemoveCastToInterfaceForSealedType2() As Task
             Dim markup =
 <File>
 Imports System
@@ -2459,37 +2416,12 @@ NotInheritable Class C
     End Sub
 End Class
 </File>
-
-            Dim expected =
-<File>
-Imports System
-
-Interface I
-    ReadOnly Property Goo() As String
-End Interface
-
-NotInheritable Class C
-    Implements I
-    Public ReadOnly Property Goo() As String Implements I.Goo
-        Get
-            Return "Nikov Rules"
-        End Get
-    End Property
-
-    Private Shared Sub Main()
-        Console.WriteLine(New C().Goo)
-    End Sub
-End Class
-</File>
-            Await TestAsync(markup, expected)
+            Await TestMissingAsync(markup)
         End Function
 
         <WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Async Function TestRemoveCastToInterfaceForSealedType3() As Task
-            ' Note: The cast below can be removed because C is sealed and the
-            ' interface member has no parameters.
-
+        Public Async Function DoNotRemoveCastToInterfaceForSealedType3() As Task
             Dim markup =
 <File>
 Imports System
@@ -2517,35 +2449,7 @@ NotInheritable Class C
     End Sub
 End Class
 </File>
-
-            Dim expected =
-<File>
-Imports System
-
-Interface I
-    ReadOnly Property Goo() As String
-End Interface
-
-NotInheritable Class C
-    Implements I
-    Public Shared ReadOnly Property Instance() As C
-        Get
-            Return New C()
-        End Get
-    End Property
-
-    Public ReadOnly Property Goo() As String Implements I.Goo
-        Get
-            Return "Nikov Rules"
-        End Get
-    End Property
-
-    Private Shared Sub Main()
-        Console.WriteLine(Instance.Goo)
-    End Sub
-End Class
-</File>
-            Await TestAsync(markup, expected)
+            Await TestMissingAsync(markup)
         End Function
 
         <WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")>
@@ -2639,11 +2543,7 @@ End Class
 
         <WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Async Function TestRemoveCastToInterfaceForSealedType7() As Task
-            ' Note: The cast below can be removed as C is sealed and
-            ' because the specified named arguments refer to parameters that
-            ' appear at same positions in the member signatures.
-
+        Public Async Function DoNotRemoveCastToInterfaceForSealedType7() As Task
             Dim markup =
 <File>
 Imports System
@@ -2663,27 +2563,7 @@ NotInheritable Class C
     End Sub
 End Class
 </File>
-
-            Dim expected =
-<File>
-Imports System
-
-Interface I
-    Function Goo(Optional x As Integer = 0, Optional y As Integer = 0) As Integer
-End Interface
-
-NotInheritable Class C
-    Implements I
-    Public Function Goo(Optional x As Integer = 0, Optional y As Integer = 0) As Integer Implements I.Goo
-        Return x * 2
-    End Function
-
-    Private Shared Sub Main()
-        Console.WriteLine(New C().Goo(x:=1))
-    End Sub
-End Class
-</File>
-            Await TestAsync(markup, expected)
+            Await TestMissingAsync(markup)
         End Function
 
         <WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")>

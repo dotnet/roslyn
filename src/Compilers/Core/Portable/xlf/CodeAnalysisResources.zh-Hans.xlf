@@ -94,6 +94,11 @@
         <target state="translated">模块复制不能用于创建程序集元数据。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="new">Only a single {0} can be registered per generator.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">分析器“{0}”在其 "SupportedDiagnostics" 中包含 null 描述符。</target>

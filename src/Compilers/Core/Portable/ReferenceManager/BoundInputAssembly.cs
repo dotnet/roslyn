@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis
             /// Suitable AssemblySymbol instance for the corresponding assembly, 
             /// null reference if none is available/found.
             /// </summary>
-            internal TAssemblySymbol AssemblySymbol;
+            internal TAssemblySymbol? AssemblySymbol;
 
             /// <summary>
             /// For each AssemblyRef of this AssemblyDef specifies which AssemblyDef matches the reference.
@@ -31,9 +33,9 @@ namespace Microsoft.CodeAnalysis
             /// Each element describes the assembly the corresponding reference of the input assembly 
             /// is bound to.
             /// </remarks>
-            internal AssemblyReferenceBinding[] ReferenceBinding;
+            internal AssemblyReferenceBinding[]? ReferenceBinding;
 
-            private string GetDebuggerDisplay()
+            private string? GetDebuggerDisplay()
             {
                 return AssemblySymbol == null ? "?" : AssemblySymbol.ToString();
             }

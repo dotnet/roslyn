@@ -536,7 +536,8 @@ End Namespace
                          WellKnownType.System_Threading_CancellationToken,
                          WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
                          WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException
+                         WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
+                         WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -599,7 +600,8 @@ End Namespace
                          WellKnownType.System_Threading_CancellationToken,
                          WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
                          WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException
+                         WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
+                         WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -682,7 +684,9 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
+                         WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -821,7 +825,9 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
+                         WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,

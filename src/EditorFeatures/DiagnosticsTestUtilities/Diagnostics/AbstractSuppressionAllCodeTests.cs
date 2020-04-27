@@ -65,16 +65,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using (var workspace = CreateWorkspaceFromFile(code, options))
             {
+                var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
+
+                var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 var root = document.GetSyntaxRootAsync().GetAwaiter().GetResult();
                 var existingDiagnostics = root.GetDiagnostics().ToArray();
 
-                var analyzerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
-                var analyzer = analyzerAndFixer.Item1;
-                var fixer = analyzerAndFixer.Item2;
                 var descendants = root.DescendantNodesAndSelf(digInto).ToImmutableArray();
                 analyzer.AllNodes = descendants;
-                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, root.FullSpan);
+                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, root.FullSpan);
 
                 foreach (var diagnostic in diagnostics)
                 {
@@ -127,14 +129,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         public bool Equals(Diagnostic x, Diagnostic y)
-        {
-            return x.Id == y.Id && x.Descriptor.Category == y.Descriptor.Category;
-        }
+            => x.Id == y.Id && x.Descriptor.Category == y.Descriptor.Category;
 
         public int GetHashCode(Diagnostic obj)
-        {
-            return Hash.Combine(obj.Id, obj.Descriptor.Category.GetHashCode());
-        }
+            => Hash.Combine(obj.Id, obj.Descriptor.Category.GetHashCode());
 
         internal class Analyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
         {

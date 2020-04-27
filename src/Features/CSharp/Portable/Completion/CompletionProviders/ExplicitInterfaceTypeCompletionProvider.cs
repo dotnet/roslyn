@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -28,12 +29,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class ExplicitInterfaceTypeCompletionProvider : AbstractSymbolCompletionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ExplicitInterfaceTypeCompletionProvider()
         {
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, insertedCharacterPosition, options);
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
             => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
@@ -130,6 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private bool IsPreviousTokenValid(SyntaxToken tokenBeforeType)
         {
+            if (tokenBeforeType.Kind() == SyntaxKind.AsyncKeyword)
+            {
+                tokenBeforeType = tokenBeforeType.GetPreviousToken();
+            }
+
             if (tokenBeforeType.Kind() == SyntaxKind.OpenBraceToken)
             {
                 // Show us after the open brace for a class/struct/interface

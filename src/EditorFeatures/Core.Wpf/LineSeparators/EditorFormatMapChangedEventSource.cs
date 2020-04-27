@@ -19,18 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         }
 
         public override void Connect()
-        {
-            _editorFormatMap.FormatMappingChanged += OnEditorFormatMapChanged;
-        }
+            => _editorFormatMap.FormatMappingChanged += OnEditorFormatMapChanged;
 
         public override void Disconnect()
-        {
-            _editorFormatMap.FormatMappingChanged -= OnEditorFormatMapChanged;
-        }
+            => _editorFormatMap.FormatMappingChanged -= OnEditorFormatMapChanged;
 
         private void OnEditorFormatMapChanged(object sender, FormatItemsEventArgs e)
-        {
-            this.RaiseChanged();
-        }
+            => this.RaiseChanged();
     }
 }

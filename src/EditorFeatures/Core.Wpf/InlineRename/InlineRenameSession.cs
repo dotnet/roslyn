@@ -334,14 +334,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public event EventHandler ReplacementTextChanged;
 
         internal OpenTextBufferManager GetBufferManager(ITextBuffer buffer)
-        {
-            return _openTextBuffers[buffer];
-        }
+            => _openTextBuffers[buffer];
 
         internal bool TryGetBufferManager(ITextBuffer buffer, out OpenTextBufferManager bufferManager)
-        {
-            return _openTextBuffers.TryGetValue(buffer, out bufferManager);
-        }
+            => _openTextBuffers.TryGetValue(buffer, out bufferManager);
 
         public void RefreshRenameSessionWithOptionsChanged(Option<bool> renameOption, bool newValue)
         {
@@ -665,9 +661,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public void Cancel()
-        {
-            Cancel(rollbackTemporaryEdits: true);
-        }
+            => Cancel(rollbackTemporaryEdits: true);
 
         private void Cancel(bool rollbackTemporaryEdits)
         {

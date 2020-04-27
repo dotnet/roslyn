@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable enable
+
 using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,39 +17,34 @@ namespace Microsoft.CodeAnalysis.Execution
     internal static class Extensions
     {
         public static T[] ReadArray<T>(this ObjectReader reader)
-        {
-            return (T[])reader.ReadValue();
-        }
+            => (T[])reader.ReadValue();
 
         public static WellKnownSynchronizationKind GetWellKnownSynchronizationKind(this object value)
-        {
-            switch (value)
+            => value switch
             {
-                case SolutionStateChecksums _: return WellKnownSynchronizationKind.SolutionState;
-                case ProjectStateChecksums _: return WellKnownSynchronizationKind.ProjectState;
-                case DocumentStateChecksums _: return WellKnownSynchronizationKind.DocumentState;
-                case ProjectChecksumCollection _: return WellKnownSynchronizationKind.Projects;
-                case DocumentChecksumCollection _: return WellKnownSynchronizationKind.Documents;
-                case TextDocumentChecksumCollection _: return WellKnownSynchronizationKind.TextDocuments;
-                case AnalyzerConfigDocumentChecksumCollection _: return WellKnownSynchronizationKind.AnalyzerConfigDocuments;
-                case ProjectReferenceChecksumCollection _: return WellKnownSynchronizationKind.ProjectReferences;
-                case MetadataReferenceChecksumCollection _: return WellKnownSynchronizationKind.MetadataReferences;
-                case AnalyzerReferenceChecksumCollection _: return WellKnownSynchronizationKind.AnalyzerReferences;
-                case SolutionInfo.SolutionAttributes _: return WellKnownSynchronizationKind.SolutionAttributes;
-                case ProjectInfo.ProjectAttributes _: return WellKnownSynchronizationKind.ProjectAttributes;
-                case DocumentInfo.DocumentAttributes _: return WellKnownSynchronizationKind.DocumentAttributes;
-                case CompilationOptions _: return WellKnownSynchronizationKind.CompilationOptions;
-                case ParseOptions _: return WellKnownSynchronizationKind.ParseOptions;
-                case ProjectReference _: return WellKnownSynchronizationKind.ProjectReference;
-                case MetadataReference _: return WellKnownSynchronizationKind.MetadataReference;
-                case AnalyzerReference _: return WellKnownSynchronizationKind.AnalyzerReference;
-                case TextDocumentState _: return WellKnownSynchronizationKind.RecoverableSourceText;
-                case SourceText _: return WellKnownSynchronizationKind.SourceText;
-                case OptionSet _: return WellKnownSynchronizationKind.OptionSet;
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(value);
-        }
+                SolutionStateChecksums _ => WellKnownSynchronizationKind.SolutionState,
+                ProjectStateChecksums _ => WellKnownSynchronizationKind.ProjectState,
+                DocumentStateChecksums _ => WellKnownSynchronizationKind.DocumentState,
+                ProjectChecksumCollection _ => WellKnownSynchronizationKind.Projects,
+                DocumentChecksumCollection _ => WellKnownSynchronizationKind.Documents,
+                TextDocumentChecksumCollection _ => WellKnownSynchronizationKind.TextDocuments,
+                AnalyzerConfigDocumentChecksumCollection _ => WellKnownSynchronizationKind.AnalyzerConfigDocuments,
+                ProjectReferenceChecksumCollection _ => WellKnownSynchronizationKind.ProjectReferences,
+                MetadataReferenceChecksumCollection _ => WellKnownSynchronizationKind.MetadataReferences,
+                AnalyzerReferenceChecksumCollection _ => WellKnownSynchronizationKind.AnalyzerReferences,
+                SolutionInfo.SolutionAttributes _ => WellKnownSynchronizationKind.SolutionAttributes,
+                ProjectInfo.ProjectAttributes _ => WellKnownSynchronizationKind.ProjectAttributes,
+                DocumentInfo.DocumentAttributes _ => WellKnownSynchronizationKind.DocumentAttributes,
+                CompilationOptions _ => WellKnownSynchronizationKind.CompilationOptions,
+                ParseOptions _ => WellKnownSynchronizationKind.ParseOptions,
+                ProjectReference _ => WellKnownSynchronizationKind.ProjectReference,
+                MetadataReference _ => WellKnownSynchronizationKind.MetadataReference,
+                AnalyzerReference _ => WellKnownSynchronizationKind.AnalyzerReference,
+                TextDocumentState _ => WellKnownSynchronizationKind.RecoverableSourceText,
+                SourceText _ => WellKnownSynchronizationKind.SourceText,
+                OptionSet _ => WellKnownSynchronizationKind.OptionSet,
+                _ => throw ExceptionUtilities.UnexpectedValue(value),
+            };
 
         public static CompilationOptions FixUpCompilationOptions(this ProjectInfo.ProjectAttributes info, CompilationOptions compilationOptions)
         {
@@ -58,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Execution
                                      .WithStrongNameProvider(new DesktopStrongNameProvider(GetStrongNameKeyPaths(info)));
         }
 
-        private static XmlFileResolver GetXmlResolver(string filePath)
+        private static XmlFileResolver GetXmlResolver(string? filePath)
         {
             // Given filePath can be any arbitrary string project is created with.
             // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
@@ -90,16 +84,16 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             var builder = ArrayBuilder<string>.GetInstance();
-            if (info.FilePath != null && PathUtilities.IsAbsolute(info.FilePath))
+            if (PathUtilities.IsAbsolute(info.FilePath))
             {
                 // desktop strong name provider only knows how to deal with absolute path
-                builder.Add(PathUtilities.GetDirectoryName(info.FilePath));
+                builder.Add(PathUtilities.GetDirectoryName(info.FilePath)!);
             }
 
-            if (info.OutputFilePath != null && PathUtilities.IsAbsolute(info.OutputFilePath))
+            if (PathUtilities.IsAbsolute(info.OutputFilePath))
             {
                 // desktop strong name provider only knows how to deal with absolute path
-                builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath));
+                builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath)!);
             }
 
             return builder.ToImmutableAndFree();

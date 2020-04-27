@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public int Code { get { return _errorCode; } }
 
-        public DiagnosticDescriptor Descriptor
+        public virtual DiagnosticDescriptor Descriptor
         {
             get
             {
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis
         /// Get the message id (for example "CS1001") for the message. This includes both the error number
         /// and a prefix identifying the source.
         /// </summary>
-        public string MessageIdentifier
+        public virtual string MessageIdentifier
         {
             get
             {

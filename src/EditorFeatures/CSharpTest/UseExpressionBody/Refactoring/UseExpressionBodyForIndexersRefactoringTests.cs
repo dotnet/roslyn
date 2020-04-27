@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -21,17 +20,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new UseExpressionBodyCodeRefactoringProvider();
 
-        private IDictionary<OptionKey, object> UseExpressionBody =>
+        private OptionsCollection UseExpressionBody =>
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
 
-        private IDictionary<OptionKey, object> UseExpressionBodyDisabledDiagnostic =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.None));
+        private OptionsCollection UseExpressionBodyDisabledDiagnostic =>
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.None));
 
-        private IDictionary<OptionKey, object> UseBlockBody =>
+        private OptionsCollection UseBlockBody =>
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
-        private IDictionary<OptionKey, object> UseBlockBodyDisabledDiagnostic =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.None));
+        private OptionsCollection UseBlockBodyDisabledDiagnostic =>
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()

@@ -97,9 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             private void SetupView(IVsTextView view)
-            {
-                _languageService.SetupNewTextView(view);
-            }
+                => _languageService.SetupNewTextView(view);
 
             private void TeardownView(IVsTextView view)
             {

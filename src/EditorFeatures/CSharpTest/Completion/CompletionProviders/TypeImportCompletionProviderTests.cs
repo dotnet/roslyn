@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(TypeImportCompletionProvider);
-        }
+            => typeof(TypeImportCompletionProvider);
 
         private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
 
@@ -43,9 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         protected override ComposableCatalog GetExportCatalog()
-        {
-            return base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
-        }
+            => base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
 
         #region "Option tests"
 
@@ -878,7 +874,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = CreateMarkupForProjecWithAliasedProjectReference(file2, "alias1", file1, LanguageNames.CSharp, LanguageNames.CSharp);
+            var markup = CreateMarkupForProjectWithAliasedProjectReference(file2, "alias1", file1, LanguageNames.CSharp, LanguageNames.CSharp);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
@@ -1170,7 +1166,7 @@ namespace Test
     }
 }";
 
-            var markup = CreateMarkupForProjecWithProjectReference(file2, file1, LanguageNames.CSharp, LanguageNames.VisualBasic);
+            var markup = CreateMarkupForProjectWithProjectReference(file2, file1, LanguageNames.CSharp, LanguageNames.VisualBasic);
 
             await VerifyTypeImportItemExistsAsync(markup, "Myattribute", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.Myattribute", flags: CompletionItemFlags.Expanded);
             await VerifyTypeImportItemIsAbsentAsync(markup, "My", inlineDescription: "Foo");
@@ -1306,14 +1302,10 @@ namespace Baz
         }
 
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)
-        {
-            return VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, flags: flags);
-        }
+            => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, flags: flags);
 
 
         private Task VerifyTypeImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
-        {
-            return VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
-        }
+            => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
     }
 }

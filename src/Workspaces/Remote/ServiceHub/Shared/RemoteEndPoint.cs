@@ -10,11 +10,9 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.VisualStudio.Telemetry;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -356,9 +354,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         private void LogError(string message)
-        {
-            _logger.TraceEvent(TraceEventType.Error, 1, message);
-        }
+            => _logger.TraceEvent(TraceEventType.Error, 1, message);
 
         private void LogDisconnectInfo(JsonRpcDisconnectedEventArgs? e, string? callstack)
         {

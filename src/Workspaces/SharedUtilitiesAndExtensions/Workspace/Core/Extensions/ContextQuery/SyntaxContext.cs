@@ -137,13 +137,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         }
 
         public TService GetLanguageService<TService>() where TService : class, ILanguageService
-        {
-            return this.Workspace.Services.GetLanguageService<TService>(this.SemanticModel.Language);
-        }
+            => this.Workspace.Services.GetLanguageService<TService>(this.SemanticModel.Language);
 
         public TService GetWorkspaceService<TService>() where TService : class, IWorkspaceService
-        {
-            return this.Workspace.Services.GetService<TService>();
-        }
+            => this.Workspace.Services.GetService<TService>();
     }
 }

@@ -22,9 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             }
 
             public void Dispose()
-            {
-                _xmlBuilder.AppendCloseTag(_name);
-            }
+                => _xmlBuilder.AppendCloseTag(_name);
         }
     }
 }

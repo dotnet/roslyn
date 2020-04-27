@@ -5,13 +5,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Markup;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -21,9 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public partial class FindReferencesTests : ServicesTestBase
     {
         private Solution CreateSolution()
-        {
-            return new AdhocWorkspace().CurrentSolution;
-        }
+            => new AdhocWorkspace().CurrentSolution;
 
         private Solution GetSingleDocumentSolution(string sourceText)
         {
@@ -329,7 +322,12 @@ namespace N2
 
             var references = (await SymbolFinder.FindReferencesAsync(interfaceMethod, solution)).ToList();
             Assert.Equal(2, references.Count);
-            Assert.True(references.Any(r => r.DefinitionAndProjectId.ProjectId == desktopProject.Id));
+
+            var projectIds = new HashSet<ProjectId>();
+            foreach (var r in references)
+                projectIds.Add(solution.GetOriginatingProjectId(r.Definition));
+
+            Assert.True(projectIds.Contains(desktopProject.Id));
         }
 
         [Fact, WorkItem(35786, "https://github.com/dotnet/roslyn/issues/35786")]

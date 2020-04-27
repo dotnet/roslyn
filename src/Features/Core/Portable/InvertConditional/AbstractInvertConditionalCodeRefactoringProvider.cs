@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -50,11 +49,10 @@ namespace Microsoft.CodeAnalysis.InvertConditional
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            syntaxFacts.GetPartsOfConditionalExpression(conditional,
+            editor.Generator.SyntaxFacts.GetPartsOfConditionalExpression(conditional,
                 out var condition, out var whenTrue, out var whenFalse);
 
-            editor.ReplaceNode(condition, editor.Generator.Negate(condition, semanticModel, cancellationToken));
+            editor.ReplaceNode(condition, editor.Generator.Negate(editor.Generator.SyntaxGeneratorInternal, condition, semanticModel, cancellationToken));
             editor.ReplaceNode(whenTrue, whenFalse.WithTriviaFrom(whenTrue));
             editor.ReplaceNode(whenFalse, whenTrue.WithTriviaFrom(whenFalse));
 

@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return WithPointedAtType(pointedAtType);
         }
 
-        private PointerTypeSymbol WithPointedAtType(TypeWithAnnotations newPointedAtType)
+        internal PointerTypeSymbol WithPointedAtType(TypeWithAnnotations newPointedAtType)
         {
             return PointedAtTypeWithAnnotations.IsSameAs(newPointedAtType) ? this : new PointerTypeSymbol(newPointedAtType);
         }

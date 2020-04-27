@@ -11,9 +11,9 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.GenerateVariable;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -33,20 +33,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpGenerateVariableCodeFixProvider());
 
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
 
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey, object> ImplicitTypingEverywhere() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
-
-        internal IDictionary<OptionKey, object> OptionSet(OptionKey option, object value)
-        {
-            var options = new Dictionary<OptionKey, object>();
-            options.Add(option, value);
-            return options;
-        }
+        private OptionsCollection ImplicitTypingEverywhere()
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
@@ -9269,6 +9265,52 @@ class Class : Interface
 
     void M1(int a);
 }", index: ParameterAndOverrides);
+        }
+
+        [WorkItem(26502, "https://github.com/dotnet/roslyn/issues/26502")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestNoReadOnlyMembersWhenInLambdaInConstructor()
+        {
+            await TestExactActionSetOfferedAsync(
+@"using System;
+
+class C
+{
+    public C()
+    {
+        Action a = () =>
+        {
+            this.[|Field|] = 1;
+        };
+    }
+}", new[]
+{
+    string.Format(FeaturesResources.Generate_property_1_0, "Field", "C"),
+    string.Format(FeaturesResources.Generate_field_1_0, "Field", "C"),
+});
+        }
+
+        [WorkItem(26502, "https://github.com/dotnet/roslyn/issues/26502")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestNoReadOnlyMembersWhenInLocalFunctionInConstructor()
+        {
+            await TestExactActionSetOfferedAsync(
+@"using System;
+
+class C
+{
+    public C()
+    {
+        void Goo()
+        {
+            this.[|Field|] = 1;
+        };
+    }
+}", new[]
+{
+    string.Format(FeaturesResources.Generate_property_1_0, "Field", "C"),
+    string.Format(FeaturesResources.Generate_field_1_0, "Field", "C"),
+});
         }
     }
 }

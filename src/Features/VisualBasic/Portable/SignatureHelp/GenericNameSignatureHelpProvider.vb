@@ -3,12 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
@@ -18,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Inherits AbstractVisualBasicSignatureHelpProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -94,11 +95,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Return Nothing
             End If
 
-            Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
             Dim accessibleSymbols = symbols.WhereAsArray(Function(s) s.GetArity() > 0).
                                             WhereAsArray(Function(s) TypeOf s Is INamedTypeSymbol OrElse TypeOf s Is IMethodSymbol).
                                             FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
-                                            Sort(symbolDisplayService, semanticModel, genericName.SpanStart)
+                                            Sort(semanticModel, genericName.SpanStart)
 
             If accessibleSymbols.Length = 0 Then
                 Return Nothing
@@ -110,18 +110,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim _syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                accessibleSymbols.Select(Function(s) Convert(s, genericName, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
+                accessibleSymbols.Select(Function(s) Convert(s, genericName, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, _syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
-        Private Overloads Function Convert(symbol As ISymbol, genericName As GenericNameSyntax, semanticModel As SemanticModel, symbolDisplayService As ISymbolDisplayService, anonymousTypeDisplayService As IAnonymousTypeDisplayService, documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As SignatureHelpItem
+        Private Overloads Function Convert(symbol As ISymbol, genericName As GenericNameSyntax, semanticModel As SemanticModel, anonymousTypeDisplayService As IAnonymousTypeDisplayService, documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As SignatureHelpItem
             Dim position = genericName.SpanStart
             Dim item As SignatureHelpItem
             If TypeOf symbol Is INamedTypeSymbol Then
                 Dim namedType = DirectCast(symbol, INamedTypeSymbol)
                 item = CreateItem(
                     symbol, semanticModel, position,
-                    symbolDisplayService, anonymousTypeDisplayService,
+                    anonymousTypeDisplayService,
                     False,
                     symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(namedType, semanticModel, position),
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Dim method = DirectCast(symbol, IMethodSymbol)
                 item = CreateItem(
                     symbol, semanticModel, position,
-                    symbolDisplayService, anonymousTypeDisplayService,
+                    anonymousTypeDisplayService,
                     False,
                     symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(method, semanticModel, position),

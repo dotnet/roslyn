@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,13 +18,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void WhenAll_Null()
         {
+#pragma warning disable CA2012 // Use ValueTasks correctly (the instance is never created)
             Assert.Throws<ArgumentNullException>(() => SpecializedTasks.WhenAll<int>(null));
+#pragma warning restore CA2012 // Use ValueTasks correctly
         }
 
         [Fact]
         public void WhenAll_Empty()
         {
             var whenAll = SpecializedTasks.WhenAll(SpecializedCollections.EmptyEnumerable<ValueTask<int>>());
+            Debug.Assert(whenAll.IsCompleted);
             Assert.True(whenAll.IsCompletedSuccessfully);
             Assert.Same(Array.Empty<int>(), whenAll.Result);
         }
@@ -32,6 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void WhenAll_AllCompletedSuccessfully()
         {
             var whenAll = SpecializedTasks.WhenAll(new[] { new ValueTask<int>(0), new ValueTask<int>(1) });
+            Debug.Assert(whenAll.IsCompleted);
             Assert.True(whenAll.IsCompletedSuccessfully);
             Assert.Equal(new[] { 0, 1 }, whenAll.Result);
         }
@@ -53,6 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(whenAll.IsCompleted);
             completionSource.SetResult(0);
             Assert.True(whenAll.IsCompleted);
+            Debug.Assert(whenAll.IsCompleted);
             Assert.Equal(new[] { 0 }, whenAll.Result);
         }
     }

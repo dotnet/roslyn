@@ -18,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
         Inherits AbstractGenerateConstructorService(Of VisualBasicGenerateConstructorService, ArgumentSyntax, AttributeSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

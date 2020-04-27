@@ -12,6 +12,7 @@ using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Options;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
@@ -166,9 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 private readonly VisualStudioWorkspace _workspace;
 
                 public HasThemeBeenDefaultedIndexer(VisualStudioWorkspace visualStudioWorkspace)
-                {
-                    _workspace = visualStudioWorkspace;
-                }
+                    => _workspace = visualStudioWorkspace;
 
                 public bool this[Guid themeId]
                 {
@@ -199,6 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             internal class HasThemeBeenDefaultedOptionProvider : IOptionProvider
             {
                 [ImportingConstructor]
+                [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
                 public HasThemeBeenDefaultedOptionProvider()
                 {
                 }

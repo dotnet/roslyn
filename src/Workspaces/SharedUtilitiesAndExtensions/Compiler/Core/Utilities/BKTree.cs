@@ -63,14 +63,10 @@ namespace Roslyn.Utilities
         }
 
         public static BKTree Create(params string[] values)
-        {
-            return Create(values.Select(v => new StringSlice(v)));
-        }
+            => Create(values.Select(v => new StringSlice(v)));
 
         public static BKTree Create(IEnumerable<StringSlice> values)
-        {
-            return new Builder(values).Create();
-        }
+            => new Builder(values).Create();
 
         public IList<string> Find(string value, int? threshold = null)
         {

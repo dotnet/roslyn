@@ -126,50 +126,5 @@ End Module";
             Assert.Equal(expectedText, VisualStudio.Editor.GetText());
             AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
         }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public void ExtractViaCodeActionWithMoveLocal()
-        {
-            VisualStudio.Editor.SetText(TestSource);
-            VisualStudio.Editor.PlaceCaret("a = 5", charsOffset: -1);
-            VisualStudio.Editor.PlaceCaret("a * b", charsOffset: 1, extendSelection: true);
-            try
-            {
-                VisualStudio.Workspace.SetFeatureOption("ExtractMethodOptions", "AllowMovingDeclaration", LanguageNames.VisualBasic, "true");
-                VisualStudio.Editor.Verify.CodeAction("Extract method + local", applyFix: true, blockUntilComplete: true);
-
-                var expectedMarkup = @"
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Program
-    Sub Main(args As String())
-        Console.WriteLine(""Hello VB!"")
-    End Sub
-
-    Function F() As Integer
-        Dim result As Integer = [|NewMethod|]()
-        Return result
-    End Function
-
-    Private Function [|NewMethod|]() As Integer
-        Dim a, b As Integer
-        a = 5
-        b = 5
-        Dim result = a * b
-        Return result
-    End Function
-End Module";
-
-                MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
-                Assert.Equal(expectedText, VisualStudio.Editor.GetText());
-                AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
-            }
-            finally
-            {
-                VisualStudio.Workspace.SetFeatureOption("ExtractMethodOptions", "AllowMovingDeclaration", LanguageNames.VisualBasic, "false");
-            }
-        }
     }
 }

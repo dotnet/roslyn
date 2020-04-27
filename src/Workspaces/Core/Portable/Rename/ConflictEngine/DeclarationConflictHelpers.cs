@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
@@ -83,9 +82,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private ConflictingSignatureComparer() { }
 
             public bool Equals(ImmutableArray<ITypeSymbol> x, ImmutableArray<ITypeSymbol> y)
-            {
-                return x.SequenceEqual(y);
-            }
+                => x.SequenceEqual(y);
 
             public int GetHashCode(ImmutableArray<ITypeSymbol> obj)
             {

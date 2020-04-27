@@ -41,8 +41,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         protected virtual Task<IList<TextChange>> GetFormattingChangesAsync(IEditorFormattingService formattingService, Document document, TextSpan? textSpan, CancellationToken cancellationToken)
-        {
-            return formattingService.GetFormattingChangesAsync(document, textSpan, cancellationToken);
-        }
+            => formattingService.GetFormattingChangesAsync(document, textSpan, cancellationToken);
     }
 }

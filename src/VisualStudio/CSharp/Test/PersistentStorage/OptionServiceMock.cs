@@ -36,7 +36,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             return (T)_optionsByOption[option];
         }
 
+        public T GetOption<T>(Option2<T> option)
+        {
+            return (T)_optionsByOption[option];
+        }
+
         public T GetOption<T>(PerLanguageOption<T> option, string languageName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T GetOption<T>(PerLanguageOption2<T> option, string languageName)
         {
             throw new NotImplementedException();
         }

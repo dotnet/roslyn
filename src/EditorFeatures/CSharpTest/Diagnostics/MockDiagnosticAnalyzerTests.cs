@@ -29,14 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnos
             }
 
             public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
-            }
+                => context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
 
             public void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
-            {
-                context.RegisterCompilationEndAction(AnalyzeCompilation);
-            }
+                => context.RegisterCompilationEndAction(AnalyzeCompilation);
 
             public void AnalyzeCompilation(CompilationAnalysisContext context)
             {

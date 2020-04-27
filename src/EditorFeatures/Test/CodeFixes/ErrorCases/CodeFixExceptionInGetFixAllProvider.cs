@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes.ErrorCases
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
-        {
-            throw new Exception($"Exception thrown in GetFixAllProvider of {nameof(ExceptionInGetFixAllProvider)}");
-        }
+            => throw new Exception($"Exception thrown in GetFixAllProvider of {nameof(ExceptionInGetFixAllProvider)}");
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

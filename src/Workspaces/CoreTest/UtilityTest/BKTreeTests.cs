@@ -96,19 +96,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         }
 
         private string Transpose(string value, int i)
-        {
-            return value.Substring(0, i) + value[i + 1] + value[i] + value.Substring(i + 2);
-        }
+            => value.Substring(0, i) + value[i + 1] + value[i] + value.Substring(i + 2);
 
         private string Insert(string value, int i, char v)
-        {
-            return value.Substring(0, i) + v + value.Substring(i);
-        }
+            => value.Substring(0, i) + v + value.Substring(i);
 
         private string Delete(string value, int i)
-        {
-            return value.Substring(0, i) + value.Substring(i + 1);
-        }
+            => value.Substring(0, i) + value.Substring(i + 1);
 
         [Fact]
         public void Test2()
@@ -143,13 +137,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
 
         [Fact]
         public void Top1000()
-        {
-            TestTreeInvariants(EditDistanceTests.Top1000);
-        }
+            => TestTreeInvariants(EditDistanceTests.Top1000);
 
         private IEnumerable<string> Expected(params string[] values)
-        {
-            return values;
-        }
+            => values;
     }
 }

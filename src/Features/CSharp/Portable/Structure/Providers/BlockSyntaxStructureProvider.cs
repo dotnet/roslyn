@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             BlockSyntax node,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
@@ -72,9 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         private static bool IsNonBlockStatement(SyntaxNode node)
-        {
-            return node is StatementSyntax && !node.IsKind(SyntaxKind.Block);
-        }
+            => node is StatementSyntax && !node.IsKind(SyntaxKind.Block);
 
         private TextSpan GetHintSpan(BlockSyntax node)
         {

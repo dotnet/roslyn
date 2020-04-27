@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -21,25 +23,22 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         private readonly IThreadingContext _threadingContext;
 
         protected AbstractFindUsagesService(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+            => _threadingContext = threadingContext;
 
         public async Task FindImplementationsAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var tuple = await FindUsagesHelpers.FindImplementationsAsync(
+            var tupleOpt = await FindUsagesHelpers.FindSourceImplementationsAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (tuple == null)
+            if (tupleOpt == null)
             {
                 await context.ReportMessageAsync(
                     EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
                 return;
             }
 
-            var message = tuple.Value.message;
-
+            var (solution, symbol, implementations, message) = tupleOpt.Value;
             if (message != null)
             {
                 await context.ReportMessageAsync(message).ConfigureAwait(false);
@@ -48,14 +47,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_implementations,
-                FindUsagesHelpers.GetDisplayName(tuple.Value.symbol))).ConfigureAwait(false);
+                FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
-            var project = tuple.Value.project;
-            foreach (var implementation in tuple.Value.implementations)
+            foreach (var implementation in implementations)
             {
                 var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
-                    project, includeHiddenLocations: false,
-                    FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    solution, isPrimary: true, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
+
                 await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
         }
@@ -110,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             ImmutableArray<DefinitionItem> definitions,
             CancellationToken cancellationToken)
         {
-            var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
+            var factory = solution.Workspace.Services.GetRequiredService<IDefinitionsAndReferencesFactory>();
             return definitions.Select(d => factory.GetThirdPartyDefinitionItem(solution, d, cancellationToken))
                               .WhereNotNull()
                               .ToImmutableArray();
@@ -123,16 +121,17 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             cancellationToken.ThrowIfCancellationRequested();
 
             // Find the symbol we want to search and the solution we want to search in.
-            var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+            var symbolAndSolutionOpt = await FindUsagesHelpers.GetRelevantSymbolAndSolutionAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndProject == null)
-            {
+            if (symbolAndSolutionOpt == null)
                 return;
-            }
+
+            var (symbol, solution) = symbolAndSolutionOpt.Value;
 
             await FindSymbolReferencesAsync(
-                _threadingContext,
-                context, symbolAndProject?.symbol, symbolAndProject?.project, cancellationToken).ConfigureAwait(false);
+                _threadingContext, context,
+                symbol, solution,
+                cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -140,26 +139,29 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// and want to push all the references to it into the Streaming-Find-References window.
         /// </summary>
         public static async Task FindSymbolReferencesAsync(
-            IThreadingContext threadingContext,
-            IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
+            IThreadingContext threadingContext, IFindUsagesContext context,
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
+            var monikerUsagesService = solution.Workspace.Services.GetRequiredService<IFindSymbolMonikerUsagesService>();
+
             await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
             var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
-            var progressAdapter = new FindReferencesProgressAdapter(threadingContext, project.Solution, context, options);
 
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
             // We'll take those results, massage them, and forward them along to the 
             // FindReferencesContext instance we were given.
-            await SymbolFinder.FindReferencesAsync(
-                SymbolAndProjectId.Create(symbol, project.Id),
-                project.Solution,
-                progressAdapter,
-                documents: null,
-                options: options,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+            var progress = new FindReferencesProgressAdapter(threadingContext, solution, context, options);
+            var normalFindReferencesTask = SymbolFinder.FindReferencesAsync(
+                symbol, solution, progress, documents: null, options, cancellationToken);
+
+            // Kick off work to search the online code index system in parallel
+            var codeIndexReferencesTask = FindSymbolMonikerReferencesAsync(
+                monikerUsagesService, symbol, context, cancellationToken);
+
+            await Task.WhenAll(normalFindReferencesTask, codeIndexReferencesTask).ConfigureAwait(false);
         }
 
         private async Task<bool> TryFindLiteralReferencesAsync(
@@ -168,8 +170,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var cancellationToken = context.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
 
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // Currently we only support FAR for numbers, strings and characters.  We don't
             // bother with true/false/null as those are likely to have way too many results
@@ -190,20 +192,19 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // for numeric values, and a decimal won't fit within that.
             var tokenValue = token.Value;
             if (tokenValue == null || tokenValue is decimal)
-            {
                 return false;
-            }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (token.Parent is null)
+                return false;
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetSymbolInfo(token.Parent).Symbol ?? semanticModel.GetDeclaredSymbol(token.Parent);
 
             // Numeric labels are available in VB.  In that case we want the normal FAR engine to
             // do the searching.  For these literals we want to find symbolic results and not 
             // numeric matches.
             if (symbol is ILabelSymbol)
-            {
                 return false;
-            }
 
             // Use the literal to make the title.  Trim literal if it's too long.
             var title = syntaxFacts.ConvertToSingleLine(token.Parent).ToString();

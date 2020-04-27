@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         protected abstract string CodeActionTitle { get; }
 
         public AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService pasteTrackingService)
-        {
-            _pasteTrackingService = pasteTrackingService;
-        }
+            => _pasteTrackingService = pasteTrackingService;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

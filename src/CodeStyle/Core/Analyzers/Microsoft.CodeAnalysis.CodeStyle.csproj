@@ -10,6 +10,7 @@
     <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(MicrosoftCodeAnalysisCommonFixedVersion)" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
   </ItemGroup>
@@ -22,31 +23,13 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Workspaces\Core\Portable\Editing\DeclarationKind.cs" Link="Editing\DeclarationKind.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Editing\DeclarationModifiers.cs" Link="Editing\DeclarationModifiers.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\CodeStyleOption.cs" Link="Options\CodeStyleOption.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\CodeStyleOptions.cs" Link="Options\CodeStyleOptions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\NotificationOption.cs" Link="Options\NotificationOption.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\EditorConfigStorageLocation.cs" Link="Options\EditorConfigStorageLocation.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\EditorConfigStorageLocationExtensions.cs" Link="Options\EditorConfigStorageLocationExtensions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\EditorConfigStorageLocation`1.cs" Link="Options\EditorConfigStorageLocation`1.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\IEditorConfigStorageLocation.cs" Link="Options\IEditorConfigStorageLocation.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\IEditorConfigStorageLocation2.cs" Link="Options\IEditorConfigStorageLocation2.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\NamingStylePreferenceEditorConfigStorageLocation.cs" Link="Options\NamingStylePreferenceEditorConfigStorageLocation.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\IOption.cs" Link="Options\IOption.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\IOptionWithGroup.cs" Link="Options\IOptionWithGroup.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\LocalUserProfileStorageLocation.cs" Link="Options\LocalUserProfileStorageLocation.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\OptionGroup.cs" Link="Options\OptionGroup.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\OptionKey.cs" Link="Options\OptionKey.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\OptionStorageLocation.cs" Link="Options\OptionStorageLocation.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\Option`1.cs" Link="Options\Option`1.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\PerLanguageOption.cs" Link="Options\PerLanguageOption.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\RoamingProfileStorageLocation.cs" Link="Options\RoamingProfileStorageLocation.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Simplification\NamingStyleOptions.cs" Link="Options\NamingStyleOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CodeStyleResources.resx" GenerateSource="true" />

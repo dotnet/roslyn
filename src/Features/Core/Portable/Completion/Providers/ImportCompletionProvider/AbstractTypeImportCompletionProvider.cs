@@ -80,9 +80,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             public bool CacheMiss { get; set; }
 
             public TelemetryCounter()
-            {
-                Tick = Environment.TickCount;
-            }
+                => Tick = Environment.TickCount;
 
             public void Report()
             {

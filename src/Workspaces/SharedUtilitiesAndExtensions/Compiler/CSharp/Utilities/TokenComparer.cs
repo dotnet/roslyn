@@ -16,9 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private readonly bool _specialCaseSystem;
 
         private TokenComparer(bool specialCaseSystem)
-        {
-            _specialCaseSystem = specialCaseSystem;
-        }
+            => _specialCaseSystem = specialCaseSystem;
 
         public int Compare(SyntaxToken x, SyntaxToken y)
         {

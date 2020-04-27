@@ -25,7 +25,7 @@ function GetProjectOutputBinary([string]$fileName, [string]$projectName = "", [s
 
 function GetPublishData() {
   if (Test-Path variable:global:_PublishData) {
-  return $global:_PublishData
+    return $global:_PublishData
   }
 
   Write-Host "Downloading $PublishDataUrl"
@@ -38,9 +38,9 @@ function GetBranchPublishData([string]$branchName) {
   $data = GetPublishData
 
   if (Get-Member -InputObject $data.branches -Name $branchName) {
-  return $data.branches.$branchName
+    return $data.branches.$branchName
   } else {
-  return $null
+    return $null
   }
 }
 
@@ -48,9 +48,9 @@ function GetReleasePublishData([string]$releaseName) {
   $data = GetPublishData
 
   if (Get-Member -InputObject $data.releases -Name $releaseName) {
-  return $data.releases.$releaseName
+    return $data.releases.$releaseName
   } else {
-  return $null
+    return $null
   }
 }
 
@@ -171,6 +171,33 @@ function Ensure-DotnetSdk() {
   }
 
   throw "Could not find dotnet executable in $dotnetInstallDir"
+}
+
+# Walks up the source tree, starting at the given file's directory, and returns a FileInfo object for the first .csproj file it finds, if any.
+function Get-ProjectFile([object]$fileInfo) {
+  Push-Location
+
+  Set-Location $fileInfo.Directory
+  try {
+    while ($true) {
+      # search up from the current file for a folder containing a csproj
+      $files = Get-ChildItem *.csproj
+      if ($files) {
+        return $files[0]
+      }
+      else {
+        $location = Get-Location
+        Set-Location ..
+        if ((Get-Location).Path -eq $location.Path) {
+          # our location didn't change. We must be at the drive root, so give up
+          return $null
+        }
+      }
+    }
+  }
+  finally {
+    Pop-Location
+  }
 }
 
 function Get-VersionCore([string]$name, [string]$versionFile) {

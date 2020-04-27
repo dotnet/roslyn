@@ -47,9 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             };
 
         public FileChangeWatcher(Task<IVsAsyncFileChangeEx> fileChangeService)
-        {
-            _taskQueue = fileChangeService;
-        }
+            => _taskQueue = fileChangeService;
 
         private void EnqueueWork(Func<IVsAsyncFileChangeEx, Task> action)
         {
@@ -79,9 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public IContext CreateContext()
-        {
-            return new Context(this, null);
-        }
+            => new Context(this, null);
 
         /// <summary>
         /// Creates an <see cref="IContext"/> that watches all files in a directory, in addition to any files explicitly requested by <see cref="IContext.EnqueueWatchingFile(string)"/>.
@@ -235,9 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             private Task UnsubscribeFileChangeEventsAsync(IVsAsyncFileChangeEx service, FileWatchingToken typedToken)
-            {
-                return service.UnadviseFileChangeAsync(typedToken.Cookie!.Value);
-            }
+                => service.UnadviseFileChangeAsync(typedToken.Cookie!.Value);
 
             public event EventHandler<string>? FileChanged;
 
@@ -286,9 +280,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             int IVsFileChangeEvents.DirectoryChanged(string pszDirectory)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             public class FileWatchingToken : IFileWatchingToken
             {

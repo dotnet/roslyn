@@ -67,9 +67,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static WorkspaceRegistration CreateRegistration(SourceTextContainer container)
-        {
-            return new WorkspaceRegistration();
-        }
+            => new WorkspaceRegistration();
 
         private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>.CreateValueCallback s_createRegistration = CreateRegistration;
 

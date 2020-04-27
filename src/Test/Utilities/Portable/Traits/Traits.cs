@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
             public const string CodeActionsAddConstructorParametersFromMembers = "CodeActions.AddConstructorParametersFromMembers";
+            public const string CodeActionsAddDebuggerDisplay = "CodeActions.AddDebuggerDisplay";
             public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
             public const string CodeActionsAddExplicitCast = "CodeActions.AddExplicitCast";
             public const string CodeActionsAddFileBanner = "CodeActions.AddFileBanner";
@@ -82,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsFixAllOccurrences = "CodeActions.FixAllOccurrences";
             public const string CodeActionsFixReturnType = "CodeActions.FixReturnType";
             public const string CodeActionsFullyQualify = "CodeActions.FullyQualify";
+            public const string CodeActionsGenerateComparisonOperators = "CodeActions.GenerateComparisonOperators";
             public const string CodeActionsGenerateConstructor = "CodeActions.GenerateConstructor";
             public const string CodeActionsGenerateConstructorFromMembers = "CodeActions.GenerateConstructorFromMembers";
             public const string CodeActionsGenerateDefaultConstructors = "CodeActions.GenerateDefaultConstructors";
@@ -202,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string DebuggingLocationName = "Debugging.LocationName";
             public const string DebuggingNameResolver = "Debugging.NameResolver";
             public const string DebuggingProximityExpressions = "Debugging.ProximityExpressions";
+            public const string DecompiledSource = nameof(DecompiledSource);
             public const string Diagnostics = nameof(Diagnostics);
             public const string DisposeAnalysis = nameof(DisposeAnalysis);
             public const string DocCommentFormatting = nameof(DocCommentFormatting);

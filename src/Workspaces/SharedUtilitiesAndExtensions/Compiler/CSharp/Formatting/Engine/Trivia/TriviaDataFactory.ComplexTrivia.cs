@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -27,24 +29,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             protected override void ExtractLineAndSpace(string text, out int lines, out int spaces)
-            {
-                text.ProcessTextBetweenTokens(this.TreeInfo, this.Token1, this.Options.GetOption(FormattingOptions.TabSize), out lines, out spaces);
-            }
+                => text.ProcessTextBetweenTokens(this.TreeInfo, this.Token1, this.Options.GetOption(FormattingOptions2.TabSize), out lines, out spaces);
 
             protected override TriviaData CreateComplexTrivia(int line, int space)
-            {
-                return CreateModifiedComplexTrivia(line, space);
-            }
+                => CreateModifiedComplexTrivia(line, space);
 
             protected override TriviaData CreateComplexTrivia(int line, int space, int indentation)
-            {
-                return CreateModifiedComplexTrivia(line, space);
-            }
+                => CreateModifiedComplexTrivia(line, space);
 
             private TriviaData CreateModifiedComplexTrivia(int line, int space)
-            {
-                return new ModifiedComplexTrivia(this.Options, this, line, space);
-            }
+                => new ModifiedComplexTrivia(this.Options, this, line, space);
 
             protected override TriviaDataWithList Format(
                 FormattingContext context, ChainedFormattingRules formattingRules, int lines, int spaces, CancellationToken cancellationToken)
@@ -53,9 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             protected override bool ContainsSkippedTokensOrText(TriviaList list)
-            {
-                return CodeShapeAnalyzer.ContainsSkippedTokensOrText(list);
-            }
+                => CodeShapeAnalyzer.ContainsSkippedTokensOrText(list);
 
             private bool ShouldFormat(FormattingContext context)
             {
@@ -85,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 Debug.Assert(this.SecondTokenIsFirstTokenOnLine);
 
-                if (this.Options.GetOption(FormattingOptions.UseTabs))
+                if (this.Options.GetOption(FormattingOptions2.UseTabs))
                 {
                     return true;
                 }
@@ -110,15 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 formattingResultApplier(tokenPairIndex, context.TokenStream, Format(context, formattingRules, this.LineBreaks, this.Spaces, cancellationToken));
             }
 
-            public override List<SyntaxTrivia> GetTriviaList(CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+            public override SyntaxTriviaList GetTriviaList(CancellationToken cancellationToken)
+                => throw new NotImplementedException();
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan span)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
         }
     }
 }

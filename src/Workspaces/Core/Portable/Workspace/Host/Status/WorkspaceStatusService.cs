@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Host
         public readonly static WorkspaceStatusService Default = new WorkspaceStatusService();
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
         public WorkspaceStatusService()
         {
         }

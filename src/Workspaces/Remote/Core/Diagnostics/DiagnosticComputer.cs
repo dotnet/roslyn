@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -34,13 +33,12 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         }
 
         public async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> GetDiagnosticsAsync(
-            IEnumerable<AnalyzerReference> hostAnalyzers,
             IEnumerable<string> analyzerIds,
             bool reportSuppressedDiagnostics,
             bool logAnalyzerExecutionTime,
             CancellationToken cancellationToken)
         {
-            var analyzerMap = CreateAnalyzerMap(hostAnalyzers, _project);
+            var analyzerMap = CreateAnalyzerMap(_project);
             var analyzers = GetAnalyzers(analyzerMap, analyzerIds);
 
             if (analyzers.Length == 0)
@@ -50,12 +48,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             var cacheService = _project.Solution.Workspace.Services.GetRequiredService<IProjectCacheService>();
             using var cache = cacheService.EnableCaching(_project.Id);
-            return await AnalyzeAsync(analyzerMap, analyzers, reportSuppressedDiagnostics, logAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
+            var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
+            return await AnalyzeAsync(analyzerMap, analyzers, skippedAnalyzersInfo, reportSuppressedDiagnostics, logAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> AnalyzeAsync(
             BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
+            SkippedHostAnalyzersInfo skippedAnalyzersInfo,
             bool reportSuppressedDiagnostics,
             bool logAnalyzerExecutionTime,
             CancellationToken cancellationToken)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), _project.DocumentIds.Count + 1);
             }
 
-            var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
+            var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, skippedAnalyzersInfo, cancellationToken);
 
             return DiagnosticAnalysisResultMap.Create(
                 builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             return builder.ToImmutable();
         }
 
-        private BidirectionalMap<string, DiagnosticAnalyzer> CreateAnalyzerMap(IEnumerable<AnalyzerReference> hostAnalyzers, Project project)
+        private BidirectionalMap<string, DiagnosticAnalyzer> CreateAnalyzerMap(Project project)
         {
             // we could consider creating a service so that we don't do this repeatedly if this shows up as perf cost
             using var pooledObject = SharedPools.Default<HashSet<object>>().GetPooledObject();
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var analyzerMap = pooledMap.Object;
 
             // this follow what we do in DiagnosticAnalyzerInfoCache.CheckAnalyzerReferenceIdentity
-            foreach (var reference in hostAnalyzers.Concat(project.AnalyzerReferences))
+            foreach (var reference in project.Solution.AnalyzerReferences.Concat(project.AnalyzerReferences))
             {
                 if (!referenceSet.Add(reference.Id))
                 {

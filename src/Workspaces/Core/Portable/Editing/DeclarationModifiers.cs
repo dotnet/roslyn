@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.Editing
         private readonly Modifiers _modifiers;
 
         private DeclarationModifiers(Modifiers modifiers)
-        {
-            _modifiers = modifiers;
-        }
+            => _modifiers = modifiers;
 
         internal DeclarationModifiers(
             bool isStatic = false,
@@ -59,20 +57,31 @@ namespace Microsoft.CodeAnalysis.Editing
 
         public static DeclarationModifiers From(ISymbol symbol)
         {
-            var field = symbol as IFieldSymbol;
-            var property = symbol as IPropertySymbol;
+            if (symbol is INamedTypeSymbol ||
+                 symbol is IFieldSymbol ||
+                 symbol is IPropertySymbol ||
+                 symbol is IMethodSymbol ||
+                 symbol is IEventSymbol)
+            {
+                var field = symbol as IFieldSymbol;
+                var property = symbol as IPropertySymbol;
 
-            return new DeclarationModifiers(
-                isStatic: symbol.IsStatic,
-                isAbstract: symbol.IsAbstract,
-                isReadOnly: field?.IsReadOnly == true || property?.IsReadOnly == true,
-                isVirtual: symbol.IsVirtual,
-                isOverride: symbol.IsOverride,
-                isSealed: symbol.IsSealed,
-                isConst: field != null && field.IsConst,
-                isUnsafe: symbol.IsUnsafe(),
-                isVolatile: field != null && field.IsVolatile,
-                isExtern: symbol.IsExtern);
+                return new DeclarationModifiers(
+                    isStatic: symbol.IsStatic,
+                    isAbstract: symbol.IsAbstract,
+                    isReadOnly: field?.IsReadOnly == true || property?.IsReadOnly == true,
+                    isVirtual: symbol.IsVirtual,
+                    isOverride: symbol.IsOverride,
+                    isSealed: symbol.IsSealed,
+                    isConst: field != null && field.IsConst,
+                    isUnsafe: symbol.RequiresUnsafeModifier(),
+                    isVolatile: field != null && field.IsVolatile,
+                    isExtern: symbol.IsExtern);
+            }
+
+            // Only named types, members of named types, and local functions have modifiers.
+            // Everything else has none.
+            return DeclarationModifiers.None;
         }
 
         public bool IsStatic => (_modifiers & Modifiers.Static) != 0;

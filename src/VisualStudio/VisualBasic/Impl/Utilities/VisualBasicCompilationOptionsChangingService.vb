@@ -13,6 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Utilities
         Implements ICompilationOptionsChangingService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

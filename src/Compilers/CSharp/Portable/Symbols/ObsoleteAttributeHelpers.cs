@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static ObsoleteAttributeData GetObsoleteDataFromMetadata(EntityHandle token, PEModuleSymbol containingModule, bool ignoreByRefLikeMarker)
         {
-            ObsoleteAttributeData obsoleteAttributeData;
-            obsoleteAttributeData = containingModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(token, ignoreByRefLikeMarker);
+            var obsoleteAttributeData = containingModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(token, new MetadataDecoder(containingModule), ignoreByRefLikeMarker);
             Debug.Assert(obsoleteAttributeData == null || !obsoleteAttributeData.IsUninitialized);
             return obsoleteAttributeData;
         }
@@ -156,22 +155,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Issue a specialized diagnostic for add methods of collection initializers
-            bool isColInit = location.Includes(BinderFlags.CollectionInitializerAddMethod);
+            var isColInit = location.Includes(BinderFlags.CollectionInitializerAddMethod);
+            var errorCode = (message: data.Message, isError: data.IsError, isColInit) switch
+            {
+                // dev11 had a bug in this area (i.e. always produce a warning when there's no message) and we have to match it.
+                (message: null, isError: _, isColInit: true) => ErrorCode.WRN_DeprecatedCollectionInitAdd,
+                (message: null, isError: _, isColInit: false) => ErrorCode.WRN_DeprecatedSymbol,
+                (message: { }, isError: true, isColInit: true) => ErrorCode.ERR_DeprecatedCollectionInitAddStr,
+                (message: { }, isError: true, isColInit: false) => ErrorCode.ERR_DeprecatedSymbolStr,
+                (message: { }, isError: false, isColInit: true) => ErrorCode.WRN_DeprecatedCollectionInitAddStr,
+                (message: { }, isError: false, isColInit: false) => ErrorCode.WRN_DeprecatedSymbolStr
+            };
 
-            if (data.Message == null)
-            {
-                // It seems like we should be able to assert that data.IsError is false, but we can't because dev11 had
-                // a bug in this area (i.e. always produce a warning when there's no message) and we have to match it.
-                // Debug.Assert(!data.IsError);
-                return new CSDiagnosticInfo(isColInit ? ErrorCode.WRN_DeprecatedCollectionInitAdd : ErrorCode.WRN_DeprecatedSymbol, symbol);
-            }
-            else
-            {
-                ErrorCode errorCode = data.IsError
-                    ? (isColInit ? ErrorCode.ERR_DeprecatedCollectionInitAddStr : ErrorCode.ERR_DeprecatedSymbolStr)
-                    : (isColInit ? ErrorCode.WRN_DeprecatedCollectionInitAddStr : ErrorCode.WRN_DeprecatedSymbolStr);
-                return new CSDiagnosticInfo(errorCode, symbol, data.Message);
-            }
+            var arguments = data.Message is string message
+                ? new object[] { symbol, message }
+                : new object[] { symbol };
+
+            return new CustomObsoleteDiagnosticInfo(MessageProvider.Instance, (int)errorCode, data, arguments);
         }
     }
 }

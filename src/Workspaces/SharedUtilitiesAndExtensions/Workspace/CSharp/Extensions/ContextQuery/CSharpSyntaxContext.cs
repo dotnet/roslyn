@@ -149,9 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return CreateContextWorker(workspace, semanticModel, position, cancellationToken);
-        }
+            => CreateContextWorker(workspace, semanticModel, position, cancellationToken);
 
         private static CSharpSyntaxContext CreateContextWorker(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
@@ -371,9 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         internal override ITypeInferenceService GetTypeInferenceServiceWithoutWorkspace()
-        {
-            return new CSharpTypeInferenceService();
-        }
+            => new CSharpTypeInferenceService();
 
         /// <summary>
         /// Is this a possible position for an await statement (`await using` or `await foreach`)?

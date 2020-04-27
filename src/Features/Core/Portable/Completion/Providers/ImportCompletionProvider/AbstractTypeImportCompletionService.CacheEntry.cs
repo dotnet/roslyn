@@ -144,6 +144,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         private sealed class CacheServiceFactory : AbstractImportCompletionCacheServiceFactory<CacheEntry, CacheEntry>
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public CacheServiceFactory()
             {
             }

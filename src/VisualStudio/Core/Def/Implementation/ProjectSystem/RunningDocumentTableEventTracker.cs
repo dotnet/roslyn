@@ -46,9 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public int OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         public int OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
         {
@@ -65,14 +63,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public int OnAfterSave(uint docCookie)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         public int OnAfterAttributeChange(uint docCookie, uint grfAttribs)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         public int OnAfterAttributeChangeEx(uint docCookie, uint grfAttribs, IVsHierarchy pHierOld, uint itemidOld, string pszMkDocumentOld, IVsHierarchy pHierNew, uint itemidNew, string pszMkDocumentNew)
         {
@@ -126,14 +120,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public int OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         public int OnBeforeSave(uint docCookie)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         public bool IsFileOpen(string fileName) => _runningDocumentTable.IsMonikerValid(fileName);
 

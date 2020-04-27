@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,10 +18,8 @@ using Microsoft.CodeAnalysis.Operations;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle.TypeStyle;
 #else
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
@@ -340,9 +339,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         internal static ExpressionSyntax GetInitializerExpression(ExpressionSyntax initializer)
-            => initializer is CheckedExpressionSyntax
-                ? ((CheckedExpressionSyntax)initializer).Expression.WalkDownParentheses()
-                : initializer.WalkDownParentheses();
+        {
+            var current = (initializer as RefExpressionSyntax)?.Expression ?? initializer;
+            current = (current as CheckedExpressionSyntax)?.Expression ?? current;
+            return current.WalkDownParentheses();
+        }
 
         protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {

@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(PropertySubpatternCompletionProvider);
-        }
+            => typeof(PropertySubpatternCompletionProvider);
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern()

@@ -25,12 +25,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         {|diagnostic:var|} i = 1;
     }
 }";
-            var (solution, ranges) = CreateTestSolution(markup);
-            var workspace = (TestWorkspace)solution.Workspace;
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var diagnosticLocation = ranges["diagnostic"].First();
+            var diagnosticLocation = locations["diagnostic"].First();
 
-            var _ = await TestHandleAsync<TextDocumentParams, LSP.Diagnostic[]>(solution, CreateTestDocumentParams(diagnosticLocation.Uri));
+            var _ = await TestHandleAsync<TextDocumentParams, LSP.Diagnostic[]>(workspace.CurrentSolution, CreateTestDocumentParams(diagnosticLocation.Uri));
         }
 
         private static TextDocumentParams CreateTestDocumentParams(Uri uri)

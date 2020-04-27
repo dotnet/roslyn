@@ -4,17 +4,10 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Internal.Editing
-Imports Microsoft.CodeAnalysis.Internal.Options
-#Else
-Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Editing
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -25,20 +18,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
 
         Protected Overrides Sub ProcessCompilationUnit(
                 context As SyntaxTreeAnalysisContext,
-                [option] As CodeStyleOption(Of AccessibilityModifiersRequired), compilationUnit As CompilationUnitSyntax)
+                [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), compilationUnit As CompilationUnitSyntax)
 
             ProcessMembers(context, [option], compilationUnit.Members)
         End Sub
 
         Private Sub ProcessMembers(context As SyntaxTreeAnalysisContext,
-                                   [option] As CodeStyleOption(Of AccessibilityModifiersRequired), members As SyntaxList(Of StatementSyntax))
+                                   [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), members As SyntaxList(Of StatementSyntax))
             For Each member In members
                 ProcessMember(context, [option], member)
             Next
         End Sub
 
         Private Sub ProcessMember(context As SyntaxTreeAnalysisContext,
-                              [option] As CodeStyleOption(Of AccessibilityModifiersRequired), member As StatementSyntax)
+                              [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), member As StatementSyntax)
 
 
             If member.Kind() = SyntaxKind.NamespaceBlock Then

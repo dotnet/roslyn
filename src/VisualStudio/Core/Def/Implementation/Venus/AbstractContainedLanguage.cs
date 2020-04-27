@@ -15,9 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
     internal sealed class AbstractContainedLanguage
     {
         public AbstractContainedLanguage(IVsContainedLanguageHost host)
-        {
-            ContainedLanguageHost = host;
-        }
+            => ContainedLanguageHost = host;
 
         public IVsContainedLanguageHost ContainedLanguageHost { get; }
     }

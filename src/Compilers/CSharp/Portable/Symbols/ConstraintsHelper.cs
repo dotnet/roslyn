@@ -6,12 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Collections;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -376,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics)
         {
             bool includeNullability = compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-            CheckAllConstraints(type, compilation, conversions, includeNullability, location, diagnostics);
+            type.CheckAllConstraints(new CheckConstraintsArgs(compilation, conversions, includeNullability, location, diagnostics));
         }
 
         public static bool CheckAllConstraints(
@@ -388,30 +385,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Nullability checks can only add warnings here so skip them for this check as we are only
             // concerned with errors.
-            CheckAllConstraints(type, compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics);
+            type.CheckAllConstraints(new CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics));
             bool ok = !diagnostics.HasAnyErrors();
             diagnostics.Free();
             return ok;
         }
 
-        public static void CheckAllConstraints(
-            this TypeSymbol type,
-            CSharpCompilation compilation,
-            ConversionsBase conversions,
-            bool includeNullability,
-            Location location,
-            BindingDiagnosticBag diagnostics)
+        public static void CheckAllConstraints(this TypeSymbol type, CheckConstraintsArgs args)
         {
-            type.VisitType(s_checkConstraintsSingleTypeFunc, new CheckConstraintsArgs(compilation, conversions, includeNullability, location, diagnostics));
+            type.VisitType(s_checkConstraintsSingleTypeFunc, args);
         }
 
-        private readonly struct CheckConstraintsArgs
+        internal readonly struct CheckConstraintsArgs
         {
             public readonly CSharpCompilation CurrentCompilation;
             public readonly ConversionsBase Conversions;
             public readonly bool IncludeNullability;
             public readonly Location Location;
             public readonly BindingDiagnosticBag Diagnostics;
+
+            public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, BindingDiagnosticBag diagnostics) :
+                this(currentCompilation, conversions, currentCompilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes), location, diagnostics)
+            {
+            }
 
             public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics)
             {
@@ -425,11 +421,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly Func<TypeSymbol, CheckConstraintsArgs, bool, bool> s_checkConstraintsSingleTypeFunc = (type, arg, unused) => CheckConstraintsSingleType(type, arg);
 
-        private static bool CheckConstraintsSingleType(TypeSymbol type, CheckConstraintsArgs args)
+        private static bool CheckConstraintsSingleType(TypeSymbol type, in CheckConstraintsArgs args)
         {
             if (type.Kind == SymbolKind.NamedType)
             {
-                ((NamedTypeSymbol)type).CheckConstraints(args.CurrentCompilation, args.Conversions, args.IncludeNullability, args.Location, args.Diagnostics);
+                ((NamedTypeSymbol)type).CheckConstraints(args);
             }
             else if (type.Kind == SymbolKind.PointerType)
             {
@@ -441,7 +437,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static void CheckConstraints(
             this NamedTypeSymbol tuple,
             ConversionsBase conversions,
-            bool includeNullability,
             SyntaxNode typeSyntax,
             ImmutableArray<Location> elementLocations,
             CSharpCompilation currentCompilation,
@@ -468,8 +463,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var underlyingTuple in underlyingTupleTypeChain)
             {
                 ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-                CheckTypeConstraints(underlyingTuple, conversions, includeNullability, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: nullabilityDiagnosticsBuilder,
-                                     ref useSiteDiagnosticsBuilder, template: new CompoundUseSiteInfo<AssemblySymbol>(diagnosticsOpt, currentCompilation.Assembly));
+                CheckTypeConstraints(
+                    underlyingTuple,
+                    conversions,
+                    currentCompilation,
+                    diagnosticsBuilder,
+                    nullabilityDiagnosticsBuilderOpt: (nullabilityDiagnosticsOpt is null) ? null : nullabilityDiagnosticsBuilder,
+                    ref useSiteDiagnosticsBuilder,
+                    template: new CompoundUseSiteInfo<AssemblySymbol>(diagnosticsOpt, currentCompilation.Assembly));
 
                 if (useSiteDiagnosticsBuilder != null)
                 {
@@ -501,7 +502,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     builder.Clear();
                 }
-
             }
 
             underlyingTupleTypeChain.Free();
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = !typeSyntax.HasErrors && CheckTypeConstraints(type, conversions, includeNullability, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: diagnosticsBuilder,
+            var result = !typeSyntax.HasErrors && CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: includeNullability ? diagnosticsBuilder : null,
                                                                        ref useSiteDiagnosticsBuilder, template: new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, currentCompilation.Assembly));
 
             if (useSiteDiagnosticsBuilder != null)
@@ -554,15 +554,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        public static bool CheckConstraints(
-            this NamedTypeSymbol type,
-            CSharpCompilation currentCompilation,
-            ConversionsBase conversions,
-            bool includeNullability,
-            Location location,
-            BindingDiagnosticBag diagnostics)
+        public static bool CheckConstraints(this NamedTypeSymbol type, in CheckConstraintsArgs args)
         {
-            Debug.Assert(currentCompilation is object);
+            Debug.Assert(args.CurrentCompilation is object);
 
             if (!RequiresChecking(type))
             {
@@ -571,8 +565,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckTypeConstraints(type, conversions, includeNullability, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: diagnosticsBuilder,
-                                              ref useSiteDiagnosticsBuilder, template: new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, currentCompilation.Assembly));
+            var result = CheckTypeConstraints(type, args.Conversions, args.CurrentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: args.IncludeNullability ? diagnosticsBuilder : null,
+                                              ref useSiteDiagnosticsBuilder, template: new CompoundUseSiteInfo<AssemblySymbol>(args.Diagnostics, args.CurrentCompilation.Assembly));
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -581,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var pair in diagnosticsBuilder)
             {
-                diagnostics.Add(pair.UseSiteInfo, location);
+                args.Diagnostics.Add(pair.UseSiteInfo, args.Location);
             }
 
             diagnosticsBuilder.Free();
@@ -589,10 +583,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we only check for distinct interfaces when the type is not from source, as we
             // trust that types that are from source have already been checked by the compiler
             // to prevent this from happening in the first place.
-            if (!(currentCompilation != null && type.IsFromCompilation(currentCompilation)) && HasDuplicateInterfaces(type, null))
+            if (!(args.CurrentCompilation != null && type.IsFromCompilation(args.CurrentCompilation)) && HasDuplicateInterfaces(type, null))
             {
                 result = false;
-                diagnostics.Add(ErrorCode.ERR_BogusType, location, type);
+                args.Diagnostics.Add(ErrorCode.ERR_BogusType, args.Location, type);
             }
 
             return result;
@@ -660,7 +654,7 @@ hasRelatedInterfaces:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, conversions, includeNullability: false, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
+            var result = CheckMethodConstraints(method, conversions, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
                                                 ref useSiteDiagnosticsBuilder, template: new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, currentCompilation.Assembly));
 
             if (useSiteDiagnosticsBuilder != null)
@@ -692,7 +686,7 @@ hasRelatedInterfaces:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, conversions, includeNullability: false, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
+            var result = CheckMethodConstraints(method, conversions, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
                                                 ref useSiteDiagnosticsBuilder, template: new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, currentCompilation.Assembly));
 
             if (useSiteDiagnosticsBuilder != null)
@@ -709,10 +703,9 @@ hasRelatedInterfaces:
             return result;
         }
 
-        public static bool CheckTypeConstraints(
+        private static bool CheckTypeConstraints(
             NamedTypeSymbol type,
             ConversionsBase conversions,
-            bool includeNullability,
             CSharpCompilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
@@ -722,7 +715,6 @@ hasRelatedInterfaces:
             return CheckConstraints(
                 type,
                 conversions,
-                includeNullability,
                 type.TypeSubstitution,
                 type.OriginalDefinition.TypeParameters,
                 type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics,
@@ -736,7 +728,6 @@ hasRelatedInterfaces:
         public static bool CheckMethodConstraints(
             MethodSymbol method,
             ConversionsBase conversions,
-            bool includeNullability,
             CSharpCompilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
@@ -747,7 +738,6 @@ hasRelatedInterfaces:
             return CheckConstraints(
                 method,
                 conversions,
-                includeNullability,
                 method.TypeSubstitution,
                 ((MethodSymbol)method.OriginalDefinition).TypeParameters,
                 method.TypeArgumentsWithAnnotations,
@@ -778,7 +768,6 @@ hasRelatedInterfaces:
         public static bool CheckConstraints(
             this Symbol containingSymbol,
             ConversionsBase conversions,
-            bool includeNullability,
             TypeMap substitution,
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<TypeWithAnnotations> typeArguments,
@@ -792,7 +781,7 @@ hasRelatedInterfaces:
         {
             Debug.Assert(typeParameters.Length == typeArguments.Length);
             Debug.Assert(typeParameters.Length > 0);
-            Debug.Assert(!conversions.IncludeNullability || includeNullability);
+            Debug.Assert(!conversions.IncludeNullability || (nullabilityDiagnosticsBuilderOpt != null));
 
             int n = typeParameters.Length;
             bool succeeded = true;
@@ -807,7 +796,7 @@ hasRelatedInterfaces:
                 var typeArgument = typeArguments[i];
                 var typeParameter = typeParameters[i];
 
-                if (!CheckConstraints(containingSymbol, conversions, includeNullability, substitution, typeParameter, typeArgument, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt,
+                if (!CheckConstraints(containingSymbol, conversions, substitution, typeParameter, typeArgument, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt,
                                       ref useSiteDiagnosticsBuilder, template,
                                       ignoreTypeConstraintsDependentOnTypeParametersOpt))
                 {
@@ -822,7 +811,6 @@ hasRelatedInterfaces:
         private static bool CheckConstraints(
             Symbol containingSymbol,
             ConversionsBase conversions,
-            bool includeNullability,
             TypeMap substitution,
             TypeParameterSymbol typeParameter,
             TypeWithAnnotations typeArgument,
@@ -857,12 +845,6 @@ hasRelatedInterfaces:
                 return false;
             }
 
-            if (includeNullability && typeParameter.HasNotNullConstraint && typeArgument.GetValueNullableAnnotation().IsAnnotated() && !typeArgument.Type.IsNonNullableValueType())
-            {
-                var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, containingSymbol.ConstructedFrom(), typeParameter, typeArgument);
-                nullabilityDiagnosticsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(diagnostic)));
-            }
-
             if (typeParameter.HasReferenceTypeConstraint)
             {
                 if (!typeArgument.Type.IsReferenceType)
@@ -871,15 +853,9 @@ hasRelatedInterfaces:
                     diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_RefConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
                     return false;
                 }
-
-                if (includeNullability && nullabilityDiagnosticsBuilderOpt != null &&
-                    typeParameter.ReferenceTypeConstraintIsNullable == false &&
-                    typeArgument.GetValueNullableAnnotation().IsAnnotated())
-                {
-                    var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, containingSymbol.ConstructedFrom(), typeParameter, typeArgument);
-                    nullabilityDiagnosticsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(diagnostic)));
-                }
             }
+
+            checkNullability(containingSymbol, typeParameter, typeArgument, nullabilityDiagnosticsBuilderOpt);
 
             if (typeParameter.HasUnmanagedTypeConstraint)
             {
@@ -901,8 +877,7 @@ hasRelatedInterfaces:
                         var csDiagnosticInfo = MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfo(currentCompilation);
                         if (csDiagnosticInfo != null)
                         {
-                            var typeParameterDiagnosticInfo = new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(csDiagnosticInfo));
-                            diagnosticsBuilder.Add(typeParameterDiagnosticInfo);
+                            diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(csDiagnosticInfo)));
                             return false;
                         }
                     }
@@ -925,24 +900,75 @@ hasRelatedInterfaces:
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(template);
             substitution.SubstituteConstraintTypesDistinctWithoutModifiers(typeParameter, typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteInfo), constraintTypes,
                                                                  ignoreTypeConstraintsDependentOnTypeParametersOpt);
-
             bool hasError = false;
 
             foreach (var constraintType in constraintTypes)
             {
+                checkConstraintType(containingSymbol, conversions, typeParameter, typeArgument, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt, ref useSiteInfo, constraintType, ref hasError);
+            }
+            constraintTypes.Free();
+
+            if (AppendUseSiteDiagnostics(useSiteInfo, typeParameter, ref useSiteDiagnosticsBuilder))
+            {
+                hasError = true;
+            }
+
+            // Check the constructor constraint.
+            if (typeParameter.HasConstructorConstraint && !SatisfiesConstructorConstraint(typeArgument.Type))
+            {
+                // "'{2}' must be a non-abstract type with a public parameterless constructor in order to use it as parameter '{1}' in the generic type or method '{0}'"
+                diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NewConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
+                return false;
+            }
+
+            return !hasError;
+
+            static void checkNullability(
+                Symbol containingSymbol,
+                TypeParameterSymbol typeParameter,
+                TypeWithAnnotations typeArgument,
+                ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt)
+            {
+                if (nullabilityDiagnosticsBuilderOpt != null)
+                {
+                    if (typeParameter.HasNotNullConstraint && typeArgument.GetValueNullableAnnotation().IsAnnotated() && !typeArgument.Type.IsNonNullableValueType())
+                    {
+                        nullabilityDiagnosticsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, containingSymbol.ConstructedFrom(), typeParameter, typeArgument))));
+                    }
+
+                    if (typeParameter.HasReferenceTypeConstraint &&
+                        typeParameter.ReferenceTypeConstraintIsNullable == false &&
+                        typeArgument.GetValueNullableAnnotation().IsAnnotated())
+                    {
+                        nullabilityDiagnosticsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, containingSymbol.ConstructedFrom(), typeParameter, typeArgument))));
+                    }
+                }
+            }
+
+            static void checkConstraintType(
+                Symbol containingSymbol,
+                ConversionsBase conversions,
+                TypeParameterSymbol typeParameter,
+                TypeWithAnnotations typeArgument,
+                CSharpCompilation currentCompilation,
+                ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
+                ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+                TypeWithAnnotations constraintType,
+                ref bool hasError)
+            {
                 if (SatisfiesConstraintType(conversions.WithNullability(false), typeArgument, constraintType, ref useSiteInfo))
                 {
-                    if (includeNullability && nullabilityDiagnosticsBuilderOpt != null)
+                    if (nullabilityDiagnosticsBuilderOpt != null)
                     {
                         if (!SatisfiesConstraintType(conversions.WithNullability(true), typeArgument, constraintType, ref useSiteInfo) ||
                             (typeArgument.GetValueNullableAnnotation().IsAnnotated() && !typeArgument.Type.IsNonNullableValueType() &&
                              TypeParameterSymbol.IsNotNullableFromConstraintType(constraintType, out _) == true))
                         {
-                            var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument);
-                            nullabilityDiagnosticsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(diagnostic)));
+                            nullabilityDiagnosticsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument))));
                         }
                     }
-                    continue;
+                    return;
                 }
 
                 ErrorCode errorCode;
@@ -967,23 +993,6 @@ hasRelatedInterfaces:
                 diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(errorCode, containingSymbol.ConstructedFrom(), distinguisher.First, typeParameter, distinguisher.Second))));
                 hasError = true;
             }
-
-            if (AppendUseSiteDiagnostics(useSiteInfo, typeParameter, ref useSiteDiagnosticsBuilder))
-            {
-                hasError = true;
-            }
-
-            constraintTypes.Free();
-
-            // Check the constructor constraint.
-            if (typeParameter.HasConstructorConstraint && !SatisfiesConstructorConstraint(typeArgument.Type))
-            {
-                // "'{2}' must be a non-abstract type with a public parameterless constructor in order to use it as parameter '{1}' in the generic type or method '{0}'"
-                diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NewConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
-                return false;
-            }
-
-            return !hasError;
         }
 
         private static bool AppendUseSiteDiagnostics(

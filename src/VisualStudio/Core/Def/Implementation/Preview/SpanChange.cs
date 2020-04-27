@@ -76,14 +76,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public override void UpdatePreview()
-        {
-            engine.UpdatePreview(_id, this);
-        }
+            => engine.UpdatePreview(_id, this);
 
         internal override void GetDisplayData(VSTREEDISPLAYDATA[] pData)
-        {
-            pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphReference;
-        }
+            => pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphReference;
 
         internal string GetApplicableText()
         {
@@ -93,9 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         internal Span GetSpan()
-        {
-            return _span.GetSpan(_buffer.CurrentSnapshot).Span;
-        }
+            => _span.GetSpan(_buffer.CurrentSnapshot).Span;
 
         internal override uint GetDisplayState()
         {

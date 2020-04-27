@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 public override RemoveSuppressionCodeAction CloneForFixMultipleContext()
-                {
-                    return new AttributeRemoveAction(_attribute, _project, _diagnostic, Fixer, forFixMultipleContext: true);
-                }
+                    => new AttributeRemoveAction(_attribute, _project, _diagnostic, Fixer, forFixMultipleContext: true);
 
                 public override SyntaxTree SyntaxTreeToModify => _attribute.ApplicationSyntaxReference.SyntaxTree;
 

@@ -14,16 +14,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(529127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529127")]
         public async Task TestNotOfferedInsideArgumentList()
-        {
-            await VerifyAbsenceAsync("class C { void M([$$");
-        }
+            => await VerifyAbsenceAsync("class C { void M([$$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(529127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529127")]
         public async Task TestNotOfferedInsideArgumentList2()
-        {
-            await VerifyAbsenceAsync("delegate void M([$$");
-        }
+            => await VerifyAbsenceAsync("delegate void M([$$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAtRoot_Interactive()

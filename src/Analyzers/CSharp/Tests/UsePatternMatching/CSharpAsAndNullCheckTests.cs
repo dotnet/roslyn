@@ -50,9 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [InlineData("(x = o as string) == null", "!(o is string x)")]
         [InlineData("null == (x = o as string)", "!(o is string x)")]
         public async Task InlineTypeCheck2(string input, string output)
-        {
-            await TestStatement($"while ({input}) {{ }}", $"while ({output}) {{ }}");
-        }
+            => await TestStatement($"while ({input}) {{ }}", $"while ({output}) {{ }}");
 
         private async Task TestStatement(string input, string output)
         {

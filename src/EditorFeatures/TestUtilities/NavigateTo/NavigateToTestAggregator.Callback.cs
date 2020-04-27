@@ -29,19 +29,13 @@ namespace Roslyn.Test.EditorUtilities.NavigateTo
             }
 
             public void AddItem(NavigateToItem item)
-            {
-                _itemsReceived.Add(item);
-            }
+                => _itemsReceived.Add(item);
 
             public void Done()
-            {
-                _taskCompletionSource.SetResult(_itemsReceived);
-            }
+                => _taskCompletionSource.SetResult(_itemsReceived);
 
             public void Invalidate()
-            {
-                throw new InvalidOperationException("Unexpected call to Invalidate.");
-            }
+                => throw new InvalidOperationException("Unexpected call to Invalidate.");
 
             public Task<IEnumerable<NavigateToItem>> GetItemsAsync()
                 => _taskCompletionSource.Task;

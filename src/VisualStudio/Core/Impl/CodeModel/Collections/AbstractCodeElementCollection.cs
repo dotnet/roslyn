@@ -24,9 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         internal virtual Snapshot CreateSnapshot()
-        {
-            return new CodeElementSnapshot(this);
-        }
+            => new CodeElementSnapshot(this);
 
         protected abstract bool TryGetItemByName(string name, out EnvDTE.CodeElement element);
         protected abstract bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element);
@@ -72,18 +70,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         public bool CreateUniqueID(string prefix, ref string newName)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void Reserved1(object element)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public virtual System.Collections.IEnumerator GetEnumerator()
-        {
-            return Enumerator.Create(CreateSnapshot());
-        }
+            => Enumerator.Create(CreateSnapshot());
     }
 }

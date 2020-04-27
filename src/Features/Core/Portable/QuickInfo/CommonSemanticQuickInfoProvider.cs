@@ -4,16 +4,13 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -203,7 +200,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.DocumentationComments, documentationContent);
             }
 
-            var remarksDocumentationContent = GetRemarksDocumentationContent(documentedSymbol, groups, semanticModel, token, formatter, cancellationToken);
+            var remarksDocumentationContent = GetRemarksDocumentationContent(workspace, documentedSymbol, groups, semanticModel, token, formatter, cancellationToken);
             if (!remarksDocumentationContent.IsDefaultOrEmpty)
             {
                 var builder = ImmutableArray.CreateBuilder<TaggedText>();
@@ -329,6 +326,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         }
 
         private ImmutableArray<TaggedText> GetRemarksDocumentationContent(
+            Workspace workspace,
             ISymbol? documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
             SemanticModel semanticModel,
@@ -336,6 +334,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             IDocumentationCommentFormattingService formatter,
             CancellationToken cancellationToken)
         {
+            if (!workspace.Options.GetOption(QuickInfoOptions.ShowRemarksInQuickInfo, semanticModel.Language))
+            {
+                // <remarks> is disabled in Quick Info
+                return default;
+            }
+
             if (sections.TryGetValue(SymbolDescriptionGroups.RemarksDocumentation, out var parts))
             {
                 return parts;

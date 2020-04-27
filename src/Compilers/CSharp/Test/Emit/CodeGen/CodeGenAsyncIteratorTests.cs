@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -30,11 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// <summary>
         /// Enumerates `C.M()` a given number of iterations.
         /// </summary>
-        private static string Run(int iterations)
+        private static string Run(int iterations, [CallerMemberName] string testMethodName = null)
         {
-            string _runner = @"
+            string runner = $@"
 using static System.Console;
-class D
+class {testMethodName}
+";
+            runner += @"
 {
     static async System.Threading.Tasks.Task Main()
     {
@@ -73,7 +76,7 @@ class D
     }
 }
 ";
-            return _runner.Replace("ITERATIONS", iterations.ToString());
+            return runner.Replace("ITERATIONS", iterations.ToString());
         }
 
         private const string _enumerable = @"

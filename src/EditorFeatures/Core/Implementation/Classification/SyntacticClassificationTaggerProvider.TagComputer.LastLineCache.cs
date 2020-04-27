@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 private List<ClassifiedSpan> _classifications;
 
                 public LastLineCache()
-                {
-                    this.Clear();
-                }
+                    => this.Clear();
 
                 private void Clear()
                 {

@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
     internal class TextStructureNavigatorProvider : AbstractTextStructureNavigatorProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public TextStructureNavigatorProvider(
             ITextStructureNavigatorSelectorService selectorService,
             IContentTypeRegistryService contentTypeService,
@@ -28,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
         }
 
         protected override bool ShouldSelectEntireTriviaFromStart(SyntaxTrivia trivia)
-        {
-            return trivia.IsRegularOrDocComment();
-        }
+            => trivia.IsRegularOrDocComment();
 
         protected override bool IsWithinNaturalLanguage(SyntaxToken token, int position)
         {

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             // Otherwise, we just get inserted at the end.
 
             var arms = switchExpression.Arms;
-            return arms.Length > 0 && PopulateSwitchExpressionHelpers.IsDefault(arms[arms.Length - 1])
+            return arms.Length > 0 && PopulateSwitchExpressionHelpers.IsDefault(arms[^1])
                 ? arms.Length - 1
                 : arms.Length;
         }

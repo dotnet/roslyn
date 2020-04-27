@@ -12,13 +12,9 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private readonly TPoolable _pooledObject;
 
         public PooledDisposer(TPoolable instance)
-        {
-            _pooledObject = instance;
-        }
+            => _pooledObject = instance;
 
         void IDisposable.Dispose()
-        {
-            _pooledObject?.Free();
-        }
+            => _pooledObject?.Free();
     }
 }

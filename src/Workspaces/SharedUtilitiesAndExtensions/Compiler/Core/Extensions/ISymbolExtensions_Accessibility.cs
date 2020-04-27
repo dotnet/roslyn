@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // LangCompiler::CheckAccessCore
             {
                 var current = withinType.OriginalDefinition;
-                var originalThroughType = throughType == null ? null : throughType.OriginalDefinition;
+                var originalThroughType = throughType?.OriginalDefinition;
                 while (current != null)
                 {
                     Debug.Assert(current.IsDefinition);

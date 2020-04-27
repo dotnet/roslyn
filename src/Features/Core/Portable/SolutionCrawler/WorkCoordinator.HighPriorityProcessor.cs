@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Contract.ThrowIfFalse(item.DocumentId != null, "can only enqueue a document work item");
 
                         // Don't enqueue item if we don't have any high priority analyzers
-                        if (this.Analyzers.IsEmpty)
+                        if (Analyzers.IsEmpty)
                         {
                             return;
                         }
@@ -113,9 +113,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
-                    {
-                        return _workItemQueue.WaitAsync(cancellationToken);
-                    }
+                        => _workItemQueue.WaitAsync(cancellationToken);
 
                     protected override async Task ExecuteAsync()
                     {
@@ -220,9 +218,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     public void Shutdown()
-                    {
-                        _workItemQueue.Dispose();
-                    }
+                        => _workItemQueue.Dispose();
                 }
             }
         }

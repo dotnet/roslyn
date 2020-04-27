@@ -36,6 +36,14 @@ namespace Microsoft.CodeAnalysis.Remote
             _storageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
         }
 
+        public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
+        {
+            return _endPoint.InvokeAsync(
+                nameof(IDesignerAttributeListener.OnProjectRemovedAsync),
+                new object[] { projectId },
+                cancellationToken);
+        }
+
         public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeProjectAsync(project, specificDocument: null, cancellationToken);
 
@@ -74,11 +82,11 @@ namespace Microsoft.CodeAnalysis.Remote
             // user experience.
             //
             //  !  is safe here as `i.changed` implies `i.info` is non-null.
-            var changedInfos = latestInfos.Where(i => i.changed).Select(i => i.info!.Value).ToList();
+            var changedInfos = latestInfos.Where(i => i.changed).Select(i => i.data!.Value).ToList();
             if (changedInfos.Count > 0)
             {
                 await _endPoint.InvokeAsync(
-                    nameof(IDesignerAttributeListener.RegisterDesignerAttributesAsync),
+                    nameof(IDesignerAttributeListener.ReportDesignerAttributeDataAsync),
                     new object[] { changedInfos },
                     cancellationToken).ConfigureAwait(false);
             }
@@ -99,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         private async Task PersistLatestInfosAsync(
-            Solution solution, VersionStamp projectVersion, (Document, DesignerInfo? info, bool changed)[] latestInfos, CancellationToken cancellationToken)
+            Solution solution, VersionStamp projectVersion, (Document, DesignerAttributeData? daa, bool changed)[] latestInfos, CancellationToken cancellationToken)
         {
             using var storage = _storageService.GetStorage(solution);
 
@@ -121,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async Task<(Document, DesignerInfo? info, bool changed)[]> ComputeLatestInfosAsync(
+        private async Task<(Document, DesignerAttributeData? data, bool changed)[]> ComputeLatestInfosAsync(
             Project project, VersionStamp projectVersion,
             Document? specificDocument, CancellationToken cancellationToken)
         {
@@ -130,21 +138,21 @@ namespace Microsoft.CodeAnalysis.Remote
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var designerCategoryType = compilation.DesignerCategoryAttributeType();
 
-            using var _ = ArrayBuilder<Task<(Document, DesignerInfo?, bool changed)>>.GetInstance(out var tasks);
+            using var _ = ArrayBuilder<Task<(Document, DesignerAttributeData?, bool changed)>>.GetInstance(out var tasks);
             foreach (var document in project.Documents)
             {
                 // If we're only analyzing a specific document, then skip the rest.
                 if (specificDocument != null && document != specificDocument)
                     continue;
 
-                tasks.Add(ComputeDesignerAttributeInfoAsync(
+                tasks.Add(ComputeDesignerAttributeDataAsync(
                     storage, projectVersion, designerCategoryType, document, cancellationToken));
             }
 
             return await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private async Task<(Document, DesignerInfo?, bool changed)> ComputeDesignerAttributeInfoAsync(
+        private async Task<(Document, DesignerAttributeData?, bool changed)> ComputeDesignerAttributeDataAsync(
             IPersistentStorage storage, VersionStamp projectVersion, INamedTypeSymbol? designerCategoryType,
             Document document, CancellationToken cancellationToken)
         {
@@ -173,14 +181,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 // from what we previously stored.
                 var category = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
                     designerCategoryType, document, cancellationToken).ConfigureAwait(false);
-                var info = new DesignerInfo
+                var data = new DesignerAttributeData
                 {
                     Category = category,
                     DocumentId = document.Id,
                     FilePath = document.FilePath,
                 };
 
-                return (document, info, changed: category != persisted.category);
+                return (document, data, changed: category != persisted.category);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {

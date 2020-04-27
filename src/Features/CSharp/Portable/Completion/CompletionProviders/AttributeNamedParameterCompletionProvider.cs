@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(AttributeNamedParameterCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(FirstBuiltInCompletionProvider))]
     [Shared]
-    internal class AttributeNamedParameterCompletionProvider : CommonCompletionProvider
+    internal class AttributeNamedParameterCompletionProvider : LSPCompletionProvider
     {
         private const string EqualsString = "=";
         private const string SpaceEqualsString = " =";
@@ -35,14 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' '));
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AttributeNamedParameterCompletionProvider()
         {
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
-        }
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -197,9 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
-        {
-            return existingNamedParameters.Except(parameterList.Select(p => p.Name)).IsEmpty();
-        }
+            => existingNamedParameters.Except(parameterList.Select(p => p.Name)).IsEmpty();
 
         private ISet<string> GetExistingNamedParameters(AttributeArgumentListSyntax argumentList, int position)
         {
@@ -243,9 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(GetTextChange(selectedItem, ch));
-        }
+            => Task.FromResult(GetTextChange(selectedItem, ch));
 
         private TextChange? GetTextChange(CompletionItem selectedItem, char? ch)
         {

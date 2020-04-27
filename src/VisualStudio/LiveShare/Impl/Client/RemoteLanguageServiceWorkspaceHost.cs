@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects;
@@ -50,6 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// </summary>
         /// <param name="remoteLanguageServiceWorkspace">The workspace</param>
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteLanguageServiceWorkspaceHost(RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace,
                                                   RemoteProjectInfoProvider remoteProjectInfoProvider,
                                                   SVsServiceProvider serviceProvider,
@@ -165,9 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             public event EventHandler Disposed;
 
             public void Dispose()
-            {
-                Disposed?.Invoke(this, null);
-            }
+                => Disposed?.Invoke(this, null);
         }
     }
 }

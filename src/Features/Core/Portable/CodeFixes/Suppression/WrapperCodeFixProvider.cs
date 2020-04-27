@@ -54,8 +54,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         public override FixAllProvider GetFixAllProvider()
-        {
-            return _suppressionFixProvider.GetFixAllProvider();
-        }
+            => _suppressionFixProvider.GetFixAllProvider();
     }
 }

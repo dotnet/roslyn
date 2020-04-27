@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly bool _isCaseSensitive;
 
         public CompletionHelper(bool isCaseSensitive)
-        {
-            _isCaseSensitive = isCaseSensitive;
-        }
+            => _isCaseSensitive = isCaseSensitive;
 
         public static CompletionHelper GetHelper(Document document)
         {

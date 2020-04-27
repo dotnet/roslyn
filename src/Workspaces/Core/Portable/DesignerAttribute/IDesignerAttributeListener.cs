@@ -4,7 +4,7 @@
 
 #nullable enable
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     /// </summary>
     internal interface IDesignerAttributeListener
     {
-        Task RegisterDesignerAttributesAsync(IList<DesignerInfo> infos, CancellationToken cancellationToken);
+        Task OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken);
+        Task ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
     }
 }

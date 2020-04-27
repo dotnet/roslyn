@@ -186,5 +186,12 @@ namespace Microsoft.CodeAnalysis
         /// True if the type is serializable (has Serializable metadata flag).
         /// </summary>
         bool IsSerializable { get; }
+
+        /// <summary>
+        /// If this is a native integer, returns the symbol for the underlying type,
+        /// either <see cref="System.IntPtr"/> or <see cref="System.UIntPtr"/>.
+        /// Otherwise, returns null.
+        /// </summary>
+        INamedTypeSymbol? NativeIntegerUnderlyingType { get; }
     }
 }

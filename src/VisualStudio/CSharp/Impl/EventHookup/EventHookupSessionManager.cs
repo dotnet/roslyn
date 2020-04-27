@@ -153,8 +153,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         }
 
         internal bool IsTrackingSession()
-        {
-            return CurrentSession != null;
-        }
+            => CurrentSession != null;
     }
 }

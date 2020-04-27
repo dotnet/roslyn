@@ -7,11 +7,12 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.QuickInfo;
 using System.Diagnostics.CodeAnalysis;
+using System;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
     internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpSemanticQuickInfoProvider()
         {
         }
@@ -62,9 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         }
 
         protected override bool ShouldCheckPreviousToken(SyntaxToken token)
-        {
-            return !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
-        }
+            => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
 
         protected override ImmutableArray<TaggedText> TryGetNullabilityAnalysis(Workspace workspace, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {

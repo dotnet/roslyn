@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
     public static class XElementExtensions
     {
         public static string NormalizedValue(this XElement element)
-        {
-            return element.Value.Replace("\n", "\r\n");
-        }
+            => element.Value.Replace("\n", "\r\n");
     }
 }

@@ -4,36 +4,14 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal partial class DiagnosticAnalyzerService : IDiagnosticUpdateSource
     {
-        private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
-
-        private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
-
-        // use eventMap and taskQueue to serialize events
-        private readonly EventMap _eventMap;
-        private readonly SimpleTaskQueue _eventQueue;
-
-        [SuppressMessage("RoslyDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Private constructor used for deterministic field initialization")]
-        private DiagnosticAnalyzerService(IDiagnosticUpdateSourceRegistrationService registrationService) : this()
-        {
-            _eventMap = new EventMap();
-
-            // use diagnostic event task scheduler so that we never flood async events queue with million of events.
-            // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
-            _eventQueue = new SimpleTaskQueue(s_eventScheduler);
-
-            registrationService.Register(this);
-        }
-
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated
         {
             add
@@ -66,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
             if (ev.HasHandlers)
             {
-                var asyncToken = Listener.BeginAsyncOperation(nameof(RaiseDiagnosticsUpdated));
-                _eventQueue.ScheduleTask(() => ev.RaiseEvent(handler => handler(this, args))).CompletesAsyncOperation(asyncToken);
+                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => ev.RaiseEvent(handler => handler(this, args)), CancellationToken.None);
             }
         }
 
@@ -82,8 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // this is to reduce for such case to happen.
                 void raiseEvents(DiagnosticsUpdatedArgs args) => ev.RaiseEvent(handler => handler(this, args));
 
-                var asyncToken = Listener.BeginAsyncOperation(nameof(RaiseDiagnosticsUpdated));
-                _eventQueue.ScheduleTask(() => eventAction(raiseEvents)).CompletesAsyncOperation(asyncToken);
+                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => eventAction(raiseEvents), CancellationToken.None);
             }
         }
 
@@ -98,8 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // this is to reduce for such case to happen.
                 void raiseEvents(DiagnosticsUpdatedArgs args) => ev.RaiseEvent(handler => handler(this, args));
 
-                var asyncToken = Listener.BeginAsyncOperation(nameof(RaiseDiagnosticsUpdated));
-                _eventQueue.ScheduleTask(() => eventActionAsync(raiseEvents)).CompletesAsyncOperation(asyncToken);
+                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => eventActionAsync(raiseEvents), CancellationToken.None);
             }
         }
 

@@ -8,12 +8,9 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -139,9 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static bool IsDocCommentOrElastic(SyntaxTrivia t)
-        {
-            return t.IsDocComment() || t.IsElastic();
-        }
+            => t.IsDocComment() || t.IsElastic();
 
         private static List<UsingDirectiveSyntax> AddUsingDirectives(
             CompilationUnitSyntax root, IList<UsingDirectiveSyntax> usingDirectives)

@@ -99,7 +99,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 }
 
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                var solution = document.Project.Solution;
 
                 // We can't determine what the expected namespace would be without knowing the default namespace.
                 var defaultNamespace = GetDefaultNamespace(document, syntaxFacts);
@@ -179,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 if (defaultNamespaceFromProjects.Count != 1
                     || defaultNamespaceFromProjects.First() == null)
                 {
-                    return default;
+                    return null;
                 }
 
                 return defaultNamespaceFromProjects.Single();

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     /// 2. Name Style
     /// 3. Naming Rule (points to Symbol Specification IDs)
     /// </summary>
-    internal class NamingStylePreferences : IEquatable<NamingStylePreferences>
+    internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences>
     {
         private const int s_serializationVersion = 5;
 
@@ -81,18 +82,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         public bool Equals(NamingStylePreferences other)
         {
-            return other == null
-                ? false
-                : CreateXElement().ToString() == other.CreateXElement().ToString();
+            if (other is null)
+                return false;
+
+            return SymbolSpecifications.SequenceEqual(other.SymbolSpecifications)
+                && NamingStyles.SequenceEqual(other.NamingStyles)
+                && NamingRules.SequenceEqual(other.NamingRules);
         }
 
         public static bool operator ==(NamingStylePreferences left, NamingStylePreferences right)
         {
-            if (ReferenceEquals(left, null) && ReferenceEquals(right, null))
+            if (left is null && right is null)
             {
                 return true;
             }
-            else if (ReferenceEquals(left, null) || ReferenceEquals(right, null))
+            else if (left is null || right is null)
             {
                 return false;
             }
@@ -104,7 +108,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             => !(left == right);
 
         public override int GetHashCode()
-            => CreateXElement().ToString().GetHashCode();
+        {
+            return Hash.Combine(Hash.CombineValues(SymbolSpecifications),
+                Hash.Combine(Hash.CombineValues(NamingStyles),
+                    Hash.CombineValues(NamingRules)));
+        }
 
         private static readonly string _defaultNamingPreferencesString = $@"
 <NamingPreferencesInfo SerializationVersion=""{s_serializationVersion}"">

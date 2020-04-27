@@ -302,9 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         internal void RemoveDocument(TestHostDocument document)
-        {
-            this.Documents = this.Documents.Where(d => d != document);
-        }
+            => this.Documents = this.Documents.Where(d => d != document);
 
         internal void AddAdditionalDocument(TestHostDocument document)
         {
@@ -313,9 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         internal void RemoveAdditionalDocument(TestHostDocument document)
-        {
-            this.AdditionalDocuments = this.AdditionalDocuments.Where(d => d != document);
-        }
+            => this.AdditionalDocuments = this.AdditionalDocuments.Where(d => d != document);
 
         internal void AddAnalyzerConfigDocument(TestHostDocument document)
         {
@@ -324,9 +320,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         internal void RemoveAnalyzerConfigDocument(TestHostDocument document)
-        {
-            this.AnalyzerConfigDocuments = this.AnalyzerConfigDocuments.Where(d => d != document);
-        }
+            => this.AnalyzerConfigDocuments = this.AnalyzerConfigDocuments.Where(d => d != document);
 
         public string Language
         {

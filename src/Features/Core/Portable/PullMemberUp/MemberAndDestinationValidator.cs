@@ -31,15 +31,12 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             // two refactoring options provided for pull members up,
             // 1. Quick Action (Only allow members that don't cause error)
             // 2. Dialog box (Allow modifers may cause error and will provide fixing)
-            switch (member)
+            return member switch
             {
-                case IMethodSymbol methodSymbol:
-                    return methodSymbol.MethodKind == MethodKind.Ordinary;
-                case IFieldSymbol fieldSymbol:
-                    return !fieldSymbol.IsImplicitlyDeclared;
-                default:
-                    return member.IsKind(SymbolKind.Property) || member.IsKind(SymbolKind.Event);
-            }
+                IMethodSymbol methodSymbol => methodSymbol.MethodKind == MethodKind.Ordinary,
+                IFieldSymbol fieldSymbol => !fieldSymbol.IsImplicitlyDeclared,
+                _ => member.IsKind(SymbolKind.Property) || member.IsKind(SymbolKind.Event),
+            };
         }
     }
 }

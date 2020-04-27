@@ -34,13 +34,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers);
 
             public SymbolDescriptionBuilder(
-                ISymbolDisplayService displayService,
                 SemanticModel semanticModel,
                 int position,
                 Workspace workspace,
                 IAnonymousTypeDisplayService anonymousTypeDisplayService,
                 CancellationToken cancellationToken)
-                : base(displayService, semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
+                : base(semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
             {
             }
 
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             {
                 EqualsValueClauseSyntax initializer = null;
 
-                var variableDeclarator = await this.GetFirstDeclarationAsync<VariableDeclaratorSyntax>(symbol).ConfigureAwait(false);
+                var variableDeclarator = await GetFirstDeclarationAsync<VariableDeclaratorSyntax>(symbol).ConfigureAwait(false);
                 if (variableDeclarator != null)
                 {
                     initializer = variableDeclarator.Initializer;
@@ -113,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 
                 if (initializer == null)
                 {
-                    var enumMemberDeclaration = await this.GetFirstDeclarationAsync<EnumMemberDeclarationSyntax>(symbol).ConfigureAwait(false);
+                    var enumMemberDeclaration = await GetFirstDeclarationAsync<EnumMemberDeclarationSyntax>(symbol).ConfigureAwait(false);
                     if (enumMemberDeclaration != null)
                     {
                         initializer = enumMemberDeclaration.EqualsValue;
@@ -131,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
                 ILocalSymbol symbol)
             {
-                var syntax = await this.GetFirstDeclarationAsync<VariableDeclaratorSyntax>(symbol).ConfigureAwait(false);
+                var syntax = await GetFirstDeclarationAsync<VariableDeclaratorSyntax>(symbol).ConfigureAwait(false);
                 if (syntax != null)
                 {
                     return await GetInitializerSourcePartsAsync(syntax.Initializer).ConfigureAwait(false);
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
                 IParameterSymbol symbol)
             {
-                var syntax = await this.GetFirstDeclarationAsync<ParameterSyntax>(symbol).ConfigureAwait(false);
+                var syntax = await GetFirstDeclarationAsync<ParameterSyntax>(symbol).ConfigureAwait(false);
                 if (syntax != null)
                 {
                     return await GetInitializerSourcePartsAsync(syntax.Default).ConfigureAwait(false);
@@ -156,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             {
                 foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
                 {
-                    var syntax = await syntaxRef.GetSyntaxAsync(this.CancellationToken).ConfigureAwait(false);
+                    var syntax = await syntaxRef.GetSyntaxAsync(CancellationToken).ConfigureAwait(false);
                     if (syntax is T tSyntax)
                     {
                         return tSyntax;
@@ -176,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     {
                         return await Classifier.GetClassifiedSymbolDisplayPartsAsync(
                             semanticModel, equalsValue.Value.Span,
-                            this.Workspace, cancellationToken: this.CancellationToken).ConfigureAwait(false);
+                            Workspace, cancellationToken: CancellationToken).ConfigureAwait(false);
                     }
                 }
 

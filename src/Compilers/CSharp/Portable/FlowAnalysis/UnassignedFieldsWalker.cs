@@ -142,9 +142,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (property.IsStatic || node.ReceiverOpt is BoundThisReference)
             {
                 var accessor = property.GetMethod;
-
-                ApplyMemberPostConditions(property.ContainingType,
-                    accessor.NotNullMembers, accessor.NotNullWhenTrueMembers, accessor.NotNullWhenFalseMembers);
+                if (!(accessor is null))
+                {
+                    ApplyMemberPostConditions(property.ContainingType,
+                        accessor.NotNullMembers, accessor.NotNullWhenTrueMembers, accessor.NotNullWhenFalseMembers);
+                }
             }
 
             return result;

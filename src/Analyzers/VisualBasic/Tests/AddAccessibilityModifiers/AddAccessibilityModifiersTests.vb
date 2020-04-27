@@ -2,126 +2,110 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Internal.Options
-#Else
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Options
-#End If
+Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
+    Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers.VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers.VisualBasicAddAccessibilityModifiersCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddAccessibilityModifiers
     Public Class AddAccessibilityModifiersTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer(),
-                    New VisualBasicAddAccessibilityModifiersCodeFixProvider())
-        End Function
-
-        Private ReadOnly Property OmitDefaultModifiers As IDictionary(Of OptionKey, Object)
-            Get
-                Return OptionsSet(
-                    SingleOption(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Suggestion))
-            End Get
-        End Property
-
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+        Public Sub TestStandardProperties()
+            VerifyVB.VerifyStandardProperties()
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
         Public Async Function TestAllConstructs() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyCodeFixAsync(
 "
 namespace N
     namespace Outer.Inner
-        class {|FixAllInDocument:C|}
-            class NestedClass
+        class [|C|]
+            class [|NestedClass|]
             end class
 
-            structure NestedStruct
+            structure [|NestedStruct|]
             end structure
 
-            dim f1 as integer
-            dim f2, f3 as integer
-            dim f4, f5 as integer, f6, f7 as boolean
-            public f4 as integer
+            dim [|f1|] as integer
+            dim [|f2|], f3 as integer
+            dim [|f4|], f5 as integer, f6, f7 as boolean
+            public {|BC30260:f4|} as integer
 
-            event e1 as Action
-            public event e2 as Action
+            event [|e1|] as {|BC31044:{|BC30002:Action|}|}
+            public event e2 as {|BC31044:{|BC30002:Action|}|}
 
-            custom event e4 as Action
+            custom event {|BC31130:{|BC31131:{|BC31132:[|e4|]|}|}|} as {|BC31044:{|BC30002:Action|}|}
             end event
 
             shared sub new()
             end sub
 
-            sub new()
+            sub [|new|]()
             end sub
 
             public sub new(i as integer)
             end sub
 
-            sub M1()
+            sub [|M1|]()
             end sub
 
             public sub M2()
             end sub
 
-            function M3() as integer
+            function [|M3|]() as integer
             end function
 
-            function M4() as integer
+            {|BC30027:function [|M4|]() as integer|}
 
-            public function M5() as integer
+            {|BC30289:public function M5() as integer|}
             end function
 
-            partial sub M6()
+            {|BC31432:partial|} sub [|M6|]()
             end sub
 
-            property P1 as integer
+            property [|P1|] as integer
             
-            property P2 as integer
+            property {|BC30124:[|P2|]|} as integer
                 get
                 end get
             end property
 
             public property P3 as integer
 
-            shared operator &(c1 as C, c2 as C) as integer
+            shared operator [|&|](c1 as C, c2 as C) as integer
             end operator
         end class
 
-        interface I
-            event e6 as Action
+        interface [|I|]
+            event e6 as {|BC31044:{|BC30002:Action|}|}
             sub M3()
             function M4() as integer
             property P3 as integer
         end interface
 
-        delegate sub D1()
-        delegate function D2() as integer
+        delegate sub [|D1|]()
+        delegate function [|D2|]() as integer
 
-        enum E
+        enum [|E|]
             EMember
         end enum
 
-        structure S
-            dim f as integer
+        structure [|S|]
+            dim [|f|] as integer
 
-            sub M()
+            sub [|M|]()
             end sub
 
-            shared operator &(c1 as S, c2 as S) as integer
+            shared operator [|&|](c1 as S, c2 as S) as integer
             end operator
         end structure
 
-        module M
-            dim f as integer
+        module [|M|]
+            dim [|f|] as integer
 
-            sub M()
+            sub [|M|]()
             end sub
         end module
     end namespace
@@ -139,12 +123,12 @@ namespace N
             Private f1 as integer
             Private f2, f3 as integer
             Private f4, f5 as integer, f6, f7 as boolean
-            public f4 as integer
+            public {|BC30260:f4|} as integer
 
-            Public event e1 as Action
-            public event e2 as Action
+            Public event e1 as {|BC31044:{|BC30002:Action|}|}
+            public event e2 as {|BC31044:{|BC30002:Action|}|}
 
-            Public custom event e4 as Action
+            Public custom event {|BC31130:{|BC31131:{|BC31132:e4|}|}|} as {|BC31044:{|BC30002:Action|}|}
             end event
 
             shared sub new()
@@ -165,17 +149,17 @@ namespace N
             Public function M3() as integer
             end function
 
-            Public function M4() as integer
+            {|BC30027:Public function M4() as integer|}
 
-            public function M5() as integer
+            {|BC30289:public function M5() as integer|}
             end function
 
-            partial Public sub M6()
+            partial {|BC31431:Public|} sub M6()
             end sub
 
             Public property P1 as integer
 
-            Public property P2 as integer
+            Public property {|BC30124:P2|} as integer
                 get
                 end get
             end property
@@ -187,7 +171,7 @@ namespace N
         end class
 
         Friend interface I
-            event e6 as Action
+            event e6 as {|BC31044:{|BC30002:Action|}|}
             sub M3()
             function M4() as integer
             property P3 as integer
@@ -222,112 +206,111 @@ end namespace")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
         Public Async Function TestAllConstructsWithOmit() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim source = "
 namespace N
     namespace Outer.Inner
-        Friend class {|FixAllInDocument:C|}
-            Public class NestedClass
+        Friend class [|C|]
+            Public class [|NestedClass|]
             end class
 
-            Public structure NestedStruct
+            Public structure [|NestedStruct|]
             end structure
 
-            Private f1 as integer
-            Private f2, f3 as integer
-            Private f4, f5 as integer, f6, f7 as boolean
-            public f4 as integer
+            Private [|f1|] as integer
+            Private [|f2|], f3 as integer
+            Private [|f4|], f5 as integer, f6, f7 as boolean
+            public {|BC30260:f4|} as integer
 
-            Private Const foo As long = 3
-            private const bar = 4, barbar = 5
+            Private Const [|foo|] As long = 3
+            private const [|bar|] = 4, barbar = 5
 
             public Const pfoo As long = 3
             public Const pbar = 4, pbarbar As ULong = 5
 
-            Private Shared sfoo = 4
-            private shared sbar as Long = 5, sbarbar = 0
+            Private Shared [|sfoo|] = 4
+            private shared [|sbar|] as Long = 5, sbarbar = 0
 
             public Shared spfoo = 4
             public Shared spbar = 4, spbarbar as Long = 4
 
-            Public event e1 as Action
-            public event e2 as Action
+            Public event [|e1|] as {|BC31044:{|BC30002:Action|}|}
+            public event [|e2|] as {|BC31044:{|BC30002:Action|}|}
 
-            Public custom event e4 as Action
+            Public custom event {|BC31130:{|BC31131:{|BC31132:[|e4|]|}|}|} as {|BC31044:{|BC30002:Action|}|}
             end event
 
             shared sub new()
             end sub
 
-            Public sub new()
+            Public sub [|new|]()
             end sub
 
-            public sub new(i as integer)
+            public sub [|new|](i as integer)
             end sub
 
-            Public sub M1()
+            Public sub [|M1|]()
             end sub
 
-            public sub M2()
+            public sub [|M2|]()
             end sub
 
-            Public function M3() as integer
+            Public function [|M3|]() as integer
             end function
 
-            Public function M4() as integer
+            {|BC30027:Public function [|M4|]() as integer|}
 
-            public function M5() as integer
+            {|BC30289:public function [|M5|]() as integer|}
             end function
 
             Private partial sub M6()
             end sub
 
-            Public property P1 as integer
+            Public property [|P1|] as integer
 
-            Public property P2 as integer
+            Public property {|BC30124:[|P2|]|} as integer
                 get
                 end get
             end property
 
-            public property P3 as integer
+            public property [|P3|] as integer
 
-            Public shared operator &(c1 as C, c2 as C) as integer
+            Public shared operator [|&|](c1 as C, c2 as C) as integer
             end operator
         end class
 
-        Friend interface I
-            event e6 as Action
+        Friend interface [|I|]
+            event e6 as {|BC31044:{|BC30002:Action|}|}
             sub M3()
             function M4() as integer
             property P3 as integer
         end interface
 
-        Friend delegate sub D1()
-        Friend delegate function D2() as integer
+        Friend delegate sub [|D1|]()
+        Friend delegate function [|D2|]() as integer
 
-        Friend enum E
+        Friend enum [|E|]
             EMember
         end enum
 
-        Friend structure S
-            Public f as integer
+        Friend structure [|S|]
+            Public [|f|] as integer
 
-            Public sub M()
+            Public sub [|M|]()
             end sub
 
-            Public shared operator &(c1 as S, c2 as S) as integer
+            Public shared operator [|&|](c1 as S, c2 as S) as integer
             end operator
         end structure
 
-        Friend module M
-            Private f as integer
+        Friend module [|M|]
+            Private [|f|] as integer
 
-            Public sub M()
+            Public sub [|M|]()
             end sub
         end module
     end namespace
-end namespace",
-"
+end namespace"
+            Dim fixedSource = "
 namespace N
     namespace Outer.Inner
         class C
@@ -340,7 +323,7 @@ namespace N
             Dim f1 as integer
             Dim f2, f3 as integer
             Dim f4, f5 as integer, f6, f7 as boolean
-            public f4 as integer
+            public {|BC30260:f4|} as integer
 
             Const foo As long = 3
             const bar = 4, barbar = 5
@@ -354,10 +337,10 @@ namespace N
             public Shared spfoo = 4
             public Shared spbar = 4, spbarbar as Long = 4
 
-            event e1 as Action
-            event e2 as Action
+            event e1 as {|BC31044:{|BC30002:Action|}|}
+            event e2 as {|BC31044:{|BC30002:Action|}|}
 
-            custom event e4 as Action
+            custom event {|BC31130:{|BC31131:{|BC31132:e4|}|}|} as {|BC31044:{|BC30002:Action|}|}
             end event
 
             shared sub new()
@@ -378,9 +361,9 @@ namespace N
             function M3() as integer
             end function
 
-            function M4() as integer
+            {|BC30027:function M4() as integer|}
 
-            function M5() as integer
+            {|BC30289:function M5() as integer|}
             end function
 
             Private partial sub M6()
@@ -388,7 +371,7 @@ namespace N
 
             property P1 as integer
 
-            property P2 as integer
+            property {|BC30124:P2|} as integer
                 get
                 end get
             end property
@@ -400,7 +383,7 @@ namespace N
         end class
 
         interface I
-            event e6 as Action
+            event e6 as {|BC31044:{|BC30002:Action|}|}
             sub M3()
             function M4() as integer
             property P3 as integer
@@ -430,7 +413,14 @@ namespace N
             end sub
         end module
     end namespace
-end namespace", options:=OmitDefaultModifiers)
+end namespace"
+
+            Dim test As New VerifyVB.Test()
+            test.TestCode = source
+            test.FixedCode = fixedSource
+            test.Options.Add(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault)
+
+            Await test.RunAsync()
         End Function
 
     End Class

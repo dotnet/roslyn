@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(ObjectInitializerCompletionProvider);
-        }
+            => typeof(ObjectInitializerCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NothingToInitialize()
@@ -588,9 +586,7 @@ class D
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestTrigger()
-        {
-            TestCommonIsTextualTriggerCharacter();
-        }
+            => TestCommonIsTextualTriggerCharacter();
 
         [WorkItem(530828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530828")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

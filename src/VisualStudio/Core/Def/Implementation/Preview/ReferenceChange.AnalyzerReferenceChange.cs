@@ -20,14 +20,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             }
 
             internal override Solution AddToSolution(Solution solution)
-            {
-                return solution.AddAnalyzerReference(this.ProjectId, _reference);
-            }
+                => solution.AddAnalyzerReference(this.ProjectId, _reference);
 
             internal override Solution RemoveFromSolution(Solution solution)
-            {
-                return solution.RemoveAnalyzerReference(this.ProjectId, _reference);
-            }
+                => solution.RemoveAnalyzerReference(this.ProjectId, _reference);
 
             protected override string GetDisplayText()
             {

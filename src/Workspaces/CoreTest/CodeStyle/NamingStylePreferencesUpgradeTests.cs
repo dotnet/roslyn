@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         }
 
         private static void AssertTrimmedEqual(string expected, string actual)
-        {
-            Assert.Equal(expected.Trim(), actual.Trim());
-        }
+            => Assert.Equal(expected.Trim(), actual.Trim());
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public void TestPreserveDefaultPreferences()

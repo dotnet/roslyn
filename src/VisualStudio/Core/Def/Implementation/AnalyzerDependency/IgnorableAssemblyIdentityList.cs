@@ -20,8 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public bool Includes(AssemblyIdentity assemblyIdentity)
-        {
-            return _assemblyIdentities.Contains(assemblyIdentity);
-        }
+            => _assemblyIdentities.Contains(assemblyIdentity);
     }
 }

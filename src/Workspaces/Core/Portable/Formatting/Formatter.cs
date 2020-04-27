@@ -4,16 +4,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Formatting.FormattingExtensions;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -296,75 +295,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             return formattingResult == null
                 ? SpecializedCollections.EmptyList<TextChange>()
                 : formattingResult.GetTextChanges(cancellationToken);
-        }
-
-        private static IEnumerable<TextSpan> GetAnnotatedSpans(SyntaxNode node, SyntaxAnnotation annotation)
-        {
-            foreach (var nodeOrToken in node.GetAnnotatedNodesAndTokens(annotation))
-            {
-                var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode().GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode().GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                yield return GetSpan(firstToken, lastToken);
-            }
-        }
-
-        private static TextSpan GetSpan(SyntaxToken firstToken, SyntaxToken lastToken)
-        {
-            var previousToken = firstToken.GetPreviousToken();
-            var nextToken = lastToken.GetNextToken();
-
-            if (previousToken.RawKind != 0)
-            {
-                firstToken = previousToken;
-            }
-
-            if (nextToken.RawKind != 0)
-            {
-                lastToken = nextToken;
-            }
-
-            return TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
-        }
-
-        private static IEnumerable<TextSpan> GetElasticSpans(SyntaxNode root)
-        {
-            var tokens = root.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Select(tr => tr.Token).Distinct();
-            return AggregateSpans(tokens.Select(t => GetElasticSpan(t)));
-        }
-
-        private static TextSpan GetElasticSpan(SyntaxToken token)
-        {
-            return GetSpan(token, token);
-        }
-
-        private static IEnumerable<TextSpan> AggregateSpans(IEnumerable<TextSpan> spans)
-        {
-            var aggregateSpans = new List<TextSpan>();
-
-            var last = default(TextSpan);
-            foreach (var span in spans)
-            {
-                if (last == default)
-                {
-                    last = span;
-                }
-                else if (span.IntersectsWith(last))
-                {
-                    last = TextSpan.FromBounds(last.Start, span.End);
-                }
-                else
-                {
-                    aggregateSpans.Add(last);
-                    last = span;
-                }
-            }
-
-            if (last != default)
-            {
-                aggregateSpans.Add(last);
-            }
-
-            return aggregateSpans;
         }
 
         /// <summary>

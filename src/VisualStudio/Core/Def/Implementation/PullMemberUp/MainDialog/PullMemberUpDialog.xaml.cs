@@ -68,34 +68,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         private void CancelButton_Click(object sender, RoutedEventArgs e) => DialogResult = false;
 
         private void SelectDependentsButton_Click(object sender, RoutedEventArgs e)
-        {
-            ViewModel.SelectDependents();
-        }
+            => ViewModel.SelectDependents();
 
         private void SelectPublic_Click(object sender, RoutedEventArgs e)
-        {
-            ViewModel.SelectPublicMembers();
-        }
+            => ViewModel.SelectPublicMembers();
 
         private void SelectAllCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            ViewModel.SelectAllMembers();
-        }
+            => ViewModel.SelectAllMembers();
 
         private void SelectAllCheckBox_Unchecked(object sender, RoutedEventArgs e)
-        {
-            ViewModel.DeSelectAllMembers();
-        }
+            => ViewModel.DeSelectAllMembers();
 
         private void MemberSelectionCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            ViewModel.SetStatesOfOkButtonAndSelectAllCheckBox();
-        }
+            => ViewModel.SetStatesOfOkButtonAndSelectAllCheckBox();
 
         private void MemberSelectionCheckBox_Unchecked(object sender, RoutedEventArgs e)
-        {
-            ViewModel.SetStatesOfOkButtonAndSelectAllCheckBox();
-        }
+            => ViewModel.SetStatesOfOkButtonAndSelectAllCheckBox();
 
         private void Destination_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
@@ -109,13 +97,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
     internal class BooleanReverseConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return !(bool)value;
-        }
+            => !(bool)value;
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return !(bool)value;
-        }
+            => !(bool)value;
     }
 }

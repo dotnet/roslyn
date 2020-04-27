@@ -44,5 +44,11 @@ namespace Microsoft.CodeAnalysis
         /// Indicates that the diagnostic is related to an exception thrown by a <see cref="DiagnosticAnalyzer"/>.
         /// </summary>
         public const string AnalyzerException = nameof(AnalyzerException);
+
+        /// <summary>
+        /// Indicates that the diagnostic is an obsolete diagnostic with a custom ID
+        /// specified by the 'DiagnosticId' property on 'ObsoleteAttribute'.
+        /// </summary>
+        public const string CustomObsolete = nameof(CustomObsolete);
     }
 }

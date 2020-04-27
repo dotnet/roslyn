@@ -8,13 +8,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
 #endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -202,14 +200,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         private static void AddDiagnosticIdToOptionMapping(string diagnosticId, ImmutableHashSet<IPerLanguageOption> options)
-        {
-            IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options);
-        }
+            => IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options);
 
         private static void AddDiagnosticIdToOptionMapping(string diagnosticId, ImmutableHashSet<ILanguageSpecificOption> options, string language)
-        {
-            IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options, language);
-        }
+            => IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options, language);
 
         public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
 
