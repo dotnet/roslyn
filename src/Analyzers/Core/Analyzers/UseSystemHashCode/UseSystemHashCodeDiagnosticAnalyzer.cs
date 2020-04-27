@@ -52,8 +52,13 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return;
 
             // Just one member to call into HashCode.Combine. Only offer this if we have multiple statements that we can
-            // reduce to a single statement.  It's not worth it to offer to replace `return x.GetHashCode()` with
-            // `return HashCode.Combine(x)`.
+            // reduce to a single statement.  It's not worth it to offer to replace:
+            //
+            //      `return x.GetHashCode();` with `return HashCode.Combine(x);`
+            //
+            // But it is work it to offer to replace:
+            //
+            //      `return (a, b).GetHashCode();` with `return HashCode.Combine(a, b);`
             if (elementCount == 1 && statements.Length < 2)
                 return;
 
