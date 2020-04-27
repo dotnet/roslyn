@@ -98,24 +98,24 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 var matchingDeclaration = await GetMatchingTypeDeclarationAsync(document, originalSymbolName, cancellationToken).ConfigureAwait(false);
 
-                if (matchingDeclaration is object)
+                if (matchingDeclaration is null)
                 {
-                    var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var symbol = semanticModel.GetDeclaredSymbol(matchingDeclaration, cancellationToken);
-
-                    if (symbol is null || WorkspacePathUtilities.TypeNameMatchesDocumentName(documentWithNewName, symbol.Name))
-                    {
-                        return null;
-                    }
-
-                    return new AnalysisResult(
-                        document,
-                        newDocumentName,
-                        newTypeName,
-                        symbol.Name);
+                    return null;
                 }
 
-                return null;
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var symbol = semanticModel.GetDeclaredSymbol(matchingDeclaration, cancellationToken);
+
+                if (symbol is null || WorkspacePathUtilities.TypeNameMatchesDocumentName(documentWithNewName, symbol.Name))
+                {
+                    return null;
+                }
+
+                return new AnalysisResult(
+                    document,
+                    newDocumentName,
+                    newTypeName,
+                    symbol.Name);
             }
 
             private readonly struct AnalysisResult

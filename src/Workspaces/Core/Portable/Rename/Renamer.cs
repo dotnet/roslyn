@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         /// <summary>
-        /// Call to perform a rename of document or change in document folders. Performs additional code changes related to the document
-        /// being renamed or moved. 
+        /// Call to perform a rename of document or change in document folders. Returns additional code changes related to the document
+        /// being modified, such as renaming symbols in the file. 
         ///
         /// Each change is added as a <see cref="RenameDocumentAction"/> in the returned <see cref="RenameDocumentActionSet.ApplicableActions" />.
         /// 
