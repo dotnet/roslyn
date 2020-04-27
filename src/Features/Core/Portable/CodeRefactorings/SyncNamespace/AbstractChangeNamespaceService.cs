@@ -156,12 +156,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             }
 
             return solution;
-
-
             static async Task<ImmutableArray<SyntaxNode>> GetTopLevelNamespacesAsync(Document document, CancellationToken cancellationToken)
             {
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
                 return syntaxRoot

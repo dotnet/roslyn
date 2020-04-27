@@ -47,11 +47,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         public static bool TypeNameMatchesDocumentName(Document document, SyntaxNode typeDeclaration, ISyntaxFacts syntaxFacts)
         {
             var name = syntaxFacts.GetDisplayName(typeDeclaration, DisplayNameOptions.None);
-            if (name is null)
-            {
-                return false;
-            }
-            return TypeNameMatchesDocumentName(document, name);
+            return name != null && TypeNameMatchesDocumentName(document, name);
         }
 
         /// <summary>
