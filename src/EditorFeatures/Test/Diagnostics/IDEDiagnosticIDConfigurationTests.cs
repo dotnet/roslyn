@@ -390,7 +390,7 @@ dotnet_style_prefer_compound_assignment = true:suggestion
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
 # IDE0076
-csharp_style_prefer_pattern_matching = true:suggestion
+csharp_style_prefer_pattern_matching = false:silent
 
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
@@ -899,7 +899,7 @@ dotnet_style_prefer_compound_assignment = true:suggestion
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
 # IDE0076, PreferPatternMatching
-csharp_style_prefer_pattern_matching = true:suggestion
+csharp_style_prefer_pattern_matching = false:silent
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true:suggestion

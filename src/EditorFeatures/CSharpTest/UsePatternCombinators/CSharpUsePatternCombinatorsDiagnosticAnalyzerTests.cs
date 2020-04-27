@@ -4,10 +4,12 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UsePatternCombinators;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -17,16 +19,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
     {
         private static readonly ParseOptions CSharp9 = TestOptions.RegularPreview;
 
+        private static readonly OptionsCollection PreferPatternMatching = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpCodeStyleOptions.PreferPatternMatching, true }
+        };
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUsePatternCombinatorsDiagnosticAnalyzer(), new CSharpUsePatternCombinatorsCodeFixProvider());
 
-        private Task TestMissingInCSharp9Async(string initialMarkup)
-            => TestMissingAsync(initialMarkup, new TestParameters(CSharp9));
+        private Task TestAllMissingAsync(string initialMarkup, ParseOptions parseOptions = null, bool enabled = true)
+            => TestMissingAsync(initialMarkup, new TestParameters(
+                parseOptions: parseOptions ?? CSharp9, options: enabled ? PreferPatternMatching : null));
 
-        private Task TestInCSharp9Async(string initialMarkup, string expectedMarkup)
-            => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parseOptions: CSharp9);
+        private Task TestAllAsync(string initialMarkup, string expectedMarkup)
+            => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup,
+                parseOptions: CSharp9, options: PreferPatternMatching);
 
-        private static readonly string s_initialMarkup = @"
+        private static string FromExpression(string expression)
+        {
+            const string initialMarkup = @"
 using System;
 using System.Collections.Generic;
 class C
@@ -54,6 +65,8 @@ class C
     object o;
 }
 ";
+            return initialMarkup.Replace("EXPRESSION", expression);
+        }
 
         [InlineData("i == 0")]
         [InlineData("i > 0")]
@@ -66,12 +79,13 @@ class C
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestMissingOnExpression(string expression)
         {
-            await TestMissingInCSharp9Async(s_initialMarkup.Replace("EXPRESSION", expression));
+            await TestAllMissingAsync(FromExpression(expression));
         }
 
         [InlineData("o is int ii && o is long jj", "o is int ii and long jj")]
         [InlineData("!(o is C)", "o is not C")]
         [InlineData("!(o is C _)", "o is not C _")]
+        [InlineData("i == (0x02 | 0x04) || i != 0", "i is (0x02 | 0x04) or not 0")]
         [InlineData("i == 1 || 2 == i", "i is 1 or 2")]
         [InlineData("i != 1 || 2 != i", "i is not (1 and 2)")]
         [InlineData("i != 1 && 2 != i", "i is not (1 or 2)")]
@@ -82,15 +96,25 @@ class C
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestOnExpression(string expression, string expected)
         {
-            await TestInCSharp9Async(
-                s_initialMarkup.Replace("EXPRESSION", expression),
-                s_initialMarkup.Replace("EXPRESSION", expected));
+            await TestAllAsync(FromExpression(expression), FromExpression(expected));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        public async Task TestMissingIfDisabled()
+        {
+            await TestAllMissingAsync(FromExpression("o == 1 || o == 2"), enabled: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        public async Task TestMissingOnCSharp8()
+        {
+            await TestAllMissingAsync(FromExpression("o == 1 || o == 2"), parseOptions: TestOptions.Regular8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestMultiline()
         {
-            await TestInCSharp9Async(
+            await TestAllAsync(
 @"class C
 {
     bool M0(int variable)

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferPatternMatching = CreateOption(
             CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferPatternMatching),
-            defaultValue: s_trueWithSuggestionEnforcement,
+            defaultValue: CodeStyleOption2<bool>.Default,
             storageLocations: new OptionStorageLocation2[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_pattern_matching"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternMatching)}")});
