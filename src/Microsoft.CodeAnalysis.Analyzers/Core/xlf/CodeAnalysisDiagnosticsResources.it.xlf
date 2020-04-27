@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
         <source>Add rule entry to unshipped release file</source>
-        <target state="new">Add rule entry to unshipped release file</target>
+        <target state="translated">Aggiungere la voce della regola per il file di versione non distribuito</target>
         <note />
       </trans-unit>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerMessage">
@@ -59,17 +59,17 @@
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseDescription">
         <source>All supported analyzer diagnostic IDs should be part of an analyzer release.</source>
-        <target state="new">All supported analyzer diagnostic IDs should be part of an analyzer release.</target>
+        <target state="translated">Tutti gli ID diagnostica dell'analizzatore supportati devono far parte di una versione dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseMessage">
         <source>Rule '{0}' is not part of any analyzer release.</source>
-        <target state="new">Rule '{0}' is not part of any analyzer release.</target>
+        <target state="translated">La regola '{0}' non fa parte di alcuna versione dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseTitle">
         <source>Add analyzer diagnostic IDs to analyzer release.</source>
-        <target state="new">Add analyzer diagnostic IDs to analyzer release.</target>
+        <target state="translated">Aggiungere gli ID diagnostica dell'analizzatore alla versione dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
@@ -104,17 +104,17 @@
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleDescription">
         <source>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</source>
-        <target state="new">Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</target>
+        <target state="translated">L'abilitazione del rilevamento delle versioni per i pacchetti per i pacchetti dell'analizzatore consente di tenere traccia e documentare la diagnostica dell'analizzatore che viene inclusa e/o modificata con ogni versione dell'analizzatore. Per dettagli, vedere https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">
         <source>Enable analyzer release tracking for the analyzer project containing rule '{0}'</source>
-        <target state="new">Enable analyzer release tracking for the analyzer project containing rule '{0}'</target>
+        <target state="translated">Abilita il rilevamento delle versioni dell'analizzatore per il progetto dell'analizzatore che contiene la regola '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleTitle">
         <source>Enable analyzer release tracking</source>
-        <target state="new">Enable analyzer release tracking</target>
+        <target state="translated">Abilita il rilevamento delle versioni dell'analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableConcurrentExecutionDescription">
@@ -139,32 +139,32 @@
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleDescription">
         <source>Invalid entry in analyzer release file.</source>
-        <target state="new">Invalid entry in analyzer release file.</target>
+        <target state="translated">Voce non valida nel file di versione dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has an invalid entry '{1}'.</source>
-        <target state="new">Analyzer release file '{0}' has an invalid entry '{1}'.</target>
+        <target state="translated">Il file di versione dell'analizzatore '{0}' contiene la voce non valida '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleTitle">
         <source>Invalid entry in analyzer release file.</source>
-        <target state="new">Invalid entry in analyzer release file.</target>
+        <target state="translated">Voce non valida nel file di versione dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidHeaderInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has a missing or invalid release header '{1}'.</source>
-        <target state="new">Analyzer release file '{0}' has a missing or invalid release header '{1}'.</target>
+        <target state="translated">Il file di versione dell'analizzatore '{0}' contiene un'intestazione di versione '{1}' mancante o non valida.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage">
         <source>Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</source>
-        <target state="new">Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</target>
+        <target state="translated">Il file di versione dell'analizzatore '{0}' contiene una voce '{1}' non valida senza una versione distribuita in precedenza per la regola '{2}'. Aggiungere invece una voce '{1}' distinta per la regola nel file di versione non distribuito.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'.</source>
-        <target state="new">Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'.</target>
+        <target state="translated">Il file di versione dell'analizzatore '{0}' contiene una voce con uno o più campi 'Non rilevato' che devono essere compilati manualmente in '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingAttributeMessage">
@@ -249,77 +249,77 @@
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription">
         <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
-        <target state="new">Remove duplicate entries for diagnostic ID between analyzer releases.</target>
+        <target state="translated">Rimuovere le voci duplicate per l'ID diagnostica tra le versioni dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage">
         <source>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'.</source>
-        <target state="new">Rule '{0}' has duplicate entry between release '{1}' and release '{2}'.</target>
+        <target state="translated">La regola '{0}' contiene una voce duplicata tra la versione '{1}' e la versione '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle">
         <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
-        <target state="new">Remove duplicate entries for diagnostic ID between analyzer releases.</target>
+        <target state="translated">Rimuovere le voci duplicate per l'ID diagnostica tra le versioni dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription">
         <source>Remove duplicate entries for diagnostic ID in the same analyzer release.</source>
-        <target state="new">Remove duplicate entries for diagnostic ID in the same analyzer release.</target>
+        <target state="translated">Rimuovere le voci duplicate per gli ID diagnostica nella stessa versione dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage">
         <source>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'.</source>
-        <target state="new">Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'.</target>
+        <target state="translated">La regola '{0}' contiene più di una voce per la versione '{1}' nel file di versione dell'analizzatore '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle">
         <source>Remove duplicate entries for diagnostic ID in the same analyzer release.</source>
-        <target state="new">Remove duplicate entries for diagnostic ID in the same analyzer release.</target>
+        <target state="translated">Rimuovere le voci duplicate per gli ID diagnostica nella stessa versione dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdDescription">
         <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</source>
-        <target state="new">Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</target>
+        <target state="translated">Per gli ID diagnostica distribuiti che non sono più segnalati deve essere inclusa una voce nella tabella 'Regole rimosse' nel file non distribuito.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdMessage">
         <source>Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</source>
-        <target state="new">Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</target>
+        <target state="translated">La regola '{0}' è stata distribuita nella versione dell'analizzatore '{1}', ma non è più una diagnostica supportata per qualsiasi analizzatore. Aggiungere una voce per questa regola in una tabella 'Regole rimosse' in un file non distribuito.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdTitle">
         <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</source>
-        <target state="new">Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</target>
+        <target state="translated">Per gli ID diagnostica distribuiti che non sono più segnalati deve essere inclusa una voce nella tabella 'Regole rimosse' nel file non distribuito.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdDescription">
         <source>Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.</source>
-        <target state="new">Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.</target>
+        <target state="translated">Le voci per gli ID diagnostica dell'analizzatore che non sono più segnalate e non vengono più distribuite possono essere rimosse dalla versione dell'analizzatore non distribuita.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdMessage">
         <source>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer.</source>
-        <target state="new">Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer.</target>
+        <target state="translated">La regola '{0}' fa parte della successiva versione dell'analizzatore non distribuita, ma non è una diagnostica supportata per qualsiasi analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdTitle">
         <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release.</source>
-        <target state="new">Do not add removed analyzer diagnostic IDs to unshipped analyzer release.</target>
+        <target state="translated">Non aggiungere gli ID diagnostica dell'analizzatore rimossi alla versione dell'analizzatore non distribuita.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription">
         <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</source>
-        <target state="new">Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</target>
+        <target state="translated">Gli ID diagnostica contrassegnati come rimossi nel file di versione dell'analizzatore non devono essere segnalati dagli analizzatori.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage">
         <source>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported.</source>
-        <target state="new">Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported.</target>
+        <target state="translated">La regola '{0}' è contrassegnata come rimossa nell'ultima versione dell'analizzatore, ma viene ancora segnalata.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle">
         <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</source>
-        <target state="new">Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</target>
+        <target state="translated">Gli ID diagnostica contrassegnati come rimossi nel file di versione dell'analizzatore non devono essere segnalati dagli analizzatori.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
@@ -399,22 +399,22 @@
       </trans-unit>
       <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseDescription">
         <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</source>
-        <target state="new">Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</target>
+        <target state="translated">Assicurarsi che la voce aggiornata per gli ID diagnostica dell'analizzatore vengano aggiunti alla versione dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseMessage">
         <source>Rule '{0}' has a changed 'Category' or 'Severity' from the last release. Either revert the update(s) in source or add a new up-to-date entry to unshipped release file.</source>
-        <target state="new">Rule '{0}' has a changed 'Category' or 'Severity' from the last release. Either revert the update(s) in source or add a new up-to-date entry to unshipped release file.</target>
+        <target state="translated">L'attributo 'Categoria' o 'Gravità' della regola '{0}' è stato modificato rispetto all'ultima versione. Ripristinare gli aggiornamenti nell'origine oppure aggiungere una nuova voce aggiornata al file di versione non distribuito.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseTitle">
         <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</source>
-        <target state="new">Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</target>
+        <target state="translated">Assicurarsi che la voce aggiornata per gli ID diagnostica dell'analizzatore vengano aggiunti alla versione dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
         <source>Update rule entry in unshipped release file</source>
-        <target state="new">Update rule entry in unshipped release file</target>
+        <target state="translated">Aggiornare la voce della regola nel file di versione non distribuito</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorMessage">

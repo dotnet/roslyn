@@ -45,9 +45,10 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string RelaxTestNamingSuppressionRuleId = "RS0039";
         public const string DefaultableTypeShouldHaveDefaultableFieldsRuleId = "RS0040";
         public const string ObliviousPublicApiRuleId = "RS0041";
-        public const string AvoidOptSuffixForNullableEnableCodeRuleId = "RS0042";
+        public const string DoNotCopyValueRuleId = "RS0042";
         public const string DoNotCallGetTestAccessorRuleId = "RS0043";
         public const string CreateTestAccessorRuleId = "RS0044";
         public const string ExposeMemberForTestingRuleId = "RS0045";
+        public const string AvoidOptSuffixForNullableEnableCodeRuleId = "RS0046";
     }
 }
