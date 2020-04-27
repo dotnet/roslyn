@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageSourceProvider = packageSourceProvider;
         }
 
-        public async ValueTask<ImmutableArray<PackageSource>> GetPackageSourcesAsync(bool allowSwitchToMainThread, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<PackageSource>?> TryGetPackageSourcesAsync(bool allowSwitchToMainThread, CancellationToken cancellationToken)
         {
             // Only read from _packageSources once, since OnSourceProviderSourcesChanged could reset it to default at
             // any time while this method is running.
@@ -123,8 +123,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
             else
             {
-                // Return without caching a result
-                return ImmutableArray<PackageSource>.Empty;
+                // The result was not available and switching to the main thread is not allowed. Return without caching
+                // a result.
+                return null;
             }
 
             var previousPackageSources = ImmutableInterlocked.InterlockedCompareExchange(ref _packageSources, packageSources, default);
