@@ -48,6 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (CastMustBePreserved(castNode, castedExpressionNode, semanticModel, cancellationToken))
                 return false;
 
+            // If this changes semantics, then we can't remove it.
+            if (speculationAnalyzer.ReplacementChangesSemantics())
+                return false;
+
             // Look for simple patterns that are known to be absolutely safe to always remove.
             if (CastCanDefinitelyBeRemoved(castNode, castedExpressionNode, semanticModel, cancellationToken))
                 return true;
@@ -56,10 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var castType = castTypeInfo.Type;
             var expressionTypeInfo = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
-
-            // If this changes semantics, then we can't remove it.
-            if (speculationAnalyzer.ReplacementChangesSemantics())
-                return false;
 
             var expressionToCastType = semanticModel.ClassifyConversion(castNode.SpanStart, castedExpressionNode, castType, isExplicitInSource: true);
             var outerType = GetOuterCastType(castNode, semanticModel, out var parentIsOrAsExpression) ?? castTypeInfo.ConvertedType;
