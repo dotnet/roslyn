@@ -42,6 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (speculationAnalyzer.SemanticRootOfOriginalExpression.ContainsDiagnostics)
                 return false;
 
+            // Look for simple patterns that are known to be absolutely safe to always remove.
+            if (CastCanDefinitelyBeRemoved(castNode, castedExpressionNode, semanticModel, cancellationToken))
+                return true;
+
             // Then look for patterns for cases where we never want to remove casts.  Note: we want these checks to be
             // very fast, and to eliminate as many cases as necessary.  Importantly, we want to be able to do these
             // checks before calling into the speculation analyzer.
@@ -51,10 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // If this changes static semantics (i.e. causes a different overload to be called), then we can't remove it.
             if (speculationAnalyzer.ReplacementChangesSemantics())
                 return false;
-
-            // Look for simple patterns that are known to be absolutely safe to always remove.
-            if (CastCanDefinitelyBeRemoved(castNode, castedExpressionNode, semanticModel, cancellationToken))
-                return true;
 
             var castTypeInfo = semanticModel.GetTypeInfo(castNode, cancellationToken);
             var castType = castTypeInfo.Type;
@@ -92,11 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             Debug.Assert(!expressionToCastType.IsIdentity);
-            if (expressionToCastType.IsExplicit)
-            {
-                // Explicit reference conversions can cause an exception or data loss, hence can never be removed.
-                return false;
-            }
+
 
             if (expressionToCastType.IsPointer || expressionToCastType.IsIntPtr)
             {
@@ -361,6 +357,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // If we've got an error for some reason, then we don't want to touch this at all.
             if (castType.IsErrorType())
+                return true;
+
+            // Explicit conversions can cause an exception or data loss, hence can never be removed.
+            if (conversion.IsExplicit)
                 return true;
 
             // `dynamic` changes the semantics of everything and is rarely safe to remove. We could consider removing
