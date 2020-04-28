@@ -6083,7 +6083,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Partial method {0} must have an implementation part because it has accessibility modifiers.</value>
   </data>
   <data name="ERR_PartialMethodWithExtendedModMustHaveImplementation" xml:space="preserve">
-    <value>Partial method {0} must have an implementation part because it is has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.</value>
+    <value>Partial method {0} must have an implementation part because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.</value>
   </data>
   <data name="ERR_PartialMethodExplicitAccessibilityDifference" xml:space="preserve">
     <value>Both partial method declarations must have accessibility modifiers or neither may have accessibility modifiers.</value>
