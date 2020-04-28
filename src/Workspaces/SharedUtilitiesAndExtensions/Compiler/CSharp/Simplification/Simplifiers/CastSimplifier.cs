@@ -68,13 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // the cast can be removed.
             if (expressionToCastType.IsIdentity)
             {
-                if (SameSizedFloatingPointCastMustBePreserved(
-                        semanticModel, castNode, castedExpressionNode,
-                        expressionType, castType, cancellationToken))
-                {
-                    return false;
-                }
-
                 return true;
             }
 
@@ -372,6 +365,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (CastIsRequiredToPreventUnintendedComparisonWarning(castNode, castedExpressionNode, castType, semanticModel, conversion, cancellationToken))
                 return true;
 
+            // Identity fp-casts can actually change the runtime value of the fp number.  This can happen because the
+            // runtime is allowed to perform the operations with wider precision than the actual specified fp-precision.
+            // i.e. 64-bit doubles can actually be 80 bits at runtime.  Even though the language considers this to be an
+            // identity cast, we don't want to remove these because the user may be depending on that truncation.
+            if (IdentityFloatingPointCastMustBePreserved(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, conversion, cancellationToken))
+                return true;
+
             return false;
         }
 
@@ -653,10 +653,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return result;
         }
 
-        private static bool SameSizedFloatingPointCastMustBePreserved(
-            SemanticModel semanticModel, ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
-            ITypeSymbol expressionType, ITypeSymbol castType, CancellationToken cancellationToken)
+        private static bool IdentityFloatingPointCastMustBePreserved(
+            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
+            ITypeSymbol castType, ITypeSymbol castedExpressionType,
+            SemanticModel semanticModel, Conversion conversion, CancellationToken cancellationToken)
         {
+            if (!conversion.IsIdentity)
+                return false;
+
             // Floating point casts can have subtle runtime behavior, even between the same fp types. For example, a
             // cast from float-to-float can still change behavior because it may take a higher precision computation and
             // truncate it to 32bits.
@@ -664,8 +668,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Because of this we keep floating point conversions unless we can prove that it's safe.  The only safe
             // times are when we're loading or storing into a location we know has the same size as the cast size
             // (i.e. reading/writing into a field).
-            if (expressionType.SpecialType != SpecialType.System_Double &&
-                expressionType.SpecialType != SpecialType.System_Single &&
+            if (castedExpressionType.SpecialType != SpecialType.System_Double &&
+                castedExpressionType.SpecialType != SpecialType.System_Single &&
                 castType.SpecialType != SpecialType.System_Double &&
                 castType.SpecialType != SpecialType.System_Single)
             {
