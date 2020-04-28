@@ -782,5 +782,150 @@ public class C : Base
             VerifyNoOverride(comp, "C.Base.M1");
             VerifyNoOverride(comp, "C.Base.M2");
         }
+
+        [Fact]
+        public void CovariantReturns_13()
+        {
+            var source = @"
+public class Base
+{
+    public virtual object P { get; set; }
+}
+public class Derived : Base
+{
+    public override string P { get => string.Empty; }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+                // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string P { get; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 28)
+                );
+            VerifyOverride(comp, "Derived.P", "System.Object Base.P { get; set; }");
+            VerifyOverride(comp, "Derived.get_P", "System.Object Base.P.get");
+            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+                );
+            VerifyOverride(comp, "Derived.P", "System.Object Base.P { get; set; }");
+            VerifyOverride(comp, "Derived.get_P", "System.Object Base.P.get");
+        }
+
+        [Fact]
+        public void CovariantReturns_14()
+        {
+            var source = @"
+public class Base
+{
+    public virtual object P { get; set; }
+}
+public class Derived : Base
+{
+    public override string P { get => string.Empty; }
+}
+public class Derived2 : Derived
+{
+    public override string P { get => string.Empty; set { } }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+                // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string P { get => string.Empty; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 28),
+                // (12,53): error CS0546: 'Derived2.P.set': cannot override because 'Derived.P' does not have an overridable set accessor
+                //     public override string P { get => string.Empty; set { } }
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived2.P.set", "Derived.P").WithLocation(12, 53)
+                );
+            VerifyOverride(comp, "Derived.P", "System.Object Base.P { get; set; }");
+            VerifyOverride(comp, "Derived.get_P", "System.Object Base.P.get");
+            VerifyOverride(comp, "Derived2.P", "System.String Derived.P { get; }");
+            VerifyOverride(comp, "Derived2.get_P", "System.String Derived.P.get");
+            VerifyNoOverride(comp, "Derived2.set_P");
+            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+                // (12,53): error CS0546: 'Derived2.P.set': cannot override because 'Derived.P' does not have an overridable set accessor
+                //     public override string P { get => string.Empty; set { } }
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived2.P.set", "Derived.P").WithLocation(12, 53)
+                );
+            VerifyOverride(comp, "Derived.P", "System.Object Base.P { get; set; }");
+            VerifyOverride(comp, "Derived.get_P", "System.Object Base.P.get");
+            VerifyOverride(comp, "Derived2.P", "System.String Derived.P { get; }");
+            VerifyOverride(comp, "Derived2.get_P", "System.String Derived.P.get");
+            VerifyNoOverride(comp, "Derived2.set_P");
+        }
+
+        [Fact]
+        public void CovariantReturns_15()
+        {
+            var source = @"
+public class Base
+{
+    public virtual object P { get; set; }
+}
+public class Derived : Base
+{
+    public override string P { get => string.Empty; }
+}
+public class Derived2 : Derived
+{
+    public override string P { set { } }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+                // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string P { get => string.Empty; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 28),
+                // (12,32): error CS0546: 'Derived2.P.set': cannot override because 'Derived.P' does not have an overridable set accessor
+                //     public override string P { set { } }
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived2.P.set", "Derived.P").WithLocation(12, 32)
+                );
+            VerifyOverride(comp, "Derived.P", "System.Object Base.P { get; set; }");
+            VerifyOverride(comp, "Derived.get_P", "System.Object Base.P.get");
+            VerifyOverride(comp, "Derived2.P", "System.String Derived.P { get; }");
+            VerifyNoOverride(comp, "Derived2.set_P");
+            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+                // (12,32): error CS0546: 'Derived2.P.set': cannot override because 'Derived.P' does not have an overridable set accessor
+                //     public override string P { set { } }
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived2.P.set", "Derived.P").WithLocation(12, 32)
+                );
+            VerifyOverride(comp, "Derived.P", "System.Object Base.P { get; set; }");
+            VerifyOverride(comp, "Derived.get_P", "System.Object Base.P.get");
+            VerifyOverride(comp, "Derived2.P", "System.String Derived.P { get; }");
+            VerifyNoOverride(comp, "Derived2.set_P");
+        }
+
+        [Fact]
+        public void CovariantReturns_16()
+        {
+            var source = @"
+public class Base
+{
+    public virtual object P { get; set; }
+}
+public class Derived : Base
+{
+    public override System.IComparable P { get => string.Empty; }
+}
+public class Derived2 : Derived
+{
+    public override string P { get => string.Empty; }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+                // (8,40): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override System.IComparable P { get => string.Empty; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 40),
+                // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string P { get => string.Empty; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(12, 28)
+                );
+            VerifyOverride(comp, "Derived.P", "System.Object Base.P { get; set; }");
+            VerifyOverride(comp, "Derived.get_P", "System.Object Base.P.get");
+            VerifyOverride(comp, "Derived2.P", "System.IComparable Derived.P { get; }");
+            VerifyOverride(comp, "Derived2.get_P", "System.IComparable Derived.P.get");
+            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+                );
+            VerifyOverride(comp, "Derived.P", "System.Object Base.P { get; set; }");
+            VerifyOverride(comp, "Derived.get_P", "System.Object Base.P.get");
+            VerifyOverride(comp, "Derived2.P", "System.IComparable Derived.P { get; }");
+            VerifyOverride(comp, "Derived2.get_P", "System.IComparable Derived.P.get");
+        }
     }
 }
