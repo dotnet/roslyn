@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (CastMustBePreserved(castNode, castedExpressionNode, semanticModel, cancellationToken))
                 return false;
 
-            // If this changes semantics, then we can't remove it.
+            // If this changes static semantics (i.e. causes a different overload to be called), then we can't remove it.
             if (speculationAnalyzer.ReplacementChangesSemantics())
                 return false;
 
