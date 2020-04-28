@@ -534,7 +534,9 @@ namespace Microsoft.CodeAnalysis
             // avoid enumerating multiple times:
             var collection = projectReferences?.ToCollection();
 
-            PublicContract.RequireUniqueNonNullItems(collection, nameof(projectReferences));
+            // TODO: Temporary workaround for https://github.com/dotnet/roslyn/issues/43632
+            // PublicContract.RequireUniqueNonNullItems(collection, nameof(projectReferences));
+            PublicContract.RequireNonNullItems(collection, nameof(projectReferences));
 
             foreach (var projectReference in collection)
             {
@@ -575,7 +577,9 @@ namespace Microsoft.CodeAnalysis
             var newState = _state.RemoveProjectReference(projectId, projectReference);
             if (newState == _state)
             {
-                throw new ArgumentException(WorkspacesResources.Project_does_not_contain_specified_reference, nameof(projectReference));
+                // TODO: temporary workaround for https://github.com/dotnet/roslyn/issues/43633
+                // throw new ArgumentException(WorkspacesResources.Project_does_not_contain_specified_reference, nameof(projectReference));
+                return this;
             }
 
             return new Solution(newState);
