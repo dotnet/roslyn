@@ -91,9 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
             }
 
-            if (WouldChangeDefaultOrNullInConditional(castNode))
-                return false;
-
             Debug.Assert(!expressionToCastType.IsIdentity);
             if (expressionToCastType.IsExplicit)
             {
@@ -356,6 +353,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // The type in `(...)expr` or `expr as ...`
             var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
 
+            var conversion = semanticModel.ClassifyConversion(castNode.SpanStart, castedExpressionNode, castType, isExplicitInSource: true);
+
             // If we don't understand the type, we must keep it.
             if (castType == null)
                 return true;
@@ -379,6 +378,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
 
             if (ParamsArgumentCastMustBePreserved(castNode, castType, semanticModel, cancellationToken))
+                return true;
+
+            // `... ? (int?)1 : default`.  This cast is necessary as the 'null/default' on the other side of the
+            // conditional can change meaning since based on the type on the other side.
+            //
+            // TODO(cyrusn): This should move into SpeculationAnalyzer as it's a static-semantics change.
+            if (CastMustBePreservedInConditionalBranch(castNode, conversion))
                 return true;
 
             return false;
@@ -411,22 +417,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                    castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression);
         }
 
-        private static bool WouldChangeDefaultOrNullInConditional(ExpressionSyntax expression)
+        private static bool CastMustBePreservedInConditionalBranch(
+            ExpressionSyntax expression, Conversion conversion)
         {
-            expression = expression.WalkUpParentheses();
-            var parent = expression.Parent;
-            if (parent is ConditionalExpressionSyntax conditionalExpression)
-            {
-                if (conditionalExpression.WhenTrue == expression ||
-                    conditionalExpression.WhenFalse == expression)
-                {
-                    var otherSide = conditionalExpression.WhenTrue == expression
-                        ? conditionalExpression.WhenFalse
-                        : conditionalExpression.WhenTrue;
+            // `... ? (int?)i : default`.  This cast is necessary as the 'null/default' on the other side of the
+            // conditional can change meaning since based on the type on the other side.
 
-                    otherSide = otherSide.WalkDownParentheses();
-                    return otherSide.IsKind(SyntaxKind.NullLiteralExpression) ||
-                           otherSide.IsKind(SyntaxKind.DefaultLiteralExpression);
+            // It's safe to remove the cast when it's an identity. for example:
+            // `... ? (int)1 : default`.
+            if (!conversion.IsIdentity)
+            {
+                expression = expression.WalkUpParentheses();
+                if (expression.Parent is ConditionalExpressionSyntax conditionalExpression)
+                {
+                    if (conditionalExpression.WhenTrue == expression ||
+                        conditionalExpression.WhenFalse == expression)
+                    {
+                        var otherSide = conditionalExpression.WhenTrue == expression
+                            ? conditionalExpression.WhenFalse
+                            : conditionalExpression.WhenTrue;
+
+                        otherSide = otherSide.WalkDownParentheses();
+                        return otherSide.IsKind(SyntaxKind.NullLiteralExpression) ||
+                               otherSide.IsKind(SyntaxKind.DefaultLiteralExpression);
+                    }
                 }
             }
 
