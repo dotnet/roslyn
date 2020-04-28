@@ -126,6 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
             }
 
+            if (WouldChangeDefaultOrNullInConditional(castNode))
+                return false;
+
             Debug.Assert(!expressionToCastType.IsIdentity);
             if (expressionToCastType.IsExplicit)
             {
@@ -314,6 +317,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     }
 
                     return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool WouldChangeDefaultOrNullInConditional(ExpressionSyntax expression)
+        {
+            expression = expression.WalkUpParentheses();
+            var parent = expression.Parent;
+            if (parent is ConditionalExpressionSyntax conditionalExpression)
+            {
+                if (conditionalExpression.WhenTrue == expression ||
+                    conditionalExpression.WhenFalse == expression)
+                {
+                    var otherSide = conditionalExpression.WhenTrue == expression
+                        ? conditionalExpression.WhenFalse
+                        : conditionalExpression.WhenTrue;
+
+                    otherSide = otherSide.WalkDownParentheses();
+                    return otherSide.IsKind(SyntaxKind.NullLiteralExpression) ||
+                           otherSide.IsKind(SyntaxKind.DefaultLiteralExpression);
                 }
             }
 
@@ -860,9 +885,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var parent = cast.WalkUpParentheses().Parent;
             if (parent is ArgumentSyntax argument)
             {
-                // If there are any arguments to the right, we can assume that this is not a
-                // *single* argument passed to a params parameter.
-                if (argument.Parent is BaseArgumentListSyntax argumentList)
+                // If there are any arguments to the right (and the argument is not named), we can assume that this is
+                // not a *single* argument passed to a params parameter.
+                if (argument.NameColon == null && argument.Parent is BaseArgumentListSyntax argumentList)
                 {
                     var argumentIndex = argumentList.Arguments.IndexOf(argument);
                     if (argumentIndex < argumentList.Arguments.Count - 1)

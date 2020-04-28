@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 {
     internal static class RemoteHostOptions
     {
-        public static readonly Option<bool> RemoteHostTest = new Option<bool>(
+        public static readonly Option2<bool> RemoteHostTest = new Option2<bool>(
             nameof(RemoteHostOptions), nameof(RemoteHostTest), defaultValue: false);
     }
 
