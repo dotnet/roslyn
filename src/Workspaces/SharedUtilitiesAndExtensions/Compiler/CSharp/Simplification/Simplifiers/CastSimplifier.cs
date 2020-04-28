@@ -64,15 +64,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var expressionToCastType = semanticModel.ClassifyConversion(castNode.SpanStart, castedExpressionNode, castType, isExplicitInSource: true);
             var outerType = GetOuterCastType(castNode, semanticModel, out var parentIsOrAsExpression) ?? castTypeInfo.ConvertedType;
 
-            // Simple case: If the conversion from the inner expression to the cast type is identity,
-            // the cast can be removed.
+            // Clearest case.  We know we haven't changed static semantic, and we have an Identity (i.e. no-impact,
+            // representation-preserving) cast.  This is always safe to remove.
+            //
+            // Note: while these casts are always safe to remove, there is a case where we still keep them.
+            // Specifically, if the compiler would warn that the code is no longer clear, then we will keep the cast
+            // around.  These warning checks should go into CastMustBePreserved above.
             if (expressionToCastType.IsIdentity)
-            {
                 return true;
-            }
 
-            Debug.Assert(!expressionToCastType.IsIdentity);
+            // We already bailed out of we had an explicit/none conversions back in CastMustBePreserved.
+            Debug.Assert(!expressionToCastType.IsExplicit);
 
+            // At this point, the only type of conversion left are implicit conversions.  These may be conversions we
+            // can remove, but need further analysis.
+            Debug.Assert(expressionToCastType.IsImplicit);
 
             if (expressionToCastType.IsPointer || expressionToCastType.IsIntPtr)
             {
@@ -331,6 +337,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // Explicit conversions can cause an exception or data loss, hence can never be removed.
             if (conversion.IsExplicit)
+                return true;
+
+            // If this conversion doesn't even exist, then this code is in error, and we don't want to touch it.
+            if (!conversion.Exists)
                 return true;
 
             // `dynamic` changes the semantics of everything and is rarely safe to remove. We could consider removing
