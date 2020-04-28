@@ -163,6 +163,13 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         private static async Task<Solution> ConvertToStructAsync(
             Document document, TextSpan span, Scope scope, CancellationToken cancellationToken)
         {
+            return await ConvertToStructInCurrentProcessAsync(
+                document, span, scope, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<Solution> ConvertToStructInCurrentProcessAsync(
+            Document document, TextSpan span, Scope scope, CancellationToken cancellationToken)
+        {
             var (tupleExprOrTypeNode, tupleType) = await TryGetTupleInfoAsync(
                 document, span, cancellationToken).ConfigureAwait(false);
 
