@@ -2532,7 +2532,7 @@ namespace N1 {
 
         public class ScriptGlobals
         {
-            public void Method(int p) { }
+            public void Method(int p) { Event.Invoke(); }
             public delegate void MyDelegate(int x);
             public int Field;
             public int Property => 1;
@@ -2540,7 +2540,7 @@ namespace N1 {
 
             public class NestedType
             {
-                public void Method(int p) { }
+                public void Method(int p) { Event.Invoke(); }
                 public delegate void MyDelegate(int x);
                 public int Field;
                 public int Property => 1;
