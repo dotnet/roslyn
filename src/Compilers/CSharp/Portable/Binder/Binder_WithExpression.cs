@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindWithExpression(WithExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
-            // PROTOTYPE: this entire method is likely to change
             var receiver = BindRValueWithoutTargetType(syntax.Receiver, diagnostics);
             var receiverType = receiver.Type;
 
@@ -95,85 +94,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var cloneReturnType = cloneMethod?.ReturnType;
+            // PROTOTYPE: Handle dynamic
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(
+                syntax.Receiver,
+                // formatting
+            #pragma warning disable IDE0055
+                cloneReturnType ?? receiverType) { WasCompilerGenerated = true };
+            #pragma warning restore IDE0055
 
-            var args = ArrayBuilder<(Symbol?, BoundExpression)>.GetInstance();
+            var args = ArrayBuilder<BoundExpression>.GetInstance();
             // Bind with expression arguments
             foreach (var expr in syntax.Initializer.Expressions)
             {
-                Symbol? member = null;
-                BoundExpression boundRight;
+                BoundExpression boundExpr;
                 // We're expecting a simple assignment only, with an ID on the left
                 if (!(expr is AssignmentExpressionSyntax assignment) ||
                     !(assignment.Left is IdentifierNameSyntax left))
                 {
-                    boundRight = BindExpression(expr, diagnostics);
+                    boundExpr = BindExpression(expr, diagnostics);
                     hasErrors = true;
                     diagnostics.Add(ErrorCode.ERR_BadWithExpressionArgument, expr.Location);
                 }
                 else
                 {
                     var propName = left.Identifier.Text;
-                    if (!(cloneReturnType is null))
-                    {
-                        var location = left.Location;
-                        this.LookupMembersInType(
-                            lookupResult,
-                            cloneReturnType,
-                            propName,
-                            arity: 0,
-                            basesBeingResolved: null,
-                            options: LookupOptions.Default,
-                            originalBinder: this,
-                            diagnose: false,
-                            useSiteDiagnostics: ref useSiteDiagnostics);
-                        // PROTOTYPE: Should handle hiding/overriding and bind like regular accesses
-                        if (lookupResult.IsSingleViable &&
-                            lookupResult.SingleSymbolOrDefault is var sym)
-                        {
-                            switch (sym.Kind)
-                            {
-                                case SymbolKind.Property:
-                                    member = sym;
-                                    // PROTOTYPE: this should check for init-only, but that isn't a separate feature yet
-                                    // It also will not work in metadata.
-                                    if (!(sym is SynthesizedRecordPropertySymbol))
-                                    {
-                                        goto default;
-                                    }
-                                    break;
+                    BoundExpression? boundMember = null;
+                    boundMember = BindInstanceMemberAccess(
+                        node: left,
+                        right: left,
+                        boundLeft: implicitReceiver,
+                        rightName: propName,
+                        rightArity: 0,
+                        typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
+                        typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
+                        invoked: false,
+                        indexed: false,
+                        diagnostics: diagnostics);
 
-                                default:
-                                    hasErrors = true;
-                                    diagnostics.Add(
-                                        ErrorCode.ERR_WithMemberIsNotRecordProperty,
-                                        location);
-                                    break;
-                            }
-                        }
+                    hasErrors |= boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
 
-                        if (!hasErrors && member is null)
-                        {
-                            hasErrors = true;
-                            Error(
-                                diagnostics,
-                                ErrorCode.ERR_NoSuchMemberOrExtension,
-                                location,
-                                cloneReturnType,
-                                propName);
-                        }
-                    }
+                    boundMember = CheckValue(boundMember, BindValueKind.Assignable, diagnostics);
 
-                    boundRight = BindValue(assignment.Right, diagnostics, BindValueKind.RValue);
-                    if (!(member is null))
-                    {
-                        boundRight = GenerateConversionForAssignment(
-                            member.GetTypeOrReturnType().Type,
-                            boundRight,
-                            diagnostics);
-                    }
-                    lookupResult.Clear();
+                    var boundRight = BindValue(assignment.Right, diagnostics, BindValueKind.RValue);
+                    boundExpr = BindAssignment(expr, boundMember, boundRight, isRef: false, diagnostics);
                 }
-                args.Add((member, boundRight));
+                args.Add(boundExpr);
             }
 
             lookupResult.Free();

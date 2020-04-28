@@ -2131,7 +2131,7 @@
     <!-- CloneMethod may be null in error scenarios-->
     <Field Name="CloneMethod" Type="MethodSymbol?" />
     <!-- Members and expressions passed as arguments to the With expression. -->
-    <Field Name="Arguments" Type="ImmutableArray&lt;(Symbol? Member, BoundExpression Expression)&gt;" />
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" />
   </Node>
 
 </Tree>

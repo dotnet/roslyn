@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -15,10 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class RecordTests : CompilingTestBase
     {
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
-            => CSharpTestBase.CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
 
         private CompilationVerifier CompileAndVerify(CSharpTestSource src, string? expectedOutput = null)
-            => base.CompileAndVerify(src, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularPreview);
+            => base.CompileAndVerify(new[] { src, IsExternalInitTypeDefinition },
+                expectedOutput: expectedOutput,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only fails verification
+                verify: Verification.Skipped);
 
         [Fact]
         public void GeneratedConstructor()
@@ -26,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(@"data class C(int x, string y);");
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
-            var ctor = c.GetMethod(".ctor");
+            var ctor = (MethodSymbol)c.GetMembers(".ctor")[0];
             Assert.Equal(2, ctor.ParameterCount);
 
             var x = ctor.Parameters[0];
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
             Assert.Equal(1, c.Arity);
-            var ctor = c.GetMethod(".ctor");
+            var ctor = (MethodSymbol)c.GetMembers(".ctor")[0];
             Assert.Equal(0, ctor.Arity);
             Assert.Equal(2, ctor.ParameterCount);
 
@@ -74,7 +77,7 @@ data class C(int x, string y)
                 Diagnostic(ErrorCode.ERR_DuplicateRecordConstructor, "(int x, string y)").WithLocation(2, 13)
             );
             var c = comp.GlobalNamespace.GetTypeMember("C");
-            var ctor = c.GetMethod(".ctor");
+            var ctor = (MethodSymbol)c.GetMembers(".ctor")[0];
             Assert.Equal(2, ctor.ParameterCount);
 
             var a = ctor.Parameters[0];
@@ -99,26 +102,32 @@ data class C(int x, string y)
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
             var ctors = c.GetMembers(".ctor");
-            Assert.Equal(2, ctors.Length);
+            Assert.Equal(3, ctors.Length);
 
             foreach (MethodSymbol ctor in ctors)
             {
-                Assert.Equal(2, ctor.ParameterCount);
-
-                var p1 = ctor.Parameters[0];
-                Assert.Equal(SpecialType.System_Int32, p1.Type.SpecialType);
-                var p2 = ctor.Parameters[1];
-                if (ctor is SynthesizedRecordConstructor)
+                if (ctor.ParameterCount == 2)
                 {
-                    Assert.Equal("x", p1.Name);
-                    Assert.Equal("y", p2.Name);
-                    Assert.Equal(SpecialType.System_String, p2.Type.SpecialType);
+                    var p1 = ctor.Parameters[0];
+                    Assert.Equal(SpecialType.System_Int32, p1.Type.SpecialType);
+                    var p2 = ctor.Parameters[1];
+                    if (ctor is SynthesizedRecordConstructor)
+                    {
+                        Assert.Equal("x", p1.Name);
+                        Assert.Equal("y", p2.Name);
+                        Assert.Equal(SpecialType.System_String, p2.Type.SpecialType);
+                    }
+                    else
+                    {
+                        Assert.Equal("a", p1.Name);
+                        Assert.Equal("b", p2.Name);
+                        Assert.Equal(SpecialType.System_Int32, p2.Type.SpecialType);
+                    }
                 }
                 else
                 {
-                    Assert.Equal("a", p1.Name);
-                    Assert.Equal("b", p2.Name);
-                    Assert.Equal(SpecialType.System_Int32, p2.Type.SpecialType);
+                    Assert.Equal(1, ctor.ParameterCount);
+                    Assert.True(c.Equals(ctor.Parameters[0].Type, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -134,7 +143,8 @@ data class C(int x, string y)
             Assert.NotNull(x.GetMethod);
             Assert.Equal(MethodKind.PropertyGet, x.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, x.Type.SpecialType);
-            Assert.True(x.IsReadOnly);
+            Assert.False(x.IsReadOnly);
+            Assert.False(x.IsWriteOnly);
             Assert.Equal(Accessibility.Public, x.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
@@ -150,12 +160,21 @@ data class C(int x, string y)
             Assert.Equal(x, getAccessor.AssociatedSymbol);
             Assert.Equal(c, getAccessor.ContainingSymbol);
             Assert.Equal(c, getAccessor.ContainingType);
+            Assert.Equal(Accessibility.Public, getAccessor.DeclaredAccessibility);
+
+            var setAccessor = x.SetMethod;
+            Assert.Equal(x, setAccessor.AssociatedSymbol);
+            Assert.Equal(c, setAccessor.ContainingSymbol);
+            Assert.Equal(c, setAccessor.ContainingType);
+            Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
+            Assert.True(setAccessor.IsInitOnly);
 
             var y = (SourceOrRecordPropertySymbol)c.GetProperty("y");
             Assert.NotNull(y.GetMethod);
             Assert.Equal(MethodKind.PropertyGet, y.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, y.Type.SpecialType);
-            Assert.True(y.IsReadOnly);
+            Assert.False(y.IsReadOnly);
+            Assert.False(y.IsWriteOnly);
             Assert.Equal(Accessibility.Public, y.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
@@ -171,6 +190,13 @@ data class C(int x, string y)
             Assert.Equal(y, getAccessor.AssociatedSymbol);
             Assert.Equal(c, getAccessor.ContainingSymbol);
             Assert.Equal(c, getAccessor.ContainingType);
+
+            setAccessor = y.SetMethod;
+            Assert.Equal(y, setAccessor.AssociatedSymbol);
+            Assert.Equal(c, setAccessor.ContainingSymbol);
+            Assert.Equal(c, setAccessor.ContainingType);
+            Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
+            Assert.True(setAccessor.IsInitOnly);
         }
 
         [Fact]
@@ -355,7 +381,6 @@ using System;
 data class C(int X, int Y)
 {
     public int Z;
-
     public static void Main()
     {
         var c = new C(1, 2);
@@ -412,7 +437,6 @@ using System;
 data class C(int X, int Y)
 {
     public int Z { get; set; }
-
     public static void Main()
     {
         var c = new C(1, 2);
@@ -439,7 +463,6 @@ using System;
 data class C(int X, int Y)
 {
     public static int Z;
-
     public static void Main()
     {
         var c = new C(1, 2);
@@ -491,7 +514,6 @@ data class C(int X, int Y)
 {
     static Dictionary<C, int> s_dict = new Dictionary<C, int>();
     public int Z { get => s_dict[this]; set => s_dict[this] = value; }
-
     public static void Main()
     {
         var c = new C(1, 2);
@@ -542,7 +564,6 @@ using System.Collections.Generic;
 data class C(int X, int Y)
 {
     private event Action E;
-
     public static void Main()
     {
         var c = new C(1, 2);
@@ -588,6 +609,90 @@ True");
   IL_0049:  ret
   IL_004a:  ldc.i4.0
   IL_004b:  ret
+}");
+        }
+
+        [Fact]
+        public void RecordClone1()
+        {
+            var comp = CreateCompilation("data class C(int x, int y);");
+            comp.VerifyDiagnostics();
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            var clone = c.GetMethod(WellKnownMemberNames.CloneMethodName);
+            Assert.Equal(0, clone.Arity);
+            Assert.Equal(0, clone.ParameterCount);
+            Assert.Equal(c, clone.ReturnType);
+
+            var ctor = (MethodSymbol)c.GetMembers(".ctor")[1];
+            Assert.Equal(1, ctor.ParameterCount);
+            Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  ldfld      ""int C.<x>k__BackingField""
+  IL_000d:  stfld      ""int C.<x>k__BackingField""
+  IL_0012:  ldarg.0
+  IL_0013:  ldarg.1
+  IL_0014:  ldfld      ""int C.<y>k__BackingField""
+  IL_0019:  stfld      ""int C.<y>k__BackingField""
+  IL_001e:  ret
+}");
+        }
+
+        [Fact]
+        public void RecordClone2()
+        {
+            var comp = CreateCompilation(@"
+data class C(int x, int y)
+{
+    public C(C other) { }
+}");
+            comp.VerifyDiagnostics();
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            var clone = c.GetMethod(WellKnownMemberNames.CloneMethodName);
+            Assert.Equal(0, clone.Arity);
+            Assert.Equal(0, clone.ParameterCount);
+            Assert.Equal(c, clone.ReturnType);
+
+            var ctor = (MethodSymbol)c.GetMembers(".ctor")[0];
+            Assert.Equal(1, ctor.ParameterCount);
+            Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
 }");
         }
     }

@@ -42,13 +42,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             // tmp.Pn = En;
             foreach (var arg in withExpr.Arguments)
             {
-                RoslynDebug.AssertNotNull(arg.Member);
-                // PROTOTYPE: only works for source symbols
-                var prop = (SynthesizedRecordPropertySymbol)arg.Member;
-                stores.Add(F.AssignmentExpression(
-                    (BoundExpression)F.Field((BoundExpression)receiverLocal, (FieldSymbol)prop.BackingField),
-                    (BoundExpression)VisitExpression((BoundExpression)arg.Expression)
-                ));
+                // If we got here without errors we should have a simple assignment with either a
+                // field or property on the left and a value expression on the right
+                var assignment = (BoundAssignmentOperator)arg;
+                // We need to construct the assignment LHS manually because swapping out the
+                // placeholder receiver could change the ref assignability of the expression, which
+                // the rest of lowering doesn't like
+                var left = assignment.Left.ExpressionSymbol switch
+                {
+                    PropertySymbol p => MakePropertyAccess(
+                        withExpr.Syntax,
+                        receiverLocal,
+                        p,
+                        receiverLocal.ResultKind,
+                        p.Type,
+                        isLeftOfAssignment: true),
+                    FieldSymbol f => MakeFieldAccess(
+                        withExpr.Syntax,
+                        receiverLocal,
+                        f,
+                        constantValueOpt: null,
+                        receiverLocal.ResultKind,
+                        f.Type),
+                    _ => throw ExceptionUtilities.UnexpectedValue(assignment.Left.Kind)
+                };
+                stores.Add(MakeStaticAssignmentOperator(
+                    assignment.Syntax,
+                    left,
+                    VisitExpression(assignment.Right),
+                    isRef: false,
+                    left.Type!,
+                    used: false));
             }
 
             return new BoundSequence(

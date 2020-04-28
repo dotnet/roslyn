@@ -7734,8 +7734,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundWithExpression : BoundExpression
     {
-        public BoundWithExpression(SyntaxNode syntax, BoundExpression receiver, MethodSymbol? cloneMethod, ImmutableArray<(Symbol? Member, BoundExpression Expression)> arguments, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.WithExpression, syntax, type, hasErrors || receiver.HasErrors())
+        public BoundWithExpression(SyntaxNode syntax, BoundExpression receiver, MethodSymbol? cloneMethod, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.WithExpression, syntax, type, hasErrors || receiver.HasErrors() || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7754,11 +7754,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public MethodSymbol? CloneMethod { get; }
 
-        public ImmutableArray<(Symbol? Member, BoundExpression Expression)> Arguments { get; }
+        public ImmutableArray<BoundExpression> Arguments { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitWithExpression(this);
 
-        public BoundWithExpression Update(BoundExpression receiver, MethodSymbol? cloneMethod, ImmutableArray<(Symbol? Member, BoundExpression Expression)> arguments, TypeSymbol type)
+        public BoundWithExpression Update(BoundExpression receiver, MethodSymbol? cloneMethod, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
         {
             if (receiver != this.Receiver || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(cloneMethod, this.CloneMethod) || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -9473,6 +9473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitWithExpression(BoundWithExpression node)
         {
             this.Visit(node.Receiver);
+            this.VisitList(node.Arguments);
             return null;
         }
     }
@@ -10638,8 +10639,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitWithExpression(BoundWithExpression node)
         {
             BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiver, node.CloneMethod, node.Arguments, type);
+            return node.Update(receiver, node.CloneMethod, arguments, type);
         }
     }
 
@@ -12930,16 +12932,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MethodSymbol? cloneMethod = GetUpdatedSymbol(node, node.CloneMethod);
             BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             BoundWithExpression updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(receiver, cloneMethod, node.Arguments, infoAndType.Type);
+                updatedNode = node.Update(receiver, cloneMethod, arguments, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(receiver, cloneMethod, node.Arguments, node.Type);
+                updatedNode = node.Update(receiver, cloneMethod, arguments, node.Type);
             }
             return updatedNode;
         }
@@ -14746,7 +14749,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
             new TreeDumperNode("cloneMethod", node.CloneMethod, null),
-            new TreeDumperNode("arguments", node.Arguments, null),
+            new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
