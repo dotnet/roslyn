@@ -21,10 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in context.InputNodes)
                 {
-                    var symbol = graphBuilder.GetSymbolAndProjectId(node);
-                    if (symbol.Symbol is IMethodSymbol ||
-                        symbol.Symbol is IPropertySymbol ||
-                        symbol.Symbol is IEventSymbol)
+                    var symbol = graphBuilder.GetSymbol(node);
+                    if (symbol is IMethodSymbol ||
+                        symbol is IPropertySymbol ||
+                        symbol is IEventSymbol)
                     {
                         var overrides = await SymbolFinder.FindOverridesAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
                         foreach (var o in overrides)

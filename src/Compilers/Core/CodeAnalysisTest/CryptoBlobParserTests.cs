@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void GetSnPublicKeyFromPublicKeyBlob()
         {
-            // An Strongname public key blob includes an additional header on top
+            // A Strongname public key blob includes an additional header on top
             // of the wincrypt.h public key blob
             var snBlob = TestResources.General.snPublicKey;
 

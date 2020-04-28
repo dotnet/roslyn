@@ -132,10 +132,12 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Invokes a remote method <paramref name="targetName"/> with specified <paramref name="arguments"/> and 
-        /// establishes a pipe through which the target method may transfer large binary data.
-        /// The name of the pipe is passed to the target method as an additional argument following the specified <paramref name="arguments"/>.
-        /// The target method is expected to use <see cref="WriteDataToNamedPipeAsync"/> to write the data to the pipe stream.
+        /// Invokes a remote method <paramref name="targetName"/> with specified <paramref name="arguments"/> and
+        /// establishes a pipe through which the target method may transfer large binary data. The name of the pipe is
+        /// passed to the target method as an additional argument following the specified <paramref name="arguments"/>.
+        /// The target method is expected to use
+        /// <see cref="WriteDataToNamedPipeAsync{TData}(string, TData, Func{Stream, TData, CancellationToken, Task}, CancellationToken)"/>
+        /// to write the data to the pipe stream.
         /// </summary>
         public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
         {
@@ -183,7 +185,15 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static async Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, Func<ObjectWriter, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)
+        public static Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, Func<ObjectWriter, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)
+            => WriteDataToNamedPipeAsync(pipeName, data,
+                async (stream, data, cancellationToken) =>
+                {
+                    using var objectWriter = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
+                    await dataWriter(objectWriter, data, cancellationToken).ConfigureAwait(false);
+                }, cancellationToken);
+
+        public static async Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, Func<Stream, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)
         {
             const int BufferSize = 4 * 1024;
 
@@ -208,11 +218,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Transfer ownership of the pipe to BufferedStream, it will dispose it:
                 using var stream = new BufferedStream(pipe, BufferSize);
 
-                using (var objectWriter = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
-                {
-                    await dataWriter(objectWriter, data, cancellationToken).ConfigureAwait(false);
-                }
-
+                await dataWriter(stream, data, cancellationToken).ConfigureAwait(false);
                 await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception) when (cancellationToken.IsCancellationRequested)

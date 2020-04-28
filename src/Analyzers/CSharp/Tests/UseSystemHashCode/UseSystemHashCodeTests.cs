@@ -1262,5 +1262,56 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        public async Task TestNotOnSingleReturnedMember()
+        {
+            await TestMissingAsync(
+@"namespace System { public struct HashCode { } }
+
+class C
+{
+    int j;
+
+    public override int $$GetHashCode()
+    {
+        return j;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        public async Task TestNotOnSingleMemberWithInvokedGetHashCode()
+        {
+            await TestMissingAsync(
+@"namespace System { public struct HashCode { } }
+
+class C
+{
+    int j;
+
+    public override int $$GetHashCode()
+    {
+        return j.GetHashCode();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        public async Task TestNotOnSimpleBaseReturn()
+        {
+            await TestMissingAsync(
+@"namespace System { public struct HashCode { } }
+
+class C
+{
+    int j;
+
+    public override int $$GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+}");
+        }
     }
 }

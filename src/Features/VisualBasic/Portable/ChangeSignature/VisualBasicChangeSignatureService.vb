@@ -12,9 +12,12 @@ Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
     <ExportLanguageService(GetType(AbstractChangeSignatureService), LanguageNames.VisualBasic), [Shared]>
@@ -135,11 +138,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return (If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault()), 0)
         End Function
 
-        Protected Overrides Function TryGetInsertPositionFromDeclaration(matchingNode As SyntaxNode) As Integer?
+        Protected Overrides Function GetPositionBeforeParameterListClosingBrace(matchingNode As SyntaxNode) As Integer
             Dim parameters = matchingNode.ChildNodes().OfType(Of ParameterListSyntax)().SingleOrDefault()
 
             If parameters Is Nothing Then
-                Return Nothing
+                Throw New ArgumentException("Unexpected SyntaxNode", NameOf(matchingNode))
             End If
 
             Return parameters.CloseParenToken.SpanStart
@@ -281,9 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                vbnode.IsKind(SyntaxKind.EventStatement) Then
 
                 Dim updatedLeadingTrivia = UpdateParamNodesInLeadingTrivia(document, vbnode, declarationSymbol, updatedSignature)
-                If updatedLeadingTrivia IsNot Nothing Then
-                    vbnode = vbnode.WithLeadingTrivia(updatedLeadingTrivia)
-                End If
+                vbnode = vbnode.WithLeadingTrivia(updatedLeadingTrivia)
             End If
 
             If vbnode.IsKind(SyntaxKind.SubStatement) OrElse vbnode.IsKind(SyntaxKind.FunctionStatement) Then
@@ -325,8 +326,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             If vbnode.IsKind(SyntaxKind.RaiseEventStatement) Then
                 Dim raiseEventStatement = DirectCast(vbnode, RaiseEventStatementSyntax)
-                Dim updatedArguments = PermuteArgumentList(raiseEventStatement.ArgumentList.Arguments, updatedSignature, declarationSymbol)
-                Return raiseEventStatement.WithArgumentList(raiseEventStatement.ArgumentList.WithArguments(updatedArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+                Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                Dim delegateInvokeMethod = DirectCast(DirectCast(semanticModel.GetSymbolInfo(raiseEventStatement.Name).Symbol, IEventSymbol).Type, INamedTypeSymbol).DelegateInvokeMethod
+
+                Return raiseEventStatement.WithArgumentList(UpdateArgumentList(
+                    delegateInvokeMethod,
+                    updatedSignature,
+                    raiseEventStatement.ArgumentList,
+                    isReducedExtensionMethod:=False,
+                    isParamsArrayExpanded:=False,
+                    generateAttributeArguments:=False))
             End If
 
             If vbnode.IsKind(SyntaxKind.InvocationExpression) Then
@@ -340,9 +349,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod = True
                 End If
 
-                Dim newArguments = PermuteArgumentList(invocation.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol, isReducedExtensionMethod)
-                newArguments = AddNewArgumentsToList(newArguments, updatedSignature, isReducedExtensionMethod)
-                Return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+                Return invocation.WithArgumentList(UpdateArgumentList(
+                    declarationSymbol,
+                    updatedSignature,
+                    invocation.ArgumentList,
+                    isReducedExtensionMethod,
+                    IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken),
+                    generateAttributeArguments:=False))
             End If
 
             If vbnode.IsKind(SyntaxKind.SubNewStatement) Then
@@ -353,24 +366,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             If vbnode.IsKind(SyntaxKind.Attribute) Then
                 Dim attribute = DirectCast(vbnode, AttributeSyntax)
-                Dim newArguments = PermuteArgumentList(attribute.ArgumentList.Arguments, updatedSignature, declarationSymbol)
-                Return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+
+                Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, AttributeSyntax))
+                Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
+
+                Return attribute.WithArgumentList(UpdateArgumentList(
+                    declarationSymbol,
+                    updatedSignature,
+                    attribute.ArgumentList,
+                    isReducedExtensionMethod:=False,
+                    isParamsArrayExpanded:=False,
+                    generateAttributeArguments:=True))
             End If
 
             If vbnode.IsKind(SyntaxKind.ObjectCreationExpression) Then
                 Dim objectCreation = DirectCast(vbnode, ObjectCreationExpressionSyntax)
                 Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
-                Dim isReducedExtensionMethod = False
                 Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, ObjectCreationExpressionSyntax))
                 Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
-                If methodSymbol IsNot Nothing AndAlso methodSymbol.MethodKind = MethodKind.ReducedExtension Then
-                    isReducedExtensionMethod = True
-                End If
 
-                Dim newArguments = PermuteArgumentList(objectCreation.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol, isReducedExtensionMethod)
-                newArguments = AddNewArgumentsToList(newArguments, updatedSignature, isReducedExtensionMethod)
-                Return objectCreation.WithArgumentList(objectCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+                Dim paramsArrayExpanded = IsParamsArrayExpanded(semanticModel, objectCreation, symbolInfo, cancellationToken)
+
+                Return objectCreation.WithArgumentList(UpdateArgumentList(
+                    declarationSymbol,
+                    updatedSignature,
+                    objectCreation.ArgumentList,
+                    isReducedExtensionMethod:=False,
+                    IsParamsArrayExpanded(semanticModel, objectCreation, symbolInfo, cancellationToken),
+                    generateAttributeArguments:=False))
             End If
 
             If vbnode.IsKind(SyntaxKind.PropertyStatement) Then
@@ -429,29 +454,89 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return vbnode
         End Function
 
+        Private Function UpdateArgumentList(
+            declarationSymbol As ISymbol,
+            signaturePermutation As SignatureChange,
+            argumentList As ArgumentListSyntax,
+            isReducedExtensionMethod As Boolean,
+            isParamsArrayExpanded As Boolean,
+            generateAttributeArguments As Boolean) As ArgumentListSyntax
+
+            Dim newArguments = PermuteArgumentList(
+                argumentList.Arguments,
+                signaturePermutation.WithoutAddedParameters(),
+                declarationSymbol,
+                isReducedExtensionMethod)
+
+            newArguments = AddNewArgumentsToList(
+                declarationSymbol,
+                newArguments,
+                signaturePermutation,
+                isReducedExtensionMethod,
+                isParamsArrayExpanded,
+                generateAttributeArguments)
+
+            Return argumentList.
+                WithArguments(newArguments).
+                WithAdditionalAnnotations(changeSignatureFormattingAnnotation)
+        End Function
+
+        Private Function IsParamsArrayExpanded(semanticModel As SemanticModel, node As SyntaxNode, symbolInfo As SymbolInfo, cancellationToken As CancellationToken) As Boolean
+            If symbolInfo.Symbol Is Nothing Then
+                Return False
+            End If
+
+            Dim argumentCount As Integer
+            Dim lastArgumentIsNamed As Boolean
+            Dim lastArgumentExpression As ExpressionSyntax = Nothing
+
+            Dim invocation = TryCast(node, InvocationExpressionSyntax)
+            Dim objectCreation = TryCast(node, ObjectCreationExpressionSyntax)
+            If invocation IsNot Nothing Then
+                GetArgumentListDetailsRegardingParamsArrays(invocation.ArgumentList, argumentCount, lastArgumentIsNamed, lastArgumentExpression)
+            ElseIf objectCreation IsNot Nothing Then
+                GetArgumentListDetailsRegardingParamsArrays(objectCreation.ArgumentList, argumentCount, lastArgumentIsNamed, lastArgumentExpression)
+            Else
+                Throw ExceptionUtilities.UnexpectedValue(node.Kind())
+            End If
+
+            Return IsParamsArrayExpandedHelper(symbolInfo.Symbol, argumentCount, lastArgumentIsNamed, semanticModel, lastArgumentExpression, cancellationToken)
+        End Function
+
+        Private Sub GetArgumentListDetailsRegardingParamsArrays(
+            argumentList As ArgumentListSyntax,
+            ByRef argumentCount As Integer,
+            ByRef lastArgumentIsNamed As Boolean,
+            ByRef lastArgumentExpression As ExpressionSyntax)
+
+            argumentCount = argumentList.Arguments.Count
+            Dim isNamed = argumentList.Arguments.LastOrDefault()?.IsNamed
+            lastArgumentIsNamed = isNamed.GetValueOrDefault()
+            lastArgumentExpression = argumentList.Arguments.LastOrDefault()?.GetExpression()
+        End Sub
+
         Private Function PermuteArgumentList(
             arguments As SeparatedSyntaxList(Of ArgumentSyntax),
             permutedSignature As SignatureChange,
             declarationSymbol As ISymbol,
             Optional isReducedExtensionMethod As Boolean = False) As SeparatedSyntaxList(Of ArgumentSyntax)
 
-            Dim newArguments As List(Of IUnifiedArgumentSyntax) = MyBase.PermuteArguments(
-                declarationSymbol, arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a)).ToList(), permutedSignature,
-                Function(callSiteValue) UnifiedArgumentSyntax.Create(SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression(callSiteValue))),
+            Dim newArguments As ImmutableArray(Of IUnifiedArgumentSyntax) = PermuteArguments(
+                declarationSymbol, arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a)).ToImmutableArray(), permutedSignature,
                 isReducedExtensionMethod)
 
             Dim numSeparatorsToSkip As Integer
             If arguments.Count = 0 Then
                 ' () 
                 ' Adding X parameters, need to add X-1 separators.
-                numSeparatorsToSkip = arguments.Count - newArguments.Count + 1
+                numSeparatorsToSkip = arguments.Count - newArguments.Length + 1
             Else
                 ' (a,b,c)
                 ' Adding X parameters, need to add X separators.
-                numSeparatorsToSkip = arguments.Count - newArguments.Count
+                numSeparatorsToSkip = arguments.Count - newArguments.Length
             End If
 
-            Return SyntaxFactory.SeparatedList(newArguments.Select(Function(a) CType(DirectCast(a, UnifiedArgumentSyntax), ArgumentSyntax)), GetSeparators(arguments, numSeparatorsToSkip))
+            Return SeparatedList(newArguments.Select(Function(a) CType(DirectCast(a, UnifiedArgumentSyntax), ArgumentSyntax)), GetSeparators(arguments, numSeparatorsToSkip))
         End Function
 
         Private Function UpdateDeclaration(Of T As SyntaxNode)(
@@ -459,59 +544,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 updatedSignature As SignatureChange,
                 createNewParameterMethod As Func(Of AddedParameter, T)) As SeparatedSyntaxList(Of T)
             Dim updatedDeclaration = UpdateDeclarationBase(parameterList, updatedSignature, createNewParameterMethod)
-            Return SyntaxFactory.SeparatedList(updatedDeclaration.parameters, updatedDeclaration.separators)
+            Return SeparatedList(updatedDeclaration.parameters, updatedDeclaration.separators)
         End Function
 
         Private Shared Function CreateNewParameterSyntax(addedParameter As AddedParameter) As ParameterSyntax
             Return SyntaxFactory.Parameter(
-                attributeLists:=SyntaxFactory.List(Of AttributeListSyntax)(),
-                modifiers:=SyntaxFactory.TokenList(),
-                identifier:=SyntaxFactory.ModifiedIdentifier(addedParameter.ParameterName),
-                asClause:=SyntaxFactory.SimpleAsClause(
+                attributeLists:=New SyntaxList(Of AttributeListSyntax)(),
+                modifiers:=If(addedParameter.HasDefaultValue, TokenList(Token(SyntaxKind.OptionalKeyword)), TokenList()),
+                identifier:=ModifiedIdentifier(addedParameter.Name),
+                asClause:=SimpleAsClause(
                     addedParameter.Type.GenerateTypeSyntax() _
-                    .WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace)) _
-                    .WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace),
-                [default]:=Nothing)
+                    .WithPrependedLeadingTrivia(ElasticSpace)) _
+                    .WithPrependedLeadingTrivia(ElasticSpace),
+                [default]:=If(addedParameter.HasDefaultValue, EqualsValue(ParseExpression(addedParameter.DefaultValue)), Nothing))
         End Function
 
         Private Shared Function CreateNewCrefParameterSyntax(addedParameter As AddedParameter) As CrefSignaturePartSyntax
-            Return SyntaxFactory.CrefSignaturePart(
+            Return CrefSignaturePart(
                 modifier:=Nothing,
                 type:=addedParameter.Type.GenerateTypeSyntax())
         End Function
 
-        Private Function UpdateParamNodesInLeadingTrivia(document As Document, node As VisualBasicSyntaxNode, declarationSymbol As ISymbol, updatedSignature As SignatureChange) As List(Of SyntaxTrivia)
+        Private Function UpdateParamNodesInLeadingTrivia(document As Document, node As VisualBasicSyntaxNode, declarationSymbol As ISymbol, updatedSignature As SignatureChange) As ImmutableArray(Of SyntaxTrivia)
             If Not node.HasLeadingTrivia Then
-                Return Nothing
+                Return ImmutableArray(Of SyntaxTrivia).Empty
             End If
 
             Dim paramNodes = node _
                 .DescendantNodes(descendIntoTrivia:=True) _
                 .OfType(Of XmlElementSyntax)() _
-                .Where(Function(e) e.StartTag.Name.ToString() = DocumentationCommentXmlNames.ParameterElementName)
+                .Where(Function(e) e.StartTag.Name.ToString() = DocumentationCommentXmlNames.ParameterElementName) _
+                .ToImmutableArray()
 
-            Dim permutedParamNodes As List(Of SyntaxNode) = VerifyAndPermuteParamNodes(paramNodes, declarationSymbol, updatedSignature)
-            If permutedParamNodes Is Nothing Then
+            Dim permutedParamNodes = VerifyAndPermuteParamNodes(paramNodes, declarationSymbol, updatedSignature)
+            If permutedParamNodes.IsEmpty() Then
                 ' Something is wrong with the <param> tags, so don't change anything.
-                Return Nothing
+                Return node.GetLeadingTrivia().ToImmutableArray()
             End If
 
-            Return GetPermutedTrivia(document, node, permutedParamNodes)
+            Return GetPermutedDocCommentTrivia(document, node, permutedParamNodes)
         End Function
 
-        Private Function VerifyAndPermuteParamNodes(paramNodes As IEnumerable(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As List(Of SyntaxNode)
+        Private Function VerifyAndPermuteParamNodes(paramNodes As ImmutableArray(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As ImmutableArray(Of SyntaxNode)
             ' Only reorder if count and order match originally.
 
             Dim originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters()
             Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
 
             Dim declaredParameters = declarationSymbol.GetParameters()
-            If paramNodes.Count() <> declaredParameters.Length Then
-                Return Nothing
+            If paramNodes.Length <> declaredParameters.Length Then
+                Return ImmutableArray(Of SyntaxNode).Empty
             End If
 
             If declaredParameters.Length = 0 Then
-                Return Nothing
+                Return ImmutableArray(Of SyntaxNode).Empty
             End If
 
             Dim dictionary = New Dictionary(Of String, XmlElementSyntax)()
@@ -519,12 +605,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             For Each paramNode In paramNodes
                 Dim nameAttribute = paramNode.StartTag.Attributes.OfType(Of XmlNameAttributeSyntax).FirstOrDefault(Function(a) a.Name.ToString() = "name")
                 If nameAttribute Is Nothing Then
-                    Return Nothing
+                    Return ImmutableArray(Of SyntaxNode).Empty
                 End If
 
                 Dim identifier = nameAttribute.DescendantNodes(descendIntoTrivia:=True).OfType(Of IdentifierNameSyntax)().FirstOrDefault()
                 If (identifier Is Nothing OrElse identifier.ToString() <> declaredParameters.ElementAt(i).Name) Then
-                    Return Nothing
+                    Return ImmutableArray(Of SyntaxNode).Empty
                 End If
 
                 dictionary.Add(originalParameters(i).Name.ToString(), paramNode)
@@ -532,29 +618,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Next
 
             ' Everything lines up, so permute them.
-            Dim permutedParams = New List(Of SyntaxNode)()
+            Dim permutedParams = ArrayBuilder(Of SyntaxNode).GetInstance()
             For Each parameter In reorderedParameters
                 Dim permutedParam As XmlElementSyntax = Nothing
                 If dictionary.TryGetValue(parameter.Name, permutedParam) Then
                     permutedParams.Add(permutedParam)
                 Else
-                    permutedParams.Add(SyntaxFactory.XmlElement(
-                        SyntaxFactory.XmlElementStartTag(
-                            SyntaxFactory.XmlName(Nothing, SyntaxFactory.XmlNameToken(DocumentationCommentXmlNames.ParameterElementName, SyntaxKind.XmlNameToken)),
-                            SyntaxFactory.List(Of XmlNodeSyntax)({SyntaxFactory.XmlNameAttribute(parameter.Name)})),
-                        SyntaxFactory.XmlElementEndTag(SyntaxFactory.XmlName(Nothing, SyntaxFactory.XmlNameToken(DocumentationCommentXmlNames.ParameterElementName, SyntaxKind.XmlNameToken)))))
+                    permutedParams.Add(XmlElement(
+                        XmlElementStartTag(
+                            XmlName(Nothing, XmlNameToken(DocumentationCommentXmlNames.ParameterElementName, SyntaxKind.XmlNameToken)),
+                            List(Of XmlNodeSyntax)({XmlNameAttribute(parameter.Name)})),
+                        XmlElementEndTag(XmlName(Nothing, XmlNameToken(DocumentationCommentXmlNames.ParameterElementName, SyntaxKind.XmlNameToken)))))
                 End If
             Next
 
-            Return permutedParams
+            Return permutedParams.ToImmutableAndFree()
         End Function
 
         Public Overrides Async Function DetermineCascadedSymbolsFromDelegateInvokeAsync(
-                methodAndProjectId As SymbolAndProjectId(Of IMethodSymbol),
+                method As IMethodSymbol,
                 document As Document,
-                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndProjectId))
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
 
-            Dim symbol = methodAndProjectId.Symbol
+            Dim symbol = method
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
@@ -600,8 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 End If
             Next
 
-            Return results.ToImmutableAndFree().
-                           SelectAsArray(Function(s) SymbolAndProjectId.Create(s, document.Project.Id))
+            Return results.ToImmutableAndFree()
         End Function
 
         Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
@@ -618,12 +703,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End Get
         End Property
 
-
-        Protected Overrides ReadOnly Property LanguageName As String
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
             Get
-                Return LanguageNames.VisualBasic
+                Return VisualBasicSyntaxFacts.Instance
             End Get
         End Property
 
+        Protected Overrides Function CreateExplicitParamsArrayFromIndividualArguments(newArguments As SeparatedSyntaxList(Of SyntaxNode), indexInExistingList As Integer, parameterSymbol As IParameterSymbol) As SyntaxNode
+            ' A params array cannot be introduced due to the addition of an omitted 
+            ' argument in VB because you cannot have a named argument to a params array.
+            Throw New InvalidOperationException()
+        End Function
+
+        Protected Overrides Function AddNameToArgument(newArgument As SyntaxNode, name As String) As SyntaxNode
+            Dim simpleArgument = TryCast(newArgument, SimpleArgumentSyntax)
+            If simpleArgument IsNot Nothing Then
+                Return simpleArgument.WithNameColonEquals(NameColonEquals(IdentifierName(name)))
+            End If
+
+            Dim omittedArgument = TryCast(newArgument, OmittedArgumentSyntax)
+            If omittedArgument IsNot Nothing Then
+                Return omittedArgument
+            End If
+
+            Throw ExceptionUtilities.UnexpectedValue(newArgument.Kind())
+        End Function
+
+        Protected Overrides Function SupportsOptionalAndParamsArrayParametersSimultaneously() As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function CommaTokenWithElasticSpace() As SyntaxToken
+            Return Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace)
+        End Function
     End Class
 End Namespace

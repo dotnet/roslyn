@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Rename
     {
         internal readonly CancellationToken CancellationToken;
         internal readonly ISet<TextSpan> ConflictLocationSpans;
-        internal readonly OptionSet OptionSet;
+        internal readonly RenameOptionSet OptionSet;
         internal readonly Solution OriginalSolution;
         internal readonly SyntaxTree OriginalSyntaxTree;
         internal readonly string OriginalText;
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Rename
             ISymbol renameSymbol,
             bool replacementTextValid,
             RenamedSpansTracker renameSpansTracker,
-            OptionSet optionSet,
+            RenameOptionSet optionSet,
             AnnotationTable<RenameAnnotation> renameAnnotations,
             CancellationToken cancellationToken)
         {
