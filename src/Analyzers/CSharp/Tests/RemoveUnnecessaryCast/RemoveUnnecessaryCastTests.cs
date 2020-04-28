@@ -7565,5 +7565,94 @@ public class sign
 
             await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
         }
+
+        [WorkItem(20742, "https://github.com/dotnet/roslyn/issues/20742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNamedArgToParamsParameter1()
+        {
+            var source =
+@"class Program
+{
+    public void M()
+    {
+        object[] takesArgs = null;
+        TakesParams(bar: (object)takesArgs, goo: true);
+    }
+
+    private void TakesParams(bool goo, params object[] bar)
+    {
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(20742, "https://github.com/dotnet/roslyn/issues/20742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveNamedArgToParamsParameter1()
+        {
+            var source =
+@"class Program
+{
+    public void M()
+    {
+        object[] takesArgs = null;
+        TakesParams(bar: [|(object[])|]takesArgs, goo: true);
+    }
+
+    private void TakesParams(bool goo, params object[] bar)
+    {
+    }
+}";
+            var fixedCode =
+@"class Program
+{
+    public void M()
+    {
+        object[] takesArgs = null;
+        TakesParams(bar: takesArgs, goo: true);
+    }
+
+    private void TakesParams(bool goo, params object[] bar)
+    {
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
+        }
+
+        [WorkItem(20742, "https://github.com/dotnet/roslyn/issues/20742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveNamedArgToParamsParameter2()
+        {
+            var source =
+@"class Program
+{
+    public void M()
+    {
+        string[] takesArgs = null;
+        TakesParams(bar: [|(object[])|]takesArgs, goo: true);
+    }
+
+    private void TakesParams(bool goo, params object[] bar)
+    {
+    }
+}";
+            var fixedCode =
+@"class Program
+{
+    public void M()
+    {
+        string[] takesArgs = null;
+        TakesParams(bar: takesArgs, goo: true);
+    }
+
+    private void TakesParams(bool goo, params object[] bar)
+    {
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
+        }
     }
 }
