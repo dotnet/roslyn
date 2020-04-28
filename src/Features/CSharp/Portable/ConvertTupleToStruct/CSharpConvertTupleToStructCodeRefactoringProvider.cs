@@ -30,12 +30,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
         public CSharpConvertTupleToStructCodeRefactoringProvider()
         {
         }
-
-        protected override ObjectCreationExpressionSyntax CreateObjectCreationExpression(
-            NameSyntax nameNode, SyntaxToken openParen, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParen)
-        {
-            return SyntaxFactory.ObjectCreationExpression(
-                nameNode, SyntaxFactory.ArgumentList(openParen, arguments, closeParen), initializer: null);
-        }
     }
 }

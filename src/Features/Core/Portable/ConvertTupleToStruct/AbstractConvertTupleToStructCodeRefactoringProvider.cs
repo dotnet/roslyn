@@ -57,9 +57,6 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             DependentProjects
         }
 
-        protected abstract TObjectCreationExpressionSyntax CreateObjectCreationExpression(
-            TNameSyntax nameNode, SyntaxToken openParen, SeparatedSyntaxList<TArgumentSyntax> arguments, SyntaxToken closeParen);
-
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
@@ -141,7 +138,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 _ => throw ExceptionUtilities.UnexpectedValue(scope),
             };
 
-        private async Task<(SyntaxNode, INamedTypeSymbol)> TryGetTupleInfoAsync(
+        private static async Task<(SyntaxNode, INamedTypeSymbol)> TryGetTupleInfoAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             // Enable refactoring either for TupleExpression or TupleType
@@ -163,7 +160,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return (expressionOrType, tupleType);
         }
 
-        private async Task<Solution> ConvertToStructAsync(
+        private static async Task<Solution> ConvertToStructAsync(
             Document document, TextSpan span, Scope scope, CancellationToken cancellationToken)
         {
             var (tupleExprOrTypeNode, tupleType) = await TryGetTupleInfoAsync(
@@ -219,7 +216,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return updatedSolution;
         }
 
-        private async Task ReplaceExpressionAndTypesInScopeAsync(
+        private static async Task ReplaceExpressionAndTypesInScopeAsync(
             Dictionary<Document, SyntaxEditor> documentToEditorMap,
             ImmutableArray<DocumentToUpdate> documentsToUpdate,
             SyntaxNode tupleExprOrTypeNode, INamedTypeSymbol tupleType,
@@ -506,7 +503,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return currentSolution;
         }
 
-        private async Task<bool> ReplaceTupleExpressionsAndTypesInDocumentAsync(
+        private static async Task<bool> ReplaceTupleExpressionsAndTypesInDocumentAsync(
             Document document, SyntaxEditor editor, SyntaxNode startingNode,
             INamedTypeSymbol tupleType, TNameSyntax fullyQualifiedStructName,
             string structName, ImmutableArray<ITypeParameterSymbol> typeParameters,
@@ -526,7 +523,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return changed;
         }
 
-        private async Task<bool> ReplaceMatchingTupleExpressionsAsync(
+        private static async Task<bool> ReplaceMatchingTupleExpressionsAsync(
             Document document, SyntaxEditor editor, SyntaxNode startingNode,
             INamedTypeSymbol tupleType, TNameSyntax qualifiedTypeName,
             string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
@@ -552,8 +549,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 {
                     changed = true;
                     ReplaceWithObjectCreation(
-                        syntaxFacts, editor, typeName, typeParameters,
-                        qualifiedTypeName, startingNode, childCreation);
+                        editor, typeName, typeParameters, qualifiedTypeName, startingNode, childCreation);
                 }
             }
 
@@ -583,8 +579,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return true;
         }
 
-        private void ReplaceWithObjectCreation(
-            ISyntaxFactsService syntaxFacts, SyntaxEditor editor, string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
+        private static void ReplaceWithObjectCreation(
+            SyntaxEditor editor, string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
             TNameSyntax qualifiedTypeName, SyntaxNode startingCreationNode, TTupleExpressionSyntax childCreation)
         {
             // Use the callback form as tuples types may be nested, and we want to
@@ -600,33 +596,34 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                         ? CreateStructNameNode(g, typeName, typeParameters, addRenameAnnotation: true)
                         : qualifiedTypeName;
 
+                    var syntaxFacts = g.SyntaxFacts;
                     syntaxFacts.GetPartsOfTupleExpression<TArgumentSyntax>(
                         currentTupleExpr, out var openParen, out var arguments, out var closeParen);
-                    arguments = ConvertArguments(syntaxFacts, g, arguments);
+                    arguments = ConvertArguments(g, arguments);
 
-                    return CreateObjectCreationExpression(typeNameNode, openParen, arguments, closeParen)
+                    return g.ObjectCreationExpression(typeNameNode, openParen, arguments, closeParen)
                         .WithAdditionalAnnotations(Formatter.Annotation);
                 });
         }
 
-        private SeparatedSyntaxList<TArgumentSyntax> ConvertArguments(ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, SeparatedSyntaxList<TArgumentSyntax> arguments)
-            => generator.SeparatedList<TArgumentSyntax>(ConvertArguments(syntaxFacts, generator, arguments.GetWithSeparators()));
+        private static SeparatedSyntaxList<TArgumentSyntax> ConvertArguments(SyntaxGenerator generator, SeparatedSyntaxList<TArgumentSyntax> arguments)
+            => generator.SeparatedList<TArgumentSyntax>(ConvertArguments(generator, arguments.GetWithSeparators()));
 
-        private SyntaxNodeOrTokenList ConvertArguments(ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, SyntaxNodeOrTokenList list)
-            => new SyntaxNodeOrTokenList(list.Select(v => ConvertArgumentOrToken(syntaxFacts, generator, v)));
+        private static SyntaxNodeOrTokenList ConvertArguments(SyntaxGenerator generator, SyntaxNodeOrTokenList list)
+            => new SyntaxNodeOrTokenList(list.Select(v => ConvertArgumentOrToken(generator, v)));
 
-        private SyntaxNodeOrToken ConvertArgumentOrToken(ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, SyntaxNodeOrToken arg)
+        private static SyntaxNodeOrToken ConvertArgumentOrToken(SyntaxGenerator generator, SyntaxNodeOrToken arg)
             => arg.IsToken
                 ? arg
-                : ConvertArgument(syntaxFacts, generator, (TArgumentSyntax)arg.AsNode());
+                : ConvertArgument(generator, (TArgumentSyntax)arg.AsNode());
 
-        private TArgumentSyntax ConvertArgument(
-            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, TArgumentSyntax argument)
+        private static TArgumentSyntax ConvertArgument(
+            SyntaxGenerator generator, TArgumentSyntax argument)
         {
             // Keep named arguments for literal args.  It helps keep the code self-documenting.
             // Remove for complex args as it's most likely just clutter a person doesn't need
             // when instantiating their new type.
-            var expr = syntaxFacts.GetExpressionOfArgument(argument);
+            var expr = generator.SyntaxFacts.GetExpressionOfArgument(argument);
             if (expr is TLiteralExpressionSyntax)
             {
                 return argument;
@@ -635,7 +632,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return (TArgumentSyntax)generator.Argument(expr).WithTriviaFrom(argument);
         }
 
-        private async Task<bool> ReplaceMatchingTupleTypesAsync(
+        private static async Task<bool> ReplaceMatchingTupleTypesAsync(
             Document document, SyntaxEditor editor, SyntaxNode startingNode,
             INamedTypeSymbol tupleType, TNameSyntax qualifiedTypeName,
             string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
@@ -667,7 +664,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return changed;
         }
 
-        private void ReplaceWithTypeNode(
+        private static void ReplaceWithTypeNode(
             SyntaxEditor editor, string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
             TNameSyntax qualifiedTypeName, SyntaxNode startingNode, TTupleTypeSyntax childTupleType)
         {
