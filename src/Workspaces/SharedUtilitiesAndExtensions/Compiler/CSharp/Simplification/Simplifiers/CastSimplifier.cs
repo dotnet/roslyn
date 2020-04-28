@@ -893,9 +893,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             ExpressionSyntax left, ExpressionSyntax right, string operatorName,
             SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            // compiler: node.Left.Type.SpecialType == SpecialType.System_Object && 
+            // compiler: node.Left.Type.SpecialType == SpecialType.System_Object
             var leftType = semanticModel.GetTypeInfo(left, cancellationToken).Type;
             if (leftType?.SpecialType != SpecialType.System_Object)
+                return false;
+
+            // compiler: && !IsExplicitCast(node.Left)
+            if (left.IsKind(SyntaxKind.CastExpression, SyntaxKind.AsExpression))
                 return false;
 
             // compiler: && !(node.Left.ConstantValue != null && node.Left.ConstantValue.IsNull)
