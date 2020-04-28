@@ -64,6 +64,18 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxTriviaList ParseLeadingTrivia(string text)
             => SyntaxFactory.ParseLeadingTrivia(text);
 
+        public string EscapeIdentifier(string identifier)
+        {
+            var nullIndex = identifier.IndexOf('\0');
+            if (nullIndex >= 0)
+            {
+                identifier = identifier.Substring(0, nullIndex);
+            }
+
+            var needsEscaping = SyntaxFacts.GetKeywordKind(identifier) != SyntaxKind.None;
+            return needsEscaping ? "@" + identifier : identifier;
+        }
+
         public bool IsVerbatimIdentifier(SyntaxToken token)
             => token.IsVerbatimIdentifier();
 
