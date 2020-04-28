@@ -402,6 +402,98 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (PointerOrIntPtrCastMustBePreserved(castType, conversion))
                 return true;
 
+            // If we have something like `((int)default).ToString()`. `default` has no type of it's own, but instead can
+            // be target typed.  However `(...).ToString()` is not a location where a target type can appear.  So don't
+            // even bother removing this.
+            if (IsTypeLessExpressionNotInTargetTypedLocation(castNode, castedExpressionNode, castType, castedExpressionType))
+                return true;
+
+            return false;
+        }
+
+        private static bool IsTypeLessExpressionNotInTargetTypedLocation(ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode, ITypeSymbol castType, ITypeSymbol castedExpressionType)
+        {
+            // If we have something like `((int)default).ToString()`. `default` has no type of it's own, but instead can
+            // be target typed.  However `(...).ToString()` is not a location where a target type can appear.  So don't
+            // even bother removing this.
+
+            // checked if the expression being casted is typeless.
+            if (castedExpressionType != null)
+                return false;
+
+            if (IsInTargetTypingLocation(castNode))
+                return false;
+
+            // we don't have our own type, and we're not in a location where a type can be inferred. don't remove this
+            // cast.
+            return true;
+        }
+
+        private static bool IsInTargetTypingLocation(ExpressionSyntax node)
+        {
+            node = node.WalkUpParentheses();
+            var parent = node.Parent;
+
+            // note: the list below is not intended to be exhaustive.  For example there are places we can target type,
+            // but which we don't want to bother doing all the work to validate.  For example, technically you can
+            // target type `throw (Exception)null`, so we could allow `(Exception)` to be removed.  But it's such a corner
+            // case that we don't care about supporting, versus all the hugely valuable cases users will actually run into.
+
+            // also: the list doesn't have to be firmly accurate:
+            //  1. If we have a false positive and we say something is a target typing location, then that means we
+            //     simply try to remove the cast, but then catch the break later.
+            //  2. If we have a false negative and we say something is not a target typing location, then we simply
+            //     don't try to remove the cast and the user has no impact on their code.
+
+            // `null op e2`.  Either side can target type the other.
+            if (parent is BinaryExpressionSyntax)
+                return true;
+
+            // `Goo(null)`.  The type of the arg is target typed by the Goo method being called.
+            // 
+            // This also helps Tuples fall out as they're built of arguments.  i.e. `(string s, string y) = (null, null)`.
+            if (parent is ArgumentSyntax)
+                return true;
+
+            // same as above
+            if (parent is AttributeArgumentSyntax)
+                return true;
+
+            // `new SomeType[] { null }` or `new [] { null, expr }`.
+            // Type of the element can be target typed by the array type, or the sibling expression types.
+            if (parent is InitializerExpressionSyntax)
+                return true;
+
+            // `return null;`.  target typed by whatever method this is in.
+            if (parent is ReturnStatementSyntax)
+                return true;
+
+            // `yield return null;` same as above.
+            if (parent is YieldStatementSyntax)
+                return true;
+
+            // `x = null`.  target typed by the other side.
+            if (parent is AssignmentExpressionSyntax)
+                return true;
+
+            // ... = null
+            //
+            // handles:  parameters, variable declarations and the like.
+            if (parent is EqualsValueClauseSyntax)
+                return true;
+
+            // `(SomeType)null`.  Definitely can target type this type-less expression.
+            if (parent is CastExpressionSyntax)
+                return true;
+
+            // `... ? null : ...`.  Either side can target type the other.
+            if (parent is ConditionalExpressionSyntax)
+                return true;
+
+            // case null:
+            if (parent is CaseSwitchLabelSyntax)
+                return true;
+
             return false;
         }
 
