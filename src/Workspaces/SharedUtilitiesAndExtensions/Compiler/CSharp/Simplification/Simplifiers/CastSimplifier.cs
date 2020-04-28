@@ -281,26 +281,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            // if we have `(E)~(int)e` then the cast to (int) is not necessary as enums always support `~`.
-
             if (!castedExpressionType.IsEnumType(out var castedEnumType))
                 return false;
 
             if (!Equals(castType, castedEnumType.EnumUnderlyingType))
                 return false;
 
-            if (!castNode.WalkUpParentheses().IsParentKind(SyntaxKind.BitwiseNotExpression, out PrefixUnaryExpressionSyntax prefixUnary))
-                return false;
+            // if we have `(E)~(int)e` then the cast to (int) is not necessary as enums always support `~`.
+            castNode = castNode.WalkUpParentheses();
+            if (castNode.IsParentKind(SyntaxKind.BitwiseNotExpression, out PrefixUnaryExpressionSyntax prefixUnary))
+            {
+                if (!prefixUnary.WalkUpParentheses().IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax parentCast))
+                    return false;
 
-            if (!prefixUnary.WalkUpParentheses().IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax parentCast))
-                return false;
+                // `(int)` in `(E?)~(int)e` is also redundant.
+                var parentCastType = semanticModel.GetTypeInfo(parentCast.Type, cancellationToken).Type;
+                if (parentCastType.IsNullable(out var underlyingType))
+                    parentCastType = underlyingType;
 
-            // `(int)` in `(E?)~(int)e` is also redundant.
-            var parentCastType = semanticModel.GetTypeInfo(parentCast.Type, cancellationToken).Type;
-            if (parentCastType.IsNullable(out var underlyingType))
-                parentCastType = underlyingType;
+                return castedEnumType.Equals(parentCastType);
+            }
 
-            return castedEnumType.Equals(parentCastType);
+            // if we have `(int)e == 0` then the cast can be removed.  Note: this is only for the exact cast of
+            // comparing to the constant 0.  All other comparisons are not allowed.
+            if (castNode.Parent is BinaryExpressionSyntax binaryExpression)
+            {
+                if (binaryExpression.IsKind(SyntaxKind.EqualsExpression) || binaryExpression.IsKind(SyntaxKind.NotEqualsExpression))
+                {
+                    var otherSide = castNode == binaryExpression.Left ? binaryExpression.Right : binaryExpression.Left;
+                    var otherSideType = semanticModel.GetTypeInfo(otherSide, cancellationToken).Type;
+                    if (otherSideType.Equals(castedEnumType.EnumUnderlyingType))
+                    {
+                        var constantValue = semanticModel.GetConstantValue(otherSide, cancellationToken);
+                        if (constantValue.HasValue &&
+                            IntegerUtilities.IsIntegral(constantValue.Value) &&
+                            IntegerUtilities.ToInt64(constantValue.Value) == 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private static bool CastMustBePreserved(
