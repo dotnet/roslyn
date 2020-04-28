@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class RemoteEndPoint : IDisposable
     {
-        const string UnexpectedExceptionLogMessage = "Unexpected exception from JSON-RPC";
+        private const string UnexpectedExceptionLogMessage = "Unexpected exception from JSON-RPC";
 
         private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
         {
@@ -35,11 +35,6 @@ namespace Microsoft.CodeAnalysis.Remote
             // Only allow public methods (may be on internal types) to be invoked remotely.
             AllowNonPublicInvocation = false
         };
-
-        // these are for debugging purpose. once we find out root cause of the issue
-        // we will remove these.
-        private static JsonRpcDisconnectedEventArgs? s_debuggingLastDisconnectReason;
-        private static string? s_debuggingLastDisconnectCallstack;
 
         private readonly TraceSource _logger;
         private readonly JsonRpc _rpc;
@@ -335,9 +330,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void ReportNonFatalWatson(Exception exception)
         {
-            s_debuggingLastDisconnectReason = _debuggingLastDisconnectReason;
-            s_debuggingLastDisconnectCallstack = _debuggingLastDisconnectCallstack;
-
             FatalError.ReportWithoutCrash(exception);
         }
 

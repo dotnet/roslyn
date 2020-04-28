@@ -42,20 +42,14 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Private Class FixIncorrectTokensRewriter
             Inherits AbstractTokensCodeCleanupProvider.Rewriter
 
-            Private ReadOnly _document As Document
-            Private ReadOnly _modifiedSpan As TextSpan
             Private ReadOnly _semanticModel As SemanticModel
 
-            Private Sub New(document As Document,
-                            semanticModel As SemanticModel,
+            Private Sub New(semanticModel As SemanticModel,
                             spans As ImmutableArray(Of TextSpan),
-                            modifiedSpan As TextSpan,
                             cancellationToken As CancellationToken)
                 MyBase.New(spans, cancellationToken)
 
-                _document = document
                 _semanticModel = semanticModel
-                _modifiedSpan = modifiedSpan
             End Sub
 
             Public Shared Async Function CreateAsync(document As Document, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken) As Task(Of Rewriter)
@@ -64,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Nothing,
                     Await document.GetSemanticModelForSpanAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
 
-                Return New FixIncorrectTokensRewriter(document, semanticModel, spans, modifiedSpan, cancellationToken)
+                Return New FixIncorrectTokensRewriter(semanticModel, spans, cancellationToken)
             End Function
 
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia

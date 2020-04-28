@@ -84,8 +84,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             SyntaxKind.SubNewStatement,
             SyntaxKind.ConstructorBlock)
 
-        Dim s_createNewParameterSyntaxDelegate As Func(Of AddedParameter, ParameterSyntax) = AddressOf CreateNewParameterSyntax
-        Dim s_createNewCrefParameterSyntaxDelegate As Func(Of AddedParameter, CrefSignaturePartSyntax) = AddressOf CreateNewCrefParameterSyntax
+        Private ReadOnly s_createNewParameterSyntaxDelegate As Func(Of AddedParameter, ParameterSyntax) = AddressOf CreateNewParameterSyntax
+        Private ReadOnly s_createNewCrefParameterSyntaxDelegate As Func(Of AddedParameter, CrefSignaturePartSyntax) = AddressOf CreateNewCrefParameterSyntax
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
