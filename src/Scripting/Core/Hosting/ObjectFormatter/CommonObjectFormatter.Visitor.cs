@@ -763,13 +763,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             private Builder FormatWithEmbeddedExpressions(Builder result, string format, object obj)
             {
-                int i = 1;
+                int i = 0;
                 while (i < format.Length)
                 {
                     char c = format[i++];
                     if (c == '{')
                     {
-                        if ((i >= 2 && format[i - 2] == '\\'))
+                        if (i >= 2 && format[i - 2] == '\\')
                         {
                             result.Append('{');
                         }
@@ -825,7 +825,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     }
                     else
                     {
-                        result.Append(c);
+                        if ((format[i - 1] == '\\' && c != '\\') || format[i - 1] != '\\')
+                        {
+                            result.Append(c);
+                        }
                     }
                 }
 
