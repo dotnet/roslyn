@@ -6,6 +6,7 @@ Imports System.Windows
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
@@ -305,7 +306,7 @@ class MyClass
                     Assert.True(False, "Missing caret location in document.")
                 End If
 
-                Dim viewModel = New AddParameterDialogViewModel(workspaceDoc, doc.CursorPosition.Value)
+                Dim viewModel = New AddParameterDialogViewModel(workspaceDoc, doc.CursorPosition.Value, New TestNotificationService())
                 Return New AddParameterViewModelTestState(viewModel)
             End Using
         End Function

@@ -56,7 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             Document document,
             int insertPosition,
             IClassificationFormatMap classificationFormatMap,
-            ClassificationTypeMap classificationTypeMap)
+            ClassificationTypeMap classificationTypeMap,
+            INotificationService notificationService)
         {
             _originalParameterConfiguration = parameters;
             _document = document;
@@ -64,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
 
-            _notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
+            _notificationService = notificationService;
 
             // This index is displayed to users. That is why we start it from 1.
             var initialDisplayIndex = 1;
@@ -146,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         public AddParameterDialogViewModel CreateAddParameterDialogViewModel()
-            => new AddParameterDialogViewModel(_document, _insertPosition);
+            => new AddParameterDialogViewModel(_document, _insertPosition, _notificationService);
 
         List<ParameterViewModel> CreateParameterViewModels(ImmutableArray<Parameter> parameters, ref int initialIndex)
         {

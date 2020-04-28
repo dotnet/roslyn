@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
@@ -42,7 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 document,
                 insertPosition,
                 _classificationFormatMap,
-                _classificationTypeMap);
+                _classificationTypeMap,
+                document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>());
 
             ChangeSignatureLogger.LogChangeSignatureDialogLaunched();
 

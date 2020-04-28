@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Shared.Extensions
@@ -465,7 +466,8 @@ class Goo
                     workspaceDoc,
                     insertPosition:=0,
                     workspace.ExportProvider.GetExportedValue(Of IClassificationFormatMapService)().GetClassificationFormatMap("text"),
-                    workspace.ExportProvider.GetExportedValue(Of ClassificationTypeMap)())
+                    workspace.ExportProvider.GetExportedValue(Of ClassificationTypeMap)(),
+                    New TestNotificationService())
                 Return New ChangeSignatureViewModelTestState(viewModel, symbol.GetParameters())
             End Using
         End Function

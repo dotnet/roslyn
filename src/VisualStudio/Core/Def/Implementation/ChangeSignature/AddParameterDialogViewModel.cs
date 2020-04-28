@@ -25,9 +25,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private readonly SemanticModel _semanticModel;
 
-        public AddParameterDialogViewModel(Document document, int insertPosition)
+        public AddParameterDialogViewModel(Document document, int insertPosition, INotificationService notificationService)
         {
-            _notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+            _notificationService = notificationService;
             _semanticModel = document.GetRequiredSemanticModelAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
             TypeIsEmptyImage = Visibility.Visible;
