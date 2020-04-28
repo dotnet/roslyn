@@ -92,7 +92,6 @@ namespace X
     <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""9"" start-column=""38"" end-line=""9"" end-column=""41""/>
     <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""11"" start-column=""30"" end-line=""11"" end-column=""38""/>
     <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""11"" start-column=""30"" end-line=""11"" end-column=""38""/>
-    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""11"" start-column=""30"" end-line=""11"" end-column=""38""/>
     <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""13"" start-column=""22"" end-line=""13"" end-column=""27""/>
     <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""14"" start-column=""21"" end-line=""14"" end-column=""24""/>
     <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""27"" start-column=""30"" end-line=""27"" end-column=""33""/>

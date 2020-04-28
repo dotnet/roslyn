@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var containingMember = creationNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsMethodLevelMember) ?? creationNode;
+            var containingMember = creationNode.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((node, syntaxFacts) => syntaxFacts.IsMethodLevelMember(node), syntaxFacts) ?? creationNode;
 
             var childCreationNodes = containingMember.DescendantNodesAndSelf()
                                                      .OfType<TAnonymousObjectCreationExpressionSyntax>();

@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return fixesBag.ToImmutableArray();
         }
 
-        protected async virtual Task AddDocumentFixesAsync(
+        protected virtual async Task AddDocumentFixesAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
@@ -171,14 +171,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static Action<CodeAction, ImmutableArray<Diagnostic>> GetRegisterCodeFixAction(
             FixAllState fixAllState,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> result)
-            => (action, diagnostics) =>
-               {
-                   if (action != null && action.EquivalenceKey == fixAllState.CodeActionEquivalenceKey)
-                   {
-                       result.Add((diagnostics.First(), action));
-                   }
-               };
+        {
+            return (action, diagnostics) =>
+            {
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var builder);
+                builder.Push(action);
+                while (builder.Count > 0)
+                {
+                    var currentAction = builder.Pop();
+                    if (currentAction is { EquivalenceKey: var equivalenceKey }
+                        && equivalenceKey == fixAllState.CodeActionEquivalenceKey)
+                    {
+                        result.Add((diagnostics.First(), currentAction));
+                    }
 
+                    foreach (var nestedAction in currentAction.NestedCodeActions)
+                    {
+                        builder.Push(nestedAction);
+                    }
+                }
+            };
+        }
 
         protected virtual Task AddProjectFixesAsync(
             Project project, ImmutableArray<Diagnostic> diagnostics,
@@ -355,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
         }
 
-        private static Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
+        private static readonly Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
             _ => new ConcurrentBag<(CodeAction, Document)>();
 
         private async Task GetChangedDocumentsAsync(

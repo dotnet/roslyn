@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Structure
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -37,22 +36,16 @@ End Enum|}|}
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function WithAttributes() As Task
             Dim code = "
-{|hint:{|textspan:<Goo>
-|}Enum $$Goo|}
+{|textspan2:{|hint:{|textspan:<Goo>
+|}{|#0:Enum $$Goo|}
     Bar
     Baz
-End Enum
+End Enum|#0}|}
 "
 
             Await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True),
-                New BlockSpan(
-                    isCollapsible:=True,
-                    textSpan:=TextSpan.FromBounds(2, 45),
-                    hintSpan:=TextSpan.FromBounds(9, 45),
-                    type:=BlockTypes.Nonstructural,
-                    bannerText:="<Goo> Enum Goo " & Ellipsis,
-                    autoCollapse:=True))
+                Region("textspan2", "#0", "<Goo> Enum Goo " & VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
@@ -60,22 +53,16 @@ End Enum
             Dim code = "
 {|hint:{|textspan:' Summary:
 '     This is a summary.
-<Goo>
-|}Enum $$Goo|}
+{|#1:<Goo>
+|}{|#0:Enum $$Goo|}
     Bar
     Baz
-End Enum
+End Enum|#0}|#1}
 "
 
             Await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True),
-                New BlockSpan(
-                    isCollapsible:=True,
-                    textSpan:=TextSpan.FromBounds(40, 83),
-                    hintSpan:=TextSpan.FromBounds(47, 83),
-                    type:=BlockTypes.Nonstructural,
-                    bannerText:="<Goo> Enum Goo " & Ellipsis,
-                    autoCollapse:=True))
+                Region("#1", "#0", "<Goo> Enum Goo " & VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
@@ -83,22 +70,16 @@ End Enum
             Dim code = "
 {|hint:{|textspan:' Summary:
 '     This is a summary.
-<Goo>
-|}Public Enum $$Goo|}
+{|#1:<Goo>
+|}{|#0:Public Enum $$Goo|}
     Bar
     Baz
-End Enum
+End Enum|#0}|#1}
 "
 
             Await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True),
-                New BlockSpan(
-                    isCollapsible:=True,
-                    textSpan:=TextSpan.FromBounds(40, 90),
-                    hintSpan:=TextSpan.FromBounds(47, 90),
-                    type:=BlockTypes.Nonstructural,
-                    bannerText:="<Goo> Public Enum Goo " & Ellipsis,
-                    autoCollapse:=True))
+                Region("#1", "#0", "<Goo> Public Enum Goo " & VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
     End Class
 End Namespace

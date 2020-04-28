@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
             IClassificationFormatMapService classificationFormatMapService,
-            [ImportMany]IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
+            [ImportMany] IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
             : this(workspace,
                    threadingContext,
                    serviceProvider,

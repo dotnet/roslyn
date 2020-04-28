@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
     {
         internal static async Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<IErrorTag>>)> GetDiagnosticsAndErrorSpansAsync<TProvider>(
             TestWorkspace workspace,
-            Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
+            IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
             where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
         {
             using (var wrapper = new DiagnosticTaggerWrapper<TProvider>(workspace, analyzerMap))
@@ -49,15 +49,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
     {
         internal Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<IErrorTag>>)> GetDiagnosticsAndErrorSpans(
             TestWorkspace workspace,
-            Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
+            IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
         {
             return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider>(workspace, analyzerMap);
         }
 
-        internal async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
+        internal async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs)
         {
             var source = new TestDiagnosticUpdateSource();
-            using (var wrapper = new DiagnosticTaggerWrapper<TProvider>(workspace, source))
+            using (var wrapper = new DiagnosticTaggerWrapper<TProvider>(workspace, updateSource: source))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)

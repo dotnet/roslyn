@@ -152,13 +152,19 @@ namespace Roslyn.Utilities
             return dictionary;
         }
 
-        public static void MultiRemove<TKey, TValue>(this IDictionary<TKey, ImmutableHashSet<TValue>> dictionary, TKey key, TValue value)
+        /// <summary>
+        /// Private implementation we can delegate to for sets.
+        /// This must be a different name as overloads are not resolved based on constraints
+        /// and would conflict with <see cref="MultiRemove{TKey, TValue, TCollection}(IDictionary{TKey, TCollection}, TKey, TValue)"/>
+        /// </summary>
+        private static void MultiRemoveSet<TKey, TValue, TSet>(this IDictionary<TKey, TSet> dictionary, TKey key, TValue value)
             where TKey : notnull
+            where TSet : IImmutableSet<TValue>
         {
             if (dictionary.TryGetValue(key, out var collection))
             {
-                collection = collection.Remove(value);
-                if (collection.IsEmpty)
+                collection = (TSet)collection.Remove(value);
+                if (collection.IsEmpty())
                 {
                     dictionary.Remove(key);
                 }
@@ -169,21 +175,16 @@ namespace Roslyn.Utilities
             }
         }
 
+        public static void MultiRemove<TKey, TValue>(this IDictionary<TKey, ImmutableHashSet<TValue>> dictionary, TKey key, TValue value)
+            where TKey : notnull
+        {
+            MultiRemoveSet(dictionary, key, value);
+        }
+
         public static void MultiRemove<TKey, TValue>(this IDictionary<TKey, ImmutableSortedSet<TValue>> dictionary, TKey key, TValue value)
             where TKey : notnull
         {
-            if (dictionary.TryGetValue(key, out var collection))
-            {
-                collection = collection.Remove(value);
-                if (collection.IsEmpty)
-                {
-                    dictionary.Remove(key);
-                }
-                else
-                {
-                    dictionary[key] = collection;
-                }
-            }
+            MultiRemoveSet(dictionary, key, value);
         }
 
         public static void MultiRemove<TKey, TValue>(this IDictionary<TKey, ImmutableArray<TValue>> dictionary, TKey key, TValue value)

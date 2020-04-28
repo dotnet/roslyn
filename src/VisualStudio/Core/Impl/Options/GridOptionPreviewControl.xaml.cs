@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -112,6 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal void Generate_Save_EditorConfig(object sender, System.Windows.RoutedEventArgs e)
         {
+            Logger.Log(FunctionId.ToolsOptions_GenerateEditorconfig);
+
             var optionSet = this.OptionStore.GetOptions();
             var editorconfig = EditorConfigFileGenerator.Generate(_groupedEditorConfigOptions, optionSet, _language);
             using (var sfd = new System.Windows.Forms.SaveFileDialog

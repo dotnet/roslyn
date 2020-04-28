@@ -462,7 +462,7 @@
   <data name="ERR_BadUnaryOp" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operand of type '{1}'</value>
   </data>
-  <data name="ERR_BadOpOnNullOrDefault" xml:space="preserve">
+  <data name="ERR_BadOpOnNullOrDefaultOrNew" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operand '{1}'</value>
   </data>
   <data name="ERR_ThisInStaticMeth" xml:space="preserve">
@@ -490,7 +490,7 @@
     <value>Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'</value>
   </data>
   <data name="ERR_AmbigBinaryOpsOnDefault" xml:space="preserve">
-    <value>Operator '{0}' is ambiguous on operands 'default' and 'default'</value>
+    <value>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</value>
   </data>
   <data name="ERR_AmbigUnaryOp" xml:space="preserve">
     <value>Operator '{0}' is ambiguous on an operand of type '{1}'</value>
@@ -1396,7 +1396,7 @@
     <value>Cannot return 'this' by reference.</value>
   </data>
   <data name="ERR_AttributeCtorInParameter" xml:space="preserve">
-    <value>Cannot use attribute constructor '{0}' because it is has 'in' parameters.</value>
+    <value>Cannot use attribute constructor '{0}' because it has 'in' parameters.</value>
   </data>
   <data name="ERR_OverrideWithConstraints" xml:space="preserve">
     <value>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</value>
@@ -2519,7 +2519,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Invalid expression term '{0}'</value>
   </data>
   <data name="ERR_BadNewExpr" xml:space="preserve">
-    <value>A new expression requires (), [], or {} after type</value>
+    <value>A new expression requires an argument list or (), [], or {} after type</value>
   </data>
   <data name="ERR_NoNamespacePrivate" xml:space="preserve">
     <value>Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected</value>
@@ -5818,6 +5818,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureMemberNotNull" xml:space="preserve">
     <value>MemberNotNull attribute</value>
   </data>
+  <data name="IDS_FeatureNativeInt" xml:space="preserve">
+    <value>native-sized integers</value>
+  </data>
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
@@ -6033,6 +6036,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ImplicitRangeIndexerWithName" xml:space="preserve">
     <value>Invocation of implicit Range Indexer cannot name the argument.</value>
+  </data>
+  <data name="ERR_TypelessNewIllegalTargetType" xml:space="preserve">
+    <value>The type '{0}' may not be used as the target type of new()</value>
+  </data>
+  <data name="ERR_TypelessNewNotValid" xml:space="preserve">
+    <value>Use of new() is not valid in this context</value>
+  </data>
+  <data name="ERR_TypelessNewNoTargetType" xml:space="preserve">
+    <value>There is no target type for '{0}'</value>
+  </data>
+  <data name="IDS_FeatureTargetTypedObjectCreation" xml:space="preserve">
+    <value>target-typed object creation</value>
   </data>
   <data name="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer" xml:space="preserve">
     <value>An expression tree may not contain a pattern System.Index or System.Range indexer access</value>

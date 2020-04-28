@@ -9,12 +9,12 @@ Param(
     [string] $Branch=$env:BUILD_SOURCEBRANCH,
     [string] $CommitSha=$env:BUILD_SOURCEVERSION,
     [string] $BuildNumber=$env:BUILD_BUILDNUMBER,
-    [string] $RunCategories="Libraries Runtime",
+    [string] $RunCategories="coreclr corefx",
     [string] $Csproj="src\benchmarks\micro\MicroBenchmarks.csproj",
     [string] $Kind="micro",
     [switch] $Internal,
     [switch] $Compare,
-    [string] $Configurations="CompilationMode=$CompilationMode RunKind=$Kind"
+    [string] $Configurations="CompilationMode=$CompilationMode"
 )
 
 $RunFromPerformanceRepo = ($Repository -eq "dotnet/performance") -or ($Repository -eq "dotnet-performance")
@@ -49,8 +49,7 @@ if ($Internal) {
     $HelixSourcePrefix = "official"
 }
 
-# FIX ME: This is a workaround until we get this from the actual pipeline
-$CommonSetupArguments="--channel master --queue $Queue --build-number $BuildNumber --build-configs $Configurations --architecture $Architecture"
+$CommonSetupArguments="--frameworks $Framework --queue $Queue --build-number $BuildNumber --build-configs $Configurations"
 $SetupArguments = "--repository https://github.com/$Repository --branch $Branch --get-perf-hash --commit-sha $CommitSha $CommonSetupArguments"
 
 if ($RunFromPerformanceRepo) {

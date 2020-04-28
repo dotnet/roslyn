@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.ValidateFormatString
 Imports Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
 
@@ -19,16 +18,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
             Return (New VisualBasicValidateFormatStringDiagnosticAnalyzer, Nothing)
         End Function
 
-        Private Function VBOptionOnCSharpOptionOff() As IOptionsCollection
-            Return OptionsSet(
-                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), False),
-                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), True))
+        Private Function OptionOn() As OptionsCollection
+            Return New OptionsCollection(GetLanguage()) From {{ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, True}}
         End Function
 
-        Private Function VBOptionOffCSharpOptionOn() As IOptionsCollection
-            Return OptionsSet(
-                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), True),
-                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), False))
+        Private Function OptionOff() As OptionsCollection
+            Return New OptionsCollection(GetLanguage()) From {{ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, False}}
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
@@ -301,7 +296,7 @@ Class C
         string.Format(""This {0} [|{2}|] works"", ""test"", ""also"")
     End Sub
 End Class"
-            Dim options = If(optionOn, VBOptionOnCSharpOptionOff(), VBOptionOffCSharpOptionOn())
+            Dim options = If(optionOn, Me.OptionOn(), OptionOff())
             If Not expectDiagnostic Then
                 Await TestDiagnosticMissingAsync(source, New TestParameters(options:=options))
             Else

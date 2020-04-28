@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal class SymbolSpecification
+    internal sealed class SymbolSpecification : IEquatable<SymbolSpecification>
     {
         private static readonly SymbolSpecification DefaultSymbolSpecificationTemplate = CreateDefaultSymbolSpecification();
 
@@ -182,6 +182,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return true;
         }
 
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as SymbolSpecification);
+        }
+
+        public bool Equals(SymbolSpecification other)
+        {
+            if (other is null)
+                return false;
+
+            return ID == other.ID
+                && Name == other.Name
+                && ApplicableSymbolKindList.SequenceEqual(other.ApplicableSymbolKindList)
+                && ApplicableAccessibilityList.SequenceEqual(other.ApplicableAccessibilityList)
+                && RequiredModifierList.SequenceEqual(other.RequiredModifierList);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(ID.GetHashCode(),
+                Hash.Combine(Name.GetHashCode(),
+                    Hash.Combine(Hash.CombineValues(ApplicableSymbolKindList),
+                        Hash.Combine(Hash.CombineValues(ApplicableAccessibilityList),
+                            Hash.CombineValues(RequiredModifierList)))));
+        }
+
         internal XElement CreateXElement()
         {
             return new XElement(nameof(SymbolSpecification),
@@ -338,11 +364,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 => this.SymbolKind == other.SymbolKind && this.TypeKind == other.TypeKind && this.MethodKind == other.MethodKind;
 
             public override int GetHashCode()
-                => Hash.CombineValues(new[] {
-                    (int)this.SymbolKind.GetValueOrDefault(),
-                    (int)this.TypeKind.GetValueOrDefault(),
-                    (int)this.MethodKind.GetValueOrDefault()
-                });
+            {
+                return Hash.Combine((int)SymbolKind.GetValueOrDefault(),
+                    Hash.Combine((int)TypeKind.GetValueOrDefault(), (int)MethodKind.GetValueOrDefault()));
+            }
         }
 
         public struct ModifierKind : ISymbolMatcher, IEquatable<ModifierKind>
@@ -437,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 => obj is ModifierKind kind && Equals(kind);
 
             public override int GetHashCode()
-                => ModifierKindWrapper.GetHashCode();
+                => (int)ModifierKindWrapper;
 
             public bool Equals(ModifierKind other)
                 => ModifierKindWrapper == other.ModifierKindWrapper;

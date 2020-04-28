@@ -12,9 +12,9 @@
         <target state="new">Add default case</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_file_banner">
-        <source>Add file banner</source>
-        <target state="translated">Adicionar faixa de arquivo</target>
+      <trans-unit id="Add_file_header">
+        <source>Add file header</source>
+        <target state="new">Add file header</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_Name_Violation_colon_0">

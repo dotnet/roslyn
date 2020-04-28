@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -310,7 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             private static bool ShouldFormatSingleLineDocumentationComment(int indentation, int tabSize, SyntaxTrivia trivia)
             {
-                var xmlComment = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
+                Debug.Assert(trivia.HasStructure);
+
+                var xmlComment = (DocumentationCommentTriviaSyntax)trivia.GetStructure()!;
 
                 var sawFirstOne = false;
                 foreach (var token in xmlComment.DescendantTokens())

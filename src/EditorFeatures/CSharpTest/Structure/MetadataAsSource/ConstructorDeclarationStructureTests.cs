@@ -73,5 +73,24 @@ class C
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestConstructor10()
+        {
+            const string code = @"
+class C
+{
+    $${|#0:public C(){|textspan:
+    {
+    }|#0}
+|}
+    public C(int x)
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
     }
 }

@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsTupleType => false;
 
+        public bool IsNativeIntegerType => false;
+
         public ImmutableArray<ITypeSymbol> TupleElementTypes => default;
 
         public ImmutableArray<string> TupleElementNames => default;

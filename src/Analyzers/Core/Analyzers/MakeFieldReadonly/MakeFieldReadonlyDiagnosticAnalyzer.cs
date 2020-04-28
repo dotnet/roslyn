@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         private static bool IsFieldWrite(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
         {
             // Check if the underlying member is being written or a writable reference to the member is taken.
-            var valueUsageInfo = fieldReference.GetValueUsageInfo();
+            var valueUsageInfo = fieldReference.GetValueUsageInfo(owningSymbol);
             if (!valueUsageInfo.IsWrittenTo())
             {
                 return false;
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 if (instanceFieldWrittenInCtor || staticFieldWrittenInStaticCtor)
                 {
                     // Finally, ensure that the write is not inside a lambda or local function.
-                    if (!IsInAnonymousFunctionOrLocalFunction(fieldReference))
+                    if (fieldReference.TryGetContainingAnonymousFunctionOrLocalFunction() is null)
                     {
                         // It is safe to ignore this write.
                         return false;
@@ -193,24 +193,6 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             }
 
             return true;
-        }
-
-        private static bool IsInAnonymousFunctionOrLocalFunction(IOperation operation)
-        {
-            operation = operation.Parent;
-            while (operation != null)
-            {
-                switch (operation.Kind)
-                {
-                    case OperationKind.AnonymousFunction:
-                    case OperationKind.LocalFunction:
-                        return true;
-                }
-
-                operation = operation.Parent;
-            }
-
-            return false;
         }
 
         private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
