@@ -42,13 +42,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (speculationAnalyzer.SemanticRootOfOriginalExpression.ContainsDiagnostics)
                 return false;
 
+            // Then look for patterns for cases where we never want to remove casts.  Note: we want these checks to be
+            // very fast, and to eliminate as many cases as necessary.  Importantly, we want to be able to do these
+            // checks before calling into the speculation analyzer.
+            if (CastMustBePreserved(castNode, castedExpressionNode, semanticModel, cancellationToken))
+                return false;
+
             // Look for simple patterns that are known to be absolutely safe to always remove.
             if (CastCanDefinitelyBeRemoved(castNode, castedExpressionNode, semanticModel, cancellationToken))
                 return true;
-
-            // Then look for patterns for cases where we never want to remove casts.
-            if (CastMustBePreserved(castNode, castedExpressionNode, semanticModel, cancellationToken))
-                return false;
 
             var castTypeInfo = semanticModel.GetTypeInfo(castNode, cancellationToken);
             var castType = castTypeInfo.Type;
@@ -368,11 +370,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (InvolvesDynamic(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, cancellationToken))
                 return true;
 
-            // If we're changing between numeric and enum types, then we need to preserve the cast as the type is
-            // definitely changing, even if the internal memory representation might be the same.
-            if (IsNumericToEnumConversion(castType, castedExpressionType))
-                return true;
-
             // If removing the cast would cause the compiler to issue a specific warning, then we have to preserve it.
             if (CastRemovalWouldCauseSignExtensionWarning(castNode, semanticModel, cancellationToken))
                 return true;
@@ -412,21 +409,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         {
             return castNode.WalkUpParentheses().IsParentKind(SyntaxKind.PointerIndirectionExpression) &&
                    castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression);
-        }
-
-        private static bool IsNumericToEnumConversion(
-            ITypeSymbol castType, ITypeSymbol castedExpressionType)
-        {
-            if (castType.IsNullable(out var underlyingCastType))
-                castType = underlyingCastType;
-
-            if (castedExpressionType.IsNullable(out var underlyingCastedExpressionType))
-                castedExpressionType = underlyingCastedExpressionType;
-
-            if (!castType.IsEnumType() && !castedExpressionType.IsEnumType())
-                return false;
-
-            return castType.IsNumericType() || castedExpressionType.IsNumericType();
         }
 
         private static bool WouldChangeDefaultOrNullInConditional(ExpressionSyntax expression)
