@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider);
 
+        private readonly PrimaryWorkspace _primaryWorkspace;
+
         protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
@@ -40,9 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            PrimaryWorkspace primaryWorkspace)
             : base(threadingContext, diagnosticService, notificationService, listenerProvider)
         {
+            _primaryWorkspace = primaryWorkspace;
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
@@ -67,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return null;
             }
 
-            return new ErrorTag(errorType, diagnostic.Message);
+            return new ErrorTag(errorType, CreateToolTipContent(_primaryWorkspace.Workspace, diagnostic));
         }
 
         private string GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)

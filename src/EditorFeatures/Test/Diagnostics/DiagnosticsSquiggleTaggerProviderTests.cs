@@ -121,7 +121,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var diagnosticService = new MockDiagnosticService(workspace);
             var provider = new DiagnosticsSquiggleTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                diagnosticService, workspace.GetService<IForegroundNotificationService>(), listenerProvider);
+                diagnosticService,
+                workspace.GetService<IForegroundNotificationService>(),
+                listenerProvider,
+                workspace.ExportProvider.GetExportedValue<PrimaryWorkspace>());
 
             // Create the tagger before the first diagnostic event has been fired.
             var tagger = provider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -157,7 +160,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var diagnosticService = new MockDiagnosticService(workspace);
             var provider = new DiagnosticsSquiggleTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                diagnosticService, workspace.GetService<IForegroundNotificationService>(), listenerProvider);
+                diagnosticService,
+                workspace.GetService<IForegroundNotificationService>(),
+                listenerProvider,
+                workspace.ExportProvider.GetExportedValue<PrimaryWorkspace>());
 
             // Create and fire the diagnostic events before the tagger is even made.
             var tree = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetSyntaxTreeAsync();

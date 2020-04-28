@@ -46,7 +46,7 @@ class 123 { }
                 Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
-                Dim provider = New DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), diagnosticService, foregroundService, listenerProvider)
+                Dim provider = New DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), diagnosticService, foregroundService, listenerProvider, workspace.ExportProvider.GetExportedValue(Of PrimaryWorkspace)())
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
 
                 Using disposable = TryCast(tagger, IDisposable)

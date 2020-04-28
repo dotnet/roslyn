@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -122,27 +124,54 @@ class Program
                     }
                 };
 
+            var diagnosticsAndSpans = await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap);
+
             var spans =
-                (await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
-                    .OrderBy(s => s.Span.Span.Start).ToImmutableArray();
+                diagnosticsAndSpans.Item1
+                    .Zip(diagnosticsAndSpans.Item2, (diagnostic, span) => (diagnostic, span))
+                    .OrderBy(s => s.span.Span.Span.Start).ToImmutableArray();
 
             Assert.Equal(3, spans.Length);
-            var first = spans[0];
-            var second = spans[1];
-            var third = spans[2];
+            var first = spans[0].span;
+            var second = spans[1].span;
+            var third = spans[2].span;
+
+            var expectedToolTip = new ContainerElement(
+                ContainerElementStyle.Wrapped,
+                new ClassifiedTextElement(
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005"),
+                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
+                    new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpAnalyzersResources.Using_directive_is_unnecessary)));
 
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType);
-            Assert.Equal(CSharpAnalyzersResources.Using_directive_is_unnecessary, first.Tag.ToolTipContent);
+            ToolTipAssert.EqualContent(expectedToolTip, first.Tag.ToolTipContent);
             Assert.Equal(40, first.Span.Start);
             Assert.Equal(25, first.Span.Length);
 
+            expectedToolTip = new ContainerElement(
+                ContainerElementStyle.Wrapped,
+                new ClassifiedTextElement(
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005"),
+                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
+                    new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpAnalyzersResources.Using_directive_is_unnecessary)));
+
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, second.Tag.ErrorType);
-            Assert.Equal(CSharpAnalyzersResources.Using_directive_is_unnecessary, second.Tag.ToolTipContent);
+            ToolTipAssert.EqualContent(expectedToolTip, second.Tag.ToolTipContent);
             Assert.Equal(82, second.Span.Start);
             Assert.Equal(60, second.Span.Length);
 
+            expectedToolTip = new ContainerElement(
+                ContainerElementStyle.Wrapped,
+                new ClassifiedTextElement(
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0049"),
+                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
+                    new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, WorkspacesResources.Name_can_be_simplified)));
+
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, third.Tag.ErrorType);
-            Assert.Equal(WorkspacesResources.Name_can_be_simplified, third.Tag.ToolTipContent);
+            ToolTipAssert.EqualContent(expectedToolTip, third.Tag.ToolTipContent);
             Assert.Equal(196, third.Span.Start);
             Assert.Equal(5, third.Span.Length);
         }
@@ -157,12 +186,25 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task SemanticErrorReported()
         {
-            var spans = await GetTagSpansAsync("class C : Bar { }");
-            Assert.Equal(1, spans.Count());
+            using var workspace = TestWorkspace.CreateCSharp("class C : Bar { }");
 
-            var firstSpan = spans.First();
+            var spans = await _producer.GetDiagnosticsAndErrorSpans(workspace);
+
+            Assert.Equal(1, spans.Item2.Count());
+
+            var firstDiagnostic = spans.Item1.First();
+            var firstSpan = spans.Item2.First();
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
-            Assert.Contains("Bar", (string)firstSpan.Tag.ToolTipContent, StringComparison.Ordinal);
+
+            var expectedToolTip = new ContainerElement(
+                ContainerElementStyle.Wrapped,
+                new ClassifiedTextElement(
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, "CS0246"),
+                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
+                    new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, firstDiagnostic.Message)));
+
+            ToolTipAssert.EqualContent(expectedToolTip, firstSpan.Tag.ToolTipContent);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]

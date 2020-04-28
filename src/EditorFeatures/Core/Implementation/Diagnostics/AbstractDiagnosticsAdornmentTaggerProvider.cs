@@ -3,10 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
@@ -44,6 +47,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             }
 
             return new TagSpan<TTag>(adjustedSpan, errorTag);
+        }
+
+        protected object CreateToolTipContent(Workspace workspace, DiagnosticData diagnostic)
+        {
+            Action navigationAction = null;
+            string tooltip = null;
+            if (workspace is object
+                && diagnostic.HelpLink is { } helpLink
+                && Uri.TryCreate(helpLink, UriKind.Absolute, out var helpLinkUri))
+            {
+                navigationAction = () =>
+                {
+                    var navigateToLinkService = workspace.Services.GetRequiredService<INavigateToLinkService>();
+                    _ = navigateToLinkService.TryNavigateToLinkAsync(helpLinkUri, CancellationToken.None);
+                };
+
+                tooltip = helpLink;
+            }
+
+            var diagnosticIdTextRun = navigationAction is null
+                ? new ClassifiedTextRun(ClassificationTypeNames.Text, diagnostic.Id)
+                : new ClassifiedTextRun(ClassificationTypeNames.Text, diagnostic.Id, navigationAction, tooltip);
+
+            return new ContainerElement(
+                ContainerElementStyle.Wrapped,
+                new ClassifiedTextElement(
+                    diagnosticIdTextRun,
+                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
+                    new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, diagnostic.Message)));
         }
 
         protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
