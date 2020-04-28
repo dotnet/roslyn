@@ -75,11 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             RoslynDebug.AssertNotNull(currentToken.Parent);
 
-            var operation = nextOperation.Invoke();
+            var operation = nextOperation.Invoke(in previousToken, in currentToken);
 
             // } else in the if else context
             if (previousToken.IsKind(SyntaxKind.CloseBraceToken)
@@ -200,11 +200,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return operation;
         }
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             RoslynDebug.AssertNotNull(currentToken.Parent);
 
-            var operation = nextOperation.Invoke();
+            var operation = nextOperation.Invoke(in previousToken, in currentToken);
 
             // else condition is actually handled in the GetAdjustSpacesOperation()
 
