@@ -1201,21 +1201,15 @@ tryAgain:
             {
                 info.IsByRef = true;
 
-                var refModifiers = info.CustomModifiers;
-                if (!refModifiers.IsDefault)
-                {
-                    refModifiers = refModifiers.WhereAsArray(m => IsAcceptedInAttributeModifierType(m.Modifier));
-                }
-                info.RefCustomModifiers = refModifiers;
+                // PROTOTYPE(init-only): we're incorrectly letting modreq(IsExternalInit) into the RefCustomModifiers
+                info.RefCustomModifiers = info.CustomModifiers;
+                info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
 
-                var customModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
-                if (!info.CustomModifiers.IsDefault)
+                if ((inAttributeFound & ~AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) != 0)
                 {
-                    customModifiers = info.CustomModifiers
-                        .WhereAsArray(m => !IsAcceptedInAttributeModifierType(m.Modifier))
-                        .AddRange(customModifiers.NullToEmpty());
+                    // This cannot be placed on RefCustomModifiers, just CustomModifiers
+                    throw new UnsupportedSignatureContent();
                 }
-                info.CustomModifiers = customModifiers;
             }
             else if ((inAttributeFound & ~AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0)
             {

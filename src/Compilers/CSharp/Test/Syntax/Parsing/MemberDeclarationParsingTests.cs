@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [CompilerTrait(CompilerFeature.InitOnlySetters)]
-        public void InitAndSetAccessor()
+        public void InitSetAccessor()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -826,5 +826,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        [Fact]
+        [CompilerTrait(CompilerFeature.InitOnlySetters)]
+        public void InitAndSetAccessor()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("string Property { init; set; }", options: options);
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Property");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.InitAccessorDeclaration);
+                        {
+                            N(SyntaxKind.InitKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.SetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.SetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.InitOnlySetters)]
+        public void SetAndInitAccessor()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("string Property { set; init; }", options: options);
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Property");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.SetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.InitAccessorDeclaration);
+                        {
+                            N(SyntaxKind.InitKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
     }
 }

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var returnInfo = propertyParams[0];
 
             PEPropertySymbol result = returnInfo.CustomModifiers.IsDefaultOrEmpty && returnInfo.RefCustomModifiers.IsDefaultOrEmpty
-                ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder)
+                ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, 0, propertyParams, metadataDecoder)
                 : new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder);
 
             // A property should always have this modreq, and vice versa.
@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PropertyDefinitionHandle handle,
             PEMethodSymbol getMethod,
             PEMethodSymbol setMethod,
+            int countOfCustomModifiers,
             ParamInfo<TypeSymbol>[] propertyParams,
             MetadataDecoder metadataDecoder)
         {
@@ -749,7 +750,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 PEMethodSymbol setMethod,
                 ParamInfo<TypeSymbol>[] propertyParams,
                 MetadataDecoder metadataDecoder)
-                : base(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder)
+                : base(moduleSymbol, containingType, handle, getMethod, setMethod,
+                        propertyParams[0].CustomModifiers.NullToEmpty().Length + propertyParams[0].RefCustomModifiers.NullToEmpty().Length,
+                        propertyParams, metadataDecoder)
             {
                 var returnInfo = propertyParams[0];
                 _refCustomModifiers = CSharpCustomModifier.Convert(returnInfo.RefCustomModifiers);

@@ -100,9 +100,9 @@ public class C
                     "System.String C.Property { set; }",
                     "void C.Property.set",
                     "System.String C.Property2 { init; }",
-                    "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.Property2.set",
+                    "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.Property2.init",
                     "System.String C.Property3 { init; }",
-                    "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.Property3.set",
+                    "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.Property3.init",
                     "C..ctor()"
                 });
 
@@ -324,9 +324,9 @@ public class CWithoutInit : I<string> // 1
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (10,29): error CS8804: 'CWithoutInit' does not implement interface member 'I<string>.Property.set'. 'CWithoutInit.Property.set' cannot implement 'I<string>.Property.set' because it does not match by init-only.
+                // (10,29): error CS8804: 'CWithoutInit' does not implement interface member 'I<string>.Property.init'. 'CWithoutInit.Property.set' cannot implement 'I<string>.Property.init'.
                 // public class CWithoutInit : I<string> // 1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I<string>").WithArguments("CWithoutInit", "I<string>.Property.set", "CWithoutInit.Property.set").WithLocation(10, 29)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I<string>").WithArguments("CWithoutInit", "I<string>.Property.init", "CWithoutInit.Property.set").WithLocation(10, 29)
                 );
 
             var property = (PropertySymbol)comp.GlobalNamespace.GetMember("I.Property");
@@ -1030,13 +1030,13 @@ public class C
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "Property1").WithArguments("C.Property1").WithLocation(4, 13),
                 // (4,30): error CS8147: Properties which return by reference cannot have set accessors
                 //     ref int Property1 { get; init; }
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithArguments("C.Property1.set").WithLocation(4, 30),
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithArguments("C.Property1.init").WithLocation(4, 30),
                 // (5,13): error CS8146: Properties which return by reference must have a get accessor
                 //     ref int Property2 { init; }
                 Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property2").WithArguments("C.Property2").WithLocation(5, 13),
                 // (6,44): error CS8147: Properties which return by reference cannot have set accessors
                 //     ref int Property3 { get => throw null; init => throw null; }
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithArguments("C.Property3.set").WithLocation(6, 44),
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithArguments("C.Property3.init").WithLocation(6, 44),
                 // (7,13): error CS8146: Properties which return by reference must have a get accessor
                 //     ref int Property4 { init => throw null; }
                 Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property4").WithArguments("C.Property4").WithLocation(7, 13)
@@ -1467,15 +1467,15 @@ public class DerivedWithoutInitSetterOnly : Base
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,44): error CS0546: 'DerivedWithInit.Property.set': cannot override because 'Base.Property' does not have an overridable set accessor
+                // (8,44): error CS0546: 'DerivedWithInit.Property.init': cannot override because 'Base.Property' does not have an overridable set accessor
                 //     public override string Property { get; init; } // 1
-                Diagnostic(ErrorCode.ERR_NoSetToOverride, "init").WithArguments("DerivedWithInit.Property.set", "Base.Property").WithLocation(8, 44),
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "init").WithArguments("DerivedWithInit.Property.init", "Base.Property").WithLocation(8, 44),
                 // (12,44): error CS0546: 'DerivedWithoutInit.Property.set': cannot override because 'Base.Property' does not have an overridable set accessor
                 //     public override string Property { get; set; } // 2
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("DerivedWithoutInit.Property.set", "Base.Property").WithLocation(12, 44),
-                // (16,39): error CS0546: 'DerivedWithInitSetterOnly.Property.set': cannot override because 'Base.Property' does not have an overridable set accessor
+                // (16,39): error CS0546: 'DerivedWithInitSetterOnly.Property.init': cannot override because 'Base.Property' does not have an overridable set accessor
                 //     public override string Property { init { } } // 3
-                Diagnostic(ErrorCode.ERR_NoSetToOverride, "init").WithArguments("DerivedWithInitSetterOnly.Property.set", "Base.Property").WithLocation(16, 39),
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "init").WithArguments("DerivedWithInitSetterOnly.Property.init", "Base.Property").WithLocation(16, 39),
                 // (20,39): error CS0546: 'DerivedWithoutInitSetterOnly.Property.set': cannot override because 'Base.Property' does not have an overridable set accessor
                 //     public override string Property { set { } } // 4
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("DerivedWithoutInitSetterOnly.Property.set", "Base.Property").WithLocation(20, 39)
@@ -1556,15 +1556,15 @@ public class DerivedWithoutInitGetterOnly : I // 3
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (10,35): error CS8804: 'DerivedWithoutInit' does not implement interface member 'I.Property.set'. 'DerivedWithoutInit.Property.set' cannot implement 'I.Property.set' because it does not match by init-only.
+                // (10,35): error CS8804: 'DerivedWithoutInit' does not implement interface member 'I.Property.init'. 'DerivedWithoutInit.Property.set' cannot implement 'I.Property.init'.
                 // public class DerivedWithoutInit : I // 1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("DerivedWithoutInit", "I.Property.set", "DerivedWithoutInit.Property.set").WithLocation(10, 35),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("DerivedWithoutInit", "I.Property.init", "DerivedWithoutInit.Property.set").WithLocation(10, 35),
                 // (14,42): error CS0535: 'DerivedWithInitSetterOnly' does not implement interface member 'I.Property.get'
                 // public class DerivedWithInitSetterOnly : I // 2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("DerivedWithInitSetterOnly", "I.Property.get").WithLocation(14, 42),
-                // (18,45): error CS0535: 'DerivedWithoutInitGetterOnly' does not implement interface member 'I.Property.set'
+                // (18,45): error CS0535: 'DerivedWithoutInitGetterOnly' does not implement interface member 'I.Property.init'
                 // public class DerivedWithoutInitGetterOnly : I // 3
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("DerivedWithoutInitGetterOnly", "I.Property.set").WithLocation(18, 45)
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("DerivedWithoutInitGetterOnly", "I.Property.init").WithLocation(18, 45)
                 );
         }
 
@@ -1595,12 +1595,12 @@ public class DerivedWithoutInitGetterOnly : I // 3
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (6,32): error CS8804: 'DerivedWithInit' does not implement interface member 'I.Property.set'. 'DerivedWithInit.Property.set' cannot implement 'I.Property.set' because it does not match by init-only.
+                // (6,32): error CS8804: 'DerivedWithInit' does not implement interface member 'I.Property.set'. 'DerivedWithInit.Property.init' cannot implement 'I.Property.set'.
                 // public class DerivedWithInit : I // 1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("DerivedWithInit", "I.Property.set", "DerivedWithInit.Property.set").WithLocation(6, 32),
-                // (14,42): error CS8804: 'DerivedWithInitSetterOnly' does not implement interface member 'I.Property.set'. 'DerivedWithInitSetterOnly.Property.set' cannot implement 'I.Property.set' because it does not match by init-only.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("DerivedWithInit", "I.Property.set", "DerivedWithInit.Property.init").WithLocation(6, 32),
+                // (14,42): error CS8804: 'DerivedWithInitSetterOnly' does not implement interface member 'I.Property.set'. 'DerivedWithInitSetterOnly.Property.init' cannot implement 'I.Property.set'.
                 // public class DerivedWithInitSetterOnly : I // 2
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("DerivedWithInitSetterOnly", "I.Property.set", "DerivedWithInitSetterOnly.Property.set").WithLocation(14, 42),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("DerivedWithInitSetterOnly", "I.Property.set", "DerivedWithInitSetterOnly.Property.init").WithLocation(14, 42),
                 // (18,45): error CS0535: 'DerivedWithoutInitGetterOnly' does not implement interface member 'I.Property.set'
                 // public class DerivedWithoutInitGetterOnly : I // 3
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("DerivedWithoutInitGetterOnly", "I.Property.set").WithLocation(18, 45)
@@ -1687,12 +1687,12 @@ public class DerivedWithoutInitGetterOnly : I // 3
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview,
                 references: new[] { emitAsImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() });
             comp.VerifyDiagnostics(
-                // (2,32): error CS8804: 'DerivedWithInit' does not implement interface member 'I.Property.set'. 'DerivedWithInit.Property.set' cannot implement 'I.Property.set' because it does not match by init-only.
+                // (2,32): error CS8804: 'DerivedWithInit' does not implement interface member 'I.Property.set'. 'DerivedWithInit.Property.init' cannot implement 'I.Property.set'.
                 // public class DerivedWithInit : I // 1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("DerivedWithInit", "I.Property.set", "DerivedWithInit.Property.set").WithLocation(2, 32),
-                // (10,42): error CS8804: 'DerivedWithInitSetterOnly' does not implement interface member 'I.Property.set'. 'DerivedWithInitSetterOnly.Property.set' cannot implement 'I.Property.set' because it does not match by init-only.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("DerivedWithInit", "I.Property.set", "DerivedWithInit.Property.init").WithLocation(2, 32),
+                // (10,42): error CS8804: 'DerivedWithInitSetterOnly' does not implement interface member 'I.Property.set'. 'DerivedWithInitSetterOnly.Property.init' cannot implement 'I.Property.set'.
                 // public class DerivedWithInitSetterOnly : I // 2
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("DerivedWithInitSetterOnly", "I.Property.set", "DerivedWithInitSetterOnly.Property.set").WithLocation(10, 42),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("DerivedWithInitSetterOnly", "I.Property.set", "DerivedWithInitSetterOnly.Property.init").WithLocation(10, 42),
                 // (14,45): error CS0535: 'DerivedWithoutInitGetterOnly' does not implement interface member 'I.Property.set'
                 // public class DerivedWithoutInitGetterOnly : I // 3
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("DerivedWithoutInitGetterOnly", "I.Property.set").WithLocation(14, 45)
@@ -1718,15 +1718,15 @@ public class DerivedWithInitAndGetter : I
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,25): error CS8805: Accessors 'DerivedWithInit.I.Property.set' and 'I.Property.set' should both be init-only or neither
+                // (8,25): error CS8805: Accessors 'DerivedWithInit.I.Property.init' and 'I.Property.set' should both be init-only or neither
                 //     string I.Property { init { } } // 1
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "init").WithArguments("DerivedWithInit.I.Property.set", "I.Property.set").WithLocation(8, 25),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "init").WithArguments("DerivedWithInit.I.Property.init", "I.Property.set").WithLocation(8, 25),
                 // (12,25): error CS0550: 'DerivedWithInitAndGetter.I.Property.get' adds an accessor not found in interface member 'I.Property'
                 //     string I.Property { get; init; } // 2, 3
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("DerivedWithInitAndGetter.I.Property.get", "I.Property").WithLocation(12, 25),
-                // (12,30): error CS8805: Accessors 'DerivedWithInitAndGetter.I.Property.set' and 'I.Property.set' should both be init-only or neither
+                // (12,30): error CS8805: Accessors 'DerivedWithInitAndGetter.I.Property.init' and 'I.Property.set' should both be init-only or neither
                 //     string I.Property { get; init; } // 2, 3
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "init").WithArguments("DerivedWithInitAndGetter.I.Property.set", "I.Property.set").WithLocation(12, 30)
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "init").WithArguments("DerivedWithInitAndGetter.I.Property.init", "I.Property.set").WithLocation(12, 30)
                 );
         }
 
@@ -1753,9 +1753,9 @@ public class DerivedWithInitAndGetter : I
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,25): error CS8805: Accessors 'DerivedWithoutInit.I.Property.set' and 'I.Property.set' should both be init-only or neither
+                // (8,25): error CS8805: Accessors 'DerivedWithoutInit.I.Property.set' and 'I.Property.init' should both be init-only or neither
                 //     string I.Property { set { } } // 1
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "set").WithArguments("DerivedWithoutInit.I.Property.set", "I.Property.set").WithLocation(8, 25),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "set").WithArguments("DerivedWithoutInit.I.Property.set", "I.Property.init").WithLocation(8, 25),
                 // (16,25): error CS0550: 'DerivedWithInitAndGetter.I.Property.get' adds an accessor not found in interface member 'I.Property'
                 //     string I.Property { get; init; } // 2
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("DerivedWithInitAndGetter.I.Property.get", "I.Property").WithLocation(16, 25)
@@ -1792,15 +1792,15 @@ public class DerivedGetterOnly : I // 2
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview,
                 references: new[] { emitAsImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() });
             comp.VerifyDiagnostics(
-                // (4,25): error CS8805: Accessors 'DerivedWithoutInit.I.Property.set' and 'I.Property.set' should both be init-only or neither
+                // (4,25): error CS8805: Accessors 'DerivedWithoutInit.I.Property.set' and 'I.Property.init' should both be init-only or neither
                 //     string I.Property { set { } } // 1
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "set").WithArguments("DerivedWithoutInit.I.Property.set", "I.Property.set").WithLocation(4, 25),
-                // (10,34): error CS0535: 'DerivedGetterOnly' does not implement interface member 'I.Property.set'
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "set").WithArguments("DerivedWithoutInit.I.Property.set", "I.Property.init").WithLocation(4, 25),
+                // (10,34): error CS0535: 'DerivedGetterOnly' does not implement interface member 'I.Property.init'
                 // public class DerivedGetterOnly : I // 2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("DerivedGetterOnly", "I.Property.set").WithLocation(10, 34),
-                // (12,14): error CS0551: Explicit interface implementation 'DerivedGetterOnly.I.Property' is missing accessor 'I.Property.set'
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("DerivedGetterOnly", "I.Property.init").WithLocation(10, 34),
+                // (12,14): error CS0551: Explicit interface implementation 'DerivedGetterOnly.I.Property' is missing accessor 'I.Property.init'
                 //     string I.Property { get => null; } // 3, 4
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "Property").WithArguments("DerivedGetterOnly.I.Property", "I.Property.set").WithLocation(12, 14),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "Property").WithArguments("DerivedGetterOnly.I.Property", "I.Property.init").WithLocation(12, 14),
                 // (12,25): error CS0550: 'DerivedGetterOnly.I.Property.get' adds an accessor not found in interface member 'I.Property'
                 //     string I.Property { get => null; } // 3, 4
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("DerivedGetterOnly.I.Property.get", "I.Property").WithLocation(12, 25)
@@ -1948,18 +1948,18 @@ public class CWithImplementationWithoutInitOnly : I1, I2 // 7
                 // (31,12): warning CS0108: 'IWithInitWithImplementation.Property' hides inherited member 'I1.Property'. Use the new keyword if hiding was intended.
                 //     string Property { init { } } // 3
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("IWithInitWithImplementation.Property", "I1.Property").WithLocation(31, 12),
-                // (40,26): error CS8805: Accessors 'IWithInitWithExplicitImplementationOfI2.I2.Property.set' and 'I2.Property.set' should both be init-only or neither
+                // (40,26): error CS8805: Accessors 'IWithInitWithExplicitImplementationOfI2.I2.Property.init' and 'I2.Property.set' should both be init-only or neither
                 //     string I2.Property { init { } } // 4
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "init").WithArguments("IWithInitWithExplicitImplementationOfI2.I2.Property.set", "I2.Property.set").WithLocation(40, 26),
-                // (45,26): error CS8805: Accessors 'IWithoutInitWithExplicitImplementationOfI1.I1.Property.set' and 'I1.Property.set' should both be init-only or neither
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "init").WithArguments("IWithInitWithExplicitImplementationOfI2.I2.Property.init", "I2.Property.set").WithLocation(40, 26),
+                // (45,26): error CS8805: Accessors 'IWithoutInitWithExplicitImplementationOfI1.I1.Property.set' and 'I1.Property.init' should both be init-only or neither
                 //     string I1.Property { set { } } // 5
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "set").WithArguments("IWithoutInitWithExplicitImplementationOfI1.I1.Property.set", "I1.Property.set").WithLocation(45, 26),
-                // (62,52): error CS8804: 'CWithImplementationWithInitOnly' does not implement interface member 'I2.Property.set'. 'CWithImplementationWithInitOnly.Property.set' cannot implement 'I2.Property.set' because it does not match by init-only.
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "set").WithArguments("IWithoutInitWithExplicitImplementationOfI1.I1.Property.set", "I1.Property.init").WithLocation(45, 26),
+                // (62,52): error CS8804: 'CWithImplementationWithInitOnly' does not implement interface member 'I2.Property.set'. 'CWithImplementationWithInitOnly.Property.init' cannot implement 'I2.Property.set'.
                 // public class CWithImplementationWithInitOnly : I1, I2 // 6
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I2").WithArguments("CWithImplementationWithInitOnly", "I2.Property.set", "CWithImplementationWithInitOnly.Property.set").WithLocation(62, 52),
-                // (66,51): error CS8804: 'CWithImplementationWithoutInitOnly' does not implement interface member 'I1.Property.set'. 'CWithImplementationWithoutInitOnly.Property.set' cannot implement 'I1.Property.set' because it does not match by init-only.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I2").WithArguments("CWithImplementationWithInitOnly", "I2.Property.set", "CWithImplementationWithInitOnly.Property.init").WithLocation(62, 52),
+                // (66,51): error CS8804: 'CWithImplementationWithoutInitOnly' does not implement interface member 'I1.Property.init'. 'CWithImplementationWithoutInitOnly.Property.set' cannot implement 'I1.Property.init'.
                 // public class CWithImplementationWithoutInitOnly : I1, I2 // 7
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I1").WithArguments("CWithImplementationWithoutInitOnly", "I1.Property.set", "CWithImplementationWithoutInitOnly.Property.set").WithLocation(66, 51)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I1").WithArguments("CWithImplementationWithoutInitOnly", "I1.Property.init", "CWithImplementationWithoutInitOnly.Property.set").WithLocation(66, 51)
                 );
         }
 
@@ -2124,6 +2124,42 @@ public class Derived : C
                 //             field = null; // 7
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(48, 13)
                 );
+        }
+
+        [Fact]
+        public void ReadonlyFields_Evaluation()
+        {
+            string source = @"
+public class C
+{
+    public readonly int field;
+    public static void Main()
+    {
+        var c1 = new C();
+        System.Console.Write($""{c1.field} "");
+
+        var c2 = new C() { Property = 43 };
+        System.Console.Write($""{c2.field}"");
+    }
+
+    public C()
+    {
+        field = 42;
+    }
+
+    public int Property
+    {
+        init
+        {
+            field = value;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
+                options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42 43");
         }
 
         [Fact]
@@ -2607,7 +2643,7 @@ public class D
                 );
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
-            Assert.False(property0.HasUseSiteError);
+            Assert.False(property0.HasUseSiteError); // PROTOTYPE(init-only): expect use-site error
             Assert.True(property0.MustCallMethodsDirectly);
             Assert.Equal("System.Int32", property0.Type.ToTestDisplayString());
             Assert.Null(property0.GetMethod);
@@ -2859,13 +2895,13 @@ public class D
 
             var reference = CreateMetadataReferenceFromIlSource(il);
             var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(); // PROTOTYPE(init-only): expect error diagnostics
 
             // PROTOTYPE(init-only): decoding should be more restrictive
             var method = (PEMethodSymbol)comp.GlobalNamespace.GetMember("C.M");
             Assert.False(method.IsInitOnly);
-            Assert.False(method.HasUseSiteError);
-            //Assert.True(method.ReturnType.IsErrorType());
+            Assert.False(method.HasUseSiteError); // PROTOTYPE(init-only): expect true
+            Assert.False(method.ReturnType.IsErrorType()); // PROTOTYPE(init-only): expect true
         }
 
         [Fact]
@@ -2993,7 +3029,7 @@ public class D
         }
 
         [Fact]
-        public void ModReqOnRefProperty()
+        public void ModReqOnRefProperty_OnRefReturn()
         {
             string il = @"
 .class public auto ansi beforefieldinit C extends System.Object
@@ -3037,11 +3073,11 @@ public class D
 {
     void M(C c, ref int i)
     {
-        _ = c.get_Property();
-        c.set_Property(i); // 1
+        _ = c.get_Property(); // 1
+        c.set_Property(i); // 2
 
-        _ = c.Property; // 2
-        c.Property = i; // 3
+        _ = c.Property; // 3
+        c.Property = i; // 4
     }
 }
 ";
@@ -3049,26 +3085,117 @@ public class D
             var reference = CreateMetadataReferenceFromIlSource(il);
             var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
+                // (6,15): error CS0570: 'C.get_Property()' is not supported by the language
+                //         _ = c.get_Property(); // 1
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get_Property").WithArguments("C.get_Property()").WithLocation(6, 15),
                 // (7,11): error CS0570: 'C.set_Property(?)' is not supported by the language
-                //         c.set_Property(i); // 1
+                //         c.set_Property(i); // 2
                 Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(?)").WithLocation(7, 11),
                 // (9,15): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(?)'
-                //         _ = c.Property; // 2
+                //         _ = c.Property; // 3
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(?)").WithLocation(9, 15),
                 // (10,11): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(?)'
-                //         c.Property = i; // 3
+                //         c.Property = i; // 4
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(?)").WithLocation(10, 11)
                 );
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
-            Assert.False(property0.HasUseSiteError);
+            Assert.True(property0.HasUseSiteError);
+            Assert.True(property0.MustCallMethodsDirectly);
+            Assert.Equal("System.Runtime.CompilerServices.IsExternalInit", property0.RefCustomModifiers.Single().Modifier.ToTestDisplayString());
+            Assert.Empty(property0.TypeWithAnnotations.CustomModifiers);
+
+            Assert.True(property0.GetMethod.HasUseSiteError);
+            Assert.True(property0.GetMethod.ReturnsByRef);
+            Assert.True(property0.GetMethod.ReturnType.IsErrorType());
+
+            Assert.True(property0.SetMethod.HasUseSiteError);
+            Assert.False(property0.SetMethod.IsInitOnly);
+            Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
+        }
+
+        [Fact]
+        public void ModReqOnRefProperty_OnReturn()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit C extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance int32 modreq(System.Runtime.CompilerServices.IsExternalInit)& get_Property () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname newslot virtual instance void set_Property ( int32 modreq(System.Runtime.CompilerServices.IsExternalInit)& 'value' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance int32 modreq(System.Runtime.CompilerServices.IsExternalInit)& Property()
+    {
+        .get instance int32 modreq(System.Runtime.CompilerServices.IsExternalInit)& C::get_Property()
+        .set instance void C::set_Property(int32 modreq(System.Runtime.CompilerServices.IsExternalInit)&)
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            string source = @"
+public class D
+{
+    void M(C c, ref int i)
+    {
+        _ = c.get_Property(); // 1
+        c.set_Property(i); // 2
+
+        _ = c.Property; // 3
+        c.Property = i; // 4
+    }
+}
+";
+
+            // PROTOTYPE(init-only): when decoding PE for a ref property, we don't allow IsExternalInit on the return (as opposed to ref return). We don't allow such properties in source.
+            var reference = CreateMetadataReferenceFromIlSource(il);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0570: 'C.get_Property()' is not supported by the language
+                //         _ = c.get_Property(); // 1
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get_Property").WithArguments("C.get_Property()").WithLocation(6, 15),
+                // (7,11): error CS0570: 'C.set_Property(ref ?)' is not supported by the language
+                //         c.set_Property(i); // 2
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(ref ?)").WithLocation(7, 11),
+                // (9,15): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(ref ?)'
+                //         _ = c.Property; // 3
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(ref ?)").WithLocation(9, 15),
+                // (10,11): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(ref ?)'
+                //         c.Property = i; // 4
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(ref ?)").WithLocation(10, 11)
+                );
+
+            var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
+            Assert.True(property0.HasUseSiteError);
             Assert.True(property0.MustCallMethodsDirectly);
             Assert.Empty(property0.RefCustomModifiers);
-            Assert.Equal("System.Runtime.CompilerServices.IsExternalInit", property0.TypeWithAnnotations.CustomModifiers.Single().Modifier.ToTestDisplayString());
+            Assert.Empty(property0.TypeWithAnnotations.CustomModifiers);
+            Assert.True(property0.TypeWithAnnotations.Type.IsErrorType());
 
-            Assert.False(property0.GetMethod.HasUseSiteError); // PROTOTYPE(init-only): decoding should be more restrictive
+            Assert.True(property0.GetMethod.HasUseSiteError);
             Assert.True(property0.GetMethod.ReturnsByRef);
-            Assert.False(property0.GetMethod.ReturnType.IsErrorType());
+            Assert.True(property0.GetMethod.ReturnType.IsErrorType());
 
             Assert.True(property0.SetMethod.HasUseSiteError);
             Assert.False(property0.SetMethod.IsInitOnly);
@@ -3125,7 +3252,7 @@ public class Derived : C
 
             var reference = CreateMetadataReferenceFromIlSource(il);
             var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            // PROTOTYPE(init-only): can we make this more restrictive (ie. disallow aside from the return value of an instance setter)?
+            // PROTOTYPE(init-only): make this more restrictive (ie. disallow aside from the return value of an instance setter)
             comp.VerifyDiagnostics();
 
             // PROTOTYPE(init-only): getter should have use-site error

@@ -1115,9 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                Debug.Assert(!method.IsStatic);
-                Debug.Assert(!method.IsInitOnly || method.MethodKind == MethodKind.PropertySet);
-                if (method.IsConstructor() || method.IsInitOnly)
+                if ((!method.IsStatic && method.IsConstructor()) || method.IsInitOnly)
                 {
                     // ok: setting on `this` or `base` from an instance constructor or init-only setter
                     return true;
