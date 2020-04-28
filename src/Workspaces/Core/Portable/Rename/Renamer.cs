@@ -11,8 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Rename.ConflictEngine;
-using System.Linq;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
