@@ -194,6 +194,11 @@ namespace Microsoft.CodeAnalysis.Editor
         Glyph Glyph { get; }
 
         /// <summary>
+        /// The locations of the potential rename candidates for the symbol.
+        /// </summary>
+        ImmutableArray<DocumentSpan> DefinitionLocations { get; }
+
+        /// <summary>
         /// Gets the final name of the symbol if the user has typed the provided replacement text
         /// in the editor.  Normally, the final name will be same as the replacement text.  However,
         /// that may not always be the same.  For example, when renaming an attribute the replacement
@@ -205,13 +210,13 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Returns the actual span that should be edited in the buffer for a given rename reference
         /// location.
         /// </summary>
-        TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken);
+        TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the actual span that should be edited in the buffer for a given rename conflict
         /// location.
         /// </summary>
-        TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken);
+        TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determine the set of locations to rename given the provided options. May be called 
@@ -240,10 +245,6 @@ namespace Microsoft.CodeAnalysis.Editor
         /// an inline rename
         /// </summary>
         InlineRenameFileRenameInfo GetFileRenameInfo();
-
-        // TO-DO: Move property to IInlineRenameInfo once Typescript moves to the correct IVT layering
-        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1077984
-        ImmutableArray<DocumentSpan> DefinitionLocations { get; }
     }
 
     /// <summary>

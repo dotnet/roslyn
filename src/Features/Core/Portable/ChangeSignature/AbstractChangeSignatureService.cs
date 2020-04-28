@@ -252,6 +252,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         private bool TryCreateUpdatedSolution(
             ChangeSignatureAnalysisSucceededContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken, [NotNullWhen(true)] out Solution? updatedSolution)
         {
+            var telemetryTimer = Stopwatch.StartNew();
+
             updatedSolution = null;
 
             var currentSolution = context.Solution;
@@ -266,6 +268,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 declaredSymbol, context.Solution, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var declaredSymbolParametersCount = declaredSymbol.GetParameters().Length;
+
+            int telemetryNumberOfDeclarationsToUpdate = 0;
+            int telemetryNumberOfReferencesToUpdate = 0;
 
             foreach (var symbol in symbols)
             {
@@ -347,6 +352,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                             nodesToUpdate.Add(documentId, new List<SyntaxNode>());
                         }
 
+                        telemetryNumberOfDeclarationsToUpdate++;
                         AddUpdatableNodeToDictionaries(nodesToUpdate, documentId, nodeToUpdate, definitionToUse, symbolWithSemanticParameters);
                     }
                 }
@@ -370,6 +376,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         nodesToUpdate.Add(documentId2, new List<SyntaxNode>());
                     }
 
+                    telemetryNumberOfReferencesToUpdate++;
                     AddUpdatableNodeToDictionaries(nodesToUpdate, documentId2, nodeToUpdate2, definitionToUse, symbolWithSemanticParameters);
                 }
             }
@@ -431,6 +438,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 currentSolution = currentSolution.WithDocumentSyntaxRoot(docId, formattedDoc.GetSyntaxRootSynchronously(cancellationToken)!);
             }
+
+            telemetryTimer.Stop();
+            ChangeSignatureLogger.LogCommitInformation(telemetryNumberOfDeclarationsToUpdate, telemetryNumberOfReferencesToUpdate, (int)telemetryTimer.ElapsedMilliseconds);
 
             updatedSolution = currentSolution;
             return true;
