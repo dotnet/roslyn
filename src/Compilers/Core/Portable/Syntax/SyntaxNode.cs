@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the full text of this node as an new <see cref="SourceText"/> instance.
+        /// Gets the full text of this node as a new <see cref="SourceText"/> instance.
         /// </summary>
         /// <param name="encoding">
         /// Encoding of the file that the text was read from or is going to be saved to.

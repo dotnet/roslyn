@@ -100,7 +100,7 @@ namespace Microsoft.Cci
                 {
 #if DEBUG
                     // validate that all definitions are writable
-                    // if same scenario would happen in an winmdobj project
+                    // if same scenario would happen in a winmdobj project
                     nativePdbWriterOpt.AssertAllDefinitionsHaveTokens(mdWriter.Module.GetSymbolToLocationMap());
 #endif
                 }

@@ -4,22 +4,48 @@
 
 #nullable enable
 
+using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    internal class TokenBasedFormattingRule : BaseFormattingRule
+    internal sealed class TokenBasedFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Token Based Formatting Rule";
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+        private readonly CachedOptions _options;
+
+        public TokenBasedFormattingRule()
+            : this(new CachedOptions(null))
+        {
+        }
+
+        private TokenBasedFormattingRule(CachedOptions options)
+        {
+            _options = options;
+        }
+
+        public override AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+        {
+            var cachedOptions = new CachedOptions(options);
+
+            if (cachedOptions == _options)
+            {
+                return this;
+            }
+
+            return new TokenBasedFormattingRule(cachedOptions);
+        }
+
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             ////////////////////////////////////////////////////
             // brace related operations
@@ -157,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // for (int i = 10; i < 10; i++) case
             if (previousToken.IsSemicolonInForStatement())
             {
-                return nextOperation.Invoke();
+                return nextOperation.Invoke(in previousToken, in currentToken);
             }
 
             // ; case in the switch case statement and else condition
@@ -170,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // ; * or ; * for using directive
             if (previousToken.Kind() == SyntaxKind.SemicolonToken)
             {
-                return AdjustNewLinesAfterSemicolonToken(previousToken, currentToken, options);
+                return AdjustNewLinesAfterSemicolonToken(previousToken, currentToken);
             }
 
             // attribute case ] *
@@ -189,11 +215,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
             }
 
-            return nextOperation.Invoke();
+            return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
         private AdjustNewLinesOperation AdjustNewLinesAfterSemicolonToken(
-            SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options)
+            SyntaxToken previousToken, SyntaxToken currentToken)
         {
             // between anything that isn't a using directive, we don't touch newlines after a semicolon
             if (!(previousToken.Parent is UsingDirectiveSyntax previousUsing))
@@ -202,8 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // if the user is separating using-groups, and we're between two usings, and these
             // usings *should* be separated, then do so (if the usings were already properly
             // sorted).
-            var separateGroups = options.TryGetEditorConfigOptionOrDefault(GenerationOptions.SeparateImportDirectiveGroups, out bool def) && def;
-            if (separateGroups &&
+            if (_options.SeparateImportDirectiveGroups &&
                 currentToken.Parent is UsingDirectiveSyntax currentUsing &&
                 UsingsAndExternAliasesOrganizer.NeedsGrouping(previousUsing, currentUsing))
             {
@@ -231,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             //////////////////////////////////////////////////////
             // ";" related operations
@@ -510,7 +535,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            return nextOperation.Invoke();
+            return nextOperation.Invoke(in previousToken, in currentToken);
+        }
+
+        private readonly struct CachedOptions : IEquatable<CachedOptions>
+        {
+            public readonly bool SeparateImportDirectiveGroups;
+
+            public CachedOptions(AnalyzerConfigOptions? options)
+            {
+                SeparateImportDirectiveGroups = GetOptionOrDefault(options, GenerationOptions.SeparateImportDirectiveGroups);
+            }
+
+            public static bool operator ==(CachedOptions left, CachedOptions right)
+                => left.Equals(right);
+
+            public static bool operator !=(CachedOptions left, CachedOptions right)
+                => !(left == right);
+
+            private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, PerLanguageOption2<T> option)
+            {
+                if (options is null)
+                    return option.DefaultValue;
+
+                return options.GetOption(option);
+            }
+
+            public override bool Equals(object? obj)
+                => obj is CachedOptions options && Equals(options);
+
+            public bool Equals(CachedOptions other)
+            {
+                return SeparateImportDirectiveGroups == other.SeparateImportDirectiveGroups;
+            }
+
+            public override int GetHashCode()
+            {
+                var hashCode = 0;
+                hashCode = (hashCode << 1) + (SeparateImportDirectiveGroups ? 1 : 0);
+                return hashCode;
+            }
         }
     }
 }

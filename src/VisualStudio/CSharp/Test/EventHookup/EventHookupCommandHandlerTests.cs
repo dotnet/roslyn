@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1023,7 +1022,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        private IDictionary<OptionKey2, object> QualifyMethodAccessWithNotification(NotificationOption2 notification)
-            => new Dictionary<OptionKey2, object>() { { new OptionKey2(CodeStyleOptions2.QualifyMethodAccess, LanguageNames.CSharp), new CodeStyleOption2<bool>(true, notification) } };
+        private OptionsCollection QualifyMethodAccessWithNotification(NotificationOption2 notification)
+            => new OptionsCollection(LanguageNames.CSharp) { { CodeStyleOptions2.QualifyMethodAccess, true, notification } };
     }
 }

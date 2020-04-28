@@ -36,6 +36,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
             _addedParameterFullyQualifiedTypeName = addedParameterFullyQualifiedTypeName;
         }
 
+        internal static AddedParameterOrExistingIndex CreateAdded(
+            string fullTypeName,
+            string parameterName,
+            string callSiteValue = "",
+            bool isRequired = true,
+            string defaultValue = "",
+            bool useNamedArguments = false,
+            bool isCallsiteOmitted = false,
+            bool isCallsiteTodo = false,
+            bool typeBinds = true)
+        {
+            var parameter = new AddedParameter(
+                type: null!, // Filled in later based on the fullTypeName
+                typeName: null!, // Not needed for engine testing
+                parameterName,
+                callSiteValue,
+                isRequired,
+                defaultValue,
+                useNamedArguments,
+                isCallsiteOmitted,
+                isCallsiteTodo,
+                typeBinds);
+
+            return new AddedParameterOrExistingIndex(parameter, fullTypeName);
+        }
+
         public override string ToString()
             => IsExisting ? OldIndex.ToString() : (_addedParameterWithoutTypeSymbol?.ToString() ?? string.Empty);
 
@@ -50,7 +76,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
                 _ => throw new ArgumentException("Unsupported language")
             };
 
-            return new AddedParameter(type!, _addedParameterWithoutTypeSymbol!.TypeNameDisplayWithErrorIndicator, _addedParameterWithoutTypeSymbol.ParameterName, _addedParameterWithoutTypeSymbol.CallSiteValue);
+            if (type == null)
+            {
+                throw new ArgumentException($"Could not bind type {_addedParameterFullyQualifiedTypeName}", nameof(_addedParameterFullyQualifiedTypeName));
+            }
+
+            return new AddedParameter(
+                type,
+                _addedParameterWithoutTypeSymbol!.TypeName,
+                _addedParameterWithoutTypeSymbol.Name,
+                _addedParameterWithoutTypeSymbol.CallSiteValue,
+                _addedParameterWithoutTypeSymbol.IsRequired,
+                _addedParameterWithoutTypeSymbol.DefaultValue,
+                _addedParameterWithoutTypeSymbol.UseNamedArguments,
+                _addedParameterWithoutTypeSymbol.IsCallsiteOmitted,
+                _addedParameterWithoutTypeSymbol.IsCallsiteTodo);
         }
     }
 }

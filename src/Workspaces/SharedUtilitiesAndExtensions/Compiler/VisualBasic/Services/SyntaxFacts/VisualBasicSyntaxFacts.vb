@@ -176,7 +176,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
 
-        Public Function IsNamedParameter(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamedParameter
+        Public Function IsNamedArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamedArgument
+            Dim arg = TryCast(node, SimpleArgumentSyntax)
+            Return arg?.NameColonEquals IsNot Nothing
+        End Function
+
+        Public Function IsNameOfNamedArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfNamedArgument
             Return node.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is node)
         End Function
 
@@ -1901,6 +1906,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             End If
 
             Return False
+        End Function
+
+        Public Overrides Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParameterNameXmlElementSyntax
+            Dim xmlElement = TryCast(node, XmlElementSyntax)
+            If xmlElement IsNot Nothing Then
+                Dim name = TryCast(xmlElement.StartTag.Name, XmlNameSyntax)
+                Return name?.LocalName.ValueText = DocumentationCommentXmlNames.ParameterElementName
+            End If
+
+            Return False
+        End Function
+
+        Public Overrides Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetContentFromDocumentationCommentTriviaSyntax
+            Dim documentationCommentTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
+            If documentationCommentTrivia IsNot Nothing Then
+                Return documentationCommentTrivia.Content
+            End If
+
+            Return Nothing
         End Function
 
         Public Overrides Function CanHaveAccessibility(declaration As SyntaxNode) As Boolean Implements ISyntaxFacts.CanHaveAccessibility

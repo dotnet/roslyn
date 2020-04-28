@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
             if (resolvedSymbolKey.GetAnySymbol() is { } symbol)
             {
-                GoToDefinitionHelpers.TryGoToDefinition(symbol, document.Project, streamingPresenter, CancellationToken.None);
+                GoToDefinitionHelpers.TryGoToDefinition(symbol, document.Project.Solution, streamingPresenter, CancellationToken.None);
                 return;
             }
         }

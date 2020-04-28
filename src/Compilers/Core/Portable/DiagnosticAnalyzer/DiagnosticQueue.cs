@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -113,6 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override void EnqueueLocal(Diagnostic diagnostic, DiagnosticAnalyzer analyzer, bool isSyntaxDiagnostic)
             {
+                Debug.Assert(diagnostic.Location.IsInSource);
                 if (isSyntaxDiagnostic)
                 {
                     EnqueueCore(ref _lazyLocalSyntaxDiagnostics, diagnostic, analyzer);

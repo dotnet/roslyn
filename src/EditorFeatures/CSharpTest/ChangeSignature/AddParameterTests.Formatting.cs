@@ -221,7 +221,7 @@ class SomeClass
         get
         {
             return new SomeClass()[2,
-                a: 1, bb: 34];
+                34, 1];
         }
     }
 }";
@@ -333,14 +333,14 @@ class B
 {
     public B(int y, byte bb, int x) { }
     public B() : this(2,
-        x: 1, bb: 34)
+        34, 1)
     { }
 }
 
 class D : B
 {
     public D() : base(2,
-        x: 1, bb: 34)
+        34, 1)
     { }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
@@ -362,7 +362,7 @@ class CustomAttribute : System.Attribute
                 new AddedParameterOrExistingIndex(0)};
             var expectedUpdatedCode = @"
 [Custom(2,
-    x: 1, bb: 34)]
+    34, 1)]
 class CustomAttribute : System.Attribute
 {
     public CustomAttribute(int y, byte bb, int x) { }
@@ -386,7 +386,7 @@ class CustomAttribute : System.Attribute
                 new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", "34"), "byte") };
             var expectedUpdatedCode = @"
 [Custom(
-    2, bb: 34)]
+    2, 34)]
 class CustomAttribute : System.Attribute
 {
     public CustomAttribute(int y, byte bb) { }
@@ -410,7 +410,7 @@ class CustomAttribute : System.Attribute
                 new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", "34"), "byte")};
             var expectedUpdatedCode = @"
 [Custom(
-    1, bb: 34)]
+    1, 34)]
 class CustomAttribute : System.Attribute
 {
     public CustomAttribute(int x, byte bb) { }
@@ -433,7 +433,7 @@ class CustomAttribute : System.Attribute
                 new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", "34"), "byte")};
             var expectedUpdatedCode = @"
 [Custom(
-    bb: 34)]
+    34)]
 class CustomAttribute : System.Attribute
 {
     public CustomAttribute(byte bb) { }
@@ -457,7 +457,7 @@ class CustomAttribute : System.Attribute
                 new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", "34"), "byte"),
                 new AddedParameterOrExistingIndex(2)};
             var expectedUpdatedCode = @"
-[Custom(2, z: 3, bb: 34)]
+[Custom(2, 34, 3)]
 class CustomAttribute : System.Attribute
 {
     public CustomAttribute(int y, byte bb, int z) { }

@@ -634,6 +634,10 @@ try {
     InstallDotNetSdk $global:_DotNetInstallDir $GlobalJson.tools.dotnet
   }
 
+  if ($restore) {
+    &(Ensure-DotNetSdk) tool restore
+  }
+
   try
   {
     if ($bootstrap) {
