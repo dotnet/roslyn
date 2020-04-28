@@ -48,8 +48,11 @@ which can be used by the generator to register a set of callbacks that affect ho
 passes will occur.
 
 The main generation pass occurs via the `Execute` method. `Execute` passes an instance of `SourceGeneratorContext`
-that provides access to the `Compilation` and allows the generator to alter the `Compilation` by adding source
-and reporting diagnostics.
+that provides access to the current `Compilation` and allows the generator to alter the resulting output `Compilation`
+by adding source and reporting diagnostics.
+
+The generator is also able to access any `AnalyzerAdditionalFiles` passed to the compiler via the `AdditionalFiles`
+collection, allowing for generation decisions to based on more than just the user's C# code.
 
 ```csharp
 namespace Microsoft.CodeAnalysis
