@@ -312,21 +312,6 @@
         <target state="needs-review-translation">Remplacer Object.Equals(object) au moment d'implémenter Iequatable</target>
         <note />
       </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
-        <source>Do not invoke 'Diagnostic.Descriptor'</source>
-        <target state="needs-review-translation">Ne pas appeler Diagnostic.Descriptor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
-        <source>Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.</source>
-        <target state="needs-review-translation">L'accès à la propriété Descriptor de Diagnostic dans la couche du compilateur entraîne des allocations de chaînes inutiles pour les champs du descripteur qui ne sont pas utilisés durant la compilation de la ligne de commande. Vous devez donc éviter d'accéder au descripteur des diagnostics du compilateur ici. À la place, accédez directement à ces propriétés hors du type Diagnostic.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
-        <source>Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</source>
-        <target state="translated">N'appelez pas la propriété '{0}' sur le type '{1}'. À la place, accédez directement au membre nécessaire {2} sur '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
         <target state="needs-review-translation">SymbolDeclaredEvent doit être généré pour les symboles sources</target>

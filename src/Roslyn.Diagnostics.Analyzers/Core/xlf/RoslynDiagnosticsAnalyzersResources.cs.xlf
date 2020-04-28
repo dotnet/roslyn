@@ -312,21 +312,6 @@
         <target state="needs-review-translation">Při implementaci Iequatable přepište Object.Equals(object).</target>
         <note />
       </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
-        <source>Do not invoke 'Diagnostic.Descriptor'</source>
-        <target state="needs-review-translation">Nevyvolávejte Diagnostic.Descriptor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
-        <source>Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.</source>
-        <target state="needs-review-translation">Přístup k vlastnosti Descriptor typu Diagnostic ve vrstvě kompilátoru způsobuje nepotřebné alokace řetězců pro pole popisovače, která se během kompilace na příkazovém řádku nevyužívají. Z tohoto důvodu byste se zde měli vyhnout přístupu k vlastnosti Descriptor. K těmto vlastnostem byste měli místo toho přistupovat přímo z typu Diagnostic.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
-        <source>Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</source>
-        <target state="translated">Nevyvolávejte vlastnost {0} u typu {1}, místo toho přistupujte přímo k požadovanému členovi {2} u {1}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
         <target state="needs-review-translation">Pro zdrojové symboly musí být vygenerována událost SymbolDeclaredEvent.</target>

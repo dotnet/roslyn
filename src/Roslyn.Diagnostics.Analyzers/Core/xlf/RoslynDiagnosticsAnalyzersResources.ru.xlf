@@ -312,21 +312,6 @@
         <target state="needs-review-translation">Переопределите Object.Equals(object) при реализации IEquatable</target>
         <note />
       </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
-        <source>Do not invoke 'Diagnostic.Descriptor'</source>
-        <target state="needs-review-translation">Не вызывайте Diagnostic.Descriptor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
-        <source>Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.</source>
-        <target state="needs-review-translation">Обращение к свойству Descriptor типа Diagnostic на уровне компилятора ведет к ненужным выделениям строк для полей дескриптора, которые не используются при компиляции из командной строки. Поэтому здесь вам не следует обращаться к свойству Descriptor диагностики компилятора. Вместо этого обращайтесь к этим свойствам напрямую без типа Diagnostic.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
-        <source>Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</source>
-        <target state="translated">Не вызывайте свойство "{0}" для типа "{1}", вместо этого напрямую обратитесь к нужному члену {2} для "{1}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
         <target state="needs-review-translation">Для исходных символов нужно создать SymbolDeclaredEvent</target>

@@ -312,21 +312,6 @@
         <target state="needs-review-translation">Reemplazar Object.Equals(object) al implementar Iequatable</target>
         <note />
       </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
-        <source>Do not invoke 'Diagnostic.Descriptor'</source>
-        <target state="needs-review-translation">No invocar Diagnostic.Descriptor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
-        <source>Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.</source>
-        <target state="needs-review-translation">El acceso a la propiedad Descriptor de Diagnostic en la capa del compilador provoca asignaciones de cadena innecesarias para los campos del descriptor que no se utilizan en la compilación de la línea de comandos. Por lo tanto, debe evitar el acceso a Descriptor del diagnóstico del compilador aquí. En su lugar, debe acceder directamente a estas propiedades desde fuera del tipo de Diagnostic.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
-        <source>Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</source>
-        <target state="translated">No invoque a la propiedad "{0}" en el tipo "{1}", acceda directamente en su lugar al miembro requerido {2} en "{1}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
         <target state="needs-review-translation">Debe generarse SymbolDeclaredEvent para los símbolos de origen.</target>
