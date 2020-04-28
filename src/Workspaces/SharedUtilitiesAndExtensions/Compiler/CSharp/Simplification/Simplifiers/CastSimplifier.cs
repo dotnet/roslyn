@@ -80,13 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // can remove, but need further analysis.
             Debug.Assert(expressionToCastType.IsImplicit);
 
-            if (expressionToCastType.IsPointer || expressionToCastType.IsIntPtr)
-            {
-                // Don't remove any non-identity pointer or IntPtr conversions.
-                // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
-                return expressionType != null && expressionType.Equals(outerType);
-            }
-
             if (expressionToCastType.IsInterpolatedString)
             {
                 // interpolation casts are necessary to preserve semantics if our destination type is not itself
@@ -382,7 +375,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IdentityFloatingPointCastMustBePreserved(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, conversion, cancellationToken))
                 return true;
 
+            if (PointerOrIntPtrCastMustBePreserved(castType, conversion))
+                return true;
+
             return false;
+        }
+
+        private static bool PointerOrIntPtrCastMustBePreserved(ITypeSymbol castType, Conversion conversion)
+        {
+            if (!conversion.IsIdentity)
+                return false;
+
+            // if we have a non-identity cast to an int* or IntPtr just do not touch this.
+            // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
+            //
+            // NOTE(cyrusn): This code should not be necessary.  However there is additional code that deals with
+            // `*(x*)expr` ends up masking that this change should not be safe.  That code is suspect and should be
+            // changed.  Until then though we disable this.
+            return conversion.IsPointer || conversion.IsIntPtr;
         }
 
         private static bool InvolvesDynamic(
