@@ -68,19 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // the cast can be removed.
             if (expressionToCastType.IsIdentity)
             {
-                // Required explicit cast for reference comparison.
-                // Cast removal causes warning CS0252 (Possible unintended reference comparison).
-                //      object x = string.Intern("Hi!");
-                //      (object)x == "Hi!"
-                if (IsRequiredCastForReferenceEqualityComparison(outerType, castNode, semanticModel, out var other))
-                {
-                    var otherToOuterType = semanticModel.ClassifyConversion(other, outerType);
-                    if (otherToOuterType.IsImplicit && otherToOuterType.IsReference)
-                    {
-                        return false;
-                    }
-                }
-
                 if (SameSizedFloatingPointCastMustBePreserved(
                         semanticModel, castNode, castedExpressionNode,
                         expressionType, castType, cancellationToken))
@@ -161,16 +148,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                 if (expressionToCastType.IsExplicit &&
                     expressionToOuterType.IsExplicit)
-                {
-                    return false;
-                }
-                // Required explicit cast for reference comparison.
-                // Cast removal causes warning CS0252 (Possible unintended reference comparison).
-                //      object x = string.Intern("Hi!");
-                //      x == (object)"Hi!"
-                if (expressionToCastType.IsImplicit && expressionToCastType.IsReference &&
-                    castToOuterType.IsIdentity &&
-                    IsRequiredCastForReferenceEqualityComparison(outerType, castNode, semanticModel, out var other))
                 {
                     return false;
                 }
@@ -385,6 +362,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             //
             // TODO(cyrusn): This should move into SpeculationAnalyzer as it's a static-semantics change.
             if (CastMustBePreservedInConditionalBranch(castNode, conversion))
+                return true;
+
+            // (object)"" == someObj
+            //
+            // This cast can be removed with no runtime or static-semantics change.  However, the compiler warns here
+            // that this could be confusing (since it's not clear it's calling `==(object,object)` instead of
+            // `==(string,string)`), so we have to preserve this.
+            if (CastIsRequiredToPreventUnintendedComparisonWarning(castNode, castedExpressionNode, castType, semanticModel, conversion, cancellationToken))
                 return true;
 
             return false;
@@ -836,32 +821,103 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
         }
 
-        private static bool IsRequiredCastForReferenceEqualityComparison(
-            ITypeSymbol outerType, ExpressionSyntax castNode,
-            SemanticModel semanticModel, out ExpressionSyntax other)
+        private static bool CastIsRequiredToPreventUnintendedComparisonWarning(
+            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode, ITypeSymbol castType,
+            SemanticModel semanticModel, Conversion conversion, CancellationToken cancellationToken)
         {
-            if (outerType.SpecialType == SpecialType.System_Object)
-            {
-                var expression = castNode.WalkUpParentheses();
-                var parentNode = expression.Parent;
-                if (parentNode.IsKind(SyntaxKind.EqualsExpression) || parentNode.IsKind(SyntaxKind.NotEqualsExpression))
-                {
-                    // Reference comparison.
-                    var binaryExpression = (BinaryExpressionSyntax)parentNode;
-                    other = binaryExpression.Left == expression ?
-                        binaryExpression.Right :
-                        binaryExpression.Left;
+            // Based on the check in DiagnosticPass.CheckRelationals.
 
-                    // Explicit cast not required if we are comparing with type parameter with a class constraint.
-                    var otherType = semanticModel.GetTypeInfo(other).Type;
-                    if (otherType != null && otherType.TypeKind != TypeKind.TypeParameter)
-                    {
-                        return !other.WalkDownParentheses().IsKind(SyntaxKind.CastExpression);
-                    }
+            // (object)"" == someObj
+            //
+            // This cast can be removed with no runtime or static-semantics change.  However, the compiler warns here
+            // that this could be confusing (since it's not clear it's calling `==(object,object)` instead of
+            // `==(string,string)`), so we have to preserve this.
+
+            // compiler: if (node.Left.Type.SpecialType == SpecialType.System_Object
+            if (castType?.SpecialType != SpecialType.System_Object)
+                return false;
+
+            // compiler: node.OperatorKind == BinaryOperatorKind.ObjectEqual || node.OperatorKind == BinaryOperatorKind.ObjectNotEqual
+            castNode = castNode.WalkUpParentheses();
+            var parent = castNode.Parent;
+            if (!(parent is BinaryExpressionSyntax binaryExpression))
+                return false;
+
+            if (!binaryExpression.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression))
+                return false;
+
+            var binaryMethod = semanticModel.GetSymbolInfo(binaryExpression, cancellationToken).Symbol as IMethodSymbol;
+            if (binaryMethod == null)
+                return false;
+
+            if (binaryMethod.ContainingType?.SpecialType != SpecialType.System_Object)
+                return false;
+
+            var operatorName = binaryMethod.Name;
+            if (operatorName != WellKnownMemberNames.EqualityOperatorName && operatorName != WellKnownMemberNames.InequalityOperatorName)
+                return false;
+
+            // compiler: && ConvertedHasEqual(node.OperatorKind, node.Right, out t))
+            var otherSide = castNode == binaryExpression.Left ? binaryExpression.Right : binaryExpression.Left;
+            otherSide = otherSide.WalkDownParentheses();
+
+            return CastIsRequiredToPreventUnintendedComparisonWarning(castedExpressionNode, otherSide, operatorName, semanticModel, cancellationToken) ||
+                   CastIsRequiredToPreventUnintendedComparisonWarning(otherSide, castedExpressionNode, operatorName, semanticModel, cancellationToken);
+        }
+
+        private static bool CastIsRequiredToPreventUnintendedComparisonWarning(
+            ExpressionSyntax left, ExpressionSyntax right, string operatorName,
+            SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // compiler: node.Left.Type.SpecialType == SpecialType.System_Object && 
+            var leftType = semanticModel.GetTypeInfo(left, cancellationToken).Type;
+            if (leftType?.SpecialType != SpecialType.System_Object)
+                return false;
+
+            // compiler: && !(node.Left.ConstantValue != null && node.Left.ConstantValue.IsNull)
+            var constantValue = semanticModel.GetConstantValue(left, cancellationToken);
+            if (constantValue.HasValue && constantValue.Value is null)
+                return false;
+
+            // compiler: && ConvertedHasEqual(node.OperatorKind, node.Right, out t))
+
+            // Code for: ConvertedHasEqual
+
+            // compiler: if (conv.ExplicitCastInCode) return false;
+            if (right.IsKind(SyntaxKind.CastExpression, SyntaxKind.AsExpression))
+                return false;
+
+            // compiler: NamedTypeSymbol nt = conv.Operand.Type as NamedTypeSymbol;
+            //           if ((object)nt == null || !nt.IsReferenceType || nt.IsInterface)
+            var otherSideType = semanticModel.GetTypeInfo(right, cancellationToken).Type as INamedTypeSymbol;
+            if (otherSideType == null)
+                return false;
+
+            if (!otherSideType.IsReferenceType || otherSideType.TypeKind == TypeKind.Interface)
+                return false;
+
+            // compiler: for (var t = nt; (object)t != null; t = t.BaseTypeNoUseSiteDiagnostics)
+            for (var currentType = otherSideType; currentType != null; currentType = currentType.BaseType)
+            {
+                // compiler: foreach (var sym in t.GetMembers(opName))
+                foreach (var opMember in currentType.GetMembers(operatorName))
+                {
+                    // compiler: MethodSymbol op = sym as MethodSymbol;
+                    var opMethod = opMember as IMethodSymbol;
+
+                    // compiler: if ((object)op == null || op.MethodKind != MethodKind.UserDefinedOperator) continue;
+                    if (opMethod == null || opMethod.MethodKind != MethodKind.UserDefinedOperator)
+                        continue;
+
+                    // compiler: var parameters = op.GetParameters();
+                    //           if (parameters.Length == 2 && TypeSymbol.Equals(parameters[0].Type, t, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(parameters[1].Type, t, TypeCompareKind.ConsiderEverything2))
+                    //               return true
+                    var parameters = opMethod.Parameters;
+                    if (parameters.Length == 2 && Equals(parameters[0].Type, currentType) && Equals(parameters[1].Type, currentType))
+                        return true;
                 }
             }
 
-            other = null;
             return false;
         }
 
