@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else if (overridingProperty.SetMethod is null ?
                                 !IsValidOverrideReturnType(overridingProperty, overridingMemberType, overriddenMemberType, diagnostics) :
-                                overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
+                                !overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                             {
                                 // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
                                 if (!isOrContainsErrorType(overridingMemberType.Type))

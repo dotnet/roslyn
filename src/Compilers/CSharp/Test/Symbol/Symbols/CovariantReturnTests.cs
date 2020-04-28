@@ -314,20 +314,17 @@ public class Derived : Base
 }
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (9,38): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,34): error CS1715: 'Derived.P': type must be 'Func<object>' to match overridden member 'Base.P'
                 //     public override Func<string> P { get; set; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("covariant returns").WithLocation(9, 38),
-                // (9,43): error CS0115: 'Derived.P.set': no suitable method found to override
-                //     public override Func<string> P { get; set; }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "set").WithArguments("Derived.P.set").WithLocation(9, 43)
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "P").WithArguments("Derived.P", "Base.P", "System.Func<object>").WithLocation(9, 34)
                 );
             VerifyOverride(comp, "Derived.P", "System.Func<System.Object> Base.P { get; set; }");
             VerifyNoOverride(comp, "Derived.set_P");
             VerifyOverride(comp, "Derived.get_P", "System.Func<System.Object> Base.P.get");
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
-                // (9,43): error CS0115: 'Derived.P.set': no suitable method found to override
+                // (9,34): error CS1715: 'Derived.P': type must be 'Func<object>' to match overridden member 'Base.P'
                 //     public override Func<string> P { get; set; }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "set").WithArguments("Derived.P.set").WithLocation(9, 43)
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "P").WithArguments("Derived.P", "Base.P", "System.Func<object>").WithLocation(9, 34)
                 );
             VerifyOverride(comp, "Derived.P", "System.Func<System.Object> Base.P { get; set; }");
             VerifyNoOverride(comp, "Derived.set_P");
