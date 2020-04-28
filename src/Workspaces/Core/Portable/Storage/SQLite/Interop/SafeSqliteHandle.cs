@@ -23,12 +23,13 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
 
         public override bool IsInvalid => handle == IntPtr.Zero;
 
-        public new sqlite3 DangerousGetHandle()
+        public sqlite3 DangerousGetWrapper()
             => _wrapper!;
 
         protected override bool ReleaseHandle()
         {
             var result = (Result)raw.sqlite3_close(_wrapper);
+            SetHandle(IntPtr.Zero);
             return result == Result.OK;
         }
     }

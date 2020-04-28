@@ -26,13 +26,14 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
 
         public override bool IsInvalid => handle == IntPtr.Zero;
 
-        public new sqlite3_blob DangerousGetHandle()
+        public sqlite3_blob DangerousGetWrapper()
             => _wrapper!;
 
         protected override bool ReleaseHandle()
         {
             using var _ = _lease;
             var result = (Result)raw.sqlite3_blob_close(_wrapper);
+            SetHandle(IntPtr.Zero);
             return result == Result.OK;
         }
     }
