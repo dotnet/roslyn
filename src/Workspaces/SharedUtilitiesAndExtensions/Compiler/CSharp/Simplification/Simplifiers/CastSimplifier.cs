@@ -73,12 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (expressionToCastType.IsIdentity)
                 return true;
 
-            // We already bailed out of we had an explicit/none conversions back in CastMustBePreserved.
-            Debug.Assert(!expressionToCastType.IsExplicit);
+            // We already bailed out of we had an explicit/none conversions back in CastMustBePreserved 
+            // (except for implicit user defined conversions).
+            Debug.Assert(!expressionToCastType.IsExplicit || expressionToCastType.IsUserDefined);
 
-            // At this point, the only type of conversion left are implicit conversions.  These may be conversions we
-            // can remove, but need further analysis.
-            Debug.Assert(expressionToCastType.IsImplicit);
+            // At this point, the only type of conversion left are implicit or user-defined conversions.  These may be
+            // conversions we can remove, but need further analysis.
+            Debug.Assert(expressionToCastType.IsImplicit || expressionToCastType.IsUserDefined);
 
             if (expressionToCastType.IsInterpolatedString)
             {
@@ -351,8 +352,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castType.IsErrorType())
                 return true;
 
-            // Explicit conversions can cause an exception or data loss, hence can never be removed.
-            if (conversion.IsExplicit)
+            // Almost all explicit conversions can cause an exception or data loss, hence can never be removed.
+            if (IsExplicitCastThatMustBePreserved(conversion))
                 return true;
 
             // If this conversion doesn't even exist, then this code is in error, and we don't want to touch it.
@@ -400,6 +401,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             if (PointerOrIntPtrCastMustBePreserved(castType, conversion))
                 return true;
+
+            return false;
+        }
+
+        private static bool IsExplicitCastThatMustBePreserved(Conversion conversion)
+        {
+            if (conversion.IsExplicit)
+            {
+                // if it's not a user defined conversion, we must preserve it as it has runtime impact that we don't want to change.
+                if (!conversion.IsUserDefined)
+                    return true;
+
+                // Casts that involve implicit conversions are still represented as explicit casts. Because they're
+                // implicit though, we may be able to remove it. i.e. if we have `(C)0 + (C)1` we can remove one of the
+                // casts because it will be inferred from the binary context.
+                var userMethod = conversion.MethodSymbol;
+                if (userMethod?.Name != WellKnownMemberNames.ImplicitConversionName)
+                    return true;
+            }
 
             return false;
         }
