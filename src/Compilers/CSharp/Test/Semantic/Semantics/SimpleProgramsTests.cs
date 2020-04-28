@@ -4139,6 +4139,9 @@ System.Console.Write(""Hi!"");
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
+                // (2,13): warning CS7022: The entry point of the program is global code; ignoring 'Main()' entry point.
+                // static void Main()
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()").WithLocation(2, 13),
                 // (2,13): warning CS8321: The local function 'Main' is declared but never used
                 // static void Main()
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Main").WithArguments("Main").WithLocation(2, 13)
@@ -4163,7 +4166,11 @@ static void Main()
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
-            comp.VerifyDiagnostics(); // PROTOTYPE(SimplePrograms): Should we still warn that Main is not the entry point?
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS7022: The entry point of the program is global code; ignoring 'Main()' entry point.
+                // static void Main()
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()").WithLocation(6, 13)
+                );
             CompileAndVerify(comp, expectedOutput: "Hi!");
         }
 
@@ -4475,6 +4482,296 @@ class Program
                 // error CS9003: Cannot specify /main if there is a compilation unit with top-level statements.
                 Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1)
                 );
+        }
+
+        [Fact]
+        public void ExplicitMain_12()
+        {
+            var text = @"
+System.Console.Write(""H"");
+Main();
+System.Console.Write(""!"");
+
+void Main()
+{
+    System.Console.Write(""i"");
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void ExplicitMain_13()
+        {
+            var text = @"
+System.Console.Write(""H"");
+Main("""");
+System.Console.Write(""!"");
+
+static void Main(string args)
+{
+    System.Console.Write(""i"");
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void ExplicitMain_14()
+        {
+            var text = @"
+System.Console.Write(""H"");
+Main();
+System.Console.Write(""!"");
+
+static long Main()
+{
+    System.Console.Write(""i"");
+    return 0;
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void ExplicitMain_15()
+        {
+            var text = @"
+System.Console.Write(""H"");
+Main();
+System.Console.Write(""!"");
+
+static int Main()
+{
+    System.Console.Write(""i"");
+    return 0;
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (6,12): warning CS7022: The entry point of the program is global code; ignoring 'Main()' entry point.
+                // static int Main()
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()").WithLocation(6, 12)
+                );
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void ExplicitMain_16()
+        {
+            var text = @"
+System.Console.Write(""H"");
+Main(null);
+System.Console.Write(""!"");
+
+static void Main(string[] args)
+{
+    System.Console.Write(""i"");
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS7022: The entry point of the program is global code; ignoring 'Main(string[])' entry point.
+                // static void Main(string[] args)
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main(string[])").WithLocation(6, 13)
+                );
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void ExplicitMain_17()
+        {
+            var text = @"
+System.Console.Write(""H"");
+Main(null);
+System.Console.Write(""!"");
+
+static int Main(string[] args)
+{
+    System.Console.Write(""i"");
+    return 0;
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (6,12): warning CS7022: The entry point of the program is global code; ignoring 'Main(string[])' entry point.
+                // static int Main(string[] args)
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main(string[])").WithLocation(6, 12)
+                );
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void ExplicitMain_18()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+System.Console.Write(""H"");
+await Main();
+System.Console.Write(""!"");
+
+async static Task Main()
+{
+    System.Console.Write(""i"");
+    await Task.Yield();
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (8,19): warning CS7022: The entry point of the program is global code; ignoring 'Main()' entry point.
+                // async static Task Main()
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()").WithLocation(8, 19)
+                );
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void ExplicitMain_19()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+System.Console.Write(""H"");
+await Main();
+System.Console.Write(""!"");
+
+static async Task<int> Main()
+{
+    System.Console.Write(""i"");
+    await Task.Yield();
+    return 0;
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (8,24): warning CS7022: The entry point of the program is global code; ignoring 'Main()' entry point.
+                // static async Task<int> Main()
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()").WithLocation(8, 24)
+                );
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void ExplicitMain_20()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+System.Console.Write(""H"");
+await Main(null);
+System.Console.Write(""!"");
+
+static async Task Main(string[] args)
+{
+    System.Console.Write(""i"");
+    await Task.Yield();
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (8,19): warning CS7022: The entry point of the program is global code; ignoring 'Main(string[])' entry point.
+                // static async Task Main(string[] args)
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main(string[])").WithLocation(8, 19)
+                );
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void ExplicitMain_21()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+System.Console.Write(""H"");
+await Main(null);
+System.Console.Write(""!"");
+
+static async Task<int> Main(string[] args)
+{
+    System.Console.Write(""i"");
+    await Task.Yield();
+    return 0;
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (8,24): warning CS7022: The entry point of the program is global code; ignoring 'Main(string[])' entry point.
+                // static async Task<int> Main(string[] args)
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main(string[])").WithLocation(8, 24)
+                );
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void ExplicitMain_22()
+        {
+            var text = @"
+System.Console.Write(""H"");
+Main<int>();
+System.Console.Write(""!"");
+
+static void Main<T>()
+{
+    System.Console.Write(""i"");
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void ExplicitMain_23()
+        {
+            var text = @"
+System.Console.Write(""H"");
+local();
+System.Console.Write(""!"");
+
+static void local()
+{
+    Main();
+
+    static void Main()
+    {
+        System.Console.Write(""i"");
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Hi!");
         }
 
         [Fact]
@@ -4817,7 +5114,7 @@ class MyAttribute : System.Attribute
     public MyAttribute(int x) {}
 }
 ";
-            var comp = CreateCompilation(text1, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
                 // (2,1): error CS7014: Attributes are not valid in this context.
                 // [MyAttribute(i)]
@@ -4967,7 +5264,7 @@ static extern void local1();
 ";
             var verifier = CompileAndVerify(
                 source,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 parseOptions: DefaultParseOptions,
                 symbolValidator: validate,
                 verify: Verification.Skipped);
@@ -6636,6 +6933,30 @@ return default;
             Assert.Equal("System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "hello async main", expectedReturnCode: 0);
+        }
+
+        [Fact]
+        public void Dll_01()
+        {
+            var text = @"System.Console.WriteLine(""Hi!"");";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
+            comp.VerifyEmitDiagnostics(
+                // error CS9004: Program using top-level statements must be an executable.
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void NetModule_01()
+        {
+            var text = @"System.Console.WriteLine(""Hi!"");";
+
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseModule, parseOptions: DefaultParseOptions);
+            comp.VerifyEmitDiagnostics(
+                // error CS9004: Program using top-level statements must be an executable.
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1)
+                );
         }
     }
 }

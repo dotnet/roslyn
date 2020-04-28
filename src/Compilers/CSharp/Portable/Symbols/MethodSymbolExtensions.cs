@@ -198,9 +198,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             method = method.PartialDefinitionPart ?? method;
             foreach (var reference in method.DeclaringSyntaxReferences)
             {
-                if (reference.GetSyntax() is MethodDeclarationSyntax methodDeclaration)
+                SyntaxNode node = reference.GetSyntax();
+                if (node is MethodDeclarationSyntax methodDeclaration)
                 {
                     return methodDeclaration.ReturnType;
+                }
+                else if (node is LocalFunctionStatementSyntax statement)
+                {
+                    return statement.ReturnType;
                 }
             }
 
