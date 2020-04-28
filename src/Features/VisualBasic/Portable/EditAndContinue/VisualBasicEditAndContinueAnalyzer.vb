@@ -2049,7 +2049,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
 
                 For Each member In type.Members
-                    Dim modifiers As SyntaxTokenList = Nothing
+                    Dim modifiers As SyntaxTokenList
 
                     Select Case member.Kind
                         Case SyntaxKind.DeclareFunctionStatement,
@@ -2893,7 +2893,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Protected Overrides Function GetExceptionHandlingAncestors(node As SyntaxNode, isNonLeaf As Boolean) As List(Of SyntaxNode)
             Dim result = New List(Of SyntaxNode)()
-            Dim initialNode = node
 
             While node IsNot Nothing
                 Dim kind = node.Kind

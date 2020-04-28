@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             foreach (var value in testValues)
             {
                 // With a threshold of 0, we should only find exactly the item we're searching for.
-                var items = tree.Find(value, threshold: 0);
                 Assert.Single(tree.Find(value, threshold: 0), value.ToLower());
             }
 

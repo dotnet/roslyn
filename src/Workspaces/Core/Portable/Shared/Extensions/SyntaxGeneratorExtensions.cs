@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // For non-out parameters, create a field and assign the parameter to it.
                     // TODO: I'm not sure that's what we really want for ref parameters.
-                    if (TryGetValue(parameterToNewFieldMap, parameterName, out var fieldName))
+                    if (TryGetValue(parameterToNewFieldMap, parameterName, out _))
                     {
                         result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
                             attributes: default,
@@ -278,6 +278,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var getAccessibility = overriddenProperty.GetMethod.ComputeResultantAccessibility(containingType);
             var setAccessibility = overriddenProperty.SetMethod.ComputeResultantAccessibility(containingType);
+
             SyntaxNode getBody;
             SyntaxNode setBody;
             // Implement an abstract property by throwing not implemented in accessors.

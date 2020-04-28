@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 
         protected override void LanguageSpecificAnalyzeSyntax(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             switch (context.Node.Kind())
             {
                 case SyntaxKind.NameColon:

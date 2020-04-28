@@ -190,7 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             private static void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node)
             {
                 // only add indent block operation if the base token is the first token on line
-                var text = node.SyntaxTree.GetText();
                 var baseToken = node.Parent.GetFirstToken(includeZeroWidth: true);
 
                 list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(

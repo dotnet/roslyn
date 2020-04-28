@@ -210,7 +210,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         if (Equals(attribute.AttributeConstructor, constructor))
                         {
-
                             // Check for both constructor signatures. The constructor that takes a TypeLib*Flags reports an int argument.
                             var argumentValue = attribute.ConstructorArguments.First().Value;
 

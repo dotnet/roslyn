@@ -41,18 +41,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("false : error", false, ReportDiagnostic.Error)]
         public void TestParseEditorConfigCodeStyleOption(string args, bool isEnabled, ReportDiagnostic severity)
         {
-            switch (severity)
-            {
-                case ReportDiagnostic.Hidden:
-                    break;
-                case ReportDiagnostic.Info:
-                    break;
-                case ReportDiagnostic.Warn:
-                    break;
-                case ReportDiagnostic.Error:
-                    break;
-            }
-
             CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(args, out var result);
             Assert.True(result.Value == isEnabled,
                         $"Expected {nameof(isEnabled)} to be {isEnabled}, was {result.Value}");

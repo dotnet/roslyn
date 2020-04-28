@@ -435,8 +435,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                var identifier = node.Identifier;
-
                 var newNode = (SimpleNameSyntax)base.VisitIdentifierName(node);
 
                 return VisitSimpleName(newNode, node);

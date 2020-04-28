@@ -6523,7 +6523,7 @@ class C
     }
 }
 ";
-            await AssertFormatAsync(expected, code);
+            await AssertFormatAsync(expected, code, changedOptionSet: changingOptions);
         }
 
         [Fact]

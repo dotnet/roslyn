@@ -122,7 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
         protected override bool TryGetNameParts(ExpressionSyntax expression, out IList<string> nameParts)
         {
-            nameParts = new List<string>();
             return expression.TryGetNameParts(out nameParts);
         }
 
