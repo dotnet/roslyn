@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -55,9 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var castType = castTypeInfo.Type;
             var expressionTypeInfo = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
-
-            if (CastPassedToParamsArrayDefinitelyCantBeRemoved(castNode, castType, semanticModel, cancellationToken))
-                return false;
 
             // If this changes semantics, then we can't remove it.
             if (speculationAnalyzer.ReplacementChangesSemantics())
@@ -383,6 +379,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // *(T*)null.  Can't remove this case.
             if (IsDereferenceOfNullPointerCast(castNode, castedExpressionNode))
+                return true;
+
+            if (ParamsArgumentCastMustBePreserved(castNode, castType, semanticModel, cancellationToken))
                 return true;
 
             return false;
@@ -907,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return true;
         }
 
-        private static bool CastPassedToParamsArrayDefinitelyCantBeRemoved(
+        private static bool ParamsArgumentCastMustBePreserved(
             ExpressionSyntax cast,
             ITypeSymbol castType,
             SemanticModel semanticModel,
@@ -953,7 +952,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 {
                     // We don't check the position of the argument because in attributes it is allowed that 
                     // params parameter are positioned in between if named arguments are used.
-                    // The *single* argument check above is also broken: https://github.com/dotnet/roslyn/issues/20742
                     var parameter = attributeArgument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
                     return ParameterTypeMatchesParamsElementType(parameter, castType, semanticModel);
                 }
