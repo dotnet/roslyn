@@ -60,7 +60,7 @@ This section is broken down by user scenarios, with general solutions listed fir
 
 ### Generated class
 
-**User scenario:** As a generator author I want to be able to add a type to the compilation, that can be referenced by the users code.
+**User scenario:** As a generator author I want to be able to add a type to the compilation, that can be referenced by the user's code.
 
 **Solution:** Have the user write the code as if the type was already present. Generate the missing type based on information available in the compilation.
 
@@ -144,8 +144,8 @@ public class FileTransformGenerator : ISourceGenerator
 **User scenario:** As a generator author I want to be able to inspect and augment a users code with new functionality.
 
 **Solution:** Require the user to make the class you want to augment be a `partial class`, and mark it with e.g. a unique attribute, or name.
-Register a `SyntaxReceiver` that looks for any classes marked for generation and records them. Retreive the populated `SyntaxReceiver`
-during the generation phase and, use the recorded information to generate a matching `partial class` that
+Register a `SyntaxReceiver` that looks for any classes marked for generation and records them. Retrieve the populated `SyntaxReceiver`
+during the generation phase and use the recorded information to generate a matching `partial class` that
 contains the additional functionality.
 
 **Example:**
@@ -286,34 +286,34 @@ public partial class UserClass : INotifyPropertyChanged
 
 ### Participate in the IDE experience
 
-**Implemenation Status**: Not Implemented.
+**Implementation Status**: Not Implemented.
 
 **User scenario:** As a generator author I want to be able to interactively regenerate code as the user is editing files.
 
-**Solution:** We expect there to be an an opt-in set of interactive callbacks that can be implemented to allow for progressively more complex generation strategies.
-It is anticipated there will be a mechanism for providing symbol mapping for lighting up features such a 'Find all references'.
+**Solution:** We expect there to be an opt-in set of interactive callbacks that can be implemented to allow for progressively more complex generation strategies.
+It is anticipated there will be a mechanism for providing symbol mapping for lighting up features such as 'Find all references'.
 
 ```csharp
 [Generator]
 public class InteractiveGenerator : ISourceGenerator
+{
+    public void Initialize(InitializationContext context)
     {
-        public void Initialize(InitializationContext context)
-        {
-            // Register for additional file callbacks
-            context.RegisterForAdditionalFileChanges(OnAdditionalFilesChanged);
-        }
-
-        public void Execute(SourceGeneratorContext context)
-        {
-            // generators must always support a total generation pass
-        }
-
-        public void OnAdditionalFilesChanged(AdditionalFilesChangedContext context)
-        {
-            // determine which file changed, and if it affects this generator
-            // regenerate only the parts that are affected by this change.
-        }
+        // Register for additional file callbacks
+        context.RegisterForAdditionalFileChanges(OnAdditionalFilesChanged);
     }
+
+    public void Execute(SourceGeneratorContext context)
+    {
+        // generators must always support a total generation pass
+    }
+
+    public void OnAdditionalFilesChanged(AdditionalFilesChangedContext context)
+    {
+        // determine which file changed, and if it affects this generator
+        // regenerate only the parts that are affected by this change.
+    }
+}
 ```
 
 ### Serialization
@@ -351,7 +351,7 @@ the compiler would notify the generator of every type marked with the given
 attribute. For now we'll assume that the types are provided to us.
 
 The first task is to decide what we want our serialization to return. Let's say
-we do a simple JSon serialization that produces a string like the following
+we do a simple JSON serialization that produces a string like the following
 
 ```json
 {
@@ -392,7 +392,7 @@ of code a source generator could add to a compilation.
 Our next task is design a generator to generate the above code, since the
 above code is itself customized in the `// Body` section according to the
 actual properties in the class. In other words, we need to generate the code
-which will generate the JSon format. This is a generator-generator.
+which will generate the JSON format. This is a generator-generator.
 
 Let's start with a basic template. We are adding a full source generator, so we'll need
 to generate a class with the same name as the input class, with a public method called
