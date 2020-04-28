@@ -534,17 +534,16 @@ namespace Microsoft.CodeAnalysis
             // avoid enumerating multiple times:
             var collection = projectReferences?.ToCollection();
 
-            // TODO: Temporary workaround for https://github.com/dotnet/roslyn/issues/43632
-            // PublicContract.RequireUniqueNonNullItems(collection, nameof(projectReferences));
-            PublicContract.RequireNonNullItems(collection, nameof(projectReferences));
+            PublicContract.RequireUniqueNonNullItems(collection, nameof(projectReferences));
 
-            foreach (var projectReference in collection)
-            {
-                if (_state.ContainsProjectReference(projectId, projectReference))
-                {
-                    throw new InvalidOperationException(WorkspacesResources.The_project_already_references_the_target_project);
-                }
-            }
+            // TODO: Temporary workaround for https://github.com/dotnet/roslyn/issues/43632
+            //foreach (var projectReference in collection)
+            //{
+            //    if (_state.ContainsProjectReference(projectId, projectReference))
+            //    {
+            //        throw new InvalidOperationException(WorkspacesResources.The_project_already_references_the_target_project);
+            //    }
+            //}
 
             CheckCircularProjectReferences(projectId, collection);
             CheckSubmissionProjectReferences(projectId, collection, ignoreExistingReferences: false);
