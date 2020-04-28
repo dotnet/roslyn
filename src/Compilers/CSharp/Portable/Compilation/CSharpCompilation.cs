@@ -1537,11 +1537,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal new MethodSymbol? GetEntryPoint(CancellationToken cancellationToken)
         {
-            EntryPoint? entryPoint = GetEntryPointAndDiagnostics(cancellationToken);
-            return entryPoint?.MethodSymbol;
+            EntryPoint entryPoint = GetEntryPointAndDiagnostics(cancellationToken);
+            return entryPoint.MethodSymbol;
         }
 
-        internal EntryPoint? GetEntryPointAndDiagnostics(CancellationToken cancellationToken)
+        internal EntryPoint GetEntryPointAndDiagnostics(CancellationToken cancellationToken)
         {
             if (_lazyEntryPoint == null)
             {
