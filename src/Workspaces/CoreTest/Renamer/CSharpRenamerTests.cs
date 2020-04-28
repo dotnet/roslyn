@@ -19,6 +19,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 newDocumentName: "NewDocumentName");
 
         [Fact]
+        public Task CSharp_TestNullDocumentName()
+        => TestEmptyActionSet(
+            "class C {}",
+            documentName: "C.cs");
+
+        [Fact]
         public Task CSharp_RenameDocument_NoRenameType()
         => TestEmptyActionSet(
             @"class C {}",

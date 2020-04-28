@@ -58,27 +58,21 @@ namespace Microsoft.CodeAnalysis.Rename
                 throw new ArgumentNullException(nameof(document));
             }
 
-            if (newDocumentName is null)
-            {
-                throw new ArgumentNullException(nameof(newDocumentName));
-            }
-
             using var _ = ArrayBuilder<RenameDocumentAction>.GetInstance(out var actions);
 
             if (newDocumentName != null && !newDocumentName.Equals(document.Name))
             {
                 var renameAction = await RenameSymbolDocumentAction.TryCreateAsync(document, newDocumentName, cancellationToken).ConfigureAwait(false);
-
                 actions.AddIfNotNull(renameAction);
             }
 
             if (newDocumentFolders != null && !newDocumentFolders.SequenceEqual(document.Folders))
             {
                 var action = SyncNamespaceDocumentAction.TryCreate(document, newDocumentFolders, cancellationToken);
-
                 actions.AddIfNotNull(action);
             }
 
+            newDocumentName ??= document.Name;
             newDocumentFolders ??= document.Folders;
             optionSet ??= document.Project.Solution.Options;
 

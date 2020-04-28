@@ -79,8 +79,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
                 solution = await documentRenameResult.UpdateSolutionAsync(solution, CancellationToken.None);
                 var updatedDocument = solution.GetDocument(documentId);
-                Assert.Equal(endDocument.DocumentName, updatedDocument.Name);
-                AssertEx.SetEqual(endDocument.DocumentFolders, updatedDocument.Folders);
+
+                if (endDocument.DocumentName is object)
+                {
+                    Assert.Equal(endDocument.DocumentName, updatedDocument.Name);
+                }
+
+                if (endDocument.DocumentFolders is object)
+                {
+                    AssertEx.SetEqual(endDocument.DocumentFolders, updatedDocument.Folders);
+                }
 
                 AssertEx.EqualOrDiff(endDocument.Text, (await updatedDocument.GetTextAsync()).ToString());
                 Assert.Equal(0, remainingErrors.Count);
@@ -89,6 +97,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
         private static string[] GetDocumentFolders(string filePath)
         {
+            if (filePath is null)
+            {
+                return null;
+            }
+
             var splitPath = filePath.Split('\\');
             if (splitPath.Length == 1)
             {
@@ -118,8 +131,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 new DocumentWithInfo()
                 {
                     Text = expectedText,
-                    DocumentName = newDocumentName ?? defaultDocumentName,
-                    DocumentFilePath = newDocumentPath ?? defaultDocumentPath
+                    DocumentName = newDocumentName,
+                    DocumentFilePath = newDocumentPath
                 }
             };
 
@@ -146,8 +159,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 new DocumentWithInfo()
                 {
                     Text = startText,
-                    DocumentName = newDocumentName ?? defaultDocumentName,
-                    DocumentFilePath = newDocumentPath ?? defaultDocumentPath
+                    DocumentName = newDocumentName,
+                    DocumentFilePath = newDocumentPath
                 }
             };
 
