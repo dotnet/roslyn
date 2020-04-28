@@ -93,8 +93,8 @@ class C
         [InlineData("i == 1 || 2 == i", "i is 1 or 2")]
         [InlineData("i == (short)1 || (short)2 == i", "i is ((short)1) or ((short)2)")]
         [InlineData("nullable == 1 || 2 == nullable", "nullable is 1 or 2")]
-        [InlineData("i != 1 || 2 != i", "i is not (1 and 2)")]
-        [InlineData("i != 1 && 2 != i", "i is not (1 or 2)")]
+        [InlineData("i != 1 || 2 != i", "i is not 1 or not 2")]
+        [InlineData("i != 1 && 2 != i", "i is not 1 and not 2")]
         [InlineData("!(i != 1 && 2 != i)", "i is 1 or 2")]
         [InlineData("i < 1 && 2 <= i", "i is < 1 and >= 2")]
         [InlineData("i < 1 && 2 <= i && i is not 0", "i is < 1 and >= 2 and not 0")]
@@ -146,9 +146,9 @@ class C
     }
     bool M1(int variable)
     {
-        return variable is not (0 or /*1*/
-               1 or /*2*/
-               2); /*3*/
+        return variable is not 0 and /*1*/
+               not 1 and /*2*/
+               not 2; /*3*/
     }
 }");
         }
@@ -182,9 +182,9 @@ class C
     }
     bool M1(int variable)
     {
-        return variable is not (0 /*1*/
-            or 1 /*2*/
-            or 2); /*3*/
+        return variable is not 0 /*1*/
+            and not 1 /*2*/
+            and not 2; /*3*/
     }
 }");
         }

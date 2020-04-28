@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             public readonly bool IsDisjunctive;
             public readonly SyntaxToken Token;
 
-            private Binary(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern, bool isDisjunctive, SyntaxToken token, IOperation target) : base(target)
+            internal Binary(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern, bool isDisjunctive, SyntaxToken token, IOperation target) : base(target)
             {
                 Left = leftPattern;
                 Right = rightPattern;
@@ -92,13 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 if (!SyntaxFactory.AreEquivalent(target.Syntax, rightPattern.Target.Syntax))
                     return null;
 
-                // We factor out not-patterns in binary combinators.
-                // For instance: `not a and not b` is simplified as `not (a or b)`.
-                // Likewise, `not a or not b` is simplified as `not (a and b)`.
-
-                return (leftPattern, rightPattern) is (Not left, Not right)
-                    ? Not.Create(new Binary(left.Pattern, right.Pattern, !isDisjunctive, token, target))
-                    : new Binary(leftPattern, rightPattern, isDisjunctive, token, target);
+                return new Binary(leftPattern, rightPattern, isDisjunctive, token, target);
             }
         }
 
@@ -129,8 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 return pattern switch
                 {
                     null => null,
-                    Not p => p.Pattern, // double negative
+                    Not p => p.Pattern, // Avoid double negative
                     Relational p => new Relational(Negate(p.OperatorKind), p.Value, p.Target),
+                    Binary { Left: Not left, Right: Not right } p // Apply demorgans's law
+                        => new Binary(left.Pattern, right.Pattern, !p.IsDisjunctive, p.Token, p.Target),
                     _ => new Not(pattern, pattern.Target)
                 };
             }
