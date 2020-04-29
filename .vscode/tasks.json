@@ -125,6 +125,8 @@
           "${workspaceRoot}/scripts/vscode-run-tests.ps1",
           "-filePath",
           "${file}",
+          "-msbuildEngine",
+          "dotnet",
           "-framework",
           "netcoreapp3.1",
           "-filter",
@@ -142,6 +144,8 @@
           "${workspaceRoot}/scripts/vscode-run-tests.ps1",
           "-filePath",
           "${file}",
+          "-msbuildEngine",
+          "dotnet",
           "-framework",
           "netcoreapp3.1"
         ],

@@ -352,10 +352,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overloads Overrides Function ObjectCreationExpression(typeName As SyntaxNode, arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.ObjectCreationExpression(
-                Nothing,
+                attributeLists:=Nothing,
                 DirectCast(typeName, TypeSyntax),
                 CreateArgumentList(arguments),
-                Nothing)
+                initializer:=Nothing)
+        End Function
+
+        Friend Overrides Function ObjectCreationExpression(typeName As SyntaxNode, openParen As SyntaxToken, arguments As SeparatedSyntaxList(Of SyntaxNode), closeParen As SyntaxToken) As SyntaxNode
+            Return SyntaxFactory.ObjectCreationExpression(
+                attributeLists:=Nothing,
+                DirectCast(typeName, TypeSyntax),
+                SyntaxFactory.ArgumentList(openParen, arguments, closeParen),
+                initializer:=Nothing)
         End Function
 
         Public Overrides Function QualifiedName(left As SyntaxNode, right As SyntaxNode) As SyntaxNode

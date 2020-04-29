@@ -486,10 +486,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         ChangeSignature_Data = 400,
 
-        DependentTypeFinder_FindAndCacheDerivedClassesAsync = 410,
-        DependentTypeFinder_FindAndCacheDerivedInterfacesAsync = 411,
-        DependentTypeFinder_FindAndCacheImplementingTypesAsync = 412,
+        AbstractEncapsulateFieldService_EncapsulateFieldsAsync = 410,
 
-        AbstractEncapsulateFieldService_EncapsulateFieldsAsync = 420,
+        AbstractConvertTupleToStructCodeRefactoringProvider_ConvertToStructAsync = 420,
+
+        DependentTypeFinder_FindAndCacheDerivedClassesAsync = 430,
+        DependentTypeFinder_FindAndCacheDerivedInterfacesAsync = 431,
+        DependentTypeFinder_FindAndCacheImplementingTypesAsync = 432,
     }
 }
