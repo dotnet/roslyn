@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableAnalyzerCategoryAndIdRangeFileInvalidMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableAnalyzerCategoryAndIdRangeFileInvalidDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
+        /// <summary>
+        /// RS1018 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeInSpecifiedFormatTitle"/>)
+        /// </summary>
         public static readonly DiagnosticDescriptor DiagnosticIdMustBeInSpecifiedFormatRule = new DiagnosticDescriptor(
             DiagnosticIds.DiagnosticIdMustBeInSpecifiedFormatRuleId,
             s_localizableDiagnosticIdMustBeInSpecifiedFormatTitle,
@@ -41,6 +44,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDiagnosticIdMustBeInSpecifiedFormatDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        /// <summary>
+        /// RS1020 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.UseCategoriesFromSpecifiedRangeTitle"/>)
+        /// </summary>
         public static readonly DiagnosticDescriptor UseCategoriesFromSpecifiedRangeRule = new DiagnosticDescriptor(
             DiagnosticIds.UseCategoriesFromSpecifiedRangeRuleId,
             s_localizableUseCategoriesFromSpecifiedRangeTitle,
@@ -51,6 +57,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableUseCategoriesFromSpecifiedRangeDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        /// <summary>
+        /// RS1021 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidTitle"/>)
+        /// </summary>
         public static readonly DiagnosticDescriptor AnalyzerCategoryAndIdRangeFileInvalidRule = new DiagnosticDescriptor(
             DiagnosticIds.AnalyzerCategoryAndIdRangeFileInvalidRuleId,
             s_localizableAnalyzerCategoryAndIdRangeFileInvalidTitle,
