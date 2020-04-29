@@ -19,15 +19,15 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     {
         private class SymbolTreeInfoIncrementalAnalyzer : IncrementalAnalyzerBase
         {
-            private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectToInfo;
-            private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo;
+            private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectIdToInfo;
+            private readonly ConcurrentDictionary<MetadataId, MetadataInfo> _metadataIdToInfo;
 
             public SymbolTreeInfoIncrementalAnalyzer(
                 ConcurrentDictionary<ProjectId, SymbolTreeInfo> projectToInfo,
-                ConcurrentDictionary<string, MetadataInfo> metadataPathToInfo)
+                ConcurrentDictionary<MetadataId, MetadataInfo> metadataIdToInfo)
             {
-                _projectToInfo = projectToInfo;
-                _metadataPathToInfo = metadataPathToInfo;
+                _projectIdToInfo = projectToInfo;
+                _metadataIdToInfo = metadataIdToInfo;
             }
 
             private bool SupportAnalysis(Project project)
@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     // we have one.  We can't just bail out here as the change in the document means
                     // we'll have a new checksum.  We need to get that new checksum so that our
                     // cached information is valid.
-                    if (_projectToInfo.TryGetValue(document.Project.Id, out var cachedInfo))
+                    if (_projectIdToInfo.TryGetValue(document.Project.Id, out var cachedInfo))
                     {
                         var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(
                             document.Project, cancellationToken).ConfigureAwait(false);
 
                         var newInfo = cachedInfo.WithChecksum(checksum);
-                        _projectToInfo[document.Project.Id] = newInfo;
+                        _projectIdToInfo[document.Project.Id] = newInfo;
                         return;
                     }
                 }
@@ -82,18 +82,18 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             private async Task UpdateSourceSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
                 var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
-                if (!_projectToInfo.TryGetValue(project.Id, out var projectInfo) ||
+                if (!_projectIdToInfo.TryGetValue(project.Id, out var projectInfo) ||
                     projectInfo.Checksum != checksum)
                 {
                     projectInfo = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
-                        project, checksum, cancellationToken).ConfigureAwait(false);
+                        project, checksum, loadOnly: false, cancellationToken).ConfigureAwait(false);
 
                     Contract.ThrowIfNull(projectInfo);
                     Contract.ThrowIfTrue(projectInfo.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
 
                     // Mark that we're up to date with this project.  Future calls with the same 
                     // semantic version can bail out immediately.
-                    _projectToInfo[project.Id] = projectInfo;
+                    _projectIdToInfo[project.Id] = projectInfo;
                 }
             }
 
@@ -111,14 +111,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             private async Task UpdateReferenceAsync(
                 Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
-                var key = GetReferenceKey(reference);
-                if (key == null)
-                {
+                var metadataId = SymbolTreeInfo.GetMetadataIdNoThrow(reference);
+                if (metadataId == null)
                     return;
-                }
 
                 var checksum = SymbolTreeInfo.GetMetadataChecksum(project.Solution, reference, cancellationToken);
-                if (!_metadataPathToInfo.TryGetValue(key, out var metadataInfo) ||
+                if (!_metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo) ||
                     metadataInfo.SymbolTreeInfo.Checksum != checksum)
                 {
                     var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
@@ -131,7 +129,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     // We still want to cache that result so that don't try to continuously produce
                     // this info over and over again.
                     metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
-                    _metadataPathToInfo[key] = metadataInfo;
+                    _metadataIdToInfo[metadataId] = metadataInfo;
                 }
 
                 // Keep track that this dll is referenced by this project.
@@ -140,7 +138,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
-                _projectToInfo.TryRemove(projectId, out _);
+                _projectIdToInfo.TryRemove(projectId, out _);
                 RemoveMetadataReferences(projectId);
 
                 return Task.CompletedTask;
@@ -148,16 +146,13 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             private void RemoveMetadataReferences(ProjectId projectId)
             {
-                foreach (var kvp in _metadataPathToInfo.ToArray())
+                foreach (var (id, info) in _metadataIdToInfo.ToArray())
                 {
-                    if (kvp.Value.ReferencingProjects.Remove(projectId))
-                    {
-                        if (kvp.Value.ReferencingProjects.Count == 0)
-                        {
-                            // This metadata dll isn't referenced by any project.  We can just dump it.
-                            _metadataPathToInfo.TryRemove(kvp.Key, out _);
-                        }
-                    }
+                    info.ReferencingProjects.Remove(projectId);
+
+                    // If this metadata dll isn't referenced by any project.  We can just dump it.
+                    if (info.ReferencingProjects.Count == 0)
+                        _metadataIdToInfo.TryRemove(id, out _);
                 }
             }
         }

@@ -36,8 +36,9 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     {
         // Concurrent dictionaries so they can be read from the SymbolTreeInfoCacheService while 
         // they are being populated/updated by the IncrementalAnalyzer.
-        private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectToInfo = new ConcurrentDictionary<ProjectId, SymbolTreeInfo>();
-        private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo = new ConcurrentDictionary<string, MetadataInfo>();
+
+        private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectIdToInfo = new ConcurrentDictionary<ProjectId, SymbolTreeInfo>();
+        private readonly ConcurrentDictionary<MetadataId, MetadataInfo> _metadataIdToInfo = new ConcurrentDictionary<string, MetadataInfo>();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -45,39 +46,10 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         {
         }
 
-        private readonly struct MetadataInfo
-        {
-            /// <summary>
-            /// Can't be null.  Even if we weren't able to read in metadata, we'll still create an empty
-            /// index.
-            /// </summary>
-            public readonly SymbolTreeInfo SymbolTreeInfo;
-
-            /// <summary>
-            /// The set of projects that are referencing this metadata-index.  When this becomes empty we can dump the
-            /// index from memory.
-            /// <para/>
-            /// Note: the Incremental-Analyzer infrastructure guarantees that it will call all the
-            /// methods on <see cref="SymbolTreeInfoIncrementalAnalyzer"/> in a serial fashion.  As that is the only
-            /// type that reads/writes these <see cref="MetadataInfo"/> objects, we don't need to lock this.
-            /// </summary>
-            public readonly HashSet<ProjectId> ReferencingProjects;
-
-            public MetadataInfo(SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
-            {
-                Contract.ThrowIfNull(info);
-                SymbolTreeInfo = info;
-                ReferencingProjects = referencingProjects;
-            }
-        }
-
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new SymbolTreeInfoIncrementalAnalyzer(_projectToInfo, _metadataPathToInfo);
+            => new SymbolTreeInfoIncrementalAnalyzer(_projectIdToInfo, _metadataIdToInfo);
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new SymbolTreeInfoCacheService(_projectToInfo, _metadataPathToInfo);
-
-        private static string GetReferenceKey(PortableExecutableReference reference)
-            => reference.FilePath ?? reference.Display;
+            => new SymbolTreeInfoCacheService(_projectIdToInfo, _metadataIdToInfo);
     }
 }

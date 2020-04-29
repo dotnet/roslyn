@@ -14,15 +14,15 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     {
         private class SymbolTreeInfoCacheService : ISymbolTreeInfoCacheService
         {
-            private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectToInfo;
-            private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo;
+            private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectIdToInfo;
+            private readonly ConcurrentDictionary<MetadataId, MetadataInfo> _metadataIdToInfo;
 
             public SymbolTreeInfoCacheService(
-                ConcurrentDictionary<ProjectId, SymbolTreeInfo> projectToInfo,
-                ConcurrentDictionary<string, MetadataInfo> metadataPathToInfo)
+                ConcurrentDictionary<ProjectId, SymbolTreeInfo> projectIdToInfo,
+                ConcurrentDictionary<MetadataId, MetadataInfo> metadataIdToInfo)
             {
-                _projectToInfo = projectToInfo;
-                _metadataPathToInfo = metadataPathToInfo;
+                _projectIdToInfo = projectIdToInfo;
+                _metadataIdToInfo = metadataIdToInfo;
             }
 
             public async Task<SymbolTreeInfo> TryGetMetadataSymbolTreeInfoAsync(
@@ -30,16 +30,16 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 PortableExecutableReference reference,
                 CancellationToken cancellationToken)
             {
+                var metadataId = SymbolTreeInfo.GetMetadataIdNoThrow(reference);
+                if (metadataId == null)
+                    return null;
+
                 var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, reference, cancellationToken);
 
-                var key = GetReferenceKey(reference);
-                if (key != null)
+                if (_metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo) &&
+                    metadataInfo.SymbolTreeInfo.Checksum == checksum)
                 {
-                    if (_metadataPathToInfo.TryGetValue(key, out var metadataInfo) &&
-                        metadataInfo.SymbolTreeInfo.Checksum == checksum)
-                    {
-                        return metadataInfo.SymbolTreeInfo;
-                    }
+                    return metadataInfo.SymbolTreeInfo;
                 }
 
                 // If we didn't have it in our cache, see if we can load it from disk.
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 Project project, CancellationToken cancellationToken)
             {
                 var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
-                if (_projectToInfo.TryGetValue(project.Id, out var projectInfo) &&
+                if (_projectIdToInfo.TryGetValue(project.Id, out var projectInfo) &&
                     projectInfo.Checksum == checksum)
                 {
                     return projectInfo;
