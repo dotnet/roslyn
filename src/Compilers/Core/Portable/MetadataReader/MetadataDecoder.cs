@@ -1187,7 +1187,7 @@ tryAgain:
             var allowedRequiredModifiers = AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute;
             if (isReturn)
             {
-                // PROTOTYPE(init-only): can we make this more restrictive (ie. disallow aside from the return value of an instance setter)?
+                // PROTOTYPE(init-only): make this more restrictive (ie. disallow aside from the return value of an instance setter)
                 allowedRequiredModifiers |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
             }
 
@@ -1201,7 +1201,6 @@ tryAgain:
             {
                 info.IsByRef = true;
 
-                // PROTOTYPE(init-only): we're incorrectly letting modreq(IsExternalInit) into the RefCustomModifiers
                 info.RefCustomModifiers = info.CustomModifiers;
                 info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
 
