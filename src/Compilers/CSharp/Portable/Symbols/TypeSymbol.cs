@@ -1673,7 +1673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    ReportMismatchinReturnType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
+                    ReportMismatchInReturnType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
                         (diagnostics, implementedMethod, implementingMethod, topLevel, arg) =>
                         {
                             if (arg.isExplicit)

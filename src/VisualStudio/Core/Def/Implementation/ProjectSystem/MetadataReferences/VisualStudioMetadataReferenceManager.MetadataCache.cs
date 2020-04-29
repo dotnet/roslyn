@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private int _capacity = InitialCapacity;
 
-            public bool TryGetMetadata(FileKey key, [NotNullWhen(true)]out AssemblyMetadata? metadata)
+            public bool TryGetMetadata(FileKey key, [NotNullWhen(true)] out AssemblyMetadata? metadata)
             {
                 lock (_gate)
                 {
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            public bool TryGetSource(FileKey key, [NotNullWhen(true)]out ValueSource<Optional<AssemblyMetadata>>? source)
+            public bool TryGetSource(FileKey key, [NotNullWhen(true)] out ValueSource<Optional<AssemblyMetadata>>? source)
             {
                 lock (_gate)
                 {
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            private bool TryGetMetadata_NoLock(FileKey key, [NotNullWhen(true)]out AssemblyMetadata? metadata)
+            private bool TryGetMetadata_NoLock(FileKey key, [NotNullWhen(true)] out AssemblyMetadata? metadata)
             {
                 if (_metadataCache.TryGetValue(key, out var metadataSource))
                 {

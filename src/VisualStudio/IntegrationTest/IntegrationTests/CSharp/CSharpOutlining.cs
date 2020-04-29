@@ -59,8 +59,8 @@ namespace ClassLibrary1[|
 #if DEBUG
 {|Release:        void Goo(){|Debug:
         {
-        }
-        |}
+        }|}
+        
         void Goo2(){|Debug:
         {
         }|}|}

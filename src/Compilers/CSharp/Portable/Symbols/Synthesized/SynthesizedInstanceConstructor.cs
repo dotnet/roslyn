@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        internal sealed override LexicalSortKey GetLexicalSortKey()
+        internal override LexicalSortKey GetLexicalSortKey()
         {
             //For the sake of matching the metadata output of the native compiler, make synthesized constructors appear last in the metadata.
             //This is not critical, but it makes it easier on tools that are comparing metadata.

@@ -24,18 +24,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in context.InputNodes)
                 {
-                    var symbol = graphBuilder.GetSymbolAndProjectId(node);
-                    if (symbol.Symbol is INamedTypeSymbol namedType)
+                    var symbol = graphBuilder.GetSymbol(node);
+                    if (symbol is INamedTypeSymbol namedType)
                     {
-                        var implementedSymbols = namedType.AllInterfaces.SelectAsArray(i => (SymbolAndProjectId)symbol.WithSymbol(i));
+                        var implementedSymbols = ImmutableArray<ISymbol>.CastUp(namedType.AllInterfaces);
 
                         await AddImplementedSymbolsAsync(graphBuilder, node, implementedSymbols).ConfigureAwait(false);
                     }
-                    else if (symbol.Symbol is IMethodSymbol ||
-                             symbol.Symbol is IPropertySymbol ||
-                             symbol.Symbol is IEventSymbol)
+                    else if (symbol is IMethodSymbol ||
+                             symbol is IPropertySymbol ||
+                             symbol is IEventSymbol)
                     {
-                        var implements = await SymbolFinder.FindImplementedInterfaceMembersAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        var implements = await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
                         await AddImplementedSymbolsAsync(graphBuilder, node, implements).ConfigureAwait(false);
                     }
                 }
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         private static async Task AddImplementedSymbolsAsync(
             GraphBuilder graphBuilder, GraphNode node,
-            ImmutableArray<SymbolAndProjectId> implementedSymbols)
+            ImmutableArray<ISymbol> implementedSymbols)
         {
             foreach (var interfaceType in implementedSymbols)
             {

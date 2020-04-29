@@ -27,7 +27,6 @@ using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/41456"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(2824, "https://github.com/dotnet/roslyn/issues/2824")]
         public async Task Test_OpenProjectReferencingPortableProject()
         {

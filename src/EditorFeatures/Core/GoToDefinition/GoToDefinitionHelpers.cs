@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     {
         public static ImmutableArray<DefinitionItem> GetDefinitions(
             ISymbol symbol,
-            Project project,
+            Solution solution,
             bool thirdPartyNavigationAllowed,
             CancellationToken cancellationToken)
         {
@@ -36,13 +36,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // VB global import aliases have a synthesized SyntaxTree.
             // We can't go to the definition of the alias, so use the target type.
 
-            var solution = project.Solution;
             if (alias != null)
             {
                 var sourceLocations = NavigableItemFactory.GetPreferredSourceLocations(
                     solution, symbol, cancellationToken);
 
-                if (sourceLocations.All(l => project.Solution.GetDocument(l.SourceTree) == null))
+                if (sourceLocations.All(l => solution.GetDocument(l.SourceTree) == null))
                 {
                     symbol = alias.Target;
                 }
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // So, if we only have a single location to go to, this does no unnecessary work.  And,
             // if we do have multiple locations to show, it will just be done in the BG, unblocking
             // this command thread so it can return the user faster.
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
 
             if (thirdPartyNavigationAllowed)
             {
@@ -96,23 +95,23 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public static bool TryGoToDefinition(
             ISymbol symbol,
-            Project project,
+            Solution solution,
             IStreamingFindUsagesPresenter streamingPresenter,
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true)
         {
-            var definitions = GetDefinitions(symbol, project, thirdPartyNavigationAllowed, cancellationToken);
+            var definitions = GetDefinitions(symbol, solution, thirdPartyNavigationAllowed, cancellationToken);
 
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
             return streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
+                solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
         }
 
         public static bool TryGoToDefinition(
             ImmutableArray<DefinitionItem> definitions,
-            Project project,
+            Solution solution,
             string title,
             IStreamingFindUsagesPresenter streamingPresenter,
             CancellationToken cancellationToken)
@@ -123,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             }
 
             return streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
+                solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
         }
     }
 }

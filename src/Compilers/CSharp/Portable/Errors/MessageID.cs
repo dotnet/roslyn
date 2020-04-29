@@ -192,8 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureMemberNotNull = MessageBase + 12768,
 
         IDS_FeatureNativeInt = MessageBase + 12769,
-        IDS_FeatureRecords = MessageBase + 12770,
-        IDS_FeatureInitOnlySetters = MessageBase + 12771,
+        IDS_FeatureTargetTypedObjectCreation = MessageBase + 12770,
+        IDS_FeatureRecords = MessageBase + 12771,
+        IDS_FeatureInitOnlySetters = MessageBase + 12772,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -304,6 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
                 case MessageID.IDS_FeatureLocalFunctionAttributes: // syntax check
                 case MessageID.IDS_FeatureExternLocalFunctions: // syntax check
+                case MessageID.IDS_FeatureTargetTypedObjectCreation: // syntax check
                 case MessageID.IDS_FeatureMemberNotNull:
                 case MessageID.IDS_FeatureRecords:
                 case MessageID.IDS_FeatureNativeInt:

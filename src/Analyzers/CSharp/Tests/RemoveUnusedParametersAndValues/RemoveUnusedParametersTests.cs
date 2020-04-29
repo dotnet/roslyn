@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new CSharpRemoveUnusedValuesCodeFixProvider());
 
-        private IOptionsCollection NonPublicMethodsOnly =>
+        private OptionsCollection NonPublicMethodsOnly =>
             Option(CodeStyleOptions2.UnusedParameters,
                 new CodeStyleOption2<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption2.Suggestion));
 
@@ -35,11 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions, expectedDiagnostics);
         private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
             => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions: null, expectedDiagnostics);
-        private Task TestDiagnosticMissingAsync(string initialMarkup, IOptionsCollection options, ParseOptions parseOptions = null)
+        private Task TestDiagnosticMissingAsync(string initialMarkup, OptionsCollection options, ParseOptions parseOptions = null)
             => TestDiagnosticMissingAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true));
-        private Task TestDiagnosticsAsync(string initialMarkup, IOptionsCollection options, params DiagnosticDescription[] expectedDiagnostics)
+        private Task TestDiagnosticsAsync(string initialMarkup, OptionsCollection options, params DiagnosticDescription[] expectedDiagnostics)
             => TestDiagnosticsAsync(initialMarkup, options, parseOptions: null, expectedDiagnostics);
-        private Task TestDiagnosticsAsync(string initialMarkup, IOptionsCollection options, ParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
+        private Task TestDiagnosticsAsync(string initialMarkup, OptionsCollection options, ParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
             => TestDiagnosticsAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true), expectedDiagnostics);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]

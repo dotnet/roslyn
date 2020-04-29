@@ -12,10 +12,12 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Roslyn.Utilities;
 using Xunit;
+
+#if !CODE_STYLE
+using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {

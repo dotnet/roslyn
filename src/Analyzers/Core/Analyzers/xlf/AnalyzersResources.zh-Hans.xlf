@@ -112,6 +112,11 @@
         <target state="new">Add missing cases</target>
         <note />
       </trans-unit>
+      <trans-unit id="Member_name_can_be_simplified">
+        <source>Member name can be simplified</source>
+        <target state="new">Member name can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
         <source>Modifiers are not ordered</source>
         <target state="new">Modifiers are not ordered</target>
@@ -295,6 +300,11 @@
       <trans-unit id="Use_explicitly_provided_tuple_name">
         <source>Use explicitly provided tuple name</source>
         <target state="new">Use explicitly provided tuple name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_inferred_member_name">
+        <source>Use inferred member name</source>
+        <target state="new">Use inferred member name</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_null_propagation">

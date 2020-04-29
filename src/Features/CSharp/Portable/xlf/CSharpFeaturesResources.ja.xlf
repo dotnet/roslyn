@@ -632,11 +632,6 @@
         <target state="translated">基本メンバーを非表示にします</target>
         <note />
       </trans-unit>
-      <trans-unit id="Delegate_invocation_can_be_simplified">
-        <source>Delegate invocation can be simplified.</source>
-        <target state="translated">デリゲート呼び出しを簡略化できます。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Properties">
         <source>Properties</source>
         <target state="translated">プロパティ</target>

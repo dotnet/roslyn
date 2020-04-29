@@ -632,11 +632,6 @@
         <target state="translated">기본 멤버 숨기기</target>
         <note />
       </trans-unit>
-      <trans-unit id="Delegate_invocation_can_be_simplified">
-        <source>Delegate invocation can be simplified.</source>
-        <target state="translated">대리자 호출을 간단하게 만들 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Properties">
         <source>Properties</source>
         <target state="translated">속성</target>

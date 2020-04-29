@@ -22,6 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedRecordEquals(NamedTypeSymbol containingType)
         {
             ContainingType = containingType;
+            if (containingType.IsStructType())
+            {
+                // If the record type is a struct, the parameter is marked 'in'
+                containingType.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(
+                    diagnostics: null,
+                    location: Location.None,
+                    modifyCompilation: true);
+            }
         }
 
         public override string Name => "Equals";
