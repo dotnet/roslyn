@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -25,6 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var method = comp.GlobalNamespace.GetMember(methodName);
             var overridden = method.GetOverriddenMember();
             Assert.Null(overridden);
+        }
+
+        private static CSharpCompilation MetadataView(CSharpCompilation comp, params MetadataReference[] references)
+        {
+            references = references.Append(comp.ToMetadataReference());
+            return CreateCompilation("", references: references);
         }
 
         [Fact]
@@ -49,6 +56,7 @@ public class Derived : Base
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -78,6 +86,7 @@ public class Derived : Base
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -107,6 +116,7 @@ public class Derived<T, U> : Base<T> where T : class where U : class, T
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -137,6 +147,7 @@ public class Derived<T> : Base where T : N
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -166,6 +177,7 @@ public class Derived : Base
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -195,6 +207,7 @@ public class Derived<T, U> : Base<T> where T : class where U : class, T
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -225,6 +238,7 @@ public class Derived<T> : Base where T : N
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -254,6 +268,7 @@ public class Derived : Base
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -283,6 +298,7 @@ public class Derived<T, U> : Base<T> where T : class where U : class, T
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -313,6 +329,7 @@ public class Derived<T> : Base where T : N
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -415,6 +432,7 @@ public class Derived : Base
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns, references: new[] { baseMetadata }).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp, baseMetadata));
 
             static void verify(CSharpCompilation comp)
             {
@@ -447,6 +465,7 @@ public class Derived : Base
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns, references: new[] { baseMetadata }).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp, baseMetadata));
 
             static void verify(CSharpCompilation comp)
             {
@@ -479,6 +498,7 @@ public class Derived : Base
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns, references: new[] { baseMetadata }).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp, baseMetadata));
 
             static void verify(CSharpCompilation comp)
             {
@@ -508,6 +528,7 @@ public class Derived : Base
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -699,6 +720,7 @@ public interface IIn<in T> { }
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -818,6 +840,7 @@ public class Derived : Base
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -908,6 +931,7 @@ public class Derived : Base
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -1030,6 +1054,7 @@ public class Derived2 : Derived
             comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
