@@ -223,7 +223,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Replaces references to underlying type with references to native integer type.
         /// </summary>
-        private TypeWithAnnotations SubstituteUnderlyingType(TypeWithAnnotations type) => type.SubstituteType(GetTypeMap());
+        internal TypeWithAnnotations SubstituteUnderlyingType(TypeWithAnnotations type) => type.SubstituteType(GetTypeMap());
+
+        /// <summary>
+        /// Replaces references to underlying type with references to native integer type.
+        /// </summary>
+        internal NamedTypeSymbol SubstituteUnderlyingType(NamedTypeSymbol type) => GetTypeMap().SubstituteNamedType(type);
 
         private sealed class NativeIntegerTypeMap : AbstractTypeMap
         {
@@ -245,94 +250,94 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     base.SubstituteTypeDeclaration(previous);
             }
         }
+    }
 
-        private sealed class NativeIntegerMethodSymbol : WrappedMethodSymbol
+    internal sealed class NativeIntegerMethodSymbol : WrappedMethodSymbol
+    {
+        private readonly NativeIntegerTypeSymbol _container;
+        private readonly Symbol? _associatedSymbol;
+
+        internal NativeIntegerMethodSymbol(NativeIntegerTypeSymbol container, MethodSymbol underlyingMethod, Symbol? associatedSymbol)
         {
-            private readonly NativeIntegerTypeSymbol _container;
-            private readonly Symbol? _associatedSymbol;
-
-            internal NativeIntegerMethodSymbol(NativeIntegerTypeSymbol container, MethodSymbol underlyingMethod, Symbol? associatedSymbol)
-            {
-                Debug.Assert(!underlyingMethod.IsGenericMethod);
-                _container = container;
-                _associatedSymbol = associatedSymbol;
-                UnderlyingMethod = underlyingMethod;
-            }
-
-            public override Symbol ContainingSymbol => _container;
-
-            public override MethodSymbol UnderlyingMethod { get; }
-
-            public override TypeWithAnnotations ReturnTypeWithAnnotations => _container.SubstituteUnderlyingType(UnderlyingMethod.ReturnTypeWithAnnotations);
-
-            public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => ImmutableArray<TypeWithAnnotations>.Empty;
-
-            public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
-
-            public override ImmutableArray<ParameterSymbol> Parameters =>
-                UnderlyingMethod.Parameters.SelectAsArray((p, m) => (ParameterSymbol)new NativeIntegerParameterSymbol(m._container, m, p), this);
-
-            public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations =>
-                UnderlyingMethod.ExplicitInterfaceImplementations.SelectAsArray(
-                    (method, map) => method.OriginalDefinition.AsMember(_container.GetTypeMap().SubstituteNamedType(method.ContainingType)),
-                    _container);
-
-            public override ImmutableArray<CustomModifier> RefCustomModifiers => UnderlyingMethod.RefCustomModifiers;
-
-            public override Symbol? AssociatedSymbol => _associatedSymbol;
-
-            internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
-            {
-                throw new NotImplementedException();
-            }
+            Debug.Assert(!underlyingMethod.IsGenericMethod);
+            _container = container;
+            _associatedSymbol = associatedSymbol;
+            UnderlyingMethod = underlyingMethod;
         }
 
-        private sealed class NativeIntegerPropertySymbol : WrappedPropertySymbol
+        public override Symbol ContainingSymbol => _container;
+
+        public override MethodSymbol UnderlyingMethod { get; }
+
+        public override TypeWithAnnotations ReturnTypeWithAnnotations => _container.SubstituteUnderlyingType(UnderlyingMethod.ReturnTypeWithAnnotations);
+
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => ImmutableArray<TypeWithAnnotations>.Empty;
+
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
+
+        public override ImmutableArray<ParameterSymbol> Parameters =>
+            UnderlyingMethod.Parameters.SelectAsArray((p, m) => (ParameterSymbol)new NativeIntegerParameterSymbol(m._container, m, p), this);
+
+        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations =>
+            UnderlyingMethod.ExplicitInterfaceImplementations.SelectAsArray(
+                (method, map) => method.OriginalDefinition.AsMember(_container.SubstituteUnderlyingType(method.ContainingType)),
+                _container);
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => UnderlyingMethod.RefCustomModifiers;
+
+        public override Symbol? AssociatedSymbol => _associatedSymbol;
+
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            private readonly NativeIntegerTypeSymbol _container;
+            throw new NotImplementedException();
+        }
+    }
 
-            internal NativeIntegerPropertySymbol(NativeIntegerTypeSymbol container, PropertySymbol underlyingProperty) : base(underlyingProperty)
-            {
-                Debug.Assert(underlyingProperty.ParameterCount == 0);
-                _container = container;
-            }
+    internal sealed class NativeIntegerPropertySymbol : WrappedPropertySymbol
+    {
+        private readonly NativeIntegerTypeSymbol _container;
 
-            public override Symbol ContainingSymbol => _container;
-
-            public override TypeWithAnnotations TypeWithAnnotations => _container.SubstituteUnderlyingType(_underlyingProperty.TypeWithAnnotations);
-
-            public override ImmutableArray<CustomModifier> RefCustomModifiers => UnderlyingProperty.RefCustomModifiers;
-
-            public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
-
-            public override MethodSymbol? GetMethod => MakeAccessor(UnderlyingProperty.GetMethod);
-
-            public override MethodSymbol? SetMethod => MakeAccessor(UnderlyingProperty.SetMethod);
-
-            public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations =>
-                UnderlyingProperty.ExplicitInterfaceImplementations.SelectAsArray(
-                    (property, map) => property.OriginalDefinition.AsMember(_container.GetTypeMap().SubstituteNamedType(property.ContainingType)),
-                    _container);
-
-            internal override bool MustCallMethodsDirectly => _underlyingProperty.MustCallMethodsDirectly;
-
-            private NativeIntegerMethodSymbol? MakeAccessor(MethodSymbol? accessor) => accessor is null ? null : new NativeIntegerMethodSymbol(_container, accessor, this);
+        internal NativeIntegerPropertySymbol(NativeIntegerTypeSymbol container, PropertySymbol underlyingProperty) : base(underlyingProperty)
+        {
+            Debug.Assert(underlyingProperty.ParameterCount == 0);
+            _container = container;
         }
 
-        private sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol
+        public override Symbol ContainingSymbol => _container;
+
+        public override TypeWithAnnotations TypeWithAnnotations => _container.SubstituteUnderlyingType(_underlyingProperty.TypeWithAnnotations);
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => UnderlyingProperty.RefCustomModifiers;
+
+        public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
+
+        public override MethodSymbol? GetMethod => MakeAccessor(UnderlyingProperty.GetMethod);
+
+        public override MethodSymbol? SetMethod => MakeAccessor(UnderlyingProperty.SetMethod);
+
+        public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations =>
+            UnderlyingProperty.ExplicitInterfaceImplementations.SelectAsArray(
+                (property, map) => property.OriginalDefinition.AsMember(_container.SubstituteUnderlyingType(property.ContainingType)),
+                _container);
+
+        internal override bool MustCallMethodsDirectly => _underlyingProperty.MustCallMethodsDirectly;
+
+        private NativeIntegerMethodSymbol? MakeAccessor(MethodSymbol? accessor) => accessor is null ? null : new NativeIntegerMethodSymbol(_container, accessor, this);
+    }
+
+    internal sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol
+    {
+        private readonly NativeIntegerTypeSymbol _containingType;
+        private readonly Symbol _container;
+
+        internal NativeIntegerParameterSymbol(NativeIntegerTypeSymbol containingType, Symbol container, ParameterSymbol underlyingParameter) : base(underlyingParameter)
         {
-            private readonly NativeIntegerTypeSymbol _containingType;
-            private readonly Symbol _container;
-
-            internal NativeIntegerParameterSymbol(NativeIntegerTypeSymbol containingType, Symbol container, ParameterSymbol underlyingParameter) : base(underlyingParameter)
-            {
-                _containingType = containingType;
-                _container = container;
-            }
-
-            public override Symbol ContainingSymbol => _container;
-
-            public override TypeWithAnnotations TypeWithAnnotations => _containingType.SubstituteUnderlyingType(UnderlyingParameter.TypeWithAnnotations);
+            _containingType = containingType;
+            _container = container;
         }
+
+        public override Symbol ContainingSymbol => _container;
+
+        public override TypeWithAnnotations TypeWithAnnotations => _containingType.SubstituteUnderlyingType(UnderlyingParameter.TypeWithAnnotations);
     }
 }

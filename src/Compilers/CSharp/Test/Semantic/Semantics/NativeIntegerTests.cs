@@ -3413,6 +3413,113 @@ unsafe class Program
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "sizeof(nuint)").WithArguments("Program.D").WithLocation(6, 19));
         }
 
+        // PEVerify should succeed. Previously, PEVerify reported duplicate
+        // TypeRefs for System.IntPtr in i.ToString() and (object)i.
+        [Fact]
+        public void MultipleTypeRefs_01()
+        {
+            string source =
+@"class Program
+{
+    static string F1(nint i)
+    {
+        return i.ToString();
+    }
+    static object F2(nint i)
+    {
+        return i;
+    }
+    static void Main()
+    {
+        System.Console.WriteLine(F1(-42));
+        System.Console.WriteLine(F2(42));
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"-42
+42");
+            verifier.VerifyIL("Program.F1",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""string System.IntPtr.ToString()""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("Program.F2",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""System.IntPtr""
+  IL_0006:  ret
+}");
+        }
+
+        // PEVerify should succeed. Previously, PEVerify reported duplicate
+        // TypeRefs for System.UIntPtr in UIntPtr.get_MaxValue and (object)u.
+        [Fact]
+        public void MultipleTypeRefs_02()
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct UInt64 { }
+    public struct UIntPtr
+    {
+        public static UIntPtr MaxValue => default;
+        public static UIntPtr MinValue => default;
+    }
+}";
+            var comp = CreateEmptyCompilation(sourceA);
+            comp.VerifyDiagnostics();
+            var refA = comp.EmitToImageReference(options: EmitOptions.Default.WithRuntimeMetadataVersion("4.0.0.0"));
+
+            var sourceB =
+@"class Program
+{
+    static ulong F1()
+    {
+        return nuint.MaxValue;
+    }
+    static object F2()
+    {
+        nuint u = 42;
+        return u;
+    }
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            // PEVerify is skipped because it reports "Type load failed" because of the above corlib,
+            // not because of duplicate TypeRefs in this assembly. Replace the above corlib with the
+            // actual corlib when that assembly contains UIntPtr.MaxValue, or replace nuint.MaxValue
+            // with nuint.Size if we decide to support that property.
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("Program.F1",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  call       ""System.UIntPtr System.UIntPtr.MaxValue.get""
+  IL_0005:  conv.u8
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("Program.F2",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  conv.i
+  IL_0003:  box        ""System.UIntPtr""
+  IL_0008:  ret
+}");
+        }
+
         [WorkItem(42453, "https://github.com/dotnet/roslyn/issues/42453")]
         [Fact]
         public void ReadOnlyField_VirtualMethods()
@@ -3463,10 +3570,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            // PROTOTYPE: PEVerify fails (two distinct TypeRefs for System.IntPtr?):
-            // [MD]: Error: TypeRef has a duplicate, token=0x0100000d. [token:0x0100000C]
-            // [MD]: Error: TypeRef has a duplicate, token=0x0100000c. [token:0x0100000D]
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+            var verifier = CompileAndVerify(comp, expectedOutput:
 $@"42
 {42.GetHashCode()}
 False
@@ -3481,7 +3585,7 @@ False
   IL_0001:  ldfld      ""nint MyInt._i""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  call       ""string nint.ToString()""
+  IL_0009:  call       ""string System.IntPtr.ToString()""
   IL_000e:  ret
 }");
             verifier.VerifyIL("MyInt.GetHashCode",
@@ -3519,7 +3623,7 @@ False
   IL_001e:  ldfld      ""nint MyInt._i""
   IL_0023:  newobj     ""nint?..ctor(nint)""
   IL_0028:  box        ""nint?""
-  IL_002d:  call       ""bool nint.Equals(object)""
+  IL_002d:  call       ""bool System.IntPtr.Equals(object)""
   IL_0032:  ret
 }");
         }

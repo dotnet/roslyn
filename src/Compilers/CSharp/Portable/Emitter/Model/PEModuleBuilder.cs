@@ -1215,6 +1215,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     return methodRef;
                 }
+                else if (methodSymbol is NativeIntegerMethodSymbol { UnderlyingMethod: MethodSymbol underlyingMethod })
+                {
+                    methodSymbol = underlyingMethod;
+                }
             }
 
             if (_embeddedTypesManagerOpt != null)
