@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -52,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // test second update
             analyzer.ChangeSeverity();
 
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
             var text = await document.GetTextAsync();
             workspace.TryApplyChanges(document.WithText(text.WithChanges(new TextChange(new TextSpan(text.Length - 1, 1), string.Empty))).Project.Solution);
 
@@ -129,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var tagger = provider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
 
             // Now product the first diagnostic and fire the events.
-            var tree = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetSyntaxTreeAsync();
+            var tree = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetRequiredSyntaxTreeAsync(CancellationToken.None);
             var span = TextSpan.FromBounds(0, 5);
             diagnosticService.CreateDiagnosticAndFireEvents(Location.Create(tree, span));
 
@@ -164,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 listenerProvider);
 
             // Create and fire the diagnostic events before the tagger is even made.
-            var tree = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetSyntaxTreeAsync();
+            var tree = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetRequiredSyntaxTreeAsync(CancellationToken.None);
             var span = TextSpan.FromBounds(0, 5);
             diagnosticService.CreateDiagnosticAndFireEvents(Location.Create(tree, span));
 
@@ -184,9 +187,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             public const string DiagnosticId = "MockId";
 
             private readonly Workspace _workspace;
-            private DiagnosticData _diagnostic;
+            private DiagnosticData? _diagnostic;
 
-            public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+            public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
 
             public MockDiagnosticService(Workspace workspace)
                 => _workspace = workspace;

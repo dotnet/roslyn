@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
     internal abstract class AbstractDiagnosticsAdornmentTaggerProvider<TTag> :
         AbstractDiagnosticsTaggerProvider<TTag>
-        where TTag : ITag
+        where TTag : class, ITag
     {
         public AbstractDiagnosticsAdornmentTaggerProvider(
             IThreadingContext threadingContext,
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected sealed internal override bool IsEnabled => true;
 
-        protected sealed internal override ITagSpan<TTag> CreateTagSpan(
+        protected sealed internal override ITagSpan<TTag>? CreateTagSpan(
             Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
         {
             var errorTag = CreateTag(workspace, data);
@@ -51,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected object CreateToolTipContent(Workspace workspace, DiagnosticData diagnostic)
         {
-            Action navigationAction = null;
-            string tooltip = null;
+            Action? navigationAction = null;
+            string? tooltip = null;
             if (workspace is object
                 && diagnostic.HelpLink is { } helpLink
                 && Uri.TryCreate(helpLink, UriKind.Absolute, out var helpLinkUri))
@@ -96,6 +98,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return new SnapshotSpan(snapshot, start, Math.Min(start + length, snapshot.Length) - start);
         }
 
-        protected abstract TTag CreateTag(Workspace workspace, DiagnosticData diagnostic);
+        protected abstract TTag? CreateTag(Workspace workspace, DiagnosticData diagnostic);
     }
 }
