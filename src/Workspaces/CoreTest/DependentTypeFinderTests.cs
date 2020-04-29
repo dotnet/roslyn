@@ -431,6 +431,8 @@ interface IC2 : IA, IB2 { }
 interface IC3 : IB3 { }
 
 interface ID1 : IC1 { }
+
+interface IOther { }
 ", MscorlibRef);
 
             // get symbols for types
@@ -443,16 +445,71 @@ interface ID1 : IC1 { }
                 rootType, solution, transitive: false);
 
             Assert.NotEmpty(immediateDerived);
+            AssertEx.SetEqual(immediateDerived.Select(d => d.Name),
+                new[] { "IB1", "IB2", "IB3", "IC2" });
             Assert.True(immediateDerived.All(d => d.Interfaces.Contains(rootType)));
 
             var transitiveDerived = await SymbolFinder.FindDerivedInterfacesAsync(
                 rootType, solution, transitive: true);
 
             Assert.NotEmpty(transitiveDerived);
+            AssertEx.SetEqual(transitiveDerived.Select(d => d.Name),
+                new[] { "IB1", "IB2", "IB3", "IC1", "IC2", "IC3", "ID1" });
             Assert.True(transitiveDerived.All(d => d.AllInterfaces.Contains(rootType)), "All results must transitively derive from the type");
             Assert.True(transitiveDerived.Any(d => !d.Interfaces.Contains(rootType)), "At least one result must not immediately derive from the type");
 
             Assert.True(transitiveDerived.Count() > immediateDerived.Count());
+        }
+
+        [Fact]
+        public async Task ImplementingSourceTypes()
+        {
+            var solution = new AdhocWorkspace().CurrentSolution;
+
+            // create a normal assembly with a type derived from the portable abstract base
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
+interface IA { }
+
+class B1 : IA { }
+class B2 : IA { }
+class B3 : IEquatable<B3>, IA { }
+
+class C1 : B1 { }
+class C2 : B2, IA { }
+class C3 : B3 { }
+
+struct S1 : IA { }
+
+class D1 : C1 { }
+
+class OtherClass { }
+struct OtherStruct { }
+", MscorlibRef);
+
+            // get symbols for types
+            var compilation = await GetNormalProject(solution).GetCompilationAsync();
+            var rootType = compilation.GetTypeByMetadataName("IA");
+
+            Assert.NotNull(rootType);
+
+            var immediateImpls = await SymbolFinder.FindImplementationsAsync(
+                rootType, solution, transitive: false);
+
+            Assert.NotEmpty(immediateImpls);
+            Assert.True(immediateImpls.All(d => d.Interfaces.Contains(rootType)));
+            AssertEx.SetEqual(immediateImpls.Select(d => d.Name),
+                new[] { "B1", "B2", "B3", "C2", "S1" });
+
+            var transitiveImpls = await SymbolFinder.FindImplementationsAsync(
+                rootType, solution, transitive: true);
+
+            Assert.NotEmpty(transitiveImpls);
+            AssertEx.SetEqual(transitiveImpls.Select(d => d.Name),
+                new[] { "B1", "B2", "B3", "C1", "C2", "C3", "D1", "S1" });
+            Assert.True(transitiveImpls.All(d => d.AllInterfaces.Contains(rootType)), "All results must transitively derive from the type");
+            Assert.True(transitiveImpls.Any(d => !d.Interfaces.Contains(rootType)), "At least one result must not immediately derive from the type");
+
+            Assert.True(transitiveImpls.Count() > immediateImpls.Count());
         }
     }
 }
