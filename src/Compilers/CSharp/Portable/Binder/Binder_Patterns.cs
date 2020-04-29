@@ -1007,6 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             variableSymbol: out Symbol? variableSymbol, variableAccess: out BoundExpression? variableAccess);
                         var boundOperandType = new BoundTypeExpression(syntax: node, aliasOpt: null, typeWithAnnotations: declType); // fake a type expression for the variable's type
                         // We continue to use a BoundDeclarationPattern for the var pattern, as they have more in common.
+                        Debug.Assert(node.Parent is { });
                         return new BoundDeclarationPattern(
                             node.Parent.Kind() == SyntaxKind.VarPattern ? node.Parent : node, // for `var x` use whole pattern, otherwise use designation for the syntax
                             variableSymbol, variableAccess, boundOperandType, isVar: true,

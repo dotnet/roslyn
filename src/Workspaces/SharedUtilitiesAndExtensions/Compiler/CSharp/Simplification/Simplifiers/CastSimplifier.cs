@@ -126,6 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
             }
 
+            if (WouldChangeDefaultOrNullInConditional(castNode))
+                return false;
+
             Debug.Assert(!expressionToCastType.IsIdentity);
             if (expressionToCastType.IsExplicit)
             {
@@ -314,6 +317,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     }
 
                     return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool WouldChangeDefaultOrNullInConditional(ExpressionSyntax expression)
+        {
+            expression = expression.WalkUpParentheses();
+            var parent = expression.Parent;
+            if (parent is ConditionalExpressionSyntax conditionalExpression)
+            {
+                if (conditionalExpression.WhenTrue == expression ||
+                    conditionalExpression.WhenFalse == expression)
+                {
+                    var otherSide = conditionalExpression.WhenTrue == expression
+                        ? conditionalExpression.WhenFalse
+                        : conditionalExpression.WhenTrue;
+
+                    otherSide = otherSide.WalkDownParentheses();
+                    return otherSide.IsKind(SyntaxKind.NullLiteralExpression) ||
+                           otherSide.IsKind(SyntaxKind.DefaultLiteralExpression);
                 }
             }
 
