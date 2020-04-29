@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -388,29 +389,70 @@ namespace M
             var solution = new AdhocWorkspace().CurrentSolution;
 
             // create a normal assembly with a type derived from the portable abstract base
-            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"", MscorlibRef);
 
+            // get symbols for types
+            var compilation = await GetNormalProject(solution).GetCompilationAsync();
+            var rootType = compilation.GetTypeByMetadataName("System.IO.Stream");
+
+            Assert.NotNull(rootType);
+
+            var immediateDerived = await SymbolFinder.FindDerivedClassesAsync(
+                rootType, solution, transitive: false);
+
+            Assert.NotEmpty(immediateDerived);
+            Assert.True(immediateDerived.All(d => d.BaseType.Equals(rootType)));
+
+            var transitiveDerived = await SymbolFinder.FindDerivedClassesAsync(
+                rootType, solution, transitive: true);
+
+            Assert.NotEmpty(transitiveDerived);
+            Assert.True(transitiveDerived.All(d => d.GetBaseTypes().Contains(rootType)), "All results must transitively derive from the type");
+            Assert.True(transitiveDerived.Any(d => !Equals(d.BaseType, rootType)), "At least one result must not immediately derive from the type");
+
+            Assert.True(transitiveDerived.Count() > immediateDerived.Count());
+        }
+
+        [Fact]
+        public async Task DerivedSourceInterfaces()
+        {
+            var solution = new AdhocWorkspace().CurrentSolution;
+
+            // create a normal assembly with a type derived from the portable abstract base
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
+interface IA { }
+
+interface IB1 : IA { }
+interface IB2 : IA { }
+interface IB3 : IEquatable<IB3>, IA { }
+
+interface IC1 : IB1 { }
+interface IC2 : IA, IB2 { }
+interface IC3 : IB3 { }
+
+interface ID1 : IC1 { }
 ", MscorlibRef);
 
             // get symbols for types
             var compilation = await GetNormalProject(solution).GetCompilationAsync();
-            var streamType = compilation.GetTypeByMetadataName("System.IO.Stream");
+            var rootType = compilation.GetTypeByMetadataName("IA");
 
-            Assert.NotNull(streamType);
+            Assert.NotNull(rootType);
 
-            var immediateDerived = await SymbolFinder.FindDerivedClassesAsync(
-                streamType, solution, transitive: false);
+            var immediateDerived = await SymbolFinder.FindDerivedInterfacesAsync(
+                rootType, solution, transitive: false);
 
             Assert.NotEmpty(immediateDerived);
+            Assert.True(immediateDerived.All(d => d.Interfaces.Contains(rootType)));
 
-            foreach (var derivedInterface in immediateDerived)
-            {
-            }
-
-            var transitiveDerived = await SymbolFinder.FindDerivedClassesAsync(
-                streamType, solution, transitive: true);
+            var transitiveDerived = await SymbolFinder.FindDerivedInterfacesAsync(
+                rootType, solution, transitive: true);
 
             Assert.NotEmpty(transitiveDerived);
+            Assert.True(transitiveDerived.All(d => d.AllInterfaces.Contains(rootType)), "All results must transitively derive from the type");
+            Assert.True(transitiveDerived.Any(d => !d.Interfaces.Contains(rootType)), "At least one result must not immediately derive from the type");
+
+            Assert.True(transitiveDerived.Count() > immediateDerived.Count());
         }
     }
 }
