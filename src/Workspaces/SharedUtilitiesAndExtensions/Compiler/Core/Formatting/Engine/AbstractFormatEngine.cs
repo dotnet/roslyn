@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly SyntaxNode _commonRoot;
         private readonly SyntaxToken _token1;
         private readonly SyntaxToken _token2;
-        private readonly string _language;
 
         protected readonly TextSpan SpanToFormat;
 
@@ -78,14 +77,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             // get span and common root
             this.SpanToFormat = GetSpanToFormat();
             _commonRoot = token1.GetCommonRoot(token2) ?? throw ExceptionUtilities.Unreachable;
-            if (token1 == default)
-            {
-                _language = token2.Language;
-            }
-            else
-            {
-                _language = token1.Language;
-            }
         }
 
         protected abstract AbstractTriviaDataFactory CreateTriviaFactory();

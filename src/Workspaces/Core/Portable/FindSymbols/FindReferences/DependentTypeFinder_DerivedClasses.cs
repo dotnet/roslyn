@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (s_isNonSealedClass(type))
             {
-                static bool typeMatches(SymbolSet set, INamedTypeSymbol metadataType, bool transitive)
-                    => TypeHasBaseTypeInSet(set, metadataType, transitive);
+                static bool TypeMatches(INamedTypeSymbol type, SymbolSet set)
+                    => TypeHasBaseTypeInSet(type, set);
 
-                return FindTypesAsync(type, solution, projects,
-                    typeMatches: typeMatches,
+                return DescendInheritanceTreeAsync(type, solution, projects,
+                    typeMatches: TypeMatches,
                     shouldContinueSearching: s_isNonSealedClass,
                     transitive: transitive,
                     cancellationToken: cancellationToken);

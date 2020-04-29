@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             // Only an interface can be implemented.
-            if (type?.TypeKind == TypeKind.Interface)
+            if (s_isInterface(type))
             {
-                bool typeMatches(SymbolSet s, INamedTypeSymbol t, bool transitive)
-                    => s_isInterface(t) && TypeHasInterfaceInSet(s, t, transitive);
+                static bool TypeMatches(INamedTypeSymbol type, SymbolSet set)
+                    => s_isInterface(type) && TypeHasInterfaceInSet(type, set);
 
-                return FindTypesAsync(type, solution, projects,
-                    typeMatches: typeMatches,
+                return DescendInheritanceTreeAsync(type, solution, projects,
+                    typeMatches: TypeMatches,
                     shouldContinueSearching: s_isInterface,
                     transitive: transitive,
                     cancellationToken: cancellationToken);
