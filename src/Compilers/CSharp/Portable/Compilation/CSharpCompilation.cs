@@ -1537,41 +1537,53 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal new MethodSymbol? GetEntryPoint(CancellationToken cancellationToken)
         {
-            EntryPoint? entryPoint = GetEntryPointAndDiagnostics(cancellationToken);
-            return entryPoint?.MethodSymbol;
+            EntryPoint entryPoint = GetEntryPointAndDiagnostics(cancellationToken);
+            return entryPoint.MethodSymbol;
         }
 
-        internal EntryPoint? GetEntryPointAndDiagnostics(CancellationToken cancellationToken)
+        internal EntryPoint GetEntryPointAndDiagnostics(CancellationToken cancellationToken)
         {
-            if (!this.Options.OutputKind.IsApplication() && (this.ScriptClass is null))
-            {
-                return null;
-            }
-
-
             if (_lazyEntryPoint == null)
             {
-                EntryPoint? entryPoint = null;
+                EntryPoint? entryPoint;
                 MethodSymbol? simpleProgramEntryPointSymbol = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this);
 
-                if (this.Options.MainTypeName != null && !this.Options.MainTypeName.IsValidClrTypeName())
+                if (!this.Options.OutputKind.IsApplication() && (this.ScriptClass is null))
                 {
-                    Debug.Assert(!this.Options.Errors.IsDefaultOrEmpty);
-                    entryPoint = new EntryPoint(null, ImmutableArray<Diagnostic>.Empty);
+                    if (simpleProgramEntryPointSymbol is object)
+                    {
+                        var diagnostics = DiagnosticBag.GetInstance();
+                        diagnostics.Add(ErrorCode.ERR_SimpleProgramNotAnExecutable, NoLocation.Singleton);
+                        entryPoint = new EntryPoint(null, diagnostics.ToReadOnlyAndFree());
+                    }
+                    else
+                    {
+                        entryPoint = EntryPoint.None;
+                    }
                 }
-
-                if (entryPoint is null)
+                else
                 {
-                    ImmutableArray<Diagnostic> diagnostics;
-                    var entryPointMethod = FindEntryPoint(simpleProgramEntryPointSymbol, cancellationToken, out diagnostics);
-                    entryPoint = new EntryPoint(entryPointMethod, diagnostics);
-                }
+                    entryPoint = null;
 
-                if (this.Options.MainTypeName != null && simpleProgramEntryPointSymbol is object)
-                {
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    diagnostics.Add(ErrorCode.ERR_SimpleProgramDisallowsMainType, NoLocation.Singleton);
-                    entryPoint = new EntryPoint(entryPoint.MethodSymbol, entryPoint.Diagnostics.Concat(diagnostics.ToReadOnlyAndFree()));
+                    if (this.Options.MainTypeName != null && !this.Options.MainTypeName.IsValidClrTypeName())
+                    {
+                        Debug.Assert(!this.Options.Errors.IsDefaultOrEmpty);
+                        entryPoint = EntryPoint.None;
+                    }
+
+                    if (entryPoint is null)
+                    {
+                        ImmutableArray<Diagnostic> diagnostics;
+                        var entryPointMethod = FindEntryPoint(simpleProgramEntryPointSymbol, cancellationToken, out diagnostics);
+                        entryPoint = new EntryPoint(entryPointMethod, diagnostics);
+                    }
+
+                    if (this.Options.MainTypeName != null && simpleProgramEntryPointSymbol is object)
+                    {
+                        var diagnostics = DiagnosticBag.GetInstance();
+                        diagnostics.Add(ErrorCode.ERR_SimpleProgramDisallowsMainType, NoLocation.Singleton);
+                        entryPoint = new EntryPoint(entryPoint.MethodSymbol, entryPoint.Diagnostics.Concat(diagnostics.ToReadOnlyAndFree()));
+                    }
                 }
 
                 Interlocked.CompareExchange(ref _lazyEntryPoint, entryPoint, null);
@@ -1832,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// is either void or int.
         /// - has either no parameter or a single parameter of type string[]
         /// </summary>
-        private (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, DiagnosticBag bag)
+        internal (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, DiagnosticBag bag)
         {
             if (method.IsVararg)
             {
@@ -1888,6 +1900,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public readonly MethodSymbol? MethodSymbol;
             public readonly ImmutableArray<Diagnostic> Diagnostics;
+
+            public static readonly EntryPoint None = new EntryPoint(null, ImmutableArray<Diagnostic>.Empty);
 
             public EntryPoint(MethodSymbol? methodSymbol, ImmutableArray<Diagnostic> diagnostics)
             {

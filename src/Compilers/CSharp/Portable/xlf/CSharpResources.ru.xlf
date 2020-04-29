@@ -462,6 +462,11 @@
         <target state="new">Only one compilation unit can have top-level statements.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramNotAnExecutable">
+        <source>Program using top-level statements must be an executable.</source>
+        <target state="new">Program using top-level statements must be an executable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">Для шаблона деконструкции с одним элементом требуется другой синтаксис для устранения неоднозначности. Рекомендуется добавить указатель отмены "_" после закрывающей скобки ")".</target>

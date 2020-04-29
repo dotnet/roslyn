@@ -636,7 +636,7 @@ partial delegate E { }
 ";
 
             // Extra errors
-            CreateCompilation(test, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                 // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
@@ -2436,7 +2436,7 @@ Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
         {
             var test = @" > Roslyn.Utilities.dll!  Basic";
 
-            CreateCompilation(test, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                 // (1,2): error CS1525: Invalid expression term '>'
                 //  > Roslyn.Utilities.dll!  Basic
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 2),

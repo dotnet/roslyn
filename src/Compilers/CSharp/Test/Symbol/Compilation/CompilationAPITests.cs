@@ -598,7 +598,7 @@ namespace A.B {
 
             // use exported type with invalid alias
             comp = CSharpCompilation.Create("APP2",
-             options: TestOptions.ReleaseDll,
+             options: TestOptions.ReleaseExe,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
                     "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
                     options: TestOptions.RegularPreview) },
@@ -666,7 +666,7 @@ namespace A.B {
 
             // use exported type with invalid alias
             comp = CSharpCompilation.Create("APP2",
-             options: TestOptions.ReleaseDll,
+             options: TestOptions.ReleaseExe,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
                     "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
                     options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) },
@@ -1614,7 +1614,7 @@ class A
             compilation.VerifyDiagnostics();
 
             Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
-            Assert.Null(compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
+            Assert.Same(CSharpCompilation.EntryPoint.None, compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
         }
 
         [Fact]
@@ -1630,7 +1630,7 @@ class A
             compilation.VerifyDiagnostics();
 
             Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
-            Assert.Null(compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
+            Assert.Same(CSharpCompilation.EntryPoint.None, compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
         }
 
         [Fact]

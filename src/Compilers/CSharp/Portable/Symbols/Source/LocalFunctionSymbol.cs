@@ -135,6 +135,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AsyncMethodChecks(_declarationDiagnostics);
 
             addTo.AddRange(_declarationDiagnostics);
+
+            if (IsEntryPointCandidate && !IsGenericMethod &&
+                ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol &&
+                DeclaringCompilation.HasEntryPointSignature(this, new DiagnosticBag()).IsCandidate)
+            {
+                addTo.Add(ErrorCode.WRN_MainIgnored, Syntax.Identifier.GetLocation(), this);
+            }
         }
 
         internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)

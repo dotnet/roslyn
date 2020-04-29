@@ -5404,7 +5404,7 @@ class C
             var source = @"
 using VT2 = (int, int);
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (2,13): error CS1001: Identifier expected
                 // using VT2 = (int, int);
