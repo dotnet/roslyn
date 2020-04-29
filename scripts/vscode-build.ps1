@@ -1,7 +1,7 @@
 param (
   [Parameter(Mandatory = $true)][string]$filePath,
   [string]$msbuildEngine = "vs",
-  [string]$framework = $null
+  [string]$framework = ""
 )
 
 Set-StrictMode -version 3.0
@@ -13,7 +13,7 @@ $fileInfo = Get-ItemProperty $filePath
 $projectFileInfo = Get-ProjectFile $fileInfo
 if ($projectFileInfo) {
   $buildTool = InitializeBuildTool
-  $frameworkArg = if ($framework) { " -p:TargetFramework=$framework" } else { "" }
+  $frameworkArg = if ($framework -ne "") { " -p:TargetFramework=$framework" } else { "" }
   $buildArgs = "$($buildTool.Command) -v:m -m -p:UseRoslynAnalyzers=false -p:GenerateFullPaths=true$frameworkArg $($projectFileInfo.FullName)"
 
   Write-Host "$($buildTool.Path) $buildArgs"

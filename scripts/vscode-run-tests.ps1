@@ -2,7 +2,7 @@ param (
   [Parameter(Mandatory = $true)][string]$filePath,
   [string]$msbuildEngine = "vs",
   [string]$framework = $null,
-  [string]$filter = $null
+  [string]$filter = ""
 )
 
 Set-StrictMode -version 3.0
@@ -28,7 +28,7 @@ if ($projectFileInfo) {
   $resultsPath = Resolve-Path (New-Item -ItemType Directory -Force -Path $resultsPath) -Relative
 
   # Remove old run logs with the same prefix
-  Remove-Item (Join-Path $resultsPath "$logFilePrefix*.html")
+  Remove-Item (Join-Path $resultsPath "$logFilePrefix*.html") -ErrorAction SilentlyContinue
 
   $invocation = "$dotnetPath test $projectDir" + $filterArg + $frameworkArg + " --logger `"html;LogFilePrefix=$logfilePrefix`" --results-directory $resultsPath --no-build"
   Write-Output "> $invocation"
