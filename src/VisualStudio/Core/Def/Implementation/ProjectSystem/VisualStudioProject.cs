@@ -435,7 +435,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                         foreach (var (path, properties) in _metadataReferencesAddedInBatch)
                         {
-                            var projectReference = _workspace.TryCreateConvertedProjectReference(Id, path, properties);
+                            var projectReference = _workspace.TryCreateConvertedProjectReference_NoLock(Id, path, properties);
 
                             if (projectReference != null)
                             {
@@ -459,7 +459,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // Metadata reference removing...
                     foreach (var (path, properties) in _metadataReferencesRemovedInBatch)
                     {
-                        var projectReference = _workspace.TryRemoveConvertedProjectReference(Id, path, properties);
+                        var projectReference = _workspace.TryRemoveConvertedProjectReference_NoLock(Id, path, properties);
 
                         if (projectReference != null)
                         {
@@ -778,7 +778,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _workspace.ApplyChangeToWorkspace(w =>
                     {
-                        var projectReference = _workspace.TryCreateConvertedProjectReference(Id, fullPath, properties);
+                        var projectReference = _workspace.TryCreateConvertedProjectReference_NoLock(Id, fullPath, properties);
 
                         if (projectReference != null)
                         {
@@ -841,7 +841,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _workspace.ApplyChangeToWorkspace(w =>
                     {
-                        var projectReference = _workspace.TryRemoveConvertedProjectReference(Id, fullPath, properties);
+                        var projectReference = _workspace.TryRemoveConvertedProjectReference_NoLock(Id, fullPath, properties);
 
                         // If this was converted to a project reference, we have now recorded the removal -- let's remove it here too
                         if (projectReference != null)

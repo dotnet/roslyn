@@ -1699,51 +1699,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SetSolutionAndRaiseWorkspaceChanged_NoLock(modifiedSolution, projectIdsChanged);
         }
 
-        public ProjectReference? TryCreateConvertedProjectReference(ProjectId referencingProject, string path, MetadataReferenceProperties properties)
+        public ProjectReference? TryCreateConvertedProjectReference_NoLock(ProjectId referencingProject, string path, MetadataReferenceProperties properties)
         {
-            lock (_gate)
+            // Any conversion to or from project references must be done under the global workspace lock,
+            // since that needs to be coordinated with updating all projects simultaneously.
+            Debug.Assert(Monitor.IsEntered(_gate));
+
+            if (_projectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Count() == 1)
             {
-                if (_projectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Count() == 1)
+                var projectIdToReference = ids.First();
+
+                if (CanConvertMetadataReferenceToProjectReference_NoLock(referencingProject, projectIdToReference))
                 {
-                    var projectIdToReference = ids.First();
+                    var projectReference = new ProjectReference(
+                        projectIdToReference,
+                        aliases: properties.Aliases,
+                        embedInteropTypes: properties.EmbedInteropTypes);
 
-                    if (CanConvertMetadataReferenceToProjectReference_NoLock(referencingProject, projectIdToReference))
-                    {
-                        var projectReference = new ProjectReference(
-                            projectIdToReference,
-                            aliases: properties.Aliases,
-                            embedInteropTypes: properties.EmbedInteropTypes);
+                    GetReferenceInfo_NoLock(referencingProject).ConvertedProjectReferences.Add((path, projectReference));
 
-                        GetReferenceInfo_NoLock(referencingProject).ConvertedProjectReferences.Add((path, projectReference));
-
-                        return projectReference;
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    return projectReference;
                 }
                 else
                 {
                     return null;
                 }
             }
+            else
+            {
+                return null;
+            }
         }
 
-        public ProjectReference? TryRemoveConvertedProjectReference(ProjectId referencingProject, string path, MetadataReferenceProperties properties)
+        public ProjectReference? TryRemoveConvertedProjectReference_NoLock(ProjectId referencingProject, string path, MetadataReferenceProperties properties)
         {
-            lock (_gate)
+            // Any conversion to or from project references must be done under the global workspace lock,
+            // since that needs to be coordinated with updating all projects simultaneously.
+            Debug.Assert(Monitor.IsEntered(_gate));
+
+            var projectReferenceInformation = GetReferenceInfo_NoLock(referencingProject);
+            foreach (var convertedProject in projectReferenceInformation.ConvertedProjectReferences)
             {
-                var projectReferenceInformation = GetReferenceInfo_NoLock(referencingProject);
-                foreach (var convertedProject in projectReferenceInformation.ConvertedProjectReferences)
+                if (convertedProject.path == path &&
+                    convertedProject.projectReference.EmbedInteropTypes == properties.EmbedInteropTypes &&
+                    convertedProject.projectReference.Aliases.SequenceEqual(properties.Aliases))
                 {
-                    if (convertedProject.path == path &&
-                        convertedProject.projectReference.EmbedInteropTypes == properties.EmbedInteropTypes &&
-                        convertedProject.projectReference.Aliases.SequenceEqual(properties.Aliases))
-                    {
-                        projectReferenceInformation.ConvertedProjectReferences.Remove(convertedProject);
-                        return convertedProject.projectReference;
-                    }
+                    projectReferenceInformation.ConvertedProjectReferences.Remove(convertedProject);
+                    return convertedProject.projectReference;
                 }
             }
 
