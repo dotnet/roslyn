@@ -664,7 +664,7 @@ partial class B<T> where T : struct
     static partial void M2<U>(A<U> a, A<A<int>>.B b) where U : class;
     static partial void M3(A<T> a);
     static partial void M4<U, V>() where U : A<V>;
-    static partial A<U> M5<U>();
+    internal static partial A<U> M5<U>();
 }
 partial class B<T> where T : struct
 {
@@ -672,7 +672,7 @@ partial class B<T> where T : struct
     static partial void M2<U>(A<U> a, A<A<int>>.B b) where U : class { }
     static partial void M3(A<T> a) { }
     static partial void M4<U, V>() where U : A<V> { }
-    static partial A<U> M5<U>() { return null; }
+    internal static partial A<U> M5<U>() { return null; }
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
                 // (10,28): error CS0453: The type 'V' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
@@ -683,8 +683,8 @@ partial class B<T> where T : struct
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "a").WithArguments("A<T>", "T", "U").WithLocation(8, 36),
                 // (8,51): error CS0453: The type 'A<int>' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "b").WithArguments("A<T>", "T", "A<int>").WithLocation(8, 51),
-                // (19,25): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M5").WithArguments("A<T>", "T", "U").WithLocation(11, 25));
+                // (19,34): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M5").WithArguments("A<T>", "T", "U").WithLocation(11, 34));
         }
 
         [ClrOnlyFact]

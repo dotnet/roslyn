@@ -2566,24 +2566,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, method.Locations[0], method, method.OtherPartOfPartial);
                     }
-                    else if (method.IsPartialDefinition && method.OtherPartOfPartial is null)
+                    else if (method is { IsPartialDefinition: true, OtherPartOfPartial: null, HasExplicitAccessMod: true })
                     {
-                        if (!method.ReturnType.IsVoidType())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveImplementation, method.Locations[0], method);
-                        }
-                        else if (method.Parameters.Any(p => p.RefKind == RefKind.Out))
-                        {
-                            diagnostics.Add(ErrorCode.ERR_PartialMethodWithOutParamMustHaveImplementation, method.Locations[0], method);
-                        }
-                        else if (method.HasExplicitAccessMod)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.Locations[0], method);
-                        }
-                        else if (method.HasExtendedPartialModifier)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveImplementation, method.Locations[0], method);
-                        }
+                        diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.Locations[0], method);
                     }
                 }
             }

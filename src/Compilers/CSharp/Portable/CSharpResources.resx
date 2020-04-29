@@ -6073,17 +6073,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureExtendedPartialMethods" xml:space="preserve">
     <value>extended partial methods</value>
   </data>
-  <data name="ERR_PartialMethodWithNonVoidReturnMustHaveImplementation" xml:space="preserve">
-    <value>Partial method {0} must have an implementation part because it has a non-void return type.</value>
+  <data name="ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods" xml:space="preserve">
+    <value>Partial method '{0}' must have accessibility modifiers because it has a non-void return type.</value>
   </data>
-  <data name="ERR_PartialMethodWithOutParamMustHaveImplementation" xml:space="preserve">
-    <value>Partial method {0} must have an implementation part because it has 'out' parameters.</value>
+  <data name="ERR_PartialMethodWithOutParamMustHaveAccessMods" xml:space="preserve">
+    <value>Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</value>
   </data>
   <data name="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation" xml:space="preserve">
-    <value>Partial method {0} must have an implementation part because it has accessibility modifiers.</value>
+    <value>Partial method '{0}' must have an implementation part because it has accessibility modifiers.</value>
   </data>
-  <data name="ERR_PartialMethodWithExtendedModMustHaveImplementation" xml:space="preserve">
-    <value>Partial method {0} must have an implementation part because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.</value>
+  <data name="ERR_PartialMethodWithExtendedModMustHaveAccessMods" xml:space="preserve">
+    <value>Partial method '{0}' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.</value>
   </data>
   <data name="ERR_PartialMethodExplicitAccessibilityDifference" xml:space="preserve">
     <value>Both partial method declarations must have accessibility modifiers or neither may have accessibility modifiers.</value>

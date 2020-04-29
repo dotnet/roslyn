@@ -290,19 +290,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsPartial)
             {
-                if (MessageID.IDS_FeatureExtendedPartialMethods.GetFeatureAvailabilityDiagnosticInfo(DeclaringCompilation) is { } info)
-                {
-                    // check that there are no out parameters in a partial
-                    foreach (var p in this.Parameters)
-                    {
-                        if (p.RefKind == RefKind.Out)
-                        {
-                            diagnostics.Add(info, location);
-                            break;
-                        }
-                    }
-                }
-
                 if (MethodKind == MethodKind.ExplicitInterfaceImplementation)
                 {
                     diagnostics.Add(ErrorCode.ERR_PartialMethodNotExplicit, location);
@@ -615,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && !_hasAnyBody && !IsExtern;
+                return this.IsPartial && !_hasAnyBody && !HasExternModifier;
             }
         }
 
@@ -626,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && (_hasAnyBody || IsExtern);
+                return this.IsPartial && (_hasAnyBody || HasExternModifier);
             }
         }
 
@@ -678,6 +665,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return SourcePartialImplementation;
+            }
+        }
+
+        public sealed override bool IsExtern
+        {
+            get
+            {
+                return IsPartialDefinition
+                    ? _otherPartOfPartial?.IsExtern ?? false
+                    : HasExternModifier;
             }
         }
 
@@ -936,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             bool isExplicitInterfaceImplementationInInterface = isExplicitInterfaceImplementation && ContainingType.IsInterface;
 
-            if (IsPartial && (!ReturnsVoid || HasExplicitAccessMod || HasExtendedPartialModifier))
+            if (IsPartial && HasExplicitAccessMod)
             {
                 Binder.CheckFeatureAvailability(SyntaxNode, MessageID.IDS_FeatureExtendedPartialMethods, diagnostics, location);
             }
@@ -944,6 +941,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsPartial && IsAbstract)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, location);
+            }
+            else if (IsPartial && !HasExplicitAccessMod && !ReturnsVoid)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, location, this);
+            }
+            else if (IsPartial && !HasExplicitAccessMod && HasExtendedPartialModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, location, this);
+            }
+            else if (IsPartial && !HasExplicitAccessMod && Parameters.Any(p => p.RefKind == RefKind.Out))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, location, this);
             }
             else if (this.DeclaredAccessibility == Accessibility.Private && (IsVirtual || (IsAbstract && !isExplicitInterfaceImplementationInInterface) || IsOverride))
             {
