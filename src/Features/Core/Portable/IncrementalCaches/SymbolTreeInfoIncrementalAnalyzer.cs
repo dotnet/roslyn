@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -32,12 +30,13 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
+            private bool SupportAnalysis(Project project)
+                => project.SupportsCompilation;
+
             public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (!SupportAnalysis(document.Project))
-                {
                     return;
-                }
 
                 if (bodyOpt != null)
                 {
@@ -62,9 +61,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (!SupportAnalysis(project))
-                {
                     return Task.CompletedTask;
-                }
 
                 return UpdateSymbolTreeInfoAsync(project, cancellationToken);
             }
@@ -75,6 +72,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
                 // Produce the indices for the source and metadata symbols in parallel.
                 using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+
                 tasks.Add(Task.Run(() => this.UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken));
                 tasks.Add(Task.Run(() => this.UpdateReferencesAsync(project, cancellationToken), cancellationToken));
 
@@ -162,9 +160,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     }
                 }
             }
-
-            private bool SupportAnalysis(Project project)
-                => project.SupportsCompilation;
         }
     }
 }

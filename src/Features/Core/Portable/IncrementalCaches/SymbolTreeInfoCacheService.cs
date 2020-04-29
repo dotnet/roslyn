@@ -46,20 +46,26 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
                 // try to create the metadata.
                 var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                    solution, reference, checksum, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    solution, reference, checksum, loadOnly: true, cancellationToken).ConfigureAwait(false);
                 return info;
             }
 
             public async Task<SymbolTreeInfo> TryGetSourceSymbolTreeInfoAsync(
                 Project project, CancellationToken cancellationToken)
             {
+                var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
                 if (_projectToInfo.TryGetValue(project.Id, out var projectInfo) &&
-                    projectInfo.Checksum == await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false))
+                    projectInfo.Checksum == checksum)
                 {
                     return projectInfo;
                 }
 
-                return null;
+                // If we didn't have it in our cache, see if we can load it from disk.
+                // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
+                // try to create the index.
+                var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
+                    project, checksum, loadOnly: true, cancellationToken).ConfigureAwait(false);
+                return info;
             }
         }
     }
