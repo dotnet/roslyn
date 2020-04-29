@@ -7490,5 +7490,61 @@ class C
     }
 }");
         }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroVarInActionSelectingInsideParens()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        Action<int> goo = x => ([|x.ToString()|]);
+    }
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        Action<int> goo = x =>
+        {
+            string {|Rename:v|} = x.ToString();
+        };
+    }
+}");
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroVarInActionSelectingParens()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        Action<int> goo = x => [|(x.ToString())|];
+    }
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        Action<int> goo = x =>
+        {
+            string {|Rename:v|} = (x.ToString());
+        };
+    }
+}");
+        }
     }
 }

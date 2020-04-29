@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             CancellationToken cancellationToken)
         {
             var oldBody = (ExpressionSyntax)oldLambda.Body;
-            var isEntireLambdaBodySelected = oldBody.Equals(expression);
+            var isEntireLambdaBodySelected = oldBody.WalkDownParentheses().Equals(expression.WalkDownParentheses());
 
             var rewrittenBody = Rewrite(
                 document, expression, newLocalName, document, oldBody, allOccurrences, cancellationToken);
@@ -101,42 +101,71 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 delegateType.DelegateInvokeMethod != null &&
                 delegateType.DelegateInvokeMethod.ReturnsVoid;
 
-            BlockSyntax newBody;
-            if (doesDelegateMethodReturnVoid)
+            var newBody = GetNewBlockBodyForLambda(
+                declarationStatement, isEntireLambdaBodySelected, rewrittenBody, doesDelegateMethodReturnVoid);
+            var newLambda = oldLambda.WithBody(newBody);
+
+            var newRoot = document.Root.ReplaceNode(oldLambda, newLambda);
+            return document.Document.WithSyntaxRoot(newRoot);
+        }
+
+        private static BlockSyntax GetNewBlockBodyForLambda(
+            LocalDeclarationStatementSyntax declarationStatement,
+            bool isEntireLambdaBodySelected,
+            ExpressionSyntax rewrittenBody,
+            bool doesDelegateMethodReturnVoid)
+        {
+            // For lambdas with void return types, we don't need to include the rewritten body if the entire lambda body
+            // was originally selected for refactoring, as the rewritten body should already be encompassed within the
+            // declaration statement.
+
+            // Case 1a: The lambda has a void return type, and the user selects the entire lambda body.
+            // e.g.:
+            //     Action<int> goo = x => [|x.ToString()|];
+            //
+            // After refactoring:
+            //     Action<int> goo = x =>
+            //     {
+            //         string v = x.ToString();
+            //     };
+            var newBody = SyntaxFactory.Block(declarationStatement);
+
+            if (doesDelegateMethodReturnVoid && !isEntireLambdaBodySelected)
             {
-                // For lambdas with void return types, we don't need to include the rewritten body if the entire lambda body
-                // was originally selected for refactoring, as the rewritten body should already be encompassed within the
-                // declaration statement.
-                if (isEntireLambdaBodySelected)
-                {
-                    // The lambda has a void return type, and the user selects the entire lambda body.
-                    // e.g.: Action<int> goo = x => [|x.ToString()|];
-                    newBody = SyntaxFactory.Block(declarationStatement);
-                }
-                else
-                {
-                    // The lambda has a void return type, and the user didn't select the entire lambda body.
-                    // e.g.: Task.Run(() => File.Copy("src", [|Path.Combine("dir", "file")|]));
-                    newBody = SyntaxFactory.Block(
-                        declarationStatement,
-                        SyntaxFactory.ExpressionStatement(rewrittenBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
-                }
+                // Case 1b: The user didn't select the entire lambda body.
+                // e.g.:
+                //     Task.Run(() => File.Copy("src", [|Path.Combine("dir", "file")|]));
+                //
+                // After refactoring:
+                //     Task.Run(() =>
+                //     {
+                //         string destFileName = Path.Combine("dir", "file");
+                //         File.Copy("src", destFileName);
+                //     });
+                newBody = newBody.AddStatements(
+                    SyntaxFactory.ExpressionStatement(rewrittenBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
             }
-            else
+            else if (!doesDelegateMethodReturnVoid)
             {
-                // The lambda has a non-void return type.
-                // e.g.: Func<int, int> f = x => [|x + 1|];
-                newBody = SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
+                // Case 2: The lambda has a non-void return type.
+                // e.g.:
+                //     Func<int, int> f = x => [|x + 1|];
+                //
+                // After refactoring:
+                //     Func<int, int> f = x =>
+                //     {
+                //         var v = x + 1;
+                //         return v;
+                //     };
+                newBody = newBody.AddStatements(
+                    SyntaxFactory.ReturnStatement(rewrittenBody));
             }
 
             // Add an elastic newline so that the formatter will place this new lambda body across multiple lines.
             newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed))
                              .WithAdditionalAnnotations(Formatter.Annotation);
 
-            var newLambda = oldLambda.WithBody(newBody);
-
-            var newRoot = document.Root.ReplaceNode(oldLambda, newLambda);
-            return document.Document.WithSyntaxRoot(newRoot);
+            return newBody;
         }
 
         private TypeSyntax GetTypeSyntax(SemanticDocument document, ExpressionSyntax expression, CancellationToken cancellationToken)
