@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         cancellationToken).ConfigureAwait(false);
 
                     // Add all the matches we found to the result set.
-                    AssertContents(foundTypes, assert: s_isInSource, "Found type was not from source")
+                    AssertContents(foundTypes, assert: s_isInSource, "Found type was not from source");
                     AddRange(foundTypes, result);
 
                     // Now, if we're doing a transitive search, add these types to the currentSourceAndMetadataTypes
