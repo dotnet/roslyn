@@ -166,7 +166,7 @@ class C
         string nonConstant = ""hello"";
         if (x is nonConstant)
         {
-            x.ToString(); // warn
+            x.ToString();
         }
     }
 }
@@ -176,7 +176,7 @@ class C
                 //         if (x is nonConstant)
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "nonConstant").WithLocation(7, 18),
                 // (9,13): warning CS8602: Dereference of a possibly null reference.
-                //             x.ToString(); // warn
+                //             x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(9, 13)
                 );
         }
@@ -356,7 +356,8 @@ class C
             c.VerifyDiagnostics(
                 // (8,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13)
+                );
         }
 
         [Fact]
@@ -2124,6 +2125,132 @@ class C
 }
 ");
             c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NotNullIsAPureNullTest()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M1(C? x)
+    {
+        if (x is not null)
+            x.ToString();
+        x.ToString(); // 1
+    }
+    void M2(C x)
+    {
+        if (x is not null)
+            x.ToString();
+        x.ToString(); // 2
+    }
+    void M3(C x)
+    {
+        if (x is not null or _)
+            x.ToString(); // 3
+        x.ToString();
+    }
+    void M4(C x)
+    {
+        if (x is null or _)
+            x.ToString(); // 4
+        x.ToString();
+    }
+    void M5(C x)
+    {
+        if (x is _ or not null)
+            x.ToString(); // 5
+        x.ToString();
+    }
+    void M6(C x)
+    {
+        if (x is _ or null)
+            x.ToString(); // 6
+        x.ToString();
+    }
+    void M7(C x)
+    {
+        if (x is _ and null)
+            x.ToString(); // 7
+        x.ToString();
+    }
+    void M8(C x)
+    {
+        if (x is _ and not null)
+            x.ToString();
+        x.ToString(); // 8
+    }
+    void M9(C x)
+    {
+        if (x is not null and _)
+            x.ToString();
+        x.ToString(); // 9
+    }
+    void M10(int? x)
+    {
+        if (x is < 0)
+            x.Value.ToString();
+        x.Value.ToString(); // 10
+    }
+    void M11(C x)
+    {
+        if (x is not object)
+            x.ToString(); // 11
+        else
+            x.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 9),
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(14, 9),
+                // (18,13): warning CS8794: An expression of type 'C' always matches the provided pattern.
+                //         if (x is not null or _)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "x is not null or _").WithArguments("C").WithLocation(18, 13),
+                // (19,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(19, 13),
+                // (24,13): warning CS8794: An expression of type 'C' always matches the provided pattern.
+                //         if (x is null or _)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "x is null or _").WithArguments("C").WithLocation(24, 13),
+                // (25,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(25, 13),
+                // (30,13): warning CS8794: An expression of type 'C' always matches the provided pattern.
+                //         if (x is _ or not null)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "x is _ or not null").WithArguments("C").WithLocation(30, 13),
+                // (31,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(31, 13),
+                // (36,13): warning CS8794: An expression of type 'C' always matches the provided pattern.
+                //         if (x is _ or null)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "x is _ or null").WithArguments("C").WithLocation(36, 13),
+                // (37,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(37, 13),
+                // (43,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(43, 13),
+                // (50,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(50, 9),
+                // (56,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(56, 9),
+                // (62,9): warning CS8629: Nullable value type may be null.
+                //         x.Value.ToString(); // 10
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x").WithLocation(62, 9),
+                // (67,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // 11
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(67, 13)
+                );
         }
     }
 }

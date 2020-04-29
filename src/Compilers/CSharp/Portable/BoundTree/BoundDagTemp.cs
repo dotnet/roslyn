@@ -31,15 +31,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Hash.Combine(this.Type.GetHashCode(), Hash.Combine(this.Source?.GetHashCode() ?? 0, this.Index));
         }
-
-        public static bool operator ==(BoundDagTemp left, BoundDagTemp right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(BoundDagTemp left, BoundDagTemp right)
-        {
-            return !left.Equals(right);
-        }
     }
 }

@@ -102,7 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isCatchFilterContext,
             bool isDestructorTypeContext,
             bool isPossibleTupleContext,
-            bool isPatternContext,
+            bool isStartPatternContext,
+            bool isAfterPatternContext,
             bool isRightSideOfNumericType,
             bool isInArgumentList,
             CancellationToken cancellationToken)
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
                    isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
                    isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext,
-                   isPatternContext, isRightSideOfNumericType, isInArgumentList,
+                   isStartPatternContext, isAfterPatternContext, isRightSideOfNumericType, isInArgumentList,
                    cancellationToken)
         {
             this.ContainingTypeDeclaration = containingTypeDeclaration;
@@ -260,7 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isCatchFilterContext: syntaxTree.IsCatchFilterContext(position, leftToken),
                 isDestructorTypeContext: isDestructorTypeContext,
                 isPossibleTupleContext: syntaxTree.IsPossibleTupleContext(leftToken, position),
-                isPatternContext: syntaxTree.IsPatternContext(leftToken, position),
+                isStartPatternContext: syntaxTree.IsAtStartOfPattern(leftToken, position),
+                isAfterPatternContext: syntaxTree.IsAtEndOfPattern(leftToken, position),
                 isRightSideOfNumericType: isRightSideOfNumericType,
                 isInArgumentList: isArgumentListToken,
                 cancellationToken: cancellationToken);
