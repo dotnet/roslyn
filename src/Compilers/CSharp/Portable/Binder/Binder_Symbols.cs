@@ -1101,16 +1101,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics);
             }
 
-            if (!Compilation.LanguageVersion.AllowGenericAttributes() && options.IsAttributeTypeLookup())
-            {
-                // Generic type previously could not be an attribute type.
-                // Parser error has already been reported, just wrap the result type with error type symbol.
-                Debug.Assert(unconstructedType.IsErrorType());
-                Debug.Assert(resultType.IsErrorType());
-                resultType = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(resultType), resultType,
-                    LookupResultKind.NotAnAttributeType, errorInfo: null);
-            }
-
             return TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(node.TypeArgumentList.GreaterThanToken), resultType);
         }
 
