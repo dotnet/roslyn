@@ -742,8 +742,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 {
                     string str = obj.ToString();
                     if (IsTuple(obj))
-                {
-                    result.Append(str);
+                    {
+                        result.Append(str);
                     }
                     else
                     {
