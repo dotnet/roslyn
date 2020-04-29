@@ -84,6 +84,7 @@
                         <TextBox x:Name="DefaultValue" 
                          Grid.Column="1" 
                          Margin="5,0,0,0" 
+                         AutomationProperties.LabeledBy="{Binding ElementName=OptionalParameterRadioButton}"
                          Text="{Binding DefaultValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          IsEnabled="{Binding IsChecked, ElementName=OptionalParameterRadioButton}"/>
                     </Grid>
@@ -107,6 +108,7 @@
                          Grid.Row="0"
                          Margin="5,0,0,0"
                          IsEnabled="{Binding IsChecked, ElementName=CallsiteValueRadioButton}"
+                         AutomationProperties.LabeledBy="{Binding ElementName=CallsiteValueRadioButton}"
                          Text="{Binding CallSiteValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
                         <CheckBox x:Name="UseNamedArgumentButton" 
                           Grid.Row="1" 
