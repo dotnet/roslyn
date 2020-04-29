@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    interface IRemoteDependentTypeFinder
+    internal interface IRemoteDependentTypeFinder
     {
         Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAndCacheDerivedClassesAsync(
             PinnedSolutionInfo solutionInfo,
