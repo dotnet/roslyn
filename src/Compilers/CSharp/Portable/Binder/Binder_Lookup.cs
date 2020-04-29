@@ -617,7 +617,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.Kind == SymbolKind.NamedType)
             {
                 var namedType = (NamedTypeSymbol)symbol;
-                if (namedType.IsAbstract)
+                if (namedType.IsGenericType && !Compilation.LanguageVersion.AllowGenericAttributes())
+                {
+                    // Attribute classes cannot be generic.
+                    diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, symbol) : null;
+                    return false;
+                }
+                else if(namedType.IsAbstract)
                 {
                     // Attribute class cannot be abstract.
                     diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_AbstractAttributeClass, symbol) : null;
@@ -1583,7 +1589,7 @@ symIsHidden:;
                         NamedTypeSymbol namedType = (NamedTypeSymbol)symbol;
                         // non-declared types only appear as using aliases (aliases are arity 0)
                         Debug.Assert(object.ReferenceEquals(namedType.ConstructedFrom, namedType));
-                        if ((namedType.Arity != arity && arity != 0) || (options.IsAttributeTypeLookup() && arity == 0))
+                        if (namedType.Arity != arity)
                         {
                             if (namedType.Arity == 0)
                             {
