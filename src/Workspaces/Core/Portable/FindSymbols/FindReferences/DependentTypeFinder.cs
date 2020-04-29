@@ -255,9 +255,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var foundTypes = CreateSymbolAndProjectIdSet();
             try
             {
-                // First see what derived metadata types we might find in this project. This is only necessary if we started
-                // with a metadata type (i.e. a source type could not have a descendant type found in metadata, but a
-                // metadata type could have descendant types in source and metadata).
+                // First see what derived metadata types we might find in this project. This is only necessary if we
+                // started with a metadata type (i.e. a source type could not have a descendant type found in metadata,
+                // but a metadata type could have descendant types in source and metadata).
                 if (searchInMetadata)
                 {
                     await AddMetadataTypesInProjectAsync(
@@ -269,54 +269,75 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         foundTypes,
                         cancellationToken).ConfigureAwait(false);
 
-                    foreach (var foundType in foundTypes)
+                    // Add all the matches we found to the result set.
+                    AssertContents(foundTypes, assert: s_isInMetadata, "Found type was not from metadata");
+                    AddRange(foundTypes, result);
+
+                    // Now, if we're doing a transitive search, add these found types to the 'current' sets we're
+                    // searching for more results for. These will then be used when searching for more types in the next
+                    // project (which our caller controls).
+                    if (transitive)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        Debug.Assert(foundType.Locations.Any(s_isInMetadata));
-
-                        // This was a good match, add to the final result list.
-                        result.Add(foundType);
-
-                        // If we're doing a transitive search, add these found types to the 'current' sets we're
-                        // searching for more results for. These will then be used when searching for more types in the
-                        // next project (which our caller controls).
-                        if (transitive && shouldContinueSearching(foundType))
-                        {
-                            currentMetadataTypes.Add(foundType);
-                            currentSourceAndMetadataTypes.Add(foundType);
-                        }
+                        AddRange(foundTypes, currentMetadataTypes, shouldContinueSearching);
+                        AddRange(foundTypes, currentSourceAndMetadataTypes, shouldContinueSearching);
                     }
                 }
 
-                // Now search the project and see what source types we can find.
-                foundTypes.Clear();
-
-                await AddSourceTypesInProjectAsync(
-                    currentSourceAndMetadataTypes,
-                    project,
-                    typeMatches,
-                    shouldContinueSearching,
-                    transitive,
-                    foundTypes,
-                    cancellationToken).ConfigureAwait(false);
-
-                foreach (var foundType in foundTypes)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    // Now search the project and see what source types we can find.
+                    foundTypes.Clear();
 
-                    Debug.Assert(foundType.Locations.All(s_isInSource));
+                    await AddSourceTypesInProjectAsync(
+                        currentSourceAndMetadataTypes,
+                        project,
+                        typeMatches,
+                        shouldContinueSearching,
+                        transitive,
+                        foundTypes,
+                        cancellationToken).ConfigureAwait(false);
 
-                    // Add to the result list.
-                    result.Add(foundType);
+                    // Add all the matches we found to the result set.
+                    AssertContents(foundTypes, assert: s_isInSource, "Found type was not from source")
+                    AddRange(foundTypes, result);
 
-                    if (transitive && shouldContinueSearching(foundType))
-                        currentSourceAndMetadataTypes.Add(foundType);
+                    // Now, if we're doing a transitive search, add these types to the currentSourceAndMetadataTypes
+                    // set. These will then be used when searching for more types in the next project (which our caller
+                    // controls).  We don't have to add this to currentMetadataTypes since these will all be
+                    // source types.
+                    if (transitive)
+                        AddRange(foundTypes, currentSourceAndMetadataTypes, shouldContinueSearching);
                 }
             }
             finally
             {
                 s_setPool.ClearAndFree(foundTypes);
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private static void AssertContents(
+            SymbolSet foundTypes, Func<Location, bool> assert, string message)
+        {
+            foreach (var type in foundTypes)
+                Debug.Assert(type.Locations.All(assert), message);
+        }
+
+        private static void AddRange(SymbolSet foundTypes, SymbolSet result)
+        {
+            // Directly enumerate to avoid IEnumerator allocations.
+            foreach (var type in foundTypes)
+                result.Add(type);
+        }
+
+        private static void AddRange(
+            SymbolSet foundTypes, SymbolSet currentTypes,
+            Func<INamedTypeSymbol, bool> shouldContinueSearching)
+        {
+            // Directly enumerate to avoid IEnumerator allocations.
+            foreach (var type in foundTypes)
+            {
+                if (shouldContinueSearching(type))
+                    currentTypes.Add(type);
             }
         }
 
