@@ -101,12 +101,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
             return result.ToString();
         }
 
-        //Private Shared Function ContainerToString(element As Object) As String
-        //    Dim result = New StringBuilder
-        //    ContainerToString(element, "", result)
-        //    Return result.ToString()
-        //End Function
-
         private static void ContainerToString(object element, string indent, StringBuilder result)
         {
             result.Append($"{indent}New {element.GetType().Name}(");
@@ -197,8 +191,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
                 if (!field.IsStatic)
                     continue;
 
-                var rawValue = field.GetValue(null);
-                var value = rawValue as string;
+                var value = field.GetValue(null) as string;
                 if (value == classification)
                     return $"{nameof(ClassificationTypeNames)}.{field.Name}";
             }
@@ -213,8 +206,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
                 if (!field.IsStatic)
                     continue;
 
-                var rawValue = field.GetValue(null);
-                var value = rawValue as Guid?;
+                var value = field.GetValue(null) as Guid?;
                 if (value == guid)
                     return $"{nameof(KnownImageIds)}.{field.Name}";
             }
@@ -229,8 +221,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
                 if (!field.IsStatic)
                     continue;
 
-                var rawValue = field.GetValue(null);
-                var value = rawValue as int?;
+                var value = field.GetValue(null) as int?;
                 if (value == id)
                     return $"{nameof(KnownImageIds)}.{field.Name}";
             }
