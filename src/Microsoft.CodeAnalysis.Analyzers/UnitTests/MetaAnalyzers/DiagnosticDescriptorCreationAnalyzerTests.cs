@@ -47,9 +47,9 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }",
-                GetCSharpRS1007ExpectedDiagnostic(0),
-                GetCSharpRS1015ExpectedDiagnostic(0),
-                GetCSharpRS1028ResultAt(0));
+                GetRS1007ExpectedDiagnostic(0),
+                GetRS1015ExpectedDiagnostic(0),
+                GetRS1028ResultAt(0));
         }
 
         [Fact]
@@ -76,9 +76,9 @@ Class MyAnalyzer
 	End Sub
 End Class
 ",
-                GetBasicRS1007ExpectedDiagnostic(0),
-                GetBasicRS1015ExpectedDiagnostic(1),
-                GetBasicRS1028ResultAt(1));
+                GetRS1007ExpectedDiagnostic(0),
+                GetRS1015ExpectedDiagnostic(1),
+                GetRS1028ResultAt(1));
         }
 
         [Fact]
@@ -111,12 +111,12 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }",
-                GetCSharpRS1007ExpectedDiagnostic(0),
-                GetCSharpRS1028ResultAt(0),
-                GetCSharpRS1015ExpectedDiagnostic(2),
-                GetCSharpRS1007ExpectedDiagnostic(3),
-                GetCSharpRS1015ExpectedDiagnostic(3),
-                GetCSharpRS1028ResultAt(3));
+                GetRS1007ExpectedDiagnostic(0),
+                GetRS1028ResultAt(0),
+                GetRS1015ExpectedDiagnostic(2),
+                GetRS1007ExpectedDiagnostic(3),
+                GetRS1015ExpectedDiagnostic(3),
+                GetRS1028ResultAt(3));
         }
 
         [Fact]
@@ -144,12 +144,12 @@ Class MyAnalyzer
 	End Sub
 End Class
 ",
-                GetBasicRS1007ExpectedDiagnostic(0),
-                GetBasicRS1028ResultAt(1),
-                GetBasicRS1015ExpectedDiagnostic(2),
-                GetBasicRS1007ExpectedDiagnostic(3),
-                GetBasicRS1015ExpectedDiagnostic(4),
-                GetBasicRS1028ResultAt(4));
+                GetRS1007ExpectedDiagnostic(0),
+                GetRS1028ResultAt(1),
+                GetRS1015ExpectedDiagnostic(2),
+                GetRS1007ExpectedDiagnostic(3),
+                GetRS1015ExpectedDiagnostic(4),
+                GetRS1028ResultAt(4));
         }
 
         [Fact]
@@ -188,9 +188,9 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }
 ",
-                GetCSharpRS1028ResultAt(0),
-                GetCSharpRS1028ResultAt(1),
-                GetCSharpRS1028ResultAt(2));
+                GetRS1028ResultAt(0),
+                GetRS1028ResultAt(1),
+                GetRS1028ResultAt(2));
         }
 
         [Fact]
@@ -221,9 +221,9 @@ Class MyAnalyzer
 	End Sub
 End Class
 ",
-                GetBasicRS1028ResultAt(0),
-                GetBasicRS1028ResultAt(1),
-                GetBasicRS1028ResultAt(2));
+                GetRS1028ResultAt(0),
+                GetRS1028ResultAt(1),
+                GetRS1028ResultAt(2));
         }
 
         #endregion
@@ -285,11 +285,11 @@ class MyAnalyzer2 : DiagnosticAnalyzer
     {
     }
 }",
-                GetCSharpRS1028ResultAt(0),
-                GetCSharpRS1017ExpectedDiagnostic(1, "descriptor"),
-                GetCSharpRS1028ResultAt(2),
-                GetCSharpRS1028ResultAt(3),
-                GetCSharpRS1019ExpectedDiagnostic(4, "DuplicateDiagnosticId", "MyAnalyzer"));
+                GetRS1028ResultAt(0),
+                GetRS1017ExpectedDiagnostic(1, "descriptor"),
+                GetRS1028ResultAt(2),
+                GetRS1028ResultAt(3),
+                GetRS1019ExpectedDiagnostic(4, "DuplicateDiagnosticId", "MyAnalyzer"));
         }
 
         [Fact]
@@ -347,8 +347,8 @@ class MyAnalyzer2 : DiagnosticAnalyzer
     {
     }
 }" + CSharpDiagnosticDescriptorCreationHelper,
-                GetCSharpRS1017ExpectedDiagnostic(0, "descriptor"),
-                GetCSharpRS1019ExpectedDiagnostic(1, "DuplicateDiagnosticId", "MyAnalyzer"));
+                GetRS1017ExpectedDiagnostic(0, "descriptor"),
+                GetRS1019ExpectedDiagnostic(1, "DuplicateDiagnosticId", "MyAnalyzer"));
         }
 
         [Fact]
@@ -394,11 +394,11 @@ Class MyAnalyzer2
 	End Sub
 End Class
 ",
-                GetBasicRS1028ResultAt(0),
-                GetBasicRS1017ExpectedDiagnostic(1, "descriptor"),
-                GetBasicRS1028ResultAt(2),
-                GetBasicRS1028ResultAt(3),
-                GetBasicRS1019ExpectedDiagnostic(4, "DuplicateDiagnosticId", "MyAnalyzer"));
+                GetRS1028ResultAt(0),
+                GetRS1017ExpectedDiagnostic(1, "descriptor"),
+                GetRS1028ResultAt(2),
+                GetRS1028ResultAt(3),
+                GetRS1019ExpectedDiagnostic(4, "DuplicateDiagnosticId", "MyAnalyzer"));
         }
 
         [Fact]
@@ -444,8 +444,8 @@ Class MyAnalyzer2
 	End Sub
 End Class
 " + VisualBasicDiagnosticDescriptorCreationHelper,
-                GetBasicRS1017ExpectedDiagnostic(0, "descriptor"),
-                GetBasicRS1019ExpectedDiagnostic(1, "DuplicateDiagnosticId", "MyAnalyzer"));
+                GetRS1017ExpectedDiagnostic(0, "descriptor"),
+                GetRS1019ExpectedDiagnostic(1, "DuplicateDiagnosticId", "MyAnalyzer"));
         }
 
         [Fact]
@@ -486,9 +486,9 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }
 ",
-                GetBasicRS1028ResultAt(0),
-                GetBasicRS1028ResultAt(1),
-                GetBasicRS1028ResultAt(2));
+                GetRS1028ResultAt(0),
+                GetRS1028ResultAt(1),
+                GetRS1028ResultAt(2));
         }
 
         [Fact]
@@ -560,9 +560,9 @@ Class MyAnalyzer
 	End Sub
 End Class
 ",
-                GetBasicRS1028ResultAt(0),
-                GetBasicRS1028ResultAt(1),
-                GetBasicRS1028ResultAt(2));
+                GetRS1028ResultAt(0),
+                GetRS1028ResultAt(1),
+                GetRS1028ResultAt(2));
         }
 
         [Fact]
@@ -664,18 +664,18 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                     AdditionalFiles = { (AdditionalFileName, additionalText) },
                     ExpectedDiagnostics =
                     {
-                        GetCSharpRS1028ResultAt(0),
-                        GetCSharpRS1020ExpectedDiagnostic(1, "NotAllowedCategory", AdditionalFileName),
-                        GetCSharpRS1028ResultAt(2),
-                        GetCSharpRS1018ExpectedDiagnostic(3, "DifferentPrefixId", "CategoryWithPrefix", "PrefixXXXX", AdditionalFileName),
-                        GetCSharpRS1028ResultAt(4),
-                        GetCSharpRS1018ExpectedDiagnostic(5, "Prefix200", "CategoryWithRange", "Prefix0-Prefix99", AdditionalFileName),
-                        GetCSharpRS1028ResultAt(6),
-                        GetCSharpRS1018ExpectedDiagnostic(7, "Prefix101", "CategoryWithId", "Prefix100-Prefix100", AdditionalFileName),
-                        GetCSharpRS1028ResultAt(8),
-                        GetCSharpRS1018ExpectedDiagnostic(9, "MySecondPrefix400", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
-                        GetCSharpRS1028ResultAt(10),
-                        GetCSharpRS1018ExpectedDiagnostic(11, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName)
+                        GetRS1028ResultAt(0),
+                        GetRS1020ExpectedDiagnostic(1, "NotAllowedCategory", AdditionalFileName),
+                        GetRS1028ResultAt(2),
+                        GetRS1018ExpectedDiagnostic(3, "DifferentPrefixId", "CategoryWithPrefix", "PrefixXXXX", AdditionalFileName),
+                        GetRS1028ResultAt(4),
+                        GetRS1018ExpectedDiagnostic(5, "Prefix200", "CategoryWithRange", "Prefix0-Prefix99", AdditionalFileName),
+                        GetRS1028ResultAt(6),
+                        GetRS1018ExpectedDiagnostic(7, "Prefix101", "CategoryWithId", "Prefix100-Prefix100", AdditionalFileName),
+                        GetRS1028ResultAt(8),
+                        GetRS1018ExpectedDiagnostic(9, "MySecondPrefix400", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
+                        GetRS1028ResultAt(10),
+                        GetRS1018ExpectedDiagnostic(11, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName)
                     }
                 },
                 SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
@@ -746,12 +746,12 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                     AdditionalFiles = { (AdditionalFileName, additionalText) },
                     ExpectedDiagnostics =
                     {
-                        GetCSharpRS1020ExpectedDiagnostic(0, "NotAllowedCategory", AdditionalFileName),
-                        GetCSharpRS1018ExpectedDiagnostic(1, "DifferentPrefixId", "CategoryWithPrefix", "PrefixXXXX", AdditionalFileName),
-                        GetCSharpRS1018ExpectedDiagnostic(2, "Prefix200", "CategoryWithRange", "Prefix0-Prefix99", AdditionalFileName),
-                        GetCSharpRS1018ExpectedDiagnostic(3, "Prefix101", "CategoryWithId", "Prefix100-Prefix100", AdditionalFileName),
-                        GetCSharpRS1018ExpectedDiagnostic(4, "MySecondPrefix400", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
-                        GetCSharpRS1018ExpectedDiagnostic(5, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName)
+                        GetRS1020ExpectedDiagnostic(0, "NotAllowedCategory", AdditionalFileName),
+                        GetRS1018ExpectedDiagnostic(1, "DifferentPrefixId", "CategoryWithPrefix", "PrefixXXXX", AdditionalFileName),
+                        GetRS1018ExpectedDiagnostic(2, "Prefix200", "CategoryWithRange", "Prefix0-Prefix99", AdditionalFileName),
+                        GetRS1018ExpectedDiagnostic(3, "Prefix101", "CategoryWithId", "Prefix100-Prefix100", AdditionalFileName),
+                        GetRS1018ExpectedDiagnostic(4, "MySecondPrefix400", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
+                        GetRS1018ExpectedDiagnostic(5, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName)
                     }
                 },
                 SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
@@ -808,18 +808,18 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                     AdditionalFiles = { (AdditionalFileName, additionalText) },
                     ExpectedDiagnostics =
                     {
-                        GetBasicRS1028ResultAt(0),
-                        GetBasicRS1020ExpectedDiagnostic(1, "NotAllowedCategory", AdditionalFileName),
-                        GetBasicRS1028ResultAt(2),
-                        GetBasicRS1018ExpectedDiagnostic(3, "DifferentPrefixId", "CategoryWithPrefix", "PrefixXXXX", AdditionalFileName),
-                        GetBasicRS1028ResultAt(4),
-                        GetBasicRS1018ExpectedDiagnostic(5, "Prefix200", "CategoryWithRange", "Prefix0-Prefix99", AdditionalFileName),
-                        GetBasicRS1028ResultAt(6),
-                        GetBasicRS1018ExpectedDiagnostic(7, "Prefix101", "CategoryWithId", "Prefix100-Prefix100", AdditionalFileName),
-                        GetBasicRS1028ResultAt(8),
-                        GetBasicRS1018ExpectedDiagnostic(9, "MySecondPrefix400", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
-                        GetBasicRS1028ResultAt(10),
-                        GetBasicRS1018ExpectedDiagnostic(11, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
+                        GetRS1028ResultAt(0),
+                        GetRS1020ExpectedDiagnostic(1, "NotAllowedCategory", AdditionalFileName),
+                        GetRS1028ResultAt(2),
+                        GetRS1018ExpectedDiagnostic(3, "DifferentPrefixId", "CategoryWithPrefix", "PrefixXXXX", AdditionalFileName),
+                        GetRS1028ResultAt(4),
+                        GetRS1018ExpectedDiagnostic(5, "Prefix200", "CategoryWithRange", "Prefix0-Prefix99", AdditionalFileName),
+                        GetRS1028ResultAt(6),
+                        GetRS1018ExpectedDiagnostic(7, "Prefix101", "CategoryWithId", "Prefix100-Prefix100", AdditionalFileName),
+                        GetRS1028ResultAt(8),
+                        GetRS1018ExpectedDiagnostic(9, "MySecondPrefix400", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
+                        GetRS1028ResultAt(10),
+                        GetRS1018ExpectedDiagnostic(11, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
                     }
                 },
                 SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
@@ -877,12 +877,12 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                     AdditionalFiles = { (AdditionalFileName, additionalText) },
                     ExpectedDiagnostics =
                     {
-                        GetBasicRS1020ExpectedDiagnostic(0, "NotAllowedCategory", AdditionalFileName),
-                        GetBasicRS1018ExpectedDiagnostic(1, "DifferentPrefixId", "CategoryWithPrefix", "PrefixXXXX", AdditionalFileName),
-                        GetBasicRS1018ExpectedDiagnostic(2, "Prefix200", "CategoryWithRange", "Prefix0-Prefix99", AdditionalFileName),
-                        GetBasicRS1018ExpectedDiagnostic(3, "Prefix101", "CategoryWithId", "Prefix100-Prefix100", AdditionalFileName),
-                        GetBasicRS1018ExpectedDiagnostic(4, "MySecondPrefix400", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
-                        GetBasicRS1018ExpectedDiagnostic(5, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
+                        GetRS1020ExpectedDiagnostic(0, "NotAllowedCategory", AdditionalFileName),
+                        GetRS1018ExpectedDiagnostic(1, "DifferentPrefixId", "CategoryWithPrefix", "PrefixXXXX", AdditionalFileName),
+                        GetRS1018ExpectedDiagnostic(2, "Prefix200", "CategoryWithRange", "Prefix0-Prefix99", AdditionalFileName),
+                        GetRS1018ExpectedDiagnostic(3, "Prefix101", "CategoryWithId", "Prefix100-Prefix100", AdditionalFileName),
+                        GetRS1018ExpectedDiagnostic(4, "MySecondPrefix400", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
+                        GetRS1018ExpectedDiagnostic(5, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
                     }
                 },
                 SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
@@ -958,14 +958,14 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                     AdditionalFiles = { (AdditionalFileName, additionalText) },
                     ExpectedDiagnostics =
                     {
-                        GetCSharpRS1028ResultAt(0),
-                        GetCSharpRS1028ResultAt(1),
-                        GetCSharpRS1028ResultAt(2),
-                        GetCSharpRS1028ResultAt(3),
-                        GetCSharpRS1028ResultAt(4),
-                        GetCSharpRS1028ResultAt(5),
-                        GetCSharpRS1028ResultAt(6),
-                        GetCSharpRS1028ResultAt(7),
+                        GetRS1028ResultAt(0),
+                        GetRS1028ResultAt(1),
+                        GetRS1028ResultAt(2),
+                        GetRS1028ResultAt(3),
+                        GetRS1028ResultAt(4),
+                        GetRS1028ResultAt(5),
+                        GetRS1028ResultAt(6),
+                        GetRS1028ResultAt(7),
                     }
                 },
                 SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
@@ -1096,14 +1096,14 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                     AdditionalFiles = { (AdditionalFileName, additionalText) },
                     ExpectedDiagnostics =
                     {
-                        GetBasicRS1028ResultAt(0),
-                        GetBasicRS1028ResultAt(1),
-                        GetBasicRS1028ResultAt(2),
-                        GetBasicRS1028ResultAt(3),
-                        GetBasicRS1028ResultAt(4),
-                        GetBasicRS1028ResultAt(5),
-                        GetBasicRS1028ResultAt(6),
-                        GetBasicRS1028ResultAt(7),
+                        GetRS1028ResultAt(0),
+                        GetRS1028ResultAt(1),
+                        GetRS1028ResultAt(2),
+                        GetRS1028ResultAt(3),
+                        GetRS1028ResultAt(4),
+                        GetRS1028ResultAt(5),
+                        GetRS1028ResultAt(6),
+                        GetRS1028ResultAt(7),
                     }
                 },
                 SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
@@ -1252,22 +1252,22 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
                     AdditionalFiles = { (AdditionalFileName, additionalText) },
                     ExpectedDiagnostics =
                     {
-                        GetCSharpRS1021ExpectedDiagnostic(6, 1, "Category with spaces", AdditionalFileName),
-                        GetCSharpRS1021ExpectedDiagnostic(7, 1, "Category with spaces and range: Prefix100-Prefix199", AdditionalFileName),
-                        GetCSharpRS1021ExpectedDiagnostic(10, 1, "CategoryMultipleColons: IdWithColon:100", AdditionalFileName),
-                        GetCSharpRS1021ExpectedDiagnostic(14, 1, "DuplicateCategory1", AdditionalFileName),
-                        GetCSharpRS1021ExpectedDiagnostic(16, 1, "DuplicateCategory2: Prefix200-Prefix299", AdditionalFileName),
-                        GetCSharpRS1021ExpectedDiagnostic(19, 1, "CategoryWithBadId1: Prefix_100", AdditionalFileName),
-                        GetCSharpRS1021ExpectedDiagnostic(20, 1, "CategoryWithBadId2: Prefix_100-Prefix_199", AdditionalFileName),
-                        GetCSharpRS1021ExpectedDiagnostic(23, 1, "CategoryWithBadId3: Prefix000NotAllowed", AdditionalFileName),
-                        GetCSharpRS1021ExpectedDiagnostic(24, 1, "CategoryWithBadId4: Prefix000NotAllowed-Prefix099NotAllowed", AdditionalFileName),
-                        GetCSharpRS1021ExpectedDiagnostic(27, 1, "CategoryWithBadId5: Prefix000-DifferentPrefix099", AdditionalFileName),
-                        GetCSharpRS1028ResultAt(0),
-                        GetCSharpRS1028ResultAt(1),
-                        GetCSharpRS1028ResultAt(2),
-                        GetCSharpRS1028ResultAt(3),
-                        GetCSharpRS1028ResultAt(4),
-                        GetCSharpRS1028ResultAt(5),
+                        GetRS1021ExpectedDiagnostic(6, 1, "Category with spaces", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(7, 1, "Category with spaces and range: Prefix100-Prefix199", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(10, 1, "CategoryMultipleColons: IdWithColon:100", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(14, 1, "DuplicateCategory1", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(16, 1, "DuplicateCategory2: Prefix200-Prefix299", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(19, 1, "CategoryWithBadId1: Prefix_100", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(20, 1, "CategoryWithBadId2: Prefix_100-Prefix_199", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(23, 1, "CategoryWithBadId3: Prefix000NotAllowed", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(24, 1, "CategoryWithBadId4: Prefix000NotAllowed-Prefix099NotAllowed", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(27, 1, "CategoryWithBadId5: Prefix000-DifferentPrefix099", AdditionalFileName),
+                        GetRS1028ResultAt(0),
+                        GetRS1028ResultAt(1),
+                        GetRS1028ResultAt(2),
+                        GetRS1028ResultAt(3),
+                        GetRS1028ResultAt(4),
+                        GetRS1028ResultAt(5),
                     }
                 },
                 SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
@@ -1292,11 +1292,11 @@ public class MyAnalyzer
         var diag = new DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, false);
     }
 }",
-                GetCSharpRS1007ExpectedDiagnostic(0),
-                GetCSharpRS1015ExpectedDiagnostic(0),
-                GetCSharpRS1028ResultAt(0),
-                GetCSharpRS1015ExpectedDiagnostic(1),
-                GetCSharpRS1028ResultAt(1));
+                GetRS1007ExpectedDiagnostic(0),
+                GetRS1015ExpectedDiagnostic(0),
+                GetRS1028ResultAt(0),
+                GetRS1015ExpectedDiagnostic(1),
+                GetRS1028ResultAt(1));
 
             await VerifyBasicAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
@@ -1307,11 +1307,11 @@ Public Class MyAnalyzer
         Dim diag = New DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, False)
     End Sub
 End Class",
-                GetBasicRS1007ExpectedDiagnostic(0),
-                GetBasicRS1015ExpectedDiagnostic(1),
-                GetBasicRS1028ResultAt(1),
-                GetBasicRS1015ExpectedDiagnostic(2),
-                GetBasicRS1028ResultAt(2));
+                GetRS1007ExpectedDiagnostic(0),
+                GetRS1015ExpectedDiagnostic(1),
+                GetRS1028ResultAt(1),
+                GetRS1015ExpectedDiagnostic(2),
+                GetRS1028ResultAt(2));
         }
 
         [Fact]
@@ -1329,9 +1329,9 @@ public class MyAnalyzer
         var diag = new DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, false, customTags: """");
     }
 }",
-                GetCSharpRS1007ExpectedDiagnostic(0),
-                GetCSharpRS1015ExpectedDiagnostic(0),
-                GetCSharpRS1015ExpectedDiagnostic(1));
+                GetRS1007ExpectedDiagnostic(0),
+                GetRS1015ExpectedDiagnostic(0),
+                GetRS1015ExpectedDiagnostic(1));
 
             // Named arguments are incompatible with ParamArray in VB.NET
         }
@@ -1354,10 +1354,10 @@ public class MyAnalyzer
         var diag = new DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, false, null, null, """");
     }
 }",
-                GetCSharpRS1007ExpectedDiagnostic(0),
-                GetCSharpRS1015ExpectedDiagnostic(1),
-                GetCSharpRS1007ExpectedDiagnostic(2),
-                GetCSharpRS1015ExpectedDiagnostic(3));
+                GetRS1007ExpectedDiagnostic(0),
+                GetRS1015ExpectedDiagnostic(1),
+                GetRS1007ExpectedDiagnostic(2),
+                GetRS1015ExpectedDiagnostic(3));
 
             await VerifyBasicAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
@@ -1370,10 +1370,10 @@ Public Class MyAnalyzer
         Dim diag = New DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, False, Nothing, Nothing, """")
     End Sub
 End Class",
-                GetBasicRS1007ExpectedDiagnostic(0),
-                GetBasicRS1015ExpectedDiagnostic(1),
-                GetBasicRS1007ExpectedDiagnostic(2),
-                GetBasicRS1015ExpectedDiagnostic(3));
+                GetRS1007ExpectedDiagnostic(0),
+                GetRS1015ExpectedDiagnostic(1),
+                GetRS1007ExpectedDiagnostic(2),
+                GetRS1015ExpectedDiagnostic(3));
         }
         #endregion
 
@@ -1423,12 +1423,12 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }",
-                GetCSharpRS1029ResultAt(0, "CA0"),
-                GetCSharpRS1029ResultAt(1, "CS0"),
-                GetCSharpRS1029ResultAt(2, "BC0"),
-                GetCSharpRS1029ResultAt(3, "CA00000000000000000000"),
-                GetCSharpRS1029ResultAt(4, "CS00000000000000000000"),
-                GetCSharpRS1029ResultAt(5, "BC00000000000000000000"));
+                GetRS1029ResultAt(0, "CA0"),
+                GetRS1029ResultAt(1, "CS0"),
+                GetRS1029ResultAt(2, "BC0"),
+                GetRS1029ResultAt(3, "CA00000000000000000000"),
+                GetRS1029ResultAt(4, "CS00000000000000000000"),
+                GetRS1029ResultAt(5, "BC00000000000000000000"));
 
             await VerifyBasicAnalyzerAsync(@"
 Imports System
@@ -1457,12 +1457,12 @@ Class MyAnalyzer
     Public Overrides Sub Initialize(ByVal context As AnalysisContext)
     End Sub
 End Class",
-                GetBasicRS1029ResultAt(0, "CA0"),
-                GetBasicRS1029ResultAt(1, "CS0"),
-                GetBasicRS1029ResultAt(2, "BC0"),
-                GetBasicRS1029ResultAt(3, "CA00000000000000000000"),
-                GetBasicRS1029ResultAt(4, "CS00000000000000000000"),
-                GetBasicRS1029ResultAt(5, "BC00000000000000000000"));
+                GetRS1029ResultAt(0, "CA0"),
+                GetRS1029ResultAt(1, "CS0"),
+                GetRS1029ResultAt(2, "BC0"),
+                GetRS1029ResultAt(3, "CA00000000000000000000"),
+                GetRS1029ResultAt(4, "CS00000000000000000000"),
+                GetRS1029ResultAt(5, "BC00000000000000000000"));
         }
 
         [Fact, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
@@ -1694,132 +1694,70 @@ End Class",
         /// <summary>
         /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.UseLocalizableStringsInDescriptorRule"/>
         /// </summary>
-        private static DiagnosticResult GetCSharpRS1007ExpectedDiagnostic(int markupKey) =>
-            VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.UseLocalizableStringsInDescriptorRule)
-                .WithLocation(markupKey)
-                .WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString);
-
-        /// <summary>
-        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.UseLocalizableStringsInDescriptorRule"/>
-        /// </summary>
-        private static DiagnosticResult GetBasicRS1007ExpectedDiagnostic(int markupKey) =>
-            VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.UseLocalizableStringsInDescriptorRule)
+        private static DiagnosticResult GetRS1007ExpectedDiagnostic(int markupKey) =>
+            new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.UseLocalizableStringsInDescriptorRule)
                 .WithLocation(markupKey)
                 .WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString);
 
         /// <summary>
         /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.ProvideHelpUriInDescriptorRule"/>
         /// </summary>
-        private static DiagnosticResult GetCSharpRS1015ExpectedDiagnostic(int markupKey) =>
-            VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.ProvideHelpUriInDescriptorRule)
-                .WithLocation(markupKey);
-
-        /// <summary>
-        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.ProvideHelpUriInDescriptorRule"/>
-        /// </summary>
-        private static DiagnosticResult GetBasicRS1015ExpectedDiagnostic(int markupKey) =>
-            VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.ProvideHelpUriInDescriptorRule)
+        private static DiagnosticResult GetRS1015ExpectedDiagnostic(int markupKey) =>
+            new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.ProvideHelpUriInDescriptorRule)
                 .WithLocation(markupKey);
 
         /// <summary>
         /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeAConstantRule"/>
         /// </summary>
-        private static DiagnosticResult GetCSharpRS1017ExpectedDiagnostic(int markupKey, string descriptorName) =>
-            VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeAConstantRule)
-                .WithLocation(markupKey)
-                .WithArguments(descriptorName);
-
-        /// <summary>
-        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeAConstantRule"/>
-        /// </summary>
-        private static DiagnosticResult GetBasicRS1017ExpectedDiagnostic(int markupKey, string descriptorName) =>
-            VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeAConstantRule)
+        private static DiagnosticResult GetRS1017ExpectedDiagnostic(int markupKey, string descriptorName) =>
+            new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeAConstantRule)
                 .WithLocation(markupKey)
                 .WithArguments(descriptorName);
 
         /// <summary>
         /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeInSpecifiedFormatRule"/>
         /// </summary>
-        private static DiagnosticResult GetCSharpRS1018ExpectedDiagnostic(int markupKey, string diagnosticId, string category, string format, string additionalFile) =>
-            VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeInSpecifiedFormatRule)
-                .WithLocation(markupKey)
-                .WithArguments(diagnosticId, category, format, additionalFile);
-
-        /// <summary>
-        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeInSpecifiedFormatRule"/>
-        /// </summary>
-        private static DiagnosticResult GetBasicRS1018ExpectedDiagnostic(int markupKey, string diagnosticId, string category, string format, string additionalFile) =>
-            VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeInSpecifiedFormatRule)
+        private static DiagnosticResult GetRS1018ExpectedDiagnostic(int markupKey, string diagnosticId, string category, string format, string additionalFile) =>
+            new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeInSpecifiedFormatRule)
                 .WithLocation(markupKey)
                 .WithArguments(diagnosticId, category, format, additionalFile);
 
         /// <summary>
         /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.UseUniqueDiagnosticIdRule"/>
         /// </summary>
-        private static DiagnosticResult GetCSharpRS1019ExpectedDiagnostic(int markupKey, string duplicateId, string otherAnalyzerName) =>
-            VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.UseUniqueDiagnosticIdRule)
-                .WithLocation(markupKey)
-                .WithArguments(duplicateId, otherAnalyzerName);
-
-        /// <summary>
-        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.UseUniqueDiagnosticIdRule"/>
-        /// </summary>
-        private static DiagnosticResult GetBasicRS1019ExpectedDiagnostic(int markupKey, string duplicateId, string otherAnalyzerName) =>
-            VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.UseUniqueDiagnosticIdRule)
+        private static DiagnosticResult GetRS1019ExpectedDiagnostic(int markupKey, string duplicateId, string otherAnalyzerName) =>
+            new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.UseUniqueDiagnosticIdRule)
                 .WithLocation(markupKey)
                 .WithArguments(duplicateId, otherAnalyzerName);
 
         /// <summary>
         /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.UseCategoriesFromSpecifiedRangeRule"/>
         /// </summary>
-        private static DiagnosticResult GetCSharpRS1020ExpectedDiagnostic(int markupKey, string category, string additionalFile) =>
-            VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.UseCategoriesFromSpecifiedRangeRule)
-                .WithLocation(markupKey)
-                .WithArguments(category, additionalFile);
-
-        /// <summary>
-        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.UseCategoriesFromSpecifiedRangeRule"/>
-        /// </summary>
-        private static DiagnosticResult GetBasicRS1020ExpectedDiagnostic(int markupKey, string category, string additionalFile) =>
-            VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.UseCategoriesFromSpecifiedRangeRule)
+        private static DiagnosticResult GetRS1020ExpectedDiagnostic(int markupKey, string category, string additionalFile) =>
+            new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.UseCategoriesFromSpecifiedRangeRule)
                 .WithLocation(markupKey)
                 .WithArguments(category, additionalFile);
 
         /// <summary>
         /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.ProvideCustomTagsInDescriptorRule"/>
         /// </summary>
-        private static DiagnosticResult GetCSharpRS1028ResultAt(int markupKey) =>
-            VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.ProvideCustomTagsInDescriptorRule)
-                .WithLocation(markupKey);
-
-        /// <summary>
-        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.ProvideCustomTagsInDescriptorRule"/>
-        /// </summary>
-        private static DiagnosticResult GetBasicRS1028ResultAt(int markupKey) =>
-            VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.ProvideCustomTagsInDescriptorRule)
+        private static DiagnosticResult GetRS1028ResultAt(int markupKey) =>
+            new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.ProvideCustomTagsInDescriptorRule)
                 .WithLocation(markupKey);
 
         /// <summary>
         /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.AnalyzerCategoryAndIdRangeFileInvalidRule"/>
         /// </summary>
-        private static DiagnosticResult GetCSharpRS1021ExpectedDiagnostic(int line, int column, string invalidEntry, string additionalFile) =>
-            VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.AnalyzerCategoryAndIdRangeFileInvalidRule)
+        private static DiagnosticResult GetRS1021ExpectedDiagnostic(int line, int column, string invalidEntry, string additionalFile) =>
+            new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.AnalyzerCategoryAndIdRangeFileInvalidRule)
                 .WithLocation(AdditionalFileName, line, column)
                 .WithArguments(invalidEntry, additionalFile);
 
         /// <summary>
         /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.DoNotUseReservedDiagnosticIdRule"/>
         /// </summary>
-        private static DiagnosticResult GetCSharpRS1029ResultAt(int markupKey, string ruleId) =>
-            VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DoNotUseReservedDiagnosticIdRule)
-                .WithLocation(markupKey)
-                .WithArguments(ruleId);
-
-        /// <summary>
-        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.DoNotUseReservedDiagnosticIdRule"/>
-        /// </summary>
-        private static DiagnosticResult GetBasicRS1029ResultAt(int markupKey, string ruleId) =>
-            VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DoNotUseReservedDiagnosticIdRule)
+        private static DiagnosticResult GetRS1029ResultAt(int markupKey, string ruleId) =>
+            new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.DoNotUseReservedDiagnosticIdRule)
                 .WithLocation(markupKey)
                 .WithArguments(ruleId);
 
