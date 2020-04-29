@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract class AbstractSyntaxFacts
     {
-        private readonly static ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool
+        private static readonly ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool
             = SharedPools.Default<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>>();
 
         public abstract ISyntaxKinds SyntaxKinds { get; }

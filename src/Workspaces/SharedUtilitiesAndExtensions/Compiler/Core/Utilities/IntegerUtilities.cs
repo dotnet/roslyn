@@ -76,5 +76,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         public static long ToInt64(object o)
             => o is ulong ? unchecked((long)(ulong)o) : System.Convert.ToInt64(o);
+
+        public static bool IsIntegral(object value)
+            => value switch
+            {
+                sbyte _ => true,
+                byte _ => true,
+                short _ => true,
+                ushort _ => true,
+                int _ => true,
+                uint _ => true,
+                long _ => true,
+                ulong _ => true,
+                _ => false,
+            };
     }
 }

@@ -251,15 +251,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
         End Function
 
-        Private Shared s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)
-        Private Shared s_WithoutSpace As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, " "c)
+        Private Shared ReadOnly s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)
+        Private Shared ReadOnly s_WithoutSpace As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, " "c)
 
 #If False Then
         Private Shared s_defaultRules As CompletionItemRules =
             CompletionItemRules.Create(commitRules:=ImmutableArray.Create(
                 CommitRule.Create(CommitRuleKind.ExcludeKeysIfMatchEndOfTypedText, " ", "OF", isCaseSensitive:=False)))
 #Else
-        Private Shared s_defaultRules As CompletionItemRules = CompletionItemRules.Default
+        Private Shared ReadOnly s_defaultRules As CompletionItemRules = CompletionItemRules.Default
 #End If
 
         Private Function GetRules(displayText As String) As CompletionItemRules

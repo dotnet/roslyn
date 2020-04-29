@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -115,6 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
                 _cancellationToken = cancellationToken;
             }
+
+            [return: NotNullIfNotNull("node")]
+            public override SyntaxNode? Visit(SyntaxNode? node)
+                => base.Visit(node);
 
             public override SyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
             {

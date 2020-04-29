@@ -105,16 +105,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 Return trivia.Any(Function(t) Not t.IsWhitespaceOrEndOfLine())
             End Function
 
-            Private Function FilterLeadingTrivia(importStatement As SyntaxNode) As SyntaxTriviaList
-                ' if the import had leading trivia with something other than EOL or whitespace then we want to preserve it
-                Dim leadingTrivia = importStatement.GetLeadingTrivia()
-                If leadingTrivia.Any(Function(t) t.Kind <> SyntaxKind.EndOfLineTrivia AndAlso t.Kind <> SyntaxKind.WhitespaceTrivia) Then
-                    Return leadingTrivia
-                Else
-                    Return Nothing
-                End If
-            End Function
-
             Public Overrides Function VisitCompilationUnit(node As CompilationUnitSyntax) As SyntaxNode
                 Dim compilationUnit = DirectCast(MyBase.VisitCompilationUnit(node), CompilationUnitSyntax)
 

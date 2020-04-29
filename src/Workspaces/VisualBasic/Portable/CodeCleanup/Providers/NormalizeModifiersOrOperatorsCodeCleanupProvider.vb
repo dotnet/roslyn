@@ -474,13 +474,6 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Function
 
             ''' <summary>
-            ''' remove ByVal keyword from parameter list
-            ''' </summary>
-            Private Function RemoveByValKeyword(node As ParameterListSyntax, parameterIndex As Integer) As ParameterListSyntax
-                Return RemoveModifierKeyword(node, Function(n) n.Parameters(parameterIndex).Modifiers, SyntaxKind.ByValKeyword)
-            End Function
-
-            ''' <summary>
             ''' remove a modifier from the given node
             ''' </summary>
             Private Function RemoveModifierKeyword(Of T As SyntaxNode)(node As T, modifiersGetter As Func(Of T, SyntaxTokenList), modifierKind As SyntaxKind) As T
