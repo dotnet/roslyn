@@ -52,7 +52,7 @@
                         <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.StatusError}" Visibility="{Binding TypeDoesNotParseImage, Mode=OneWay}"/>
                         <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.StatusOK}" Visibility="{Binding TypeBindsImage, Mode=OneWay}"/>
                         <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.StatusWarning}" Visibility="{Binding TypeDoesNotBindImage, Mode=OneWay}"/>
-                        <TextBlock Padding="5 0 0 0" Grid.Row="2" x:Name="TypeBindsTextBlock"
+                        <vs:LiveTextBlock Padding="5 0 0 0" Grid.Row="2" x:Name="TypeBindsTextBlock"
                        Text="{Binding Path=TypeBindsDynamicStatus, Mode=OneWay}"/>
                     </StackPanel>
                     <Label x:Name="ParameterNameLabelName" Grid.Row="3" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
