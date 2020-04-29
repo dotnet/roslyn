@@ -7133,6 +7133,7 @@ class Gen3<T> : System.Attribute { Gen3(T parameter) { } }
 [Gen2]
 [Gen2()]
 [Gen2<U>]
+[Gen2<System.Collections.Generic.List<U>>]
 [Gen3(1)]
 public class Test<U>
 {
@@ -7158,9 +7159,12 @@ public class Test<U>
                     // (9,2): error CS0416: 'U': an attribute argument cannot use type parameters
                     // [Gen2<U>]
                     Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "Gen2<U>").WithArguments("U").WithLocation(9, 2),
-                    // (10,2): error CS0305: Using the generic type 'Gen3<T>' requires 1 type arguments
+                    // (10,2): error CS0416: 'System.Collections.Generic.List<U>': an attribute argument cannot use type parameters
+                    // [Gen2<System.Collections.Generic.List<U>>]
+                    Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "Gen2<System.Collections.Generic.List<U>>").WithArguments("System.Collections.Generic.List<U>").WithLocation(10, 2),
+                    // (11,2): error CS0305: Using the generic type 'Gen3<T>' requires 1 type arguments
                     // [Gen3(1)]
-                    Diagnostic(ErrorCode.ERR_BadArity, "Gen3").WithArguments("Gen3<T>", "type", "1").WithLocation(10, 2));
+                    Diagnostic(ErrorCode.ERR_BadArity, "Gen3").WithArguments("Gen3<T>", "type", "1").WithLocation(11, 2));
         }
 
         [Fact]
