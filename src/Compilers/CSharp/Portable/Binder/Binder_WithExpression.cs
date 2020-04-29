@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupMembersInType(
                     lookupResult,
                     receiverType,
-                    "Clone",
+                    WellKnownMemberNames.CloneMethodName,
                     arity: 0,
                     ConsList<TypeSymbol>.Empty,
                     LookupOptions.MustBeInstance | LookupOptions.MustBeInvocableIfMember,
@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnose: false,
                     ref useSiteDiagnostics);
 
+                // PROTOTYPE: Should handle hiding/overriding
                 if (lookupResult.IsMultiViable)
                 {
                     foreach (var symbol in lookupResult.Symbols)
@@ -113,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         originalBinder: this,
                         diagnose: false,
                         useSiteDiagnostics: ref useSiteDiagnostics);
+                    // PROTOTYPE: Should handle hiding/overriding and bind like regular accesses
                     if (lookupResult.IsSingleViable &&
                         lookupResult.SingleSymbolOrDefault is var sym)
                     {

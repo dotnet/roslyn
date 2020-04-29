@@ -653,7 +653,7 @@ data class C(int X)
             var comp = CreateCompilation(src);
             // PROTOTYPE: records don't auto-generate Clone at the moment
             comp.VerifyDiagnostics(
-                // (7,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "Clone".
+                // (7,13): error CS8803: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
                 //         c = c with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(7, 13)
             );
