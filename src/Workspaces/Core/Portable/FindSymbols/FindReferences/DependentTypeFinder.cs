@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SymbolSet metadataTypes,
             SymbolSet result,
             Project project,
-            Func<INamedTypeSymbol, SymbolSet, bool> metadataTypeMatches,
+            Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     cancellationToken.ThrowIfCancellationRequested();
 
                     await AddMatchingMetadataTypesInMetadataReferenceAsync(
-                        typesToSearchFor, project, metadataTypeMatches,
+                        typesToSearchFor, project, typeMatches,
                         compilation, peReference, tempBuffer,
                         cancellationToken).ConfigureAwait(false);
                 }
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task AddMatchingMetadataTypesInMetadataReferenceAsync(
             SymbolSet metadataTypes,
             Project project,
-            Func<INamedTypeSymbol, SymbolSet, bool> metadataTypeTransitivelyMatches,
+            Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
             Compilation compilation,
             PortableExecutableReference reference,
             SymbolSet result,
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (derivedType != null &&
                         derivedType.Locations.Any(s_isInMetadata) &&
-                        metadataTypeTransitivelyMatches(derivedType, metadataTypes))
+                        typeMatches(derivedType, metadataTypes))
                     {
                         result.Add(derivedType);
                     }
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SymbolSet sourceAndMetadataTypes,
             SymbolSet result,
             Project project,
-            Func<INamedTypeSymbol, SymbolSet, bool> sourceTypeMatches,
+            Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
 
                     await AddSourceTypesThatDeriveFromNameAsync(
-                        sourceTypeMatches,
+                        typeMatches,
                         cachedModels,
                         typesToSearchFor,
                         projectIndex,
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddSourceTypesThatDeriveFromNameAsync(
-            Func<INamedTypeSymbol, SymbolSet, bool> sourceTypeMatches,
+            Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
             ConcurrentSet<SemanticModel> cachedModels,
             SymbolSet typesToSearchFor,
             ProjectIndex index,
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var resolvedType = info.TryResolve(semanticModel, cancellationToken);
                 if (resolvedType is INamedTypeSymbol namedType &&
-                    sourceTypeMatches(namedType, typesToSearchFor))
+                    typeMatches(namedType, typesToSearchFor))
                 {
                     result.Add(namedType);
                 }
