@@ -37,40 +37,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal static partial class DependentTypeFinder
     {
-        /// <summary>
-        /// Function shape for helpers that test if <paramref name="type"/> is a match against at least one of the types
-        /// found in <paramref name="set"/>.  In general, the checks that will be happening are if <paramref
-        /// name="type"/>'s <see cref="ITypeSymbol.BaseType"/> or <see cref="ITypeSymbol.Interfaces"/> contain a type in
-        /// <paramref name="set"/>.
-        /// <para/>
-        /// <paramref name="transitive"/> dictates if we should look at those direct members to see if they're in the
-        /// set, or if we should recursive look at the <see cref="ITypeSymbol.BaseType"/> or <see
-        /// cref="ITypeSymbol.Interfaces"/> of those types as well checking.
-        /// <para/>
-        /// In practice we search transitively with metadata (since all the symbols are fully resolved and fast to
-        /// walk), but only a single level with source. The latter is due to our indices only storing syntactic
-        /// information, so they can only do things like store the directly named base-types/interfaces that a class
-        /// explicitly declares in source. 
-        /// <para/>
-        /// In other words, if we had types <c>class X : Y { } class Y : Z { } class Z { }</c> and we were searching for
-        /// derived types of <c>Z</c> then:
-        /// <list type="number">
-        /// <item>
-        /// If X/Y/Z are metadata types, then we will have already stored the full inheritance chain saying "For a type
-        /// named Z, X and Y are both types that derive from it".  So when we actually go look at X and Y, and we're
-        /// actually validating that it derives from Z, we need to walk the inheritance path transitively (or else 'X'
-        /// won't look like a match).
-        /// </item>
-        /// <item>
-        /// If X/Y/Z are source types, then we only have matches one level deep in our index (because it's a syntactic
-        /// index).  So when looking for Z, only Y would be found in the index.  And when we go find 'Y' and want to
-        /// validate if it's an actual derived type, we only need to look one level up the inheritance path to see if
-        /// it's a match.
-        /// </item>
-        /// </list>
-        /// </summary>
-        private delegate bool TypeMatches(SymbolSet set, INamedTypeSymbol type);
-
         private static readonly Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
         private static readonly Func<Location, bool> s_isInSource = loc => loc.IsInSource;
 
@@ -194,7 +160,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
-            TypeMatches typeMatches,
+            Func<SymbolSet, INamedTypeSymbol, bool> typeMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
@@ -280,7 +246,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SymbolSet currentMetadataTypes,
             SymbolSet currentSourceAndMetadataTypes,
             Project project,
-            TypeMatches typeMatches,
+            Func<SymbolSet, INamedTypeSymbol, bool> typeMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
@@ -479,7 +445,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task AddMetadataTypesInProjectAsync(
             SymbolSet metadataTypes,
             Project project,
-            TypeMatches metadataTypeTransitivelyMatches,
+            Func<SymbolSet, INamedTypeSymbol, bool> metadataTypeMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             SymbolSet result,
@@ -507,7 +473,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     cancellationToken.ThrowIfCancellationRequested();
 
                     await FindImmediateMatchingMetadataTypesInMetadataReferenceAsync(
-                        typesToSearchFor, project, metadataTypeTransitivelyMatches,
+                        typesToSearchFor, project, metadataTypeMatches,
                         compilation, reference, localBuffer,
                         cancellationToken).ConfigureAwait(false);
                 }
@@ -531,7 +497,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task FindImmediateMatchingMetadataTypesInMetadataReferenceAsync(
             SymbolSet metadataTypes,
             Project project,
-            TypeMatches metadataTypeTransitivelyMatches,
+            Func<SymbolSet, INamedTypeSymbol, bool> metadataTypeTransitivelyMatches,
             Compilation compilation,
             PortableExecutableReference reference,
             SymbolSet result,
@@ -610,7 +576,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task AddSourceTypesInProjectAsync(
             SymbolSet sourceAndMetadataTypes,
             Project project,
-            TypeMatches sourceTypeImmediatelyMatches,
+            Func<SymbolSet, INamedTypeSymbol, bool> sourceTypeMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             SymbolSet finalResult,
@@ -666,7 +632,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
 
                     await AddTypesThatDeriveFromNameAsync(
-                        sourceTypeImmediatelyMatches, cachedModels, typesToSearchFor,
+                        sourceTypeMatches, cachedModels, typesToSearchFor,
                         projectIndex, localBuffer, type.Name, cancellationToken).ConfigureAwait(false);
                 }
 
@@ -689,7 +655,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddTypesThatDeriveFromNameAsync(
-            TypeMatches sourceTypeImmediatelyMatches,
+            Func<SymbolSet, INamedTypeSymbol, bool> sourceTypeMatches,
             ConcurrentSet<SemanticModel> cachedModels,
             SymbolSet typesToSearchFor,
             ProjectIndex index,
@@ -706,7 +672,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var resolvedType = info.TryResolve(semanticModel, cancellationToken);
                 if (resolvedType is INamedTypeSymbol namedType &&
-                    sourceTypeImmediatelyMatches(typesToSearchFor, namedType))
+                    sourceTypeMatches(typesToSearchFor, namedType))
                 {
                     result.Add(namedType);
                 }

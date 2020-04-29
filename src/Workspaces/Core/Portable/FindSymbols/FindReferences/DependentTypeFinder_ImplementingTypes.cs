@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // 'Base' match and will add to the set.  Then, we'll look for types that have 'Base' in their
                 // inheritance chain, and we need to match that by looking in the .BaseType inheritance chain when
                 // looking at 'Derived'.
-                static bool typeMatches(SymbolSet s, INamedTypeSymbol t)
+                static bool TypeMatches(SymbolSet s, INamedTypeSymbol t)
                     => TypeHasBaseTypeInSet(s, t, transitive: false) || TypeHasInterfaceInSet(s, t, transitive: false);
 
                 // As long as we keep hitting derived interfaces or implementing non-sealed classes we need to keep
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // interface).  If we hit structs/sealed-classes though we can stop as they can't have any more types
                 // that inherit from them.
                 var allTypes = await DescendInheritanceTreeAsync(type, solution, projects,
-                    typeMatches: typeMatches,
+                    typeMatches: TypeMatches,
                     shouldContinueSearching: s_isInterfaceOrNonSealedClass,
                     transitive: transitive,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
