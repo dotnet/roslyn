@@ -487,5 +487,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         ChangeSignature_Data = 389,
 
         AbstractEncapsulateFieldService_EncapsulateFieldsAsync = 390,
+
+        AbstractConvertTupleToStructCodeRefactoringProvider_ConvertToStructAsync = 400,
     }
 }
