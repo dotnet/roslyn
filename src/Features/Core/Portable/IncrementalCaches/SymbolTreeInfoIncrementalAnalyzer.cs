@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     {
         private class SymbolTreeInfoIncrementalAnalyzer : IncrementalAnalyzerBase
         {
+            // Shared with SymbolTreeInfoCacheService.  We populate the values, they read from them.
+
             private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectIdToInfo;
             private readonly ConcurrentDictionary<MetadataId, MetadataInfo> _metadataIdToInfo;
 

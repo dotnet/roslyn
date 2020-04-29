@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     {
         private class SymbolTreeInfoCacheService : ISymbolTreeInfoCacheService
         {
+            // Shared with SymbolTreeInfoIncrementalAnalyzer.  They populate these values, we read from them.
+
             private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectIdToInfo;
             private readonly ConcurrentDictionary<MetadataId, MetadataInfo> _metadataIdToInfo;
 
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
                 var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, reference, cancellationToken);
 
+                // See if the last value produced matches what the caller is asking for.  If so, return that.
                 if (_metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo) &&
                     metadataInfo.SymbolTreeInfo.Checksum == checksum)
                 {
@@ -53,6 +56,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             public async Task<SymbolTreeInfo> TryGetSourceSymbolTreeInfoAsync(
                 Project project, CancellationToken cancellationToken)
             {
+                // See if the last value produced matches what the caller is asking for.  If so, return that.
                 var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
                 if (_projectIdToInfo.TryGetValue(project.Id, out var projectInfo) &&
                     projectInfo.Checksum == checksum)
