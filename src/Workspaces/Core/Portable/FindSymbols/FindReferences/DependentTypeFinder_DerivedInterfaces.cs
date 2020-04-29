@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 static bool typeMatches(SymbolSet s, INamedTypeSymbol t, bool transitive)
                     => s_isInterface(t) && TypeHasInterfaceInSet(s, t, transitive);
 
-                return FindTypesAsync(type, solution, projects,
+                return DescendInheritanceTreeAsync(type, solution, projects,
                     typeMatches: typeMatches,
                     shouldContinueSearching: s_isInterface,
                     transitive: transitive,

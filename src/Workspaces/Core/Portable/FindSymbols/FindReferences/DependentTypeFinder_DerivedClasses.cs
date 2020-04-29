@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 static bool typeMatches(SymbolSet set, INamedTypeSymbol metadataType, bool transitive)
                     => TypeHasBaseTypeInSet(set, metadataType, transitive);
 
-                return FindTypesAsync(type, solution, projects,
+                return DescendInheritanceTreeAsync(type, solution, projects,
                     typeMatches: typeMatches,
                     shouldContinueSearching: s_isNonSealedClass,
                     transitive: transitive,

@@ -181,7 +181,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result.SelectAsArray(t => (t.GetSymbolKey(), solution.GetOriginatingProjectId(t)));
         }
 
-        private static async Task<ImmutableArray<INamedTypeSymbol>> FindTypesAsync(
+        /// <summary>
+        /// Walks down a <paramref name="type"/>'s inheritance tree looking for more <see cref="INamedTypeSymbol"/>'s
+        /// that match the provided <paramref name="typeMatches"/> predicate.
+        /// </summary>
+        /// <param name="shouldContinueSearching">Called when a new match is found to check if that type's inheritance
+        /// tree should also be walked down.  Can be used to stop the search early if a type could have no types that
+        /// inherit from it that would match this search.</param>
+        /// <param name="transitive">If this search after finding the direct inherited types that match the provided
+        /// predicate, or if the search should continue recursively using those types as the starting point.</param>
+        private static async Task<ImmutableArray<INamedTypeSymbol>> DescendInheritanceTreeAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // looking (as those types themselves may have more derived classes that would b implementations of this
                 // interface).  If we hit structs/sealed-classes though we can stop as they can't have any more types
                 // that inherit from them.
-                var allTypes = await FindTypesAsync(type, solution, projects,
+                var allTypes = await DescendInheritanceTreeAsync(type, solution, projects,
                     typeMatches: typeMatches,
                     shouldContinueSearching: s_isInterfaceOrNonSealedClass,
                     transitive: transitive,
