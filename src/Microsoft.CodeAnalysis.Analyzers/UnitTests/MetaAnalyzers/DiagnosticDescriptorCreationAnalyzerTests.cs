@@ -1691,82 +1691,133 @@ End Class",
 
         #region Helpers
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.UseLocalizableStringsInDescriptorRule"/>
+        /// </summary>
         private static DiagnosticResult GetCSharpRS1007ExpectedDiagnostic(int markupKey) =>
             VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.UseLocalizableStringsInDescriptorRule)
                 .WithLocation(markupKey)
                 .WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.UseLocalizableStringsInDescriptorRule"/>
+        /// </summary>
         private static DiagnosticResult GetBasicRS1007ExpectedDiagnostic(int markupKey) =>
             VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.UseLocalizableStringsInDescriptorRule)
                 .WithLocation(markupKey)
                 .WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.ProvideHelpUriInDescriptorRule"/>
+        /// </summary>
         private static DiagnosticResult GetCSharpRS1015ExpectedDiagnostic(int markupKey) =>
             VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.ProvideHelpUriInDescriptorRule)
                 .WithLocation(markupKey);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.ProvideHelpUriInDescriptorRule"/>
+        /// </summary>
         private static DiagnosticResult GetBasicRS1015ExpectedDiagnostic(int markupKey) =>
             VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.ProvideHelpUriInDescriptorRule)
                 .WithLocation(markupKey);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeAConstantRule"/>
+        /// </summary>
         private static DiagnosticResult GetCSharpRS1017ExpectedDiagnostic(int markupKey, string descriptorName) =>
             VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeAConstantRule)
                 .WithLocation(markupKey)
                 .WithArguments(descriptorName);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeAConstantRule"/>
+        /// </summary>
         private static DiagnosticResult GetBasicRS1017ExpectedDiagnostic(int markupKey, string descriptorName) =>
             VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeAConstantRule)
                 .WithLocation(markupKey)
                 .WithArguments(descriptorName);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeInSpecifiedFormatRule"/>
+        /// </summary>
         private static DiagnosticResult GetCSharpRS1018ExpectedDiagnostic(int markupKey, string diagnosticId, string category, string format, string additionalFile) =>
             VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeInSpecifiedFormatRule)
                 .WithLocation(markupKey)
                 .WithArguments(diagnosticId, category, format, additionalFile);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeInSpecifiedFormatRule"/>
+        /// </summary>
         private static DiagnosticResult GetBasicRS1018ExpectedDiagnostic(int markupKey, string diagnosticId, string category, string format, string additionalFile) =>
             VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DiagnosticIdMustBeInSpecifiedFormatRule)
                 .WithLocation(markupKey)
                 .WithArguments(diagnosticId, category, format, additionalFile);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.UseUniqueDiagnosticIdRule"/>
+        /// </summary>
         private static DiagnosticResult GetCSharpRS1019ExpectedDiagnostic(int markupKey, string duplicateId, string otherAnalyzerName) =>
             VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.UseUniqueDiagnosticIdRule)
                 .WithLocation(markupKey)
                 .WithArguments(duplicateId, otherAnalyzerName);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.UseUniqueDiagnosticIdRule"/>
+        /// </summary>
         private static DiagnosticResult GetBasicRS1019ExpectedDiagnostic(int markupKey, string duplicateId, string otherAnalyzerName) =>
             VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.UseUniqueDiagnosticIdRule)
                 .WithLocation(markupKey)
                 .WithArguments(duplicateId, otherAnalyzerName);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.UseCategoriesFromSpecifiedRangeRule"/>
+        /// </summary>
         private static DiagnosticResult GetCSharpRS1020ExpectedDiagnostic(int markupKey, string category, string additionalFile) =>
             VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.UseCategoriesFromSpecifiedRangeRule)
                 .WithLocation(markupKey)
                 .WithArguments(category, additionalFile);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.UseCategoriesFromSpecifiedRangeRule"/>
+        /// </summary>
         private static DiagnosticResult GetBasicRS1020ExpectedDiagnostic(int markupKey, string category, string additionalFile) =>
             VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.UseCategoriesFromSpecifiedRangeRule)
                 .WithLocation(markupKey)
                 .WithArguments(category, additionalFile);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.ProvideCustomTagsInDescriptorRule"/>
+        /// </summary>
         private static DiagnosticResult GetCSharpRS1028ResultAt(int markupKey) =>
             VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.ProvideCustomTagsInDescriptorRule)
                 .WithLocation(markupKey);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.ProvideCustomTagsInDescriptorRule"/>
+        /// </summary>
         private static DiagnosticResult GetBasicRS1028ResultAt(int markupKey) =>
             VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.ProvideCustomTagsInDescriptorRule)
                 .WithLocation(markupKey);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.AnalyzerCategoryAndIdRangeFileInvalidRule"/>
+        /// </summary>
         private static DiagnosticResult GetCSharpRS1021ExpectedDiagnostic(int line, int column, string invalidEntry, string additionalFile) =>
             VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.AnalyzerCategoryAndIdRangeFileInvalidRule)
                 .WithLocation(AdditionalFileName, line, column)
                 .WithArguments(invalidEntry, additionalFile);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.DoNotUseReservedDiagnosticIdRule"/>
+        /// </summary>
         private static DiagnosticResult GetCSharpRS1029ResultAt(int markupKey, string ruleId) =>
             VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DoNotUseReservedDiagnosticIdRule)
                 .WithLocation(markupKey)
                 .WithArguments(ruleId);
 
+        /// <summary>
+        /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.DoNotUseReservedDiagnosticIdRule"/>
+        /// </summary>
         private static DiagnosticResult GetBasicRS1029ResultAt(int markupKey, string ruleId) =>
             VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DoNotUseReservedDiagnosticIdRule)
                 .WithLocation(markupKey)
