@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -16,8 +17,11 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -37,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         TTupleTypeSyntax,
         TTypeBlockSyntax,
         TNamespaceDeclarationSyntax>
-        : CodeRefactoringProvider
+        : CodeRefactoringProvider, IConvertTupleToStructCodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
         where TNameSyntax : TExpressionSyntax
         where TIdentifierNameSyntax : TNameSyntax
@@ -49,14 +53,6 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         where TTypeBlockSyntax : SyntaxNode
         where TNamespaceDeclarationSyntax : SyntaxNode
     {
-        private enum Scope
-        {
-            ContainingMember,
-            ContainingType,
-            ContainingProject,
-            DependentProjects
-        }
-
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
@@ -72,15 +68,15 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             // If it does, we can't convert this.  There is no way to describe this anonymous type
             // in the concrete type we create.
             var fields = tupleType.TupleElements;
-            var containsAnonymousType = fields.Any(p => p.Type.ContainsAnonymousType());
+            var containsAnonymousType = fields.Any<IFieldSymbol>(p => p.Type.ContainsAnonymousType());
             if (containsAnonymousType)
             {
                 return;
             }
 
             var capturedTypeParameters =
-                fields.Select(p => p.Type)
-                      .SelectMany(t => t.GetReferencedTypeParameters())
+                fields.Select<IFieldSymbol, ITypeSymbol>(p => p.Type)
+                      .SelectMany<ITypeSymbol, ITypeParameterSymbol>(t => t.GetReferencedTypeParameters())
                       .Distinct()
                       .ToImmutableArray();
 
@@ -109,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     //
                     // this means we can only find tuples like ```(x: 1, ...)``` but not ```(1, 2)```.  The
                     // latter has members called Item1 and Item2, but those names don't show up in source.
-                    if (fields.All(f => f.CorrespondingTupleField != f))
+                    if (fields.All<IFieldSymbol>(f => f.CorrespondingTupleField != f))
                     {
                         scopes.Add(CreateAction(context, Scope.ContainingProject));
                         scopes.Add(CreateAction(context, Scope.DependentProjects));
@@ -160,11 +156,56 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return (expressionOrType, tupleType);
         }
 
-        private static async Task<Solution> ConvertToStructAsync(
+        public async Task<Solution> ConvertToStructAsync(
             Document document, TextSpan span, Scope scope, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using (Logger.LogBlock(FunctionId.AbstractConvertTupleToStructCodeRefactoringProvider_ConvertToStructAsync, cancellationToken))
+            {
+                var solution = document.Project.Solution;
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var resultOpt = await client.TryRunRemoteAsync<SerializableConvertTupleToStructResult>(
+                        WellKnownServiceHubServices.CodeAnalysisService,
+                        nameof(IRemoteConvertTupleToStructCodeRefactoringProvider.ConvertToStructAsync),
+                        solution,
+                        new object[]
+                        {
+                            document.Id,
+                            span,
+                            scope,
+                        },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (resultOpt.HasValue)
+                    {
+                        var result = resultOpt.Value;
+                        var resultSolution = await RemoteUtilities.UpdateSolutionAsync(
+                            solution, result.DocumentTextChanges, cancellationToken).ConfigureAwait(false);
+                        return await AddRenameTokenAsync(
+                            resultSolution, result.RenamedToken, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+
             return await ConvertToStructInCurrentProcessAsync(
                 document, span, scope, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<Solution> AddRenameTokenAsync(
+            Solution solution,
+            (DocumentId documentId, TextSpan span) renamedToken,
+            CancellationToken cancellationToken)
+        {
+            var document = solution.GetDocument(renamedToken.documentId);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(renamedToken.span.Start);
+            var newRoot = root.ReplaceToken(token, token.WithAdditionalAnnotations(RenameAnnotation.Create()));
+
+            return document.WithSyntaxRoot(newRoot).Project.Solution;
         }
 
         private static async Task<Solution> ConvertToStructInCurrentProcessAsync(
@@ -191,8 +232,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 "NewStruct", n => semanticModel.LookupSymbols(position, name: n).IsEmpty);
 
             var capturedTypeParameters =
-                tupleType.TupleElements.Select(p => p.Type)
-                                       .SelectMany(t => t.GetReferencedTypeParameters())
+                tupleType.TupleElements.Select<IFieldSymbol, ITypeSymbol>(p => p.Type)
+                                       .SelectMany<ITypeSymbol, ITypeParameterSymbol>(t => t.GetReferencedTypeParameters())
                                        .Distinct()
                                        .ToImmutableArray();
 
@@ -359,12 +400,12 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             //      starting project.
 
             var dependentProjects = graph.GetProjectsThatDirectlyDependOnThisProject(startingProject.Id);
-            var allProjects = dependentProjects.Select(solution.GetProject)
+            var allProjects = dependentProjects.Select<ProjectId, Project>(solution.GetProject)
                                                .Where(p => p.SupportsCompilation)
                                                .Concat(startingProject).ToSet();
 
             var result = ArrayBuilder<DocumentToUpdate>.GetInstance();
-            var tupleFieldNames = tupleType.TupleElements.SelectAsArray(f => f.Name);
+            var tupleFieldNames = tupleType.TupleElements.SelectAsArray<IFieldSymbol, string>(f => f.Name);
 
             foreach (var project in allProjects)
             {
@@ -379,7 +420,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             Project project, INamedTypeSymbol tupleType, CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<DocumentToUpdate>.GetInstance();
-            var tupleFieldNames = tupleType.TupleElements.SelectAsArray(f => f.Name);
+            var tupleFieldNames = tupleType.TupleElements.SelectAsArray<IFieldSymbol, string>(f => f.Name);
 
             await AddDocumentsToUpdateForProjectAsync(
                 project, result, tupleFieldNames, cancellationToken).ConfigureAwait(false);
@@ -431,7 +472,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             foreach (var group in declarationService.GetDeclarations(typeSymbol).GroupBy(r => r.SyntaxTree))
             {
                 var document = solution.GetDocument(group.Key);
-                var nodes = group.SelectAsArray(r => r.GetSyntax(cancellationToken));
+                var nodes = group.SelectAsArray<SyntaxReference, SyntaxNode>(r => r.GetSyntax(cancellationToken));
 
                 result.Add(new DocumentToUpdate(document, nodes));
             }
@@ -755,7 +796,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 explicitInterfaceImplementations: default,
                 WellKnownMemberNames.DeconstructMethodName,
                 typeParameters: default,
-                constructor.Parameters.SelectAsArray(p =>
+                constructor.Parameters.SelectAsArray<IParameterSymbol, IParameterSymbol>(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(RefKind.Out, p.Type, p.Name)),
                 assignments);
         }
@@ -767,7 +808,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             const string valueName = "value";
 
             var valueNode = generator.IdentifierName(valueName);
-            var arguments = tupleType.TupleElements.SelectAsArray(
+            var arguments = tupleType.TupleElements.SelectAsArray<IFieldSymbol, SyntaxNode>(
                 field => generator.Argument(
                     generator.MemberAccessExpression(valueNode, field.Name)));
 
@@ -814,7 +855,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             // For every property, create a corresponding parameter, as well as an assignment
             // statement from that parameter to the property.
             var parameterToPropMap = new Dictionary<string, ISymbol>();
-            var parameters = fields.SelectAsArray(field =>
+            var parameters = fields.SelectAsArray<IFieldSymbol, IParameterSymbol>(field =>
             {
                 var parameter = CodeGenerationSymbolFactory.CreateParameterSymbol(
                     field.Type, field.Name.ToCamelCase(trimLeadingTypePrefix: false));
