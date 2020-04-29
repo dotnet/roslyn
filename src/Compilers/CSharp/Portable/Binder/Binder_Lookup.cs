@@ -1234,7 +1234,7 @@ symIsHidden:;
             {
                 return LookupResult.Empty();
             }
-            else if (WrongArity(symbol, arity, diagnose, options, Compilation, out diagInfo))
+            else if (WrongArity(symbol, arity, diagnose, options, out diagInfo))
             {
                 return LookupResult.WrongArity(symbol, diagInfo);
             }
@@ -1573,7 +1573,7 @@ symIsHidden:;
         // Check if the given symbol can be accessed with the given arity. If OK, return false.
         // If not OK, return true and return a diagnosticinfo. Note that methods with type arguments
         // can be accesses with arity zero due to type inference (but non types).
-        private static bool WrongArity(Symbol symbol, int arity, bool diagnose, LookupOptions options, CSharpCompilation compilation, out DiagnosticInfo diagInfo)
+        private static bool WrongArity(Symbol symbol, int arity, bool diagnose, LookupOptions options, out DiagnosticInfo diagInfo)
         {
             switch (symbol.Kind)
             {
