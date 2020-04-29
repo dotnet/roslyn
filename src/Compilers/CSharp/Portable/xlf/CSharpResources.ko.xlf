@@ -58,8 +58,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</source>
-        <target state="translated">'{0}' 형식 변수에서 비동기 foreach 문을 수행할 수 없습니다. '{0}'에는 '{1}'의 적합한 공용 인스턴스 정의가 없기 때문입니다.</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance or extension definition for '{1}'</source>
+        <target state="needs-review-translation">'{0}' 형식 변수에서 비동기 foreach 문을 수행할 수 없습니다. '{0}'에는 '{1}'의 적합한 공용 인스턴스 정의가 없기 때문입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMemberWrongAsync">
@@ -390,11 +390,6 @@
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
         <target state="translated">두 부분 메서드(Partial method) 선언 모두 readonly이거나 readonly가 아니어야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PatternInaccessibleOrNotInstance">
-        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</source>
-        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not an accessible instance or extension method.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">

@@ -92,7 +92,7 @@ public class C
 ";
             var comp_checked = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable });
             comp_checked.VerifyDiagnostics(
-                // (8,33): error CS8411: Async foreach statement cannot operate on variables of type 'IAsyncEnumerator<int>' because 'IAsyncEnumerator<int>' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
+                // (8,33): error CS8411: Async foreach statement cannot operate on variables of type 'IAsyncEnumerator<int>' because 'IAsyncEnumerator<int>' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
                 //         await foreach (int i in enumerator) { }
                 Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "enumerator").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "GetAsyncEnumerator").WithLocation(8, 33)
                 );
@@ -191,7 +191,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
+                // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -219,7 +219,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
+                // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -441,9 +441,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8793: 'C.Enumerator' does not implement the 'async streams' pattern. 'C.Enumerator.MoveNextAsync()' is not an accessible instance or extension method.
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C()) { }
-                Diagnostic(ErrorCode.ERR_PatternInaccessibleOrNotInstance, "new C()").WithArguments("C.Enumerator", "async streams", "C.Enumerator.MoveNextAsync()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
         }
 
@@ -1138,7 +1138,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (12,33): error CS8411: Async foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
+                // (12,33): error CS8411: Async foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
                 //         await foreach (var i in collection)
                 Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetAsyncEnumerator").WithLocation(12, 33)
                 );
@@ -4229,7 +4229,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable });
             comp.VerifyDiagnostics(
-                // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
+                // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
                 );
@@ -4914,7 +4914,7 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (10,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
+                // (10,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(10, 33)
                 );
@@ -5286,9 +5286,12 @@ public static class Extensions2
 }";
             var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,33): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.GetAsyncEnumerator(C)' and 'Extensions2.GetAsyncEnumerator(C)'
+                // (8,33): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetAsyncEnumerator(C)' is ambiguous with 'Extensions2.GetAsyncEnumerator(C)'.
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Extensions1.GetAsyncEnumerator(C)", "Extensions2.GetAsyncEnumerator(C)").WithLocation(8, 33)
+                Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "new C()").WithArguments("C", "collection", "Extensions1.GetAsyncEnumerator(C)", "Extensions2.GetAsyncEnumerator(C)").WithLocation(8, 33),
+                // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
                 );
         }
 
@@ -5323,9 +5326,12 @@ public static class Extensions2
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (8,33): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.GetAsyncEnumerator(C)' and 'Extensions2.GetAsyncEnumerator(C)'
+                    // (8,33): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetAsyncEnumerator(C)' is ambiguous with 'Extensions2.GetAsyncEnumerator(C)'.
                     //         await foreach (var i in new C())
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Extensions1.GetAsyncEnumerator(C)", "Extensions2.GetAsyncEnumerator(C)").WithLocation(8, 33)
+                    Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "new C()").WithArguments("C", "collection", "Extensions1.GetAsyncEnumerator(C)", "Extensions2.GetAsyncEnumerator(C)").WithLocation(8, 33),
+                    // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                    //         await foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
                     );
         }
 
@@ -5360,9 +5366,12 @@ public static class Extensions2
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (8,33): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.GetAsyncEnumerator(C)' and 'Extensions2.GetAsyncEnumerator(C)'
+                    // (8,33): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetAsyncEnumerator(C)' is ambiguous with 'Extensions2.GetAsyncEnumerator(C)'.
                     //         await foreach (var i in new C())
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Extensions1.GetAsyncEnumerator(C)", "Extensions2.GetAsyncEnumerator(C)").WithLocation(8, 33)
+                    Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "new C()").WithArguments("C", "collection", "Extensions1.GetAsyncEnumerator(C)", "Extensions2.GetAsyncEnumerator(C)").WithLocation(8, 33),
+                    // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                    //         await foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
                     );
         }
 
@@ -5429,7 +5438,7 @@ public static class Extensions2
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
+                    // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
                     //         await foreach (var i in new C())
                     Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
                     );
@@ -5470,9 +5479,12 @@ public static class Extensions2
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (12,33): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.GetAsyncEnumerator(I1)' and 'Extensions2.GetAsyncEnumerator(I2)'
+                    // (12,33): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetAsyncEnumerator(I1)' is ambiguous with 'Extensions2.GetAsyncEnumerator(I2)'.
                     //         await foreach (var i in new C())
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Extensions1.GetAsyncEnumerator(I1)", "Extensions2.GetAsyncEnumerator(I2)").WithLocation(12, 33)
+                    Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "new C()").WithArguments("C", "collection", "Extensions1.GetAsyncEnumerator(I1)", "Extensions2.GetAsyncEnumerator(I2)").WithLocation(12, 33),
+                    // (12,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                    //         await foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(12, 33)
                     );
         }
 
@@ -5615,9 +5627,12 @@ public static class Extensions2
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (8,33): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.GetAsyncEnumerator(C, int, int)' and 'Extensions2.GetAsyncEnumerator(C, int)'
+                    // (8,33): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetAsyncEnumerator(C, int, int)' is ambiguous with 'Extensions2.GetAsyncEnumerator(C, int)'.
                     //         await foreach (var i in new C())
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Extensions1.GetAsyncEnumerator(C, int, int)", "Extensions2.GetAsyncEnumerator(C, int)").WithLocation(8, 33)
+                    Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "new C()").WithArguments("C", "collection", "Extensions1.GetAsyncEnumerator(C, int, int)", "Extensions2.GetAsyncEnumerator(C, int)").WithLocation(8, 33),
+                    // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                    //         await foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
                     );
         }
 
@@ -5874,9 +5889,12 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,33): error CS8793: 'C' does not implement the 'async streams' pattern. 'Extensions.GetAsyncEnumerator(C)' is not an accessible instance or extension method.
+                // (8,33): warning CS0279: 'C' does not implement the 'async streams' pattern. 'Extensions.GetAsyncEnumerator(C)' is not an accessible instance or extension method.
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_PatternInaccessibleOrNotInstance, "new C()").WithArguments("C", "async streams", "Extensions.GetAsyncEnumerator(C)").WithLocation(8, 33)
+                Diagnostic(ErrorCode.WRN_PatternInaccessibleOrNotInstance, "new C()").WithArguments("C", "async streams", "Extensions.GetAsyncEnumerator(C)").WithLocation(8, 33),
+                // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
                 );
         }
 
@@ -6321,7 +6339,7 @@ namespace N
 }";
             CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
+                    // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
                     //         await foreach (var i in new C())
                     Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
                     );

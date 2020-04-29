@@ -2852,9 +2852,12 @@ public static class Extensions2
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (7,27): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.GetEnumerator(C)' and 'Extensions2.GetEnumerator(C)'
+                    // (7,27): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetEnumerator(C)' is ambiguous with 'Extensions2.GetEnumerator(C)'.
                     //         foreach (var i in new C())
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Extensions1.GetEnumerator(C)", "Extensions2.GetEnumerator(C)").WithLocation(7, 27)
+                    Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "new C()").WithArguments("C", "collection", "Extensions1.GetEnumerator(C)", "Extensions2.GetEnumerator(C)").WithLocation(7, 27),
+                    // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                    //         foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27)
                     );
         }
 
@@ -2888,9 +2891,12 @@ public static class Extensions2
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (7,27): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.GetEnumerator(C)' and 'Extensions2.GetEnumerator(C)'
+                    // (7,27): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetEnumerator(C)' is ambiguous with 'Extensions2.GetEnumerator(C)'.
                     //         foreach (var i in new C())
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Extensions1.GetEnumerator(C)", "Extensions2.GetEnumerator(C)").WithLocation(7, 27)
+                    Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "new C()").WithArguments("C", "collection", "Extensions1.GetEnumerator(C)", "Extensions2.GetEnumerator(C)").WithLocation(7, 27),
+                    // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                    //         foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27)
                     );
         }
 
@@ -2924,9 +2930,12 @@ public static class Extensions2
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (7,27): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.GetEnumerator(C)' and 'Extensions2.GetEnumerator(C)'
+                    // (7,27): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetEnumerator(C)' is ambiguous with 'Extensions2.GetEnumerator(C)'.
                     //         foreach (var i in new C())
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Extensions1.GetEnumerator(C)", "Extensions2.GetEnumerator(C)").WithLocation(7, 27)
+                    Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "new C()").WithArguments("C", "collection", "Extensions1.GetEnumerator(C)", "Extensions2.GetEnumerator(C)").WithLocation(7, 27),
+                    // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                    //         foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27)
                     );
         }
 
@@ -3031,9 +3040,12 @@ public static class Extensions2
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (11,27): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.GetEnumerator(I1)' and 'Extensions2.GetEnumerator(I2)'
+                    // (11,27): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetEnumerator(I1)' is ambiguous with 'Extensions2.GetEnumerator(I2)'.
                     //         foreach (var i in new C())
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Extensions1.GetEnumerator(I1)", "Extensions2.GetEnumerator(I2)").WithLocation(11, 27)
+                    Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "new C()").WithArguments("C", "collection", "Extensions1.GetEnumerator(I1)", "Extensions2.GetEnumerator(I2)").WithLocation(11, 27),
+                    // (11,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                    //         foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(11, 27)
                     );
         }
 
@@ -3172,9 +3184,12 @@ public static class Extensions2
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (7,27): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.GetEnumerator(C, int, int)' and 'Extensions2.GetEnumerator(C, int)'
+                    // (7,27): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetEnumerator(C, int, int)' is ambiguous with 'Extensions2.GetEnumerator(C, int)'.
                     //         foreach (var i in new C())
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Extensions1.GetEnumerator(C, int, int)", "Extensions2.GetEnumerator(C, int)").WithLocation(7, 27)
+                    Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "new C()").WithArguments("C", "collection", "Extensions1.GetEnumerator(C, int, int)", "Extensions2.GetEnumerator(C, int)").WithLocation(7, 27),
+                    // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                    //         foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27)
                     );
         }
 
@@ -3415,9 +3430,12 @@ public static class Extensions
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (7,27): error CS8793: 'C' does not implement the 'collection' pattern. 'Extensions.GetEnumerator(C)' is not an accessible instance or extension method.
+                    // (7,27): warning CS0279: 'C' does not implement the 'collection' pattern. 'Extensions.GetEnumerator(C)' is not an accessible instance or extension method.
                     //         foreach (var i in new C())
-                    Diagnostic(ErrorCode.ERR_PatternInaccessibleOrNotInstance, "new C()").WithArguments("C", "collection", "Extensions.GetEnumerator(C)").WithLocation(7, 27)
+                    Diagnostic(ErrorCode.WRN_PatternInaccessibleOrNotInstance, "new C()").WithArguments("C", "collection", "Extensions.GetEnumerator(C)").WithLocation(7, 27),
+                    // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                    //         foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27)
                 );
         }
 
