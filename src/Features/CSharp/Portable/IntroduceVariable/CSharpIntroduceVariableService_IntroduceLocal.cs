@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             CancellationToken cancellationToken)
         {
             var oldBody = (ExpressionSyntax)oldLambda.Body;
+            var isEntireLambdaBodySelected = oldBody.Equals(expression);
 
             var rewrittenBody = Rewrite(
                 document, expression, newLocalName, document, oldBody, allOccurrences, cancellationToken);
@@ -103,18 +104,19 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             BlockSyntax newBody;
             if (doesDelegateMethodReturnVoid)
             {
-                // We don't need to include the rewritten body if it consists of just the identifier name.
-                // However, in all other cases, the rewritten body should be included.
-                var isRewrittenBodyTrivial = rewrittenBody.WalkDownParentheses().IsKind(SyntaxKind.IdentifierName,
-                    out IdentifierNameSyntax identifier) &&
-                    identifier.Identifier.ValueText == newLocalName.Identifier.ValueText;
-
-                if (isRewrittenBodyTrivial)
+                // For lambdas with void return types, we don't need to include the rewritten body if the entire lambda body
+                // was originally selected for refactoring, as the rewritten body should already be encompassed within the
+                // declaration statement.
+                if (isEntireLambdaBodySelected)
                 {
+                    // The lambda has a void return type, and the user selects the entire lambda body.
+                    // e.g.: Action<int> goo = x => [|x.ToString()|];
                     newBody = SyntaxFactory.Block(declarationStatement);
                 }
                 else
                 {
+                    // The lambda has a void return type, and the user didn't select the entire lambda body.
+                    // e.g.: Task.Run(() => File.Copy("src", [|Path.Combine("dir", "file")|]));
                     newBody = SyntaxFactory.Block(
                         declarationStatement,
                         SyntaxFactory.ExpressionStatement(rewrittenBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
@@ -122,6 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             }
             else
             {
+                // The lambda has a non-void return type.
+                // e.g.: Func<int, int> f = x => [|x + 1|];
                 newBody = SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
             }
 
