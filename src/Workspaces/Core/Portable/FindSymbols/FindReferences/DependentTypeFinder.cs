@@ -471,8 +471,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // As long as there are new types to search for, keep looping.
             while (typesToSearchFor.Count > 0)
             {
-                tempBuffer.Clear();
-
                 foreach (var reference in compilation.References.OfType<PortableExecutableReference>())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -483,19 +481,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         cancellationToken).ConfigureAwait(false);
                 }
 
-                // Clear out the information about the types we're looking for.  We'll
-                // fill these in if we discover any more types that we need to keep searching
-                // for.
-                typesToSearchFor.Clear();
-
-                foreach (var derivedType in tempBuffer)
-                {
-                    if (result.Add(derivedType))
-                    {
-                        if (transitive && shouldContinueSearching(derivedType))
-                            typesToSearchFor.Add(derivedType);
-                    }
-                }
+                PropagateTemporaryResults(
+                    result, typesToSearchFor, tempBuffer, transitive, shouldContinueSearching);
             }
         }
 
@@ -582,8 +569,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // As long as there are new types to search for, keep looping.
             while (typesToSearchFor.Count > 0)
             {
-                tempBuffer.Clear();
-
                 foreach (var type in typesToSearchFor)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -634,20 +619,40 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         cancellationToken).ConfigureAwait(false);
                 }
 
-                // Clear out the information about the types we're looking for.  We'll
-                // fill these in if we discover any more types that we need to keep searching
-                // for.
-                typesToSearchFor.Clear();
+                PropagateTemporaryResults(
+                    result, typesToSearchFor, tempBuffer, transitive, shouldContinueSearching);
+            }
+        }
 
-                foreach (var derivedType in tempBuffer)
+        /// <summary>
+        /// Moves all the types in <paramref name="tempBuffer"/> to <paramref name="result"/>.  If these are types we
+        /// haven't seen before, and the caller says we <paramref name="shouldContinueSearching"/> on them, then add
+        /// them to <paramref name="typesToSearchFor"/> for the next round of searching.
+        /// </summary>
+        private static void PropagateTemporaryResults(
+            SymbolSet result,
+            SymbolSet typesToSearchFor,
+            SymbolSet tempBuffer,
+            bool transitive,
+            Func<INamedTypeSymbol, bool> shouldContinueSearching)
+        {
+            // Clear out the information about the types we're looking for.  We'll
+            // fill these in if we discover any more types that we need to keep searching
+            // for.
+            typesToSearchFor.Clear();
+
+            foreach (var derivedType in tempBuffer)
+            {
+                // See if it's a type we've never seen before.
+                if (result.Add(derivedType))
                 {
-                    if (result.Add(derivedType))
-                    {
-                        if (transitive && shouldContinueSearching(derivedType))
-                            typesToSearchFor.Add(derivedType);
-                    }
+                    // If we should keep going, add it to the next batch of items we'll search for in this project.
+                    if (transitive && shouldContinueSearching(derivedType))
+                        typesToSearchFor.Add(derivedType);
                 }
             }
+
+            tempBuffer.Clear();
         }
 
         private static async Task AddSourceTypesThatDeriveFromNameAsync(
@@ -713,51 +718,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Debug.Assert(pooledInstance.Count == 0);
             instance = pooledInstance;
             return new PooledDisposer<PooledHashSet<INamedTypeSymbol>>(pooledInstance);
-        }
-
-        private class KeyEqualityComparer : IEqualityComparer<(SymbolKey, ProjectId, IImmutableSet<Project>)>
-        {
-            public static readonly KeyEqualityComparer Instance = new KeyEqualityComparer();
-
-            private KeyEqualityComparer()
-            {
-            }
-
-            public bool Equals((SymbolKey, ProjectId, IImmutableSet<Project>) x,
-                               (SymbolKey, ProjectId, IImmutableSet<Project>) y)
-            {
-                var (xSymbolKey, xProjectId, xProjects) = x;
-                var (ySymbolKey, yProjectId, yProjects) = y;
-
-                if (!xSymbolKey.Equals(ySymbolKey))
-                    return false;
-
-                if (!xProjectId.Equals(yProjectId))
-                    return false;
-
-                if (xProjects is null)
-                    return yProjects is null;
-
-                if (yProjects is null)
-                    return false;
-
-                return xProjects.SetEquals(yProjects);
-            }
-
-            public int GetHashCode((SymbolKey, ProjectId, IImmutableSet<Project>) obj)
-            {
-                var (symbolKey, projectId, projects) = obj;
-
-                var projectsHash = 0;
-                if (projects != null)
-                {
-                    foreach (var project in projects)
-                        projectsHash += project.GetHashCode();
-                }
-
-                return Hash.Combine(symbolKey.GetHashCode(),
-                       Hash.Combine(projectId, projectsHash));
-            }
         }
     }
 }
