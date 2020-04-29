@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 Debug.Assert(project.SupportsCompilation);
-                await FindTypesInProjectAsync(
+                await DescendInheritanceTreeInProjectAsync(
                     searchInMetadata, result,
                     currentMetadataTypes, currentSourceAndMetadataTypes,
                     project,
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return array;
         }
 
-        private static async Task FindTypesInProjectAsync(
+        private static async Task DescendInheritanceTreeInProjectAsync(
             bool searchInMetadata,
             SymbolSet result,
             SymbolSet currentMetadataTypes,
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // but a metadata type could have descendant types in source and metadata).
                 if (searchInMetadata)
                 {
-                    await AddMetadataTypesInProjectAsync(
+                    await AddDescendantMetadataTypesInProjectAsync(
                         currentMetadataTypes,
                         project,
                         typeMatches,
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // Now search the project and see what source types we can find.
                     foundTypes.Clear();
 
-                    await AddSourceTypesInProjectAsync(
+                    await AddDescendantSourceTypesInProjectAsync(
                         currentSourceAndMetadataTypes,
                         project,
                         typeMatches,
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                                  .ToList();
         }
 
-        private static async Task AddMetadataTypesInProjectAsync(
+        private static async Task AddDescendantMetadataTypesInProjectAsync(
             SymbolSet metadataTypes,
             Project project,
             Func<INamedTypeSymbol, SymbolSet, bool> metadataTypeMatches,
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static async Task AddSourceTypesInProjectAsync(
+        private static async Task AddDescendantSourceTypesInProjectAsync(
             SymbolSet sourceAndMetadataTypes,
             Project project,
             Func<INamedTypeSymbol, SymbolSet, bool> sourceTypeMatches,
