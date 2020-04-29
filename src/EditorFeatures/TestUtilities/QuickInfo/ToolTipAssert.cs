@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -94,6 +95,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
             Assert.Equal(expected.Text, actual.Text);
             Assert.Equal(expected.Tooltip, actual.Tooltip);
             Assert.Equal(expected.Style, actual.Style);
+
+            if (expected.NavigationAction is null)
+            {
+                Assert.Equal(expected.NavigationAction, actual.NavigationAction);
+            }
+            else if (expected.NavigationAction.Target is QuickInfoHyperLink hyperLink)
+            {
+                Assert.Same(expected.NavigationAction, hyperLink.NavigationAction);
+                var actualTarget = Assert.IsType<QuickInfoHyperLink>(actual.NavigationAction.Target);
+                Assert.Same(actual.NavigationAction, actualTarget.NavigationAction);
+                Assert.Equal(hyperLink, actualTarget);
+            }
+            else
+            {
+                // Cannot validate this navigation action
+                Assert.NotNull(actual.NavigationAction);
+                Assert.IsNotType<QuickInfoHyperLink>(actual.NavigationAction.Target);
+            }
         }
 
         private static string ContainerToString(object element)
@@ -159,7 +178,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
                 if (classifiedTextRun.NavigationAction is object || !string.IsNullOrEmpty(classifiedTextRun.Tooltip))
                 {
                     var tooltip = classifiedTextRun.Tooltip is object ? $"\"{classifiedTextRun.Tooltip.Replace("\"", "\"\"")}\"" : "Nothing";
-                    result.Append($", navigationAction:=Sub() Return, {tooltip}");
+                    if (classifiedTextRun.NavigationAction?.Target is QuickInfoHyperLink hyperLink)
+                    {
+                        result.Append($", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri(\"{hyperLink.Uri}\", UriKind.Absolute))");
+                    }
+                    else
+                    {
+                        result.Append(", navigationAction:=Sub() Return");
+                    }
+
+                    result.Append($", {tooltip}");
                 }
 
                 if (classifiedTextRun.Style != ClassifiedTextRunStyle.Plain)

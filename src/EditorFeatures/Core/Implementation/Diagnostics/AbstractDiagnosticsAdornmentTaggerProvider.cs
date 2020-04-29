@@ -8,6 +8,7 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -59,12 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 && diagnostic.HelpLink is { } helpLink
                 && Uri.TryCreate(helpLink, UriKind.Absolute, out var helpLinkUri))
             {
-                navigationAction = () =>
-                {
-                    var navigateToLinkService = workspace.Services.GetRequiredService<INavigateToLinkService>();
-                    _ = navigateToLinkService.TryNavigateToLinkAsync(helpLinkUri, CancellationToken.None);
-                };
-
+                navigationAction = new QuickInfoHyperLink(workspace, helpLinkUri).NavigationAction;
                 tooltip = helpLink;
             }
 
