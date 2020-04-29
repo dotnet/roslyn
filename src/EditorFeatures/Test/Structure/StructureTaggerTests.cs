@@ -172,7 +172,7 @@ End Module";
 
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
             var context = new TaggerContext<IOutliningRegionTag>(document, view.TextSnapshot);
-            await provider.ProduceTagsAsync_ForTestingPurposesOnly(context);
+            await provider.GetTestAccessor().ProduceTagsAsync(context);
 
             return context.tagSpans.Select(x => x.Tag).ToList();
         }

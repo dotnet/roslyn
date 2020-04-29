@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -31,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
+        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, bool outOfProcess)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code, options);
+            using var workspace = CreateWorkspace(code, span, options, outOfProcess);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
             return GetSemanticClassificationsAsync(document, span);
@@ -2118,9 +2119,7 @@ q = from",
         [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DontColorThingsOtherThanFromInDeclaration()
-        {
-            await TestInExpressionAsync("fro ");
-        }
+            => await TestInExpressionAsync("fro ");
 
         [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -2356,7 +2355,6 @@ struct Type<T>
             var provider = new SemanticClassificationViewTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                 workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
                 listenerProvider);
 
@@ -2368,7 +2366,7 @@ struct Type<T>
             }
 
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-            await waiter.CreateExpeditedWaitTask();
+            await waiter.ExpeditedWaitAsync();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -2383,14 +2381,13 @@ struct Type<T>
             var provider = new SemanticClassificationBufferTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                 workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
                 listenerProvider);
 
             var tagger = provider.CreateTagger<IClassificationTag>(document.GetTextBuffer());
             using var disposable = (IDisposable)tagger;
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-            await waiter.CreateExpeditedWaitTask();
+            await waiter.ExpeditedWaitAsync();
 
             var tags = tagger.GetTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection());
             var allTags = tagger.GetAllTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
@@ -3294,12 +3291,54 @@ class X
                 Escape(@"}}"));
         }
 
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape1()
+        {
+            await TestInMethodAsync(@"var goo = '\n';",
+                Keyword("var"),
+                Escape(@"\n"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape2()
+        {
+            await TestInMethodAsync(@"var goo = '\\';",
+                Keyword("var"),
+                Escape(@"\\"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape3()
+        {
+            await TestInMethodAsync(@"var goo = '\'';",
+                Keyword("var"),
+                Escape(@"\'"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape5()
+        {
+            await TestInMethodAsync(@"var goo = '""';",
+                Keyword("var"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape4()
+        {
+            await TestInMethodAsync(@"var goo = '\u000a';",
+                Keyword("var"),
+                Escape(@"\u000a"));
+        }
+
         [WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestDirectiveStringLiteral()
-        {
-            await TestInMethodAsync(@"#line 1 ""a\b""");
-        }
+            => await TestInMethodAsync(@"#line 1 ""a\b""");
 
         [WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -3839,6 +3878,30 @@ class X
             Delegate("Func"),
             Keyword("_"),
             Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NativeInteger()
+        {
+            await TestInMethodAsync(
+                code: @"nint i = 0; nuint i2 = 0;",
+                expected: Classifications(Keyword("nint"), Keyword("nuint")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NotNativeInteger()
+        {
+            await TestInMethodAsync("nint", "M",
+                code: @"nint i = 0;",
+                expected: Classifications(Class("nint")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NotNativeUnsignedInteger()
+        {
+            await TestInMethodAsync("nuint", "M",
+                code: @"nuint i = 0;",
+                expected: Classifications(Class("nuint")));
         }
     }
 }

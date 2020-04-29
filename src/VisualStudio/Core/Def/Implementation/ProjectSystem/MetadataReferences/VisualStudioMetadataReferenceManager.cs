@@ -88,19 +88,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)
-        {
-            return new VisualStudioMetadataReference.Snapshot(this, properties, filePath, fileChangeTrackerOpt: null);
-        }
+            => new VisualStudioMetadataReference.Snapshot(this, properties, filePath, fileChangeTrackerOpt: null);
 
         public void ClearCache()
-        {
-            _metadataCache.ClearCache();
-        }
+            => _metadataCache.ClearCache();
 
         private bool VsSmartScopeCandidate(string fullPath)
-        {
-            return _runtimeDirectories.Any(d => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase));
-        }
+            => _runtimeDirectories.Any(d => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase));
 
         internal static IEnumerable<string> GetReferencePaths()
         {
@@ -242,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
-        private bool TryCreateAssemblyMetadataFromMetadataImporter(FileKey fileKey, [NotNullWhen(true)]out AssemblyMetadata? metadata)
+        private bool TryCreateAssemblyMetadataFromMetadataImporter(FileKey fileKey, [NotNullWhen(true)] out AssemblyMetadata? metadata)
         {
             metadata = null;
 
@@ -283,7 +277,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return metadata;
         }
 
-        private bool TryGetFileMappingFromMetadataImporter(FileKey fileKey, [NotNullWhen(true)]out IMetaDataInfo? info, out IntPtr pImage, out long length)
+        private bool TryGetFileMappingFromMetadataImporter(FileKey fileKey, [NotNullWhen(true)] out IMetaDataInfo? info, out IntPtr pImage, out long length)
         {
             // We might not be able to use COM services to get this if VS is shutting down. We'll synchronize to make sure this
             // doesn't race against 
@@ -293,7 +287,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // it won't be changed in the middle of VS running.
                 var fullPath = fileKey.FullPath;
 
-                info = default;
+                info = null;
                 pImage = default;
                 length = default;
 
@@ -328,13 +322,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string? assemblyDir = null;
             foreach (var moduleName in manifestModule.GetModuleNames())
             {
-                if (moduleBuilder.Count == 0)
+                if (assemblyDir is null)
                 {
                     moduleBuilder.Add(manifestModule);
                     assemblyDir = Path.GetDirectoryName(fileKey.FullPath);
                 }
 
-                var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName));
+                // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
+                var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!);
                 var metadata = moduleMetadataFactory(moduleFileKey, storages);
 
                 moduleBuilder.Add(metadata);

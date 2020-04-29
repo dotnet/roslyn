@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Indentation;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Wrapping.ChainedExpression;
 
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.ChainedExpression
         AbstractChainedExpressionWrapper<NameSyntax, BaseArgumentListSyntax>
     {
         public CSharpChainedExpressionWrapper()
-            : base(CSharpIndentationService.Instance, CSharpSyntaxFactsService.Instance)
+            : base(CSharpIndentationService.Instance, CSharpSyntaxFacts.Instance)
         {
         }
 

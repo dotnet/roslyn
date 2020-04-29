@@ -28,12 +28,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             End Using
         End Function
 
-        Private Async Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
-            Using workspace = TestWorkspace.CreateVisualBasic(content)
-                Return (Await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
-            End Using
-        End Function
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Function ErrorTagGeneratedForSimpleError() As Task
             ' Make sure we have errors from the tree
@@ -96,18 +90,21 @@ Class C1
     End Sub
 End Class"
 
-            Dim analyzerMap = New Dictionary(Of String, DiagnosticAnalyzer())
-            analyzerMap.Add(LanguageNames.VisualBasic,
-                    {
+            Dim analyzerMap = New Dictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)) From
+            {
+                {
+                    LanguageNames.VisualBasic,
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(
                         New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(),
-                        New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer()
-                    })
+                        New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer())
+                }
+            }
 
             Using workspace = TestWorkspace.CreateVisualBasic(content)
-                Dim options As New Dictionary(Of OptionKey, Object)
+                Dim options As New Dictionary(Of OptionKey2, Object)
                 Dim language = workspace.Projects.Single().Language
-                Dim preferIntrinsicPredefinedTypeOption = New OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language)
-                Dim preferIntrinsicPredefinedTypeOptionValue = New CodeStyleOption(Of Boolean)(value:=True, notification:=NotificationOption.Error)
+                Dim preferIntrinsicPredefinedTypeOption = New OptionKey2(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language)
+                Dim preferIntrinsicPredefinedTypeOptionValue = New CodeStyleOption2(Of Boolean)(value:=True, notification:=NotificationOption2.Error)
                 options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue)
                 workspace.ApplyOptions(options)
 
@@ -118,7 +115,7 @@ End Class"
                 Dim second = spans(1)
 
                 Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType)
-                Assert.Equal(VBFeaturesResources.Imports_statement_is_unnecessary, CType(first.Tag.ToolTipContent, String))
+                Assert.Equal(VisualBasicAnalyzersResources.Imports_statement_is_unnecessary, CType(first.Tag.ToolTipContent, String))
                 Assert.Equal(Of Integer)(79, first.Span.Start)
                 Assert.Equal(83, first.Span.Length)
 

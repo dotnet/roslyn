@@ -5,11 +5,12 @@
 #nullable enable
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis
 {
-    public struct SolutionChanges
+    public readonly struct SolutionChanges
     {
         private readonly Solution _newSolution;
         private readonly Solution _oldSolution;
@@ -54,6 +55,30 @@ namespace Microsoft.CodeAnalysis
                 if (!_newSolution.ContainsProject(id))
                 {
                     yield return _oldSolution.GetRequiredProject(id);
+                }
+            }
+        }
+
+        public IEnumerable<AnalyzerReference> GetAddedAnalyzerReferences()
+        {
+            var oldAnalyzerReferences = new HashSet<AnalyzerReference>(_oldSolution.AnalyzerReferences);
+            foreach (var analyzerReference in _newSolution.AnalyzerReferences)
+            {
+                if (!oldAnalyzerReferences.Contains(analyzerReference))
+                {
+                    yield return analyzerReference;
+                }
+            }
+        }
+
+        public IEnumerable<AnalyzerReference> GetRemovedAnalyzerReferences()
+        {
+            var newAnalyzerReferences = new HashSet<AnalyzerReference>(_newSolution.AnalyzerReferences);
+            foreach (var analyzerReference in _oldSolution.AnalyzerReferences)
+            {
+                if (!newAnalyzerReferences.Contains(analyzerReference))
+                {
+                    yield return analyzerReference;
                 }
             }
         }

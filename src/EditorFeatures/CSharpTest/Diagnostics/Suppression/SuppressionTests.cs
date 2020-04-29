@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ErrorLogger;
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
     {
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
-        protected override string GetLanguage() => LanguageNames.CSharp;
+        protected internal override string GetLanguage() => LanguageNames.CSharp;
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
             => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
@@ -51,9 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
             public class CompilerDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
             {
                 internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-                {
-                    return Tuple.Create<DiagnosticAnalyzer, IConfigurationFixProvider>(null, new CSharpSuppressionCodeFixProvider());
-                }
+                    => Tuple.Create<DiagnosticAnalyzer, IConfigurationFixProvider>(null, new CSharpSuppressionCodeFixProvider());
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirective()
@@ -256,7 +253,11 @@ class Class
 }";
                     var parameters = new TestParameters();
                     using var workspace = CreateWorkspaceFromOptions(source, parameters);
-                    var diagnosticService = new TestDiagnosticAnalyzerService(LanguageNames.CSharp, new CSharpCompilerDiagnosticAnalyzer());
+
+                    var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer()));
+                    workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
+                    var diagnosticService = new TestDiagnosticAnalyzerService();
                     var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);
                     var suppressionProvider = CreateDiagnosticProviderAndFixer(workspace).Item2;
                     var suppressionProviderFactory = new Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,
@@ -521,9 +522,7 @@ int Method()
                     }
 
                     public override void Initialize(AnalysisContext context)
-                    {
-                        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
-                    }
+                        => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
 
                     public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                     {
@@ -633,9 +632,7 @@ class Class
                     }
 
                     public override void Initialize(AnalysisContext context)
-                    {
-                        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
-                    }
+                        => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
 
                     public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                     {
@@ -698,9 +695,7 @@ class Class
                     }
 
                     public override void Initialize(AnalysisContext context)
-                    {
-                        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
-                    }
+                        => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
 
                     public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                     {
@@ -750,9 +745,7 @@ using System;
                 }
 
                 public override void Initialize(AnalysisContext context)
-                {
-                    context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
-                }
+                    => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
 
                 public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                 {
@@ -800,9 +793,7 @@ class Class
             public class CompilerDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
             {
                 internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-                {
-                    return Tuple.Create<DiagnosticAnalyzer, IConfigurationFixProvider>(null, new CSharpSuppressionCodeFixProvider());
-                }
+                    => Tuple.Create<DiagnosticAnalyzer, IConfigurationFixProvider>(null, new CSharpSuppressionCodeFixProvider());
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestCompilerDiagnosticsCannotBeSuppressed()
@@ -897,9 +888,7 @@ class Class
                     }
 
                     public override void Initialize(AnalysisContext context)
-                    {
-                        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.EnumDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.FieldDeclaration, SyntaxKind.EventDeclaration);
-                    }
+                        => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.EnumDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.FieldDeclaration, SyntaxKind.EventDeclaration);
 
                     public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                     {
@@ -983,9 +972,7 @@ using System;
                 }
 
                 private static bool HasTrailingWhitespace(string line)
-                {
-                    return line.LastOrNull() is char last && char.IsWhiteSpace(last);
-                }
+                    => line.LastOrNull() is char last && char.IsWhiteSpace(last);
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
@@ -1906,9 +1893,7 @@ using System.Diagnostics.CodeAnalysis;
                     }
 
                     public override void Initialize(AnalysisContext context)
-                    {
-                        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration);
-                    }
+                        => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration);
 
                     public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                     {
@@ -2201,14 +2186,10 @@ namespace N
                 }
 
                 public override void Initialize(AnalysisContext context)
-                {
-                    context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
-                }
+                    => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
 
                 public void AnalyzeNode(SyntaxNodeAnalysisContext context)
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
-                }
+                    => context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
             }
 
             internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)

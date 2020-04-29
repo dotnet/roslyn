@@ -31,9 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         }
 
         public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers()
-        {
-            return _codeCleanUpFixers.SelectAsArray(lazyFixer => lazyFixer.Value);
-        }
+            => _codeCleanUpFixers.SelectAsArray(lazyFixer => lazyFixer.Value);
 
         public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers(IContentType contentType)
         {

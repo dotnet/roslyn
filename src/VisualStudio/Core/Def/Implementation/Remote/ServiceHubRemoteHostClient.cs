@@ -10,19 +10,22 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.Telemetry;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
+    internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient, IRemoteHostServiceCallback
     {
         private enum GlobalNotificationState
         {
@@ -78,12 +81,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var hostGroup = new HostGroup(clientId);
                 var hubClient = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
 
-                // Create the RemotableDataJsonRpc before we create the remote host: this call implicitly sets up the remote IExperimentationService so that will be available for later calls
-                var snapshotServiceStream = await RequestServiceAsync(workspace, hubClient, WellKnownServiceHubServices.SnapshotService, hostGroup, cancellationToken).ConfigureAwait(false);
-                var remoteHostStream = await RequestServiceAsync(workspace, hubClient, WellKnownRemoteHostServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
+                // use the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
+                WatsonReporter.InitializeLogger(hubClient.Logger);
 
-                var remotableDataRpc = new RemotableDataJsonRpc(workspace, hubClient.Logger, snapshotServiceStream);
-                var connectionManager = new ConnectionManager(workspace, hubClient, hostGroup, enableConnectionPool, maxConnection, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc));
+                var remoteHostStream = await RequestServiceAsync(workspace, hubClient, WellKnownRemoteHostServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
+                var connectionManager = new ConnectionManager(workspace, hubClient, hostGroup, enableConnectionPool, maxConnection);
 
                 var client = new ServiceHubRemoteHostClient(workspace, hubClient.Logger, connectionManager, remoteHostStream);
 
@@ -121,8 +123,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             HostGroup hostGroup,
             CancellationToken cancellationToken)
         {
-            const string LogMessage = "Unexpected exception from HubClient";
-
             var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
             try
             {
@@ -138,12 +138,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // we can assume that these exceptions indicate a failure and should be reported to the user.
                 cancellationToken.ThrowIfCancellationRequested();
 
-                client.Logger.TraceEvent(TraceEventType.Error, 1, $"{LogMessage}: {e}");
-
                 RemoteHostCrashInfoBar.ShowInfoBar(workspace, e);
 
                 // TODO: Propagate the original exception (see https://github.com/dotnet/roslyn/issues/40476)
-                throw new SoftCrashException(LogMessage, e, cancellationToken);
+                throw new SoftCrashException("Unexpected exception from HubClient", e, cancellationToken);
             }
 
             static bool ReportNonFatalWatson(Exception e, CancellationToken cancellationToken)
@@ -152,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // even if our cancellation token is signaled. Do not report Watson in such cases to reduce noice.
                 if (!cancellationToken.IsCancellationRequested)
                 {
-                    RemoteEndPoint.ReportNonFatalWatsonWithServiceHubLogs(e, LogMessage);
+                    FatalError.ReportWithoutCrash(e);
                 }
 
                 return true;
@@ -163,14 +161,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public override bool IsRemoteHost64Bit => RemoteHostOptions.IsServiceHubProcess64Bit(Workspace);
 
         public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
-        {
-            return _connectionManager.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken);
-        }
+            => _connectionManager.CreateConnectionAsync(serviceName, callbackTarget, cancellationToken).AsNullable();
 
         protected override void OnStarted()
-        {
-            RegisterGlobalOperationNotifications();
-        }
+            => RegisterGlobalOperationNotifications();
 
         public override void Dispose()
         {
@@ -201,6 +195,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return _connectionManager.HostGroup;
             }
         }
+
+        #region Global Operation Notifications
 
         private void RegisterGlobalOperationNotifications()
         {
@@ -290,9 +286,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
-        private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
+        #endregion
+
+        #region Assets
+
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public async Task GetAssetsAsync(int scopeId, Checksum[] checksums, string pipeName, CancellationToken cancellationToken)
         {
-            Dispose();
+            try
+            {
+                using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, pipeName, cancellationToken))
+                {
+                    await RemoteEndPoint.WriteDataToNamedPipeAsync(
+                        pipeName,
+                        (scopeId, checksums),
+                        (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(writer, RemotableDataService, data.scopeId, data.checksums, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
+
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return Task.FromResult(Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+            }
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        #endregion
+
+        private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
+            => Dispose();
     }
 }

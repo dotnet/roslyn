@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly SyntaxTree _tree;
 
                 public NullSyntaxReference(SyntaxTree tree)
-                {
-                    _tree = tree;
-                }
+                    => _tree = tree;
 
                 public override SyntaxTree SyntaxTree
                 {
@@ -36,9 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 public override SyntaxNode GetSyntax(CancellationToken cancellationToken)
-                {
-                    return null;
-                }
+                    => null;
 
                 public override TextSpan Span
                 {

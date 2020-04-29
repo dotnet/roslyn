@@ -12,32 +12,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class StackAllocKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtRoot_Interactive()
+        public async Task TestAtRoot_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive()
+        public async Task TestAfterClass_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"class C { }
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
+        public async Task TestAfterGlobalStatement_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"System.Console.WriteLine();
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"int i = 0;
 $$");
         }
@@ -50,9 +50,11 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        public async Task TestInEmptyStatement()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            // e.g. this is a valid statement
+            // stackalloc[] { 1, 2, 3 }.IndexOf(1);
+            await VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
         }
 
@@ -92,11 +94,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInField()
+        public async Task TestInField()
         {
-            await VerifyAbsenceAsync(
-@"unsafe class C {
-    int* v = $$");
+            // While assigning stackalloc'd value to a field is invalid,
+            // using one in the initializer is OK. e.g.
+            // int _f = stackalloc[] { 1, 2, 3 }.IndexOf(1);
+            await VerifyKeywordAsync(
+@"class C {
+    int v = $$");
         }
 
         [WorkItem(544504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
@@ -267,6 +272,40 @@ var x $$ ="));
 
             await VerifyAbsenceAsync(AddInsideMethod(@"
 x $$ ="));
+        }
+
+        [WorkItem(41736, "https://github.com/dotnet/roslyn/issues/41736")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInArgument()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Method(System.Span<byte> span)
+    {
+        Method($$);
+    }
+}");
+
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Method(int x, System.Span<byte> span)
+    {
+        Method(1, $$);
+    }
+}");
+        }
+
+        [WorkItem(41736, "https://github.com/dotnet/roslyn/issues/41736")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInConstFieldInitializer()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    private const int _f = $$
+}");
         }
     }
 }

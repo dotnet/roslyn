@@ -15,10 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             EventFieldDeclarationSyntax eventFieldDeclaration,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(eventFieldDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(eventFieldDeclaration, spans, isMetadataAsSource);
         }
     }
 }

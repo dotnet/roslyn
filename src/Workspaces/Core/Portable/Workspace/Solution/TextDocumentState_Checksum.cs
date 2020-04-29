@@ -18,14 +18,10 @@ namespace Microsoft.CodeAnalysis
     internal partial class TextDocumentState
     {
         public bool TryGetStateChecksums([NotNullWhen(returnValue: true)] out DocumentStateChecksums? stateChecksums)
-        {
-            return _lazyChecksums.TryGetValue(out stateChecksums);
-        }
+            => _lazyChecksums.TryGetValue(out stateChecksums);
 
         public Task<DocumentStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
-        {
-            return _lazyChecksums.GetValueAsync(cancellationToken);
-        }
+            => _lazyChecksums.GetValueAsync(cancellationToken);
 
         public async Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
         {

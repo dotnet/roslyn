@@ -30,7 +30,7 @@ function SetupCredProvider {
   rm installcredprovider.sh
 
   if [ ! -d "$HOME/.nuget/plugins" ]; then
-    Write-PipelineTelemetryError -category 'Build' 'CredProvider plugin was not installed correctly!'
+    echo "CredProvider plugin was not installed correctly!"
     ExitWithExitCode 1  
   else 
     echo "CredProvider plugin was installed correctly!"
@@ -42,7 +42,7 @@ function SetupCredProvider {
   local nugetConfigPath="$repo_root/NuGet.config"
 
   if [ ! "$nugetConfigPath" ]; then
-    Write-PipelineTelemetryError -category 'Build' "NuGet.config file not found in repo's root!"
+    echo "NuGet.config file not found in repo's root!"
     ExitWithExitCode 1  
   fi
   

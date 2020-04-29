@@ -22,19 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
         #region Helpers 
 
         private void TestSpan(string markup, ParseOptions options = null)
-        {
-            Test(markup, isMissing: false, isLine: false, options: options);
-        }
+            => Test(markup, isMissing: false, isLine: false, options: options);
 
         private void TestMissing(string markup)
-        {
-            Test(markup, isMissing: true, isLine: false);
-        }
+            => Test(markup, isMissing: true, isLine: false);
 
         private void TestLine(string markup)
-        {
-            Test(markup, isMissing: false, isLine: true);
-        }
+            => Test(markup, isMissing: false, isLine: true);
 
         private void Test(string markup, bool isMissing, bool isLine, ParseOptions options = null)
         {
@@ -326,9 +320,7 @@ $$    (
 
         [Fact]
         public void ForStatementInitializer3()
-        {
-            TestSpan("class C { void M() { for([|i = 0$$|]; ; }; }");
-        }
+            => TestSpan("class C { void M() { for([|i = 0$$|]; ; }; }");
 
         [Fact]
         public void ForStatementCondition()
@@ -702,15 +694,11 @@ $$    (
 
         [Fact]
         public void OrderByKeyword()
-        {
-            TestSpan("class C { void M() { from string s in null ord$$erby [|s.A|] ascending } }");
-        }
+            => TestSpan("class C { void M() { from string s in null ord$$erby [|s.A|] ascending } }");
 
         [Fact]
         public void AscendingKeyword()
-        {
-            TestSpan("class C { void M() { from string s in null orderby [|s.A|] $$ascending } }");
-        }
+            => TestSpan("class C { void M() { from string s in null orderby [|s.A|] $$ascending } }");
 
         [Fact]
         public void SelectExpression()
@@ -1085,46 +1073,32 @@ $$    [|private int i = 3;|]
 
         [Fact]
         public void ConstVariableDeclarator0()
-        {
-            TestMissing("class C { void Goo() { const int a = $$1; } }");
-        }
+            => TestMissing("class C { void Goo() { const int a = $$1; } }");
 
         [Fact]
         public void ConstVariableDeclarator1()
-        {
-            TestMissing("class C { void Goo() { const $$int a = 1; } }");
-        }
+            => TestMissing("class C { void Goo() { const $$int a = 1; } }");
 
         [Fact]
         public void ConstVariableDeclarator2()
-        {
-            TestMissing("class C { void Goo() { $$const int a = 1; } }");
-        }
+            => TestMissing("class C { void Goo() { $$const int a = 1; } }");
 
         [Fact]
         public void ConstFieldVariableDeclarator0()
-        {
-            TestMissing("class C { const int a = $$1; }");
-        }
+            => TestMissing("class C { const int a = $$1; }");
 
         [Fact]
         public void ConstFieldVariableDeclarator1()
-        {
-            TestMissing("class C { const $$int a = 1; }");
-        }
+            => TestMissing("class C { const $$int a = 1; }");
 
         [Fact]
         public void ConstFieldVariableDeclarator2()
-        {
-            TestMissing("class C { $$const int a = 1; }");
-        }
+            => TestMissing("class C { $$const int a = 1; }");
 
         [Fact]
         [WorkItem(538777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
         public void VariableDeclarator0()
-        {
-            TestMissing("class C { void Goo() { int$$ } }");
-        }
+            => TestMissing("class C { void Goo() { int$$ } }");
 
         [Fact]
         public void VariableDeclarator1()
@@ -1282,9 +1256,7 @@ $$  [|private int i = 0|], j = 1;
 
         [Fact]
         public void VariableDeclarator10()
-        {
-            TestSpan("class C { void M() { [|int i = 0$$;|] } }");
-        }
+            => TestSpan("class C { void M() { [|int i = 0$$;|] } }");
 
         [Fact]
         public void VariableDeclarator_Separators0()
@@ -1498,21 +1470,15 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 
         [Fact]
         public void EventAccessorAdd()
-        {
-            TestSpan("class C { eve$$nt Action Goo { add [|{|] } remove { } } }");
-        }
+            => TestSpan("class C { eve$$nt Action Goo { add [|{|] } remove { } } }");
 
         [Fact]
         public void EventAccessorAdd2()
-        {
-            TestSpan("class C { event Action Goo { ad$$d [|{|] } remove { } } }");
-        }
+            => TestSpan("class C { event Action Goo { ad$$d [|{|] } remove { } } }");
 
         [Fact]
         public void EventAccessorRemove()
-        {
-            TestSpan("class C { event Action Goo { add { } $$remove [|{|] } } }");
-        }
+            => TestSpan("class C { event Action Goo { add { } $$remove [|{|] } } }");
 
         [Fact]
         public void ElseClauseWithBlock()
@@ -1822,9 +1788,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 
         [Fact]
         public void SwitchLabelWithoutStatement()
-        {
-            TestSpan("class C { void M() { [|switch |]{ case 1$$: } } }");
-        }
+            => TestSpan("class C { void M() { [|switch |]{ case 1$$: } } }");
 
         [Fact]
         public void MultipleLabelsOnFirstLabel()

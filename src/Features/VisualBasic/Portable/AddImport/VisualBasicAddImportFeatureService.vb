@@ -21,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Inherits AbstractAddImportFeatureService(Of SimpleNameSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -34,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
 
         Protected Overrides Function CanAddImportForMethod(
                 diagnosticId As String,
-                syntaxFacts As ISyntaxFactsService,
+                syntaxFacts As ISyntaxFacts,
                 node As SyntaxNode,
                 ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId
@@ -111,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return False
         End Function
 
-        Protected Overrides Function CanAddImportForGetAwaiter(diagnosticId As String, syntaxFactsService As ISyntaxFactsService, node As SyntaxNode) As Boolean
+        Protected Overrides Function CanAddImportForGetAwaiter(diagnosticId As String, syntaxFactsService As ISyntaxFacts, node As SyntaxNode) As Boolean
             Return diagnosticId = AddImportDiagnosticIds.BC36930 AndAlso
                 AncestorOrSelfIsAwaitExpression(syntaxFactsService, node)
         End Function
@@ -119,11 +120,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Protected Overrides Function CanAddImportForQuery(diagnosticId As String, node As SyntaxNode) As Boolean
             Return diagnosticId = AddImportDiagnosticIds.BC36593 AndAlso
                 node.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing
-        End Function
-
-        Private Function IsOutermostQueryExpression(node As SyntaxNode) As Boolean
-            ' TODO(cyrusn): Figure out how to implement this.
-            Return True
         End Function
 
         Protected Overrides Function CanAddImportForType(
@@ -323,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Protected Overrides Function IsViableExtensionMethod(method As IMethodSymbol,
                                                              expression As SyntaxNode,
                                                              semanticModel As SemanticModel,
-                                                             syntaxFacts As ISyntaxFactsService,
+                                                             syntaxFacts As ISyntaxFacts,
                                                              cancellationToken As CancellationToken) As Boolean
             Dim leftExpressionType As ITypeSymbol = Nothing
             If syntaxFacts.IsInvocationExpression(expression) Then

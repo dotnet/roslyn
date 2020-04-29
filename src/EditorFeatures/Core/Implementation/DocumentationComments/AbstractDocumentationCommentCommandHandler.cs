@@ -468,9 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         }
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
@@ -488,9 +486,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         }
 
         public CommandState GetCommandState(ReturnKeyCommandArgs args)
-        {
-            return CommandState.Unspecified;
-        }
+            => CommandState.Unspecified;
 
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
@@ -580,9 +576,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         }
 
         public CommandState GetCommandState(OpenLineAboveCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(OpenLineAboveCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
@@ -609,9 +603,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         }
 
         public CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(OpenLineBelowCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {

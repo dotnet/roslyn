@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         TIfStatementSyntax, TExpressionSyntax, TIsExpressionSyntax, TPatternSyntax> : CodeRefactoringProvider
     {
         public abstract string GetTitle(bool forSwitchExpression);
-        public abstract Analyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts, ParseOptions options);
+        public abstract Analyzer CreateAnalyzer(ISyntaxFacts syntaxFacts, ParseOptions options);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

@@ -37,12 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
             editor.ReplaceNode(
                 ForEachInfo.ForEachStatement,
-                CreateDefaultReplacementStatement(ForEachInfo, identifiersUsedInStatements, block, convertToQuery)
+                CreateDefaultReplacementStatement(identifiersUsedInStatements, block, convertToQuery)
                     .WithAdditionalAnnotations(Formatter.Annotation));
         }
 
         private StatementSyntax CreateDefaultReplacementStatement(
-            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
             IEnumerable<SyntaxToken> identifiers,
             BlockSyntax block,
             bool convertToQuery)

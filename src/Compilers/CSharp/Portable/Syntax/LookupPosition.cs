@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// </summary>
         internal static bool IsInBody(int position,
             PropertyDeclarationSyntax property)
-            => IsInBody(position, default(BlockSyntax), property.GetExpressionBodySyntax(), property.SemicolonToken);
+            => IsInBody(position, blockOpt: null, property.GetExpressionBodySyntax(), property.SemicolonToken);
 
         /// <summary>
         /// A position is inside a property body only if it is inside an expression body.
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// </summary>
         internal static bool IsInBody(int position,
             IndexerDeclarationSyntax indexer)
-            => IsInBody(position, default(BlockSyntax), indexer.GetExpressionBodySyntax(), indexer.SemicolonToken);
+            => IsInBody(position, blockOpt: null, indexer.GetExpressionBodySyntax(), indexer.SemicolonToken);
 
         /// <summary>
         /// A position is inside an accessor body if it is inside the block or expression

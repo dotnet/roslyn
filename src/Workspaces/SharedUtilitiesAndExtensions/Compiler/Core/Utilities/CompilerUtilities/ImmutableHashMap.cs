@@ -17,12 +17,6 @@ using Contract = System.Diagnostics.Contracts.Contract;
 
 namespace Roslyn.Collections.Immutable
 {
-#if CODE_STYLE
-    using Resources = CodeStyleResources;
-#else
-    using Resources = WorkspacesResources;
-#endif
-
     /// <summary>
     /// An immutable unordered hash map implementation.
     /// </summary>
@@ -86,9 +80,7 @@ namespace Roslyn.Collections.Immutable
         /// See the <see cref="IImmutableDictionary&lt;TKey, TValue&gt;"/> interface.
         /// </summary>
         public ImmutableHashMap<TKey, TValue> Clear()
-        {
-            return this.IsEmpty ? this : Empty.WithComparers(_keyComparer, _valueComparer);
-        }
+            => this.IsEmpty ? this : Empty.WithComparers(_keyComparer, _valueComparer);
 
         #region Public methods
 
@@ -251,9 +243,7 @@ namespace Roslyn.Collections.Immutable
         /// </remarks>
         [Pure]
         public ImmutableHashMap<TKey, TValue> WithComparers(IEqualityComparer<TKey> keyComparer)
-        {
-            return this.WithComparers(keyComparer, _valueComparer);
-        }
+            => this.WithComparers(keyComparer, _valueComparer);
 
         /// <summary>
         /// Determines whether the ImmutableSortedMap&lt;TKey,TValue&gt;
@@ -269,9 +259,7 @@ namespace Roslyn.Collections.Immutable
         /// </returns>
         [Pure]
         public bool ContainsValue(TValue value)
-        {
-            return this.Values.Contains(value, _valueComparer);
-        }
+            => this.Values.Contains(value, _valueComparer);
 
         #endregion
 
@@ -443,18 +431,14 @@ namespace Roslyn.Collections.Immutable
         /// A <see cref="IEnumerator{T}"/> that can be used to iterate through the collection.
         /// </returns>
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-        {
-            return this.GetValueBuckets().Select(vb => new KeyValuePair<TKey, TValue>(vb.Key, vb.Value)).GetEnumerator();
-        }
+            => this.GetValueBuckets().Select(vb => new KeyValuePair<TKey, TValue>(vb.Key, vb.Value)).GetEnumerator();
 
         #endregion
 
         #region IEnumerable Members
 
         IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
+            => this.GetEnumerator();
 
         #endregion
 
@@ -625,9 +609,7 @@ namespace Roslyn.Collections.Immutable
             /// </summary>
             /// <param name="hash">The hash.</param>
             protected ValueOrListBucket(int hash)
-            {
-                this.Hash = hash;
-            }
+                => this.Hash = hash;
         }
 
         private sealed class ValueBucket : ValueOrListBucket
@@ -706,9 +688,7 @@ namespace Roslyn.Collections.Immutable
             }
 
             internal override IEnumerable<Bucket> GetAll()
-            {
-                return SpecializedCollections.SingletonEnumerable(this);
-            }
+                => SpecializedCollections.SingletonEnumerable(this);
         }
 
         private sealed class ListBucket : ValueOrListBucket
@@ -817,9 +797,7 @@ namespace Roslyn.Collections.Immutable
             }
 
             internal override IEnumerable<Bucket> GetAll()
-            {
-                return _buckets;
-            }
+                => _buckets;
         }
 
         private sealed class HashBucket : Bucket
@@ -961,14 +939,10 @@ namespace Roslyn.Collections.Immutable
             }
 
             internal override IEnumerable<Bucket> GetAll()
-            {
-                return _buckets;
-            }
+                => _buckets;
 
             private bool IsInUse(int logicalSlot)
-            {
-                return ((1 << logicalSlot) & _used) != 0;
-            }
+                => ((1 << logicalSlot) & _used) != 0;
 
             private int ComputeLogicalSlot(int hc)
             {
@@ -1036,39 +1010,25 @@ namespace Roslyn.Collections.Immutable
         #region IImmutableDictionary<TKey,TValue> Members
 
         IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.Clear()
-        {
-            return this.Clear();
-        }
+            => this.Clear();
 
         IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.Add(TKey key, TValue value)
-        {
-            return this.Add(key, value);
-        }
+            => this.Add(key, value);
 
         IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.SetItem(TKey key, TValue value)
-        {
-            return this.SetItem(key, value);
-        }
+            => this.SetItem(key, value);
 
         IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.SetItems(IEnumerable<KeyValuePair<TKey, TValue>> items)
-        {
-            return this.SetItems(items);
-        }
+            => this.SetItems(items);
 
         IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.AddRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
-        {
-            return this.AddRange(pairs);
-        }
+            => this.AddRange(pairs);
 
         IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.RemoveRange(IEnumerable<TKey> keys)
-        {
-            return this.RemoveRange(keys);
-        }
+            => this.RemoveRange(keys);
 
         IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.Remove(TKey key)
-        {
-            return this.Remove(key);
-        }
+            => this.Remove(key);
 
         #endregion
 
@@ -1162,7 +1122,7 @@ namespace Roslyn.Collections.Immutable
 
         private static class Strings
         {
-            public static string DuplicateKey => Resources.An_element_with_the_same_key_but_a_different_value_already_exists;
+            public static string DuplicateKey => CompilerExtensionsResources.An_element_with_the_same_key_but_a_different_value_already_exists;
         }
     }
 }

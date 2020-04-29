@@ -15,10 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             OperatorDeclarationSyntax operatorDeclaration,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(operatorDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(operatorDeclaration, spans, isMetadataAsSource);
 
             // fault tolerance
             if (operatorDeclaration.Body == null ||
@@ -28,9 +29,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
+            SyntaxNodeOrToken current = operatorDeclaration;
+            var nextSibling = current.GetNextSibling();
+
+            // Check IsNode to compress blank lines after this node if it is the last child of the parent.
+            //
+            // Whitespace between operators is collapsed in Metadata as Source.
+            var compressEmptyLines = isMetadataAsSource
+                && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.OperatorDeclaration));
+
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 operatorDeclaration,
                 operatorDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
+                compressEmptyLines: compressEmptyLines,
                 autoCollapse: true,
                 type: BlockTypes.Member,
                 isCollapsible: true));

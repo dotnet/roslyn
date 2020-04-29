@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -25,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private int _recursionDepth;
 
-        public override void Visit(SyntaxNode node)
+        public override void Visit(SyntaxNode? node)
         {
             if (node != null)
             {
@@ -101,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.Depth >= SyntaxWalkerDepth.StructuredTrivia && trivia.HasStructure)
             {
-                this.Visit((CSharpSyntaxNode)trivia.GetStructure());
+                this.Visit((CSharpSyntaxNode)trivia.GetStructure()!);
             }
         }
     }

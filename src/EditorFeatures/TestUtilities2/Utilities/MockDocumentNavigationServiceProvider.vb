@@ -19,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         Private _instance As MockDocumentNavigationService = New MockDocumentNavigationService()
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

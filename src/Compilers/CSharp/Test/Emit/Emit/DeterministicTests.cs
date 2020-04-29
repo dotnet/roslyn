@@ -203,6 +203,12 @@ namespace N
         [MemberData(nameof(PdbFormats))]
         public void CompareAllBytesEmitted_Release(DebugInformationFormat pdbFormat)
         {
+            // Disable for PDB due to flakiness https://github.com/dotnet/roslyn/issues/41626
+            if (pdbFormat == DebugInformationFormat.Pdb)
+            {
+                return;
+            }
+
             var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
             var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
             AssertEx.Equal(result1.pe, result2.pe);
@@ -220,10 +226,16 @@ namespace N
         }
 
         [WorkItem(926, "https://github.com/dotnet/roslyn/issues/926")]
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/41626")]
+        [Theory]
         [MemberData(nameof(PdbFormats))]
         public void CompareAllBytesEmitted_Debug(DebugInformationFormat pdbFormat)
         {
+            // Disable for PDB due to flakiness https://github.com/dotnet/roslyn/issues/41626
+            if (pdbFormat == DebugInformationFormat.Pdb)
+            {
+                return;
+            }
+
             var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
             var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
             AssertEx.Equal(result1.pe, result2.pe);

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
-    using static WorkspacesResources;
+    using static FeaturesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
     internal partial class RegexEmbeddedCompletionProvider : CompletionProvider
@@ -33,12 +32,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));
 
-        private readonly RegexEmbeddedLanguageFeatures _language;
+        private readonly RegexEmbeddedLanguage _language;
 
-        public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguageFeatures language)
-        {
-            _language = language;
-        }
+        public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language)
+            => _language = language;
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
@@ -113,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 properties.Add(LengthKey, textChange.Span.Length.ToString());
                 properties.Add(NewTextKey, textChange.NewText);
                 properties.Add(DescriptionKey, embeddedItem.FullDescription);
-                properties.Add(EmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
+                properties.Add(AbstractEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
 
                 if (change.NewPosition != null)
                 {
@@ -213,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // see if we have ```\p{```.  If so, offer property categories. This isn't handled 
             // in the above switch because when you just have an incomplete `\p{` then the `{` 
             // will be handled as a normal character and won't have a token for it.
-            if (previousVirtualChar.Char == '{')
+            if (previousVirtualChar == '{')
             {
                 ProvideOpenBraceCompletions(context, context.Tree, previousVirtualChar);
                 return;
@@ -262,8 +259,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             var index = tree.Text.IndexOf(previousVirtualChar);
             if (index >= 2 &&
-                tree.Text[index - 2].Char == '\\' &&
-                tree.Text[index - 1].Char == 'p')
+                tree.Text[index - 2] == '\\' &&
+                tree.Text[index - 1] == 'p')
             {
                 var slashChar = tree.Text[index - 1];
                 var result = FindToken(tree.Root, slashChar);
@@ -472,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             return Task.FromResult(CompletionChange.Create(
                 new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText),
-                newPositionString == null ? default(int?) : int.Parse(newPositionString)));
+                newPositionString == null ? (int?)null : int.Parse(newPositionString)));
         }
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)

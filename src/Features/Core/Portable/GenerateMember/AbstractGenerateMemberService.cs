@@ -115,6 +115,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 {
                     DetermineTypeToGenerateInWorker(
                         semanticModel, beforeDotExpression, out typeToGenerateIn, out isStatic, cancellationToken);
+                    if (typeToGenerateIn.IsNullable(out var underlyingType) &&
+                        underlyingType is INamedTypeSymbol underlyingNamedType)
+                    {
+                        typeToGenerateIn = underlyingNamedType;
+                    }
                 }
 
                 return;

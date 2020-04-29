@@ -72,9 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         }
 
         private void OnPackageSourcesChanged(object sender, EventArgs e)
-        {
-            StartWorking();
-        }
+            => StartWorking();
 
         protected override void StartWorking()
         {

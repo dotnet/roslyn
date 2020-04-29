@@ -33,9 +33,9 @@ class B
         var j = someInt + A.{|caret:|}{|reference:someInt|};
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunFindAllReferencesAsync(solution, locations["caret"].First(), true);
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First(), true);
             AssertLocationsEqual(locations["reference"], results);
         }
 
@@ -59,9 +59,9 @@ class B
         var j = someInt + A.{|caret:|}{|reference:someInt|};
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunFindAllReferencesAsync(solution, locations["caret"].First(), false);
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First(), false);
             AssertLocationsEqual(locations["reference"], results);
         }
 
@@ -86,9 +86,10 @@ class B
     }
 }"
             };
-            var (solution, locations) = CreateTestSolution(markups);
 
-            var results = await RunFindAllReferencesAsync(solution, locations["caret"].First(), true);
+            using var workspace = CreateTestWorkspace(markups, out var locations);
+
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First(), true);
             AssertLocationsEqual(locations["reference"], results);
         }
 
@@ -100,9 +101,9 @@ class B
 {
     {|caret:|}
 }";
-            var (solution, ranges) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunFindAllReferencesAsync(solution, ranges["caret"].First(), true);
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First(), true);
             Assert.Empty(results);
         }
 

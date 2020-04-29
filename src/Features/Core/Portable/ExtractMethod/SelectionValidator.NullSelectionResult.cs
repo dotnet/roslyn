@@ -22,24 +22,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             protected override bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
-            {
-                throw new InvalidOperationException();
-            }
+                => throw new InvalidOperationException();
 
             public override bool ContainingScopeHasAsyncKeyword()
-            {
-                throw new InvalidOperationException();
-            }
+                => throw new InvalidOperationException();
 
             public override SyntaxNode GetContainingScope()
-            {
-                throw new InvalidOperationException();
-            }
+                => throw new InvalidOperationException();
 
             public override ITypeSymbol GetContainingScopeType()
-            {
-                throw new InvalidOperationException();
-            }
+                => throw new InvalidOperationException();
         }
 
         protected class ErrorSelectionResult : NullSelectionResult

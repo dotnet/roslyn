@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
+    using static CSharpInferredMemberNameSimplifier;
+
     internal partial class CSharpInferredMemberNameReducer
     {
         private class Rewriter : AbstractReductionRewriter

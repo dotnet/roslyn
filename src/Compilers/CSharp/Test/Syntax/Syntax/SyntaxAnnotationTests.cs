@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCopyAnnotationToNullSyntaxNode()
         {
             var fromNode = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot();
-            var toNode = default(SyntaxNode);
+            var toNode = (SyntaxNode)null;
             var annotatedNode = fromNode.CopyAnnotationsTo(toNode);
             Assert.Null(annotatedNode);
         }

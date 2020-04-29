@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 title: new LocalizableResourceString(nameof(FeaturesResources.Dispose_objects_before_losing_scope), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Disposable_object_created_by_0_is_never_disposed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 description: new LocalizableResourceString(nameof(FeaturesResources.UseRecommendedDisposePatternDescription), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                isUnneccessary: false,
+                isUnnecessary: false,
                 isEnabledByDefault: isEnabledByDefault);
 
         private static DiagnosticDescriptor CreateUseRecommendedDisposePatternRule(bool isEnabledByDefault)
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 title: new LocalizableResourceString(nameof(FeaturesResources.Use_recommended_dispose_pattern), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 description: new LocalizableResourceString(nameof(FeaturesResources.UseRecommendedDisposePatternDescription), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                isUnneccessary: false,
+                isUnnecessary: false,
                 isEnabledByDefault: isEnabledByDefault);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
@@ -117,37 +117,30 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 out var disposeAnalysisResult, out var pointsToAnalysisResult,
                 interproceduralAnalysisPredicateOpt))
             {
-                var notDisposedDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
-                var mayBeNotDisposedDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
-                try
+                using var _1 = ArrayBuilder<Diagnostic>.GetInstance(out var notDisposedDiagnostics);
+                using var _2 = ArrayBuilder<Diagnostic>.GetInstance(out var mayBeNotDisposedDiagnostics);
+
+                // Compute diagnostics for undisposed objects at exit block.
+                var exitBlock = disposeAnalysisResult.ControlFlowGraph.ExitBlock();
+                var disposeDataAtExit = disposeAnalysisResult.ExitBlockOutput.Data;
+                ComputeDiagnostics(disposeDataAtExit, notDisposedDiagnostics, mayBeNotDisposedDiagnostics,
+                    disposeAnalysisResult, pointsToAnalysisResult);
+
+                if (disposeAnalysisResult.ControlFlowGraph.OriginalOperation.HasAnyOperationDescendant(o => o.Kind == OperationKind.None))
                 {
-                    // Compute diagnostics for undisposed objects at exit block.
-                    var exitBlock = disposeAnalysisResult.ControlFlowGraph.ExitBlock();
-                    var disposeDataAtExit = disposeAnalysisResult.ExitBlockOutput.Data;
-                    ComputeDiagnostics(disposeDataAtExit, notDisposedDiagnostics, mayBeNotDisposedDiagnostics,
-                        disposeAnalysisResult, pointsToAnalysisResult);
-
-                    if (disposeAnalysisResult.ControlFlowGraph.OriginalOperation.HasAnyOperationDescendant(o => o.Kind == OperationKind.None))
-                    {
-                        // Workaround for https://github.com/dotnet/roslyn/issues/32100
-                        // Bail out in presence of OperationKind.None - not implemented IOperation.
-                        return;
-                    }
-
-                    // Report diagnostics preferring *not* disposed diagnostics over may be not disposed diagnostics
-                    // and avoiding duplicates.
-                    foreach (var diagnostic in notDisposedDiagnostics.Concat(mayBeNotDisposedDiagnostics))
-                    {
-                        if (reportedLocations.TryAdd(diagnostic.Location, true))
-                        {
-                            operationBlockContext.ReportDiagnostic(diagnostic);
-                        }
-                    }
+                    // Workaround for https://github.com/dotnet/roslyn/issues/32100
+                    // Bail out in presence of OperationKind.None - not implemented IOperation.
+                    return;
                 }
-                finally
+
+                // Report diagnostics preferring *not* disposed diagnostics over may be not disposed diagnostics
+                // and avoiding duplicates.
+                foreach (var diagnostic in notDisposedDiagnostics.Concat(mayBeNotDisposedDiagnostics))
                 {
-                    notDisposedDiagnostics.Free();
-                    mayBeNotDisposedDiagnostics.Free();
+                    if (reportedLocations.TryAdd(diagnostic.Location, true))
+                    {
+                        operationBlockContext.ReportDiagnostic(diagnostic);
+                    }
                 }
             }
 

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
@@ -80,7 +81,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Protected Overridable Sub Dispose(disposing As Boolean)
             If Not disposing Then
-                Environment.FailFast("TestWorkspaceAndFileModelCodel GC'd without call to Dispose()!")
+                FailFast.Fail("TestWorkspaceAndFileModelCodel GC'd without call to Dispose()!")
             End If
 
             If Not Me._disposedValue Then

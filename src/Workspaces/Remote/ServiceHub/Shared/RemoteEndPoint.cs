@@ -10,11 +10,9 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.VisualStudio.Telemetry;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class RemoteEndPoint : IDisposable
     {
-        const string UnexpectedExceptionLogMessage = "Unexpected exception from JSON-RPC";
+        private const string UnexpectedExceptionLogMessage = "Unexpected exception from JSON-RPC";
 
         private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
         {
@@ -37,11 +35,6 @@ namespace Microsoft.CodeAnalysis.Remote
             // Only allow public methods (may be on internal types) to be invoked remotely.
             AllowNonPublicInvocation = false
         };
-
-        // these are for debugging purpose. once we find out root cause of the issue
-        // we will remove these.
-        private static JsonRpcDisconnectedEventArgs? s_debuggingLastDisconnectReason;
-        private static string? s_debuggingLastDisconnectCallstack;
 
         private readonly TraceSource _logger;
         private readonly JsonRpc _rpc;
@@ -139,10 +132,12 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Invokes a remote method <paramref name="targetName"/> with specified <paramref name="arguments"/> and 
-        /// establishes a pipe through which the target method may transfer large binary data.
-        /// The name of the pipe is passed to the target method as an additional argument following the specified <paramref name="arguments"/>.
-        /// The target method is expected to use <see cref="WriteDataToNamedPipeAsync"/> to write the data to the pipe stream.
+        /// Invokes a remote method <paramref name="targetName"/> with specified <paramref name="arguments"/> and
+        /// establishes a pipe through which the target method may transfer large binary data. The name of the pipe is
+        /// passed to the target method as an additional argument following the specified <paramref name="arguments"/>.
+        /// The target method is expected to use
+        /// <see cref="WriteDataToNamedPipeAsync{TData}(string, TData, Func{Stream, TData, CancellationToken, Task}, CancellationToken)"/>
+        /// to write the data to the pipe stream.
         /// </summary>
         public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
         {
@@ -190,7 +185,15 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static async Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, Func<ObjectWriter, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)
+        public static Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, Func<ObjectWriter, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)
+            => WriteDataToNamedPipeAsync(pipeName, data,
+                async (stream, data, cancellationToken) =>
+                {
+                    using var objectWriter = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
+                    await dataWriter(objectWriter, data, cancellationToken).ConfigureAwait(false);
+                }, cancellationToken);
+
+        public static async Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, Func<Stream, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)
         {
             const int BufferSize = 4 * 1024;
 
@@ -215,11 +218,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Transfer ownership of the pipe to BufferedStream, it will dispose it:
                 using var stream = new BufferedStream(pipe, BufferSize);
 
-                using (var objectWriter = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
-                {
-                    await dataWriter(objectWriter, data, cancellationToken).ConfigureAwait(false);
-                }
-
+                await dataWriter(stream, data, cancellationToken).ConfigureAwait(false);
                 await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception) when (cancellationToken.IsCancellationRequested)
@@ -315,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return true;
             }
 
-            ReportNonFatalWatson(ex, UnexpectedExceptionLogMessage);
+            ReportNonFatalWatson(ex);
             return true;
         }
 
@@ -323,76 +322,15 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (!cancellationToken.IsCancellationRequested)
             {
-                ReportNonFatalWatson(ex, UnexpectedExceptionLogMessage);
+                ReportNonFatalWatson(ex);
             }
 
             return true;
         }
 
-        private void ReportNonFatalWatson(Exception ex, string message)
+        private void ReportNonFatalWatson(Exception exception)
         {
-            s_debuggingLastDisconnectReason = _debuggingLastDisconnectReason;
-            s_debuggingLastDisconnectCallstack = _debuggingLastDisconnectCallstack;
-
-            ReportNonFatalWatsonWithServiceHubLogs(ex, message);
-        }
-
-        public static void ReportNonFatalWatsonWithServiceHubLogs(Exception ex, string message)
-        {
-            WatsonReporter.Report(message, ex, AddServiceHubLogFiles, WatsonSeverity.Critical);
-        }
-
-        /// <summary>
-        /// Use in an exception filter on the receiving end of a remote call to report a non-fatal Watson for the exception thrown by the method being called remotely.
-        /// </summary>
-        public bool ReportAndPropagateUnexpectedException(Exception ex, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
-        {
-            // The exception is unexpected unless it's a cancelation exception and the cancelation is requested on the current token.
-            if (!(ex is OperationCanceledException && cancellationToken.IsCancellationRequested))
-            {
-                var logMessage = "Unexpected exception from " + callerName;
-                LogError($"{logMessage}: {ex}");
-                ReportNonFatalWatson(ex, logMessage);
-            }
-
-            return false;
-        }
-
-        private static int AddServiceHubLogFiles(IFaultUtility faultUtility)
-        {
-            // 0 means send watson, otherwise, cancel watson
-            // we always send watson since dump itself can have valuable data
-            var exitCode = 0;
-
-            try
-            {
-                var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
-                if (!Directory.Exists(logPath))
-                {
-                    return exitCode;
-                }
-
-                // attach all log files that are modified less than 1 day before.
-                var now = DateTime.UtcNow;
-                var oneDay = TimeSpan.FromDays(1);
-
-                foreach (var file in Directory.EnumerateFiles(logPath, "*.log"))
-                {
-                    var lastWrite = File.GetLastWriteTimeUtc(file);
-                    if (now - lastWrite > oneDay)
-                    {
-                        continue;
-                    }
-
-                    faultUtility.AddFile(file);
-                }
-            }
-            catch (Exception)
-            {
-                // it is okay to fail on reporting watson
-            }
-
-            return exitCode;
+            FatalError.ReportWithoutCrash(exception);
         }
 
         private SoftCrashException CreateSoftCrashException(Exception ex, CancellationToken cancellationToken)
@@ -414,9 +352,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         private void LogError(string message)
-        {
-            _logger.TraceEvent(TraceEventType.Error, 1, message);
-        }
+            => _logger.TraceEvent(TraceEventType.Error, 1, message);
 
         private void LogDisconnectInfo(JsonRpcDisconnectedEventArgs? e, string? callstack)
         {

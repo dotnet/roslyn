@@ -80,9 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             public abstract void GetDescription(out string pBstr);
 
             public void GetUnitType(out Guid pClsid, out int plID)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public void OnNextAdd()
             {
@@ -115,9 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             public override void GetDescription(out string pBstr)
-            {
-                pBstr = string.Format(ServicesVSResources.Uninstall_0, packageName);
-            }
+                => pBstr = string.Format(ServicesVSResources.Uninstall_0, packageName);
         }
 
         private class InstallPackageUndoUnit : BaseUndoUnit
@@ -138,9 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             public override void GetDescription(out string pBstr)
-            {
-                pBstr = string.Format(ServicesVSResources.Install_0, packageName);
-            }
+                => pBstr = string.Format(ServicesVSResources.Install_0, packageName);
 
             public override void Do(IOleUndoManager pUndoManager)
             {

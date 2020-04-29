@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     <[UseExportProvider]>
     Public MustInherit Class AbstractSimplificationTests
 
-        Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional options As Dictionary(Of OptionKey, Object) = Nothing, Optional csharpParseOptions As CSharpParseOptions = Nothing) As System.Threading.Tasks.Task
+        Private Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional options As Dictionary(Of OptionKey2, Object) = Nothing, Optional csharpParseOptions As CSharpParseOptions = Nothing) As System.Threading.Tasks.Task
             Using workspace = TestWorkspace.Create(definition)
                 Dim finalWorkspace = workspace
 
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             End Using
         End Function
 
-        Protected Async Function TestAsync(workspace As TestWorkspace, expected As XElement, Optional options As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task
+        Private Protected Async Function TestAsync(workspace As TestWorkspace, expected As XElement, Optional options As Dictionary(Of OptionKey2, Object) = Nothing) As System.Threading.Tasks.Task
             Dim hostDocument = workspace.Documents.Single()
 
             Dim spansToAddSimplifierAnnotation = hostDocument.AnnotatedSpans.Where(Function(kvp) kvp.Key.StartsWith("Simplify", StringComparison.Ordinal))
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                          listOfLabelToAddSimplifierAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, ImmutableArray(Of TextSpan))),
                          explicitSpansToSimplifyWithin As ImmutableArray(Of TextSpan),
                          expected As XElement,
-                         options As Dictionary(Of OptionKey, Object)) As System.Threading.Tasks.Task
+                         options As Dictionary(Of OptionKey2, Object)) As System.Threading.Tasks.Task
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
 
             Dim root = Await document.GetSyntaxRootAsync()

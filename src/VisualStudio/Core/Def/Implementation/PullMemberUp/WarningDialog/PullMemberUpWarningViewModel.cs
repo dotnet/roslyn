@@ -16,9 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
         public string ProblemsListViewAutomationText => ServicesVSResources.Review_Changes;
 
         public PullMemberUpWarningViewModel(PullMembersUpOptions options)
-        {
-            WarningMessageContainer = GenerateMessage(options);
-        }
+            => WarningMessageContainer = GenerateMessage(options);
 
         private ImmutableArray<string> GenerateMessage(PullMembersUpOptions options)
         {

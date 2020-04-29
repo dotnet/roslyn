@@ -6,14 +6,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+
+#if DEBUG
+using System.Diagnostics;
+#endif
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -27,12 +29,12 @@ namespace Microsoft.CodeAnalysis.Remote
         public readonly Workspace Workspace;
         public event EventHandler<bool>? StatusChanged;
 
-        private readonly IRemotableDataService _remoteDataService;
+        internal readonly IRemotableDataService RemotableDataService;
 
         protected RemoteHostClient(Workspace workspace)
         {
             Workspace = workspace;
-            _remoteDataService = workspace.Services.GetRequiredService<IRemotableDataService>();
+            RemotableDataService = workspace.Services.GetRequiredService<IRemotableDataService>();
         }
 
         /// <summary>
@@ -64,19 +66,13 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public virtual void Dispose()
-        {
-            OnStatusChanged(started: false);
-        }
+            => OnStatusChanged(started: false);
 
         private void OnStatusChanged(bool started)
-        {
-            StatusChanged?.Invoke(this, started);
-        }
+            => StatusChanged?.Invoke(this, started);
 
         public static string CreateClientId(string prefix)
-        {
-            return $"VS ({prefix}) ({Guid.NewGuid()})";
-        }
+            => $"VS ({prefix}) ({Guid.NewGuid()})";
 
         public static Task<RemoteHostClient?> TryGetClientAsync(Project project, CancellationToken cancellationToken)
         {
@@ -121,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return false;
             }
 
-            await RunRemoteAsync(connection, _remoteDataService, targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
+            await RunRemoteAsync(connection, RemotableDataService, targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
             return true;
         }
 
@@ -136,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return default;
             }
 
-            return await RunRemoteAsync<T>(connection, _remoteDataService, targetName, solution, arguments, dataReader, cancellationToken).ConfigureAwait(false);
+            return await RunRemoteAsync<T>(connection, RemotableDataService, targetName, solution, arguments, dataReader, cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task RunRemoteAsync(Connection connection, IRemotableDataService remoteDataService, string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
@@ -201,9 +197,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public override bool IsRemoteHost64Bit => false;
 
             public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
-            {
-                return SpecializedTasks.Null<Connection>();
-            }
+                => SpecializedTasks.Null<Connection>();
 
             protected override void OnStarted()
             {

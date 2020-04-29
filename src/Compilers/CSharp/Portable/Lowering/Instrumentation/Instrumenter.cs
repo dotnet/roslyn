@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+#nullable enable
+
 using System.Diagnostics;
-using System;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Return a node that is associated with open brace of the block. Ok to return null.
         /// </summary>
-        public virtual BoundStatement CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol synthesizedLocal)
+        public virtual BoundStatement? CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol? synthesizedLocal)
         {
             synthesizedLocal = null;
             return null;
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Return a node that is associated with close brace of the block. Ok to return null.
         /// </summary>
-        public virtual BoundStatement CreateBlockEpilogue(BoundBlock original)
+        public virtual BoundStatement? CreateBlockEpilogue(BoundBlock original)
         {
             return null;
         }
@@ -130,7 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ifConditionGotoStart;
         }
 
-        public virtual BoundStatement InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement collectionVarDecl)
+        [return: NotNullIfNotNull("collectionVarDecl")]
+        public virtual BoundStatement? InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement? collectionVarDecl)
         {
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax is CommonForEachStatementSyntax);

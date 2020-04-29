@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         }
 
         internal override ISignatureHelpProvider CreateSignatureHelpProvider()
-        {
-            return new GenericNameSignatureHelpProvider();
-        }
+            => new GenericNameSignatureHelpProvider();
 
         #region "Declaring generic type objects"
 

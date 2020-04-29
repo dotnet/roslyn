@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LegacyCodeAnalysisVisualStudioDiagnosticListSuppressionStateServiceAccessor(IVisualStudioDiagnosticListSuppressionStateService implementation)
-        {
-            _implementation = implementation;
-        }
+            => _implementation = implementation;
 
         public bool CanSuppressSelectedEntries => _implementation.CanSuppressSelectedEntries;
         public bool CanSuppressSelectedEntriesInSource => _implementation.CanSuppressSelectedEntriesInSource;

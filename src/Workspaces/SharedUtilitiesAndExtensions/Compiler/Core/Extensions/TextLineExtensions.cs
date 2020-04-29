@@ -46,14 +46,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// whitespace.
         /// </summary>
         public static int? GetFirstNonWhitespaceOffset(this TextLine line)
-        {
-            return line.ToString().GetFirstNonWhitespaceOffset();
-        }
+            => line.ToString().GetFirstNonWhitespaceOffset();
 
         public static string GetLeadingWhitespace(this TextLine line)
-        {
-            return line.ToString().GetLeadingWhitespace();
-        }
+            => line.ToString().GetLeadingWhitespace();
 
         /// <summary>
         /// Determines whether the specified line is empty or contains whitespace only.
@@ -74,18 +70,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static int GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(this TextLine line, int tabSize)
-        {
-            return line.ToString().GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);
-        }
+            => line.ToString().GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);
 
         public static int GetColumnFromLineOffset(this TextLine line, int lineOffset, int tabSize)
-        {
-            return line.ToString().GetColumnFromLineOffset(lineOffset, tabSize);
-        }
+            => line.ToString().GetColumnFromLineOffset(lineOffset, tabSize);
 
         public static int GetLineOffsetFromColumn(this TextLine line, int column, int tabSize)
-        {
-            return line.ToString().GetLineOffsetFromColumn(column, tabSize);
-        }
+            => line.ToString().GetLineOffsetFromColumn(column, tabSize);
     }
 }

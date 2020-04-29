@@ -12,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -29,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
     internal sealed class CSharpEditAndContinueAnalyzer : AbstractEditAndContinueAnalyzer
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpEditAndContinueAnalyzer()
         {
         }
@@ -123,9 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </returns>
         internal override SyntaxNode? TryGetDeclarationBody(SyntaxNode node, bool isMember)
         {
-            if (node.IsKind(SyntaxKind.VariableDeclarator))
+            if (node.IsKind(SyntaxKind.VariableDeclarator, out VariableDeclaratorSyntax? variableDeclarator))
             {
-                return ((VariableDeclaratorSyntax)node).Initializer?.Value;
+                return variableDeclarator.Initializer?.Value;
             }
 
             return SyntaxUtilities.TryGetMethodDeclarationBody(node);
@@ -346,9 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private static BlockPart GetStatementPart(BlockSyntax node, int position)
-        {
-            return position < node.OpenBraceToken.Span.End ? BlockPart.OpenBrace : BlockPart.CloseBrace;
-        }
+            => position < node.OpenBraceToken.Span.End ? BlockPart.OpenBrace : BlockPart.CloseBrace;
 
         private static TextSpan GetActiveSpan(BlockSyntax node, BlockPart part)
         {
@@ -416,9 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         protected override bool AreEquivalent(SyntaxNode left, SyntaxNode right)
-        {
-            return SyntaxFactory.AreEquivalent(left, right);
-        }
+            => SyntaxFactory.AreEquivalent(left, right);
 
         private static bool AreEquivalentIgnoringLambdaBodies(SyntaxNode left, SyntaxNode right)
         {
@@ -432,9 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         internal override SyntaxNode FindPartner(SyntaxNode leftRoot, SyntaxNode rightRoot, SyntaxNode leftNode)
-        {
-            return SyntaxUtilities.FindPartner(leftRoot, rightRoot, leftNode);
-        }
+            => SyntaxUtilities.FindPartner(leftRoot, rightRoot, leftNode);
 
         internal override SyntaxNode? FindPartnerInMemberInitializer(SemanticModel leftModel, INamedTypeSymbol leftType, SyntaxNode leftNode, INamedTypeSymbol rightType, CancellationToken cancellationToken)
         {
@@ -447,9 +441,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             SyntaxNode? rightEqualsClause;
-            if (leftEqualsClause.Parent.IsKind(SyntaxKind.PropertyDeclaration))
+            if (leftEqualsClause.Parent.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? leftDeclaration))
             {
-                var leftDeclaration = (PropertyDeclarationSyntax)leftEqualsClause.Parent;
                 var leftSymbol = leftModel.GetDeclaredSymbol(leftDeclaration, cancellationToken);
                 RoslynDebug.Assert(leftSymbol != null);
 
@@ -479,9 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         internal override bool IsClosureScope(SyntaxNode node)
-        {
-            return LambdaUtilities.IsClosureScope(node);
-        }
+            => LambdaUtilities.IsClosureScope(node);
 
         protected override SyntaxNode? FindEnclosingLambdaBody(SyntaxNode? container, SyntaxNode node)
         {
@@ -502,19 +493,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         protected override IEnumerable<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody)
-        {
-            return SpecializedCollections.SingletonEnumerable(lambdaBody);
-        }
+            => SpecializedCollections.SingletonEnumerable(lambdaBody);
 
         protected override SyntaxNode TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
-        {
-            return LambdaUtilities.TryGetCorrespondingLambdaBody(oldBody, newLambda);
-        }
+            => LambdaUtilities.TryGetCorrespondingLambdaBody(oldBody, newLambda);
 
         protected override Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)
-        {
-            return TopSyntaxComparer.Instance.ComputeMatch(oldCompilationUnit, newCompilationUnit);
-        }
+            => TopSyntaxComparer.Instance.ComputeMatch(oldCompilationUnit, newCompilationUnit);
 
         protected override Match<SyntaxNode> ComputeBodyMatch(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
         {
@@ -571,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             int statementPart,
             SyntaxNode oldBody,
             SyntaxNode newBody,
-            [NotNullWhen(true)]out SyntaxNode? newStatement)
+            [NotNullWhen(true)] out SyntaxNode? newStatement)
         {
             SyntaxUtilities.AssertIsBody(oldBody, allowLambda: true);
             SyntaxUtilities.AssertIsBody(newBody, allowLambda: true);
@@ -607,9 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         #region Syntax and Semantic Utils
 
         protected override IEnumerable<SequenceEdit> GetSyntaxSequenceEdits(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
-        {
-            return SyntaxComparer.GetSequenceEdits(oldNodes, newNodes);
-        }
+            => SyntaxComparer.GetSequenceEdits(oldNodes, newNodes);
 
         internal override SyntaxNode EmptyCompilationUnit
         {
@@ -629,14 +612,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => (suspensionPoint1 is CommonForEachStatementSyntax) ? suspensionPoint2 is CommonForEachStatementSyntax : suspensionPoint1.RawKind == suspensionPoint2.RawKind;
 
         protected override bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2)
-        {
-            return StatementSyntaxComparer.GetLabelImpl(node1) == StatementSyntaxComparer.GetLabelImpl(node2);
-        }
+            => StatementSyntaxComparer.GetLabelImpl(node1) == StatementSyntaxComparer.GetLabelImpl(node2);
 
         protected override bool TryGetEnclosingBreakpointSpan(SyntaxNode root, int position, out TextSpan span)
-        {
-            return BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out span);
-        }
+            => BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out span);
 
         protected override bool TryGetActiveSpan(SyntaxNode node, int statementPart, int minLength, out TextSpan span)
         {
@@ -780,10 +759,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // closing brace of a using statement or a block that contains using local declarations:
                     if (statementPart == 2)
                     {
-                        if (oldStatement.Parent.IsKind(SyntaxKind.UsingStatement))
+                        if (oldStatement.Parent.IsKind(SyntaxKind.UsingStatement, out UsingStatementSyntax? oldUsing))
                         {
-                            return newStatement.Parent.IsKind(SyntaxKind.UsingStatement) &&
-                                AreEquivalentActiveStatements((UsingStatementSyntax)oldStatement.Parent, (UsingStatementSyntax)newStatement.Parent);
+                            return newStatement.Parent.IsKind(SyntaxKind.UsingStatement, out UsingStatementSyntax? newUsing) &&
+                                AreEquivalentActiveStatements(oldUsing, newUsing);
                         }
 
                         return HasEquivalentUsingDeclarations((BlockSyntax)oldStatement, (BlockSyntax)newStatement);
@@ -877,9 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private static bool AreEquivalentActiveStatements(FixedStatementSyntax oldNode, FixedStatementSyntax newNode)
-        {
-            return AreEquivalentIgnoringLambdaBodies(oldNode.Declaration, newNode.Declaration);
-        }
+            => AreEquivalentIgnoringLambdaBodies(oldNode.Declaration, newNode.Declaration);
 
         private static bool AreEquivalentActiveStatements(UsingStatementSyntax oldNode, UsingStatementSyntax newNode)
         {
@@ -923,15 +900,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => node.IsKind(SyntaxKind.InterfaceDeclaration);
 
         internal override SyntaxNode? TryGetContainingTypeDeclaration(SyntaxNode node)
-        {
-            return node.Parent!.FirstAncestorOrSelf<TypeDeclarationSyntax>();
-        }
+            => node.Parent!.FirstAncestorOrSelf<TypeDeclarationSyntax>();
 
         internal override bool HasBackingField(SyntaxNode propertyOrIndexerDeclaration)
-        {
-            return propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration) &&
-                   SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)propertyOrIndexerDeclaration);
-        }
+            => propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? propertyDecl) &&
+               SyntaxUtilities.HasBackingField(propertyDecl);
 
         internal override bool IsDeclarationWithInitializer(SyntaxNode declaration)
         {
@@ -949,9 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         internal override bool IsConstructorWithMemberInitializers(SyntaxNode constructorDeclaration)
-        {
-            return constructorDeclaration is ConstructorDeclarationSyntax ctor && (ctor.Initializer == null || ctor.Initializer.IsKind(SyntaxKind.BaseConstructorInitializer));
-        }
+            => constructorDeclaration is ConstructorDeclarationSyntax ctor && (ctor.Initializer == null || ctor.Initializer.IsKind(SyntaxKind.BaseConstructorInitializer));
 
         internal override bool IsPartial(INamedTypeSymbol type)
         {
@@ -1059,9 +1030,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         internal override SyntaxNode? GetContainingQueryExpression(SyntaxNode node)
-        {
-            return node.FirstAncestorOrSelf<QueryExpressionSyntax>();
-        }
+            => node.FirstAncestorOrSelf<QueryExpressionSyntax>();
 
         internal override bool QueryClauseLambdasTypeEquivalent(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, CancellationToken cancellationToken)
         {
@@ -1495,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((SwitchExpressionSyntax)node).SwitchKeyword.Span;
 
                 default:
-                    return default;
+                    return null;
             }
         }
 
@@ -2148,19 +2117,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             private void ClassifyFieldInsert(BaseFieldDeclarationSyntax field)
-            {
-                ClassifyModifiedMemberInsert(field, field.Modifiers);
-            }
+                => ClassifyModifiedMemberInsert(field, field.Modifiers);
 
             private void ClassifyFieldInsert(VariableDeclaratorSyntax fieldVariable)
-            {
-                ClassifyFieldInsert((VariableDeclarationSyntax)fieldVariable.Parent!);
-            }
+                => ClassifyFieldInsert((VariableDeclarationSyntax)fieldVariable.Parent!);
 
             private void ClassifyFieldInsert(VariableDeclarationSyntax fieldVariable)
-            {
-                ClassifyFieldInsert((BaseFieldDeclarationSyntax)fieldVariable.Parent!);
-            }
+                => ClassifyFieldInsert((BaseFieldDeclarationSyntax)fieldVariable.Parent!);
 
             #endregion
 
@@ -3370,11 +3333,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static bool AreLabelsEquivalent(SwitchLabelSyntax oldLabel, SwitchLabelSyntax newLabel)
         {
-            if (oldLabel.IsKind(SyntaxKind.CasePatternSwitchLabel) && newLabel.IsKind(SyntaxKind.CasePatternSwitchLabel))
+            if (oldLabel.IsKind(SyntaxKind.CasePatternSwitchLabel, out CasePatternSwitchLabelSyntax? oldCasePatternLabel) &&
+                newLabel.IsKind(SyntaxKind.CasePatternSwitchLabel, out CasePatternSwitchLabelSyntax? newCasePatternLabel))
             {
-                var oldCasePatternLabel = (CasePatternSwitchLabelSyntax)oldLabel;
-                var newCasePatternLabel = (CasePatternSwitchLabelSyntax)newLabel;
-
                 // ignore the actual when expressions:
                 return SyntaxFactory.AreEquivalent(oldCasePatternLabel.Pattern, newCasePatternLabel.Pattern) &&
                        (oldCasePatternLabel.WhenClause != null) == (newCasePatternLabel.WhenClause != null);
@@ -3467,7 +3428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ReportUnmatchedStatements<UsingStatementSyntax>(
                 diagnostics,
                 match,
-                n => n.IsKind(SyntaxKind.UsingStatement) && ((UsingStatementSyntax)n).Declaration is null,
+                n => n.IsKind(SyntaxKind.UsingStatement, out UsingStatementSyntax? usingStatement) && usingStatement.Declaration is null,
                 oldActiveStatement,
                 newActiveStatement,
                 areEquivalent: AreEquivalentActiveStatements,
@@ -3484,9 +3445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private static bool DeclareSameIdentifiers(SeparatedSyntaxList<VariableDeclaratorSyntax> oldVariables, SeparatedSyntaxList<VariableDeclaratorSyntax> newVariables)
-        {
-            return DeclareSameIdentifiers(oldVariables.Select(v => v.Identifier).ToArray(), newVariables.Select(v => v.Identifier).ToArray());
-        }
+            => DeclareSameIdentifiers(oldVariables.Select(v => v.Identifier).ToArray(), newVariables.Select(v => v.Identifier).ToArray());
 
         private static bool DeclareSameIdentifiers(SyntaxToken[] oldVariables, SyntaxToken[] newVariables)
         {

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -12,6 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.References
     internal class CSharpLspFindUsagesService : RoslynFindUsagesService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpLspFindUsagesService(CSharpLspClientServiceFactory csharpLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
             : base(csharpLspClientServiceFactory, remoteLanguageServiceWorkspace)
         {
@@ -22,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.References
     internal class VBLspFindUsagesService : RoslynFindUsagesService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VBLspFindUsagesService(VisualBasicLspClientServiceFactory vbLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
             : base(vbLspClientServiceFactory, remoteLanguageServiceWorkspace)
         {

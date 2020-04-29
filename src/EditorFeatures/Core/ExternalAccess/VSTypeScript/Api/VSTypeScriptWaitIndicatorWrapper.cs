@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         private readonly IWaitIndicator _underlyingObject;
 
         public VSTypeScriptWaitIndicatorWrapper(IWaitIndicator underlyingObject)
-        {
-            _underlyingObject = underlyingObject;
-        }
+            => _underlyingObject = underlyingObject;
 
         public VSTypeScriptWaitIndicatorResult Wait(string title, string message, bool allowCancel, Action<VSTypeScriptWaitContextWrapper> action)
             => (VSTypeScriptWaitIndicatorResult)_underlyingObject.Wait(title, message, allowCancel, context => action(new VSTypeScriptWaitContextWrapper(context)));

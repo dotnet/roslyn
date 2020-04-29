@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
-    ''' Represents an floating literal token.
+    ''' Represents a floating literal token.
     ''' </summary>
     Friend NotInheritable Class FloatingLiteralTokenSyntax(Of T)
         Inherits FloatingLiteralTokenSyntax
@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
-    ''' Represents an floating literal token.
+    ''' Represents a floating literal token.
     ''' </summary>
     Friend MustInherit Class FloatingLiteralTokenSyntax
         Inherits SyntaxToken

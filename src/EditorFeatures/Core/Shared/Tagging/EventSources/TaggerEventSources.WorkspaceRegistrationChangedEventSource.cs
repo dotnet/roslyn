@@ -17,14 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             protected override void ConnectToWorkspace(Workspace workspace)
-            {
-                this.RaiseChanged();
-            }
+                => this.RaiseChanged();
 
             protected override void DisconnectFromWorkspace(Workspace workspace)
-            {
-                this.RaiseChanged();
-            }
+                => this.RaiseChanged();
         }
     }
 }

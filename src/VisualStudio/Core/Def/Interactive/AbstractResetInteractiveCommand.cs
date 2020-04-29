@@ -34,9 +34,7 @@ namespace Roslyn.VisualStudio.Services.Interactive
         }
 
         private object GetService(Type type)
-        {
-            return _serviceProvider.GetService(type);
-        }
+            => _serviceProvider.GetService(type);
 
         public void ExecuteResetInteractive()
         {
@@ -58,7 +56,7 @@ namespace Roslyn.VisualStudio.Services.Interactive
                 resetInteractive.ExecutionCompleted -= focusWindow;
             }
 
-            resetInteractive.Execute(vsInteractiveWindow.InteractiveWindow, LanguageName + " Interactive");
+            resetInteractive.ExecuteAsync(vsInteractiveWindow.InteractiveWindow, LanguageName + " Interactive");
             resetInteractive.ExecutionCompleted += focusWindow;
         }
     }

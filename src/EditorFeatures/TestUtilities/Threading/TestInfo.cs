@@ -14,9 +14,7 @@ namespace Roslyn.Test.Utilities
         public decimal Time { get; }
 
         public TestInfo(decimal time)
-        {
-            Time = time;
-        }
+            => Time = time;
 
         public static ImmutableDictionary<string, TestInfo> GetPassedTestsInfo()
         {

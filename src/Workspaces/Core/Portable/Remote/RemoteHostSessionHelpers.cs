@@ -6,11 +6,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -57,11 +55,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Connection = connection;
             _scope = scope;
-        }
-
-        public void AddAdditionalAssets(CustomAsset asset)
-        {
-            _scope.AddAdditionalAsset(asset);
         }
 
         public void Dispose()
@@ -172,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private void OnStatusChanged(object sender, bool started)
+        private void OnStatusChanged(object? sender, bool started)
         {
             if (started)
             {

@@ -19,18 +19,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var node in context.InputNodes)
             {
-                if (!(graphBuilder.GetSymbol(node) is INamedTypeSymbol namedType))
-                {
+                var symbol = graphBuilder.GetSymbol(node);
+                if (!(symbol is INamedTypeSymbol namedType))
                     continue;
-                }
 
                 if (namedType.TypeKind == TypeKind.Class)
                 {
-                    var derivedTypes = await DependentTypeFinder.FindImmediatelyDerivedClassesAsync(namedType, solution, cancellationToken).ConfigureAwait(false);
+                    var derivedTypes = await DependentTypeFinder.FindImmediatelyDerivedClassesAsync(
+                        namedType, solution, cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in derivedTypes)
                     {
-                        var symbolNode = await graphBuilder.AddNodeForSymbolAsync(
-                            derivedType.Symbol, relatedNode: node).ConfigureAwait(false);
+                        var symbolNode = await graphBuilder.AddNodeAsync(
+                            derivedType, relatedNode: node).ConfigureAwait(false);
                         graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node);
                     }
                 }
@@ -40,8 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         namedType, solution, cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in derivedTypes)
                     {
-                        var symbolNode = await graphBuilder.AddNodeForSymbolAsync(
-                            derivedType.Symbol, relatedNode: node).ConfigureAwait(false);
+                        var symbolNode = await graphBuilder.AddNodeAsync(
+                            derivedType, relatedNode: node).ConfigureAwait(false);
                         graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node);
                     }
                 }

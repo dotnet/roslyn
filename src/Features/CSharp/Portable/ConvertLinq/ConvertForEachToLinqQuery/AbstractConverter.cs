@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         public ForEachInfo<ForEachStatementSyntax, StatementSyntax> ForEachInfo { get; }
 
         public AbstractConverter(ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo)
-        {
-            ForEachInfo = forEachInfo;
-        }
+            => ForEachInfo = forEachInfo;
 
         public abstract void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken);
 

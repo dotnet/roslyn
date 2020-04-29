@@ -14,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Private Function GetElementAccessItems(leftExpression As ExpressionSyntax,
                                                semanticModel As SemanticModel,
-                                               symbolDisplayService As ISymbolDisplayService,
                                                anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                                within As ISymbol,
@@ -31,19 +30,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             Return accessibleDefaultProperties.Select(
-                Function(s) ConvertIndexer(s, leftExpression.SpanStart, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken))
+                Function(s) ConvertIndexer(s, leftExpression.SpanStart, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken))
         End Function
 
         Private Function ConvertIndexer(indexer As IPropertySymbol,
                                         position As Integer,
                                         semanticModel As SemanticModel,
-                                        symbolDisplayService As ISymbolDisplayService,
                                         anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                         documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                         cancellationToken As CancellationToken) As SignatureHelpItem
             Dim item = CreateItem(
                 indexer, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 indexer.IsParams(),
                 indexer.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetIndexerPreambleParts(indexer, semanticModel, position),

@@ -35,13 +35,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         public string GetDiagnosticID()
-        {
-            return _fix.PrimaryDiagnostic.GetTelemetryDiagnosticID();
-        }
+            => _fix.PrimaryDiagnostic.GetTelemetryDiagnosticID();
 
         protected override DiagnosticData GetDiagnostic()
-        {
-            return _fix.GetPrimaryDiagnosticData();
-        }
+            => _fix.GetPrimaryDiagnosticData();
     }
 }

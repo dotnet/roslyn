@@ -7,12 +7,6 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-#If CODE_STYLE Then
-Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-#Else
-Imports Microsoft.CodeAnalysis.Options
-#End If
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend Class NodeBasedFormattingRule
         Inherits BaseFormattingRule
@@ -20,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation),
                                                             node As SyntaxNode,
-                                                            optionSet As OptionSet,
                                                             ByRef nextOperation As NextAnchorIndentationOperationAction)
             nextOperation.Invoke()
 
@@ -55,7 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation),
                                                       node As SyntaxNode,
-                                                      optionSet As OptionSet,
                                                       ByRef nextOperation As NextIndentBlockOperationAction)
             nextOperation.Invoke()
 

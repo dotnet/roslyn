@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -212,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        public static bool IsInNamespaceOrTypeContext(ExpressionSyntax node)
+        public static bool IsInNamespaceOrTypeContext(ExpressionSyntax? node)
         {
             if (node != null)
             {
@@ -315,17 +318,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static bool IsFixedStatementExpression(SyntaxNode node)
         {
-            node = node.Parent;
+            var current = node.Parent;
             // Dig through parens because dev10 does (even though the spec doesn't say so)
             // Dig through casts because there's a special error code (CS0254) for such casts.
-            while (node != null && (node.IsKind(ParenthesizedExpression) || node.IsKind(CastExpression))) node = node.Parent;
-            if (node == null || !node.IsKind(EqualsValueClause)) return false;
-            node = node.Parent;
-            if (node == null || !node.IsKind(VariableDeclarator)) return false;
-            node = node.Parent;
-            if (node == null || !node.IsKind(VariableDeclaration)) return false;
-            node = node.Parent;
-            return node != null && node.IsKind(FixedStatement);
+            while (current != null && (current.IsKind(ParenthesizedExpression) || current.IsKind(CastExpression))) current = current.Parent;
+            if (current == null || !current.IsKind(EqualsValueClause)) return false;
+            current = current.Parent;
+            if (current == null || !current.IsKind(VariableDeclarator)) return false;
+            current = current.Parent;
+            if (current == null || !current.IsKind(VariableDeclaration)) return false;
+            current = current.Parent;
+            return current != null && current.IsKind(FixedStatement);
         }
 
         public static string GetText(Accessibility accessibility)
@@ -422,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.IsIdentifierVar() || IsPredefinedType(node.Kind);
         }
 
-        internal static bool IsDeclarationExpressionType(SyntaxNode node, out DeclarationExpressionSyntax parent)
+        internal static bool IsDeclarationExpressionType(SyntaxNode node, [NotNullWhen(true)] out DeclarationExpressionSyntax? parent)
         {
             parent = node.Parent as DeclarationExpressionSyntax;
             return node == parent?.Type;
@@ -432,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given an initializer expression infer the name of anonymous property or tuple element.
         /// Returns null if unsuccessful
         /// </summary>
-        public static string TryGetInferredMemberName(this SyntaxNode syntax)
+        public static string? TryGetInferredMemberName(this SyntaxNode syntax)
         {
             SyntaxToken nameToken;
             switch (syntax.Kind())
@@ -484,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool HasAnyBody(this BaseMethodDeclarationSyntax declaration)
         {
-            return (declaration.Body ?? (SyntaxNode)declaration.ExpressionBody) != null;
+            return (declaration.Body ?? (SyntaxNode?)declaration.ExpressionBody) != null;
         }
     }
 }

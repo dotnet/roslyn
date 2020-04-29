@@ -4,9 +4,8 @@
 
 #nullable enable
 
-using System.Collections.Generic;
-using System.Linq;
-using Roslyn.Utilities;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -17,16 +16,24 @@ namespace Microsoft.CodeAnalysis.Text
         /// Gets the documents from the corresponding workspace's current solution that are associated with the source text's container,
         /// updated to contain the same text as the source if necessary.
         /// </summary>
-        public static IEnumerable<Document> GetRelatedDocumentsWithChanges(this SourceText text)
+        public static ImmutableArray<Document> GetRelatedDocumentsWithChanges(this SourceText text)
         {
             if (Workspace.TryGetWorkspace(text.Container, out var workspace))
             {
-                var ids = workspace.GetRelatedDocumentIds(text.Container);
-                var sol = workspace.CurrentSolution.WithDocumentText(ids, text, PreservationMode.PreserveIdentity);
-                return ids.Select(id => sol.GetDocument(id)).WhereNotNull();
+                var documentId = workspace.GetDocumentIdInCurrentContext(text.Container);
+                if (documentId == null)
+                {
+                    return ImmutableArray<Document>.Empty;
+                }
+
+                var solution = workspace.CurrentSolution;
+
+                var relatedIds = solution.GetRelatedDocumentIds(documentId);
+                solution = solution.WithDocumentText(relatedIds, text, PreservationMode.PreserveIdentity);
+                return relatedIds.SelectAsArray((id, solution) => solution.GetRequiredDocument(id), solution);
             }
 
-            return SpecializedCollections.EmptyEnumerable<Document>();
+            return ImmutableArray<Document>.Empty;
         }
 
         /// <summary>
@@ -57,16 +64,20 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Gets the documents from the corresponding workspace's current solution that are associated with the text container. 
         /// </summary>
-        public static IEnumerable<Document> GetRelatedDocuments(this SourceTextContainer container)
+        public static ImmutableArray<Document> GetRelatedDocuments(this SourceTextContainer container)
         {
             if (Workspace.TryGetWorkspace(container, out var workspace))
             {
-                var sol = workspace.CurrentSolution;
-                var ids = workspace.GetRelatedDocumentIds(container);
-                return ids.Select(id => sol.GetDocument(id)).WhereNotNull();
+                var solution = workspace.CurrentSolution;
+                var documentId = workspace.GetDocumentIdInCurrentContext(container);
+                if (documentId != null)
+                {
+                    var relatedIds = solution.GetRelatedDocumentIds(documentId);
+                    return relatedIds.SelectAsArray((id, solution) => solution.GetRequiredDocument(id), solution);
+                }
             }
 
-            return SpecializedCollections.EmptyEnumerable<Document>();
+            return ImmutableArray<Document>.Empty;
         }
 
         /// <summary>

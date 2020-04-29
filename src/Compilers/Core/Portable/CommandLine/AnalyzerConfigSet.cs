@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -55,8 +58,13 @@ namespace Microsoft.CodeAnalysis
         {
             public static SequenceEqualComparer Instance { get; } = new SequenceEqualComparer();
 
-            public bool Equals(List<Section> x, List<Section> y)
+            public bool Equals([AllowNull] List<Section> x, [AllowNull] List<Section> y)
             {
+                if (x is null || y is null)
+                {
+                    return x is null && y is null;
+                }
+
                 if (x.Count != y.Count)
                 {
                     return false;
@@ -131,12 +139,9 @@ namespace Microsoft.CodeAnalysis
         {
             if (sourcePath == null)
             {
-                throw new System.ArgumentNullException(nameof(sourcePath));
+                throw new ArgumentNullException(nameof(sourcePath));
             }
 
-            var treeOptionsBuilder = _treeOptionsPool.Allocate();
-            var analyzerOptionsBuilder = _analyzerOptionsPool.Allocate();
-            var diagnosticBuilder = ArrayBuilder<Diagnostic>.GetInstance();
             var sectionKey = _sectionKeyPool.Allocate();
 
             var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
@@ -153,9 +158,7 @@ namespace Microsoft.CodeAnalysis
                     // to this source file.
                     if (config.IsRoot)
                     {
-                        analyzerOptionsBuilder.Clear();
-                        treeOptionsBuilder.Clear();
-                        diagnosticBuilder.Clear();
+                        sectionKey.Clear();
                     }
 
                     int dirLength = config.NormalizedDirectory.Length;
@@ -174,13 +177,6 @@ namespace Microsoft.CodeAnalysis
                         if (matchers[sectionIndex]?.IsMatch(relativePath) == true)
                         {
                             var section = config.NamedSections[sectionIndex];
-                            addOptions(
-                                section,
-                                treeOptionsBuilder,
-                                analyzerOptionsBuilder,
-                                diagnosticBuilder,
-                                config.PathToFile,
-                                _diagnosticIdCache);
                             sectionKey.Add(section);
                         }
                     }
@@ -191,10 +187,44 @@ namespace Microsoft.CodeAnalysis
             // exact same options
             if (!_optionsCache.TryGetValue(sectionKey, out var result))
             {
+                var treeOptionsBuilder = _treeOptionsPool.Allocate();
+                var analyzerOptionsBuilder = _analyzerOptionsPool.Allocate();
+                var diagnosticBuilder = ArrayBuilder<Diagnostic>.GetInstance();
+
+                int sectionKeyIndex = 0;
+                for (int analyzerConfigIndex = 0;
+                    analyzerConfigIndex < _analyzerConfigs.Length && sectionKeyIndex < sectionKey.Count;
+                    analyzerConfigIndex++)
+                {
+                    AnalyzerConfig config = _analyzerConfigs[analyzerConfigIndex];
+                    ImmutableArray<SectionNameMatcher?> matchers = _analyzerMatchers[analyzerConfigIndex];
+                    for (int matcherIndex = 0; matcherIndex < matchers.Length; matcherIndex++)
+                    {
+                        if (sectionKey[sectionKeyIndex] == config.NamedSections[matcherIndex])
+                        {
+                            addOptions(
+                                sectionKey[sectionKeyIndex],
+                                treeOptionsBuilder,
+                                analyzerOptionsBuilder,
+                                diagnosticBuilder,
+                                config.PathToFile,
+                                _diagnosticIdCache);
+                            sectionKeyIndex++;
+                            if (sectionKeyIndex == sectionKey.Count)
+                            {
+                                // Exit the inner 'for' loop now that work is done. The outer loop is handled by a
+                                // top-level condition.
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 result = new AnalyzerConfigOptionsResult(
                     treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : SyntaxTree.EmptyDiagnosticOptions,
                     analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
                     diagnosticBuilder.ToImmutableAndFree());
+
                 if (_optionsCache.TryAdd(sectionKey, result))
                 {
                     // Release the pooled object to be used as a key
@@ -204,16 +234,16 @@ namespace Microsoft.CodeAnalysis
                 {
                     freeKey(sectionKey, _sectionKeyPool);
                 }
+
+                treeOptionsBuilder.Clear();
+                analyzerOptionsBuilder.Clear();
+                _treeOptionsPool.Free(treeOptionsBuilder);
+                _analyzerOptionsPool.Free(analyzerOptionsBuilder);
             }
             else
             {
                 freeKey(sectionKey, _sectionKeyPool);
             }
-
-            treeOptionsBuilder.Clear();
-            analyzerOptionsBuilder.Clear();
-            _treeOptionsPool.Free(treeOptionsBuilder);
-            _analyzerOptionsPool.Free(analyzerOptionsBuilder);
 
             return result;
 

@@ -247,6 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.YieldReturnStatement:
                     case SyntaxKind.ReturnStatement:
                     case SyntaxKind.ThrowStatement:
+                    case SyntaxKind.GotoCaseStatement:
                         ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder);
                         break;
 

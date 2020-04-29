@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 {
     internal static class RemoteHostOptions
     {
-        public static readonly Option<bool> RemoteHostTest = new Option<bool>(
+        public static readonly Option2<bool> RemoteHostTest = new Option2<bool>(
             nameof(RemoteHostOptions), nameof(RemoteHostTest), defaultValue: false);
     }
 
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
     internal class RemoteHostOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteHostOptionsProvider()
         {
         }
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
     internal class InProcRemoteHostClientFactory : IRemoteHostClientFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InProcRemoteHostClientFactory()
         {
         }

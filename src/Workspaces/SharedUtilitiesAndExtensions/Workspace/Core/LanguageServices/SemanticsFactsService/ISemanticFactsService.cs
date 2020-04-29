@@ -121,6 +121,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             SemanticModel semanticModel, SyntaxNode location,
             SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
 
+        SyntaxToken GenerateUniqueName(string baseName, IEnumerable<string> usedNames);
+
         bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
     }
 }

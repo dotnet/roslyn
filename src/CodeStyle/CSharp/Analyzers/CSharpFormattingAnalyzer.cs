@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     internal class CSharpFormattingAnalyzer : AbstractFormattingAnalyzer
     {
         protected override ISyntaxFormattingService SyntaxFormattingService
-            => new CSharpSyntaxFormattingService();
+            => CSharpSyntaxFormattingService.Instance;
     }
 }

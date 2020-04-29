@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
         protected abstract bool IncludePrerelease { get; }
 
-        public override abstract FixAllProvider GetFixAllProvider();
+        public abstract override FixAllProvider GetFixAllProvider();
 
         protected async Task<ImmutableArray<CodeAction>> GetAddPackagesCodeActionsAsync(
             CodeFixContext context, ISet<string> assemblyNames)
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
                     var sortedPackages = await FindMatchingPackagesAsync(
                         packageSource, symbolSearchService,
-                        installerService, assemblyNames, cancellationToken).ConfigureAwait(false);
+                        assemblyNames, cancellationToken).ConfigureAwait(false);
 
                     foreach (var package in sortedPackages)
                     {
@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis.AddPackage
         private async Task<ImmutableArray<PackageWithAssemblyResult>> FindMatchingPackagesAsync(
             PackageSource source,
             ISymbolSearchService searchService,
-            IPackageInstallerService installerService,
             ISet<string> assemblyNames,
             CancellationToken cancellationToken)
         {

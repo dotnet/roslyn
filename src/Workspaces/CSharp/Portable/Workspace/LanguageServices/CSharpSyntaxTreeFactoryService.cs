@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
@@ -21,14 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly CSharpParseOptions _parseOptionWithLatestLanguageVersion = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpSyntaxTreeFactoryServiceFactory()
         {
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-        {
-            return new CSharpSyntaxTreeFactoryService(provider);
-        }
+            => new CSharpSyntaxTreeFactoryService(provider);
 
         private partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
         {
@@ -37,14 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override ParseOptions GetDefaultParseOptions()
-            {
-                return CSharpParseOptions.Default;
-            }
+                => CSharpParseOptions.Default;
 
             public override ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion()
-            {
-                return _parseOptionWithLatestLanguageVersion;
-            }
+                => _parseOptionWithLatestLanguageVersion;
 
             public override SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root, AnalyzerConfigOptionsResult analyzerConfigOptionsResult)
             {
@@ -66,9 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 => CSharpSyntaxNode.DeserializeFrom(stream, cancellationToken);
 
             public override bool CanCreateRecoverableTree(SyntaxNode root)
-            {
-                return base.CanCreateRecoverableTree(root) && root is CompilationUnitSyntax cu && cu.AttributeLists.Count == 0;
-            }
+                => base.CanCreateRecoverableTree(root) && root is CompilationUnitSyntax cu && cu.AttributeLists.Count == 0;
 
             public override SyntaxTree CreateRecoverableTree(
                 ProjectId cacheKey,

@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     this.CheckConstraintTypeConstraints(diagnostics);
                     this.CheckUnmanagedConstraint(diagnostics);
-                    this.CheckNullableAnnotationsInConstraints(diagnostics);
+                    this.EnsureAttributesFromConstraints(diagnostics);
                     this.AddDeclarationDiagnostics(diagnostics);
                     _state.NotePartComplete(CompletionPart.TypeParameterConstraints);
                 }
@@ -256,18 +256,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var corLibrary = this.ContainingAssembly.CorLibrary;
-            var conversions = new TypeConversions(corLibrary);
-            var location = _locations[0];
-
+            var args = new ConstraintsHelper.CheckConstraintsArgs(DeclaringCompilation, new TypeConversions(ContainingAssembly.CorLibrary), _locations[0], diagnostics);
             foreach (var constraintType in constraintTypes)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 constraintType.Type.AddUseSiteDiagnostics(ref useSiteDiagnostics);
 
-                if (!diagnostics.Add(location, useSiteDiagnostics))
+                if (!diagnostics.Add(args.Location, useSiteDiagnostics))
                 {
-                    constraintType.Type.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+                    constraintType.Type.CheckAllConstraints(args);
                 }
             }
         }
@@ -300,12 +297,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return modifyCompilation;
         }
 
-        private void CheckNullableAnnotationsInConstraints(DiagnosticBag diagnostics)
+        private void EnsureAttributesFromConstraints(DiagnosticBag diagnostics)
         {
+            if (ConstraintTypesNoUseSiteDiagnostics.Any(t => t.ContainsNativeInteger()))
+            {
+                DeclaringCompilation.EnsureNativeIntegerAttributeExists(diagnostics, getLocation(), ModifyCompilationForAttributeEmbedding());
+            }
             if (ConstraintsNeedNullableAttribute())
             {
-                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, this.GetNonNullSyntaxNode().Location, ModifyCompilationForAttributeEmbedding());
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, getLocation(), ModifyCompilationForAttributeEmbedding());
             }
+            Location getLocation() => this.GetNonNullSyntaxNode().Location;
         }
 
         // See https://github.com/dotnet/roslyn/blob/master/docs/features/nullable-metadata.md

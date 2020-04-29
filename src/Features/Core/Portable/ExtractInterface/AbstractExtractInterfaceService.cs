@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreateMethodSymbol(
                             attributes: ImmutableArray<AttributeData>.Empty,
                             accessibility: Accessibility.Public,
-                            modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: method.IsUnsafe()),
+                            modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: method.RequiresUnsafeModifier()),
                             returnType: method.ReturnType,
                             refKind: method.RefKind,
                             explicitInterfaceImplementations: default,
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
                             attributes: ImmutableArray<AttributeData>.Empty,
                             accessibility: Accessibility.Public,
-                            modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: property.IsUnsafe()),
+                            modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: property.RequiresUnsafeModifier()),
                             type: property.Type,
                             refKind: property.RefKind,
                             explicitInterfaceImplementations: default,

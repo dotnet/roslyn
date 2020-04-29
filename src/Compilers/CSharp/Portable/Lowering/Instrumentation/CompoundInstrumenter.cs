@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable enable
+
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -70,12 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentBreakStatement(original, rewritten);
         }
 
-        public override BoundStatement CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol synthesizedLocal)
+        public override BoundStatement? CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol? synthesizedLocal)
         {
             return Previous.CreateBlockPrologue(original, out synthesizedLocal);
         }
 
-        public override BoundStatement CreateBlockEpilogue(BoundBlock original)
+        public override BoundStatement? CreateBlockEpilogue(BoundBlock original)
         {
             return Previous.CreateBlockEpilogue(original);
         }
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentDoStatementConditionalGotoStart(original, ifConditionGotoStart);
         }
 
-        public override BoundStatement InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement collectionVarDecl)
+        public override BoundStatement? InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement? collectionVarDecl)
         {
             return Previous.InstrumentForEachStatementCollectionVarDeclaration(original, collectionVarDecl);
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -11,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public sealed class CompilationWithAnalyzersOptions
     {
-        private readonly AnalyzerOptions _options;
-        private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
-        private readonly Func<Exception, bool> _analyzerExceptionFilter;
+        private readonly AnalyzerOptions? _options;
+        private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic>? _onAnalyzerException;
+        private readonly Func<Exception, bool>? _analyzerExceptionFilter;
         private readonly bool _concurrentAnalysis;
         private readonly bool _logAnalyzerExecutionTime;
         private readonly bool _reportSuppressedDiagnostics;
@@ -21,17 +23,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Options passed to <see cref="DiagnosticAnalyzer"/>s.
         /// </summary>
-        public AnalyzerOptions Options => _options;
+        public AnalyzerOptions? Options => _options;
 
         /// <summary>
         /// An optional delegate to be invoked when an analyzer throws an exception.
         /// </summary>
-        public Action<Exception, DiagnosticAnalyzer, Diagnostic> OnAnalyzerException => _onAnalyzerException;
+        public Action<Exception, DiagnosticAnalyzer, Diagnostic>? OnAnalyzerException => _onAnalyzerException;
 
         /// <summary>
         /// An optional delegate to be invoked when an analyzer throws an exception as an exception filter.
         /// </summary>
-        public Func<Exception, bool> AnalyzerExceptionFilter => _analyzerExceptionFilter;
+        public Func<Exception, bool>? AnalyzerExceptionFilter => _analyzerExceptionFilter;
 
         /// <summary>
         /// Flag indicating whether analysis can be performed concurrently on multiple threads.
@@ -92,12 +94,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="logAnalyzerExecutionTime">Flag indicating whether analyzer execution time should be logged.</param>
         /// <param name="reportSuppressedDiagnostics">Flag indicating whether analyzer diagnostics with <see cref="Diagnostic.IsSuppressed"/> should be reported.</param>
         public CompilationWithAnalyzersOptions(
-            AnalyzerOptions options,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            AnalyzerOptions? options,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException,
             bool concurrentAnalysis,
             bool logAnalyzerExecutionTime,
             bool reportSuppressedDiagnostics,
-            Func<Exception, bool> analyzerExceptionFilter)
+            Func<Exception, bool>? analyzerExceptionFilter)
         {
             _options = options;
             _onAnalyzerException = onAnalyzerException;

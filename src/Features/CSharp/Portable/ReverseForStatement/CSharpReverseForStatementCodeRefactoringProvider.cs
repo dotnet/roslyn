@@ -26,6 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
     internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public CSharpReverseForStatementCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var forStatement = await context.TryGetRelevantNodeAsync<ForStatementSyntax>().ConfigureAwait(false);
@@ -97,26 +103,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
         private static bool ValueEquals(Optional<object> valueOpt, ulong value)
             => valueOpt.HasValue && IsIntegral(valueOpt.Value) && ToUInt64(valueOpt.Value) == value;
 
-        private static bool IsIntegral(object value)
-            => value switch
-            {
-                sbyte _ => true,
-                byte _ => true,
-                short _ => true,
-                ushort _ => true,
-                int _ => true,
-                uint _ => true,
-                long _ => true,
-                ulong _ => true,
-                _ => false,
-            };
-
         private bool MatchesIncrementPattern(
             VariableDeclaratorSyntax variable, BinaryExpressionSyntax condition, ExpressionSyntax after,
             [NotNullWhen(true)] out ExpressionSyntax? start, out bool equals, [NotNullWhen(true)] out ExpressionSyntax? end)
         {
             equals = default;
-            end = default;
+            end = null;
             return IsIncrementInitializer(variable, out start) &&
                    IsIncrementCondition(variable, condition, out equals, out end) &&
                    IsIncrementAfter(variable, after);
@@ -126,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             VariableDeclaratorSyntax variable, BinaryExpressionSyntax condition, ExpressionSyntax after,
             [NotNullWhen(true)] out ExpressionSyntax? end, [NotNullWhen(true)] out ExpressionSyntax? start)
         {
-            start = default;
+            start = null;
             return IsDecrementInitializer(variable, out end) &&
                    IsDecrementCondition(variable, condition, out start) &&
                    IsDecrementAfter(variable, after);
@@ -160,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
                 return IsVariableReference(variable, condition.Right);
             }
 
-            end = default;
+            end = null;
             equals = default;
             return false;
         }
@@ -224,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
                 return IsVariableReference(variable, condition.Right);
             }
 
-            start = default;
+            start = null;
             return false;
         }
 

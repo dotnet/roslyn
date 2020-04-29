@@ -26,8 +26,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private struct DefinitionProject
         {
+#pragma warning disable IDE0052 // Remove unread private members - DefinitionProject is used as a key for dictionaries.
             private readonly ProjectId _sourceProjectId;
             private readonly string _assemblyName;
+#pragma warning restore IDE0052 // Remove unread private members
 
             public DefinitionProject(ProjectId sourceProjectId, string assemblyName)
             {
@@ -48,19 +50,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             public override bool Equals(object obj)
-            {
-                return obj is DependentProject && this.Equals((DependentProject)obj);
-            }
+                => obj is DependentProject && this.Equals((DependentProject)obj);
 
             public override int GetHashCode()
-            {
-                return Hash.Combine(HasInternalsAccess, ProjectId.GetHashCode());
-            }
+                => Hash.Combine(HasInternalsAccess, ProjectId.GetHashCode());
 
             public bool Equals(DependentProject other)
-            {
-                return HasInternalsAccess == other.HasInternalsAccess && ProjectId.Equals(other.ProjectId);
-            }
+                => HasInternalsAccess == other.HasInternalsAccess && ProjectId.Equals(other.ProjectId);
         }
 
         /// <summary>
@@ -409,9 +405,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static bool HasReferenceToAssembly(this Project project, IAssemblySymbol assemblySymbol, CancellationToken cancellationToken)
-        {
-            return project.HasReferenceToAssembly(assemblySymbol.Name, cancellationToken);
-        }
+            => project.HasReferenceToAssembly(assemblySymbol.Name, cancellationToken);
 
         public static bool HasReferenceToAssembly(this Project project, string assemblyName, CancellationToken cancellationToken)
         {

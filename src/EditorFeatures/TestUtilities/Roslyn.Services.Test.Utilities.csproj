@@ -62,9 +62,6 @@
     <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Remote\JsonRpcConnection.cs">
       <Link>Remote\JsonRpcConnection.cs</Link>
     </Compile>
-    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Remote\RemotableDataJsonRpcEx.cs">
-      <Link>Remote\RemotableDataJsonRpcEx.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
@@ -97,6 +94,13 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- TODO: Remove the below IVTs to CodeStyle Unit test projects once all analyzer/code fix tests are switched to Microsoft.CodeAnalysis.Testing -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />

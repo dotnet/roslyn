@@ -303,20 +303,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         protected internal override int GetLabel(SyntaxNode node)
-        {
-            return (int)GetLabel(node.Kind());
-        }
+            => (int)GetLabel(node.Kind());
 
         internal static Label GetLabel(SyntaxKind kind)
-        {
-            return Classify(kind, out var isLeaf);
-        }
+            => Classify(kind, out var isLeaf);
 
         // internal for testing
         internal static bool HasLabel(SyntaxKind kind)
-        {
-            return Classify(kind, out var isLeaf) != Label.Ignored;
-        }
+            => Classify(kind, out var isLeaf) != Label.Ignored;
 
         protected internal override int LabelCount
         {
@@ -324,9 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         protected internal override int TiedToAncestor(int label)
-        {
-            return TiedToAncestor((Label)label);
-        }
+            => TiedToAncestor((Label)label);
 
         #endregion
 

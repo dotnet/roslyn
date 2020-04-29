@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             }
 
             var canOffer = expressionBodyOpt.TryConvertToStatement(
-                semicolonTokenOpt: default, createReturnStatementForExpression: false, out _);
+                semicolonTokenOpt: null, createReturnStatementForExpression: false, out _);
             if (!canOffer)
             {
                 // Couldn't even convert the expression into statement form.
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 semanticModel, originalDeclaration);
 
             if (!expressionBody.TryConvertToStatement(
-                    semicolonTokenOpt: default,
+                    semicolonTokenOpt: null,
                     createReturnStatementForExpression,
                     out var statement))
             {
@@ -229,11 +229,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseExpressionBodyForLambdaCodeFixProvider)), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeFixProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeFixProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public UseExpressionBodyForLambdaCodeFixProvider()
+        {
+        }
     }
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(UseExpressionBodyForLambdaCodeRefactoringProvider)), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public UseExpressionBodyForLambdaCodeRefactoringProvider()
+        {
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]

@@ -117,14 +117,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             }
 
             public void VerifyDocumentReused(MetadataAsSourceFile a, MetadataAsSourceFile b)
-            {
-                Assert.Same(a.FilePath, b.FilePath);
-            }
+                => Assert.Same(a.FilePath, b.FilePath);
 
             public void VerifyDocumentNotReused(MetadataAsSourceFile a, MetadataAsSourceFile b)
-            {
-                Assert.NotSame(a.FilePath, b.FilePath);
-            }
+                => Assert.NotSame(a.FilePath, b.FilePath);
 
             public void Dispose()
             {

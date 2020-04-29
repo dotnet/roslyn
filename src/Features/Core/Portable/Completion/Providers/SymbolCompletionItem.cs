@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal static partial class SymbolCompletionItem
     {
+        private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolEncoding = AddSymbolEncoding;
+        private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolInfo = AddSymbolInfo;
+
         private static CompletionItem CreateWorker(
             string displayText,
             string displayTextSuffix,
@@ -55,15 +58,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public static CompletionItem AddSymbolEncoding(IReadOnlyList<ISymbol> symbols, CompletionItem item)
-        {
-            return item.AddProperty("Symbols", EncodeSymbols(symbols));
-        }
+            => item.AddProperty("Symbols", EncodeSymbols(symbols));
 
-        public static CompletionItem AddSymbolNameAndKind(IReadOnlyList<ISymbol> symbols, CompletionItem item)
+        public static CompletionItem AddSymbolInfo(IReadOnlyList<ISymbol> symbols, CompletionItem item)
         {
             var symbol = symbols[0];
-            return item.AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
-                       .AddProperty("SymbolName", symbol.Name);
+            var isGeneric = symbol.GetArity() > 0;
+
+            item = item
+                .AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
+                .AddProperty("SymbolName", symbol.Name);
+
+            return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
         }
 
         public static string EncodeSymbols(IReadOnlyList<ISymbol> symbols)
@@ -83,14 +89,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public static string EncodeSymbol(ISymbol symbol)
-        {
-            return SymbolKey.CreateString(symbol);
-        }
+            => SymbolKey.CreateString(symbol);
 
         public static bool HasSymbols(CompletionItem item)
-        {
-            return item.Properties.ContainsKey("Symbols");
-        }
+            => item.Properties.ContainsKey("Symbols");
 
         private static readonly char[] s_symbolSplitters = new[] { '|' };
 
@@ -144,9 +146,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static ISymbol DecodeSymbol(string id, Compilation compilation)
-        {
-            return SymbolKey.ResolveString(id, compilation).GetAnySymbol();
-        }
+            => SymbolKey.ResolveString(id, compilation).GetAnySymbol();
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
             CompletionItem item, Document document, CancellationToken cancellationToken)
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
-                AddSymbolEncoding, sortText, insertionText,
+                s_addSymbolEncoding, sortText, insertionText,
                 filterText, supportedPlatforms, properties, tags);
         }
 
@@ -302,29 +302,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
-                AddSymbolNameAndKind, sortText, insertionText,
+                s_addSymbolInfo, sortText, insertionText,
                 filterText, supportedPlatforms, properties, tags);
         }
 
         internal static string GetSymbolName(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("SymbolName", out var name))
-            {
-                return name;
-            }
-
-            return null;
-        }
+            => item.Properties.TryGetValue("SymbolName", out var name) ? name : null;
 
         internal static SymbolKind? GetKind(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("SymbolKind", out var kind))
-            {
-                return (SymbolKind)int.Parse(kind);
-            }
+            => item.Properties.TryGetValue("SymbolKind", out var kind) ? (SymbolKind?)int.Parse(kind) : null;
 
-            return null;
-        }
+        internal static bool GetSymbolIsGeneric(CompletionItem item)
+            => item.Properties.TryGetValue("IsGeneric", out var v) && bool.TryParse(v, out var isGeneric) && isGeneric;
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
             CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)

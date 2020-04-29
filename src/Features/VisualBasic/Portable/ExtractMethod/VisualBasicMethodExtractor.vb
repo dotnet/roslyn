@@ -8,9 +8,9 @@ Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Simplification
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
@@ -118,14 +118,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Private Class FormattingRule
             Inherits CompatAbstractFormattingRule
 
-            Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
+            Public Overrides Function GetAdjustNewLinesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
                 If Not previousToken.IsLastTokenOfStatement() Then
-                    Return nextOperation.Invoke()
+                    Return nextOperation.Invoke(previousToken, currentToken)
                 End If
 
                 ' between [generated code] and [existing code]
                 If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
-                    Return nextOperation.Invoke()
+                    Return nextOperation.Invoke(previousToken, currentToken)
                 End If
 
                 ' make sure attribute and previous statement has at least 1 blank lines between them
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.ForceLines)
                 End If
 
-                Return nextOperation.Invoke()
+                Return nextOperation.Invoke(previousToken, currentToken)
             End Function
 
             Private Function IsLessThanInAttribute(token As SyntaxToken) As Boolean

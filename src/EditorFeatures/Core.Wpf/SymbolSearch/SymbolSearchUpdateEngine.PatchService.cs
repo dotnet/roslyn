@@ -9,9 +9,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private class PatchService : IPatchService
         {
             public byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes)
-            {
-                return Patching.Delta.ApplyPatch(databaseBytes, patchBytes);
-            }
+                => Patching.Delta.ApplyPatch(databaseBytes, patchBytes);
         }
     }
 }

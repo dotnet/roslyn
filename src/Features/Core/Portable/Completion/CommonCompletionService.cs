@@ -13,10 +13,8 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal abstract partial class CommonCompletionService : CompletionServiceWithProviders
     {
-        protected CommonCompletionService(
-            Workspace workspace,
-            ImmutableArray<CompletionProvider>? exclusiveProviders)
-            : base(workspace, exclusiveProviders)
+        protected CommonCompletionService(Workspace workspace)
+            : base(workspace)
         {
         }
 
@@ -50,14 +48,10 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         protected static bool IsKeywordItem(CompletionItem item)
-        {
-            return item.Tags.Contains(WellKnownTags.Keyword);
-        }
+            => item.Tags.Contains(WellKnownTags.Keyword);
 
         protected static bool IsSnippetItem(CompletionItem item)
-        {
-            return item.Tags.Contains(WellKnownTags.Snippet);
-        }
+            => item.Tags.Contains(WellKnownTags.Snippet);
 
         internal override ImmutableArray<CompletionItem> FilterItems(Document document, ImmutableArray<(CompletionItem, PatternMatch?)> itemsWithPatternMatch, string filterText)
         {

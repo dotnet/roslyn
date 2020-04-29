@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             // This can happen for buffers used in the preview workspace where some feature
             // is generating code that it doesn't want errors shown for.
             var buffer = editorSnapshot.TextBuffer;
-            var suppressedDiagnosticsSpans = default(NormalizedSnapshotSpanCollection);
+            var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection)null;
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
             var eventArgs = _diagnosticService.GetDiagnosticsUpdatedEventArgs(

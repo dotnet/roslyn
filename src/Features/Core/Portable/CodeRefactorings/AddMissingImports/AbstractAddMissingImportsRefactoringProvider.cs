@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         protected abstract string CodeActionTitle { get; }
 
         public AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService pasteTrackingService)
-        {
-            _pasteTrackingService = pasteTrackingService;
-        }
+            => _pasteTrackingService = pasteTrackingService;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -43,11 +41,11 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             var addImportsCodeAction = new AddMissingImportsCodeAction(
                 CodeActionTitle,
-                cancellationToken => AddMissingImports(document, textSpan, cancellationToken));
+                cancellationToken => AddMissingImportsAsync(document, textSpan, cancellationToken));
             context.RegisterRefactoring(addImportsCodeAction, textSpan);
         }
 
-        private async Task<Solution> AddMissingImports(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private async Task<Solution> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             // Add missing imports for the pasted text span.
             var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();

@@ -97,9 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public void RegisterLanguage(Guid languageGuid, string languageName, string scriptExtension)
-        {
-            _languageInformationByLanguageGuid.Add(languageGuid, new LanguageInformation(languageName, scriptExtension));
-        }
+            => _languageInformationByLanguageGuid.Add(languageGuid, new LanguageInformation(languageName, scriptExtension));
 
         private LanguageInformation TryGetLanguageInformation(string filename)
         {

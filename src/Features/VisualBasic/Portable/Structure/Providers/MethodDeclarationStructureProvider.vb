@@ -14,9 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Protected Overrides Sub CollectBlockSpans(methodDeclaration As MethodStatementSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
+                                                  isMetadataAsSource As Boolean,
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(methodDeclaration, spans)
+            CollectCommentsRegions(methodDeclaration, spans, isMetadataAsSource)
 
             Dim block = TryCast(methodDeclaration.Parent, MethodBlockSyntax)
             If Not block?.EndBlockStatement.IsMissing Then

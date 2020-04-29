@@ -3,10 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.ImplementInterface
-Imports System.Composition
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
@@ -18,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
         Friend Const BC30149 As String = "BC30149" ' Class 'bar' must implement 'Sub goo()' for interface 'igoo'.
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 

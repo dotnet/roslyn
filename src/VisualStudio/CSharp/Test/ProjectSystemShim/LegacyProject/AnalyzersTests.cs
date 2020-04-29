@@ -261,7 +261,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
             var listenerProvider = environment.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.RuleSetEditor);
-            waiter.CreateExpeditedWaitTask().JoinUsingDispatcher(CancellationToken.None);
+            waiter.ExpeditedWaitAsync().JoinUsingDispatcher(CancellationToken.None);
 
             options = (CSharpCompilationOptions)environment.GetUpdatedCompilationOptionOfSingleProject();
             Assert.Equal(expected: ReportDiagnostic.Warn, actual: options.GeneralDiagnosticOption);

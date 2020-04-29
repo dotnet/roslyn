@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 protected override IEnumerable<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
-                    Contract.ThrowIfFalse(IsExtractMethodOnSingleStatement(this.CSharpSelectionResult));
+                    Contract.ThrowIfFalse(IsExtractMethodOnSingleStatement(CSharpSelectionResult));
 
-                    return SpecializedCollections.SingletonEnumerable<StatementSyntax>(this.CSharpSelectionResult.GetFirstStatement());
+                    return SpecializedCollections.SingletonEnumerable<StatementSyntax>(CSharpSelectionResult.GetFirstStatement());
                 }
 
                 protected override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
@@ -55,21 +55,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
                     else
                     {
-                        var firstStatement = this.CSharpSelectionResult.GetFirstStatement();
+                        var firstStatement = CSharpSelectionResult.GetFirstStatement();
                         return firstStatement.Parent;
                     }
                 }
 
                 protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
-                {
-                    return this.CSharpSelectionResult.GetFirstStatement();
-                }
+                    => CSharpSelectionResult.GetFirstStatement();
 
                 protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
                 {
                     // it is a single statement case. either first statement is same as last statement or
                     // last statement belongs (embedded statement) to the first statement.
-                    return this.CSharpSelectionResult.GetFirstStatement();
+                    return CSharpSelectionResult.GetFirstStatement();
                 }
 
                 protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(

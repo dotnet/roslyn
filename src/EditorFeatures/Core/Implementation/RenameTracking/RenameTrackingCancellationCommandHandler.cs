@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     internal class RenameTrackingCancellationCommandHandler : ICommandHandler<EscapeKeyCommandArgs>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public RenameTrackingCancellationCommandHandler()
         {
         }
@@ -40,8 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         }
 
         public CommandState GetCommandState(EscapeKeyCommandArgs args)
-        {
-            return CommandState.Unspecified;
-        }
+            => CommandState.Unspecified;
     }
 }

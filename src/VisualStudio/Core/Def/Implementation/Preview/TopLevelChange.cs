@@ -48,9 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public override int GetTipText(out VSTREETOOLTIPTYPE eTipType, out string pbstrText)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public override int OnRequestSource(object pIUnknownTextView)
         {
@@ -214,8 +212,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         internal override void GetDisplayData(VSTREEDISPLAYDATA[] pData)
-        {
-            pData[0].Image = pData[0].SelectedImage = (ushort)_glyph.GetStandardGlyphGroup();
-        }
+            => pData[0].Image = pData[0].SelectedImage = (ushort)_glyph.GetStandardGlyphGroup();
     }
 }

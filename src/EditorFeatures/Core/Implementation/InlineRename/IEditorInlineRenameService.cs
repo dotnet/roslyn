@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -195,6 +194,11 @@ namespace Microsoft.CodeAnalysis.Editor
         Glyph Glyph { get; }
 
         /// <summary>
+        /// The locations of the potential rename candidates for the symbol.
+        /// </summary>
+        ImmutableArray<DocumentSpan> DefinitionLocations { get; }
+
+        /// <summary>
         /// Gets the final name of the symbol if the user has typed the provided replacement text
         /// in the editor.  Normally, the final name will be same as the replacement text.  However,
         /// that may not always be the same.  For example, when renaming an attribute the replacement
@@ -206,13 +210,13 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Returns the actual span that should be edited in the buffer for a given rename reference
         /// location.
         /// </summary>
-        TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken);
+        TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the actual span that should be edited in the buffer for a given rename conflict
         /// location.
         /// </summary>
-        TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken);
+        TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determine the set of locations to rename given the provided options. May be called 

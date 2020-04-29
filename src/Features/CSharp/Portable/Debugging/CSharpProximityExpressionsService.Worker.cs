@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -79,13 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 var block = GetImmediatelyContainingBlock();
 
                 // if we're the start of a "catch(Goo e)" clause, then add "e".
-                if (block != null && block.IsParentKind(SyntaxKind.CatchClause))
+                if (block != null && block.IsParentKind(SyntaxKind.CatchClause, out CatchClauseSyntax catchClause) &&
+                    catchClause.Declaration != null && catchClause.Declaration.Identifier.Kind() != SyntaxKind.None)
                 {
-                    var catchClause = (CatchClauseSyntax)block.Parent;
-                    if (catchClause.Declaration != null && catchClause.Declaration.Identifier.Kind() != SyntaxKind.None)
-                    {
-                        _expressions.Add(catchClause.Declaration.Identifier.ValueText);
-                    }
+                    _expressions.Add(catchClause.Declaration.Identifier.ValueText);
                 }
             }
 
@@ -99,9 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             }
 
             private bool IsFirstBlockStatement()
-            {
-                return _parentStatement.Parent is BlockSyntax parentBlockOpt && parentBlockOpt.Statements.FirstOrDefault() == _parentStatement;
-            }
+                => _parentStatement.Parent is BlockSyntax parentBlockOpt && parentBlockOpt.Statements.FirstOrDefault() == _parentStatement;
 
             private void AddCurrentDeclaration()
             {
@@ -227,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
             private void AddLastStatementOfConstruct(StatementSyntax statement)
             {
-                if (statement == default(StatementSyntax))
+                if (statement == null)
                 {
                     return;
                 }

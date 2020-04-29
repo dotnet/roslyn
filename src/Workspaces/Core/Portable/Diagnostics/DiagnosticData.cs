@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -20,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal sealed class DiagnosticData : IEquatable<DiagnosticData>
+    internal sealed class DiagnosticData : IEquatable<DiagnosticData?>
     {
         public readonly string Id;
         public readonly string Category;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly bool IsEnabledByDefault;
         public readonly int WarningLevel;
         public readonly IReadOnlyList<string> CustomTags;
-        public readonly ImmutableDictionary<string, string> Properties;
+        public readonly ImmutableDictionary<string, string?> Properties;
 
         public readonly ProjectId? ProjectId;
         public readonly DiagnosticDataLocation? DataLocation;
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool isEnabledByDefault,
             int warningLevel,
             IReadOnlyList<string> customTags,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string?> properties,
             ProjectId? projectId,
             DiagnosticDataLocation? location = null,
             IReadOnlyCollection<DiagnosticDataLocation>? additionalLocations = null,
@@ -112,10 +113,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return DataLocation.SourceSpan.Value;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is DiagnosticData data && Equals(data);
 
-        public bool Equals(DiagnosticData other)
+        public bool Equals(DiagnosticData? other)
         {
             if (ReferenceEquals(this, other))
             {
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 location, additionalLocations, customTags: CustomTags, properties: Properties);
         }
 
-        public static TextSpan GetTextSpan(DiagnosticDataLocation? dataLocation, SourceText text)
+        public static LinePositionSpan GetLinePositionSpan(DiagnosticDataLocation? dataLocation, SourceText text, bool useMapped)
         {
             var lines = text.Lines;
             if (lines.Count == 0)
@@ -232,28 +233,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return default;
             }
 
-            var originalStartLine = dataLocation?.OriginalStartLine ?? 0;
-            if (originalStartLine >= lines.Count)
+            var dataLocationStartLine = (useMapped ? dataLocation?.MappedStartLine : dataLocation?.OriginalStartLine) ?? 0;
+            var dataLocationStartColumn = (useMapped ? dataLocation?.MappedStartColumn : dataLocation?.OriginalStartColumn) ?? 0;
+            var dataLocationEndLine = (useMapped ? dataLocation?.MappedEndLine : dataLocation?.OriginalEndLine) ?? 0;
+            var dataLocationEndColumn = (useMapped ? dataLocation?.MappedEndColumn : dataLocation?.OriginalEndColumn) ?? 0;
+
+            if (dataLocationStartLine >= lines.Count)
             {
-                return new TextSpan(text.Length, 0);
+                var lastLine = lines.GetLinePosition(text.Length);
+                return new LinePositionSpan(lastLine, lastLine);
             }
 
-            AdjustBoundaries(dataLocation, lines,
+            AdjustBoundaries(dataLocationStartLine, dataLocationStartColumn, dataLocationEndLine, dataLocationEndColumn, lines,
                 out var startLine, out var startColumn, out var endLine, out var endColumn);
 
             var startLinePosition = new LinePosition(startLine, startColumn);
             var endLinePosition = new LinePosition(endLine, endColumn);
             SwapIfNeeded(ref startLinePosition, ref endLinePosition);
 
-            var span = text.Lines.GetTextSpan(new LinePositionSpan(startLinePosition, endLinePosition));
+            return new LinePositionSpan(startLinePosition, endLinePosition);
+        }
+
+        public static TextSpan GetTextSpan(DiagnosticDataLocation? dataLocation, SourceText text)
+        {
+            var linePositionSpan = GetLinePositionSpan(dataLocation, text, useMapped: false);
+
+            var span = text.Lines.GetTextSpan(linePositionSpan);
             return EnsureInBounds(TextSpan.FromBounds(Math.Max(span.Start, 0), Math.Max(span.End, 0)), text);
         }
 
-        private static void AdjustBoundaries(DiagnosticDataLocation? dataLocation,
+        private static void AdjustBoundaries(int dataLocationStartLine, int dataLocationStartColumn, int dataLocationEndLine, int dataLocationEndColumn,
             TextLineCollection lines, out int startLine, out int startColumn, out int endLine, out int endColumn)
         {
-            startLine = dataLocation?.OriginalStartLine ?? 0;
-            var originalStartColumn = dataLocation?.OriginalStartColumn ?? 0;
+            startLine = dataLocationStartLine;
+            var originalStartColumn = dataLocationStartColumn;
 
             startColumn = Math.Max(originalStartColumn, 0);
             if (startLine < 0)
@@ -262,8 +275,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 startColumn = 0;
             }
 
-            endLine = dataLocation?.OriginalEndLine ?? 0;
-            var originalEndColumn = dataLocation?.OriginalEndColumn ?? 0;
+            endLine = dataLocationEndLine;
+            var originalEndColumn = dataLocationEndColumn;
 
             endColumn = Math.Max(originalEndColumn, 0);
             if (endLine < 0)
@@ -336,13 +349,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                 .WhereNotNull()
                                                 .ToReadOnlyCollection();
 
+            var additionalProperties = GetAdditionalProperties(document, diagnostic);
+
+            var documentPropertiesService = document.Services.GetService<DocumentPropertiesService>();
+            var diagnosticsLspClientName = documentPropertiesService?.DiagnosticsLspClientName;
+
+            if (diagnosticsLspClientName != null)
+            {
+                if (additionalProperties == null)
+                {
+                    additionalProperties = ImmutableDictionary.Create<string, string?>();
+                }
+
+                additionalProperties = additionalProperties.Add(nameof(documentPropertiesService.DiagnosticsLspClientName), diagnosticsLspClientName);
+            }
+
             return Create(diagnostic,
                 project.Id,
                 project.Language,
                 project.Solution.Options,
                 location,
                 additionalLocations,
-                GetAdditionalProperties(document, diagnostic));
+                additionalProperties);
         }
 
         private static DiagnosticData Create(
@@ -352,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             OptionSet options,
             DiagnosticDataLocation? location,
             IReadOnlyCollection<DiagnosticDataLocation>? additionalLocations,
-            ImmutableDictionary<string, string>? additionalProperties)
+            ImmutableDictionary<string, string?>? additionalProperties)
         {
             return new DiagnosticData(
                 diagnostic.Id,
@@ -375,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isSuppressed: diagnostic.IsSuppressed);
         }
 
-        private static ImmutableDictionary<string, string>? GetAdditionalProperties(Document document, Diagnostic diagnostic)
+        private static ImmutableDictionary<string, string?>? GetAdditionalProperties(Document document, Diagnostic diagnostic)
         {
             var service = document.GetLanguageService<IDiagnosticPropertiesService>();
             return service?.GetAdditionalProperties(diagnostic);
@@ -385,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Create a host/VS specific diagnostic with the given descriptor and message arguments for the given project.
         /// Note that diagnostic created through this API cannot be suppressed with in-source suppression due to performance reasons (see the PERF remark below for details).
         /// </summary>
-        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, Project project, [NotNullWhen(true)]out DiagnosticData? diagnosticData)
+        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, Project project, [NotNullWhen(true)] out DiagnosticData? diagnosticData)
         {
             diagnosticData = null;
 

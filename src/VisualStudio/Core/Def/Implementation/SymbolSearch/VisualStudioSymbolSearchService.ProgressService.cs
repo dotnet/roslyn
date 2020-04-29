@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private TaskCompletionSource<bool> _taskCompletionSource = new TaskCompletionSource<bool>();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioSymbolSearchProgressService(VSShell.SVsServiceProvider serviceProvider)
         {
             _taskCenterServiceOpt = new Lazy<IVsTaskStatusCenterService>(() =>

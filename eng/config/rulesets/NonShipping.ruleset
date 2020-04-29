@@ -52,4 +52,8 @@
     <Rule Id="CA2213" Action="None" />
     <Rule Id="CA1063" Action="None" />
   </Rules>
+
+  <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers">
+    <Rule Id="VSTHRD200" Action="None" /> <!-- Use "Async" suffix for async methods -->
+  </Rules>
 </RuleSet>

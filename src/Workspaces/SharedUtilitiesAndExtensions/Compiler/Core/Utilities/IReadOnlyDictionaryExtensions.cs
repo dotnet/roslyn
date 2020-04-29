@@ -32,5 +32,13 @@ namespace Roslyn.Utilities
                 default: return SpecializedCollections.EmptyEnumerable<T>();
             }
         }
+
+        public static IReadOnlyDictionary<TKey, TValue?> AsNullable<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary)
+            where TKey : notnull
+            where TValue : class
+        {
+            // this is a safe cast, even though the language doesn't allow the interface to be 'out TValue'
+            return dictionary!;
+        }
     }
 }

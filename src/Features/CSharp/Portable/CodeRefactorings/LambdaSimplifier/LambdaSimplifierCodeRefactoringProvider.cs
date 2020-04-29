@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             CancellationToken cancellationToken)
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var rewriter = new Rewriter(this, semanticDocument, n => n == lambda, cancellationToken);
+            var rewriter = new Rewriter(semanticDocument, n => n == lambda, cancellationToken);
             var result = rewriter.Visit(semanticDocument.Root);
             return document.WithSyntaxRoot(result);
         }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             CancellationToken cancellationToken)
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var rewriter = new Rewriter(this, semanticDocument, n => true, cancellationToken);
+            var rewriter = new Rewriter(semanticDocument, n => true, cancellationToken);
             var result = rewriter.Visit(semanticDocument.Root);
             return document.WithSyntaxRoot(result);
         }
@@ -133,12 +133,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
                 var argument = invocation.ArgumentList.Arguments[i];
                 if (argument.NameColon != null ||
                     argument.RefOrOutKeyword.Kind() != SyntaxKind.None ||
-                    !argument.Expression.IsKind(SyntaxKind.IdentifierName))
+                    !argument.Expression.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
                 {
                     return false;
                 }
 
-                var identifierName = (IdentifierNameSyntax)argument.Expression;
                 if (identifierName.Identifier.ValueText != paramNames[i].ValueText)
                 {
                     return false;

@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
         {
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var characterTyped = ";";
             var locationTyped = locations["type"].Single();
-            var documentText = await solution.GetDocumentFromURI(locationTyped.Uri).GetTextAsync();
+            var documentText = await workspace.CurrentSolution.GetDocumentFromURI(locationTyped.Uri).GetTextAsync();
 
-            var results = await RunFormatDocumentOnTypeAsync(solution, characterTyped, locationTyped);
+            var results = await RunFormatDocumentOnTypeAsync(workspace.CurrentSolution, characterTyped, locationTyped);
             var actualText = ApplyTextEdits(results, documentText);
             Assert.Equal(expected, actualText);
         }

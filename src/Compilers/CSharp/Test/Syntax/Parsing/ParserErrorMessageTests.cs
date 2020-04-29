@@ -2695,19 +2695,13 @@ namespace x
 ";
 
             ParseAndValidate(text, TestOptions.Regular,
-                // (7,21): error CS1031: Type expected
-                //             e = new base;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TypeExpected, "base").WithLocation(7, 21),
-                // (7,21): error CS1526: A new expression requires (), [], or {} after type
+                // (7,21): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //             e = new base;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "base").WithLocation(7, 21),
                 // (7,21): error CS1002: ; expected
                 //             e = new base;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "base").WithLocation(7, 21),
-                // (8,21): error CS1031: Type expected
-                //             e = new this;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TypeExpected, "this").WithLocation(8, 21),
-                // (8,21): error CS1526: A new expression requires (), [], or {} after type
+                // (8,21): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //             e = new this;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
                 // (8,21): error CS1002: ; expected
@@ -2731,18 +2725,9 @@ namespace x
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (7,26): error CS8124: Tuple must contain at least two elements.
+                // (7,21): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
-                // (7,27): error CS1526: A new expression requires (), [], or {} after type
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(7, 27),
-                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(7, 25),
-                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(7, 25));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2762,19 +2747,13 @@ namespace x
 ";
             // TODO: this appears to be a severe regression from Dev10, which neatly reported 3 errors.
             ParseAndValidate(text, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6),
-                // (7,21): error CS1031: Type expected
-                //             e = new base;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TypeExpected, "base").WithLocation(7, 21),
-                // (7,21): error CS1526: A new expression requires (), [], or {} after type
+                // (7,21): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //             e = new base;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "base").WithLocation(7, 21),
                 // (7,21): error CS1002: ; expected
                 //             e = new base;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "base").WithLocation(7, 21),
-                // (8,21): error CS1031: Type expected
-                //             e = new this;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TypeExpected, "this").WithLocation(8, 21),
-                // (8,21): error CS1526: A new expression requires (), [], or {} after type
+                // (8,21): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //             e = new this;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
                 // (8,21): error CS1002: ; expected
@@ -2797,21 +2776,9 @@ namespace x
 }
 ";
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (7,25): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7.0 or greater.
+                // (7,21): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(7, 25),
-                // (7,26): error CS8124: Tuple must contain at least two elements.
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
-                // (7,27): error CS1526: A new expression requires (), [], or {} after type
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(7, 27),
-                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(7, 25),
-                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(7, 25));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2829,18 +2796,9 @@ namespace x
 }
 ";
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
-                // (7,26): error CS8124: Tuple must contain at least two elements.
+                // (7,21): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")"),
-                // (7,27): error CS1526: A new expression requires (), [], or {} after type
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";"),
-                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2"),
-                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(7, 21));
         }
 
         [WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -5967,15 +5925,11 @@ public class Class1
     int Meth2 (int parm) {[Goo(5)]return 0;}
 }
 ";
-            ParseAndValidate(test,
-                // (4,27): error CS1513: } expected
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "[").WithLocation(4, 27),
-                // (4,35): error CS1519: Invalid token 'return' in class, struct, or interface member declaration
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "return").WithArguments("return").WithLocation(4, 35),
-                // (4,35): error CS1519: Invalid token 'return' in class, struct, or interface member declaration
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "return").WithArguments("return").WithLocation(4, 35),
-                // (5,1): error CS1022: Type or namespace definition, or end-of-file expected
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 1));
+            CreateCompilation(test).GetDiagnostics().Verify(
+                // (4,27): error CS7014: Attributes are not valid in this context.
+                //     int Meth2 (int parm) {[Goo(5)]return 0;}
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[Goo(5)]").WithLocation(4, 27)
+            );
         }
 
         // Preprocessor:
@@ -6495,7 +6449,7 @@ class Program
     {
 ");
 
-            const int depth = 10000;
+            const int depth = 100000;
             for (int i = 0; i < depth; i++)
             {
                 var line = string.Format("Action a{0} = delegate d{0} {{", i);

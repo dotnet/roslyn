@@ -26,10 +26,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         {|caret:|}int i = 1;
     }
 }";
-            var (solution, ranges) = CreateTestSolution(markup);
-            var codeActionLocation = ranges["caret"].First();
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var codeActionLocation = locations["caret"].First();
 
-            var results = await TestHandleAsync<LSP.ExecuteCommandParams, object>(solution, CreateExecuteCommandParams(codeActionLocation, CSharpFeaturesResources.Use_implicit_type));
+            var results = await TestHandleAsync<LSP.ExecuteCommandParams, object>(workspace.CurrentSolution, CreateExecuteCommandParams(codeActionLocation, CSharpAnalyzersResources.Use_implicit_type));
             Assert.True((bool)results);
         }
 

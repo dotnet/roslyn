@@ -78,8 +78,9 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
-        <target state="translated">Mostrar diagnósticos de arquivos fechados;
+Use enhanced colors;
+Editor Color Scheme;</source>
+        <target state="needs-review-translation">Mostrar diagnósticos de arquivos fechados;
 Colorir a expressão regular; 
 Realçar os componentes relacionados sob o cursor; 
 Relatar expressões regulares inválidas;
@@ -272,6 +273,7 @@ Inserir espaço antes e depois dos operadores binários;</target>
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
 Snippets behavior;
@@ -282,8 +284,9 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">Alterar configurações da lista de conclusão;Pré-selecionar o membro usado mais recentemente; Listas de conclusão;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="needs-review-translation">Alterar configurações da lista de conclusão;Pré-selecionar o membro usado mais recentemente; Listas de conclusão;
 Mostrar lista de conclusão após um caractere ser digitado;
 Mostrar lista de conclusão após um caractere ser excluído;
 Realçar as partes correspondentes dos itens da lista de conclusão;

@@ -741,9 +741,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var id = variableBySlot[i];
                 int slot = id.ContainingSlot;
-                state.Assigned[i] = (slot > 0) &&
+
+                bool assign = (slot > 0) &&
                     state.Assigned[slot] &&
                     variableBySlot[slot].Symbol.GetTypeOrReturnType().TypeKind == TypeKind.Struct;
+
+                if (state.NormalizeToBottom && slot == 0)
+                {
+                    // NormalizeToBottom means new variables are assumed to be assigned (bottom state)
+                    assign = true;
+                }
+
+                state.Assigned[i] = assign;
             }
         }
 
@@ -1255,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void SetSlotAssigned(int slot, ref LocalState state)
+        protected void SetSlotAssigned(int slot, ref LocalState state)
         {
             if (slot < 0) return;
             VariableIdentifier id = variableBySlot[slot];
@@ -2069,6 +2078,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assign(node.LeftOperand, node.RightOperand);
         }
 
+        protected override void AdjustStateForNullCoalescingAssignmentNonNullCase(BoundNullCoalescingAssignmentOperator node)
+        {
+            // For the purposes of definite assignment in try/finally, we need to treat the left as having been assigned
+            // in the left-side state. If LeftOperand was not definitely assigned before this call, we will have already
+            // reported an error for use before assignment.
+            Assign(node.LeftOperand, node.LeftOperand);
+        }
+
         #endregion Visitors
 
         protected override string Dump(LocalState state)
@@ -2157,16 +2174,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #if REFERENCE_STATE
-        internal class LocalState : ILocalState
+        internal class LocalState : ILocalDataFlowState
 #else
-        internal struct LocalState : ILocalState
+        internal struct LocalState : ILocalDataFlowState
 #endif
         {
             internal BitVector Assigned;
 
-            internal LocalState(BitVector assigned)
+            public bool NormalizeToBottom { get; }
+
+            internal LocalState(BitVector assigned, bool normalizeToBottom = false)
             {
                 this.Assigned = assigned;
+                NormalizeToBottom = normalizeToBottom;
                 Debug.Assert(!assigned.IsNull);
             }
 

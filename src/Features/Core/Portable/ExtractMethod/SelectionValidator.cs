@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             var commonRoot = token1.GetCommonRoot(token2).GetAncestorOrThis<T>() ?? root;
 
-            var firstStatement = default(T);
-            var lastStatement = default(T);
+            var firstStatement = (T)null;
+            var lastStatement = (T)null;
 
             var spine = new List<T>();
 

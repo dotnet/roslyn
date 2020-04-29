@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor
     [Obsolete("Use Microsoft.CodeAnalysis.Indentation.IIndentationService instead.")]
     internal interface IIndentationService : ILanguageService
     {
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This service is obsolete.")]
         Task<IndentationResult?> GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
     }
 

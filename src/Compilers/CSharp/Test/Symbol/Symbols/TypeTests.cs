@@ -2292,5 +2292,37 @@ public interface I1
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
         }
+
+        [Fact]
+        [WorkItem(41501, "https://github.com/dotnet/roslyn/issues/41501")]
+        public void ImplementNestedInterface_01()
+        {
+            var text = @"
+public struct TestStruct : TestStruct.IInnerInterface
+{
+    public interface IInnerInterface
+    {
+    }
+}
+";
+            var compilation = CreateCompilation(text);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(41501, "https://github.com/dotnet/roslyn/issues/41501")]
+        public void ImplementNestedInterface_02()
+        {
+            var text = @"
+public class TestClass : TestClass.IInnerInterface
+{
+    public interface IInnerInterface
+    {
+    }
+}
+";
+            var compilation = CreateCompilation(text);
+            compilation.VerifyDiagnostics();
+        }
     }
 }

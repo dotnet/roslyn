@@ -12,8 +12,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -129,12 +127,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // AnalyzerFileReference now includes things like versions, public key as part of its identity. 
             // so we need to consider them.
-            return type.AssemblyQualifiedName;
+            return type.AssemblyQualifiedName ?? throw ExceptionUtilities.UnexpectedValue(type);
         }
 
         public static ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder> ToResultBuilderMap(
             this AnalysisResult analysisResult,
             Project project, VersionStamp version, Compilation compilation, IEnumerable<DiagnosticAnalyzer> analyzers,
+            SkippedHostAnalyzersInfo skippedAnalyzersInfo,
             CancellationToken cancellationToken)
         {
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>();
@@ -145,12 +144,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                if (skippedAnalyzersInfo.SkippedAnalyzers.Contains(analyzer))
+                {
+                    continue;
+                }
+
                 var result = new DiagnosticAnalysisResultBuilder(project, version);
+                var diagnosticIdsToFilter = skippedAnalyzersInfo.FilteredDiagnosticIdsForAnalyzers.GetValueOrDefault(
+                    analyzer,
+                    ImmutableArray<string>.Empty);
 
                 foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.SyntaxDiagnostics)
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
+                        diagnostics = diagnostics.Filter(diagnosticIdsToFilter);
                         Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSyntaxDiagnostics(tree, diagnostics);
                     }
@@ -160,6 +168,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
+                        diagnostics = diagnostics.Filter(diagnosticIdsToFilter);
                         Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSemanticDiagnostics(tree, diagnostics);
                     }
@@ -167,6 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (analysisResult.CompilationDiagnostics.TryGetValue(analyzer, out diagnostics))
                 {
+                    diagnostics = diagnostics.Filter(diagnosticIdsToFilter);
                     Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                     result.AddCompilationDiagnostics(diagnostics);
                 }
@@ -177,29 +187,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutable();
         }
 
-        public static NotificationOption ToNotificationOption(this ReportDiagnostic reportDiagnostic, DiagnosticSeverity defaultSeverity)
+        /// <summary>
+        /// Filters out the diagnostics with the specified <paramref name="diagnosticIdsToFilter"/>.
+        /// </summary>
+        public static ImmutableArray<Diagnostic> Filter(this ImmutableArray<Diagnostic> diagnostics, ImmutableArray<string> diagnosticIdsToFilter)
         {
-            switch (reportDiagnostic.WithDefaultSeverity(defaultSeverity))
+            if (diagnosticIdsToFilter.IsEmpty)
             {
-                case ReportDiagnostic.Error:
-                    return NotificationOption.Error;
-
-                case ReportDiagnostic.Warn:
-                    return NotificationOption.Warning;
-
-                case ReportDiagnostic.Info:
-                    return NotificationOption.Suggestion;
-
-                case ReportDiagnostic.Hidden:
-                    return NotificationOption.Silent;
-
-                case ReportDiagnostic.Suppress:
-                    return NotificationOption.None;
-
-                case ReportDiagnostic.Default:
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(reportDiagnostic);
+                return diagnostics;
             }
+
+            return diagnostics.RemoveAll(diagnostic => diagnosticIdsToFilter.Contains(diagnostic.Id));
         }
     }
 }

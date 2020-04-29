@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -32,7 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private TagSpanIntervalTree<IClassificationTag> _cachedTags_doNotAccessDirectly;
             private SnapshotSpan? _cachedTaggedSpan_doNotAccessDirectly;
 
-            public Tagger(SemanticClassificationBufferTaggerProvider owner, ITextBuffer subjectBuffer)
+            public Tagger(
+                SemanticClassificationBufferTaggerProvider owner,
+                ITextBuffer subjectBuffer,
+                IAsynchronousOperationListener asyncListener)
                 : base(owner.ThreadingContext)
             {
                 _owner = owner;
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 const TaggerDelay Delay = TaggerDelay.Short;
                 _eventSource = TaggerEventSources.Compose(
-                    TaggerEventSources.OnSemanticChanged(subjectBuffer, Delay, _owner._semanticChangeNotificationService),
+                    TaggerEventSources.OnWorkspaceChanged(subjectBuffer, Delay, asyncListener),
                     TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
 
                 ConnectToEventSource();
@@ -49,7 +53,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public void Dispose()
             {
                 this.AssertIsForeground();
+                _eventSource.Changed -= OnEventSourceChanged;
                 _eventSource.Disconnect();
+            }
+
+            private void ConnectToEventSource()
+            {
+                _eventSource.Changed += OnEventSourceChanged;
+                _eventSource.Connect();
             }
 
             private TagSpanIntervalTree<IClassificationTag> CachedTags
@@ -82,18 +93,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
-            private void ConnectToEventSource()
+            private void OnEventSourceChanged(object sender, TaggerEventArgs e)
             {
-                _eventSource.Changed += (s, e) =>
-                {
-                    _owner._notificationService.RegisterNotification((Action)OnEventSourceChanged,
-                        _owner._asyncListener.BeginAsyncOperation("SemanticClassificationBufferTaggerProvider"));
-                };
-
-                _eventSource.Connect();
+                _owner._notificationService.RegisterNotification(
+                    OnEventSourceChanged_OnForeground,
+                    _owner._asyncListener.BeginAsyncOperation("SemanticClassificationBufferTaggerProvider"));
             }
 
-            private void OnEventSourceChanged()
+            private void OnEventSourceChanged_OnForeground()
             {
                 this.AssertIsForeground();
 

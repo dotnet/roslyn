@@ -33,12 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
             Assert.Equal(expected, actual)
         End Sub
 
-        Private Sub TestFailure(stringText As String)
-            Dim token = GetStringToken(stringText)
-            Dim virtualChars = VisualBasicVirtualCharService.Instance.TryConvertToVirtualChars(token)
-            Assert.True(virtualChars.IsDefault)
-        End Sub
-
         <Fact>
         Public Sub TestEmptyString()
             Test("""""", "")
@@ -89,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
         End Function
 
         Private Function ConvertToString(vc As VirtualChar) As String
-            Return $"[{ConvertToString(vc.Char)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]"
+            Return $"[{ConvertToString(ChrW(vc.Rune.Value))},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]"
         End Function
 
         Private Function ConvertToString(c As Char) As String

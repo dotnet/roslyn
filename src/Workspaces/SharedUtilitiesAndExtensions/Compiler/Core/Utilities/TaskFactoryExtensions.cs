@@ -12,9 +12,10 @@ namespace Roslyn.Utilities
 {
     // TODO: revisit https://github.com/dotnet/roslyn/issues/39222
 
-    [SuppressMessage("ApiDesign", "CA1068", Justification = "Matching TPL Signatures")]
+    [SuppressMessage("ApiDesign", "CA1068:CancellationToken parameters must come last", Justification = "Matching TPL Signatures")]
     internal static partial class TaskFactoryExtensions
     {
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task SafeStartNew(this TaskFactory factory, Action action, CancellationToken cancellationToken, TaskScheduler scheduler)
         {
             void wrapped()
@@ -32,6 +33,7 @@ namespace Roslyn.Utilities
             return factory.StartNew(wrapped, cancellationToken, TaskCreationOptions.None, scheduler);
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<TResult> SafeStartNew<TResult>(this TaskFactory factory, Func<TResult> func, CancellationToken cancellationToken, TaskScheduler scheduler)
         {
             TResult wrapped()

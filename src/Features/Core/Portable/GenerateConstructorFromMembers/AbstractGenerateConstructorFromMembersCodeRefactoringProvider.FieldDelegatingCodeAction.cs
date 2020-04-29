@@ -8,9 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
@@ -91,8 +89,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             {
                 get
                 {
-                    var symbolDisplayService = _document.GetLanguageService<ISymbolDisplayService>();
-                    var parameters = _state.Parameters.Select(p => symbolDisplayService.ToDisplayString(p, SimpleFormat));
+                    var parameters = _state.Parameters.Select(p => _service.ToDisplayString(p, SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
 
                     if (_state.DelegatedConstructor == null)

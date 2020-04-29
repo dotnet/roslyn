@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var types = new[]
             {
                 // ROSLYN
-                typeof(Microsoft.CodeAnalysis.Editor.Implementation.Workspaces.EditorTaskSchedulerFactory),
-                typeof(Microsoft.CodeAnalysis.Host.WorkspaceTaskSchedulerFactory),
+                typeof(Microsoft.CodeAnalysis.Host.TaskSchedulerProvider),
                 typeof(Microsoft.CodeAnalysis.Formatting.Rules.DefaultFormattingRuleFactoryServiceFactory),
                 typeof(Microsoft.CodeAnalysis.Host.PersistentStorageServiceFactory),
                 typeof(Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService.TextBufferCloneServiceFactory),

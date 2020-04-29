@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -94,14 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     .LastOrDefault();
 
                 return topMostCref.Parent;
-            }
-
-            private static SyntaxNode GetParentNode(StatementSyntax statement)
-            {
-                return statement
-                    .AncestorsAndSelf()
-                    .OfType<StatementSyntax>()
-                    .LastOrDefault();
             }
 
             protected SyntaxNode SimplifyNode<TNode>(

@@ -39,9 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         protected override ITextBuffer GetSubjectBufferContainingCaret()
-        {
-            return _subjectBuffer;
-        }
+            => _subjectBuffer;
 
         protected override int GetDataTipTextImpl(TextSpan[] pSpan, out string pbstrText)
         {

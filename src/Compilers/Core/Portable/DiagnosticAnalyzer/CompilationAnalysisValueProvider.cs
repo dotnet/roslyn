@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _valueMap = new Dictionary<TKey, TValue>(analysisValueProvider.KeyComparer);
         }
 
-        internal bool TryGetValue(TKey key, out TValue value)
+        internal bool TryGetValue(TKey key, [MaybeNull][NotNullWhen(true)] out TValue value)
         {
             // First try to get the cached value for this compilation.
             lock (_valueMap)

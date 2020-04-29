@@ -63,9 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private readonly bool _includeName;
 
         private CSharpDeclarationComparer(bool includeName)
-        {
-            _includeName = includeName;
-        }
+            => _includeName = includeName;
 
         public int Compare(SyntaxNode x, SyntaxNode y)
         {
@@ -131,8 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     // for REPL, don't mess with order, just put new one at the end.
                     return 1;
                 default:
-                    Contract.Fail("Syntax nodes x and y are not declarations");
-                    return 0;
+                    throw ExceptionUtilities.UnexpectedValue(x.Kind());
             }
         }
 
@@ -309,9 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool ContainsToken(SyntaxTokenList list, SyntaxKind kind)
-        {
-            return list.Contains(token => token.Kind() == kind);
-        }
+            => list.Contains(token => token.Kind() == kind);
 
         private enum Accessibility
         {
@@ -433,19 +428,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var yParameterCount = y.Parameters.Count;
 
             comparisonResult = xParameterCount - yParameterCount;
-
-            return comparisonResult == 0;
-        }
-
-        private static bool EqualTypeParameterCount(TypeParameterListSyntax x, TypeParameterListSyntax y, out int comparisonResult)
-        {
-            if (NeitherNull(x, y, out comparisonResult))
-            {
-                var xParameterCount = x.Parameters.Count;
-                var yParameterCount = y.Parameters.Count;
-
-                comparisonResult = xParameterCount - yParameterCount;
-            }
 
             return comparisonResult == 0;
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis
 {
     internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis
         /// Private helper class to capture information about AssemblySymbol instance we 
         /// should check for suitability. Used by the Bind method.
         /// </summary>
-        private struct AssemblyReferenceCandidate
+        private readonly struct AssemblyReferenceCandidate
         {
             /// <summary>
             /// An index of the AssemblyData object in the input array. AssemblySymbol instance should 
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// AssemblySymbol instance to check for suitability.
             /// </summary>
-            public readonly TAssemblySymbol AssemblySymbol;
+            public readonly TAssemblySymbol? AssemblySymbol;
 
             /// <summary>
             /// Convenience constructor to initialize fields of this structure.

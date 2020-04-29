@@ -39,6 +39,51 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
 }";
         }
 
+        #region ParameterList
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("abstract void M(object o$$)", "abstract void M(object o)")]
+        [InlineData("abstract void M($$object o)", "abstract void M(object o)")]
+        [InlineData("abstract void M(object o = default(object$$))", "abstract void M(object o = default(object))")]
+        [InlineData("abstract void M(object o = default($$object))", "abstract void M(object o = default(object))")]
+        [InlineData("abstract void M(object o = $$default(object))", "abstract void M(object o = default(object))")]
+        public void ParameterList_CouldBeHandled(string signature, string expectedSignature)
+        {
+            var code = $@"
+public class Class1
+{{
+    {signature}
+}}";
+
+            var expected = $@"
+public class Class1
+{{
+    {expectedSignature};$$
+}}";
+
+            // These cases are not currently handled. If support is added in the future, 'expected' should be correct.
+            _ = expected;
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("void M$$(object o)")]
+        [InlineData("void Me$$thod(object o)")]
+        [InlineData("void Method(object o$$")]
+        [InlineData("void Method($$object o")]
+        public void ParameterList_NotHandled(string signature)
+        {
+            var code = $@"
+public class Class1
+{{
+    {signature}
+}}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        #endregion
+
         #region ArgumentListOfMethodInvocation
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1894,8 +1939,18 @@ public class SaleItem
       set => name = value;
    }
 }";
+            var expected = @"
+public class SaleItem
+{
+   string name;
+   public string Name 
+   {
+      get => name.ToUpper();$$
+      set => name = value;
+   }
+}";
 
-            VerifyNoSpecialSemicolonHandling(code);
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -2315,6 +2370,102 @@ class Program
         }
 
         #endregion
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("default(object$$)", "default(object)")]
+        [InlineData("default($$object)", "default(object)")]
+        public void DefaultExpression_Handled(string expression, string expectedExpression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expression}
+    }}
+}}";
+
+            var expected = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expectedExpression};$$
+    }}
+}}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("default$$(object)")]
+        [InlineData("def$$ault(object)")]
+        [InlineData("default(object$$")]
+        [InlineData("default($$object")]
+        public void DefaultExpression_NotHandled(string expression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expression}
+    }}
+}}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("checked(3 + 3$$)", "checked(3 + 3)")]
+        [InlineData("checked($$3 + 3)", "checked(3 + 3)")]
+        [InlineData("unchecked(3 + 3$$)", "unchecked(3 + 3)")]
+        [InlineData("unchecked($$3 + 3)", "unchecked(3 + 3)")]
+        public void CheckedExpression_Handled(string expression, string expectedExpression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expression}
+    }}
+}}";
+
+            var expected = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expectedExpression};$$
+    }}
+}}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("checked$$(3 + 3)")]
+        [InlineData("che$$cked(3 + 3)")]
+        [InlineData("checked(3 + 3$$")]
+        [InlineData("checked($$3 + 3")]
+        [InlineData("unchecked$$(3 + 3)")]
+        [InlineData("unche$$cked(3 + 3)")]
+        [InlineData("unchecked(3 + 3$$")]
+        [InlineData("unchecked($$3 + 3")]
+        public void CheckedExpression_NotHandled(string expression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expression}
+    }}
+}}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ThrowStatement_MissingBoth()
@@ -3760,9 +3911,7 @@ class C
         }
 
         internal override ICommandHandler GetCommandHandler(TestWorkspace workspace)
-        {
-            return workspace.ExportProvider.GetExportedValues<ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
-        }
+            => workspace.ExportProvider.GetExportedValues<ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
 
         [WorkItem(32337, "https://github.com/dotnet/roslyn/issues/32337")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]

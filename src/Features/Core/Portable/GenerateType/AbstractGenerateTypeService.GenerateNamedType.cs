@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var availableTypeParameters = _service.GetAvailableTypeParameters(_state, _semanticDocument.SemanticModel, _intoNamespace, _cancellationToken);
                 var parameterTypes = GetArgumentTypes(argumentList);
                 var parameterNames = _service.GenerateParameterNames(_semanticDocument.SemanticModel, argumentList, _cancellationToken);
-                var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
+                using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
 
                 var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
                 var parameterToNewFieldMap = new Dictionary<string, string>();
@@ -251,8 +251,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     members.AddRange(fields);
                     members.Add(constructor);
                 }
-
-                parameters.Free();
             }
 
             private void AddExceptionConstructors(ArrayBuilder<ISymbol> members)
@@ -291,14 +289,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private Accessibility DetermineAccessibility()
-            {
-                return _service.GetAccessibility(_state, _semanticDocument.SemanticModel, _intoNamespace, _cancellationToken);
-            }
+                => _service.GetAccessibility(_state, _semanticDocument.SemanticModel, _intoNamespace, _cancellationToken);
 
             private DeclarationModifiers DetermineModifiers()
-            {
-                return default;
-            }
+                => default;
 
             private INamedTypeSymbol DetermineBaseType()
             {
@@ -331,9 +325,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private string DetermineName()
-            {
-                return GetTypeName(_state);
-            }
+                => GetTypeName(_state);
 
             private ImmutableArray<ITypeParameterSymbol> DetermineTypeParameters()
                 => _service.GetTypeParameters(_state, _semanticDocument.SemanticModel, _cancellationToken);

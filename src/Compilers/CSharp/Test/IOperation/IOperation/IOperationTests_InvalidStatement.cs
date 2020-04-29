@@ -358,6 +358,62 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
+        public void InvalidGotoCaseStatement_BadLabel()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        switch (args[0], args[1])
+        {
+            case (string s1, string s2) _:
+                /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
+                x1 = x2;
+            case (string str, null) _:
+                break;
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto case a ... 1, var x2);')
+  Children(1):
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.String, System.String), IsInvalid, IsImplicit) (Syntax: 'args is (var x1, var x2)')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'args is (var x1, var x2)')
+            Value: 
+              IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String[], IsInvalid) (Syntax: 'args')
+            Pattern: 
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '(var x1, var x2)') (InputType: System.String[], DeclaredSymbol: null, MatchedType: System.String[], DeconstructSymbol: null)
+                DeconstructionSubpatterns (2):
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x1') (InputType: ?, DeclaredSymbol: ?? x1, MatchesNull: True)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x2') (InputType: ?, DeclaredSymbol: ?? x2, MatchesNull: True)
+                PropertySubpatterns (0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(10,18): error CS0163: Control cannot fall through from one case label ('(string s1, string s2) _') to another
+                //             case (string s1, string s2) _:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "(string s1, string s2) _").WithArguments("(string s1, string s2) _").WithLocation(10, 18),
+                // file.cs(11,27): error CS0029: Cannot implicitly convert type 'bool' to '(string, string)'
+                //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case args is (var x1, var x2);").WithArguments("bool", "(string, string)").WithLocation(11, 27),
+                // file.cs(11,45): error CS1061: 'string[]' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'string[]' could be found (are you missing a using directive or an assembly reference?)
+                //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(var x1, var x2)").WithArguments("string[]", "Deconstruct").WithLocation(11, 45),
+                // file.cs(11,45): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'string[]', with 2 out parameters and a void return type.
+                //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(var x1, var x2)").WithArguments("string[]", "2").WithLocation(11, 45)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<GotoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidGotoCaseStatement_OutsideSwitchStatement()
         {

@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         internal abstract ISignatureHelpProvider CreateSignatureHelpProvider();
 
         protected AbstractSignatureHelpProviderTests(TWorkspaceFixture workspaceFixture)
-        {
-            this.workspaceFixture = workspaceFixture;
-        }
+            => this.workspaceFixture = workspaceFixture;
 
         public override void Dispose()
         {
@@ -251,9 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         }
 
         private string ToString(IEnumerable<TaggedText> list)
-        {
-            return string.Concat(list.Select(i => i.ToString()));
-        }
+            => string.Concat(list.Select(i => i.ToString()));
 
         protected async Task TestSignatureHelpInEditorBrowsableContextsAsync(
             string markup,

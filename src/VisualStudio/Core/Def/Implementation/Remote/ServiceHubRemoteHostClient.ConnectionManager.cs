@@ -24,7 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly HostGroup _hostGroup;
 
             private readonly ReaderWriterLockSlim _shutdownLock;
-            private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
 
             private readonly int _maxPoolConnections;
 
@@ -41,14 +40,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 HubClient hubClient,
                 HostGroup hostGroup,
                 bool enableConnectionPool,
-                int maxPoolConnection,
-                ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc)
+                int maxPoolConnection)
             {
                 _workspace = workspace;
                 _hubClient = hubClient;
                 _hostGroup = hostGroup;
 
-                _remotableDataRpc = remotableDataRpc;
                 _maxPoolConnections = maxPoolConnection;
 
                 // initial value 4 is chosen to stop concurrent dictionary creating too many locks.
@@ -61,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             public HostGroup HostGroup => _hostGroup;
 
-            public Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+            public Task<Connection> CreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
             {
                 // pool is not enabled by option
                 if (!_enableConnectionPool)
@@ -77,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     // but, at some point, if we want to support RemoteHost being restarted at any random point, 
                     // we need to revisit this to support such case by creating new temporary connections.
                     // for now, I dropped it since it felt over-designing when there is no usage case for that yet.
-                    return TryCreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken);
+                    return CreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken);
                 }
 
                 // when callbackTarget is given, we can't share/pool connection since callbackTarget attaches a state to connection.
@@ -85,13 +82,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // if he wants to reuse same connection
                 if (callbackTarget != null)
                 {
-                    return TryCreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken);
+                    return CreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken);
                 }
 
-                return TryGetConnectionFromPoolAsync(serviceName, cancellationToken);
+                return GetConnectionFromPoolAsync(serviceName, cancellationToken);
             }
 
-            private async Task<Connection?> TryGetConnectionFromPoolAsync(string serviceName, CancellationToken cancellationToken)
+            private async Task<Connection> GetConnectionFromPoolAsync(string serviceName, CancellationToken cancellationToken)
             {
                 var queue = _pools.GetOrAdd(serviceName, _ => new ConcurrentQueue<JsonRpcConnection>());
                 if (queue.TryDequeue(out var connection))
@@ -99,37 +96,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return new PooledConnection(this, serviceName, connection);
                 }
 
-                var newConnection = await TryCreateNewConnectionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
-                if (newConnection == null)
-                {
-                    // we might not get new connection if we are either shutdown explicitly or due to OOP terminated
-                    return null;
-                }
-
+                var newConnection = await CreateNewConnectionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
                 return new PooledConnection(this, serviceName, (JsonRpcConnection)newConnection);
             }
 
-            private async Task<Connection?> TryCreateNewConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+            private async Task<Connection> CreateNewConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
             {
-                var dataRpc = _remotableDataRpc.TryAddReference();
-                if (dataRpc == null)
-                {
-                    // TODO: If we used multiplex stream we wouldn't get to this state and we could always assume to have a connection
-                    // unless the service process stops working, in which case we should report an error and ask user to restart VS
-                    // (https://github.com/dotnet/roslyn/issues/40146)
-                    //
-                    // dataRpc is disposed. this can happen if someone killed remote host process while there is
-                    // no other one holding the data connection.
-                    // in those error case, don't crash but return null. this method is TryCreate since caller expects it to return null
-                    // on such error situation.
-                    return null;
-                }
-
                 // get stream from service hub to communicate service specific information
                 // this is what consumer actually use to communicate information
                 var serviceStream = await RequestServiceAsync(_workspace, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
 
-                return new JsonRpcConnection(_workspace, _hubClient.Logger, callbackTarget, serviceStream, dataRpc);
+                return new JsonRpcConnection(_workspace, _hubClient.Logger, callbackTarget, serviceStream);
             }
 
             private void Free(string serviceName, JsonRpcConnection connection)
@@ -163,9 +140,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 using (_shutdownLock.DisposableWrite())
                 {
                     _isDisposed = true;
-
-                    // let ref count this one is holding go
-                    _remotableDataRpc.Dispose();
 
                     // let all connections in the pool to go away
                     foreach (var (_, queue) in _pools)

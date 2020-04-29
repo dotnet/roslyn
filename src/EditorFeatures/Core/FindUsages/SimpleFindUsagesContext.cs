@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         public override CancellationToken CancellationToken { get; }
 
         public SimpleFindUsagesContext(CancellationToken cancellationToken)
-        {
-            CancellationToken = cancellationToken;
-        }
+            => CancellationToken = cancellationToken;
 
         public string Message { get; private set; }
         public string SearchTitle { get; private set; }

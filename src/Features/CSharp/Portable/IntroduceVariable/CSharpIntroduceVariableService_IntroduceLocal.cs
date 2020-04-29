@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -39,16 +38,23 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ConstKeyword))
                 : default;
 
-            var options = await document.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             var declarationStatement = SyntaxFactory.LocalDeclarationStatement(
                 modifiers,
                 SyntaxFactory.VariableDeclaration(
-                    this.GetTypeSyntax(document, options, expression, isConstant, cancellationToken),
+                    GetTypeSyntax(document, expression, cancellationToken),
                     SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(
                         newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                         null,
                         SyntaxFactory.EqualsValueClause(expression.WithoutTrivia())))));
+
+            // If we're inserting into a multi-line parent, then add a newline after the local-var
+            // we're adding.  That way we don't end up having it and the starting statement be on
+            // the same line (which will cause indentation to be computed incorrectly).
+            var text = await document.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            if (!text.AreOnSameLine(containerToGenerateInto.GetFirstToken(), containerToGenerateInto.GetLastToken()))
+            {
+                declarationStatement = declarationStatement.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+            }
 
             switch (containerToGenerateInto)
             {
@@ -107,17 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return document.Document.WithSyntaxRoot(newRoot);
         }
 
-        private TypeSyntax GetTypeSyntax(SemanticDocument document, DocumentOptionSet options, ExpressionSyntax expression, bool isConstant, CancellationToken cancellationToken)
+        private TypeSyntax GetTypeSyntax(SemanticDocument document, ExpressionSyntax expression, CancellationToken cancellationToken)
         {
             var typeSymbol = GetTypeSymbol(document, expression, cancellationToken);
             return typeSymbol.GenerateTypeSyntax();
-        }
-
-        private bool CanUseVar(ITypeSymbol typeSymbol)
-        {
-            return typeSymbol.TypeKind != TypeKind.Delegate
-                && !typeSymbol.IsErrorType()
-                && !typeSymbol.IsFormattableString();
         }
 
         private Document RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
@@ -211,18 +210,18 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var matches = FindMatches(document, expression, document, scope, allOccurrences, cancellationToken);
             Debug.Assert(matches.Contains(expression));
 
-            (document, matches) = await ComplexifyParentingStatements(document, matches, cancellationToken).ConfigureAwait(false);
+            (document, matches) = await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(false);
 
             // Our original expression should have been one of the matches, which were tracked as part
             // of complexification, so we can retrieve the latest version of the expression here.
             expression = document.Root.GetCurrentNode(expression);
 
             var root = document.Root;
-            ISet<StatementSyntax> allAffectedStatements = new HashSet<StatementSyntax>(matches.SelectMany(expr => expr.GetAncestorsOrThis<StatementSyntax>()));
+            ISet<StatementSyntax> allAffectedStatements = new HashSet<StatementSyntax>(matches.SelectMany(expr => GetApplicableStatementAncestors(expr)));
 
             SyntaxNode innermostCommonBlock;
 
-            var innermostStatements = new HashSet<StatementSyntax>(matches.Select(expr => expr.GetAncestorOrThis<StatementSyntax>()));
+            var innermostStatements = new HashSet<StatementSyntax>(matches.Select(expr => GetApplicableStatementAncestors(expr).First()));
             if (innermostStatements.Count == 1)
             {
                 // if there was only one match, or all the matches came from the same statement
@@ -259,6 +258,23 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var newRoot = root.ReplaceNode(innermostCommonBlock, finalInnerMostBlock);
             return document.Document.WithSyntaxRoot(newRoot);
+        }
+
+        private IEnumerable<StatementSyntax> GetApplicableStatementAncestors(ExpressionSyntax expr)
+        {
+            foreach (var statement in expr.GetAncestorsOrThis<StatementSyntax>())
+            {
+                // When determining where to put a local, we don't want to put it between the `else`
+                // and `if` of a compound if-statement.
+
+                if (statement.Kind() == SyntaxKind.IfStatement &&
+                    statement.IsParentKind(SyntaxKind.ElseClause))
+                {
+                    continue;
+                }
+
+                yield return statement;
+            }
         }
 
         private int GetFirstStatementAffectedIndex(SyntaxNode innermostCommonBlock, ISet<ExpressionSyntax> matches, int firstStatementAffectedIndex)
@@ -307,23 +323,43 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             int statementIndex)
         {
             var nextStatement = oldStatements.ElementAtOrDefault(statementIndex);
-            return nextStatement == null
-                ? oldStatements.Insert(statementIndex, newStatement)
-                : oldStatements.ReplaceRange(nextStatement, new[] {
-                    newStatement.WithLeadingTrivia(nextStatement.GetLeadingTrivia()),
-                    nextStatement.WithoutLeadingTrivia() });
+            if (nextStatement == null)
+                return oldStatements.Insert(statementIndex, newStatement);
+
+            // Grab all the trivia before the line the next statement is on and move it to the new node.
+
+            var nextStatementLeading = nextStatement.GetLeadingTrivia();
+            var precedingEndOfLine = nextStatementLeading.LastOrDefault(t => t.Kind() == SyntaxKind.EndOfLineTrivia);
+            if (precedingEndOfLine == default)
+                return oldStatements.ReplaceRange(
+                    nextStatement, new[] { newStatement, nextStatement });
+
+            var endOfLineIndex = nextStatementLeading.IndexOf(precedingEndOfLine) + 1;
+
+            return oldStatements.ReplaceRange(
+                nextStatement, new[]
+                {
+                    newStatement.WithLeadingTrivia(nextStatementLeading.Take(endOfLineIndex)),
+                    nextStatement.WithLeadingTrivia(nextStatementLeading.Skip(endOfLineIndex)),
+                });
         }
 
         private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax || node is SwitchSectionSyntax;
 
-        private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode blockLike) =>
-            blockLike is BlockSyntax block ? block.Statements :
-            blockLike is SwitchSectionSyntax switchSection ? switchSection.Statements :
-            throw ExceptionUtilities.UnexpectedValue(blockLike);
+        private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode blockLike)
+            => blockLike switch
+            {
+                BlockSyntax block => block.Statements,
+                SwitchSectionSyntax switchSection => switchSection.Statements,
+                _ => throw ExceptionUtilities.UnexpectedValue(blockLike),
+            };
 
-        private static SyntaxNode WithStatements(SyntaxNode blockLike, SyntaxList<StatementSyntax> statements) =>
-            blockLike is BlockSyntax block ? block.WithStatements(statements) as SyntaxNode :
-            blockLike is SwitchSectionSyntax switchSection ? switchSection.WithStatements(statements) :
-            throw ExceptionUtilities.UnexpectedValue(blockLike);
+        private static SyntaxNode WithStatements(SyntaxNode blockLike, SyntaxList<StatementSyntax> statements)
+            => blockLike switch
+            {
+                BlockSyntax block => block.WithStatements(statements),
+                SwitchSectionSyntax switchSection => switchSection.WithStatements(statements),
+                _ => throw ExceptionUtilities.UnexpectedValue(blockLike),
+            };
     }
 }

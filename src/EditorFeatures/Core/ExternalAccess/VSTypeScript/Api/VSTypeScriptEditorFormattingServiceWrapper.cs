@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         private readonly IEditorFormattingService _underlyingObject;
 
         private VSTypeScriptEditorFormattingServiceWrapper(IEditorFormattingService underlyingObject)
-        {
-            _underlyingObject = underlyingObject;
-        }
+            => _underlyingObject = underlyingObject;
 
         public static VSTypeScriptEditorFormattingServiceWrapper Create(Document document)
             => new VSTypeScriptEditorFormattingServiceWrapper(document.Project.LanguageServices.GetRequiredService<IEditorFormattingService>());

@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -21,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
-            => new CSharpSuggestionModeCompletionProvider();
+        internal override Type GetCompletionProviderType()
+            => typeof(CSharpSuggestionModeCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterFirstExplicitArgument()
@@ -92,9 +94,7 @@ class c
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DelegateTypeExpected2()
-        {
-            await VerifyBuilderAsync(AddUsingDirectives("using System;", AddInsideMethod(@"Func<int, int, int> f = $$")));
-        }
+            => await VerifyBuilderAsync(AddUsingDirectives("using System;", AddInsideMethod(@"Func<int, int, int> f = $$")));
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ObjectInitializerDelegateType()
@@ -1102,30 +1102,32 @@ public static class Repro
         }
 
         private async Task VerifyNotBuilderAsync(string markup)
-        {
-            await VerifyWorkerAsync(markup, isBuilder: false);
-        }
+            => await VerifyWorkerAsync(markup, isBuilder: false);
 
         private async Task VerifyBuilderAsync(string markup)
-        {
-            await VerifyWorkerAsync(markup, isBuilder: true);
-        }
+            => await VerifyWorkerAsync(markup, isBuilder: true);
 
         private async Task VerifyWorkerAsync(string markup, bool isBuilder)
         {
             MarkupTestFile.GetPosition(markup, out var code, out int position);
 
             using var workspaceFixture = new CSharpTestWorkspaceFixture();
-            var document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular);
-            await CheckResultsAsync(document1, position, isBuilder);
-
-            if (await CanUseSpeculativeSemanticModelAsync(document1, position))
+            try
             {
-                var document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
-                await CheckResultsAsync(document2, position, isBuilder);
-            }
+                workspaceFixture.GetWorkspace(ExportProvider);
+                var document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular);
+                await CheckResultsAsync(document1, position, isBuilder);
 
-            workspaceFixture.DisposeAfterTest();
+                if (await CanUseSpeculativeSemanticModelAsync(document1, position))
+                {
+                    var document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
+                    await CheckResultsAsync(document2, position, isBuilder);
+                }
+            }
+            finally
+            {
+                workspaceFixture.DisposeAfterTest();
+            }
         }
 
         private async Task CheckResultsAsync(Document document, int position, bool isBuilder)
@@ -1135,12 +1137,13 @@ public static class Repro
             triggerInfos.Add(CompletionTrigger.Invoke);
             triggerInfos.Add(CompletionTrigger.CreateDeletionTrigger('z'));
 
-            var service = GetCompletionService(document.Project.Solution.Workspace);
+            var service = GetCompletionService(document.Project);
+            var provider = Assert.Single(service.GetTestAccessor().GetAllProviders(ImmutableHashSet<string>.Empty));
 
             foreach (var triggerInfo in triggerInfos)
             {
                 var completionList = await service.GetTestAccessor().GetContextAsync(
-                    service.GetTestAccessor().ExclusiveProviders?[0], document, position, triggerInfo,
+                    provider, document, position, triggerInfo,
                     options: null, cancellationToken: CancellationToken.None);
 
                 if (isBuilder)

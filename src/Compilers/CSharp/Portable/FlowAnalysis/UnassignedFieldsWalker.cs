@@ -123,6 +123,108 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : topLevelMethod;
         }
 
+        public override BoundNode VisitCall(BoundCall node)
+        {
+            var result = base.VisitCall(node);
+            var method = node.Method;
+            if (method.IsStatic || node.ReceiverOpt is BoundThisReference)
+            {
+                ApplyMemberPostConditions(method.ContainingType,
+                    method.NotNullMembers, method.NotNullWhenTrueMembers, method.NotNullWhenFalseMembers);
+            }
+            return result;
+        }
+
+        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            var result = base.VisitPropertyAccess(node);
+            var property = node.PropertySymbol;
+            if (property.IsStatic || node.ReceiverOpt is BoundThisReference)
+            {
+                var accessor = property.GetMethod;
+                if (!(accessor is null))
+                {
+                    ApplyMemberPostConditions(property.ContainingType,
+                        accessor.NotNullMembers, accessor.NotNullWhenTrueMembers, accessor.NotNullWhenFalseMembers);
+                }
+            }
+
+            return result;
+        }
+
+        protected override void PropertySetter(BoundExpression node, BoundExpression receiver, MethodSymbol setter, BoundExpression value = null)
+        {
+            base.PropertySetter(node, receiver, setter, value);
+
+            if (receiver is null || receiver is BoundThisReference)
+            {
+                ApplyMemberPostConditions(setter.ContainingType, setter.NotNullMembers, notNullWhenTrueMembers: default, notNullWhenFalseMembers: default);
+            }
+        }
+
+        private void ApplyMemberPostConditions(
+            TypeSymbol containingType,
+            ImmutableArray<string> notNullMembers,
+            ImmutableArray<string> notNullWhenTrueMembers,
+            ImmutableArray<string> notNullWhenFalseMembers)
+        {
+            applyMemberPostConditions(notNullMembers, ref State);
+
+            if (!notNullWhenTrueMembers.IsDefaultOrEmpty || !notNullWhenFalseMembers.IsDefaultOrEmpty)
+            {
+                Split();
+                applyMemberPostConditions(notNullWhenTrueMembers, ref StateWhenTrue);
+                applyMemberPostConditions(notNullWhenFalseMembers, ref StateWhenFalse);
+            }
+
+            void applyMemberPostConditions(ImmutableArray<string> notNullMembers, ref LocalState state)
+            {
+                if (notNullMembers.IsEmpty)
+                {
+                    return;
+                }
+
+                foreach (var notNullMember in notNullMembers)
+                {
+                    markMemberAsAssigned(notNullMember, ref state);
+                }
+            }
+
+            void markMemberAsAssigned(string notNullMember, ref LocalState state)
+            {
+                foreach (Symbol member in containingType.GetMembers(notNullMember))
+                {
+                    switch (member.Kind)
+                    {
+                        case SymbolKind.Field:
+                        case SymbolKind.Property:
+                            int thisSlot = -1;
+                            bool isStatic = member.IsStatic;
+                            if (!isStatic)
+                            {
+                                thisSlot = GetOrCreateSlot(MethodThisParameter);
+                                if (thisSlot < 0)
+                                {
+                                    continue;
+                                }
+                                Debug.Assert(thisSlot > 0);
+                            }
+
+                            var memberSlot = GetOrCreateSlot(member, isStatic ? 0 : thisSlot);
+                            if (memberSlot >= 0)
+                            {
+                                SetSlotAssigned(memberSlot, ref state);
+                            }
+
+                            break;
+                        case SymbolKind.Event:
+                        case SymbolKind.Method:
+                            break;
+                    }
+                }
+            }
+        }
+
         internal static void ReportUninitializedNonNullableReferenceTypeFields(
             UnassignedFieldsWalker walkerOpt,
             int thisSlot,

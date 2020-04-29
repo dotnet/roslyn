@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 _listSyntax = listSyntax;
                 _listItems = listItems;
 
-                var generator = SyntaxGenerator.GetGenerator(this.OriginalDocument);
+                var generator = SyntaxGenerator.GetGenerator(OriginalDocument);
 
                 _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation());
                 _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation());
@@ -101,11 +101,11 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
             {
                 var result = ArrayBuilder<WrappingGroup>.GetInstance();
-                await AddWrappingGroups(result).ConfigureAwait(false);
+                await AddWrappingGroupsAsync(result).ConfigureAwait(false);
                 return result.ToImmutableAndFree();
             }
 
-            private async Task AddWrappingGroups(ArrayBuilder<WrappingGroup> result)
+            private async Task AddWrappingGroupsAsync(ArrayBuilder<WrappingGroup> result)
             {
                 result.Add(await GetWrapEveryGroupAsync().ConfigureAwait(false));
                 result.Add(await GetUnwrapGroupAsync().ConfigureAwait(false));

@@ -2,21 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(KeywordCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(NamedParameterCompletionProvider))]
+    [Shared]
     internal class KeywordCompletionProvider : AbstractKeywordCompletionProvider<CSharpSyntaxContext>
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public KeywordCompletionProvider()
             : base(GetKeywordRecommenders())
         {
@@ -100,7 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new NameOfKeywordRecommender(),
                 new NamespaceKeywordRecommender(),
                 new NewKeywordRecommender(),
+                new NintKeywordRecommender(),
                 new NotNullKeywordRecommender(),
+                new NuintKeywordRecommender(),
                 new NullableKeywordRecommender(),
                 new NullKeywordRecommender(),
                 new ObjectKeywordRecommender(),
@@ -164,9 +174,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
-        }
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         protected override async Task<CSharpSyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -192,8 +202,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         internal override TextSpan GetCurrentSpan(TextSpan span, SourceText text)
-        {
-            return CompletionUtilities.GetCompletionItemSpan(text, span.End);
-        }
+            => CompletionUtilities.GetCompletionItemSpan(text, span.End);
     }
 }

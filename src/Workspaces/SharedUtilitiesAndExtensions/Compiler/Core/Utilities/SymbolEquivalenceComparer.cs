@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -12,21 +13,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// Provides a way to test two symbols for equivalence.  While there are ways to ask for
     /// different sorts of equivalence, the following must hold for two symbols to be considered
     /// equivalent.
-    /// 
-    /// 1) The kinds of the two symbols must match.
-    /// 
-    /// 2) The names of the two symbols must match.
-    /// 
-    /// 3) The arity of the two symbols must match.
-    /// 
-    /// 4) If the symbols are methods or parameterized properties, then the signatures of the two
-    /// symbols must match.
-    /// 
-    /// 5) Both symbols must be definitions or must be instantiations.  If they are instantiations,
-    /// then they must be instantiated in the same manner.
-    /// 
-    /// 6) The containing symbols of the two symbols must be equivalent.
-    /// 
+    /// <list type="number">
+    /// <item>The kinds of the two symbols must match.</item>
+    /// <item>The names of the two symbols must match.</item>
+    /// <item>The arity of the two symbols must match.</item>
+    /// <item>If the symbols are methods or parameterized properties, then the signatures of the two
+    /// symbols must match.</item>
+    /// <item>Both symbols must be definitions or must be instantiations.  If they are instantiations,
+    /// then they must be instantiated in the same manner.</item>
+    /// <item>The containing symbols of the two symbols must be equivalent.</item>
+    /// <item>Nullability of symbols is not involved in the comparison.</item>
+    /// </list>
     /// Note: equivalence does not concern itself with whole symbols.  Two types are considered
     /// equivalent if the above hold, even if one type has different members than the other.  Note:
     /// type parameters, and signature parameters are not considered 'children' when comparing
@@ -42,17 +39,23 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
         private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
 
-        public static readonly SymbolEquivalenceComparer Instance = new SymbolEquivalenceComparer(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false);
-        public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: false);
+        public static readonly SymbolEquivalenceComparer Instance = new SymbolEquivalenceComparer(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false);
+        public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = new SymbolEquivalenceComparer(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: true);
+        public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: false, tupleNamesMustMatch: false);
 
         private readonly IEqualityComparer<IAssemblySymbol> _assemblyComparerOpt;
+        private readonly bool _tupleNamesMustMatch;
 
         public ParameterSymbolEqualityComparer ParameterEquivalenceComparer { get; }
         public SignatureTypeSymbolEquivalenceComparer SignatureTypeEquivalenceComparer { get; }
 
-        internal SymbolEquivalenceComparer(IEqualityComparer<IAssemblySymbol> assemblyComparerOpt, bool distinguishRefFromOut)
+        internal SymbolEquivalenceComparer(
+            IEqualityComparer<IAssemblySymbol> assemblyComparerOpt,
+            bool distinguishRefFromOut,
+            bool tupleNamesMustMatch)
         {
             _assemblyComparerOpt = assemblyComparerOpt;
+            _tupleNamesMustMatch = tupleNamesMustMatch;
 
             this.ParameterEquivalenceComparer = new ParameterSymbolEqualityComparer(this, distinguishRefFromOut);
             this.SignatureTypeEquivalenceComparer = new SignatureTypeSymbolEquivalenceComparer(this);
@@ -123,17 +126,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         public bool ReturnTypeEquals(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies = null)
-        {
-            return GetEquivalenceVisitor().ReturnTypesAreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
-        }
+            => GetEquivalenceVisitor().ReturnTypesAreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
 
         /// <summary>
         /// Compares given symbols <paramref name="x"/> and <paramref name="y"/> for equivalence.
         /// </summary>
         public bool Equals(ISymbol x, ISymbol y)
-        {
-            return EqualsCore(x, y, null);
-        }
+            => EqualsCore(x, y, equivalentTypesWithDifferingAssemblies: null);
 
         /// <summary>
         /// Compares given symbols <paramref name="x"/> and <paramref name="y"/> for equivalence and populates <paramref name="equivalentTypesWithDifferingAssemblies"/>
@@ -148,26 +147,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private bool EqualsCore(ISymbol x, ISymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
-        {
-            return GetEquivalenceVisitor().AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
-        }
+            => GetEquivalenceVisitor().AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
 
         public int GetHashCode(ISymbol x)
-        {
-            return GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false).GetHashCode(x, currentHash: 0);
-        }
+            => GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false).GetHashCode(x, currentHash: 0);
 
         private static ISymbol UnwrapAlias(ISymbol symbol)
-        {
-            if (symbol.Kind == SymbolKind.Alias)
-            {
-                return ((IAliasSymbol)symbol).Target;
-            }
-            else
-            {
-                return symbol;
-            }
-        }
+            => symbol.IsKind(SymbolKind.Alias, out IAliasSymbol alias) ? alias.Target : symbol;
 
         private static SymbolKind GetKindAndUnwrapAlias(ref ISymbol symbol)
         {
@@ -182,19 +168,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private static bool IsConstructedFromSelf(INamedTypeSymbol symbol)
-        {
-            return symbol.Equals(symbol.ConstructedFrom);
-        }
+            => symbol.Equals(symbol.ConstructedFrom);
 
         private static bool IsConstructedFromSelf(IMethodSymbol symbol)
-        {
-            return symbol.Equals(symbol.ConstructedFrom);
-        }
+            => symbol.Equals(symbol.ConstructedFrom);
 
         private static bool IsObjectType(ISymbol symbol)
-        {
-            return symbol.Kind == SymbolKind.NamedType && ((ITypeSymbol)symbol).SpecialType == SpecialType.System_Object;
-        }
+            => symbol.IsKind(SymbolKind.NamedType, out ITypeSymbol typeSymbol) && typeSymbol.SpecialType == SpecialType.System_Object;
 
         private static bool CheckContainingType(IMethodSymbol x)
         {
@@ -223,14 +203,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private static bool IsPartialMethodDefinitionPart(IMethodSymbol symbol)
-        {
-            return symbol.PartialImplementationPart != null;
-        }
+            => symbol.PartialImplementationPart != null;
 
         private static bool IsPartialMethodImplementationPart(IMethodSymbol symbol)
-        {
-            return symbol.PartialDefinitionPart != null;
-        }
+            => symbol.PartialDefinitionPart != null;
 
         private static TypeKind GetTypeKind(INamedTypeSymbol x)
         {

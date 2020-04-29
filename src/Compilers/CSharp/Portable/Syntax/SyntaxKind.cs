@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     // DO NOT CHANGE NUMBERS ASSIGNED TO EXISTING KINDS OR YOU WILL BREAK BINARY COMPATIBILITY
@@ -349,6 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitElementAccess = 8656,
         IsPatternExpression = 8657,
         RangeExpression = 8658,
+        ImplicitObjectCreationExpression = 8659,
 
         // binary expressions
         AddExpression = 8668,

@@ -11,23 +11,15 @@ namespace Microsoft.CodeAnalysis.Host
     internal static class Extensions
     {
         public static bool CanApplyChange([NotNullWhen(returnValue: true)] this TextDocument? document)
-        {
-            return document?.State.CanApplyChange() ?? false;
-        }
+            => document?.State.CanApplyChange() ?? false;
 
         public static bool CanApplyChange([NotNullWhen(returnValue: true)] this TextDocumentState? document)
-        {
-            return document?.Services.GetService<IDocumentOperationService>().CanApplyChange ?? false;
-        }
+            => document?.Services.GetService<IDocumentOperationService>().CanApplyChange ?? false;
 
         public static bool SupportsDiagnostics([NotNullWhen(returnValue: true)] this TextDocument? document)
-        {
-            return document?.State.SupportsDiagnostics() ?? false;
-        }
+            => document?.State.SupportsDiagnostics() ?? false;
 
         public static bool SupportsDiagnostics([NotNullWhen(returnValue: true)] this TextDocumentState? document)
-        {
-            return document?.Services.GetService<IDocumentOperationService>().SupportDiagnostics ?? false;
-        }
+            => document?.Services.GetService<IDocumentOperationService>().SupportDiagnostics ?? false;
     }
 }

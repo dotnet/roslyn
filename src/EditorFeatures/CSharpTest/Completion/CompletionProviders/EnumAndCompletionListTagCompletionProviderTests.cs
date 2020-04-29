@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
-            => new EnumAndCompletionListTagCompletionProvider();
+        internal override Type GetCompletionProviderType()
+            => typeof(EnumAndCompletionListTagCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NullableEnum()
@@ -817,6 +817,23 @@ internal enum ProjectTreeWriterOptions
     AllProperties = FilePath & $$
 }";
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInEnumHasFlag()
+        {
+            var markup =
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        FileInfo f;
+        f.Attributes.HasFlag($$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "FileAttributes");
         }
     }
 }

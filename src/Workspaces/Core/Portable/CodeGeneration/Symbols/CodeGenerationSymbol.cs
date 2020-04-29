@@ -3,15 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -71,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public string Language => "Code Generation Agnostic Language";
 
-        public ISymbol ContainingSymbol => null;
+        public virtual ISymbol ContainingSymbol => null;
 
         public IAssemblySymbol ContainingAssembly => null;
 
@@ -154,19 +151,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public ImmutableArray<AttributeData> GetAttributes()
-        {
-            return _attributes;
-        }
+            => _attributes;
 
         public ImmutableArray<AttributeData> GetAttributes(INamedTypeSymbol attributeType)
-        {
-            return GetAttributes().WhereAsArray(a => a.AttributeClass.Equals(attributeType));
-        }
+            => GetAttributes().WhereAsArray(a => a.AttributeClass.Equals(attributeType));
 
         public ImmutableArray<AttributeData> GetAttributes(IMethodSymbol attributeConstructor)
-        {
-            return GetAttributes().WhereAsArray(a => a.AttributeConstructor.Equals(attributeConstructor));
-        }
+            => GetAttributes().WhereAsArray(a => a.AttributeConstructor.Equals(attributeConstructor));
 
         public ISymbol OriginalDefinition
         {
@@ -181,9 +172,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
 
         public string GetDocumentationCommentId()
-        {
-            return null;
-        }
+            => null;
 
         public string GetDocumentationCommentXml(
             CultureInfo preferredCulture,
@@ -194,24 +183,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public string ToDisplayString(SymbolDisplayFormat format = null)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public string ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public virtual string MetadataName
         {
@@ -224,13 +205,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool HasUnsupportedMetadata => false;
 
         public bool Equals(ISymbol other)
-        {
-            return this.Equals((object)other);
-        }
+            => this.Equals((object)other);
 
         public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
-        {
-            return this.Equals(other);
-        }
+            => this.Equals(other);
     }
 }

@@ -317,5 +317,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             return AttributeUsageInfo.Null;
         }
+
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+        internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
     }
 }

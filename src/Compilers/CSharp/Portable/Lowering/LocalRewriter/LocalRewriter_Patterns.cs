@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -191,6 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagTypeEvaluation t:
                         {
                             TypeSymbol inputType = input.Type;
+                            Debug.Assert(inputType is { });
                             if (inputType.IsDynamic())
                             {
                                 // Avoid using dynamic conversions for pattern-matching.
@@ -231,7 +233,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // This is an evaluation of an indexed property with a constant int value.
                             // The input type must be ITuple, and the property must be a property of ITuple.
-                            Debug.Assert(e.Property.ContainingSymbol.Equals(input.Type));
                             Debug.Assert(e.Property.GetMethod.ParameterCount == 1);
                             Debug.Assert(e.Property.GetMethod.Parameters[0].Type.SpecialType == SpecialType.System_Int32);
                             TypeSymbol type = e.Property.GetMethod.ReturnType;
@@ -252,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.Syntax = test.Syntax;
                 BoundExpression input = _tempAllocator.GetTemp(test.Input);
+                Debug.Assert(input.Type is { });
                 switch (test)
                 {
                     case BoundDagNonNullTest d:
@@ -275,14 +277,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoundExpression MakeEqual(BoundExpression loweredLiteral, BoundExpression input)
             {
+                Debug.Assert(loweredLiteral.Type is { });
                 Debug.Assert(loweredLiteral.Type.Equals(input.Type, TypeCompareKind.AllIgnoreOptions));
 
-                if (loweredLiteral.Type.SpecialType == SpecialType.System_Double && double.IsNaN(loweredLiteral.ConstantValue.DoubleValue))
+                if (loweredLiteral.Type.SpecialType == SpecialType.System_Double && double.IsNaN(loweredLiteral.ConstantValue!.DoubleValue))
                 {
                     // produce double.IsNaN(input)
                     return _factory.StaticCall(SpecialMember.System_Double__IsNaN, input);
                 }
-                else if (loweredLiteral.Type.SpecialType == SpecialType.System_Single && float.IsNaN(loweredLiteral.ConstantValue.SingleValue))
+                else if (loweredLiteral.Type.SpecialType == SpecialType.System_Single && float.IsNaN(loweredLiteral.ConstantValue!.SingleValue))
                 {
                     // produce float.IsNaN(input)
                     return _factory.StaticCall(SpecialMember.System_Single__IsNaN, input);
@@ -316,6 +319,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.UIntEqual, input, loweredLiteral, booleanType, method: null);
                     case SpecialType.System_UInt64:
                         return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.ULongEqual, input, loweredLiteral, booleanType, method: null);
+                    case SpecialType.System_IntPtr when loweredLiteral.Type.IsNativeIntegerType:
+                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.NIntEqual, input, loweredLiteral, booleanType, method: null);
+                    case SpecialType.System_UIntPtr when loweredLiteral.Type.IsNativeIntegerType:
+                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.NUIntEqual, input, loweredLiteral, booleanType, method: null);
                     default:
                         if (loweredLiteral.Type.IsEnumType())
                         {
@@ -349,8 +356,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected bool TryLowerTypeTestAndCast(
                 BoundDagTest test,
                 BoundDagEvaluation evaluation,
-                out BoundExpression sideEffect,
-                out BoundExpression testExpression)
+                [NotNullWhen(true)] out BoundExpression sideEffect,
+                [NotNullWhen(true)] out BoundExpression testExpression)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
@@ -363,6 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundExpression input = _tempAllocator.GetTemp(test.Input);
                     BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, typeEvaluation1.Type, evaluation));
+                    Debug.Assert(output.Type is { });
                     sideEffect = _factory.AssignmentExpression(output, _factory.As(input, typeEvaluation1.Type));
                     testExpression = _factory.ObjectNotEqual(output, _factory.Null(output.Type));
                     return true;
@@ -398,6 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Action<BoundExpression> addCode,
                 out BoundExpression savedInputExpression)
             {
+                Debug.Assert(loweredInput.Type is { });
                 var inputDagTemp = BoundDagTemp.ForOriginalInput(loweredInput);
                 if ((loweredInput.Kind == BoundKind.Local || loweredInput.Kind == BoundKind.Parameter)
                     && loweredInput.GetRefKind() == RefKind.None)

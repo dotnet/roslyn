@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
 {
-    internal abstract class ReplCompletionProvider : CommonCompletionProvider
+    internal abstract class ReplCompletionProvider : LSPCompletionProvider
     {
         protected abstract Task<bool> ShouldDisplayCommandCompletionsAsync(SyntaxTree tree, int position, CancellationToken cancellationToken);
         protected abstract string GetCompletionString(string commandName);

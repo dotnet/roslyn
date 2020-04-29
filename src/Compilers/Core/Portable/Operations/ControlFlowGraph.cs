@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 Debug.Assert(false, "\n" + e.ToString());
             }
 
-            return default;
+            return null;
         }
 
         /// <summary>

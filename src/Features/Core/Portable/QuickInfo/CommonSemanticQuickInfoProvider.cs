@@ -4,16 +4,13 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -140,28 +137,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 return default;
             }
 
-            try
-            {
-                // Don't search trivia because we want to ignore inactive regions
-                var linkedToken = root.FindToken(token.SpanStart);
+            // Don't search trivia because we want to ignore inactive regions
+            var linkedToken = root.FindToken(token.SpanStart);
 
-                // The new and old tokens should have the same span?
-                if (token.Span == linkedToken.Span)
-                {
-                    return linkedToken;
-                }
-            }
-            catch (Exception thrownException)
+            // The new and old tokens should have the same span?
+            if (token.Span == linkedToken.Span)
             {
-                // We are seeing linked files with different spans cause FindToken to crash.
-                // Capturing more information for https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299
-                var originalText = await originalDocument.GetTextAsync().ConfigureAwait(false);
-                var linkedText = await linkedDocument.GetTextAsync().ConfigureAwait(false);
-                var linkedFileException = new LinkedFileDiscrepancyException(thrownException, originalText.ToString(), linkedText.ToString());
-
-                // This problem itself does not cause any corrupted state, it just changes the set
-                // of symbols included in QuickInfo, so we report and continue running.
-                FatalError.ReportWithoutCrash(linkedFileException);
+                return linkedToken;
             }
 
             return default;
@@ -196,7 +178,16 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.Description, mainDescriptionTaggedParts);
             }
 
-            var documentationContent = GetDocumentationContent(symbols, groups, semanticModel, token, formatter, syntaxFactsService, cancellationToken);
+            var documentedSymbol = symbols.FirstOrDefault()?.OriginalDefinition;
+
+            // if generating quick info for an attribute, bind to the class instead of the constructor
+            if (syntaxFactsService.IsAttributeName(token.Parent) &&
+                documentedSymbol?.ContainingType?.IsAttribute() == true)
+            {
+                documentedSymbol = documentedSymbol.ContainingType;
+            }
+
+            var documentationContent = GetDocumentationContent(documentedSymbol, groups, semanticModel, token, formatter, cancellationToken);
             if (syntaxFactsService.IsAwaitKeyword(token) &&
                 (symbols.First() as INamedTypeSymbol)?.SpecialType == SpecialType.System_Void)
             {
@@ -207,6 +198,45 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             if (!documentationContent.IsDefaultOrEmpty)
             {
                 AddSection(QuickInfoSectionKinds.DocumentationComments, documentationContent);
+            }
+
+            var remarksDocumentationContent = GetRemarksDocumentationContent(workspace, documentedSymbol, groups, semanticModel, token, formatter, cancellationToken);
+            if (!remarksDocumentationContent.IsDefaultOrEmpty)
+            {
+                var builder = ImmutableArray.CreateBuilder<TaggedText>();
+                if (!documentationContent.IsDefaultOrEmpty)
+                {
+                    builder.AddLineBreak();
+                }
+
+                builder.AddRange(remarksDocumentationContent);
+                AddSection(QuickInfoSectionKinds.RemarksDocumentationComments, builder.ToImmutable());
+            }
+
+            var returnsDocumentationContent = GetReturnsDocumentationContent(documentedSymbol, groups, semanticModel, token, formatter, cancellationToken);
+            if (!returnsDocumentationContent.IsDefaultOrEmpty)
+            {
+                var builder = ImmutableArray.CreateBuilder<TaggedText>();
+                builder.AddLineBreak();
+                builder.AddText(FeaturesResources.Returns_colon);
+                builder.AddLineBreak();
+                builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
+                builder.AddRange(returnsDocumentationContent);
+                builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
+                AddSection(QuickInfoSectionKinds.ReturnsDocumentationComments, builder.ToImmutable());
+            }
+
+            var valueDocumentationContent = GetValueDocumentationContent(documentedSymbol, groups, semanticModel, token, formatter, cancellationToken);
+            if (!valueDocumentationContent.IsDefaultOrEmpty)
+            {
+                var builder = ImmutableArray.CreateBuilder<TaggedText>();
+                builder.AddLineBreak();
+                builder.AddText(FeaturesResources.Value_colon);
+                builder.AddLineBreak();
+                builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
+                builder.AddRange(valueDocumentationContent);
+                builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
+                AddSection(QuickInfoSectionKinds.ValueDocumentationComments, builder.ToImmutable());
             }
 
             if (TryGetGroupText(SymbolDescriptionGroups.TypeParameterMap, out var typeParameterMapText))
@@ -272,33 +302,99 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         }
 
         private ImmutableArray<TaggedText> GetDocumentationContent(
-            IEnumerable<ISymbol> symbols,
+            ISymbol? documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
             SemanticModel semanticModel,
             SyntaxToken token,
             IDocumentationCommentFormattingService formatter,
-            ISyntaxFactsService syntaxFactsService,
             CancellationToken cancellationToken)
         {
             if (sections.TryGetValue(SymbolDescriptionGroups.Documentation, out var parts))
             {
-                var documentationBuilder = new List<TaggedText>();
-                documentationBuilder.AddRange(sections[SymbolDescriptionGroups.Documentation]);
-                return documentationBuilder.ToImmutableArray();
+                return parts;
             }
-            else if (symbols.Any())
+            else if (documentedSymbol is object)
             {
-                var symbol = symbols.First().OriginalDefinition;
-
-                // if generating quick info for an attribute, bind to the class instead of the constructor
-                if (syntaxFactsService.IsAttributeName(token.Parent) &&
-                    symbol.ContainingType?.IsAttribute() == true)
+                var documentation = documentedSymbol.GetDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
+                if (documentation != null)
                 {
-                    symbol = symbol.ContainingType;
+                    return documentation.ToImmutableArray();
                 }
+            }
 
-                var documentation = symbol.GetDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
+            return default;
+        }
 
+        private ImmutableArray<TaggedText> GetRemarksDocumentationContent(
+            Workspace workspace,
+            ISymbol? documentedSymbol,
+            IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
+            SemanticModel semanticModel,
+            SyntaxToken token,
+            IDocumentationCommentFormattingService formatter,
+            CancellationToken cancellationToken)
+        {
+            if (!workspace.Options.GetOption(QuickInfoOptions.ShowRemarksInQuickInfo, semanticModel.Language))
+            {
+                // <remarks> is disabled in Quick Info
+                return default;
+            }
+
+            if (sections.TryGetValue(SymbolDescriptionGroups.RemarksDocumentation, out var parts))
+            {
+                return parts;
+            }
+            else if (documentedSymbol is object)
+            {
+                var documentation = documentedSymbol.GetRemarksDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
+                if (documentation != null)
+                {
+                    return documentation.ToImmutableArray();
+                }
+            }
+
+            return default;
+        }
+
+        private ImmutableArray<TaggedText> GetReturnsDocumentationContent(
+            ISymbol? documentedSymbol,
+            IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
+            SemanticModel semanticModel,
+            SyntaxToken token,
+            IDocumentationCommentFormattingService formatter,
+            CancellationToken cancellationToken)
+        {
+            if (sections.TryGetValue(SymbolDescriptionGroups.ReturnsDocumentation, out var parts))
+            {
+                return parts;
+            }
+            else if (documentedSymbol is object)
+            {
+                var documentation = documentedSymbol.GetReturnsDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
+                if (documentation != null)
+                {
+                    return documentation.ToImmutableArray();
+                }
+            }
+
+            return default;
+        }
+
+        private ImmutableArray<TaggedText> GetValueDocumentationContent(
+            ISymbol? documentedSymbol,
+            IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
+            SemanticModel semanticModel,
+            SyntaxToken token,
+            IDocumentationCommentFormattingService formatter,
+            CancellationToken cancellationToken)
+        {
+            if (sections.TryGetValue(SymbolDescriptionGroups.ValueDocumentation, out var parts))
+            {
+                return parts;
+            }
+            else if (documentedSymbol is object)
+            {
+                var documentation = documentedSymbol.GetValueDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
                 if (documentation != null)
                 {
                     return documentation.ToImmutableArray();

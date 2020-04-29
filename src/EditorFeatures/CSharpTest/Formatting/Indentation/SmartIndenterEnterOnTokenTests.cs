@@ -3,17 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
+using static Microsoft.CodeAnalysis.Formatting.FormattingOptions2;
+using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
@@ -1380,10 +1381,12 @@ class C
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
+            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+
             Assert.True(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                     Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                    root, line.AsTextLine(), await document.GetOptionsAsync(), out _));
+                    root, line.AsTextLine(), optionService, await document.GetOptionsAsync(), out _));
 
             var actualIndentation = await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
             Assert.Equal(expectedIndentation.Value, actualIndentation);
@@ -1420,10 +1423,13 @@ class C
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
+
+            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+
             Assert.False(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                     Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                    root, line.AsTextLine(), await document.GetOptionsAsync(), out _));
+                    root, line.AsTextLine(), optionService, await document.GetOptionsAsync(), out _));
 
             TestIndentation(workspace, indentationLine, expectedIndentation);
         }
