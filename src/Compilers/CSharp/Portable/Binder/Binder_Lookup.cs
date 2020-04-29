@@ -441,9 +441,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbolWithoutSuffix;
             bool resultWithoutSuffixIsViable = IsSingleViableAttributeType(result, out symbolWithoutSuffix);
 
-            // Generic types were allowed.
-            Debug.Assert(Compilation.LanguageVersion.AllowGenericAttributes() || arity == 0 || !result.IsMultiViable);
-
             // Result with 'Attribute' suffix added.
             LookupResult resultWithSuffix = null;
             Symbol symbolWithSuffix = null;
@@ -453,9 +450,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultWithSuffix = LookupResult.GetInstance();
                 this.LookupSymbolsOrMembersInternal(resultWithSuffix, qualifierOpt, name + "Attribute", arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
                 resultWithSuffixIsViable = IsSingleViableAttributeType(resultWithSuffix, out symbolWithSuffix);
-
-                // Generic types were allowed.
-                Debug.Assert(Compilation.LanguageVersion.AllowGenericAttributes() || arity == 0 || !result.IsMultiViable);
             }
 
             if (resultWithoutSuffixIsViable && resultWithSuffixIsViable)
@@ -623,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, symbol) : null;
                     return false;
                 }
-                else if(namedType.IsAbstract)
+                else if (namedType.IsAbstract)
                 {
                     // Attribute class cannot be abstract.
                     diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_AbstractAttributeClass, symbol) : null;
