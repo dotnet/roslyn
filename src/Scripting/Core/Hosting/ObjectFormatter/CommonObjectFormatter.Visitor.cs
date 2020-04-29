@@ -758,9 +758,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
             }
 
-#endregion
+            #endregion
 
-#region DebuggerDisplay Embedded Expressions
+            #region DebuggerDisplay Embedded Expressions
 
             /// <summary>
             /// Evaluate a format string with possible member references enclosed in braces. 
@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return result;
             }
 
-#endregion
+            #endregion
         }
     }
 }
