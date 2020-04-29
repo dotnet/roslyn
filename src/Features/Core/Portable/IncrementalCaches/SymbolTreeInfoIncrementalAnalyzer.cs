@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -73,11 +74,9 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 Debug.Assert(SupportAnalysis(project));
 
                 // Produce the indices for the source and metadata symbols in parallel.
-                var tasks = new List<Task>
-                {
-                    InvokeAsync(project, (self, project, _, cancellationToken) => self.UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), null, cancellationToken),
-                    InvokeAsync(project, (self, project, _, cancellationToken) => self.UpdateReferencesAsync(project, cancellationToken), null, cancellationToken)
-                };
+                using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+                tasks.Add(Task.Run(() => this.UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken));
+                tasks.Add(Task.Run(() => this.UpdateReferencesAsync(project, cancellationToken), cancellationToken));
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
@@ -100,31 +99,13 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
             }
 
-            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36158", AllowCaptures = false, Constraint = "Avoid captures to reduce GC pressure when running in the host workspace.")]
-            private Task InvokeAsync(Project project, Func<SymbolTreeInfoIncrementalAnalyzer, Project, PortableExecutableReference, CancellationToken, Task> func, PortableExecutableReference reference, CancellationToken cancellationToken)
-            {
-                var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
-                return isRemoteWorkspace
-                    ? GetNewTask(this, func, project, reference, cancellationToken)
-                    : func(this, project, reference, cancellationToken);
-
-                static Task GetNewTask(SymbolTreeInfoIncrementalAnalyzer self, Func<SymbolTreeInfoIncrementalAnalyzer, Project, PortableExecutableReference, CancellationToken, Task> func, Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
-                {
-                    return Task.Run(() => func(self, project, reference, cancellationToken), cancellationToken);
-                }
-            }
-
-            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36158", AllowCaptures = false)]
             private Task UpdateReferencesAsync(Project project, CancellationToken cancellationToken)
             {
                 // Process all metadata references. If it remote workspace, do this in parallel.
-                var tasks = new List<Task>();
+                using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
                 foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
-                {
-                    tasks.Add(
-                        InvokeAsync(project, (self, project, reference, cancellationToken) => self.UpdateReferenceAsync(project, reference, cancellationToken), reference, cancellationToken));
-                }
+                    tasks.Add(Task.Run(() => this.UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken));
 
                 return Task.WhenAll(tasks);
             }
