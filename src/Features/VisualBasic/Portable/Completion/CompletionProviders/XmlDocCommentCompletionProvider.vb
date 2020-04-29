@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return nameSyntax?.LocalName.ValueText
         End Function
 
-        Private Shared s_defaultRules As CompletionItemRules =
+        Private Shared ReadOnly s_defaultRules As CompletionItemRules =
             CompletionItemRules.Create(
                 filterCharacterRules:=FilterRules,
                 enterKeyRule:=EnterKeyRule.Never)
