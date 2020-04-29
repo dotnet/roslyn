@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis
 
             var newState = _state.WithProjectAnalyzerReferences(
                 projectId,
-                PublicContract.ToBoxedImmutableArrayWithNonNullItems(analyzerReferences, nameof(analyzerReferences)));
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
 
             if (newState == _state)
             {

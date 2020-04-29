@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (old, value) => old.WithProjectAnalyzerReferences(projectId, value),
                 opt => opt.GetProject(projectId)!.AnalyzerReferences,
                 analyzerRef,
-                allowDuplicates: true);
+                allowDuplicates: false);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectAnalyzerReferences(null!, new[] { analyzerRef }));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectAnalyzerReferences(ProjectId.CreateNewId(), new[] { analyzerRef }));
