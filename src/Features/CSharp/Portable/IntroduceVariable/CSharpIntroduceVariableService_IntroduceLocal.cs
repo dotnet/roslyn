@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             CancellationToken cancellationToken)
         {
             var oldBody = (ExpressionSyntax)oldLambda.Body;
-            var isEntireLambdaBodySelected = oldBody.WalkDownParentheses().Equals(expression.WalkDownParentheses());
+            var isEntireLambdaBodySelected = oldBody.Equals(expression.WalkUpParentheses());
 
             var rewrittenBody = Rewrite(
                 document, expression, newLocalName, document, oldBody, allOccurrences, cancellationToken);
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             if (doesDelegateMethodReturnVoid && !isEntireLambdaBodySelected)
             {
-                // Case 1b: The user didn't select the entire lambda body.
+                // Case 1b: The lambda has a void return type, and the user didn't select the entire lambda body.
                 // e.g.:
                 //     Task.Run(() => File.Copy("src", [|Path.Combine("dir", "file")|]));
                 //
