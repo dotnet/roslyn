@@ -247,13 +247,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             Debug.Assert(project.SupportsCompilation);
 
-            using var _ = GetSymbolSet(out var tempBuffer);
-
             // First see what derived metadata types we might find in this project. This is only necessary if we
             // started with a metadata type (i.e. a source type could not have a descendant type found in metadata,
             // but a metadata type could have descendant types in source and metadata).
             if (searchInMetadata)
             {
+                using var _ = GetSymbolSet(out var tempBuffer);
+
                 await AddDescendantMetadataTypesInProjectAsync(
                     currentMetadataTypes,
                     result: tempBuffer,
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             {
-                tempBuffer.Clear();
+                using var _ = GetSymbolSet(out var tempBuffer);
 
                 // Now search the project and see what source types we can find.
                 await AddDescendantSourceTypesInProjectAsync(
