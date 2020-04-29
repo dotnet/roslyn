@@ -93,9 +93,10 @@ namespace M
         }
 
         private static Project GetPortableProject(Solution solution)
-        {
-            return solution.Projects.Single(p => p.Name == "PortableProject");
-        }
+            => solution.Projects.Single(p => p.Name == "PortableProject");
+
+        private static Project GetNormalProject(Solution solution)
+            => solution.Projects.Single(p => p.Name == "NormalProject");
 
         [Fact]
         public async Task ImmediatelyDerivedTypes_CSharp_AliasedNames()
@@ -379,6 +380,37 @@ namespace M
             // verify that the implementing types of `N.IBaseInterface` correctly resolve to `M.ImplementingClass`
             var typesThatImplementInterface = await SymbolFinder.FindImplementationsAsync(baseInterfaceSymbol, solution, transitive: false);
             Assert.Equal(implementingClassSymbol, Assert.Single(typesThatImplementInterface));
+        }
+
+        [Fact]
+        public async Task DerivedMetadataClasses()
+        {
+            var solution = new AdhocWorkspace().CurrentSolution;
+
+            // create a normal assembly with a type derived from the portable abstract base
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
+
+", MscorlibRef);
+
+            // get symbols for types
+            var compilation = await GetNormalProject(solution).GetCompilationAsync();
+            var streamType = compilation.GetTypeByMetadataName("System.Object");
+
+            Assert.NotNull(streamType);
+
+            var immediateDerived = await SymbolFinder.FindDerivedClassesAsync(
+                streamType, solution, transitive: false);
+
+            Assert.NotEmpty(immediateDerived);
+
+            foreach (var derivedInterface in immediateDerived)
+            {
+            }
+
+            var transitiveDerived = await SymbolFinder.FindDerivedClassesAsync(
+                streamType, solution, transitive: true);
+
+            Assert.NotEmpty(transitiveDerived);
         }
     }
 }
