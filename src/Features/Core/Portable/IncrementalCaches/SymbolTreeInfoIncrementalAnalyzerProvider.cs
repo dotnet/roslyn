@@ -4,14 +4,12 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IncrementalCaches
 {
