@@ -471,13 +471,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // As long as there are new types to search for, keep looping.
             while (typesToSearchFor.Count > 0)
             {
-                foreach (var reference in compilation.References.OfType<PortableExecutableReference>())
+                foreach (var reference in compilation.References)
                 {
+                    if (!(reference is PortableExecutableReference peReference))
+                        continue;
+
                     cancellationToken.ThrowIfCancellationRequested();
 
                     await AddMatchingMetadataTypesInMetadataReferenceAsync(
                         typesToSearchFor, project, metadataTypeMatches,
-                        compilation, reference, tempBuffer,
+                        compilation, peReference, tempBuffer,
                         cancellationToken).ConfigureAwait(false);
                 }
 
