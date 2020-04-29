@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
         public static void Throw(SafeSqliteHandle handle, Result result)
         {
             throw new SqlException(result,
-                NativeMethods.sqlite3_errmsg(handle) + "\r\n" +
+                NativeMethods.sqlite3_errmsg(handle) + Environment.NewLine +
                 NativeMethods.sqlite3_errstr(NativeMethods.sqlite3_extended_errcode(handle)));
         }
     }

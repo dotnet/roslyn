@@ -451,6 +451,22 @@
       <summary>Creates a PostfixUnaryExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="WithExpressionSyntax" Base="ExpressionSyntax">
+    <!-- PROTOTYPE: Add comments for all of these things -->
+    <Kind Name="WithExpression"/>
+    <Field Name="Receiver" Type="ExpressionSyntax" />
+    <Field Name="WithKeyword" Type="SyntaxToken">
+      <Kind Name="WithKeyword" />
+    </Field>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <!-- PROTOTYPE: This is the same syntax as for an anonymous object creation, but do we want to share the nodes? -->
+    <Field Name="Initializers" Type="SeparatedSyntaxList&lt;AnonymousObjectMemberDeclaratorSyntax&gt;" AllowTrailingSeparator="true" />
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+  </Node>
   <Node Name="MemberAccessExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="SimpleMemberAccessExpression"/>
     <Kind Name="PointerMemberAccessExpression"/>
@@ -3073,13 +3089,13 @@
         <summary>Gets the base type list.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="OpenBraceToken" Type="SyntaxToken">
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Optional="true">
       <PropertyComment>
         <summary>Gets the open brace token.</summary>
       </PropertyComment>
       <Kind Name="OpenBraceToken"/>
     </Field>
-    <Field Name="CloseBraceToken" Type="SyntaxToken">
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Optional="true">
       <PropertyComment>
         <summary>Gets the close brace token.</summary>
       </PropertyComment>
@@ -3113,7 +3129,7 @@
       </PropertyComment>
     </Field>
   </AbstractNode>
-  <Node Name="ClassDeclarationSyntax" Base="TypeDeclarationSyntax">
+  <Node Name="ClassDeclarationSyntax" Base="TypeDeclarationSyntax" SkipConvenienceFactories="true">
     <TypeComment>
       <summary>Class type declaration syntax.</summary>
     </TypeComment>
@@ -3130,20 +3146,21 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" />
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
-    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true" Optional="true">
       <Kind Name="OpenBraceToken"/>
     </Field>
     <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
-    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true" Optional="true">
       <Kind Name="CloseBraceToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
-  <Node Name="StructDeclarationSyntax" Base="TypeDeclarationSyntax">
+  <Node Name="StructDeclarationSyntax" Base="TypeDeclarationSyntax" SkipConvenienceFactories="true">
     <TypeComment>
       <summary>Struct type declaration syntax.</summary>
     </TypeComment>
@@ -3160,13 +3177,14 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" />
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
-    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true" Optional="true">
       <Kind Name="OpenBraceToken"/>
     </Field>
     <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
-    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true" Optional="true">
       <Kind Name="CloseBraceToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">

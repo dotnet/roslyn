@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // Add nodes that are not yet in AllInOneCSharpCode to this list.
             var missingSyntaxKinds = new HashSet<SyntaxKind>();
+            // PROTOTYPE: Add to all in one
+            missingSyntaxKinds.Add(SyntaxKind.WithExpression);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });

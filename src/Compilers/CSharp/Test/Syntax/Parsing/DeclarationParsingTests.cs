@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(text, options ?? TestOptions.Regular);
         }
 
+
         [Fact]
         public void TestExternAlias()
         {
