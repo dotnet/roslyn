@@ -1202,13 +1202,14 @@ tryAgain:
                 info.IsByRef = true;
 
                 info.RefCustomModifiers = info.CustomModifiers;
-                info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
-
                 if ((inAttributeFound & ~AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) != 0)
                 {
                     // This cannot be placed on RefCustomModifiers, just CustomModifiers
+                    info.CustomModifiers = default;
                     throw new UnsupportedSignatureContent();
                 }
+
+                info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
             }
             else if ((inAttributeFound & ~AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0)
             {
