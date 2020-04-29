@@ -141,7 +141,7 @@ public class FileTransformGenerator : ISourceGenerator
 
 ### Augment user code
 
-**User scenario:** As a generator author I want to be able to inspect and augment a users code with new functionality.
+**User scenario:** As a generator author I want to be able to inspect and augment a user's code with new functionality.
 
 **Solution:** Require the user to make the class you want to augment be a `partial class`, and mark it with e.g. a unique attribute, or name.
 Register a `SyntaxReceiver` that looks for any classes marked for generation and records them. Retrieve the populated `SyntaxReceiver`
