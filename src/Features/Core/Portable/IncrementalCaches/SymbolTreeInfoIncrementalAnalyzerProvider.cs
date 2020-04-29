@@ -74,25 +74,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-        {
-            var cacheService = workspace.Services.GetService<IWorkspaceCacheService>();
-            if (cacheService != null)
-            {
-                cacheService.CacheFlushRequested += OnCacheFlushRequested;
-            }
-
-            return new IncrementalAnalyzer(_projectToInfo, _metadataPathToInfo);
-        }
-
-        private void OnCacheFlushRequested(object sender, EventArgs e)
-        {
-            // If we hear about low memory conditions, flush our caches.  This will degrade the 
-            // experience a bit (as we will no longer offer to Add-Using for p2p refs/metadata),
-            // but will be better than OOM'ing.  These caches will be regenerated in the future
-            // when the incremental analyzer reanalyzers the projects in the workspace.
-            _projectToInfo.Clear();
-            _metadataPathToInfo.Clear();
-        }
+            => new IncrementalAnalyzer(_projectToInfo, _metadataPathToInfo);
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => new SymbolTreeInfoCacheService(_projectToInfo, _metadataPathToInfo);
