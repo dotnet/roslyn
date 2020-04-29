@@ -1783,9 +1783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodWithExtendedModMustHaveImplementation = 9053,
         ERR_PartialMethodExplicitAccessibilityDifference = 9054,
         ERR_PartialMethodAccessibilityDifference = 9055,
-        ERR_PartialMethodVirtualDifference = 9056,
-        ERR_PartialMethodOverrideDifference = 9057,
-        ERR_PartialMethodSealedDifference = 9058
+        ERR_PartialMethodExtendedModDifference = 9056,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

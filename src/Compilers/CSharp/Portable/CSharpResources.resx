@@ -6091,13 +6091,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialMethodAccessibilityDifference" xml:space="preserve">
     <value>Both partial method declarations must have equivalent accessibility modifiers.</value>
   </data>
-  <data name="ERR_PartialMethodVirtualDifference" xml:space="preserve">
-    <value>Both partial method declarations must be 'virtual' or neither may be 'virtual'.</value>
-  </data>
-  <data name="ERR_PartialMethodOverrideDifference" xml:space="preserve">
-    <value>Both partial method declarations must be 'override' or neither may be 'override'.</value>
-  </data>
-  <data name="ERR_PartialMethodSealedDifference" xml:space="preserve">
-    <value>Both partial method declarations must be 'sealed' or neither may be 'sealed'.</value>
+  <data name="ERR_PartialMethodExtendedModDifference" xml:space="preserve">
+    <value>Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.</value>
   </data>
 </root>

@@ -9363,9 +9363,6 @@ interface I2
                 // (15,25): error CS0238: 'I1.M4()' cannot be sealed because it is not an override
                 //     sealed partial void M4() {}
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "M4").WithArguments("I1.M4()").WithLocation(15, 25),
-                // (15,25): error CS9058: Both partial method declarations must be 'sealed' or neither may be 'sealed'.
-                //     sealed partial void M4() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodSealedDifference, "M4").WithLocation(15, 25),
                 // (16,27): error CS0750: A partial method cannot have the 'abstract' modifier
                 //     abstract partial void M5();
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M5").WithLocation(16, 27),
@@ -9375,9 +9372,6 @@ interface I2
                 // (17,26): error CS0621: 'I1.M6()': virtual or abstract members cannot be private
                 //     virtual partial void M6() {}
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "M6").WithArguments("I1.M6()").WithLocation(17, 26),
-                // (17,26): error CS9056: Both partial method declarations must be 'virtual' or neither may be 'virtual'.
-                //     virtual partial void M6() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodVirtualDifference, "M6").WithLocation(17, 26),
                 // (19,21): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I2.M7() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M7").WithLocation(19, 21),

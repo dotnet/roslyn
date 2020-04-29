@@ -641,15 +641,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsNew
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.New) != 0
-                    || (_otherPartOfPartial is object && (_otherPartOfPartial.DeclarationModifiers & DeclarationModifiers.New) != 0);
-            }
-        }
-
         /// <summary>
         /// Returns the implementation part of a partial method definition, 
         /// or null if this is not a partial method or it is the definition part.
@@ -1182,19 +1173,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodAccessibilityDifference, implementation.Locations[0]);
             }
 
-            if (definition.IsVirtual != implementation.IsVirtual)
+            if (definition.IsVirtual != implementation.IsVirtual
+                || definition.IsOverride != implementation.IsOverride
+                || definition.IsSealed != implementation.IsSealed
+                || definition.IsNew != implementation.IsNew)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodVirtualDifference, implementation.Locations[0]);
-            }
-
-            if (definition.IsOverride != implementation.IsOverride)
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodOverrideDifference, implementation.Locations[0]);
-            }
-
-            if (definition.IsSealed != implementation.IsSealed)
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodSealedDifference, implementation.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_PartialMethodExtendedModDifference, implementation.Locations[0]);
             }
 
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);

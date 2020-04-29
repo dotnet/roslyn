@@ -316,9 +316,9 @@ partial class C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (5,27): error CS9056: Both partial method declarations must be 'virtual' or neither may be 'virtual'.
+                // (5,27): error CS9056: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
                 //     internal partial void M1() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodVirtualDifference, "M1").WithLocation(5, 27)
+                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(5, 27)
             );
         }
 
@@ -389,9 +389,9 @@ partial class D : C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (9,27): error CS9057: Both partial method declarations must be 'override' or neither may be 'override'.
+                // (9,27): error CS9056: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
                 //     internal partial void M1() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodOverrideDifference, "M1").WithLocation(9, 27)
+                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(9, 27)
             );
         }
 
@@ -436,9 +436,9 @@ partial class D : C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (9,36): error CS9058: Both partial method declarations must be 'sealed' or neither may be 'sealed'.
+                // (9,36): error CS9056: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
                 //     internal override partial void M1() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodSealedDifference, "M1").WithLocation(9, 36)
+                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(9, 36)
             );
         }
 
@@ -528,7 +528,11 @@ partial class D : C
     partial void M1() { }
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (10,18): error CS9056: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
+                //     partial void M1() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(10, 18)
+            );
         }
 
         [Fact]
@@ -546,7 +550,14 @@ partial class D : C
     new partial void M1() { }
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (9,18): warning CS0108: 'D.M1()' hides inherited member 'C.M1()'. Use the new keyword if hiding was intended.
+                //     partial void M1();
+                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("D.M1()", "C.M1()").WithLocation(9, 18),
+                // (10,22): error CS9056: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
+                //     new partial void M1() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(10, 22)
+            );
         }
     }
 }
