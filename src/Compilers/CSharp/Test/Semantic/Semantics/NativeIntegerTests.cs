@@ -597,13 +597,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             }
         }
 
-        private static int SymbolComparison(Symbol x, Symbol y) => NormalizeDisplayString(x.ToTestDisplayString()).CompareTo(NormalizeDisplayString(y.ToTestDisplayString()));
+        private static int SymbolComparison(Symbol x, Symbol y) => SymbolComparison(x.ToTestDisplayString(), y.ToTestDisplayString());
 
-        private static int SymbolComparison(ISymbol x, ISymbol y) => NormalizeDisplayString(x.ToTestDisplayString()).CompareTo(NormalizeDisplayString(y.ToTestDisplayString()));
+        private static int SymbolComparison(ISymbol x, ISymbol y) => SymbolComparison(x.ToTestDisplayString(), y.ToTestDisplayString());
 
-        // Used by SymbolComparison to provide a common ordering for
-        // symbols that include native integer types or underlying types.
-        private static string NormalizeDisplayString(string symbol) => symbol.Replace("System.IntPtr", "nint").Replace("System.UIntPtr", "nuint");
+        private static int SymbolComparison(string x, string y)
+        {
+            return string.CompareOrdinal(normalizeDisplayString(x), normalizeDisplayString(y));
+
+            static string normalizeDisplayString(string s) => s.Replace("System.IntPtr", "nint").Replace("System.UIntPtr", "nuint");
+        }
 
         [Fact]
         public void MissingTypes()
@@ -1681,13 +1684,13 @@ namespace System
                 var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
                 var expectedMembers = new[]
                 {
+                    $"System.Boolean {type}.TryParse(System.String s, out {type} value)",
                     $"{type} {type}.MaxValue {{ get; }}",
                     $"{type} {type}.MaxValue.get",
                     $"{type} {type}.MinValue {{ get; }}",
                     $"{type} {type}.MinValue.get",
                     $"{type} {type}.Parse(System.String s)",
                     $"{type}..ctor()",
-                    $"System.Boolean {type}.TryParse(System.String s, out {type} value)",
                 };
                 AssertEx.Equal(expectedMembers, actualMembers);
 
@@ -1832,13 +1835,13 @@ class Program
                 var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
                 var expectedMembers = new[]
                 {
-                    $"{type}..ctor()",
                     $"System.Boolean {type}.Equals({type} other)",
-                    $"System.Int32 {type}.CompareTo({type} other)",
                     $"System.Int32 {type}.CompareTo(System.Object other)",
+                    $"System.Int32 {type}.CompareTo({type} other)",
                     $"System.String {type}.ToString(System.IFormatProvider provider)",
                     $"System.String {type}.ToString(System.String format)",
                     $"System.String {type}.ToString(System.String format, System.IFormatProvider provider)",
+                    $"{type}..ctor()",
                 };
                 AssertEx.Equal(expectedMembers, actualMembers);
 
@@ -2080,10 +2083,10 @@ class Program
                 var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
                 var expectedMembers = new[]
                 {
-                    $"{type}..ctor()",
                     $"System.Boolean {type}.Equals(System.Object obj)",
                     $"System.Int32 {type}.GetHashCode()",
                     $"System.String {type}.ToString()",
+                    $"{type}..ctor()",
                 };
                 AssertEx.Equal(expectedMembers, actualMembers);
 
