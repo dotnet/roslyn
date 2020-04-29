@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected sealed internal override bool IsEnabled => true;
 
         protected sealed internal override ITagSpan<TTag> CreateTagSpan(
-            bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
+            Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
         {
-            var errorTag = CreateTag(data);
+            var errorTag = CreateTag(workspace, data);
             if (errorTag == null)
             {
                 return null;
@@ -96,6 +96,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return new SnapshotSpan(snapshot, start, Math.Min(start + length, snapshot.Length) - start);
         }
 
-        protected abstract TTag CreateTag(DiagnosticData diagnostic);
+        protected abstract TTag CreateTag(Workspace workspace, DiagnosticData diagnostic);
     }
 }

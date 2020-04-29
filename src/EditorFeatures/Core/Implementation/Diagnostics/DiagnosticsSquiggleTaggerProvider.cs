@@ -32,8 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider);
 
-        private readonly PrimaryWorkspace _primaryWorkspace;
-
         protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
@@ -42,11 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            PrimaryWorkspace primaryWorkspace)
+            IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext, diagnosticService, notificationService, listenerProvider)
         {
-            _primaryWorkspace = primaryWorkspace;
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
@@ -58,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 !string.IsNullOrWhiteSpace(diagnostic.Message);
         }
 
-        protected override IErrorTag CreateTag(DiagnosticData diagnostic)
+        protected override IErrorTag CreateTag(Workspace workspace, DiagnosticData diagnostic)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(diagnostic.Message));
             var errorType = GetErrorTypeFromDiagnostic(diagnostic);
@@ -71,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return null;
             }
 
-            return new ErrorTag(errorType, CreateToolTipContent(_primaryWorkspace.Workspace, diagnostic));
+            return new ErrorTag(errorType, CreateToolTipContent(workspace, diagnostic));
         }
 
         private string GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)

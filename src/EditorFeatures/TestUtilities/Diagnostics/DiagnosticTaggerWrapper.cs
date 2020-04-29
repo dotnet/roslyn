@@ -83,8 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                             _threadingContext,
                             DiagnosticService,
                             _workspace.GetService<IForegroundNotificationService>(),
-                            _listenerProvider,
-                            _workspace.ExportProvider.GetExportedValue<PrimaryWorkspace>());
+                            _listenerProvider);
                     }
                     else if (typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider))
                     {
@@ -92,8 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                             _threadingContext,
                             DiagnosticService,
                             _workspace.GetService<IForegroundNotificationService>(),
-                            _listenerProvider,
-                            _workspace.ExportProvider.GetExportedValue<PrimaryWorkspace>());
+                            _listenerProvider);
                     }
                     else
                     {

@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
@@ -215,11 +214,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
             // set up tagger for both buffers
             var leftBuffer = diffView.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-            var leftProvider = new DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), diagnosticService, foregroundService, listenerProvider, workspace.ExportProvider.GetExportedValue<PrimaryWorkspace>());
+            var leftProvider = new DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), diagnosticService, foregroundService, listenerProvider);
             var leftTagger = leftProvider.CreateTagger<IErrorTag>(leftBuffer);
             using var leftDisposable = leftTagger as IDisposable;
             var rightBuffer = diffView.Viewer.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-            var rightProvider = new DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), diagnosticService, foregroundService, listenerProvider, workspace.ExportProvider.GetExportedValue<PrimaryWorkspace>());
+            var rightProvider = new DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), diagnosticService, foregroundService, listenerProvider);
             var rightTagger = rightProvider.CreateTagger<IErrorTag>(rightBuffer);
             using var rightDisposable = rightTagger as IDisposable;
             // wait for diagnostics and taggers

@@ -123,8 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 diagnosticService,
                 workspace.GetService<IForegroundNotificationService>(),
-                listenerProvider,
-                workspace.ExportProvider.GetExportedValue<PrimaryWorkspace>());
+                listenerProvider);
 
             // Create the tagger before the first diagnostic event has been fired.
             var tagger = provider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -162,8 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 diagnosticService,
                 workspace.GetService<IForegroundNotificationService>(),
-                listenerProvider,
-                workspace.ExportProvider.GetExportedValue<PrimaryWorkspace>());
+                listenerProvider);
 
             // Create and fire the diagnostic events before the tagger is even made.
             var tree = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetSyntaxTreeAsync();
