@@ -39,6 +39,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {
+        // Concurrent dictionaries so they can be read from the SymbolTreeInfoCacheService while 
+        // they are being populated/updated by the IncrementalAnalyzer.
+        private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectToInfo = new ConcurrentDictionary<ProjectId, SymbolTreeInfo>();
+        private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo = new ConcurrentDictionary<string, MetadataInfo>();
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SymbolTreeInfoIncrementalAnalyzerProvider()
@@ -67,11 +72,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 ReferencingProjects = referencingProjects;
             }
         }
-
-        // Concurrent dictionaries so they can be read from the SymbolTreeInfoCacheService while 
-        // they are being populated/updated by the IncrementalAnalyzer.
-        private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectToInfo = new ConcurrentDictionary<ProjectId, SymbolTreeInfo>();
-        private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo = new ConcurrentDictionary<string, MetadataInfo>();
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
