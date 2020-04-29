@@ -402,10 +402,6 @@
               "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
             },
             {
-              "filename": "/Microsoft.VisualStudio.LanguageServices.CodeLens.dll",
-              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
-            },
-            {
               "filename": "/Microsoft.CodeAnalysis.Features.dll",
               "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
             },
