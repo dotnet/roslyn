@@ -394,7 +394,7 @@ namespace M
 
             // get symbols for types
             var compilation = await GetNormalProject(solution).GetCompilationAsync();
-            var streamType = compilation.GetTypeByMetadataName("System.Object");
+            var streamType = compilation.GetTypeByMetadataName("System.IO.Stream");
 
             Assert.NotNull(streamType);
 

@@ -294,12 +294,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (searchInMetadata)
             {
                 var foundMetadataTypes = CreateSymbolAndProjectIdSet();
-
                 try
                 {
-                    await AddAllMatchingMetadataTypesInProjectAsync(
-                        currentMetadataTypes, project, typeMatches,
-                        foundMetadataTypes, cancellationToken).ConfigureAwait(false);
+                    await AddMetadataTypesInProjectAsync(
+                        currentMetadataTypes,
+                        project,
+                        typeMatches,
+                        shouldContinueSearching,
+                        transitive,
+                        foundMetadataTypes,
+                        cancellationToken).ConfigureAwait(false);
 
                     foreach (var foundType in foundMetadataTypes)
                     {
@@ -328,25 +332,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             try
             {
                 await AddSourceTypesInProjectAsync(
-                    currentSourceAndMetadataTypes, project,
+                    currentSourceAndMetadataTypes,
+                    project,
                     typeMatches,
                     shouldContinueSearching,
-                    transitive, foundSourceTypes,
+                    transitive,
+                    foundSourceTypes,
                     cancellationToken).ConfigureAwait(false);
 
                 foreach (var foundType in foundSourceTypes)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    Debug.Assert(foundType.Locations.All<Location>(s_isInSource));
+                    Debug.Assert(foundType.Locations.All(s_isInSource));
 
                     // Add to the result list.
                     result.Add(foundType);
 
                     if (transitive && shouldContinueSearching(foundType))
-                    {
                         currentSourceAndMetadataTypes.Add(foundType);
-                    }
                 }
             }
             finally
@@ -472,44 +476,55 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                                  .ToList();
         }
 
-        private static async Task AddAllMatchingMetadataTypesInProjectAsync(
+        private static async Task AddMetadataTypesInProjectAsync(
             SymbolSet metadataTypes,
             Project project,
             TypeMatches metadataTypeTransitivelyMatches,
+            Func<INamedTypeSymbol, bool> shouldContinueSearching,
+            bool transitive,
             SymbolSet result,
             CancellationToken cancellationToken)
         {
             Debug.Assert(project.SupportsCompilation);
 
             if (metadataTypes.Count == 0)
-            {
                 return;
-            }
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            // Seed the current set of types we're searching for with the types we were given.
-            var currentTypes = metadataTypes;
+            var typesToSearchFor = CreateSymbolAndProjectIdSet();
+            typesToSearchFor.AddAll(metadataTypes);
 
-            while (currentTypes.Count > 0)
+            var localBuffer = CreateSymbolAndProjectIdSet();
+
+            // As long as there are new types to search for, keep looping.
+            while (typesToSearchFor.Count > 0)
             {
-                var immediateDerivedTypes = CreateSymbolAndProjectIdSet();
+                localBuffer.Clear();
 
                 foreach (var reference in compilation.References.OfType<PortableExecutableReference>())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     await FindImmediateMatchingMetadataTypesInMetadataReferenceAsync(
-                        currentTypes, project, metadataTypeTransitivelyMatches,
-                        compilation, reference, immediateDerivedTypes,
+                        typesToSearchFor, project, metadataTypeTransitivelyMatches,
+                        compilation, reference, localBuffer,
                         cancellationToken).ConfigureAwait(false);
                 }
 
-                // Add what we found to the result set.
-                result.AddRange(immediateDerivedTypes);
+                // Clear out the information about the types we're looking for.  We'll
+                // fill these in if we discover any more types that we need to keep searching
+                // for.
+                typesToSearchFor.Clear();
 
-                // Now keep looping, using the set we found to spawn the next set of searches.
-                currentTypes = immediateDerivedTypes;
+                foreach (var derivedType in localBuffer)
+                {
+                    if (result.Add(derivedType))
+                    {
+                        if (transitive && shouldContinueSearching(derivedType))
+                            typesToSearchFor.Add(derivedType);
+                    }
+                }
             }
         }
 
@@ -665,9 +680,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     if (finalResult.Add(derivedType))
                     {
                         if (transitive && shouldContinueSearching(derivedType))
-                        {
                             typesToSearchFor.Add(derivedType);
-                        }
                     }
                 }
             }
