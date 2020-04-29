@@ -8,13 +8,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    // Must cache using SymbolKey+ProjectId.  That's because the same symbol key may be found among many projects, but
-    // the same operation on the same symbol key might produce different results depending on which project it was found
-    // in.  For example, each symbol's project may have a different set of downstream dependent projects.  As such,
-    // there may be a different set of related symbols found for each.
-
     internal static partial class DependentTypeFinder
     {
+        /// <summary>
+        /// Special comparer we need for our cache keys.  Necessary because <see cref="IImmutableSet{T}"/> uses
+        /// reference equality and not value-equality semantics.
+        /// </summary>
         private class KeyEqualityComparer : IEqualityComparer<(SymbolKey, ProjectId, IImmutableSet<Project>)>
         {
             public static readonly KeyEqualityComparer Instance = new KeyEqualityComparer();
