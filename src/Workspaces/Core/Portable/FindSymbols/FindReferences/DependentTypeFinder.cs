@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </item>
         /// </list>
         /// </summary>
-        private delegate bool TypeMatches(SymbolSet set, INamedTypeSymbol type, bool transitive);
+        private delegate bool TypeMatches(SymbolSet set, INamedTypeSymbol type);
 
         private static readonly Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
         private static readonly Func<Location, bool> s_isInSource = loc => loc.IsInSource;
@@ -545,12 +545,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // our criteria.
                 foreach (var derivedType in symbolTreeInfo.GetDerivedMetadataTypes(baseTypeName, compilation, cancellationToken))
                 {
-                    if (derivedType != null && derivedType.Locations.Any(s_isInMetadata))
+                    if (derivedType != null &&
+                        derivedType.Locations.Any(s_isInMetadata) &&
+                        metadataTypeTransitivelyMatches(metadataTypes, derivedType))
                     {
-                        if (metadataTypeTransitivelyMatches(metadataTypes, derivedType, transitive: true))
-                        {
-                            result.Add(derivedType);
-                        }
+                        result.Add(derivedType);
                     }
                 }
             }
@@ -694,7 +693,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var resolvedType = info.TryResolve(semanticModel, cancellationToken);
                 if (resolvedType is INamedTypeSymbol namedType &&
-                    sourceTypeImmediatelyMatches(typesToSearchFor, namedType, transitive: false))
+                    sourceTypeImmediatelyMatches(typesToSearchFor, namedType))
                 {
                     result.Add(namedType);
                 }

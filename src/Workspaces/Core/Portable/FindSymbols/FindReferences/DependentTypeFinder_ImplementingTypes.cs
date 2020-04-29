@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // 'Base' match and will add to the set.  Then, we'll look for types that have 'Base' in their
                 // inheritance chain, and we need to match that by looking in the .BaseType inheritance chain when
                 // looking at 'Derived'.
-                static bool typeMatches(SymbolSet s, INamedTypeSymbol t, bool transitive)
-                    => TypeHasBaseTypeInSet(s, t, transitive) || TypeHasInterfaceInSet(s, t, transitive);
+                static bool typeMatches(SymbolSet s, INamedTypeSymbol t)
+                    => TypeHasBaseTypeInSet(s, t, transitive: false) || TypeHasInterfaceInSet(s, t, transitive: false);
 
                 // As long as we keep hitting derived interfaces or implementing non-sealed classes we need to keep
                 // looking (as those types themselves may have more derived classes that would b implementations of this
