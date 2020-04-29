@@ -5,7 +5,6 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
@@ -47,29 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return typeSymbol != null
                 ? typeSymbol.ToDisplayString(s_typeDisplayFormat)
                 : string.Empty;
-        }
-
-        public static string GetProjectDisplayName(this Project project)
-        {
-            if (project.Solution.Workspace is VisualStudioWorkspaceImpl workspace)
-            {
-                var hierarchy = workspace.GetHierarchy(project.Id);
-                if (hierarchy != null)
-                {
-                    var solution = (IVsSolution3)ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
-                    if (solution != null)
-                    {
-                        if (ErrorHandler.Succeeded(solution.GetUniqueUINameOfProject(hierarchy, out var name)) && name != null)
-                        {
-                            return name;
-                        }
-                    }
-                }
-
-                return project.Name;
-            }
-
-            return project.Name;
         }
 
         public static bool IsVenus(this Project project)
