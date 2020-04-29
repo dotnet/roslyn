@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class DependentTypeFinderTests : ServicesTestBase
+    public class SymbolFinderTests : ServicesTestBase
     {
         [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CSharp()
