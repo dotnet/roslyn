@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     }
                     else
                     {
-                        if ((format[i - 1] == '\\' && c != '\\') || format[i - 1] != '\\')
+                        if ((i < 2 && c != '\\' && format[i - 1] != '\\') || i >= 2)
                         {
                             result.Append(c);
                         }
