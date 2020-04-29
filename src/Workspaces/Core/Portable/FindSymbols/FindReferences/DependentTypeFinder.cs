@@ -275,9 +275,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                         Debug.Assert(foundType.Locations.Any(s_isInMetadata));
 
-                        // Add to the result list.
+                        // This was a good match, add to the final result list.
                         result.Add(foundType);
 
+                        // If we're doing a transitive search, add these found types to the 'current' sets we're
+                        // searching for more results for. These will then be used when searching for more types in the
+                        // next project (which our caller controls).
                         if (transitive && shouldContinueSearching(foundType))
                         {
                             currentMetadataTypes.Add(foundType);
