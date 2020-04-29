@@ -5,7 +5,6 @@
     <DisplayName>Roslyn Diagnostics</DisplayName>
     <Description xml:space="preserve">Roslyn Diagnostics Window</Description>
     <License>EULA.rtf</License>
-    <AllowClientRole>true</AllowClientRole>
   </Metadata>
   <Installation Experimental="true">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,]" />

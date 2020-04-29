@@ -7,7 +7,6 @@
     <DisplayName>Visual Studio Integration Test Support</DisplayName>
     <Description xml:space="preserve">Support for running Visual Studio integration tests.</Description>
     <License>EULA.rtf</License>
-    <AllowClientRole>true</AllowClientRole>
   </Metadata>
   <Installation Experimental="true">
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,]" />
