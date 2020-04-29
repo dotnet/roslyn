@@ -36,7 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private readonly object _gate;
 
-            private SolutionChecksumUpdater? _checksumUpdater;
             private CancellationTokenSource? _shutdownCancellationTokenSource;
             private Task<RemoteHostClient?>? _remoteClientTask;
 
@@ -91,9 +90,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     var token = _shutdownCancellationTokenSource.Token;
 
-                    // create solution checksum updater
-                    _checksumUpdater = new SolutionChecksumUpdater(this, token);
-
                     _remoteClientTask = Task.Run(() => EnableAsync(token), token);
                 }
             }
@@ -114,12 +110,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     _remoteClientTask = null;
 
                     Contract.ThrowIfNull(_shutdownCancellationTokenSource);
-                    Contract.ThrowIfNull(_checksumUpdater);
 
                     _shutdownCancellationTokenSource.Cancel();
-
-                    _checksumUpdater.Shutdown();
-                    _checksumUpdater = null;
 
                     try
                     {
