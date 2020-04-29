@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Only an interface can be implemented.
             if (type?.TypeKind == TypeKind.Interface)
             {
-                bool typeMatches(SymbolSet s, INamedTypeSymbol t, bool transitive)
+                static bool typeMatches(SymbolSet s, INamedTypeSymbol t, bool transitive)
                     => s_isInterface(t) && TypeHasInterfaceInSet(s, t, transitive);
 
                 return FindTypesAsync(type, solution, projects,
