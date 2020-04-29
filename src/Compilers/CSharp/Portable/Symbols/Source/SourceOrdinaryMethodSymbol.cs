@@ -641,6 +641,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override bool IsNew
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.New) != 0
+                    || (_otherPartOfPartial is object && (_otherPartOfPartial.DeclarationModifiers & DeclarationModifiers.New) != 0);
+            }
+        }
+
         /// <summary>
         /// Returns the implementation part of a partial method definition, 
         /// or null if this is not a partial method or it is the definition part.

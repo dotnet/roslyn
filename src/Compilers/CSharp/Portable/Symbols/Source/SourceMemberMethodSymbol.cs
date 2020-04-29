@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsNew
+        internal virtual bool IsNew
         {
             get
             {

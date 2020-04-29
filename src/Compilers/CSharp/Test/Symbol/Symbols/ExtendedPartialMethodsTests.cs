@@ -545,14 +545,8 @@ partial class D : C
     partial void M1();
     new partial void M1() { }
 }";
-            // PROTOTYPE: when only one part uses a 'new' keyword, should we consider both parts to be 'new'?
-            // should we require that both parts have a 'new' keyword or neither part has a 'new' keyword?
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics(
-                // (9,18): warning CS0108: 'D.M1()' hides inherited member 'C.M1()'. Use the new keyword if hiding was intended.
-                //     partial void M1();
-                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("D.M1()", "C.M1()").WithLocation(9, 18)
-            );
+            comp.VerifyDiagnostics();
         }
     }
 }
