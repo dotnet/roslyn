@@ -891,9 +891,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // CONSIDER: we could cache this on MethodSymbol
+        /// <summary>
+        /// Determine if this method requires a methodimpl table entry to inform the runtime of the override relationship.
+        /// </summary>
         internal static bool RequiresExplicitOverride(this MethodSymbol method)
         {
+            // CONSIDER: we could cache this on MethodSymbol
             if (method.IsOverride)
             {
                 MethodSymbol csharpOverriddenMethod = method.OverriddenMethod;
@@ -905,7 +908,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // We can ignore interface implementation changes since the method is already metadata virtual (since override).
                 // TODO: do we want to add more sophisticated handling for the case where there are multiple runtime-overridden methods?
                 MethodSymbol runtimeOverriddenMethod = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
-                return csharpOverriddenMethod != runtimeOverriddenMethod &&
+                return runtimeOverriddenMethod is null ||
+                    csharpOverriddenMethod != runtimeOverriddenMethod &&
                     method.IsAccessor() != runtimeOverriddenMethod.IsAccessor();
             }
 

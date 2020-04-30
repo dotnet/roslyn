@@ -19,6 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             Assert.Equal(overridingMethodDisplay, method.ToTestDisplayString());
             var overridden = method.GetOverriddenMember();
             Assert.Equal(overriddenMethodDisplay, overridden.ToTestDisplayString());
+            if (method is MethodSymbol overriderMethod && overridden is MethodSymbol overriddenMethod)
+            {
+                Assert.True(overriderMethod.IsOverride);
+                Assert.False(overriderMethod.IsVirtual);
+                Assert.True(overriderMethod.IsMetadataVirtual(ignoreInterfaceImplementationChanges: true));
+                var isCovariant = !overriderMethod.ReturnType.Equals(overriddenMethod.ReturnType, TypeCompareKind.AllIgnoreOptions);
+                Assert.Equal(isCovariant, overriderMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
+                Assert.Equal(isCovariant, overriderMethod.RequiresExplicitOverride()); // implies the presence of a methodimpl
+            }
         }
 
         private static void VerifyNoOverride(CSharpCompilation comp, string methodName)
@@ -32,6 +41,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         {
             references = references.Append(comp.ToMetadataReference());
             return CreateCompilation("", references: references);
+        }
+
+        [Fact]
+        public void CovariantReturns_00()
+        {
+            var source = @"
+public class Base
+{
+    public virtual string M() => null;
+}
+public class Derived : Base
+{
+    public override string M() => null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+                );
+            verify(comp);
+            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+                );
+            verify(comp);
+            verify(MetadataView(comp));
+
+            static void verify(CSharpCompilation comp)
+            {
+                VerifyOverride(comp, "Derived.M", "System.String Derived.M()", "System.String Base.M()");
+            }
         }
 
         [Fact]
@@ -1062,6 +1098,78 @@ public class Derived2 : Derived
                 VerifyOverride(comp, "Derived.get_P", "System.IComparable Derived.P.get", "System.Object Base.P.get");
                 VerifyOverride(comp, "Derived2.P", "System.String Derived2.P { get; }", "System.IComparable Derived.P { get; }");
                 VerifyOverride(comp, "Derived2.get_P", "System.String Derived2.P.get", "System.IComparable Derived.P.get");
+            }
+        }
+
+        [Fact]
+        public void CovariantReturns_17()
+        {
+            var source = @"
+public class Base<T>
+{
+    public virtual object M(string s) => null;
+    public virtual System.IComparable M(T s) => null;
+}
+public class Derived : Base<string>
+{
+    public override string M(string s) => null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+                // (9,28): error CS0462: The inherited members 'Base<T>.M(string)' and 'Base<T>.M(T)' have the same signature in type 'Derived', so they cannot be overridden
+                //     public override string M(string s) => null;
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Base<T>.M(string)", "Base<T>.M(T)", "Derived").WithLocation(9, 28)
+                );
+            verify(comp);
+            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+                // (9,28): error CS0462: The inherited members 'Base<T>.M(string)' and 'Base<T>.M(T)' have the same signature in type 'Derived', so they cannot be overridden
+                //     public override string M(string s) => null;
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Base<T>.M(string)", "Base<T>.M(T)", "Derived").WithLocation(9, 28)
+                );
+            verify(comp);
+            verify(MetadataView(comp));
+
+            static void verify(CSharpCompilation comp)
+            {
+                VerifyOverride(comp, "Derived.M", "System.String Derived.M(System.String s)", "System.Object Base<System.String>.M(System.String s)");
+            }
+        }
+
+        [Fact]
+        public void CovariantReturns_18()
+        {
+            var source = @"
+public class Base
+{
+    public virtual object M() => null;
+}
+public abstract class Derived : Base
+{
+    public abstract override System.IComparable M();
+}
+public class Derived2 : Derived
+{
+    public override string M() => null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+                // (8,49): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public abstract override System.IComparable M();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 49),
+                // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string M() => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(12, 28)
+                );
+            verify(comp);
+            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+                );
+            verify(comp);
+            verify(MetadataView(comp));
+
+            static void verify(CSharpCompilation comp)
+            {
+                VerifyOverride(comp, "Derived.M", "System.IComparable Derived.M()", "System.Object Base.M()");
+                VerifyOverride(comp, "Derived2.M", "System.String Derived2.M()", "System.IComparable Derived.M()");
             }
         }
     }
