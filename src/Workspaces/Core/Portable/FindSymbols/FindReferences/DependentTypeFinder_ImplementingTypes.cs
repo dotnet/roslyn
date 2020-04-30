@@ -84,9 +84,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     transitive: transitive,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                // Only classes/struct implement interface types.  Derived interfaces can be found with
-                // FindDerivedInterfacesAsync.
-                return allTypes.WhereAsArray(t => t.TypeKind == TypeKind.Class || t.TypeKind == TypeKind.Struct);
+                // Only classes/struct/delegates/enums implement interface types.  Derived interfaces can be found with
+                // FindDerivedInterfacesAsync.  Delegates/Enums only happen in a few corner cases.  For example, enums
+                // implement IComparable, and delegates implement ICloneable.
+                return allTypes.WhereAsArray(
+                    t => t.TypeKind == TypeKind.Class ||
+                         t.TypeKind == TypeKind.Struct ||
+                         t.TypeKind == TypeKind.Delegate ||
+                         t.TypeKind == TypeKind.Enum);
             }
 
             return ImmutableArray<INamedTypeSymbol>.Empty;
