@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual TResult VisitPointerType(PointerTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FunctionPointerTypeSyntax node.</summary>
+        [return: MaybeNull]
         public virtual TResult VisitFunctionPointerType(FunctionPointerTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NullableTypeSyntax node.</summary>
