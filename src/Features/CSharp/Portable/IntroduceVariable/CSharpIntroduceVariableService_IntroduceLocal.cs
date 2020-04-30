@@ -123,27 +123,22 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     return false;
                 }
 
-                if (oldLambda.AsyncKeyword != default)
+                // Async lambdas with a Task or ValueTask return type don't need a return statement.
+                // e.g.:
+                //     Func<int, Task> f = async x => await M2();
+                //
+                // After refactoring:
+                //     Func<int, Task> f = async x =>
+                //     {
+                //         Task task = M2();
+                //         await task;
+                //     };
+                var compilation = document.SemanticModel.Compilation;
+                if (oldLambda.AsyncKeyword != default &&
+                    (compilation.TaskType() != null && compilation.TaskType().Equals(delegateType.DelegateInvokeMethod.ReturnType) ||
+                    compilation.ValueTaskOfType() != null && compilation.ValueTaskOfType().Equals(delegateType.DelegateInvokeMethod.ReturnType)))
                 {
-                    var compilation = document.SemanticModel.Compilation;
-
-                    // Async lambdas with a Task or ValueTask return type don't need a return statement.
-                    // e.g.:
-                    //     Func<int, Task> f = async x => await M2();
-                    //
-                    // After refactoring:
-                    //     Func<int, Task> f = async x =>
-                    //     {
-                    //         Task task = M2();
-                    //         await task;
-                    //     };
-                    if ((compilation.TaskType() != null &&
-                            compilation.TaskType().Equals(delegateType.DelegateInvokeMethod.ReturnType)) ||
-                        (compilation.ValueTaskOfType() != null &&
-                            compilation.ValueTaskOfType().Equals(delegateType.DelegateInvokeMethod.ReturnType)))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
 
