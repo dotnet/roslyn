@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -97,6 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
 
             public override bool VisitIntoStructuredTrivia => true;
 
+            [return: NotNullIfNotNull("node")]
+            public override SyntaxNode? Visit(SyntaxNode? node) => base.Visit(node);
+
             public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
             {
                 // We only care about xml doc comments
@@ -123,18 +127,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                     return expanded.WithLeadingTrivia(leadingTrivia);
                 }
 
-                var typeArgumentList = (TypeArgumentListSyntax)base.Visit(node.TypeArgumentList);
+                var typeArgumentList = (TypeArgumentListSyntax)Visit(node.TypeArgumentList);
                 return node.Update(node.Identifier.WithLeadingTrivia(leadingTrivia), typeArgumentList);
             }
 
             public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
             {
-                var left = (NameSyntax)base.Visit(node.Left);
+                var left = (NameSyntax)Visit(node.Left);
                 // We don't recurse on the right, as if B is a member of the imported namespace, A.B is still not ambiguous
                 var right = node.Right;
                 if (right is GenericNameSyntax genericName)
                 {
-                    var typeArgumentList = (TypeArgumentListSyntax)base.Visit(genericName.TypeArgumentList);
+                    var typeArgumentList = (TypeArgumentListSyntax)Visit(genericName.TypeArgumentList);
                     right = genericName.Update(genericName.Identifier, typeArgumentList);
                 }
                 return node.Update(left, node.DotToken, right);

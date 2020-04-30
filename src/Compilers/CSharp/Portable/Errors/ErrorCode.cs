@@ -1777,6 +1777,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,
 
+        ERR_BadRecordDeclaration = 8800,
+        ERR_DuplicateRecordConstructor = 8801,
+
         ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement = 9000,
         ERR_SimpleProgramMultipleUnitsWithTopLevelStatements = 9001,
         ERR_TopLevelStatementAfterNamespaceOrType = 9002,

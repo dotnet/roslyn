@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             case SyntaxKind.EventDeclaration:
                                 return ((EventDeclarationSyntax)syntax).AttributeLists;
                             case SyntaxKind.VariableDeclarator:
+                                Debug.Assert(syntax.Parent!.Parent is object);
                                 return ((EventFieldDeclarationSyntax)syntax.Parent.Parent).AttributeLists;
                             default:
                                 throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                return default(SyntaxList<AttributeListSyntax>);
+                return default;
             }
         }
 
@@ -597,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(location, useSiteDiagnostics);
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
             ref var lazyDocComment = ref expandIncludes ? ref _lazyExpandedDocComment : ref _lazyDocComment;
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
