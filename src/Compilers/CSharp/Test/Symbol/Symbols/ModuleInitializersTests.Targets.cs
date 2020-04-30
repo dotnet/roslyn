@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     public sealed partial class ModuleInitializersTests
     {
         [Fact]
-        public void IgnoredOnLocalFunction()
+        public void TargetMustNotBeLocalFunction()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -35,7 +35,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void IgnoredOnDestructor()
+        public void TargetMustNotBeDestructor()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -57,7 +57,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void IgnoredOnOperator()
+        public void TargetMustNotBeOperator()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -79,7 +79,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void IgnoredOnConversionOperator()
+        public void TargetMustNotBeConversionOperator()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -101,7 +101,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void IgnoredOnEventAccessors()
+        public void TargetMustNotBeEventAccessor()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -131,7 +131,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void IgnoredOnPropertyAccessors()
+        public void TargetMustNotBePropertyAccessor()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -161,7 +161,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void IgnoredOnIndexerAccessors()
+        public void TargetMustNotBeIndexerAccessor()
         {
             string source = @"
 using System.Runtime.CompilerServices;
