@@ -199,7 +199,7 @@ using System.Runtime.InteropServices;
 
 class C
 {
-    [ModuleInitializer, DllImport(""foo"")]
+    [ModuleInitializer, DllImport(""dllName"")]
     internal static extern void M();
 }
 
