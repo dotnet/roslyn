@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -370,8 +371,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             AssertEx.Equal(nativeIntegerMembers.SelectAsArray(m => m.Name), nativeIntegerMemberNames);
 
             var expectedMembers = underlyingMembers.WhereAsArray(m => includeUnderlyingMember(m)).Sort(SymbolComparison);
-            var actualMembers = nativeIntegerMembers.WhereAsArray(m => includeNativeIntegerMember(m)).SelectAsArray(m => getUnderlyingMember(m)).Sort(SymbolComparison);
-            AssertEx.Equal(expectedMembers, actualMembers);
+            var actualMembers = nativeIntegerMembers.WhereAsArray(m => includeNativeIntegerMember(m)).Sort(SymbolComparison);
+            Assert.Equal(expectedMembers, actualMembers, SymbolComparer.IgnoreNativeIntegers);
+            if (expectedMembers.Length > 0)
+            {
+                Assert.NotEqual(expectedMembers, actualMembers, SymbolComparer.ConsiderEverything);
+            }
+            Assert.Equal(expectedMembers, actualMembers.SelectAsArray(m => getUnderlyingMember(m)), ReferenceEqualityComparer.Instance);
+            AssertEx.Equal(expectedMembers.SelectAsArray(m => m.GetHashCode()), actualMembers.SelectAsArray(m => m.GetHashCode()));
 
             static bool includeUnderlyingMember(Symbol underlyingMember)
             {
@@ -430,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         {
             var memberNames = type.MemberNames;
             var allMembers = type.GetMembers();
-            Assert.Equal(allMembers, type.GetMembers(), ReferenceEqualityComparer.Instance);
+            Assert.Equal(allMembers, type.GetMembers()); // same array
 
             foreach (var member in allMembers)
             {
@@ -469,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         {
             var memberNames = type.MemberNames;
             var allMembers = type.GetMembers();
-            Assert.Equal(allMembers, type.GetMembers(), ReferenceEqualityComparer.Instance);
+            Assert.Equal(allMembers, type.GetMembers(), ReferenceEqualityComparer.Instance); // same member instances
 
             foreach (var member in allMembers)
             {
@@ -606,6 +613,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             return string.CompareOrdinal(normalizeDisplayString(x), normalizeDisplayString(y));
 
             static string normalizeDisplayString(string s) => s.Replace("System.IntPtr", "nint").Replace("System.UIntPtr", "nuint");
+        }
+
+        private sealed class SymbolComparer : IEqualityComparer<Symbol>
+        {
+            internal static readonly SymbolComparer ConsiderEverything = new SymbolComparer(TypeCompareKind.ConsiderEverything);
+            internal static readonly SymbolComparer IgnoreNativeIntegers = new SymbolComparer(TypeCompareKind.IgnoreNativeIntegers);
+
+            private readonly TypeCompareKind _compareKind;
+
+            private SymbolComparer(TypeCompareKind compareKind)
+            {
+                _compareKind = compareKind;
+            }
+
+            bool IEqualityComparer<Symbol>.Equals(Symbol x, Symbol y)
+            {
+                return x.Equals(y, _compareKind);
+            }
+
+            int IEqualityComparer<Symbol>.GetHashCode(Symbol obj)
+            {
+                return obj.GetHashCode();
+            }
         }
 
         [Fact]
@@ -3498,8 +3528,8 @@ unsafe class Program
             comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             // PEVerify is skipped because it reports "Type load failed" because of the above corlib,
             // not because of duplicate TypeRefs in this assembly. Replace the above corlib with the
-            // actual corlib when that assembly contains UIntPtr.MaxValue, or replace nuint.MaxValue
-            // with nuint.Size if we decide to support that property.
+            // actual corlib when that assembly contains UIntPtr.MaxValue or if we decide to support
+            // nuint.MaxValue (since MaxValue could be used in this test instead).
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("Program.F1",
 @"{

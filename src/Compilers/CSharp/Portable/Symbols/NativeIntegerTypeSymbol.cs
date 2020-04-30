@@ -26,10 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(underlyingType.TupleData is null);
             Debug.Assert(!underlyingType.IsNativeIntegerType);
             Debug.Assert(underlyingType.SpecialType == SpecialType.System_IntPtr || underlyingType.SpecialType == SpecialType.System_UIntPtr);
-            Debug.Assert(!this.Equals(underlyingType, TypeCompareKind.ConsiderEverything));
-            Debug.Assert(!underlyingType.Equals(this, TypeCompareKind.ConsiderEverything));
-            Debug.Assert(this.Equals(underlyingType, TypeCompareKind.IgnoreNativeIntegers));
-            Debug.Assert(underlyingType.Equals(this, TypeCompareKind.IgnoreNativeIntegers));
+            VerifyEquality(this, underlyingType);
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
@@ -175,9 +172,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => _underlyingType;
 
-        internal override bool Equals(TypeSymbol other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol? other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
         {
-            if ((object)other == null)
+            if (other is null)
             {
                 return false;
             }
@@ -197,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
-            // NativeIntegerTypeSymbol should not be used in emit.
+            // Emit should use underlying symbol only.
             throw ExceptionUtilities.Unreachable;
         }
 
@@ -205,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyInterfaces.IsDefault)
             {
-                var interfaces = _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved).SelectAsArray((type, map) => map.SubstituteNamedType(type), GetTypeMap());
+                var interfaces = _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved).SelectAsArray((Func<NamedTypeSymbol, NativeIntegerTypeMap, NamedTypeSymbol>)((type, map) => map.SubstituteNamedType(type)), GetTypeMap());
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyInterfaces, interfaces);
             }
             return _lazyInterfaces;
@@ -230,6 +227,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal NamedTypeSymbol SubstituteUnderlyingType(NamedTypeSymbol type) => GetTypeMap().SubstituteNamedType(type);
 
+        [Conditional("DEBUG")]
+        internal static void VerifyEquality(Symbol nativeIntegerSymbol, Symbol underlyingSymbol)
+        {
+            Debug.Assert(!nativeIntegerSymbol.Equals(underlyingSymbol, TypeCompareKind.ConsiderEverything));
+            Debug.Assert(!underlyingSymbol.Equals(nativeIntegerSymbol, TypeCompareKind.ConsiderEverything));
+            Debug.Assert(nativeIntegerSymbol.Equals(underlyingSymbol, TypeCompareKind.IgnoreNativeIntegers));
+            Debug.Assert(underlyingSymbol.Equals(nativeIntegerSymbol, TypeCompareKind.IgnoreNativeIntegers));
+            Debug.Assert(nativeIntegerSymbol.GetHashCode() == underlyingSymbol.GetHashCode());
+        }
+
         private sealed class NativeIntegerTypeMap : AbstractTypeMap
         {
             private readonly NativeIntegerTypeSymbol _type;
@@ -252,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal sealed class NativeIntegerMethodSymbol : WrappedMethodSymbol
+    internal sealed class NativeIntegerMethodSymbol : WrappedMethodSymbol, Cci.IReference
     {
         private readonly NativeIntegerTypeSymbol _container;
         private readonly Symbol? _associatedSymbol;
@@ -263,6 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _container = container;
             _associatedSymbol = associatedSymbol;
             UnderlyingMethod = underlyingMethod;
+            NativeIntegerTypeSymbol.VerifyEquality(this, underlyingMethod);
         }
 
         public override Symbol ContainingSymbol => _container;
@@ -276,11 +284,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
 
         public override ImmutableArray<ParameterSymbol> Parameters =>
-            UnderlyingMethod.Parameters.SelectAsArray((p, m) => (ParameterSymbol)new NativeIntegerParameterSymbol(m._container, m, p), this);
+            UnderlyingMethod.Parameters.SelectAsArray((Func<ParameterSymbol, NativeIntegerMethodSymbol, ParameterSymbol>)((p, m) => (ParameterSymbol)new NativeIntegerParameterSymbol(m._container, m, p)), this);
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations =>
             UnderlyingMethod.ExplicitInterfaceImplementations.SelectAsArray(
-                (method, map) => method.OriginalDefinition.AsMember(_container.SubstituteUnderlyingType(method.ContainingType)),
+                (Func<MethodSymbol, NativeIntegerTypeSymbol, MethodSymbol>)((method, map) => method.OriginalDefinition.AsMember(_container.SubstituteUnderlyingType(method.ContainingType))),
                 _container);
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => UnderlyingMethod.RefCustomModifiers;
@@ -291,9 +299,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             throw new NotImplementedException();
         }
+
+        public override bool Equals(Symbol? other, TypeCompareKind comparison)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+            if ((object)this == other)
+            {
+                return true;
+            }
+            if (!UnderlyingMethod.Equals(other, comparison))
+            {
+                return false;
+            }
+            return (comparison & TypeCompareKind.IgnoreNativeIntegers) != 0 ||
+                other is NativeIntegerMethodSymbol;
+        }
+
+        public override int GetHashCode() => UnderlyingMethod.GetHashCode();
+
+        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+        {
+            // Emit should use underlying symbol only.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        private sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol, Cci.IReference
+        {
+            private readonly NativeIntegerTypeSymbol _containingType;
+            private readonly Symbol _container;
+
+            internal NativeIntegerParameterSymbol(NativeIntegerTypeSymbol containingType, Symbol container, ParameterSymbol underlyingParameter) : base(underlyingParameter)
+            {
+                _containingType = containingType;
+                _container = container;
+            }
+
+            public override Symbol ContainingSymbol => _container;
+
+            public override TypeWithAnnotations TypeWithAnnotations => _containingType.SubstituteUnderlyingType(UnderlyingParameter.TypeWithAnnotations);
+
+            void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+            {
+                // Emit should use underlying symbol only.
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
     }
 
-    internal sealed class NativeIntegerPropertySymbol : WrappedPropertySymbol
+    internal sealed class NativeIntegerPropertySymbol : WrappedPropertySymbol, Cci.IReference
     {
         private readonly NativeIntegerTypeSymbol _container;
 
@@ -301,6 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(underlyingProperty.ParameterCount == 0);
             _container = container;
+            NativeIntegerTypeSymbol.VerifyEquality(this, underlyingProperty);
         }
 
         public override Symbol ContainingSymbol => _container;
@@ -317,27 +374,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations =>
             UnderlyingProperty.ExplicitInterfaceImplementations.SelectAsArray(
-                (property, map) => property.OriginalDefinition.AsMember(_container.SubstituteUnderlyingType(property.ContainingType)),
+                (Func<PropertySymbol, NativeIntegerTypeSymbol, PropertySymbol>)((property, map) => property.OriginalDefinition.AsMember(_container.SubstituteUnderlyingType(property.ContainingType))),
                 _container);
 
         internal override bool MustCallMethodsDirectly => _underlyingProperty.MustCallMethodsDirectly;
 
         private NativeIntegerMethodSymbol? MakeAccessor(MethodSymbol? accessor) => accessor is null ? null : new NativeIntegerMethodSymbol(_container, accessor, this);
-    }
 
-    internal sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol
-    {
-        private readonly NativeIntegerTypeSymbol _containingType;
-        private readonly Symbol _container;
-
-        internal NativeIntegerParameterSymbol(NativeIntegerTypeSymbol containingType, Symbol container, ParameterSymbol underlyingParameter) : base(underlyingParameter)
+        public override bool Equals(Symbol? other, TypeCompareKind comparison)
         {
-            _containingType = containingType;
-            _container = container;
+            if (other is null)
+            {
+                return false;
+            }
+            if ((object)this == other)
+            {
+                return true;
+            }
+            if (!_underlyingProperty.Equals(other, comparison))
+            {
+                return false;
+            }
+            return (comparison & TypeCompareKind.IgnoreNativeIntegers) != 0 ||
+                other is NativeIntegerPropertySymbol;
         }
 
-        public override Symbol ContainingSymbol => _container;
+        public override int GetHashCode() => _underlyingProperty.GetHashCode();
 
-        public override TypeWithAnnotations TypeWithAnnotations => _containingType.SubstituteUnderlyingType(UnderlyingParameter.TypeWithAnnotations);
+        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+        {
+            // Emit should use underlying symbol only.
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 }
