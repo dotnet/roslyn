@@ -758,7 +758,6 @@ End Module
     ]]></file>
 </compilation>)
 
-
             Dim d As Decimal = 0
             If (Decimal.TryParse("0E1", Globalization.NumberStyles.AllowExponent, Nothing, d)) Then
                 compilation.AssertNoErrors
@@ -2359,7 +2358,6 @@ End Class
 ]]>)
         End Sub
 
-
         <WorkItem(546809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546809")>
         <Fact()>
         Public Sub TestBinaryConditionalOperator_16872b()
@@ -2479,7 +2477,6 @@ expectedOutput:=<![CDATA[
 
             CompileAndVerify(
 <compilation>
-
     <file name="a.vb">Imports System
 Imports System.Globalization
 
@@ -9651,7 +9648,6 @@ End Class
 ]]>)
         End Sub
 
-
         <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
         <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_OptionalParameter()
@@ -10856,7 +10852,6 @@ End Structure
 ]]>)
         End Sub
 
-
         <WorkItem(543611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543611")>
         <Fact()>
         Public Sub MultipleconstsByRef()
@@ -11183,7 +11178,6 @@ End Class]]>
 }
 ]]>)
         End Sub
-
 
         <WorkItem(543757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543757")>
         <Fact()>
@@ -12137,7 +12131,6 @@ End Module
 ]]>)
         End Sub
 
-
         <WorkItem(575547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575547")>
         <Fact()>
         Public Sub LateBindingToSystemArrayIndex02()
@@ -12358,7 +12351,6 @@ BC40054: 'Public Sub New(c As Integer)' in designer-generated type 'FromDesigner
 </expected>)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
-
 
             compilationVerifier.VerifyIL("FromDesigner3..ctor",
             <![CDATA[
@@ -13011,7 +13003,6 @@ End Class
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-
         <![CDATA[
 
 Imports System
@@ -13082,7 +13073,6 @@ End Module
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
-
         <![CDATA[
 
 Imports System
@@ -13756,13 +13746,11 @@ End Structure
                 )
         End Sub
 
-
         <Fact()>
         Public Sub InplaceCtorUsesLocal()
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
-
         <![CDATA[
 
 Module Module1
@@ -13919,7 +13907,6 @@ End Class
 }
 ]]>)
         End Sub
-
 
         <Fact, WorkItem(9703, "https://github.com/dotnet/roslyn/issues/9703")>
         Public Sub IgnoredConversion()

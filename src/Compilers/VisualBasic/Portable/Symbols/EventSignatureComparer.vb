@@ -72,7 +72,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                        considerCustomModifiers:=False,
                                        considerTupleNames:=False)
 
-
         ' Compare the event name (no explicit part)
         Private ReadOnly _considerName As Boolean
 

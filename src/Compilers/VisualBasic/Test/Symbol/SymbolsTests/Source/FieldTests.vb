@@ -509,7 +509,6 @@ End Class
     </file>
 </compilation>)
 
-
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
 BC30002: Type 'abcDef' is not defined.
     Public x, y, z as abcDef
@@ -557,7 +556,6 @@ End Structure
 
             Assert.False(goo.IsFixedSizeBuffer)
         End Sub
-
 
     End Class
 End Namespace

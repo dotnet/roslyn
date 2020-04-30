@@ -64,7 +64,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return obj Is Me
         End Function
 
-
         Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
             Get
                 ' It doesn't look like Dev10 had a special error for this particular scenario.

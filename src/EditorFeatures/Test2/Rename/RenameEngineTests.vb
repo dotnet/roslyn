@@ -233,7 +233,6 @@ class C
     }
 }                             </Document>
                        </Project>
-
                    </Workspace>, host:=host, renameTo:="X")
 
                 result.AssertLabeledSpansAre("unresolved", type:=RelatedLocationType.UnresolvedConflict)
@@ -438,7 +437,6 @@ class {|unresolve3:$$D|} // Rename to C
                     </Project>
                 </Workspace>, host:=host, renameTo:="A")
 
-
             End Using
         End Sub
 
@@ -565,7 +563,6 @@ class {|unresolve3:$$D|} // Rename to C
                                 </Project>
                             </Workspace>, host:=host, renameTo:="y")
 
-
                 result.AssertLabeledSpansAre("conflict1", "y", type:=RelatedLocationType.UnresolvedConflict)
                 result.AssertLabeledSpansAre("conflict2", "y", type:=RelatedLocationType.UnresolvedConflict)
             End Using
@@ -604,7 +601,6 @@ class {|unresolve3:$$D|} // Rename to C
                                     </Document>
                                 </Project>
                             </Workspace>, host:=host, renameTo:="BarBaz", changedOptionSet:=changingOptions)
-
 
             End Using
         End Sub
@@ -646,7 +642,6 @@ class {|unresolve3:$$D|} // Rename to C
                                 </Project>
                             </Workspace>, host:=host, renameTo:="BarBaz", changedOptionSet:=changingOptions)
 
-
             End Using
         End Sub
 
@@ -679,7 +674,6 @@ class {|unresolve3:$$D|} // Rename to C
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
 
-
             End Using
         End Sub
 
@@ -705,7 +699,6 @@ class {|unresolve3:$$D|} // Rename to C
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
 
-
             End Using
         End Sub
 
@@ -727,7 +720,6 @@ class {|unresolve3:$$D|} // Rename to C
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
-
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
             End Using
@@ -758,7 +750,6 @@ class {|unresolve3:$$D|} // Rename to C
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
-
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
@@ -795,7 +786,6 @@ class {|unresolve3:$$D|} // Rename to C
                          </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
-
 
                 result.AssertLabeledSpansAre("csstmt1", "BarBaz", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("vbstmt1", "BarBaz", RelatedLocationType.NoConflict)
@@ -1033,7 +1023,6 @@ class {|unresolve3:$$D|} // Rename to C
                     </Project>
                 </Workspace>, host:=host, renameTo:="Test")
 
-
             End Using
         End Sub
 
@@ -1052,7 +1041,6 @@ class {|unresolve3:$$D|} // Rename to C
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="TestEnum")
-
 
             End Using
         End Sub
@@ -1074,7 +1062,6 @@ class {|unresolve3:$$D|} // Rename to C
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
-
 
                 result.AssertLabeledSpansAre("stmt1", "Bar", RelatedLocationType.NoConflict)
             End Using
@@ -1114,7 +1101,6 @@ class {|unresolve3:$$D|} // Rename to C
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBazNamespace")
 
-
             End Using
         End Sub
 
@@ -1133,7 +1119,6 @@ class {|unresolve3:$$D|} // Rename to C
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
 
-
             End Using
         End Sub
 
@@ -1151,7 +1136,6 @@ class {|unresolve3:$$D|} // Rename to C
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
-
 
             End Using
         End Sub
@@ -1172,7 +1156,6 @@ class {|unresolve3:$$D|} // Rename to C
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Blah")
-
 
             End Using
         End Sub
@@ -1258,7 +1241,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
 
-
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
@@ -1282,7 +1264,6 @@ End Class
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
-
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
             End Using
@@ -1362,7 +1343,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
 
-
                 result.AssertLabeledSpansAre("stmt1", "BarBaz", RelatedLocationType.NoConflict)
             End Using
         End Sub
@@ -1384,7 +1364,6 @@ class Program
 }                       </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
-
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
@@ -1409,7 +1388,6 @@ class Program
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
 
-
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
             End Using
@@ -1432,7 +1410,6 @@ class Program
 }                       </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
-
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
@@ -1465,7 +1442,6 @@ partial class Test
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
 
-
             End Using
         End Sub
 
@@ -1488,7 +1464,6 @@ partial class Test
                            </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="y")
-
 
             End Using
         End Sub
@@ -1515,7 +1490,6 @@ partial class Test
                        </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="x")
-
 
             End Using
         End Sub
@@ -1621,7 +1595,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="Goo")
 
-
                 result.AssertLabeledSpansAre("stmt1", "Goo", RelatedLocationType.NoConflict)
             End Using
         End Sub
@@ -1644,7 +1617,6 @@ End Class
                        </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="y")
-
 
                 result.AssertLabeledSpansAre("stmt1", "y", RelatedLocationType.NoConflict)
             End Using
@@ -1674,7 +1646,6 @@ class Bar : IGoo
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
 
-
             End Using
         End Sub
 
@@ -1694,7 +1665,6 @@ class Bar : IGoo
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="CloneImpl")
-
 
             End Using
         End Sub
@@ -1716,7 +1686,6 @@ partial class Class1
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
 
-
             End Using
         End Sub
 
@@ -1736,7 +1705,6 @@ partial class Class1
 }]]></Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
-
 
             End Using
         End Sub
@@ -1758,7 +1726,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
 
-
             End Using
         End Sub
 
@@ -1778,7 +1745,6 @@ End Module
 ]]></Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
-
 
             End Using
         End Sub
@@ -1822,7 +1788,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="N")
 
-
             End Using
         End Sub
 
@@ -1847,7 +1812,6 @@ End Module
                             </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
-
 
             End Using
         End Sub
@@ -1874,7 +1838,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
 
-
             End Using
         End Sub
 
@@ -1897,7 +1860,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
 
-
             End Using
         End Sub
 
@@ -1919,7 +1881,6 @@ End Module
                             </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
-
 
             End Using
         End Sub
@@ -1958,7 +1919,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="MyInt")
 
-
             End Using
         End Sub
 
@@ -1990,7 +1950,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="Goo")
 
-
             End Using
         End Sub
 
@@ -2011,7 +1970,6 @@ End Module
                             </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="＿Attribute")
-
 
             End Using
         End Sub
@@ -2034,7 +1992,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="bar")
 
-
                 result.AssertLabeledSpansAre("stmt1", "bar", RelatedLocationType.NoConflict)
             End Using
         End Sub
@@ -2055,7 +2012,6 @@ End Module
                             </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Y")
-
 
                 result.AssertLabeledSpecialSpansAre("stmt1", "YEvent", RelatedLocationType.NoConflict)
             End Using
@@ -2083,7 +2039,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="Y")
 
-
                 result.AssertLabeledSpecialSpansAre("stmt1", "YEventHandler", RelatedLocationType.NoConflict)
             End Using
         End Sub
@@ -2106,7 +2061,6 @@ End Module
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
-
 
                 result.AssertLabeledSpansAre("stmt1", "Bar", RelatedLocationType.NoConflict)
             End Using
@@ -2163,7 +2117,6 @@ class M
     }
 }
 ]]>
-
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="await")
@@ -2197,7 +2150,6 @@ class s
 
 }
 ]]>
-
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="await")
@@ -2231,11 +2183,9 @@ class s
 
 }
 ]]>
-
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="await")
-
 
                 result.AssertLabeledSpansAre("stmt2", "@await", RelatedLocationType.NoConflict)
             End Using
@@ -2266,11 +2216,9 @@ class s
 
 }
 ]]>
-
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="await")
-
 
                 result.AssertLabeledSpansAre("stmt3", "await", RelatedLocationType.NoConflict)
             End Using
@@ -2302,7 +2250,6 @@ class s
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
 
-
                 result.AssertLabeledSpansAre("stmt1", "Bar", RelatedLocationType.NoConflict)
             End Using
         End Sub
@@ -2332,7 +2279,6 @@ class s
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
-
 
                 result.AssertLabeledSpansAre("stmt1", "Bar", RelatedLocationType.NoConflict)
             End Using
@@ -2364,7 +2310,6 @@ class s
                             </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="XATTRIBUTe")
-
 
                 result.AssertLabeledSpansAre("resolved", "XATTRIBUTe", RelatedLocationType.NoConflict)
             End Using
@@ -2427,7 +2372,6 @@ class s
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
 
-
             End Using
         End Sub
 
@@ -2481,7 +2425,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="Z")
 
-
                 result.AssertLabeledSpecialSpansAre("getaccessor", "get_Z", RelatedLocationType.NoConflict)
             End Using
         End Sub
@@ -2511,7 +2454,6 @@ End Class
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Z")
-
 
                 result.AssertLabeledSpecialSpansAre("getaccessor", "Get_Z", RelatedLocationType.NoConflict)
             End Using
@@ -2550,7 +2492,6 @@ End Class
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Z")
-
 
                 result.AssertLabeledSpecialSpansAre("getaccessor", "Get_Z", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("setaccessor", "Set_Z", RelatedLocationType.NoConflict)
@@ -2595,7 +2536,6 @@ End Class
                             </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Z")
-
 
                 result.AssertLabeledSpecialSpansAre("getaccessor", "get_Z", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("setaccessor", "set_Z", RelatedLocationType.NoConflict)
@@ -2642,7 +2582,6 @@ End Class
                             </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Z")
-
 
                 result.AssertLabeledSpecialSpansAre("getaccessor", "get_Z", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("setaccessor", "set_Z", RelatedLocationType.NoConflict)
@@ -2691,7 +2630,6 @@ End Class
                             </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Z")
-
 
                 result.AssertLabeledSpecialSpansAre("getaccessor", "get_Z", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("setaccessor", "set_Z", RelatedLocationType.NoConflict)
@@ -2758,7 +2696,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="Z")
 
-
                 result.AssertLabeledSpecialSpansAre("getaccessor", "get_Z", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("setaccessor", "set_Z", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("getaccessorstmt", "get_Z", RelatedLocationType.NoConflict)
@@ -2816,7 +2753,6 @@ End Class
                             </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Z")
-
 
                 result.AssertLabeledSpecialSpansAre("getaccessor", "get_Z", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("setaccessor", "set_Z", RelatedLocationType.NoConflict)
@@ -2998,7 +2934,6 @@ class A
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
 
-
                 result.AssertLabeledSpansAre("Stmt1", "Bar", RelatedLocationType.NoConflict)
             End Using
         End Sub
@@ -3021,7 +2956,6 @@ public class A
                     </Project>
                 </Workspace>, host:=host, renameTo:="M\u0061in")
 
-
                 result.AssertLabeledSpansAre("stmt1", "M\u0061in", RelatedLocationType.NoConflict)
             End Using
         End Sub
@@ -3043,7 +2977,6 @@ class C
                             </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
-
 
                 result.AssertLabeledSpansAre("stmt1", "Bar", RelatedLocationType.NoConflict)
             End Using
@@ -3073,7 +3006,6 @@ class C
                     </Project>
                 </Workspace>, host:=host, renameTo:="n")
 
-
                 result.AssertLabeledSpansAre("stmt1", "n", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", "n", RelatedLocationType.NoConflict)
             End Using
@@ -3092,7 +3024,6 @@ namespace N
 }
                         </Document>
                     </Project>
-
                     <Project Language="Visual Basic" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -3113,7 +3044,6 @@ End Module
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="D")
-
 
                 result.AssertLabeledSpansAre("resolved", "Dim c = New N.M.D()", type:=RelatedLocationType.ResolvedReferenceConflict)
             End Using
@@ -3141,7 +3071,6 @@ class Program
                         </Project>
                     </Workspace>, host:=host, renameTo:="pargs")
 
-
             End Using
         End Sub
 
@@ -3163,7 +3092,6 @@ End Class]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="pargs")
-
 
             End Using
         End Sub
@@ -3273,7 +3201,6 @@ End Class]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="D")
-
 
             End Using
         End Sub
@@ -3387,7 +3314,6 @@ namespace X
         Public Sub RenameExplicitInterfaceImplementationFromDifferentProject(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <ProjectReference>Project2</ProjectReference>
                         <Document>
@@ -3405,7 +3331,6 @@ class Program
 }
                         </Document>
                     </Project>
-
                     <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
                         <Document>
 public class Class1 : IInterface
@@ -3419,7 +3344,6 @@ public interface IInterface
 }
                         </Document>
                     </Project>
-
                 </Workspace>, host:=host, renameTo:="Goo")
             End Using
         End Sub
@@ -3429,7 +3353,6 @@ public interface IInterface
         Public Sub RenamingEventCascadesToCSUsingEventHandlerDelegate(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Public Interface IA
@@ -3443,7 +3366,6 @@ Class C
 End Class
                         </Document>
                     </Project>
-
                     <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -3466,9 +3388,7 @@ class Program : IA
 }
                         </Document>
                     </Project>
-
                 </Workspace>, host:=host, renameTo:="Y")
-
 
                 result.AssertLabeledSpecialSpansAre("handler", "YEventHandler", type:=RelatedLocationType.NoConflict)
             End Using
@@ -3479,7 +3399,6 @@ class Program : IA
         Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_1(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Public Interface IA
@@ -3493,7 +3412,6 @@ Class C
 End Class
                         </Document>
                     </Project>
-
                     <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -3516,9 +3434,7 @@ class Program : IA
 }
                         </Document>
                     </Project>
-
                 </Workspace>, host:=host, renameTo:="Y")
-
 
                 result.AssertLabeledSpecialSpansAre("handler", "YEventHandler", type:=RelatedLocationType.NoConflict)
             End Using
@@ -3529,7 +3445,6 @@ class Program : IA
         Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_2(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Public Interface IA
@@ -3543,7 +3458,6 @@ Class C
 End Class
                         </Document>
                     </Project>
-
                     <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -3566,9 +3480,7 @@ class Program : IA
 }
                         </Document>
                     </Project>
-
                 </Workspace>, host:=host, renameTo:="Y")
-
 
                 result.AssertLabeledSpecialSpansAre("handler", "YEventHandler", type:=RelatedLocationType.NoConflict)
             End Using
@@ -3579,7 +3491,6 @@ class Program : IA
         Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_3(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Public Interface IA
@@ -3587,7 +3498,6 @@ Public Interface IA
 End Interface
                         </Document>
                     </Project>
-
                     <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -3598,9 +3508,7 @@ class C
 }
                         </Document>
                     </Project>
-
                 </Workspace>, host:=host, renameTo:="Y")
-
 
                 result.AssertLabeledSpecialSpansAre("handler", "YEventHandler", type:=RelatedLocationType.NoConflict)
             End Using
@@ -3611,7 +3519,6 @@ class C
         Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_4(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Public Interface IA
@@ -3619,7 +3526,6 @@ Public Interface IA
 End Interface
                         </Document>
                     </Project>
-
                     <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -3630,9 +3536,7 @@ class C
 }
                         </Document>
                     </Project>
-
                 </Workspace>, host:=host, renameTo:="Y")
-
 
                 result.AssertLabeledSpecialSpansAre("handler", "YEventHandler", type:=RelatedLocationType.NoConflict)
             End Using
@@ -3643,7 +3547,6 @@ class C
         Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_5(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Public Interface IA
@@ -3651,7 +3554,6 @@ Public Interface IA
 End Interface
                         </Document>
                     </Project>
-
                     <Project Language="Visual Basic" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -3661,9 +3563,7 @@ Class C
 Class C
                         </Document>
                     </Project>
-
                 </Workspace>, host:=host, renameTo:="Y")
-
 
                 result.AssertLabeledSpecialSpansAre("handler", "YEventHandler", type:=RelatedLocationType.NoConflict)
             End Using
@@ -3720,7 +3620,6 @@ namespace X
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="bar")
-
 
                 result.AssertLabeledSpansAre("stmt", "bar", RelatedLocationType.NoConflict)
             End Using
@@ -3818,7 +3717,6 @@ class {|Conflict:Program|}
                     </Project>
                 </Workspace>, host:=host, renameTo:="dynamic")
 
-
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -3853,7 +3751,6 @@ class {|Conflict:Program|}
         Public Sub RenameNamespaceInVbFromCSharReference(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Namespace [|N|]
@@ -3862,16 +3759,13 @@ Namespace [|N|]
 End Namespace
                         </Document>
                     </Project>
-
                     <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
 class Y : [|$$N|].X { }
                         </Document>
                     </Project>
-
                 </Workspace>, host:=host, renameTo:="Goo")
-
 
             End Using
         End Sub
@@ -3897,7 +3791,6 @@ class [|Program|]
                     </Project>
                 </Workspace>, host:=host, renameTo:="y")
 
-
             End Using
         End Sub
 
@@ -3918,7 +3811,6 @@ End Class
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Y")
-
 
             End Using
         End Sub
@@ -3942,7 +3834,6 @@ class Program
                     </Project>
                 </Workspace>, host:=host, renameTo:="y")
 
-
             End Using
         End Sub
 
@@ -3963,7 +3854,6 @@ End Class
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Y")
-
 
             End Using
         End Sub
@@ -3987,7 +3877,6 @@ class Program
                     </Project>
                 </Workspace>, host:=host, renameTo:="y")
 
-
             End Using
         End Sub
 
@@ -4008,7 +3897,6 @@ End Class
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="y")
-
 
             End Using
         End Sub
@@ -4229,7 +4117,6 @@ class Tester
         }
     }
 }]]>
-
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="y")
@@ -4261,7 +4148,6 @@ Class Tester
         End Set
     End Property
 End Class]]>
-
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="y")
@@ -4311,7 +4197,6 @@ End Class]]>
                         </Project>
                     </Workspace>, host:=host, renameTo:="D")
 
-
             End Using
         End Sub
 
@@ -4331,7 +4216,6 @@ class C<T>
     void Goo(C<dynamic> x, C<string> y) { }
     void Bar(T x) { }
 }]]>
-
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="D")
@@ -4358,7 +4242,6 @@ End Class]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="D")
-
 
             End Using
         End Sub
@@ -4431,7 +4314,6 @@ class [|C|]
                         </Project>
                     </Workspace>, host:=host, renameTo:="D")
 
-
             End Using
         End Sub
 
@@ -4456,7 +4338,6 @@ End Class]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="D")
-
 
             End Using
         End Sub
@@ -4502,7 +4383,6 @@ namespace Test
                         </Project>
                     </Workspace>, host:=host, renameTo:="C")
 
-
             End Using
         End Sub
 
@@ -4540,7 +4420,6 @@ End Namespace]]>
                         </Project>
                     </Workspace>, host:=host, renameTo:="C")
 
-
             End Using
         End Sub
 
@@ -4574,7 +4453,6 @@ class B : C, I
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
 
-
             End Using
         End Sub
 
@@ -4604,7 +4482,6 @@ End Class]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
-
 
             End Using
         End Sub
@@ -4639,7 +4516,6 @@ class B : C, I
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Baz")
-
 
             End Using
         End Sub
@@ -4706,7 +4582,6 @@ class C
                         </Project>
                     </Workspace>, host:=host, renameTo:="Bel")
 
-
             End Using
         End Sub
 
@@ -4737,7 +4612,6 @@ End Class]]>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Bel")
 
-
             End Using
         End Sub
 
@@ -4764,7 +4638,6 @@ class Test
                         </Project>
                     </Workspace>, host:=host, renameTo:="Bel")
 
-
             End Using
         End Sub
 
@@ -4786,7 +4659,6 @@ End Class]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Bel")
-
 
             End Using
         End Sub
@@ -4821,7 +4693,6 @@ class Bar
                         </Project>
                     </Workspace>, host:=host, renameTo:="Bar")
 
-
                 result.AssertLabeledSpansAre("resolve", "global::Bar", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
@@ -4851,7 +4722,6 @@ End Class]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Bar")
-
 
                 result.AssertLabeledSpansAre("resolve", "Global.Bar", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
@@ -4887,7 +4757,6 @@ public class Bar
                         </Project>
                     </Workspace>, host:=host, renameTo:="Bar")
 
-
                 result.AssertLabeledSpansAre("resolve", "global::Bar", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
@@ -4916,7 +4785,6 @@ End Class]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Bar")
-
 
                 result.AssertLabeledSpansAre("resolve", "Global.Bar", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
@@ -4954,7 +4822,6 @@ public class A
                         </Project>
                     </Workspace>, host:=host, renameTo:="D")
 
-
                 result.AssertLabeledSpansAre("resolve", "B.D", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
@@ -4981,7 +4848,6 @@ End Class]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="D")
-
 
                 result.AssertLabeledSpansAre("resolve", "B.D", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
@@ -5014,7 +4880,6 @@ namespace N
                         </Project>
                     </Workspace>, host:=host, renameTo:="N")
 
-
                 result.AssertLabeledSpansAre("Resolve", "global::N", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
@@ -5042,7 +4907,6 @@ End Namespace]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="N")
-
 
                 result.AssertLabeledSpansAre("Resolve", "Global.N.C", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
@@ -5076,7 +4940,6 @@ class P
                         </Project>
                     </Workspace>, host:=host, renameTo:="a")
 
-
                 result.AssertLabeledSpansAre("Resolve", "P.a", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
@@ -5106,7 +4969,6 @@ End Class]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="a")
-
 
                 result.AssertLabeledSpansAre("Resolve", "P.a", RelatedLocationType.ResolvedReferenceConflict)
             End Using
@@ -5141,7 +5003,6 @@ namespace N
                         </Project>
                     </Workspace>, host:=host, renameTo:="N")
 
-
                 result.AssertLabeledSpansAre("Resolve", "global::N", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
@@ -5173,7 +5034,6 @@ namespace N1
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="R1")
-
 
                 result.AssertLabeledSpansAre("Resolve", "C1", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
@@ -5207,7 +5067,6 @@ End Namespace
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="R1")
-
 
                 result.AssertLabeledSpansAre("Resolve", "C1.C2", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
@@ -5246,7 +5105,6 @@ namespace N2
                         </Project>
                     </Workspace>, host:=host, renameTo:="R1")
 
-
                 result.AssertLabeledSpansAre("Resolve", "global::N1", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
@@ -5283,7 +5141,6 @@ End Namespace
                         </Project>
                     </Workspace>, host:=host, renameTo:="R1")
 
-
                 result.AssertLabeledSpansAre("Resolve", "Global.N1.C1.C2", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
@@ -5316,7 +5173,6 @@ namespace N
                         </Project>
                     </Workspace>, host:=host, renameTo:="K")
 
-
                 result.AssertLabeledSpansAre("Resolve", "N.K", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
@@ -5346,7 +5202,6 @@ End Namespace]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="K")
-
 
                 result.AssertLabeledSpansAre("Resolve1", "N.K", RelatedLocationType.ResolvedReferenceConflict)
                 result.AssertLabeledSpansAre("Resolve2", "N.K.Goo", RelatedLocationType.ResolvedReferenceConflict)
@@ -5393,7 +5248,6 @@ End Namespace
                         </Project>
                     </Workspace>, host:=host, renameTo:="R")
 
-
                 result.AssertLabeledSpansAre("Resolve", "global::R", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
@@ -5435,7 +5289,6 @@ namespace [|$$N|]
                         </Project>
                     </Workspace>, host:=host, renameTo:="R")
 
-
                 result.AssertLabeledSpansAre("Resolve1", "Global.R", RelatedLocationType.ResolvedReferenceConflict)
                 result.AssertLabeledSpansAre("Resolve2", "Global.R.C.Goo", RelatedLocationType.ResolvedReferenceConflict)
             End Using
@@ -5466,7 +5319,6 @@ class [|P|]
                         </Project>
                     </Workspace>, host:=host, renameTo:="Q")
 
-
             End Using
         End Sub
 
@@ -5492,7 +5344,6 @@ End Class]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Q")
-
 
             End Using
         End Sub
@@ -5521,7 +5372,6 @@ class [|P|]
                         </Project>
                     </Workspace>, host:=host, renameTo:="Q")
 
-
             End Using
         End Sub
 
@@ -5547,7 +5397,6 @@ End Class]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Q")
-
 
             End Using
         End Sub
@@ -5601,7 +5450,6 @@ End Class]]>
                         </Project>
                     </Workspace>, host:=host, renameTo:="y")
 
-
                 result.AssertLabeledSpansAre("Resolve", "P.y", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
@@ -5642,7 +5490,6 @@ namespace N
                         </Project>
                     </Workspace>, host:=host, renameTo:="K")
 
-
                 result.AssertLabeledSpansAre("Resolve", "N.C{int}", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
@@ -5679,7 +5526,6 @@ End Namespace]]>
                         </Project>
                     </Workspace>, host:=host, renameTo:="K")
 
-
                 result.AssertLabeledSpansAre("Resolve", "N.C(Of Integer).D(Of Integer)", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
@@ -5701,7 +5547,6 @@ namespace N
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="N")
-
 
             End Using
         End Sub
@@ -5731,7 +5576,6 @@ namespace N
                         </Project>
                     </Workspace>, host:=host, renameTo:="N")
 
-
                 result.AssertLabeledSpansAre("Resolve", "global::N.C x;", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
@@ -5757,7 +5601,6 @@ class [|Simple|]
                         </Project>
                     </Workspace>, host:=host, renameTo:="P")
 
-
             End Using
         End Sub
 
@@ -5781,7 +5624,6 @@ End Module
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="xx")
-
 
             End Using
         End Sub
@@ -6506,7 +6348,6 @@ Module [|$$Program|]
 End Module
 ]]>
                             </Document>
-
                             <Document><![CDATA[
 Class AnotherFile
     ''' <summary>
@@ -6546,7 +6387,6 @@ public class [|$$Program|]
 }
 ]]>
                             </Document>
-
                             <Document><![CDATA[
 public class AnotherFile
 {
@@ -6586,7 +6426,6 @@ End Class
 ]]>
                             </Document>
                         </Project>
-
                         <Project Language="Visual Basic" AssemblyName="Project2" CommonReferences="true">
                             <ProjectReference>Project1</ProjectReference>
                             <Document><![CDATA[
@@ -6678,7 +6517,6 @@ End Namespace
 ]]>
                             </Document>
                         </Project>
-
                         <Project Language="Visual Basic" AssemblyName="ReferencingProjectButSymbolNotVisible" CommonReferences="true">
                             <ProjectReference>Project1</ProjectReference>
                             <Document><![CDATA[
@@ -6702,7 +6540,6 @@ End Class
 ]]>
                             </Document>
                         </Project>
-
                         <Project Language="Visual Basic" AssemblyName="NotReferencingProject" CommonReferences="true">
                             <Document><![CDATA[
 ' Renames should not occur in non-referencing projects.

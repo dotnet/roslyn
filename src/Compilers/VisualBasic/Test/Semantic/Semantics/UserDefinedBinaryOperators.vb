@@ -2378,7 +2378,6 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                         options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
-
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC33023: Operator 'IsTrue' must have a return type of Boolean.
@@ -2657,7 +2656,6 @@ End Class
             Assert.Equal("Property1", valueSymbol.Name)
             Assert.NotNull(valueSymbol.Type)
             Assert.Equal("TestType", valueSymbol.Type.Name)
-
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>

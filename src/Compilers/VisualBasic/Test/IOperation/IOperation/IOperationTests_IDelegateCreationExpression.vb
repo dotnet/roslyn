@@ -2156,7 +2156,6 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
             VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub DelegateCreationExpression_ParenthesizedLambda_TryCast_NonDelegateTargetType_SuccessfulConversion()
@@ -2243,7 +2242,6 @@ IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type:
             VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub DelegateCreationExpression_ParenthesizedLambda_Implicit_NonDelegateTargetType_SuccessfulConversion()
@@ -2287,7 +2285,6 @@ IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (S
 
             VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>

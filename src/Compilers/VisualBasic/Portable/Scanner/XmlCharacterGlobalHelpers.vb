@@ -118,7 +118,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-
         Private Function ValidateXmlChar(ulCode As UInteger) As Boolean
             If (ulCode < &HD800 AndAlso (ulCode > &H1F OrElse XmlCharType.IsWhiteSpace(Convert.ToChar(ulCode)))) _
                 OrElse (ulCode < &HFFFE AndAlso ulCode > &HDFFF) _

@@ -547,7 +547,6 @@ End Module]]>,
             vbCompilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_NoSuitableWidestType1, "i").WithArguments("i"))
         End Sub
 
-
         Private Function SemanticInfoTypeTestForLoops(compilation As VisualBasicCompilation, index As Integer, ParamArray names As String()) As List(Of SemanticInfoSummary)
             Dim node = GetForStatement(compilation, index)
             Dim model = GetModel(compilation)

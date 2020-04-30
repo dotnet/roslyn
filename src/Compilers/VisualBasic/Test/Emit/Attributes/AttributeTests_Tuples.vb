@@ -804,7 +804,6 @@ Public Interface I3
     Inherits I1(Of (c as Integer, d as Integer))
 End Interface
 ]]>
-
                           </file>
                       </compilation>
 

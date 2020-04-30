@@ -1815,7 +1815,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return statement
         End Function
 
-
         Private Function ParseAwaitStatement() As ExpressionStatementSyntax
 
             Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso

@@ -168,7 +168,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return preprocessorState
         End Function
 
-
         ' takes a preprocessor state and applies a directive statement to it
         Friend Shared Function ApplyDirective(preprocessorState As PreprocessorState,
                                           ByRef statement As DirectiveTriviaSyntax) As PreprocessorState
@@ -662,5 +661,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
     End Class
 End Namespace
-
 

@@ -2578,7 +2578,6 @@ BC30469: Reference to a non-shared member requires an object reference.
                           ~~~~~~~~
 </expected>)
 
-
             compilationDef.Elements()(1).Remove()
             compilationDef.Elements()(1).Remove()
             compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemRef},

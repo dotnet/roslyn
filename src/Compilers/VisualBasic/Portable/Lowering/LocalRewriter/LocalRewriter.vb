@@ -505,7 +505,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      suppressObjectClone:=suppressObjectClone,
                                      type:=type)
 
-
             If Not temporaries.IsDefault Then
                 If methodSymbol.IsSub Then
                     result = New BoundSequence(syntax,
@@ -651,7 +650,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ReportMissingRuntimeHelper(node, typeName, memberName, diagnostics, embedVBCoreRuntime)
         End Sub
-
 
         Private Shared Sub ReportMissingRuntimeHelper(node As BoundNode, typeName As String, memberName As String, diagnostics As DiagnosticBag, embedVBCoreRuntime As Boolean)
             If memberName.Equals(WellKnownMemberNames.InstanceConstructorName) OrElse memberName.Equals(WellKnownMemberNames.StaticConstructorName) Then

@@ -227,7 +227,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return False
         End Function
 
-
         Friend Shared Sub CheckEncMap(reader As MetadataReader, ParamArray [handles] As EntityHandle())
             AssertEx.Equal([handles], reader.GetEditAndContinueMapEntries(), itemInspector:=AddressOf EncMapRowToString)
         End Sub

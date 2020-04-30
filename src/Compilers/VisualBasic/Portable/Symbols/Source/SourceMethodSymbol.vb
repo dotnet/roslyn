@@ -139,7 +139,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-
         Private Shared Sub ReportPartialMethodErrors(modifiers As SyntaxTokenList, binder As Binder, diagBag As DiagnosticBag)
             ' Handle partial methods related errors
             Dim reportPartialMethodsMustBePrivate As Boolean = True
@@ -412,7 +411,6 @@ lReportErrorOnTwoTokens:
             Return methodSym
         End Function
 
-
         ' Decode the modifiers on the method, reporting errors where applicable.
         Private Shared Function DecodeMethodModifiers(modifiers As SyntaxTokenList,
                                                       container As SourceMemberContainerTypeSymbol,
@@ -472,7 +470,6 @@ lReportErrorOnTwoTokens:
                 computedFlags = computedFlags Or SourceMemberFlags.Shared
             End If
 
-
             If syntax.OperatorToken.Kind = SyntaxKind.CTypeKeyword Then
                 If (foundFlags And (SourceMemberFlags.Narrowing Or SourceMemberFlags.Widening)) = 0 Then
                     binder.ReportDiagnostic(diagBag, syntax.OperatorToken, ERRID.ERR_ConvMustBeWideningOrNarrowing)
@@ -486,7 +483,6 @@ lReportErrorOnTwoTokens:
 
             Return New MemberModifiers(foundFlags, computedFlags)
         End Function
-
 
         ' Decode the modifiers on a constructor, reporting errors where applicable. Constructors are more restrictive
         ' than regular methods, so they have more errors.
@@ -732,7 +728,6 @@ lReportErrorOnTwoTokens:
                 Return (m_flags And SourceMemberFlags.MethodHandlesEvents) <> 0
             End Get
         End Property
-
 
         Friend NotOverridable Overrides ReadOnly Property CallingConvention As CallingConvention
             Get

@@ -139,7 +139,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Next
         End Sub
 
-
         <Fact>
         Public Sub SourceNamedTypeDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -271,7 +270,6 @@ End Class
             Dim localA1 = DirectCast(model.GetDeclaredSymbol(declaratorA1.Names(0)), LocalSymbol)
             Dim localA1Type = localA1.Type
 
-
             Dim declaringNodes As ImmutableArray(Of SyntaxReference) = localA1Type.DeclaringSyntaxReferences
 
             Assert.False(localA1Type.IsAnonymousType)  'Object Not Anonymous Type
@@ -313,7 +311,6 @@ End Class
             Dim localA1 = DirectCast(model.GetDeclaredSymbol(declaratorA1.Names(0)), LocalSymbol)
             Dim localA1Type = localA1.Type
 
-
             Dim declaringNodes As ImmutableArray(Of SyntaxReference) = localA1Type.DeclaringSyntaxReferences
 
             'Object Not Anonymous Type - when multiple modifier issues is resolved
@@ -330,7 +327,6 @@ End Class
             Next
 
         End Sub
-
 
         <Fact>
         Public Sub NamespaceDeclaringSyntax()
@@ -393,7 +389,6 @@ End Namespace
             CheckDeclaringSyntaxNodes(comp, n4, 1)
             CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(comp, n1, 1, SyntaxKind.CompilationUnit)
         End Sub
-
 
         <Fact>
         Public Sub TypeParameterDeclaringSyntax()
@@ -509,7 +504,6 @@ Namespace N1
 End Namespace
     </file>
     </compilation>)
-
 
             Dim globalNS = comp.GlobalNamespace
             Dim n1 = TryCast(globalNS.GetMembers("N1").Single(), NamespaceSymbol)

@@ -1231,7 +1231,6 @@ End Class
     </methods>
 </symbols>)
 
-
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
@@ -1306,7 +1305,6 @@ End Class
         </method>
     </methods>
 </symbols>)
-
 
         End Sub
 
@@ -1627,7 +1625,6 @@ End Class
         </method>
     </methods>
 </symbols>)
-
 
         End Sub
 
@@ -2238,7 +2235,6 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
-
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -4391,7 +4387,6 @@ End Class
             </scope>
         </method>
     </methods>
-
 </symbols>)
         End Sub
 

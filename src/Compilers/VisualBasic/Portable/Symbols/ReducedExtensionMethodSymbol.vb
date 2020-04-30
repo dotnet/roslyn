@@ -100,7 +100,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                diagnostic:=Nothing,
                                                inferTheseTypeParameters:=fixTheseTypeParameters)
 
-
                 parameterToArgumentMap.Free()
 
                 If Not success OrElse Not useSiteDiagnostics.IsNullOrEmpty() Then

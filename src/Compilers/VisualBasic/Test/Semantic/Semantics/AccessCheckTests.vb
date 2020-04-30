@@ -513,7 +513,6 @@ End Class
 
             CompilationUtils.AssertNoErrors(other)
 
-
             Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="AccessCheckCrossAssembly2">
     <file name="a.vb">
@@ -2041,7 +2040,6 @@ End Module
     </file>
 </compilation>,
                 {MetadataReference.CreateFromImage(assem1Bytes), MetadataReference.CreateFromImage(assem2Bytes)})
-
 
             CompilationUtils.AssertTheseDiagnostics(assem3,
 <expected>

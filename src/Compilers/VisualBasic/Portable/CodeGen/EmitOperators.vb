@@ -439,7 +439,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 Case BinaryOperatorKind.AndAlso
 BinaryOperatorKindLogicalAnd:
-
                     Debug.Assert(binOp.Left.Type.SpecialType = SpecialType.System_Boolean)
                     Debug.Assert(binOp.Right.Type.SpecialType = SpecialType.System_Boolean)
 
@@ -465,7 +464,6 @@ BinaryOperatorKindNotEqual:
 
                 Case BinaryOperatorKind.Equals
 BinaryOperatorKindEqual:
-
                     Dim constant = binOp.Left.ConstantValueOpt
                     Dim comparand = binOp.Right
 

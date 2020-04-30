@@ -1658,7 +1658,6 @@ Public Class C4
 End Class
 </s4>
 
-
             Dim c4_V1_Name = New AssemblyIdentity("c4", New Version("1.0.0.0"))
 
             Dim c4_V1 As VisualBasicCompilation = CreateEmptyCompilation(c4_V1_Name,
@@ -1689,7 +1688,6 @@ End Class
                                {TestReferences.NetFx.v4_0_30319.mscorlib})
 
             Dim asm7 = c7.SourceAssembly
-
 
             Dim source3 =
         <s3>
@@ -1769,7 +1767,6 @@ End Namespace
             Dim asm3 = c3.SourceAssembly
 
             Dim localC3Foo2 = asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetMembers("Foo2").OfType(Of MethodSymbol)().Single()
-
 
             Dim source5 =
         <s5>
@@ -2061,8 +2058,6 @@ End Class
             Assert.False(HasSingleTypeOfKind(c, TypeKind.Structure, "System.Int32"))
         End Sub
 
-
-
         <Fact()>
         Public Sub SyntaxTreeOrderConstruct()
             Dim tree1 = CreateSyntaxTree("A")
@@ -2189,7 +2184,6 @@ End Class
 
             Assert.IsType(Of SourceNamedTypeSymbol)(sourceType)
             Assert.Equal(lib2, sourceType.DeclaringCompilation)
-
 
             Dim addedModule = sourceAssembly.Modules(1)
             Dim addedModuleAssembly = addedModule.ContainingAssembly

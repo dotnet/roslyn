@@ -6812,7 +6812,6 @@ namespace NS2
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
                 Await state.AssertSelectedCompletionItem(displayText:="MyTask1", inlineDescription:="")
 
-
                 Dim expectedOrder As (String, String)() =
                     {
                         ("MyTask1", ""),

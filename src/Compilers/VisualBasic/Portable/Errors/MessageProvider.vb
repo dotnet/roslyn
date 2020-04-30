@@ -135,7 +135,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    hasSourceSuppression)
         End Function
 
-
         Public Overrides ReadOnly Property ERR_FailedToCreateTempFile As Integer
             Get
                 Return ERRID.ERR_UnableToCreateTempFile

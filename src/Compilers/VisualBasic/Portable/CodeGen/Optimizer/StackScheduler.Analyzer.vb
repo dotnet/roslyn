@@ -232,7 +232,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Return result
             End Function
 
-
             ''' <summary>
             ''' here we have a case of indirect assignment:  *t1 = expr;
             ''' normally we would need to push t1 and that will cause spilling of t2
@@ -936,7 +935,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                     binary = DirectCast(child, BoundBinaryOperator)
                 Loop
-
 
                 Dim prevStack As Integer = Me.StackDepth()
 

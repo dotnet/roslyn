@@ -809,7 +809,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return String.Format("{0} {1}", Me.Kind, Me.ToDisplayString(SymbolDisplayFormat.TestFormat))
         End Function
 
-
         ' ---- End of Public Definition ---
         ' Below here can be Friend members that are useful to the compiler, but we don't
         ' want to expose publicly. However, using a class derived from SymbolVisitor can be
@@ -864,7 +863,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overridable Function GetUseSiteErrorInfo() As DiagnosticInfo
             Return Nothing
         End Function
-
 
         ''' <summary>
         ''' Indicates that this symbol uses metadata that cannot be supported by the language.

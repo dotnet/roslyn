@@ -7,7 +7,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenUnstructuredErrorHandling
         Inherits BasicTestBase
 
-
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_SimpleBehaviourMultipleLabels()
             Dim source =
@@ -1406,8 +1405,6 @@ End Module
                                                                             options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True)).VerifyDiagnostics(Diagnostic(ERRID.ERR_NameNotDeclared1, "Err").WithArguments("Err"),
                                                                                                                                                 Diagnostic(ERRID.ERR_NameNotDeclared1, "err").WithArguments("err"),
                                                                                                                                                 Diagnostic(ERRID.ERR_NameNotDeclared1, "err").WithArguments("err"))
-
-
 
         End Sub
 

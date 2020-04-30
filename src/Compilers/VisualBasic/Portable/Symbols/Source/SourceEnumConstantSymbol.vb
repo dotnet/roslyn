@@ -164,4 +164,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     End Class
 End Namespace
 
-

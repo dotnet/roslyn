@@ -3351,7 +3351,6 @@ End Module
                 </compilation>, expectedOutput:="")
         End Sub
 
-
 #Region "Diagnostics"
 
         <Fact(), WorkItem(544942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544942"), WorkItem(599013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599013")>
@@ -4515,7 +4514,6 @@ End Class
 
 #End Region
 
-
         <Fact()>
         Public Sub Regress14397()
             CompileAndVerify(
@@ -4595,7 +4593,6 @@ End Module
 }
                 ]]>)
         End Sub
-
 
         <Fact()>
         Public Sub DecimalConst()

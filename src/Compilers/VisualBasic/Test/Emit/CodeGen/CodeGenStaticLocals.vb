@@ -112,7 +112,6 @@ End Module
 ]]>)
         End Sub
 
-
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub CodeGen_DoubleStaticLocalWithSameNameDifferentScopes()
@@ -215,7 +214,6 @@ End Module
   IL_00ba:  ret
 }
 ]]>)
-
 
             CompileAndVerify(
     <compilation>

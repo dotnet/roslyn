@@ -890,7 +890,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     CaseInsensitiveComparison.Equals(renamedSymbol.Name, "GetEnumerator") OrElse
                     CaseInsensitiveComparison.Equals(renamedSymbol.Name, "Current") Then
 
-
                 If TypeOf renamedSymbol Is IMethodSymbol Then
                     If DirectCast(renamedSymbol, IMethodSymbol).IsOverloads AndAlso
                             (renamedSymbol.GetAllTypeArguments().Length <> 0 OrElse

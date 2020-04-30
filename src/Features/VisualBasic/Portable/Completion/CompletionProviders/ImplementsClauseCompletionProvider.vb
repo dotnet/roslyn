@@ -126,7 +126,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim unimplementedInterfacesAndMembers = From item In containingType.GetAllUnimplementedMembersInThis(containingType.Interfaces, cancellationToken)
                                                     Select New With {.interface = item.Item1, .members = item.Item2.Where(Function(s) MatchesMemberKind(s, memberKindKeyword))}
 
-
             Dim interfaces = unimplementedInterfacesAndMembers.Where(Function(i) i.members.Any()) _
                                                                 .Select(Function(i) i.interface)
 

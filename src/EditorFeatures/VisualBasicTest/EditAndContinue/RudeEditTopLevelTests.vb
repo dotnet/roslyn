@@ -1507,7 +1507,6 @@ End Class
                 Diagnostic(RudeEditKind.Move, "Public Class X", FeaturesResources.class_))
         End Sub
 
-
 #End Region
 
 #Region "Namespaces"

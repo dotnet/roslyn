@@ -166,7 +166,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-
         Friend Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
             If _singletonCache Is Nothing Then
                 Return CapturedLocals

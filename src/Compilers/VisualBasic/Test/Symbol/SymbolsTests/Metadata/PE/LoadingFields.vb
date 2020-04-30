@@ -174,7 +174,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Null(ObjectNullField.ConstantValue)
             Assert.Equal(ConstantValueTypeDiscriminator.Nothing, ObjectNullField.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
 
-
             'ByteValue = 1
             'SByteValue = -2
             'UInt16Value = 3

@@ -645,7 +645,6 @@ End Class
             'Assert.False(t.MangleName)
             'Assert.Equal(2, t.Arity)
 
-
             mdName = MetadataTypeName.FromFullName("I", False, -1)
             t = asm.LookupTopLevelMetadataType(mdName, True)
             Assert.False(t.IsErrorType())
@@ -687,7 +686,6 @@ End Class
             'Assert.Equal("I", t.Name)
             'Assert.False(t.MangleName)
             'Assert.Equal(1, t.Arity)
-
 
             mdName = MetadataTypeName.FromFullName("I2`1", False, -1)
             t = asm.LookupTopLevelMetadataType(mdName, True)
@@ -744,7 +742,6 @@ End Class
             'Assert.Equal("I2`1", t.Name)
             'Assert.False(t.MangleName)
             'Assert.Equal(2, t.Arity)
-
 
             mdName = MetadataTypeName.FromFullName("I4`2", False, -1)
             t = asm.LookupTopLevelMetadataType(mdName, True)
@@ -860,7 +857,6 @@ End Class
             'Assert.False(t.MangleName)
             'Assert.Equal(2, t.Arity)
 
-
             mdName = MetadataTypeName.FromFullName("I", False, -1)
             t = containingType.LookupMetadataType(mdName)
             Assert.False(t.IsErrorType())
@@ -902,7 +898,6 @@ End Class
             'Assert.Equal("I", t.Name)
             'Assert.False(t.MangleName)
             'Assert.Equal(1, t.Arity)
-
 
             mdName = MetadataTypeName.FromFullName("I2`1", False, -1)
             t = containingType.LookupMetadataType(mdName)
@@ -959,7 +954,6 @@ End Class
             'Assert.Equal("I2`1", t.Name)
             'Assert.False(t.MangleName)
             'Assert.Equal(2, t.Arity)
-
 
             mdName = MetadataTypeName.FromFullName("I4`2", False, -1)
             t = containingType.LookupMetadataType(mdName)

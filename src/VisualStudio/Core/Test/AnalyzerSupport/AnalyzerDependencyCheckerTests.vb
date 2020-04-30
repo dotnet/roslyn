@@ -473,7 +473,6 @@ public class E
                 Dim analyzer1FileName As String = Path.GetFileName(conflicts(0).AnalyzerFilePath1)
                 Dim analyzer2FileName As String = Path.GetFileName(conflicts(0).AnalyzerFilePath2)
 
-
                 Assert.Equal(expected:="E.dll", actual:=analyzer1FileName)
                 Assert.Equal(expected:="E.dll", actual:=analyzer2FileName)
                 Assert.Equal(expected:=New AssemblyIdentity("E"), actual:=conflicts(0).Identity)

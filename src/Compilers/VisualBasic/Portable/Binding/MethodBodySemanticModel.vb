@@ -96,4 +96,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 End Namespace
 
-

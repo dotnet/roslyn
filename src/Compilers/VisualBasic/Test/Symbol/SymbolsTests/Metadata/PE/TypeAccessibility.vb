@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
     Public Class TypeAccessibility : Inherits BasicTestBase
@@ -22,7 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             TestTypeAccessibilityHelper(assembly.Modules(0))
         End Sub
-
 
         Private Sub TestTypeAccessibilityHelper(module0 As ModuleSymbol)
 
@@ -101,7 +99,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Same(module0, obj.Locations.Single().MetadataModule)
 
         End Sub
-
 
     End Class
 

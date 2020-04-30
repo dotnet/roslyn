@@ -195,7 +195,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Return Tuple.Create(document, result.Where(Function(d) d.Location.SourceSpan.IntersectsWith(invocationPoint)))
         End Function
 
-
         Protected Async Function TestAddProjectReferenceAsync(xmlDefinition As XElement,
                                               expectedProjectReferenceFrom As String,
                                               expectedProjectReferenceTo As String,

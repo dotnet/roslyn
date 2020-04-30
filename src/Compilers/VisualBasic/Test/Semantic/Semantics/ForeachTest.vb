@@ -995,7 +995,6 @@ End Class
             VerifyForeachSemanticInfo(compilation1)
         End Sub
 
-
         <Fact>
         Public Sub CollectionHasNoDifferentConvertedTypeForDesignPatternMatch()
             Dim compilation1 = CreateCompilationWithMscorlib40(

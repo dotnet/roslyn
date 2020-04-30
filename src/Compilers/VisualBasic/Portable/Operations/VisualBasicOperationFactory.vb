@@ -1674,4 +1674,3 @@ Namespace Microsoft.CodeAnalysis.Operations
     End Class
 End Namespace
 
-

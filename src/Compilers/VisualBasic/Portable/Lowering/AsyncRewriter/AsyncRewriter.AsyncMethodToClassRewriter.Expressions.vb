@@ -628,7 +628,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                           nullCheckTarget.Type),
                                                                                           Me.F.SpecialType(SpecialType.System_Object)))
 
-
                         condition = Me.F.LogicalOrElse(notReferenceType,
                                                        Me.F.ReferenceIsNotNothing(Me.F.DirectCast(nullCheckTarget,
                                                                                                   Me.F.SpecialType(SpecialType.System_Object))))
@@ -742,7 +741,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                 Nothing,
                                                                 Nothing,
                                                                 rewrittenType))
-
 
             End Function
 

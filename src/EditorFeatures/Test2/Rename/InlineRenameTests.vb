@@ -800,7 +800,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="GooBar")
 
-
             End Using
         End Sub
 

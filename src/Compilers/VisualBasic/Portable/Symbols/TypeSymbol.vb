@@ -658,7 +658,6 @@ Done:
             End Get
         End Property
 
-
         ''' <summary>
         ''' Compute the implementation for an interface member in this type, or Nothing if none.
         ''' </summary>

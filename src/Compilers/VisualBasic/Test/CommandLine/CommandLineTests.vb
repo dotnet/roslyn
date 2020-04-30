@@ -295,7 +295,6 @@ End Class
             cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/t:library", "/warnaserror+", "/nowarn", src})
             Assert.Equal(cmd.Arguments.CompilationOptions.GeneralDiagnosticOption, ReportDiagnostic.Suppress)
 
-
             CleanupAllGeneratedFiles(src)
         End Sub
 
@@ -480,7 +479,6 @@ End Class
             Assert.Equal(0, exitCode)
             Assert.Equal("", output.ToString().Trim())
 
-
             CleanupAllGeneratedFiles(src)
         End Sub
 
@@ -498,7 +496,6 @@ End Class
 
             Assert.Equal(0, exitCode)
             Assert.Equal("", output.ToString().Trim())
-
 
             CleanupAllGeneratedFiles(src)
         End Sub
@@ -602,7 +599,6 @@ SRC.VB(1) : error BC30037: Character is not valid.
 ♚
 ~
 </text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
-
 
             CleanupAllGeneratedFiles(src)
         End Sub
@@ -731,7 +727,6 @@ a.vb
             },
             cmd.Arguments.SourceFiles.Select(Function(file) file.Path))
             Assert.NotEmpty(cmd.Arguments.Errors)
-
 
             CleanupAllGeneratedFiles(rsp)
         End Sub
@@ -963,7 +958,6 @@ a.vb
             Assert.Equal(DirectCast(ERRID.ERR_ErrorCreatingWin32ResourceFile, Integer), errors.First().Code)
             Assert.Equal(1, errors.First().Arguments.Count())
 
-
             CleanupAllGeneratedFiles(tmpFileName)
         End Sub
 
@@ -1050,7 +1044,6 @@ End Module").Path
             ' fine
             CheckWin32ResourceOptions({"/win32resource:r", "/nowin32manifest"}, "r", Nothing, Nothing, True)
 
-
             ' illegal
             CheckWin32ResourceOptions({"/win32icon:i", "/win32resource:r"}, "r", "i", Nothing, False,
                                       Diagnostic(ERRID.ERR_IconFileAndWin32ResFile))
@@ -1060,7 +1053,6 @@ End Module").Path
             CheckWin32ResourceOptions({"/win32icon:i", "/win32manifest:m"}, Nothing, "i", "m", False)
             ' fine
             CheckWin32ResourceOptions({"/win32icon:i", "/nowin32manifest"}, Nothing, "i", Nothing, True)
-
 
             ' documented as illegal, but works in dev10
             CheckWin32ResourceOptions({"/win32manifest:m", "/win32resource:r"}, "r", Nothing, "m", False,
@@ -1072,7 +1064,6 @@ End Module").Path
             ' illegal
             CheckWin32ResourceOptions({"/win32manifest:m", "/nowin32manifest"}, Nothing, Nothing, "m", True,
                                       Diagnostic(ERRID.ERR_ConflictingManifestSwitches))
-
 
             ' fine
             CheckWin32ResourceOptions({"/nowin32manifest", "/win32resource:r"}, "r", Nothing, Nothing, True)
@@ -3640,7 +3631,6 @@ End Module
             End Using
         End Sub
 
-
         <WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")>
         <Fact>
         Public Sub ParseOut()
@@ -5055,7 +5045,6 @@ Dim b = Loc
         ~~~
 </text>, output)
 
-
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
@@ -5670,7 +5659,6 @@ End Class
 
             Assert.Equal(1, Directory.EnumerateFiles(dir.Path, "*" & PathUtilities.GetExtension(expectedOutputName)).Count())
             Assert.Equal(1, Directory.EnumerateFiles(dir.Path, expectedOutputName).Count())
-
 
             If System.IO.File.Exists(expectedOutputName) Then
                 System.IO.File.Delete(expectedOutputName)
@@ -7453,7 +7441,6 @@ src.vb(14) : error BC36716: Visual Basic 9.0 does not support implicit line cont
 ]]>
     </text>, output)
 
-
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
@@ -8904,7 +8891,6 @@ End Class
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
-
 
         <ConditionalFact(GetType(WindowsOnly))>
         Public Sub SourceFile_BadPath()

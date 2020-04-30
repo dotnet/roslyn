@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 
     Friend Module InstantiatingGenericsExtensions
@@ -518,7 +517,6 @@ End Class
             Assert.Same(c1OfIntInt_c2.TypeArguments(1), c1OfIntInt_c2_c3_F5.ReturnType)
             Assert.Same(c1OfIntInt_c2_c3.TypeArguments(1), c1OfIntInt_c2_c3_F6.ReturnType)
 
-
             substitution = TypeSubstitution.Create(c3, {c1.TypeParameters(0), c1.TypeParameters(1)}, {int, int})
             Dim c1OfIntInt_c2Of_c3Of = DirectCast(c3.Construct(substitution), NamedTypeSymbol)
 
@@ -561,7 +559,6 @@ End Class
             Assert.Same(c1OfIntInt.TypeArguments(1), c1OfIntInt_c2Of_c3Of_F4.ReturnType)
             Assert.Same(c1OfIntInt_c2Of.TypeArguments(1), c1OfIntInt_c2Of_c3Of_F5.ReturnType)
             Assert.Same(c1OfIntInt_c2Of_c3Of.TypeArguments(1), c1OfIntInt_c2Of_c3Of_F6.ReturnType)
-
 
             substitution = TypeSubstitution.Create(c2,
                                                    {c1.TypeParameters(0), c1.TypeParameters(1), c2.TypeParameters(0), c2.TypeParameters(1)},
@@ -687,7 +684,6 @@ Class C1(Of C1T1, C1T2)
 End Class
     </file>
 </compilation>)
-
 
             Dim int = compilation.GetSpecialType(SpecialType.System_Int32)
             Dim bte = compilation.GetSpecialType(SpecialType.System_Byte)

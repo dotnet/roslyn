@@ -278,7 +278,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub VisitRangeVariable(symbol As IRangeVariableSymbol)
             builder.Add(CreatePart(SymbolDisplayPartKind.RangeVariableName, symbol, symbol.Name, False))
 
-
             If format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType) Then
                 Dim vbRangeVariable = TryCast(symbol, RangeVariableSymbol)
                 If vbRangeVariable IsNot Nothing Then

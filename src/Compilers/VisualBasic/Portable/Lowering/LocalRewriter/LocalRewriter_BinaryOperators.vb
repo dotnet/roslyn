@@ -1131,7 +1131,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                 False,
                                                                 booleanType)))
 
-
                     Dim result As BoundExpression =
                         MakeTernaryConditionalExpression(node.Syntax,
                             condition,
@@ -1150,7 +1149,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return result
                 End If
             End If
-
 
             '== GENERAL CASE
 
@@ -1281,7 +1279,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-
             ' if we used temps, and did not embed inits, put them in a sequence
             If leftTemp IsNot Nothing OrElse rightTemp IsNot Nothing Then
                 Dim temps = ArrayBuilder(Of LocalSymbol).GetInstance
@@ -1307,7 +1304,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          value,
                                          value.Type)
             End If
-
 
             Return value
         End Function

@@ -2392,7 +2392,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Sub
 
-
         ''' <summary>
         '''  Parses a CollectionInitializer 
         '''         CollectionInitializer -> "{" CollectionInitializerList "}"
@@ -2981,7 +2980,6 @@ checkNullable:
                 End If
 
                 elementBuilder.Add(element)
-
 
                 Dim commaToken As PunctuationSyntax = Nothing
                 If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, commaToken) Then

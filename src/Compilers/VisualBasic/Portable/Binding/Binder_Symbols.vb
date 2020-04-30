@@ -210,7 +210,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return builder.ToImmutableAndFree()
         End Function
 
-
         ''' <summary>
         ''' The type binder class handles binding of type names.
         ''' </summary>

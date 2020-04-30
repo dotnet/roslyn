@@ -1379,8 +1379,6 @@ BC30237: Parameter already declared with name 'x'.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
 
-
-
         <Fact>
         Public Sub BC30237ERR_DuplicateParamName1_ExternalMethods()
             Dim source =
@@ -7256,7 +7254,6 @@ End Class
     ]]></file>
     </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidMultipleAttributeUsage1, "A1()").WithArguments("A1"))
         End Sub
-
 
         <Fact()>
         Public Sub BC30663ERR_InvalidMultipleAttributeUsage1d()
@@ -19430,7 +19427,6 @@ Namespace ns1
                         Namespace ns1
                         End Namespace
                     ]]></file>
-
         <file name="b.vb"><![CDATA[
                         Namespace Ns1
                         End Namespace
@@ -19443,7 +19439,6 @@ Namespace ns1
           ~~~
 ]]></errors>)
 
-
             compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="NamespaceCaseMismatch3">
         <file name="a.vb"><![CDATA[
@@ -19454,7 +19449,6 @@ Namespace ns1
                         End Namespace
 
                     ]]></file>
-
         <file name="b.vb"><![CDATA[
                         Namespace NS.Ab
                         End Namespace
@@ -22376,7 +22370,6 @@ End Class
             Assert.Equal(0, errTypeSym.TypeParameters.Length)
             Assert.Equal(errTypeSym.CandidateSymbols.Length, errTypeSym.IErrorTypeSymbol_CandidateSymbols.Length)
         End Sub
-
 
         <Fact>
         Public Sub ConstructorErrors1()

@@ -39,7 +39,6 @@ End Module
             End Using
         End Function
 
-
         <WorkItem(6682, "https://github.com/dotnet/roslyn/issues/6682")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)>
         Public Async Function TestMeWithNoType() As Task

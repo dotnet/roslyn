@@ -516,7 +516,6 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return originalParent
             End Function
 
-
             Private Function IsOmitted(token As SyntaxToken) As Boolean
                 Return token.Kind = SyntaxKind.None
             End Function

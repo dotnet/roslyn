@@ -310,7 +310,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim wasInExpressionLambda As Boolean = Me._inExpressionLambda
                 Me._inExpressionLambda = _inExpressionLambda OrElse convertToExpressionTree
 
-
                 For Each parameter In node.LambdaSymbol.Parameters
                     variableScope.Add(parameter, _currentBlock)
                     If _inExpressionLambda Then

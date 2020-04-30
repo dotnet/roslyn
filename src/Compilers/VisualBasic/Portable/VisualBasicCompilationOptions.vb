@@ -1091,7 +1091,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.Equals(TryCast(obj, VisualBasicCompilationOptions))
         End Function
 
-
         ''' <summary>
         ''' Creates a hashcode for this instance.
         ''' </summary>
