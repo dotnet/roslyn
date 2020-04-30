@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken);
         }
 
-        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAndCacheImplementingTypesAsync(PinnedSolutionInfo solutionInfo,
+        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAndCacheImplementingTypesAsync(
+            PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId typeAndProjectId,
             ProjectId[] projectIds,
             bool transitive,

@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // We might miss a derived type in C if there's an intermediate derived type
             // in B.
             //
-            // However, say we have projects A <- B <- C <- D, only only projects A and C
+            // However, say we have projects A <- B <- C <- D, only projects A and C
             // are passed in.  There is no need to check D as there's no way it could
             // contribute an intermediate type that affects A or C.  We only need to check
             // A, B and C
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // and the list of projects the caller wants to search, find the actual list of
             // projects we need to search through.
             //
-            // This list of projects is properly topologicaly ordered.  Because of this we
+            // This list of projects is properly topologically ordered.  Because of this we
             // can just process them in order from first to last because we know no project
             // in this list could affect a prior project.
             var orderedProjectsToExamine = GetOrderedProjectsToExamine(
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var _1 = GetSymbolSet(out var result);
 
             // The current total set of matching metadata types in the descendant tree (including the initial type if it
-            // is from metadata).  Will be used when examining new types to see if they inherit from any of htese.
+            // is from metadata).  Will be used when examining new types to see if they inherit from any of these.
             using var _2 = GetSymbolSet(out var currentMetadataTypes);
 
             // Same as above, but contains source types as well.
@@ -318,9 +318,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 result.Add(type);
         }
 
-        private static void AddRange(
-            SymbolSet foundTypes, SymbolSet currentTypes,
-            Func<INamedTypeSymbol, bool> shouldContinueSearching)
+        private static void AddRange(SymbolSet foundTypes, SymbolSet currentTypes, Func<INamedTypeSymbol, bool> shouldContinueSearching)
         {
             // Directly enumerate to avoid IEnumerator allocations.
             foreach (var type in foundTypes)
@@ -448,7 +446,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddDescendantMetadataTypesInProjectAsync(
-            SymbolSet metadataTypes,
+            SymbolSet currentMetadataTypes,
             SymbolSet result,
             Project project,
             Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
@@ -458,7 +456,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Debug.Assert(project.SupportsCompilation);
 
-            if (metadataTypes.Count == 0)
+            if (currentMetadataTypes.Count == 0)
                 return;
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -466,7 +464,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var _1 = GetSymbolSet(out var typesToSearchFor);
             using var _2 = GetSymbolSet(out var tempBuffer);
 
-            typesToSearchFor.AddAll(metadataTypes);
+            typesToSearchFor.AddAll(currentMetadataTypes);
 
             // As long as there are new types to search for, keep looping.
             while (typesToSearchFor.Count > 0)
@@ -504,7 +502,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // to the names of the all the types that either immediately derive or 
             // implement that type.  Because the mapping is from the simple name
             // we might get false positives.  But that's fine as we still use 
-            // 'metadataTypeMatches' to make sure the match is correct.
+            // 'tpeMatches' to make sure the match is correct.
             var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                 project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -546,7 +544,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddDescendantSourceTypesInProjectAsync(
-            SymbolSet sourceAndMetadataTypes,
+            SymbolSet currentSourceAndMetadataTypes,
             SymbolSet result,
             Project project,
             Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
@@ -558,14 +556,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // We're going to be sweeping over this project over and over until we reach a 
             // fixed point.  In order to limit GC and excess work, we cache all the semantic
-            // models and DeclaredSymbolInfo for hte documents we look at.
+            // models and DeclaredSymbolInfo for the documents we look at.
             // Because we're only processing a project at a time, this is not an issue.
             var cachedModels = new ConcurrentSet<SemanticModel>();
 
             using var _1 = GetSymbolSet(out var typesToSearchFor);
             using var _2 = GetSymbolSet(out var tempBuffer);
 
-            typesToSearchFor.AddAll(sourceAndMetadataTypes);
+            typesToSearchFor.AddAll(currentSourceAndMetadataTypes);
 
             var projectIndex = await ProjectIndex.GetIndexAsync(project, cancellationToken).ConfigureAwait(false);
 
