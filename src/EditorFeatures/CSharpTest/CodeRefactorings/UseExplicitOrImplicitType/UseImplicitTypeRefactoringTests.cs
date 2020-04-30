@@ -92,7 +92,6 @@ class C
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
-
         [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
@@ -169,7 +168,6 @@ class C
         int[||] i = 0, j = j;
     }
 }";
-
 
             await TestMissingInRegularAndScriptAsync(code);
         }

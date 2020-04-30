@@ -1495,7 +1495,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         private static SyntaxToken FindTokenOnLeftOfNode(SyntaxNode node)
             => node.FindTokenOnLeftOfPosition(node.SpanStart);
 
-
         public static bool IsPossibleTupleOpenParenOrComma(this SyntaxToken possibleCommaOrParen)
         {
             if (!possibleCommaOrParen.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
