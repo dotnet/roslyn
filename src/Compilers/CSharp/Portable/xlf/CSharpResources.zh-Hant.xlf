@@ -398,18 +398,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
-        <source>Both partial method declarations must have equivalent accessibility modifiers.</source>
-        <target state="new">Both partial method declarations must have equivalent accessibility modifiers.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodExplicitAccessibilityDifference">
-        <source>Both partial method declarations must have accessibility modifiers or neither may have accessibility modifiers.</source>
-        <target state="new">Both partial method declarations must have accessibility modifiers or neither may have accessibility modifiers.</target>
+        <source>Both partial method declarations must have identical accessibility modifiers.</source>
+        <target state="new">Both partial method declarations must have identical accessibility modifiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodExtendedModDifference">
-        <source>Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.</source>
-        <target state="new">Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.</target>
+        <source>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
+        <target state="new">Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">

@@ -46,10 +46,10 @@ partial class C
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (4,17): error CS9051: Partial method 'C.M1()' must have accessibility modifiers because it has a non-void return type.
+                // (4,17): error CS8794: Partial method 'C.M1()' must have accessibility modifiers because it has a non-void return type.
                 //     partial int M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M1").WithArguments("C.M1()").WithLocation(4, 17),
-                // (5,17): error CS9051: Partial method 'C.M1()' must have accessibility modifiers because it has a non-void return type.
+                // (5,17): error CS8794: Partial method 'C.M1()' must have accessibility modifiers because it has a non-void return type.
                 //     partial int M1() => 1;
                 Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M1").WithArguments("C.M1()").WithLocation(5, 17)
             );
@@ -65,9 +65,25 @@ partial class C
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (4,25): error CS9050: Partial method 'C.M1()' must have an implementation part because it has accessibility modifiers.
+                // (4,25): error CS8793: Partial method 'C.M1()' must have an implementation part because it has accessibility modifiers.
                 //     private partial int M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M1").WithArguments("C.M1()").WithLocation(4, 25)
+            );
+        }
+
+        [Fact]
+        public void NonVoidReturnType_NoImpl_NoAccessibility()
+        {
+            const string text = @"
+partial class C
+{
+    partial int M1();
+}";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (4,17): error CS8794: Partial method 'C.M1()' must have accessibility modifiers because it has a non-void return type.
+                //     partial int M1();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M1").WithArguments("C.M1()").WithLocation(4, 17)
             );
         }
 
@@ -129,10 +145,10 @@ partial class C
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (4,18): error CS9052: Partial method 'C.M1(out int)' must have accessibility modifiers because it has 'out' parameters.
+                // (4,18): error CS8795: Partial method 'C.M1(out int)' must have accessibility modifiers because it has 'out' parameters.
                 //     partial void M1(out int i);
                 Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M1").WithArguments("C.M1(out int)").WithLocation(4, 18),
-                // (5,18): error CS9052: Partial method 'C.M1(out int)' must have accessibility modifiers because it has 'out' parameters.
+                // (5,18): error CS8795: Partial method 'C.M1(out int)' must have accessibility modifiers because it has 'out' parameters.
                 //     partial void M1(out int i) { i = 0; }
                 Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M1").WithArguments("C.M1(out int)").WithLocation(5, 18)
             );
@@ -148,9 +164,25 @@ partial class C
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (4,26): error CS9050: Partial method 'C.M1(out int)' must have an implementation part because it has accessibility modifiers.
+                // (4,26): error CS8793: Partial method 'C.M1(out int)' must have an implementation part because it has accessibility modifiers.
                 //     private partial void M1(out int i);
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M1").WithArguments("C.M1(out int)").WithLocation(4, 26)
+            );
+        }
+
+        [Fact]
+        public void OutParam_NoImpl_NoAccessibility()
+        {
+            const string text = @"
+partial class C
+{
+    partial void M1(out int i);
+}";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (4,18): error CS8795: Partial method 'C.M1(out int)' must have accessibility modifiers because it has 'out' parameters.
+                //     partial void M1(out int i);
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M1").WithArguments("C.M1(out int)").WithLocation(4, 18)
             );
         }
 
@@ -224,7 +256,7 @@ partial class C
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (5,28): error CS9055: Both partial method declarations must have equivalent accessibility modifiers.
+                // (5,28): error CS8797: Both partial method declarations must have equivalent accessibility modifiers.
                 //      internal partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodAccessibilityDifference, "M1").WithLocation(5, 28)
             );
@@ -241,9 +273,9 @@ partial class C
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (5,19): error CS9054: Both partial method declarations must have accessibility modifiers or neither may have accessibility modifiers.
+                // (5,19): error CS8797: Both partial method declarations must have identical accessibility modifiers.
                 //      partial void M1() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodExplicitAccessibilityDifference, "M1").WithLocation(5, 19)
+                Diagnostic(ErrorCode.ERR_PartialMethodAccessibilityDifference, "M1").WithLocation(5, 19)
             );
         }
 
@@ -258,9 +290,9 @@ partial class C
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (5,27): error CS9054: Both partial method declarations must have accessibility modifiers or neither may have accessibility modifiers.
+                // (5,27): error CS8797: Both partial method declarations must have identical accessibility modifiers.
                 //      private partial void M1() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodExplicitAccessibilityDifference, "M1").WithLocation(5, 27)
+                Diagnostic(ErrorCode.ERR_PartialMethodAccessibilityDifference, "M1").WithLocation(5, 27)
             );
         }
 
@@ -275,7 +307,7 @@ partial class C
 }}";
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (4,27): error CS9052: Partial method C.M1() must have an implementation part because it has accessibility modifiers.
+                // (4,27): error CS8795: Partial method C.M1() must have an implementation part because it has accessibility modifiers.
                 //     {mod} partial void M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M1").WithArguments("C.M1()")
             );
@@ -339,10 +371,10 @@ partial class C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (4,26): error CS9053: Partial method 'C.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (4,26): error CS8796: Partial method 'C.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
                 //     virtual partial void M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("C.M1()").WithLocation(4, 26),
-                // (5,26): error CS9053: Partial method 'C.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (5,26): error CS8796: Partial method 'C.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
                 //     virtual partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("C.M1()").WithLocation(5, 26)
             );
@@ -358,7 +390,7 @@ partial class C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (4,35): error CS9050: Partial method 'C.M1()' must have an implementation part because it has accessibility modifiers.
+                // (4,35): error CS8793: Partial method 'C.M1()' must have an implementation part because it has accessibility modifiers.
                 //     internal virtual partial void M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M1").WithArguments("C.M1()").WithLocation(4, 35)
             );
@@ -375,7 +407,7 @@ partial class C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (5,27): error CS9056: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
+                // (5,27): error CS8798: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
                 //     internal partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(5, 27)
             );
@@ -392,7 +424,7 @@ partial class C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (5,35): error CS9056: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
+                // (5,35): error CS8798: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
                 //     internal virtual partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(5, 35)
             );
@@ -530,19 +562,53 @@ class D : C
             const string text1 = @"
 partial class D
 {
-    internal override partial string ToString();
-    internal override partial string ToString() => ""hello"";
+    public override partial string ToString();
+    public override partial string ToString() => ""hello"";
 }";
             var comp = CreateCompilation(text1);
             comp.VerifyDiagnostics(
-                // (4,38): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     internal override partial string ToString();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("extended partial methods").WithLocation(4, 38),
-                // (5,38): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     internal override partial string ToString() => "hello";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("extended partial methods").WithLocation(5, 38)
+                // (4,36): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override partial string ToString();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("extended partial methods").WithLocation(4, 36),
+                // (5,36): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override partial string ToString() => "hello";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("extended partial methods").WithLocation(5, 36)
             );
             comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Override_WrongAccessiblity()
+        {
+            const string text1 = @"
+partial class D
+{
+    internal override partial string ToString();
+    internal override partial string ToString() => ""hello"";
+}";
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (4,38): error CS0507: 'D.ToString()': cannot change access modifiers when overriding 'public' inherited member 'object.ToString()'
+                //     internal override partial string ToString();
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "ToString").WithArguments("D.ToString()", "public", "object.ToString()").WithLocation(4, 38));
+        }
+
+        [Fact]
+        public void Override_AbstractBase()
+        {
+            const string text1 = @"
+abstract class C
+{
+    internal abstract void M1();
+}
+
+partial class D : C
+{
+    internal override partial void M1();
+    internal override partial void M1() { }
+}";
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
         }
 
@@ -562,10 +628,13 @@ partial class D : C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (9,27): error CS9053: Partial method 'D.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (9,27): error CS8796: Partial method 'D.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
                 //     override partial void M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("D.M1()").WithLocation(9, 27),
-                // (10,27): error CS9053: Partial method 'D.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (9,27): error CS0507: 'D.M1()': cannot change access modifiers when overriding 'internal' inherited member 'C.M1()'
+                //     override partial void M1();
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "M1").WithArguments("D.M1()", "internal", "C.M1()").WithLocation(9, 27),
+                // (10,27): error CS8796: Partial method 'D.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
                 //     override partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("D.M1()").WithLocation(10, 27)
             );
@@ -586,7 +655,7 @@ partial class D : C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (9,27): error CS9056: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
+                // (9,27): error CS8798: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
                 //     internal partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(9, 27)
             );
@@ -610,7 +679,7 @@ partial class D : C
                 // (8,27): warning CS0114: 'D.M1()' hides inherited member 'C.M1()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     internal partial void M1();
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M1").WithArguments("D.M1()", "C.M1()").WithLocation(8, 27),
-                // (9,36): error CS9056: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
+                // (9,36): error CS8798: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
                 //     internal override partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(9, 36)
             );
@@ -680,17 +749,17 @@ class C
 }
 partial class D : C
 {
-    internal sealed override partial string ToString();
-    internal sealed override partial string ToString() => ""hello"";
+    internal sealed override partial void M1();
+    internal sealed override partial void M1() { }
 }";
             var comp = CreateCompilation(text1);
             comp.VerifyDiagnostics(
-                // (8,45): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     internal sealed override partial string ToString();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("extended partial methods").WithLocation(8, 45),
-                // (9,45): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     internal sealed override partial string ToString() => "hello";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("extended partial methods").WithLocation(9, 45)
+                // (8,43): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     internal sealed override partial void M1();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(8, 43),
+                // (9,43): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     internal sealed override partial void M1() { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(9, 43)
             );
             comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
@@ -711,10 +780,13 @@ partial class D : C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (8,34): error CS9053: Partial method 'D.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (8,34): error CS8796: Partial method 'D.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
                 //     sealed override partial void M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("D.M1()").WithLocation(8, 34),
-                // (9,34): error CS9053: Partial method 'D.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (8,34): error CS0507: 'D.M1()': cannot change access modifiers when overriding 'internal' inherited member 'C.M1()'
+                //     sealed override partial void M1();
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "M1").WithArguments("D.M1()", "internal", "C.M1()").WithLocation(8, 34),
+                // (9,34): error CS8796: Partial method 'D.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
                 //     sealed override partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("D.M1()").WithLocation(9, 34)
             );
@@ -735,7 +807,7 @@ partial class D : C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (9,36): error CS9056: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
+                // (9,36): error CS8798: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
                 //     internal override partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(9, 36)
             );
@@ -756,10 +828,27 @@ partial class D : C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (9,43): error CS9056: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
+                // (9,43): error CS8798: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
                 //     internal sealed override partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(9, 43)
             );
+        }
+
+        [Fact]
+        public void SealedOverride_Reordered()
+        {
+            const string text1 = @"
+class C
+{
+    internal virtual void M1() { }
+}
+partial class D : C
+{
+    internal override sealed partial void M1();
+    internal sealed override partial void M1() { }
+}";
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -803,7 +892,7 @@ partial class C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (9,32): error CS9053: Partial method 'C.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (9,32): error CS8796: Partial method 'C.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
                 //     static extern partial void M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("C.M1()").WithLocation(9, 32)
             );
@@ -1011,7 +1100,7 @@ partial class D : C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (9,31): error CS9050: Partial method 'D.M1()' must have an implementation part because it has accessibility modifiers.
+                // (9,31): error CS8793: Partial method 'D.M1()' must have an implementation part because it has accessibility modifiers.
                 //     internal new partial void M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M1").WithArguments("D.M1()").WithLocation(9, 31)
             );
@@ -1033,10 +1122,10 @@ partial class D : C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (9,22): error CS9053: Partial method 'D.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (9,22): error CS8796: Partial method 'D.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
                 //     new partial void M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("D.M1()").WithLocation(9, 22),
-                // (10,22): error CS9053: Partial method 'D.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (10,22): error CS8796: Partial method 'D.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
                 //     new partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("D.M1()").WithLocation(10, 22)
             );
@@ -1058,7 +1147,7 @@ partial class D : C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (10,27): error CS9056: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
+                // (10,27): error CS8798: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
                 //     internal partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(10, 27)
             );
@@ -1083,7 +1172,7 @@ partial class D : C
                 // (9,27): warning CS0108: 'D.M1()' hides inherited member 'C.M1()'. Use the new keyword if hiding was intended.
                 //     internal partial void M1();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("D.M1()", "C.M1()").WithLocation(9, 27),
-                // (10,31): error CS9056: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
+                // (10,31): error CS8798: Both partial method declarations must have equal combinations of 'virtual', 'override', 'sealed', or 'new' modifiers.
                 //     internal new partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(10, 31)
             );

@@ -1777,13 +1777,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,
 
-        ERR_PartialMethodWithAccessibilityModsMustHaveImplementation = 9050,
-        ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods = 9051,
-        ERR_PartialMethodWithOutParamMustHaveAccessMods = 9052,
-        ERR_PartialMethodWithExtendedModMustHaveAccessMods = 9053,
-        ERR_PartialMethodExplicitAccessibilityDifference = 9054,
-        ERR_PartialMethodAccessibilityDifference = 9055,
-        ERR_PartialMethodExtendedModDifference = 9056,
+        #region diagnostics introduced for C# 9
+
+        ERR_PartialMethodWithAccessibilityModsMustHaveImplementation = 8793,
+        ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods = 8794,
+        ERR_PartialMethodWithOutParamMustHaveAccessMods = 8795,
+        ERR_PartialMethodWithExtendedModMustHaveAccessMods = 8796,
+        ERR_PartialMethodAccessibilityDifference = 8797,
+        ERR_PartialMethodExtendedModDifference = 8798,
+
+        #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

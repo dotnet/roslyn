@@ -12552,6 +12552,38 @@ public class C2 : C1
         }
 
         [Fact]
+        public void CS07ERR_BadVisBound02()
+        {
+            var source =
+@"internal interface IA<T> { }
+public interface IB<T, U> { }
+public class A
+{
+    public partial class B<T, U> { }
+    public partial class B<T, U> where U : IB<U, IA<T>> { }
+    public partial class B<T, U> where U : IB<U, IA<T>> { }
+}
+public partial class C
+{
+    public partial void M<T>() where T : IA<T>;
+    public partial void M<T>() where T : IA<T> { }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
+                // (6,44): error CS07: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
+                //     public partial class B<T, U> where U : IB<U, IA<T>> { }
+                Diagnostic(ErrorCode.ERR_BadVisBound, "IB<U, IA<T>>").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(6, 44),
+                // (7,44): error CS07: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
+                //     public partial class B<T, U> where U : IB<U, IA<T>> { }
+                Diagnostic(ErrorCode.ERR_BadVisBound, "IB<U, IA<T>>").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(7, 44),
+                // (11,42): error CS07: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
+                //     public partial void M<T>() where T : IA<T>;
+                Diagnostic(ErrorCode.ERR_BadVisBound, "IA<T>").WithArguments("C.M<T>()", "IA<T>").WithLocation(11, 42),
+                // (12,42): error CS07: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
+                //     public partial void M<T>() where T : IA<T> { }
+                Diagnostic(ErrorCode.ERR_BadVisBound, "IA<T>").WithArguments("C.M<T>()", "IA<T>").WithLocation(12, 42));
+        }
+
+        [Fact]
         public void CS0708ERR_InstanceMemberInStaticClass01()
         {
             var text = @"namespace NS
@@ -13484,39 +13516,45 @@ public partial class C : Base
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
-                // (19,25): error CS9050: Partial method 'C.PartA()' must have an implementation part because it has accessibility modifiers.
+                // (19,25): error CS8793: Partial method 'C.PartA()' must have an implementation part because it has accessibility modifiers.
                 //     public partial void PartA();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "PartA").WithArguments("C.PartA()").WithLocation(19, 25),
-                // (20,26): error CS9050: Partial method 'C.PartB()' must have an implementation part because it has accessibility modifiers.
+                // (20,26): error CS8793: Partial method 'C.PartB()' must have an implementation part because it has accessibility modifiers.
                 //     private partial void PartB();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "PartB").WithArguments("C.PartB()").WithLocation(20, 26),
-                // (21,28): error CS9050: Partial method 'C.PartC()' must have an implementation part because it has accessibility modifiers.
+                // (21,28): error CS8793: Partial method 'C.PartC()' must have an implementation part because it has accessibility modifiers.
                 //     protected partial void PartC();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "PartC").WithArguments("C.PartC()").WithLocation(21, 28),
-                // (22,27): error CS9050: Partial method 'C.PartD()' must have an implementation part because it has accessibility modifiers.
+                // (22,27): error CS8793: Partial method 'C.PartD()' must have an implementation part because it has accessibility modifiers.
                 //     internal partial void PartD();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "PartD").WithArguments("C.PartD()").WithLocation(22, 27),
                 // (29,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.PartJ()'
                 //     extern partial void PartJ();
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "PartJ").WithArguments("C.PartJ()").WithLocation(29, 25),
-                // (23,26): error CS9053: Partial method 'C.PartE()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (23,26): error CS8796: Partial method 'C.PartE()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
                 //     virtual partial void PartE();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartE").WithArguments("C.PartE()").WithLocation(23, 26),
                 // (24,27): error CS0750: A partial method cannot have the 'abstract' modifier
                 //     abstract partial void PartF();
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartF").WithLocation(24, 27),
-                // (25,27): error CS9053: Partial method 'C.PartG()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (25,27): error CS8796: Partial method 'C.PartG()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
                 //     override partial void PartG();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartG").WithArguments("C.PartG()").WithLocation(25, 27),
-                // (26,22): error CS9053: Partial method 'C.PartH()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (26,22): error CS8796: Partial method 'C.PartH()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
                 //     new partial void PartH();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartH").WithArguments("C.PartH()").WithLocation(26, 22),
-                // (27,34): error CS9053: Partial method 'C.PartI()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (27,34): error CS8796: Partial method 'C.PartI()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
                 //     sealed override partial void PartI();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartI").WithArguments("C.PartI()").WithLocation(27, 34),
-                // (29,25): error CS9053: Partial method 'C.PartJ()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (29,25): error CS8796: Partial method 'C.PartJ()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
                 //     extern partial void PartJ();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartJ").WithArguments("C.PartJ()").WithLocation(29, 25),
+                // (25,27): error CS0507: 'C.PartG()': cannot change access modifiers when overriding 'protected' inherited member 'Base.PartG()'
+                //     override partial void PartG();
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "PartG").WithArguments("C.PartG()", "protected", "Base.PartG()").WithLocation(25, 27),
+                // (27,34): error CS0507: 'C.PartI()': cannot change access modifiers when overriding 'protected' inherited member 'Base.PartI()'
+                //     sealed override partial void PartI();
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "PartI").WithArguments("C.PartI()", "protected", "Base.PartI()").WithLocation(27, 34),
                 // (28,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
                 //     [System.Runtime.InteropServices.DllImport("none")]
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "System.Runtime.InteropServices.DllImport").WithLocation(28, 6));

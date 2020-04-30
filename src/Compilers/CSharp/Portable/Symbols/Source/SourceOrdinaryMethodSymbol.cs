@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-        const DeclarationModifiers PartialMethodExtendedModifierMask =
+        private const DeclarationModifiers PartialMethodExtendedModifierMask =
             DeclarationModifiers.Virtual |
             DeclarationModifiers.Override |
             DeclarationModifiers.New |
@@ -1173,11 +1173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodParamsDifference, implementation.Locations[0]);
             }
 
-            if (definition.HasExplicitAccessModifier != implementation.HasExplicitAccessModifier)
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodExplicitAccessibilityDifference, implementation.Locations[0]);
-            }
-            else if (definition.DeclaredAccessibility != implementation.DeclaredAccessibility)
+            if (definition.HasExplicitAccessModifier != implementation.HasExplicitAccessModifier
+                || definition.DeclaredAccessibility != implementation.DeclaredAccessibility)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodAccessibilityDifference, implementation.Locations[0]);
             }
