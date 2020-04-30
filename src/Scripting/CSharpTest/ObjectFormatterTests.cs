@@ -68,6 +68,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         [Fact]
+        public void TupleType()
+        {
+            var tup = new Tuple<int, int>(1, 2);
+            Assert.Equal("(1, 2)", s_formatter.FormatObject(tup));
+        }
+
+        [Fact]
+        public void ValueTupleType()
+        {
+            (int, int) tup = (1, 2);
+            Assert.Equal("(1, 2)", s_formatter.FormatObject(tup));
+        }
+
+        [Fact]
         public void ArrayMethodParameters()
         {
             var result = s_formatter.FormatMethodSignature(Signatures.Arrays);

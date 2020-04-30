@@ -1960,6 +1960,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode ObjectCreationExpression(SyntaxNode namedType, IEnumerable<SyntaxNode> arguments);
 
+        internal abstract SyntaxNode ObjectCreationExpression(
+            SyntaxNode namedType, SyntaxToken openParen, SeparatedSyntaxList<SyntaxNode> arguments, SyntaxToken closeParen);
+
         /// <summary>
         /// Creates an object creation expression.
         /// </summary>

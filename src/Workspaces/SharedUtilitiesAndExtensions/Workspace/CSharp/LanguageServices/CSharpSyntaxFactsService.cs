@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private sealed class CSharpSyntaxFactsService : CSharpSyntaxFacts, ISyntaxFactsService
         {
-            internal static readonly new CSharpSyntaxFactsService Instance = new CSharpSyntaxFactsService();
+            internal static new readonly CSharpSyntaxFactsService Instance = new CSharpSyntaxFactsService();
 
             public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
             {

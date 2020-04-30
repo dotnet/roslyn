@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal partial class RemoteHostService : ServiceBase, IRemoteHostService, IAssetSource
     {
-        private readonly static TimeSpan s_reportInterval = TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan s_reportInterval = TimeSpan.FromMinutes(2);
         private readonly CancellationTokenSource _shutdownCancellationSource;
 
         // it is saved here more on debugging purpose.
@@ -46,7 +46,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private string? _host;
         private int _primaryInstance;
+#pragma warning disable IDE0052 // Remove unread private members
         private PerformanceReporter? _performanceReporter;
+#pragma warning restore IDE0052 // Remove unread private members
 
         static RemoteHostService()
         {

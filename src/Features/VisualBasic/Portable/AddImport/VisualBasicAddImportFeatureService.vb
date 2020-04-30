@@ -122,11 +122,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 node.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing
         End Function
 
-        Private Function IsOutermostQueryExpression(node As SyntaxNode) As Boolean
-            ' TODO(cyrusn): Figure out how to implement this.
-            Return True
-        End Function
-
         Protected Overrides Function CanAddImportForType(
                 diagnosticId As String, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId

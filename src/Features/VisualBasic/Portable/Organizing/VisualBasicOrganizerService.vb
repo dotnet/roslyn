@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Organizing.Organizers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing
     <ExportLanguageService(GetType(IOrganizingService), LanguageNames.VisualBasic), [Shared]>
-    Friend Partial Class VisualBasicOrganizingService
+    Partial Friend Class VisualBasicOrganizingService
         Inherits AbstractOrganizingService
 
         <ImportingConstructor>

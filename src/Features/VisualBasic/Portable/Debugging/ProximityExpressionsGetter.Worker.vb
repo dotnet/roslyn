@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
-    Friend Partial Class VisualBasicProximityExpressionsService
+    Partial Friend Class VisualBasicProximityExpressionsService
         Public Class Worker
 
             Private ReadOnly _syntaxTree As SyntaxTree
