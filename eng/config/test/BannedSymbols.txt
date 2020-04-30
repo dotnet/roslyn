@@ -1,0 +1,2 @@
+M:Moq.Mock`1.#ctor; Pass MockBehavior.Strict explicitly to the constructor for Mock<T>
+F:Moq.MockBehavior.Loose; Use MockBehavior.Strict for mocks
