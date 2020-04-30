@@ -22,14 +22,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
         public void HandleError(object sender, Exception exception)
         {
-            if (exception is ArgumentOutOfRangeException argumentOutOfRangeException
-                && argumentOutOfRangeException.ParamName == "index"
-                && argumentOutOfRangeException.StackTrace.Contains("Microsoft.NodejsTools.Repl.ReplOutputClassifier.GetClassificationSpans"))
-            {
-                // Known issue https://github.com/Microsoft/nodejstools/issues/2138
-                return;
-            }
-
             if (exception is ArgumentException argumentException
                 && argumentException.Message.Contains("SnapshotPoint")
                 && argumentException.StackTrace.Contains("Microsoft.VisualStudio.Text.Editor.Implementation.WpfTextView.ValidateBufferPosition"))
