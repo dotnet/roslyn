@@ -52,5 +52,6 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public const string WrapStatementsRuleId = "RS0100";
         public const string BlankLinesRuleId = "RS0101";
+        public const string BracePlacementRuleId = "RS0102";
     }
 }

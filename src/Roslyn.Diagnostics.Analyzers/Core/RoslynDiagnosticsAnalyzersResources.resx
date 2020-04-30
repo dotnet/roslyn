@@ -339,6 +339,12 @@
   <data name="ExposeMemberForTestingTitle" xml:space="preserve">
     <value>Expose member for testing</value>
   </data>
+  <data name="BracePlacementMessage" xml:space="preserve">
+    <value>Braces must not have blank lines between them</value>
+  </data>
+  <data name="Remove_blank_lines_between_braces" xml:space="preserve">
+    <value>Remove blank lines between braces</value>
+  </data>
   <data name="BlankLinesMessage" xml:space="preserve">
     <value>Avoid multiple blank lines</value>
   </data>

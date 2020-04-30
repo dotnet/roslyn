@@ -7,6 +7,11 @@
         <target state="new">Avoid multiple blank lines</target>
         <note />
       </trans-unit>
+      <trans-unit id="BracePlacementMessage">
+        <source>Braces must not have blank lines between them</source>
+        <target state="new">Braces must not have blank lines between them</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
         <source>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</source>
         <target state="needs-review-translation">Dies ist eine Umgestaltung, die den Prozess zum Erstellen von Testzugriffsmethoden mithilfe des TestAccessor-Musters vereinfacht.</target>
@@ -225,6 +230,11 @@
       <trans-unit id="RelaxTestNamingSuppressorJustification">
         <source>Asynchronous test methods do not require the 'Async' suffix</source>
         <target state="needs-review-translation">Für asynchrone Testmethoden ist das Suffix "Async" nicht erforderlich.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_blank_lines_between_braces">
+        <source>Remove blank lines between braces</source>
+        <target state="new">Remove blank lines between braces</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
