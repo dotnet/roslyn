@@ -197,6 +197,11 @@
         <target state="translated">Конструктор импорта должен быть [Obsolete]</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="new">Place statement on following line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
         <source>Use 'null' instead of 'default'</source>
         <target state="translated">Используйте "null" вместо "default".</target>
@@ -380,6 +385,11 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked as Shared</source>
         <target state="translated">"{0}" экспортируется с помощью MEF версии 2 и поэтому должна быть помечена как Shared</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WrapStatementsMessage">
+        <source>Statements must be placed on their own line</source>
+        <target state="new">Statements must be placed on their own line</target>
         <note />
       </trans-unit>
     </body>
