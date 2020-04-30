@@ -88,6 +88,16 @@
       <Output TaskParameter="ItemsWithFullName" ItemName="_Dependency"/>
     </Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName>
 
+    <!-- Calculate metadata we need -->
+    <ItemGroup>
+      <_Dependency>
+        <_AssemblyName>$([MSBuild]::ValueOrDefault('%(_Dependency.FusionName)', '').Split(',')[0])</_AssemblyName>
+        <_AssemblyVersion>$([MSBuild]::ValueOrDefault('%(_Dependency.FusionName)', '').Split(',')[1].Split('=')[1])</_AssemblyVersion>
+        <_NuGetPackageFileName>%(_Dependency.NuGetPackageId).%(_Dependency.NuGetPackageVersion).nupkg</_NuGetPackageFileName>
+        <_NuGetPackageDir>$(NuGetPackageRoot)$([MSBuild]::ValueOrDefault('%(_Dependency.NuGetPackageId)', '').ToLower())\%(_Dependency.NuGetPackageVersion)\</_NuGetPackageDir>
+      </_Dependency>
+    </ItemGroup>
+
     <!--
       List of of private dependencies we insert inside our VSIX that need to have a code base version updated.
       The roslyn insertion tool will read these assembly versions and update the corresponding file in VS.
@@ -96,8 +106,12 @@
       These are separate from the _Dependency list as we do not need to add the package dependency.
     -->
     <ItemGroup>
-      <_AdditionalDependencyVersion Include="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.VisualStudio.LanguageServer.Protocol'))"
-        AssemblyVersionName="RoslynLanguageServerProtocolVersion"/>
+      <_AdditionalDependencyVersion Include="RoslynLanguageServerProtocol" Condition="'%(_Dependency.Identity)' == 'Microsoft.VisualStudio.LanguageServer.Protocol'">
+        <Version>%(_Dependency._AssemblyVersion)</Version>
+      </_AdditionalDependencyVersion>
+      <_AdditionalDependencyVersion Include="Roslyn">
+        <Version>$(AssemblyVersion)</Version>
+      </_AdditionalDependencyVersion>
     </ItemGroup>
 
     <!--     
@@ -141,23 +155,6 @@
       <_Dependency Remove="VSLangProj80"/>
       <_Dependency Remove="VSLangProj140"/>
       <_Dependency Remove="VsWebSite.Interop"/>
-    </ItemGroup>
-
-    <!-- Calculate metadata we need -->
-    <ItemGroup>
-      <_Dependency>
-        <_AssemblyName>$([MSBuild]::ValueOrDefault('%(_Dependency.FusionName)', '').Split(',')[0])</_AssemblyName>
-        <_AssemblyVersion>$([MSBuild]::ValueOrDefault('%(_Dependency.FusionName)', '').Split(',')[1].Split('=')[1])</_AssemblyVersion>
-        <_NuGetPackageFileName>%(_Dependency.NuGetPackageId).%(_Dependency.NuGetPackageVersion).nupkg</_NuGetPackageFileName>
-        <_NuGetPackageDir>$(NuGetPackageRoot)$([MSBuild]::ValueOrDefault('%(_Dependency.NuGetPackageId)', '').ToLower())\%(_Dependency.NuGetPackageVersion)\</_NuGetPackageDir>
-      </_Dependency>
-    </ItemGroup>
-
-    <ItemGroup>
-      <_AdditionalDependencyVersion>
-        <_AssemblyName>%(_AdditionalDependencyVersion.AssemblyVersionName)</_AssemblyName>
-        <_AssemblyVersion>$([MSBuild]::ValueOrDefault('%(_AdditionalDependencyVersion.FusionName)', '').Split(',')[1].Split('=')[1])</_AssemblyVersion>
-      </_AdditionalDependencyVersion>
     </ItemGroup>
 
     <!--
@@ -236,8 +233,7 @@
 
     <MakeDir Directories="$(VisualStudioBuildPackagesDir)"/>
     <WriteLinesToFile Lines="@(_Dependency->'%(_AssemblyName),%(_AssemblyVersion)')" File="$(_DependentAssemblyVersionsFile)" Overwrite="true"/>
-    <WriteLinesToFile Lines="@(_AdditionalDependencyVersion->'%(_AssemblyName),%(_AssemblyVersion)')" File="$(_DependentAssemblyVersionsFile)" />
-    <WriteLinesToFile Lines="Roslyn,$(AssemblyVersion)" File="$(_DependentAssemblyVersionsFile)" Overwrite="false" />
+    <WriteLinesToFile Lines="@(_AdditionalDependencyVersion->'%(Identity),%(Version)')" File="$(_DependentAssemblyVersionsFile)" />
     <ItemGroup>
       <FileWrites Include="$(_DependentAssemblyVersionsFile)"/>
     </ItemGroup>
