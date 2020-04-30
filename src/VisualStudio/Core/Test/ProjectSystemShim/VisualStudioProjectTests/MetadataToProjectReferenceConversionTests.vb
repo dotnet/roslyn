@@ -234,5 +234,33 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Empty(getReferencingProject().MetadataReferences)
             End Using
         End Sub
+
+        <WpfFact>
+        <WorkItem(39032, "https://github.com/dotnet/roslyn/issues/39032")>
+        <WorkItem(43632, "https://github.com/dotnet/roslyn/issues/43632")>
+        Public Sub RemoveAndReAddReferenceInSingleBatchWhileChangingCase()
+            Using environment = New TestEnvironment()
+                Dim referencingProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencingProject", LanguageNames.CSharp)
+                Dim referencedProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencedProject", LanguageNames.CSharp)
+
+                Const ReferencePath = "C:\project.dll"
+                referencingProject.AddMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
+                referencedProject.OutputFilePath = ReferencePath
+
+                Dim getReferencingProject = Function() environment.Workspace.CurrentSolution.GetProject(referencingProject.Id)
+
+                Assert.Single(getReferencingProject().ProjectReferences)
+                Assert.Empty(getReferencingProject().MetadataReferences)
+
+                Using referencingProject.CreateBatchScope()
+                    referencingProject.RemoveMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
+                    referencingProject.AddMetadataReference(ReferencePath.ToUpper(), MetadataReferenceProperties.Assembly)
+                End Using
+
+                ' We should still have a project reference
+                Assert.Single(getReferencingProject().ProjectReferences)
+                Assert.Empty(getReferencingProject().MetadataReferences)
+            End Using
+        End Sub
     End Class
 End Namespace
