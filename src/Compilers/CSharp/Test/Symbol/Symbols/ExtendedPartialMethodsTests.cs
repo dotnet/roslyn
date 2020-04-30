@@ -429,6 +429,102 @@ public class D : C
         }
 
         [Fact]
+        public void Virtual_AllowNull_01()
+        {
+            const string text1 = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+partial class C
+{
+    internal virtual partial void M1([AllowNull] string s1);
+    internal virtual partial void M1(string s1) { }
+}
+class D : C
+{
+    internal override void M1(string s1) // 1
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { text1, AllowNullAttributeDefinition }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (12,28): warning CS8765: Nullability of type of parameter 's1' doesn't match overridden member (possibly because of nullability attributes).
+                //     internal override void M1(string s1) // 1
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("s1").WithLocation(12, 28)
+            );
+        }
+
+        [Fact]
+        public void Virtual_AllowNull_02()
+        {
+            const string text1 = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+partial class C
+{
+    internal virtual partial void M1(string s1);
+    internal virtual partial void M1([AllowNull] string s1) { }
+}
+class D : C
+{
+    internal override void M1(string s1) // 1
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { text1, AllowNullAttributeDefinition }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (12,28): warning CS8765: Nullability of type of parameter 's1' doesn't match overridden member (possibly because of nullability attributes).
+                //     internal override void M1(string s1) // 1
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("s1").WithLocation(12, 28)
+            );
+        }
+
+        [Fact]
+        public void Virtual_AllowNull_03()
+        {
+            const string text1 = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+partial class C
+{
+    internal virtual partial void M1(string s1);
+    internal virtual partial void M1([AllowNull] string s1) { }
+}
+class D : C
+{
+    internal override void M1([AllowNull] string s1)
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { text1, AllowNullAttributeDefinition }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Virtual_AllowNull_04()
+        {
+            const string text1 = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+partial class C
+{
+    internal virtual partial void M1([AllowNull] string s1);
+    internal virtual partial void M1(string s1) { }
+}
+class D : C
+{
+    internal override void M1([AllowNull] string s1)
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { text1, AllowNullAttributeDefinition }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Override_LangVersion()
         {
             const string text1 = @"
@@ -518,6 +614,60 @@ partial class D : C
                 //     internal override partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(9, 36)
             );
+        }
+
+        [Fact]
+        public void Override_AllowNull_01()
+        {
+            const string text1 = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    internal virtual void M1([AllowNull] string s) { }
+}
+partial class D : C
+{
+    internal override partial void M1(string s1); // 1
+    internal override partial void M1(string s1) { }
+}";
+            var comp = CreateCompilation(new[] { text1, AllowNullAttributeDefinition }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (11,36): warning CS8765: Nullability of type of parameter 's1' doesn't match overridden member (possibly because of nullability attributes).
+                //     internal override partial void M1(string s1); // 1
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("s1").WithLocation(11, 36)
+            );
+        }
+
+        [Fact]
+        public void Override_AllowNull_02()
+        {
+            const string text1 = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    internal virtual void M1([AllowNull] string s1, [AllowNull] string s2) { }
+}
+partial class D : C
+{
+    internal override partial void M1([AllowNull] string s1, string s2);
+    internal override partial void M1(string s1, [AllowNull] string s2)
+    {
+        s1.ToString(); // 1
+        s2.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(new[] { text1, AllowNullAttributeDefinition }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                //         s1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s1").WithLocation(14, 9),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
+                //         s2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(15, 9));
         }
 
         [Fact]
@@ -937,6 +1087,255 @@ partial class D : C
                 //     internal new partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M1").WithLocation(10, 31)
             );
+        }
+
+        [Fact]
+        public void InterfaceImpl_01()
+        {
+            const string text = @"
+interface I
+{
+    void M();
+}
+
+partial class C
+{
+    public partial void M();
+}
+
+partial class C : I
+{
+    public partial void M()
+    {
+        System.Console.Write(1);
+    }
+
+    static void Main()
+    {
+        I i = new C();
+        i.M();
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                text,
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                options: TestOptions.DebugExe,
+                expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InterfaceImpl_02()
+        {
+            const string text = @"
+interface I
+{
+    void M();
+}
+
+partial class C : I
+{
+    public partial void M();
+}
+
+partial class C
+{
+    public partial void M()
+    {
+        System.Console.Write(1);
+    }
+
+    static void Main()
+    {
+        I i = new C();
+        i.M();
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                text,
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                options: TestOptions.DebugExe,
+                expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InterfaceImpl_03()
+        {
+            const string text = @"
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+interface I
+{
+    void M([AllowNull] string s1);
+}
+
+partial class C : I
+{
+    public partial void M(string s1); // 1
+}
+
+partial class C
+{
+    public partial void M(string s1)
+    {
+        s1.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(new[] { text, AllowNullAttributeDefinition }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (13,25): warning CS8767: Nullability of reference types in type of parameter 's1' of 'void C.M(string s1)' doesn't match implicitly implemented member 'void I.M(string s1)' (possibly because of nullability attributes).
+                //     public partial void M(string s1);
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation, "M").WithArguments("s1", "void C.M(string s1)", "void I.M(string s1)").WithLocation(13, 25));
+        }
+
+        [Fact]
+        public void InterfaceImpl_04()
+        {
+            const string text = @"
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+interface I
+{
+    void M([AllowNull] string s1, [AllowNull] string s2);
+}
+
+partial class C : I
+{
+    public partial void M([AllowNull] string s1, string s2);
+}
+
+partial class C
+{
+    public partial void M(string s1, [AllowNull] string s2)
+    {
+        s1.ToString(); // 1
+        s2.ToString(); // 2
+    }
+}
+";
+            // PROTOTYPE: should it be allowed to specify duplicate nullability attributes?
+            // if not, should there be some convention about which part should contain the nullability attributes?
+            var comp = CreateCompilation(new[] { text, AllowNullAttributeDefinition }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (20,9): warning CS8602: Dereference of a possibly null reference.
+                //         s1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s1").WithLocation(20, 9),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         s2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(21, 9));
+        }
+
+        [Fact]
+        public void InterfaceImpl_05()
+        {
+            const string text = @"
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+interface I
+{
+    void M([AllowNull] string s1);
+}
+
+partial class C : I
+{
+    public partial void M([AllowNull] string s1);
+}
+
+partial class C
+{
+    public partial void M([AllowNull] string s1) // 1
+    {
+        s1.ToString(); // 2
+    }
+}
+";
+            // PROTOTYPE: should it be allowed to specify duplicate nullability attributes?
+            // if not, should there be some convention about which part should contain the nullability attributes?
+            var comp = CreateCompilation(new[] { text, AllowNullAttributeDefinition }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (13,28): error CS0579: Duplicate 'AllowNull' attribute
+                //     public partial void M([AllowNull] string s1);
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "AllowNull").WithArguments("AllowNull").WithLocation(13, 28),
+                // (20,9): warning CS8602: Dereference of a possibly null reference.
+                //         s1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s1").WithLocation(20, 9));
+        }
+
+        [Fact]
+        public void ExplicitInterfaceImpl_01()
+        {
+            const string text = @"
+interface I
+{
+    void M();
+}
+
+partial class C : I
+{
+    partial void I.M(); // 1
+    partial void I.M() { } // 2
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (9,20): error CS0754: A partial method may not explicitly implement an interface method
+                //     partial void I.M(); // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(9, 20),
+                // (10,20): error CS0754: A partial method may not explicitly implement an interface method
+                //     partial void I.M() { } // 2
+                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(10, 20));
+        }
+
+        [Fact]
+        public void ReturnAttribute_01()
+        {
+            const string text = @"
+class Attr1 : System.Attribute { }
+class Attr2 : System.Attribute { }
+
+public partial class C
+{
+    [return: Attr1]
+    public partial string M();
+
+    [return: Attr2]
+    public partial string M() => ""hello"";
+}
+";
+            var expectedAttributeNames = new[] { "Attr1", "Attr2" };
+
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, symbolValidator: validator);
+
+            var definitionPart = comp.GetMember<MethodSymbol>("C.M");
+            Assert.True(definitionPart.IsPartialDefinition());
+            Assert.Equal(expectedAttributeNames, GetAttributeNames(definitionPart.GetReturnTypeAttributes()));
+
+            var implementationPart = definitionPart.PartialImplementationPart;
+            Assert.NotNull(implementationPart);
+            Assert.True(implementationPart.IsPartialImplementation());
+            Assert.Equal(expectedAttributeNames, GetAttributeNames(implementationPart.GetReturnTypeAttributes()));
+
+            void validator(ModuleSymbol module)
+            {
+                var method = module.ContainingAssembly
+                    .GetTypeByMetadataName("C")
+                    .GetMember<MethodSymbol>("M");
+
+                Assert.Equal(expectedAttributeNames, GetAttributeNames(method.GetReturnTypeAttributes()));
+            }
         }
     }
 }
