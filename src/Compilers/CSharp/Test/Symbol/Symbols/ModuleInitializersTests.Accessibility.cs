@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     public sealed partial class ModuleInitializersTests
     {
         [Fact]
-        public void VisibilityMustNotBePrivate()
+        public void AccessibilityMustNotBePrivate()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -31,7 +31,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void VisibilityMustNotBeProtected()
+        public void AccessibilityMustNotBeProtected()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -53,7 +53,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void VisibilityMustNotBePrivateProtected()
+        public void AccessibilityMustNotBePrivateProtected()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -75,7 +75,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void VisibilityMayBePublic()
+        public void AccessibilityMayBePublic()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -93,7 +93,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void VisibilityMayBeInternal()
+        public void AccessibilityMayBeInternal()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -111,7 +111,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void VisibilityMayBeProtectedInternal()
+        public void AccessibilityMayBeProtectedInternal()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -165,7 +165,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void NestedTypeVisibilityMustNotBePrivate()
+        public void NestedTypeAccessibilityMustNotBePrivate()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -190,7 +190,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void NestedTypeVisibilityMustNotBeProtected()
+        public void NestedTypeAccessibilityMustNotBeProtected()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -215,7 +215,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void NestedTypeVisibilityMustNotBePrivateProtected()
+        public void NestedTypeAccessibilityMustNotBePrivateProtected()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -240,7 +240,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void NestedTypeVisibilityMayBePublic()
+        public void NestedTypeAccessibilityMayBePublic()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -261,7 +261,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void NestedTypeVisibilityMayBeInternal()
+        public void NestedTypeAccessibilityMayBeInternal()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -282,7 +282,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void NestedTypeVisibilityMayBeProtectedInternal()
+        public void NestedTypeAccessibilityMayBeProtectedInternal()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -344,7 +344,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void ImplicitPublicInterfaceMethodVisibility()
+        public void ImplicitPublicInterfaceMethodAccessibility()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -369,7 +369,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void ImplicitPublicInterfaceNestedTypeVisibility()
+        public void ImplicitPublicInterfaceNestedTypeAccessibility()
         {
             string source = @"
 using System.Runtime.CompilerServices;
