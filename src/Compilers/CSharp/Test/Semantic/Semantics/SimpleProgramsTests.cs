@@ -7424,7 +7424,7 @@ unsafe
 ";
             var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "4");
+            CompileAndVerify(comp, expectedOutput: "4", verify: Verification.Skipped);
         }
 
         [Fact]
