@@ -318,9 +318,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 result.Add(type);
         }
 
-        private static void AddRange(
-            SymbolSet foundTypes, SymbolSet currentTypes,
-            Func<INamedTypeSymbol, bool> shouldContinueSearching)
+        private static void AddRange(SymbolSet foundTypes, SymbolSet currentTypes, Func<INamedTypeSymbol, bool> shouldContinueSearching)
         {
             // Directly enumerate to avoid IEnumerator allocations.
             foreach (var type in foundTypes)
