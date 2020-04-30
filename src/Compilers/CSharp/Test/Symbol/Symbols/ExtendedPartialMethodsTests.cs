@@ -622,7 +622,7 @@ partial class C
 {
     internal static partial void M1();
 
-    [DllImportAttribute(""something.dll"")]
+    [DllImport(""something.dll"")]
     internal static extern partial void M1();
 }";
             var comp = CreateCompilation(text1);
@@ -671,6 +671,8 @@ public partial class C
 
     [DllImport(""something.dll"")]
     public static extern partial void M1();
+
+    public static void M2() { M1(); }
 }";
 
             const string text2 = @"
@@ -682,13 +684,24 @@ public partial class C
     public static partial void M1();
 
     public static extern partial void M1();
+
+    public static void M2() { M1(); }
 }";
+            const string expectedIL = @"
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       ""void C.M1()""
+  IL_0005:  ret
+}";
+
             var verifier = CompileAndVerify(
                 text1,
                 parseOptions: TestOptions.RegularWithExtendedPartialMethods,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
             verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M2", expectedIL);
 
             verifier = CompileAndVerify(
                 text2,
@@ -696,6 +709,7 @@ public partial class C
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
             verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M2", expectedIL);
 
             static void validator(ModuleSymbol module)
             {
@@ -716,6 +730,93 @@ public partial class C
                 Assert.Null(importData.BestFitMapping);
                 Assert.Null(importData.ThrowOnUnmappableCharacter);
             }
+        }
+
+        [Fact]
+        public void Async_01()
+        {
+            const string text = @"
+partial class C
+{
+    partial void M1();
+    async partial void M1() { }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (5,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async partial void M1() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M1").WithLocation(5, 24));
+
+            var method = (MethodSymbol)comp.GetMembers("C.M1")[0];
+            Assert.True(method.IsPartialDefinition());
+            // PROTOTYPE: it feels like both IsAsync/IsExtern should be shared between
+            // definition+implementation, or neither should.
+            // Currently IsExtern is shared but IsAsync is not.
+            Assert.False(method.IsAsync);
+            Assert.True(method.PartialImplementationPart.IsAsync);
+        }
+
+        [Fact]
+        public void Async_02()
+        {
+            const string text = @"
+using System.Threading.Tasks;
+
+partial class C
+{
+    private partial Task M1();
+    private async partial Task M1() { }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (7,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     private async partial Task M1() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M1").WithLocation(7, 32));
+
+            var method = (MethodSymbol)comp.GetMembers("C.M1")[0];
+            Assert.True(method.IsPartialDefinition());
+            // PROTOTYPE: it feels like both IsAsync/IsExtern should be shared between
+            // definition+implementation, or neither should.
+            // Currently IsExtern is shared but IsAsync is not.
+            Assert.False(method.IsAsync);
+            Assert.True(method.PartialImplementationPart.IsAsync);
+        }
+
+        [Fact]
+        public void Async_03()
+        {
+            const string text = @"
+using System.Threading.Tasks;
+using System;
+
+partial class C
+{
+    private static async Task CompletedTask() { }
+
+    private static partial Task<int> M1();
+    private static async partial Task<int> M1() { await CompletedTask(); return 1; }
+
+    public static async Task Main()
+    {
+        Console.Write(await M1());
+    }
+}
+";
+            var verifier = CompileAndVerify(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, expectedOutput: "1");
+            verifier.VerifyDiagnostics(
+                // (7,31): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     private static async Task CompletedTask() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "CompletedTask").WithLocation(7, 31));
+
+            var method = (MethodSymbol)verifier.Compilation.GetMembers("C.M1")[0];
+            Assert.True(method.IsPartialDefinition());
+            // PROTOTYPE: it feels like both IsAsync/IsExtern should be shared between
+            // definition+implementation, or neither should.
+            // Currently IsExtern is shared but IsAsync is not.
+            Assert.False(method.IsAsync);
+            Assert.True(method.PartialImplementationPart.IsAsync);
         }
 
         [Fact]

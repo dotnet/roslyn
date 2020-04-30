@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             DeclarationModifiers declarationModifiers;
-            (declarationModifiers, HasExplicitAccessMod, modifierErrors) = this.MakeModifiers(modifiers, methodKind, hasBody, location, diagnostics);
+            (declarationModifiers, HasExplicitAccessModifier, modifierErrors) = this.MakeModifiers(modifiers, methodKind, hasBody, location, diagnostics);
 
             var isMetadataVirtualIgnoringModifiers = (object)explicitInterfaceType != null; //explicit impls must be marked metadata virtual
 
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _isExpressionBodied; }
         }
 
-        internal bool HasExplicitAccessMod { get; }
+        internal bool HasExplicitAccessModifier { get; }
 
         private (DeclarationModifiers mods, bool hasExplicitAccessMod, bool modifierErrors) MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, bool hasBody, Location location, DiagnosticBag diagnostics)
         {
@@ -933,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             bool isExplicitInterfaceImplementationInInterface = isExplicitInterfaceImplementation && ContainingType.IsInterface;
 
-            if (IsPartial && HasExplicitAccessMod)
+            if (IsPartial && HasExplicitAccessModifier)
             {
                 Binder.CheckFeatureAvailability(SyntaxNode, MessageID.IDS_FeatureExtendedPartialMethods, diagnostics, location);
             }
@@ -942,15 +942,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, location);
             }
-            else if (IsPartial && !HasExplicitAccessMod && !ReturnsVoid)
+            else if (IsPartial && !HasExplicitAccessModifier && !ReturnsVoid)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, location, this);
             }
-            else if (IsPartial && !HasExplicitAccessMod && HasExtendedPartialModifier)
+            else if (IsPartial && !HasExplicitAccessModifier && HasExtendedPartialModifier)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, location, this);
             }
-            else if (IsPartial && !HasExplicitAccessMod && Parameters.Any(p => p.RefKind == RefKind.Out))
+            else if (IsPartial && !HasExplicitAccessModifier && Parameters.Any(p => p.RefKind == RefKind.Out))
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, location, this);
             }
@@ -1173,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodParamsDifference, implementation.Locations[0]);
             }
 
-            if (definition.HasExplicitAccessMod != implementation.HasExplicitAccessMod)
+            if (definition.HasExplicitAccessModifier != implementation.HasExplicitAccessModifier)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodExplicitAccessibilityDifference, implementation.Locations[0]);
             }

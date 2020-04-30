@@ -2566,7 +2566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, method.Locations[0], method, method.OtherPartOfPartial);
                     }
-                    else if (method is { IsPartialDefinition: true, OtherPartOfPartial: null, HasExplicitAccessMod: true })
+                    else if (method is { IsPartialDefinition: true, OtherPartOfPartial: null, HasExplicitAccessModifier: true })
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.Locations[0], method);
                     }
