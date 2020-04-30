@@ -50,6 +50,6 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string CreateTestAccessorRuleId = "RS0044";
         public const string ExposeMemberForTestingRuleId = "RS0045";
 
-        public const string WrapStatementsRuleId = "RS0046";
+        public const string WrapStatementsRuleId = "RS0100";
     }
 }
