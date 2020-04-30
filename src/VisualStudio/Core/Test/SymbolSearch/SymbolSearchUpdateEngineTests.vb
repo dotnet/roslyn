@@ -33,7 +33,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo))).Callback(
                     AddressOf cancellationTokenSource.Cancel)
 
-                Dim remoteControlService = New Mock(Of IRemoteControlService)
+                Dim remoteControlService = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
 
                 Dim service = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
@@ -63,7 +63,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of DirectoryInfo))).Returns(True).Callback(
                     AddressOf cancellationTokenSource.Cancel)
 
-                Dim remoteControlService = New Mock(Of IRemoteControlService)
+                Dim remoteControlService = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
 
                 Dim service = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
@@ -86,12 +86,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the local database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
-                Dim clientMock = New Mock(Of IRemoteControlClient)
+                Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
 
                 Dim serviceMock = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
 
@@ -124,7 +124,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the local database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
@@ -168,7 +168,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
                 Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
@@ -202,7 +202,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the database not being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
@@ -251,7 +251,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
                 'Simulate the database file not existing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
@@ -295,7 +295,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
                 ' Simulate the local database not being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
@@ -342,7 +342,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
@@ -400,7 +400,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
@@ -445,7 +445,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
@@ -499,7 +499,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
@@ -559,7 +559,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)

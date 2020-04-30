@@ -104,26 +104,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private EditorTextFactoryService CreateMockTextFactoryService()
         {
-            var mockTextBufferFactoryService = new Mock<ITextBufferFactoryService>();
+            var mockTextBufferFactoryService = new Mock<ITextBufferFactoryService>(MockBehavior.Strict);
             mockTextBufferFactoryService
                 .Setup(t => t.CreateTextBuffer(It.IsAny<TextReader>(), It.IsAny<IContentType>()))
                 .Returns<TextReader, IContentType>((reader, contentType) =>
                 {
                     var text = reader.ReadToEnd();
 
-                    var mockImage = new Mock<ITextImage>();
+                    var mockImage = new Mock<ITextImage>(MockBehavior.Strict);
                     mockImage.Setup(i => i.GetText(It.IsAny<Span>())).Returns(text);
 
-                    var mockSnapshot = new Mock<ITextSnapshot2>();
+                    var mockSnapshot = new Mock<ITextSnapshot2>(MockBehavior.Strict);
                     mockSnapshot.Setup(s => s.TextImage).Returns(mockImage.Object);
                     mockSnapshot.Setup(s => s.GetText()).Returns(text);
 
-                    var mockTextBuffer = new Mock<ITextBuffer>();
+                    var mockTextBuffer = new Mock<ITextBuffer>(MockBehavior.Strict);
                     mockTextBuffer.Setup(b => b.CurrentSnapshot).Returns(mockSnapshot.Object);
                     return mockTextBuffer.Object;
                 });
 
-            return new EditorTextFactoryService(new FakeTextBufferCloneService(), mockTextBufferFactoryService.Object, new Mock<IContentTypeRegistryService>().Object);
+            return new EditorTextFactoryService(new FakeTextBufferCloneService(), mockTextBufferFactoryService.Object, new Mock<IContentTypeRegistryService>(MockBehavior.Strict).Object);
         }
 
         private void TestCreateTextInferredEncoding(byte[] bytes, Encoding defaultEncoding, Encoding expectedEncoding)

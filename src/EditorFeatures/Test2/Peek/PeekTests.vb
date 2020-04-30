@@ -225,7 +225,7 @@ End Module
                 resultSource.FindResults(PredefinedPeekRelationships.Definitions.Name,
                                          peekResult,
                                          CancellationToken.None,
-                                         New Mock(Of IFindPeekResultsCallback)(MockBehavior.Loose).Object)
+                                         New Mock(Of IFindPeekResultsCallback)(MockBehavior.Strict).Object)
             End If
 
             Return peekResult
