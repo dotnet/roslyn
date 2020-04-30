@@ -427,39 +427,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         (s, ids) => s.RemoveAnalyzerConfigDocuments(ids),
                         WorkspaceChangeKind.AnalyzerConfigDocumentRemoved);
 
-                    // Metadata reference adding...
-                    if (_metadataReferencesAddedInBatch.Count > 0)
-                    {
-                        var projectReferencesCreated = new List<ProjectReference>();
-                        var metadataReferencesCreated = new List<MetadataReference>();
-
-                        foreach (var (path, properties) in _metadataReferencesAddedInBatch)
-                        {
-                            var projectReference = _workspace.TryCreateConvertedProjectReference(Id, path, properties);
-
-                            if (projectReference != null)
-                            {
-                                projectReferencesCreated.Add(projectReference);
-                            }
-                            else
-                            {
-                                var metadataReference = _workspace.FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(path, properties);
-                                metadataReferencesCreated.Add(metadataReference);
-                            }
-                        }
-
-                        solutionChanges.UpdateSolutionForProjectAction(
-                            Id,
-                            solutionChanges.Solution.AddProjectReferences(Id, projectReferencesCreated)
-                                                    .AddMetadataReferences(Id, metadataReferencesCreated));
-
-                        ClearAndZeroCapacity(_metadataReferencesAddedInBatch);
-                    }
-
-                    // Metadata reference removing...
+                    // Metadata reference removing. Do this before adding in case this removes a project reference that
+                    // we are also going to add in the same batch. This could happen if case is changing, or we're targeting
+                    // a different output path (say bin vs. obj vs. ref).
                     foreach (var (path, properties) in _metadataReferencesRemovedInBatch)
                     {
-                        var projectReference = _workspace.TryRemoveConvertedProjectReference(Id, path, properties);
+                        var projectReference = _workspace.TryRemoveConvertedProjectReference_NoLock(Id, path, properties);
 
                         if (projectReference != null)
                         {
@@ -482,6 +455,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     ClearAndZeroCapacity(_metadataReferencesRemovedInBatch);
+
+                    // Metadata reference adding...
+                    if (_metadataReferencesAddedInBatch.Count > 0)
+                    {
+                        var projectReferencesCreated = new List<ProjectReference>();
+                        var metadataReferencesCreated = new List<MetadataReference>();
+
+                        foreach (var (path, properties) in _metadataReferencesAddedInBatch)
+                        {
+                            var projectReference = _workspace.TryCreateConvertedProjectReference_NoLock(Id, path, properties);
+
+                            if (projectReference != null)
+                            {
+                                projectReferencesCreated.Add(projectReference);
+                            }
+                            else
+                            {
+                                var metadataReference = _workspace.FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(path, properties);
+                                metadataReferencesCreated.Add(metadataReference);
+                            }
+                        }
+
+                        solutionChanges.UpdateSolutionForProjectAction(
+                            Id,
+                            solutionChanges.Solution.AddProjectReferences(Id, projectReferencesCreated)
+                                                    .AddMetadataReferences(Id, metadataReferencesCreated));
+
+                        ClearAndZeroCapacity(_metadataReferencesAddedInBatch);
+                    }
 
                     // Project reference adding...
                     solutionChanges.UpdateSolutionForProjectAction(
@@ -778,7 +780,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _workspace.ApplyChangeToWorkspace(w =>
                     {
-                        var projectReference = _workspace.TryCreateConvertedProjectReference(Id, fullPath, properties);
+                        var projectReference = _workspace.TryCreateConvertedProjectReference_NoLock(Id, fullPath, properties);
 
                         if (projectReference != null)
                         {
@@ -841,7 +843,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _workspace.ApplyChangeToWorkspace(w =>
                     {
-                        var projectReference = _workspace.TryRemoveConvertedProjectReference(Id, fullPath, properties);
+                        var projectReference = _workspace.TryRemoveConvertedProjectReference_NoLock(Id, fullPath, properties);
 
                         // If this was converted to a project reference, we have now recorded the removal -- let's remove it here too
                         if (projectReference != null)
