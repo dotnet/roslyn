@@ -82,21 +82,20 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             {
                 context.RegisterOperationBlockStartAction(context =>
                 {
-                    var isConstructor = context.OwningSymbol is IMethodSymbol { MethodKind: MethodKind.Constructor };
-                    context.RegisterOperationAction(
-                        context => AnalyzeAssignment(context, isConstructor), OperationKind.SimpleAssignment);
+                    if (context.OwningSymbol is IMethodSymbol { MethodKind: MethodKind.Constructor })
+                    {
+                        // We are looking for assignment to 'this' outside the constructor scope
+                        return;
+                    }
+
+                    context.RegisterOperationAction(AnalyzeAssignment, OperationKind.SimpleAssignment);
                 });
+
                 context.RegisterSymbolEndAction(SymbolEndAction);
             }
 
-            private void AnalyzeAssignment(OperationAnalysisContext context, bool isConstructor)
+            private void AnalyzeAssignment(OperationAnalysisContext context)
             {
-                // We are looking for assignment to 'this' outside the constructor scope
-                if (isConstructor)
-                {
-                    return;
-                }
-
                 var operationAssigmnent = (IAssignmentOperation)context.Operation;
                 if (operationAssigmnent.Target is IInstanceReferenceOperation { ReferenceKind: InstanceReferenceKind.ContainingTypeInstance })
                 {
