@@ -561,5 +561,29 @@ struct OtherStruct { }
 
             Assert.True(transitiveImpls.Count() > immediateImpls.Count());
         }
+
+        [Theory, CombinatorialData]
+        public async Task ImplementingTypesDoesNotProduceEnums(TestHost host)
+        {
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
+
+            // create a normal assembly with a type derived from the portable abstract base
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
+enum E
+{
+    A, B, C,
+}
+", MscorlibRef);
+
+            // get symbols for types
+            var compilation = await GetNormalProject(solution).GetCompilationAsync();
+            var rootType = compilation.GetTypeByMetadataName("System.IComparable");
+
+            Assert.NotNull(rootType);
+
+            var transitiveImpls = await SymbolFinder.FindImplementationsAsync(
+                rootType, solution, transitive: true);
+        }
     }
 }
