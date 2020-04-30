@@ -339,4 +339,10 @@
   <data name="ExposeMemberForTestingTitle" xml:space="preserve">
     <value>Expose member for testing</value>
   </data>
+  <data name="WrapStatementsMessage" xml:space="preserve">
+    <value>Statements must be placed on their own line</value>
+  </data>
+  <data name="Place_statement_on_following_line" xml:space="preserve">
+    <value>Place statement on following line</value>
+  </data>
 </root>

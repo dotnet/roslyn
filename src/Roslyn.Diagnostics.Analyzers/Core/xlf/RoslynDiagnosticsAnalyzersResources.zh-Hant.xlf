@@ -192,6 +192,11 @@
         <target state="needs-review-translation">匯入建構函式應為 [Obsolete]</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="new">Place statement on following line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
         <source>Use 'null' instead of 'default'</source>
         <target state="translated">使用 'null'，而不要使用 'default'</target>
@@ -370,6 +375,11 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
         <target state="needs-review-translation">'{0}' 以 MEFv2 所匯出，因此必須標記為「共用」</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WrapStatementsMessage">
+        <source>Statements must be placed on their own line</source>
+        <target state="new">Statements must be placed on their own line</target>
         <note />
       </trans-unit>
     </body>
