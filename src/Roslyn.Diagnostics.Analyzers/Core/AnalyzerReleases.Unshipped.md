@@ -6,7 +6,6 @@ RS0042 | RoslynDiagnosticsReliability | Warning | DoNotCopyValue
 RS0043 | RoslynDiagnosticsMaintainability | Warning | DoNotCallGetTestAccessor
 RS0044 | RoslynDiagnosticsMaintainability | Hidden | CreateTestAccessor
 RS0045 | RoslynDiagnosticsMaintainability | Hidden | ExposeMemberForTesting
-RS0047 | RoslynDiagnosticsMaintainability | Warning | BlankLinesDiagnosticAnalyzer
 RS0101 | RoslynDiagnosticsMaintainability | Warning | AbstractBlankLinesDiagnosticAnalyzer
 
 ### Changed Rules
