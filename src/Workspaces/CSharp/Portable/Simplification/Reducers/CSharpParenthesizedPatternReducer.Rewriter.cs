@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
-    internal partial class CSharpParenthesesReducer
+    internal partial class CSharpParenthesizedPatternReducer
     {
         private class Rewriter : AbstractReductionRewriter
         {
@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
             }
 
-            public override SyntaxNode VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
+            public override SyntaxNode VisitParenthesizedPattern(ParenthesizedPatternSyntax node)
             {
                 return SimplifyExpression(
                     node,
-                    newNode: base.VisitParenthesizedExpression(node),
+                    newNode: base.VisitParenthesizedPattern(node),
                     simplifier: s_simplifyParentheses);
             }
         }

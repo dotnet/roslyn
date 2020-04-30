@@ -57,19 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             private static SyntaxNode GetParentNode(SyntaxNode node)
-            {
-                if (node is ExpressionSyntax expression)
+                => node switch
                 {
-                    return GetParentNode(expression);
-                }
-
-                if (node is CrefSyntax cref)
-                {
-                    return GetParentNode(cref);
-                }
-
-                return null;
-            }
+                    ExpressionSyntax expression => GetParentNode(expression),
+                    PatternSyntax pattern => GetParentNode(pattern),
+                    CrefSyntax cref => GetParentNode(cref),
+                    _ => null
+                };
 
             private static SyntaxNode GetParentNode(ExpressionSyntax expression)
             {
@@ -83,6 +77,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 return lastExpression.Parent;
+            }
+
+            private static SyntaxNode GetParentNode(PatternSyntax pattern)
+            {
+                var lastPattern = pattern;
+                for (SyntaxNode current = pattern; current != null; current = current.Parent)
+                {
+                    if (current is PatternSyntax currentPattern)
+                    {
+                        lastPattern = currentPattern;
+                    }
+                }
+
+                return lastPattern.Parent;
             }
 
             private static SyntaxNode GetParentNode(CrefSyntax cref)
@@ -147,9 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 var parentNode = GetParentNode(expression);
                 if (parentNode == null)
-                {
                     return newNode;
-                }
 
                 return SimplifyNode(expression, newNode, parentNode, simplifier);
             }

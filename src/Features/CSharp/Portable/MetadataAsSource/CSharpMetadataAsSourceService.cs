@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             => ImmutableArray.Create<AbstractReducer>(
                 new CSharpNameReducer(),
                 new CSharpEscapingReducer(),
-                new CSharpParenthesesReducer(),
+                new CSharpParenthesizedExpressionReducer(),
+                new CSharpParenthesizedPatternReducer(),
                 new CSharpDefaultExpressionReducer());
 
         private class FormattingRule : AbstractMetadataFormattingRule
