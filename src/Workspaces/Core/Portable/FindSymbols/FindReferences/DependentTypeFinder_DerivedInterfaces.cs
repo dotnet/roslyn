@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -14,7 +15,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal static partial class DependentTypeFinder
     {
-        public static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedInterfacesAsync(
+        public static async Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedInterfacesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            IImmutableSet<Project> projects,
+            bool transitive,
+            CancellationToken cancellationToken)
+        {
+            var result = await TryFindAndCacheRemoteTypesAsync(
+                type, solution, projects, transitive,
+                FunctionId.DependentTypeFinder_FindAndCacheDerivedInterfacesAsync,
+                nameof(IRemoteDependentTypeFinder.FindAndCacheDerivedInterfacesAsync),
+                cancellationToken).ConfigureAwait(false);
+
+            if (result.HasValue)
+                return result.Value;
+
+            return await FindAndCacheDerivedInterfacesInCurrentProcessAsync(
+                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedInterfacesInCurrentProcessAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,

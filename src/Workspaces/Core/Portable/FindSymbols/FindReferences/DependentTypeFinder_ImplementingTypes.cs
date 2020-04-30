@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -13,11 +14,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal static partial class DependentTypeFinder
     {
-        /// <summary>
-        /// Implementation of <see cref="SymbolFinder.FindImplementationsAsync(ISymbol, Solution, IImmutableSet{Project}, CancellationToken)"/> for 
-        /// <see cref="INamedTypeSymbol"/>s
-        /// </summary>
-        public static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingTypesAsync(
+        public static async Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingTypesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            IImmutableSet<Project> projects,
+            bool transitive,
+            CancellationToken cancellationToken)
+        {
+            var result = await TryFindAndCacheRemoteTypesAsync(
+                type, solution, projects, transitive,
+                FunctionId.DependentTypeFinder_FindAndCacheImplementingTypesAsync,
+                nameof(IRemoteDependentTypeFinder.FindAndCacheImplementingTypesAsync),
+                cancellationToken).ConfigureAwait(false);
+
+            if (result.HasValue)
+                return result.Value;
+
+            return await FindAndCacheImplementingTypesInCurrentProcessAsync(
+                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingTypesInCurrentProcessAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -67,9 +84,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     transitive: transitive,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                // Only classes/struct implement interface types.  Derived interfaces can be found with
-                // FindDerivedInterfacesAsync.
-                return allTypes.WhereAsArray(t => t.TypeKind == TypeKind.Class || t.TypeKind == TypeKind.Struct);
+                // Only classes/struct/delegates/enums implement interface types.  Derived interfaces can be found with
+                // FindDerivedInterfacesAsync.  Delegates/Enums only happen in a few corner cases.  For example, enums
+                // implement IComparable, and delegates implement ICloneable.
+                return allTypes.WhereAsArray(
+                    t => t.TypeKind == TypeKind.Class ||
+                         t.TypeKind == TypeKind.Struct ||
+                         t.TypeKind == TypeKind.Delegate ||
+                         t.TypeKind == TypeKind.Enum);
             }
 
             return ImmutableArray<INamedTypeSymbol>.Empty;

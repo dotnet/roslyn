@@ -4,19 +4,58 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class SymbolFinderTests : ServicesTestBase
+    public enum TestHost
     {
-        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        public async Task ImmediatelyDerivedTypes_CSharp()
+        InProcess,
+        OutOfProcess,
+    }
+
+    [UseExportProvider]
+    public class SymbolFinderTests : TestBase
+    {
+        private static Solution AddProjectWithMetadataReferences(Solution solution, string projectName, string languageName, string code, MetadataReference metadataReference, params ProjectId[] projectReferences)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            var suffix = languageName == LanguageNames.CSharp ? "cs" : "vb";
+            var pid = ProjectId.CreateNewId();
+            var did = DocumentId.CreateNewId(pid);
+            var pi = ProjectInfo.Create(
+                pid,
+                VersionStamp.Default,
+                projectName,
+                projectName,
+                languageName,
+                metadataReferences: new[] { metadataReference },
+                projectReferences: projectReferences.Select(p => new ProjectReference(p)));
+            return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
+        }
+
+        private static TestWorkspace GetWorkspace(TestHost host)
+        {
+            var workspace = TestWorkspace.CreateWorkspace(XElement.Parse("<Workspace></Workspace>"));
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, host == TestHost.OutOfProcess)));
+
+            return workspace;
+        }
+
+        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        public async Task ImmediatelyDerivedTypes_CSharp(TestHost host)
+        {
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
@@ -53,10 +92,11 @@ namespace M
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        public async Task ImmediatelyDerivedInterfaces_CSharp()
+        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        public async Task ImmediatelyDerivedInterfaces_CSharp(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
@@ -99,10 +139,11 @@ namespace M
         private static Project GetNormalProject(Solution solution)
             => solution.Projects.Single(p => p.Name == "NormalProject");
 
-        [Fact]
-        public async Task ImmediatelyDerivedTypes_CSharp_AliasedNames()
+        [Theory, CombinatorialData]
+        public async Task ImmediatelyDerivedTypes_CSharp_AliasedNames(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
@@ -143,10 +184,11 @@ namespace M
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        public async Task ImmediatelyDerivedTypes_CSharp_PortableProfile7()
+        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        public async Task ImmediatelyDerivedTypes_CSharp_PortableProfile7(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
@@ -183,10 +225,11 @@ namespace M
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        public async Task ImmediatelyDerivedTypes_VisualBasic()
+        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        public async Task ImmediatelyDerivedTypes_VisualBasic(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, @"
@@ -224,10 +267,11 @@ End Namespace
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        public async Task ImmediatelyDerivedTypes_CrossLanguage()
+        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        public async Task ImmediatelyDerivedTypes_CrossLanguage(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
@@ -265,10 +309,11 @@ End Namespace
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        public async Task ImmediatelyDerivedAndImplementingInterfaces_CSharp()
+        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        public async Task ImmediatelyDerivedAndImplementingInterfaces_CSharp(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an interface
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
@@ -304,10 +349,11 @@ namespace M
             Assert.Equal(implementingClassSymbol, Assert.Single(typesThatImplementInterface));
         }
 
-        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        public async Task ImmediatelyDerivedInterfaces_VisualBasic()
+        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        public async Task ImmediatelyDerivedInterfaces_VisualBasic(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an interface
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, @"
@@ -344,10 +390,11 @@ End Namespace
             Assert.Equal(implementingClassSymbol, Assert.Single(typesThatImplementInterface));
         }
 
-        [Fact, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
-        public async Task ImmediatelyDerivedAndImplementingInterfaces_CrossLanguage()
+        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        public async Task ImmediatelyDerivedAndImplementingInterfaces_CrossLanguage(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create portable assembly with an interface
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.VisualBasic, @"
@@ -383,10 +430,11 @@ namespace M
             Assert.Equal(implementingClassSymbol, Assert.Single(typesThatImplementInterface));
         }
 
-        [Fact]
-        public async Task DerivedMetadataClasses()
+        [Theory, CombinatorialData]
+        public async Task DerivedMetadataClasses(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create a normal assembly with a type derived from the portable abstract base
             solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"", MscorlibRef);
@@ -413,10 +461,11 @@ namespace M
             Assert.True(transitiveDerived.Count() > immediateDerived.Count());
         }
 
-        [Fact]
-        public async Task DerivedSourceInterfaces()
+        [Theory, CombinatorialData]
+        public async Task DerivedSourceInterfaces(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create a normal assembly with a type derived from the portable abstract base
             solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
@@ -461,10 +510,11 @@ interface IOther { }
             Assert.True(transitiveDerived.Count() > immediateDerived.Count());
         }
 
-        [Fact]
-        public async Task ImplementingSourceTypes()
+        [Theory, CombinatorialData]
+        public async Task ImplementingSourceTypes(TestHost host)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
 
             // create a normal assembly with a type derived from the portable abstract base
             solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
@@ -510,6 +560,63 @@ struct OtherStruct { }
             Assert.True(transitiveImpls.Any(d => !d.Interfaces.Contains(rootType)), "At least one result must not immediately derive from the type");
 
             Assert.True(transitiveImpls.Count() > immediateImpls.Count());
+        }
+
+        [Theory, CombinatorialData]
+        public async Task ImplementingTypesDoesProduceDelegates(TestHost host)
+        {
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
+
+            // create a normal assembly with a type derived from the portable abstract base
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
+delegate void D();
+", MscorlibRef);
+
+            // get symbols for types
+            var compilation = await GetNormalProject(solution).GetCompilationAsync();
+            var rootType = compilation.GetTypeByMetadataName("System.ICloneable");
+
+            Assert.NotNull(rootType);
+
+            var transitiveImpls = await SymbolFinder.FindImplementationsAsync(
+                rootType, solution, transitive: true);
+
+            var delegates = transitiveImpls.Where(i => i.TypeKind == TypeKind.Delegate);
+
+            Assert.NotEmpty(delegates); // We should find delegates when looking for implementations
+            Assert.True(delegates.Any(i => i.Locations.Any(loc => loc.IsInMetadata)), "We should find a metadata delegate");
+            Assert.Single(delegates.Where(i => i.Locations.Any(loc => loc.IsInSource))); // We should find a single source delegate
+        }
+
+        [Theory, CombinatorialData]
+        public async Task ImplementingTypesDoesProduceEnums(TestHost host)
+        {
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
+
+            // create a normal assembly with a type derived from the portable abstract base
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
+enum E
+{
+    A, B, C,
+}
+", MscorlibRef);
+
+            // get symbols for types
+            var compilation = await GetNormalProject(solution).GetCompilationAsync();
+            var rootType = compilation.GetTypeByMetadataName("System.IComparable");
+
+            Assert.NotNull(rootType);
+
+            var transitiveImpls = await SymbolFinder.FindImplementationsAsync(
+                rootType, solution, transitive: true);
+
+            var enums = transitiveImpls.Where(i => i.TypeKind == TypeKind.Enum);
+
+            Assert.NotEmpty(enums); // We should find enums when looking for implementations
+            Assert.True(enums.Any(i => i.Locations.Any(loc => loc.IsInMetadata)), "We should find a metadata enum");
+            Assert.Single(enums.Where(i => i.Locations.Any(loc => loc.IsInSource))); // We should find a single source type
         }
     }
 }
