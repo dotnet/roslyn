@@ -90,8 +90,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Simulate the local database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+                ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
                 Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
+                clientMock.Setup(Sub(s) s.Dispose())
 
                 Dim serviceMock = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
 
@@ -128,6 +130,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Simulate the local database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+                ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
                 Dim clientMock = CreateClientMock(CreateStream(New XElement("Database",
                     New XAttribute(SymbolSearchUpdateEngine.ContentAttributeName, ""),
@@ -170,6 +173,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+                ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
                 Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
                 clientMock.Setup(Sub(c) c.Dispose())
@@ -206,6 +210,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Simulate the database not being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+                ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
                 Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
 
@@ -254,6 +259,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
                 'Simulate the database file not existing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+                ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
                 ' Get a client that will download the latest database.
                 Dim clientMock = CreateFullDatabaseClientMock()
@@ -298,6 +304,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
                 ' Simulate the local database not being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+                ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
+                ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
+                ioMock.Setup(Sub(s) s.Move(It.IsAny(Of String), It.IsAny(Of String)))
 
                 ' Create a client that will download the latest database.
                 Dim clientMock = CreateFullDatabaseClientMock()
@@ -346,6 +355,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Simulate the database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+                ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
+                ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
+                ioMock.Setup(Sub(s) s.Move(It.IsAny(Of String), It.IsAny(Of String)))
 
                 ' Create a client that will download the latest database
                 Dim clientMock = CreateFullDatabaseClientMock()
@@ -404,6 +416,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
+                ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
@@ -449,6 +462,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
+                ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
+                ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
@@ -503,6 +518,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
+                ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
+                ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
@@ -563,6 +580,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
+                ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
+                ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)

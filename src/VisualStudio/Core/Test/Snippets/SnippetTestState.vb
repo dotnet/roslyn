@@ -38,6 +38,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     .WithChangedOption(InternalFeatureOnOffOptions.Snippets, True)))
 
             Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)(MockBehavior.Strict)
+            mockSVsServiceProvider.Setup(Function(s) s.GetService(GetType(SVsTextManager))).Returns(Nothing)
+
             SnippetCommandHandler = If(languageName = LanguageNames.CSharp,
                 DirectCast(New CSharp.Snippets.SnippetCommandHandler(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(), mockSVsServiceProvider.Object), AbstractSnippetCommandHandler),
                 New VisualBasic.Snippets.SnippetCommandHandler(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(), mockSVsServiceProvider.Object))

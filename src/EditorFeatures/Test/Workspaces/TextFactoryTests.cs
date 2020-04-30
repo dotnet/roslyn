@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     var mockImage = new Mock<ITextImage>(MockBehavior.Strict);
                     mockImage.Setup(i => i.GetText(It.IsAny<Span>())).Returns(text);
+                    mockImage.Setup(i => i.Length).Returns(text.Length);
 
                     var mockSnapshot = new Mock<ITextSnapshot2>(MockBehavior.Strict);
                     mockSnapshot.Setup(s => s.TextImage).Returns(mockImage.Object);
@@ -123,7 +124,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     return mockTextBuffer.Object;
                 });
 
-            return new EditorTextFactoryService(new FakeTextBufferCloneService(), mockTextBufferFactoryService.Object, new Mock<IContentTypeRegistryService>(MockBehavior.Strict).Object);
+            var mockUnknownContentType = new Mock<IContentType>(MockBehavior.Strict);
+            var mockContentTypeRegistryService = new Mock<IContentTypeRegistryService>(MockBehavior.Strict);
+            mockContentTypeRegistryService.Setup(r => r.UnknownContentType).Returns(mockUnknownContentType.Object);
+
+            return new EditorTextFactoryService(new FakeTextBufferCloneService(), mockTextBufferFactoryService.Object, mockContentTypeRegistryService.Object);
         }
 
         private void TestCreateTextInferredEncoding(byte[] bytes, Encoding defaultEncoding, Encoding expectedEncoding)

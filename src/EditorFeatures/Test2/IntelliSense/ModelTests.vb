@@ -41,6 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub ChainingTaskStartsAsyncOperation()
             Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
             Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
+            controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
             Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) m)
@@ -55,9 +56,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         Public Sub ChainingTaskThatCompletesNotifiesController()
             Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
-            Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
-            Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
             Dim model = New Model()
+            Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
+            controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
+            controller.Setup(Sub(c) c.OnModelUpdated(model))
+            Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) model)
             modelComputation.Wait()
@@ -68,9 +71,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         Public Sub ControllerIsOnlyUpdatedAfterLastTaskCompletes()
             Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
-            Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
-            Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
             Dim model = New Model()
+            Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
+            controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
+            controller.Setup(Sub(c) c.OnModelUpdated(model))
+            Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
             Dim gate = New Object
 
             Monitor.Enter(gate)
