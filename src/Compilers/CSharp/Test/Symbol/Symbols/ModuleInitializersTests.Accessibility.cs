@@ -8,8 +8,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public sealed partial class ModuleInitializersTests
     {
-        [Fact]
-        public void AccessibilityMustNotBePrivate()
+        [Theory]
+        [InlineData("private")]
+        [InlineData("protected")]
+        [InlineData("private protected")]
+        public void DisallowedMethodAccessibility(string keywords)
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -17,7 +20,7 @@ using System.Runtime.CompilerServices;
 class C
 {
     [ModuleInitializer]
-    private static void M() { }
+    " + keywords + @" static void M() { }
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
@@ -30,8 +33,11 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 );
         }
 
-        [Fact]
-        public void AccessibilityMustNotBeProtected()
+        [Theory]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("protected internal")]
+        public void AllowedMethodAccessibility(string keywords)
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -39,48 +45,24 @@ using System.Runtime.CompilerServices;
 class C
 {
     [ModuleInitializer]
-    protected static void M() { }
+    " + keywords + @" static void M() { }
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
-                // (6,6): error CS8794: Module initializer method 'M' must be accessible outside top-level type 'C'
-                //     [ModuleInitializer]
-                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M", "C").WithLocation(6, 6)
-                );
+            compilation.VerifyDiagnostics();
         }
 
-        [Fact]
-        public void AccessibilityMustNotBePrivateProtected()
+        [Theory]
+        [InlineData("public")]
+        [InlineData("internal")]
+        public void AllowedTopLevelTypeAccessibility(string keywords)
         {
             string source = @"
 using System.Runtime.CompilerServices;
 
-class C
-{
-    [ModuleInitializer]
-    private protected static void M() { }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
-                // (6,6): error CS8794: Module initializer method 'M' must be accessible outside top-level type 'C'
-                //     [ModuleInitializer]
-                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M", "C").WithLocation(6, 6)
-                );
-        }
-
-        [Fact]
-        public void AccessibilityMayBePublic()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-class C
+" + keywords + @" class C
 {
     [ModuleInitializer]
     public static void M() { }
@@ -92,87 +74,18 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
             compilation.VerifyDiagnostics();
         }
 
-        [Fact]
-        public void AccessibilityMayBeInternal()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-class C
-{
-    [ModuleInitializer]
-    internal static void M() { }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void AccessibilityMayBeProtectedInternal()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-class C
-{
-    [ModuleInitializer]
-    protected internal static void M() { }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TopLevelTypeMayBeInternal()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-internal class C
-{
-    [ModuleInitializer]
-    public static void M() { }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TopLevelTypeMayBePublic()
+        [Theory]
+        [InlineData("private")]
+        [InlineData("protected")]
+        [InlineData("private protected")]
+        public void DisallowedNestedTypeAccessibility(string keywords)
         {
             string source = @"
 using System.Runtime.CompilerServices;
 
 public class C
 {
-    [ModuleInitializer]
-    public static void M() { }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NestedTypeAccessibilityMustNotBePrivate()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-public class C
-{
-    private class Nested
+    " + keywords + @" class Nested
     {
         [ModuleInitializer]
         public static void M() { }
@@ -189,107 +102,18 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 );
         }
 
-        [Fact]
-        public void NestedTypeAccessibilityMustNotBeProtected()
+        [Theory]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("protected internal")]
+        public void AllowedNestedTypeAccessibility(string keywords)
         {
             string source = @"
 using System.Runtime.CompilerServices;
 
 public class C
 {
-    protected class Nested
-    {
-        [ModuleInitializer]
-        public static void M() { }
-    }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
-                // (8,10): error CS8794: Module initializer method 'M' must be accessible outside top-level type 'C'
-                //         [ModuleInitializer]
-                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M", "C").WithLocation(8, 10)
-                );
-        }
-
-        [Fact]
-        public void NestedTypeAccessibilityMustNotBePrivateProtected()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-public class C
-{
-    private protected class Nested
-    {
-        [ModuleInitializer]
-        public static void M() { }
-    }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
-                // (8,10): error CS8794: Module initializer method 'M' must be accessible outside top-level type 'C'
-                //         [ModuleInitializer]
-                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M", "C").WithLocation(8, 10)
-                );
-        }
-
-        [Fact]
-        public void NestedTypeAccessibilityMayBePublic()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-public class C
-{
-    public class Nested
-    {
-        [ModuleInitializer]
-        public static void M() { }
-    }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NestedTypeAccessibilityMayBeInternal()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-public class C
-{
-    internal class Nested
-    {
-        [ModuleInitializer]
-        public static void M() { }
-    }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NestedTypeAccessibilityMayBeProtectedInternal()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-public class C
-{
-    protected internal class Nested
+    " + keywords + @" class Nested
     {
         [ModuleInitializer]
         public static void M() { }
