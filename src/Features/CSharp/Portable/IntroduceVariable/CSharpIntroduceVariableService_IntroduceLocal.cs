@@ -134,11 +134,14 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 //         await task;
                 //     };
                 var compilation = document.SemanticModel.Compilation;
-                if (oldLambda.AsyncKeyword != default &&
-                    (compilation.TaskType() != null && compilation.TaskType().Equals(delegateType.DelegateInvokeMethod.ReturnType) ||
-                    compilation.ValueTaskOfType() != null && compilation.ValueTaskOfType().Equals(delegateType.DelegateInvokeMethod.ReturnType)))
+                var delegateReturnType = delegateType.DelegateInvokeMethod.ReturnType;
+                if (oldLambda.AsyncKeyword != default && delegateReturnType != null)
                 {
-                    return false;
+                    if ((compilation.TaskType() != null && delegateReturnType.Equals(compilation.TaskType())) ||
+                        (compilation.ValueTaskType() != null && delegateReturnType.Equals(compilation.ValueTaskType())))
+                    {
+                        return false;
+                    }
                 }
             }
 

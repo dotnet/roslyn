@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? TaskOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(Task<>).FullName!);
 
-        public static INamedTypeSymbol? ValueTaskOfType(this Compilation compilation)
+        public static INamedTypeSymbol? ValueTaskType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask");
 
         public static INamedTypeSymbol? ValueTaskOfTType(this Compilation compilation)
