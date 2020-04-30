@@ -233,7 +233,7 @@ class Test { }");
             var callback = new DesignerAttributeListener();
 
             using var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
-            var session = await client.TryCreateKeepAliveSessionAsync(
+            using var session = await client.TryCreateKeepAliveSessionAsync(
                 WellKnownServiceHubServices.RemoteDesignerAttributeService,
                 callback,
                 cancellationTokenSource.Token);
