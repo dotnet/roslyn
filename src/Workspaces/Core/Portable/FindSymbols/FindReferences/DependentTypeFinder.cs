@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddDescendantMetadataTypesInProjectAsync(
-            SymbolSet metadataTypes,
+            SymbolSet currentMetadataTypes,
             SymbolSet result,
             Project project,
             Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Debug.Assert(project.SupportsCompilation);
 
-            if (metadataTypes.Count == 0)
+            if (currentMetadataTypes.Count == 0)
                 return;
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var _1 = GetSymbolSet(out var typesToSearchFor);
             using var _2 = GetSymbolSet(out var tempBuffer);
 
-            typesToSearchFor.AddAll(metadataTypes);
+            typesToSearchFor.AddAll(currentMetadataTypes);
 
             // As long as there are new types to search for, keep looping.
             while (typesToSearchFor.Count > 0)
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddDescendantSourceTypesInProjectAsync(
-            SymbolSet sourceAndMetadataTypes,
+            SymbolSet currentSourceAndMetadataTypes,
             SymbolSet result,
             Project project,
             Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var _1 = GetSymbolSet(out var typesToSearchFor);
             using var _2 = GetSymbolSet(out var tempBuffer);
 
-            typesToSearchFor.AddAll(sourceAndMetadataTypes);
+            typesToSearchFor.AddAll(currentSourceAndMetadataTypes);
 
             var projectIndex = await ProjectIndex.GetIndexAsync(project, cancellationToken).ConfigureAwait(false);
 
