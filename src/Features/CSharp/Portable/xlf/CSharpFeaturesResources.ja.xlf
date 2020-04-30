@@ -339,7 +339,7 @@
       </trans-unit>
       <trans-unit id="deprecated">
         <source>deprecated</source>
-        <target state="translated">使用されていません</target>
+        <target state="translated">非推奨</target>
         <note />
       </trans-unit>
       <trans-unit id="extension">
