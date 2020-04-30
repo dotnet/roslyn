@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -24,9 +25,11 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
+            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
+            {
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
         }
 
         [Fact]
@@ -44,9 +47,11 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
+            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
+            {
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
         }
 
         [Fact]
@@ -64,9 +69,11 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
+            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
+            {
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
         }
 
         [Fact]
@@ -83,9 +90,11 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
+            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
+            {
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
         }
 
         [Fact]
@@ -102,9 +111,11 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
+            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
+            {
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
         }
 
         [Fact]
@@ -121,9 +132,11 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
+            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
+            {
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
         }
 
         [Fact]
@@ -140,9 +153,11 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
+            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
+            {
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
         }
 
         [Fact]
@@ -159,9 +174,11 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
+            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
+            {
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
         }
 
         [Fact]
@@ -178,9 +195,11 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
+            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
+            {
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
         }
 
         [Fact]
@@ -197,9 +216,11 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
+            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
+            {
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
         }
 
         [Fact]
@@ -212,9 +233,11 @@ using System.Runtime.CompilerServices;
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
+            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
+            {
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
         }
 
         [Fact]
@@ -227,9 +250,11 @@ using System.Runtime.CompilerServices;
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
+            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
+            {
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
         }
 
         [Fact]
@@ -254,9 +279,11 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
+            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
+            {
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
         }
     }
 }

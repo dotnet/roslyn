@@ -148,50 +148,46 @@ using System.Runtime.CompilerServices;
 class C
 {
     [ModuleInitializer, ModuleInitializer]
-    internal static void M() { }
+    internal static void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() { }
 }
 
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-    class ModuleInitializerAttribute : Attribute 
-    { 
-    } 
+    class ModuleInitializerAttribute : System.Attribute { } 
 }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyIL("<Module>..cctor", @"
-{
-  // Code size        6 (0x6)
-  .maxstack  0
-  IL_0000:  call       ""void C.M()""
-  IL_0005:  ret
-}");
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: "C.M");
         }
 
         [Fact]
         public void AttributeCanBeAppliedWithinItsOwnDefinition()
         {
             string source = @"
+using System;
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
+}
+
 namespace System.Runtime.CompilerServices
 {
     class ModuleInitializerAttribute : System.Attribute 
     { 
         [ModuleInitializer]
-        internal static void M() { }
+        internal static void M() => Console.WriteLine(""ModuleInitializerAttribute.M"");
     } 
 }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyIL("<Module>..cctor", @"
-{
-  // Code size        6 (0x6)
-  .maxstack  0
-  IL_0000:  call       ""void System.Runtime.CompilerServices.ModuleInitializerAttribute.M()""
-  IL_0005:  ret
-}");
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+ModuleInitializerAttribute.M
+Program.Main");
         }
 
         [Fact]
@@ -209,15 +205,7 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyIL("<Module>..cctor", @"
-{
-  // Code size        6 (0x6)
-  .maxstack  0
-  IL_0000:  call       ""void C.M()""
-  IL_0005:  ret
-}");
+            CompileAndVerify(source, parseOptions: s_parseOptions);
         }
     }
 }
