@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -860,15 +861,26 @@ class C1<T>
             FunctionPointerUtilities.CommonVerifyFunctionPointer(ptrOriginal);
             FunctionPointerUtilities.CommonVerifyFunctionPointer(ptrRetargeted);
 
+            if ((true, true, true) == returnConsistent &&
+                (true, true, true) == param1Consistent &&
+                (true, true, true) == param2Consistent)
+            {
+                Assert.Same(ptrOriginal, ptrRetargeted);
+            }
+            else
+            {
+                Assert.NotSame(ptrOriginal, ptrRetargeted);
+            }
+
             assert(returnConsistent.typeConsistent,
-                   ptrOriginal.Signature.ReturnType.ContainingAssembly,
-                   ptrRetargeted.Signature.ReturnType.ContainingAssembly);
+                   ptrOriginal.Signature.ReturnType,
+                   ptrRetargeted.Signature.ReturnType);
             assert(returnConsistent.refModConsistent,
-                   getModifierAssemblySymbol(ptrOriginal.Signature.RefCustomModifiers),
-                   getModifierAssemblySymbol(ptrRetargeted.Signature.RefCustomModifiers));
+                   getModifierTypeSymbol(ptrOriginal.Signature.RefCustomModifiers),
+                   getModifierTypeSymbol(ptrRetargeted.Signature.RefCustomModifiers));
             assert(returnConsistent.typeModConsistent,
-                   getModifierAssemblySymbol(ptrOriginal.Signature.ReturnTypeWithAnnotations.CustomModifiers),
-                   getModifierAssemblySymbol(ptrRetargeted.Signature.ReturnTypeWithAnnotations.CustomModifiers));
+                   getModifierTypeSymbol(ptrOriginal.Signature.ReturnTypeWithAnnotations.CustomModifiers),
+                   getModifierTypeSymbol(ptrRetargeted.Signature.ReturnTypeWithAnnotations.CustomModifiers));
 
             Assert.Equal(2, ptrOriginal.Signature.ParameterCount);
             Assert.Equal(2, ptrRetargeted.Signature.ParameterCount);
@@ -879,24 +891,24 @@ class C1<T>
             var param2Retargeted = ptrRetargeted.Signature.Parameters[1];
 
             assert(param1Consistent.typeConsistent,
-                   param1Original.Type.ContainingAssembly,
-                   param1Retargeted.Type.ContainingAssembly);
+                   param1Original.Type,
+                   param1Retargeted.Type);
             assert(param1Consistent.refModConsistent,
-                   getModifierAssemblySymbol(param1Original.RefCustomModifiers),
-                   getModifierAssemblySymbol(param1Retargeted.RefCustomModifiers));
+                   getModifierTypeSymbol(param1Original.RefCustomModifiers),
+                   getModifierTypeSymbol(param1Retargeted.RefCustomModifiers));
             assert(param1Consistent.typeModConsistent,
-                   getModifierAssemblySymbol(param1Original.TypeWithAnnotations.CustomModifiers),
-                   getModifierAssemblySymbol(param1Retargeted.TypeWithAnnotations.CustomModifiers));
+                   getModifierTypeSymbol(param1Original.TypeWithAnnotations.CustomModifiers),
+                   getModifierTypeSymbol(param1Retargeted.TypeWithAnnotations.CustomModifiers));
 
             assert(param2Consistent.typeConsistent,
-                   param2Original.Type.ContainingAssembly,
-                   param2Retargeted.Type.ContainingAssembly);
+                   param2Original.Type,
+                   param2Retargeted.Type);
             assert(param2Consistent.refModConsistent,
-                   getModifierAssemblySymbol(param2Original.RefCustomModifiers),
-                   getModifierAssemblySymbol(param2Retargeted.RefCustomModifiers));
+                   getModifierTypeSymbol(param2Original.RefCustomModifiers),
+                   getModifierTypeSymbol(param2Retargeted.RefCustomModifiers));
             assert(param2Consistent.typeModConsistent,
-                   getModifierAssemblySymbol(param2Original.TypeWithAnnotations.CustomModifiers),
-                   getModifierAssemblySymbol(param2Retargeted.TypeWithAnnotations.CustomModifiers));
+                   getModifierTypeSymbol(param2Original.TypeWithAnnotations.CustomModifiers),
+                   getModifierTypeSymbol(param2Retargeted.TypeWithAnnotations.CustomModifiers));
 
             static MethodSymbol getMethodSymbol(CSharpCompilation compilation)
             {
@@ -904,37 +916,37 @@ class C1<T>
                 return c.GetMethod("M");
             }
 
-            static AssemblySymbol getModifierAssemblySymbol(ImmutableArray<CustomModifier> modifiers)
-                => ((CSharpCustomModifier)modifiers.Single()).ModifierSymbol.ContainingAssembly;
+            static TypeSymbol getModifierTypeSymbol(ImmutableArray<CustomModifier> modifiers)
+                => ((CSharpCustomModifier)modifiers.Single()).ModifierSymbol;
 
-            void assert(bool consistent, AssemblySymbol original, AssemblySymbol retargeted)
+            void assert(bool consistent, TypeSymbol originalType, TypeSymbol retargetedType)
             {
+                Assert.False(originalType.IsErrorType());
+                Assert.False(retargetedType.IsErrorType());
                 if (consistent)
                 {
-                    Assert.Same(consistentAssembly, original);
-                    Assert.Same(consistentAssembly, retargeted);
+                    Assert.Same(consistentAssembly, originalType.ContainingAssembly);
+                    Assert.Same(consistentAssembly, retargetedType.ContainingAssembly);
                 }
                 else
                 {
-                    Assert.Same(retargetedAssembly1, original);
-                    Assert.Same(retargetedAssembly2, retargeted);
+                    Assert.Same(retargetedAssembly1, originalType.ContainingAssembly);
+                    Assert.Same(retargetedAssembly2, retargetedType.ContainingAssembly);
                 }
             }
 
             static (AssemblySymbol retargetedAssembly1, AssemblySymbol retargetedAssembly2, AssemblySymbol consistentAssembly, CSharpCompilation originalComp, CSharpCompilation retargetedComp)
                 getFunctionPointerRetargetingDefinitions(string mIlSignature, string mOverriddenSignature)
             {
-                var retargetedSource = @"
-using System.Reflection;
-[assembly:AssemblyVersionAttribute(""{0}"")]]
-public class R {{}}";
-                var retargeted1 = CreateCompilation(string.Format(retargetedSource, "1.0.0"), assemblyName: "Ret");
+                var retargetedSource = @"public class R {{}}";
+                var retargetedIdentity = new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true);
+                var standardReference = TargetFrameworkUtil.StandardReferences.ToArray();
+                var retargeted1 = CreateCompilation(retargetedIdentity, new[] { retargetedSource }, references: standardReference);
                 var retargeted1Ref = retargeted1.ToMetadataReference();
-                var retargeted2 = CreateCompilation(string.Format(retargetedSource, "2.0.0"), assemblyName: "Ret");
+                var retargeted2 = CreateCompilation(retargetedIdentity.WithVersion(new Version(2, 0, 0, 0)), new[] { retargetedSource }, references: standardReference);
                 var retargeted2Ref = retargeted2.ToMetadataReference();
 
-
-                var consistent = CreateCompilation("public class C {}", assemblyName: "Con");
+                var consistent = CreateCompilation("public class C {}", assemblyName: "Con", targetFramework: TargetFramework.Standard);
                 var consistentRef = consistent.ToMetadataReference();
 
                 var ilSource = $@"
@@ -969,12 +981,13 @@ public class R {{}}";
 unsafe class Source : Il
 {{
     public override {mOverriddenSignature} M() => throw null;
-}}", new[] { retargeted1Ref, consistentRef, ilRef }, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+}}", new[] { retargeted1Ref, consistentRef, ilRef }, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Standard);
 
                 originalComp.VerifyDiagnostics();
 
                 var retargetedComp = CreateCompilation("", references: new[] { originalComp.ToMetadataReference(), retargeted2Ref, consistentRef, ilRef },
-                                                       options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+                                                       options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview,
+                                                       targetFramework: TargetFramework.Standard);
 
                 retargetedComp.VerifyDiagnostics();
 
