@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
@@ -27,6 +28,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                 && argumentException.StackTrace.Contains("Microsoft.VisualStudio.Text.Editor.Implementation.WpfTextView.ValidateBufferPosition"))
             {
                 // Known issue https://github.com/dotnet/roslyn/issues/35123
+                return;
+            }
+
+            if (exception is TaskCanceledException taskCanceledException
+                && taskCanceledException.StackTrace.Contains("Microsoft.CodeAnalysis.Editor.Implementation.Suggestions.SuggestedActionsSourceProvider.SuggestedActionsSource.GetSuggestedActions"))
+            {
+                // Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1070469
                 return;
             }
 
