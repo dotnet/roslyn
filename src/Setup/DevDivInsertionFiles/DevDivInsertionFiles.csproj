@@ -99,19 +99,15 @@
     </ItemGroup>
 
     <!--
-      List of of private dependencies we insert inside our VSIX that need to have a code base version updated.
-      The roslyn insertion tool will read these assembly versions and update the corresponding file in VS.
-      The AssemblyVersionName maps to the version name used in the AssemblyVersions.tt file in VS.
+      AssemblyVersionVariables include the dependency name and version that needs to be updated in the VS repo's
+      AssemblyVersions.tt file.  The roslyn insertion tool will read the output of this and update the file during the insertion.
 
-      These are separate from the _Dependency list as we do not need to add the package dependency.
+      These are separate from the _Dependency list as we do not need to always add the package dependency (e.g. private dependencies)
     -->
     <ItemGroup>
-      <_AdditionalDependencyVersion Include="RoslynLanguageServerProtocol" Condition="'%(_Dependency.Identity)' == 'Microsoft.VisualStudio.LanguageServer.Protocol'">
+      <_AssemblyVersionVariable Include="RoslynLanguageServerProtocol" Condition="'%(_Dependency.Identity)' == 'Microsoft.VisualStudio.LanguageServer.Protocol'">
         <Version>%(_Dependency._AssemblyVersion)</Version>
-      </_AdditionalDependencyVersion>
-      <_AdditionalDependencyVersion Include="Roslyn">
-        <Version>$(AssemblyVersion)</Version>
-      </_AdditionalDependencyVersion>
+      </_AssemblyVersionVariable>
     </ItemGroup>
 
     <!--     
@@ -155,6 +151,11 @@
       <_Dependency Remove="VSLangProj80"/>
       <_Dependency Remove="VSLangProj140"/>
       <_Dependency Remove="VsWebSite.Interop"/>
+    </ItemGroup>
+
+    <!-- Write out the filtered dependency versions we need to also update in VS. -->
+    <ItemGroup>
+      <_AssemblyVersionVariable Include="@(_Dependency->'%(_AssemblyName)')" Version="%(_Dependency._AssemblyVersion)" />
     </ItemGroup>
 
     <!--
@@ -232,8 +233,9 @@
           Outputs="$(_DependentAssemblyVersionsFile)">
 
     <MakeDir Directories="$(VisualStudioBuildPackagesDir)"/>
-    <WriteLinesToFile Lines="@(_Dependency->'%(_AssemblyName),%(_AssemblyVersion)')" File="$(_DependentAssemblyVersionsFile)" Overwrite="true"/>
-    <WriteLinesToFile Lines="@(_AdditionalDependencyVersion->'%(Identity),%(Version)')" File="$(_DependentAssemblyVersionsFile)" />
+    <WriteLinesToFile Lines="@(_AssemblyVersionVariable->'%(Identity),%(Version)')" File="$(_DependentAssemblyVersionsFile)" Overwrite="true"/>
+    <!-- This must be done inside the target so that the AssemblyVersion variable is present -->
+    <WriteLinesToFile Lines="Roslyn,$(AssemblyVersion)" File="$(_DependentAssemblyVersionsFile)" Overwrite="false" />
     <ItemGroup>
       <FileWrites Include="$(_DependentAssemblyVersionsFile)"/>
     </ItemGroup>
