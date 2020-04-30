@@ -59,6 +59,7 @@ param (
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testIOperation,
+  [switch]$sequential,
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -435,6 +436,10 @@ function TestUsingOptimizedRunner() {
 
   if ($test64) {
     $args += " -test64"
+  }
+
+  if ($sequential) {
+    $args += " -sequential"
   }
 
   foreach ($dll in $dlls) {
