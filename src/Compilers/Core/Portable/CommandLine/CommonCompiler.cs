@@ -694,9 +694,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Peform source generation, if the compiler supports it.
+        /// Perform source generation, if the compiler supports it.
         /// </summary>
-        /// <param name="input">The compilation before any source generation has occured.</param>
+        /// <param name="input">The compilation before any source generation has occurred.</param>
         /// <param name="parseOptions">The <see cref="ParseOptions"/> to use when parsing any generated sources.</param>
         /// <param name="generators">The generators to run</param>
         /// <param name="additionalTexts">Any additional texts that should be passed to the generators when run.</param>
@@ -925,8 +925,15 @@ namespace Microsoft.CodeAnalysis
                         additionalFileAnalyzerOptions);
                 }
 
-                Diagnostics.AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
+                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
                     additionalTextFiles, analyzerConfigProvider);
+
+                // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
+                //  1. Always filter out 'Hidden' analyzer diagnostics in build.
+                //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
+                var severityFilter = SeverityFilter.Hidden;
+                if (Arguments.ErrorLogPath == null)
+                    severityFilter |= SeverityFilter.Info;
 
                 analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
                     compilation,
@@ -935,6 +942,7 @@ namespace Microsoft.CodeAnalysis
                     new AnalyzerManager(analyzers),
                     analyzerExceptionDiagnostics.Add,
                     Arguments.ReportAnalyzer,
+                    severityFilter,
                     out compilation,
                     analyzerCts.Token);
                 reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;

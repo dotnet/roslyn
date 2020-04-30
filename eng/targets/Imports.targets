@@ -201,13 +201,6 @@
     </PropertyGroup>
   </Target>
 
-  <!--
-    Exclude private Visual Studio packages from dependencies of Roslyn packages.
-  -->
-  <ItemGroup Condition="'$(IsPackable)' == 'true'">
-    <PackageReference Update="@(PrivateVisualStudioPackage)" PrivateAssets="all"/>
-  </ItemGroup>
-
   <!-- Make sure additional files show up in Solution Explorer -->
   <ItemGroup>
     <!--
@@ -341,4 +334,14 @@
     <Error Text="Unit test project TargetFileName must end with '.IntegrationTests.dll': '$(TargetFileName)'"
            Condition="$(IsIntegrationTestProject) != $(TargetFileName.EndsWith('.IntegrationTests.dll'))" />
   </Target>
+
+  <!-- Work around for https://github.com/dotnet/sdk/issues/10591 -->
+  <Target Name="WorkAroundDotnetSdk10591"
+          AfterTargets="ResolveTargetingPackAssets"
+          Condition="'$(Language)' == 'VB' AND '$(VBRuntime)' == 'Embed'">
+    <ItemGroup>
+      <Reference Remove="@(Reference)" Condition=" '%(FileName)' == 'Microsoft.VisualBasic' or '%(FileName)' == 'Microsoft.VisualBasic.Core' " />
+    </ItemGroup>
+  </Target>
+
 </Project>

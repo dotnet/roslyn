@@ -23,11 +23,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSourceService
     {
-        private readonly ICodeGenerationService _codeGenerationService;
-
-        protected AbstractMetadataAsSourceService(ICodeGenerationService codeGenerationService)
-            => _codeGenerationService = codeGenerationService;
-
         public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {
             if (document == null)

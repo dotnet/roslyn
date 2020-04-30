@@ -492,5 +492,37 @@ class D : C
 
             Await TestAsync(workspace)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(43093, "https://github.com/dotnet/roslyn/issues/43093")>
+        Public Async Function TestMultiTargetting1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp30="true">
+        <Document FilePath="C.cs">
+public interface $$IInterface
+{
+}
+        </Document>
+    </Project>
+    <Project Name="BaseProjectStandard" Language="C#" CommonReferencesNetStandard20="true">
+        <Document IsLinkFile="true" LinkProjectName="BaseProjectCore" LinkFilePath="C.cs">
+public interface IInterface
+{
+}
+        </Document>
+    </Project>
+    <Project Name="ImplProject" Language="C#" CommonReferences="true">
+        <ProjectReference>BaseProjectStandard</ProjectReference>
+        <Document>
+public class [|Impl|] : IInterface
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
     End Class
 End Namespace

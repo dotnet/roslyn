@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -89,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // whitespace trivia case such as spaces/tabs/new lines
             // these will always have a single text change
-            var text = pair.Value.GetTextChanges(GetTextSpan(pair.Key)).Single().NewText;
+            var text = pair.Value.GetTextChanges(GetTextSpan(pair.Key)).Single().NewText ?? "";
             var trailingTrivia = SyntaxFactory.ParseTrailingTrivia(text);
 
             var width = trailingTrivia.GetFullWidth();
@@ -145,11 +148,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // whitespace trivia case such as spaces/tabs/new lines
             // these will always have single text changes
-            var text = triviaData.GetTextChanges(GetTextSpan(pair)).Single().NewText;
+            var text = triviaData.GetTextChanges(GetTextSpan(pair)).Single().NewText ?? "";
             return SyntaxFactory.ParseLeadingTrivia(text);
         }
 
-        public override SyntaxNode Visit(SyntaxNode node)
+        [return: NotNullIfNotNull("node")]
+        public override SyntaxNode? Visit(SyntaxNode? node)
         {
             _cancellationToken.ThrowIfCancellationRequested();
 

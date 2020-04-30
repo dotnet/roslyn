@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var persistentService = previewWorkspace.Services.GetService<IPersistentStorageService>();
             Assert.NotNull(persistentService);
 
-            var storage = persistentService.GetStorage(previewWorkspace.CurrentSolution);
+            using var storage = persistentService.GetStorage(previewWorkspace.CurrentSolution);
             Assert.True(storage is NoOpPersistentStorage);
         }
 

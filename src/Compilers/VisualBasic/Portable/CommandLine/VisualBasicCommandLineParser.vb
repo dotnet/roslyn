@@ -1799,7 +1799,7 @@ lVbRuntimePlus:
             ' unescape quotes \" -> "
             symbolList = symbolList.Replace("\""", """")
 
-            Dim trimmedSymbolList As String = symbolList.TrimEnd(Nothing)
+            Dim trimmedSymbolList As String = symbolList.TrimEnd()
             If trimmedSymbolList.Length > 0 AndAlso IsConnectorPunctuation(trimmedSymbolList(trimmedSymbolList.Length - 1)) Then
                 ' In case the symbol list ends with '_' we add ',' to the end of the list which in some 
                 ' cases will produce an error 30999 to match Dev11 behavior

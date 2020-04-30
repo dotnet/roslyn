@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 return false;
             }
 
-            PooledHashSet<ISymbol> GetCandidateSymbolsReferencedInDocComments(INamedTypeSymbol namedTypeSymbol, Compilation compilation, CancellationToken cancellationToken)
+            private PooledHashSet<ISymbol> GetCandidateSymbolsReferencedInDocComments(INamedTypeSymbol namedTypeSymbol, Compilation compilation, CancellationToken cancellationToken)
             {
                 var builder = PooledHashSet<ISymbol>.GetInstance();
                 foreach (var root in namedTypeSymbol.Locations.Select(l => l.SourceTree.GetRoot(cancellationToken)))
@@ -523,14 +523,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 return builder;
             }
 
-            ArrayBuilder<string> GetDebuggerDisplayAttributeArguments(INamedTypeSymbol namedTypeSymbol)
+            private ArrayBuilder<string> GetDebuggerDisplayAttributeArguments(INamedTypeSymbol namedTypeSymbol)
             {
                 var builder = ArrayBuilder<string>.GetInstance();
                 AddDebuggerDisplayAttributeArguments(namedTypeSymbol, builder);
                 return builder;
             }
 
-            void AddDebuggerDisplayAttributeArguments(INamedTypeSymbol namedTypeSymbol, ArrayBuilder<string> builder)
+            private void AddDebuggerDisplayAttributeArguments(INamedTypeSymbol namedTypeSymbol, ArrayBuilder<string> builder)
             {
                 AddDebuggerDisplayAttributeArgumentsCore(namedTypeSymbol, builder);
 
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 }
             }
 
-            void AddDebuggerDisplayAttributeArgumentsCore(ISymbol symbol, ArrayBuilder<string> builder)
+            private void AddDebuggerDisplayAttributeArgumentsCore(ISymbol symbol, ArrayBuilder<string> builder)
             {
                 foreach (var attribute in symbol.GetAttributes())
                 {
