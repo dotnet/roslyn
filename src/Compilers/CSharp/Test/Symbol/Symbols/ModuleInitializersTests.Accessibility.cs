@@ -26,7 +26,7 @@ class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8794: Module initializer method 'M' must be accessible outside top-level type 'C'
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M", "C").WithLocation(6, 6)
@@ -51,7 +51,7 @@ class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Theory]
@@ -71,7 +71,7 @@ using System.Runtime.CompilerServices;
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Theory]
@@ -95,7 +95,7 @@ public class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (8,10): error CS8794: Module initializer method 'M' must be accessible outside top-level type 'C'
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M", "C").WithLocation(8, 10)
@@ -123,7 +123,7 @@ public class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -141,7 +141,7 @@ struct S
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -160,7 +160,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
 
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (7,26): error CS8701: Target runtime doesn't support default interface implementation.
                 //     internal static void M() { }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M").WithLocation(7, 26)
@@ -185,7 +185,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 
             // Intentionally demonstrated without DIM support.
 
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (7,17): error CS8701: Target runtime doesn't support default interface implementation.
                 //     static void M() { }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M").WithLocation(7, 17)
@@ -210,7 +210,7 @@ interface I
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
         }
     }
 }

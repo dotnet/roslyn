@@ -23,7 +23,7 @@ class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8795: Module initializer method 'M' must be static
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeStatic, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
@@ -45,7 +45,7 @@ static class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8796: Module initializer method 'M' must not have parameters
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustNotHaveParameters, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
@@ -67,7 +67,7 @@ static class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8796: Module initializer method 'M' must not have parameters
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustNotHaveParameters, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
@@ -89,7 +89,7 @@ static class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8796: Module initializer method 'M' must not have parameters
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustNotHaveParameters, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
@@ -111,7 +111,7 @@ static class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                     // (6,6): error CS8797: Module initializer method 'M' must return void
                     //     [ModuleInitializer]
                     Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustReturnVoid, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
@@ -133,7 +133,7 @@ static class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (7,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     internal static async void M() { }
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(7, 32)
@@ -156,7 +156,7 @@ static class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (7,6): error CS8797: Module initializer method 'M' must return void
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustReturnVoid, "ModuleInitializer").WithArguments("M").WithLocation(7, 6),

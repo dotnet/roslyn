@@ -23,7 +23,7 @@ class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8798: Module initializer method 'M' must not have generic parameters
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustNotBeGeneric, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
@@ -45,7 +45,7 @@ class C<T>
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8798: Module initializer method 'M' must not be contained in a generic type
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustNotBeContainedInGenericType, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
@@ -70,7 +70,7 @@ class C<T>
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (8,10): error CS8799: Module initializer method 'M' must not be contained in a generic type
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustNotBeContainedInGenericType, "ModuleInitializer").WithArguments("M").WithLocation(8, 10)

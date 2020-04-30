@@ -27,7 +27,7 @@ class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (9,10): error CS8793: A module initializer must be an ordinary method
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(9, 10)
@@ -49,7 +49,7 @@ class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8793: A module initializer must be an ordinary method
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(6, 6)
@@ -71,7 +71,7 @@ class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8793: A module initializer must be an ordinary method
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(6, 6)
@@ -93,7 +93,7 @@ class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8793: A module initializer must be an ordinary method
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(6, 6)
@@ -120,7 +120,7 @@ class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (8,10): error CS8793: A module initializer must be an ordinary method
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(8, 10),
@@ -150,7 +150,7 @@ class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (8,10): error CS8793: A module initializer must be an ordinary method
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(8, 10),
@@ -180,7 +180,7 @@ class C
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (8,10): error CS8793: A module initializer must be an ordinary method
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(8, 10),
