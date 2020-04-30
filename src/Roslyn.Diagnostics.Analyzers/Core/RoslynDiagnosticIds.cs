@@ -51,5 +51,6 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string ExposeMemberForTestingRuleId = "RS0045";
 
         public const string WrapStatementsRuleId = "RS0100";
+        public const string BlankLinesRuleId = "RS0101";
     }
 }
