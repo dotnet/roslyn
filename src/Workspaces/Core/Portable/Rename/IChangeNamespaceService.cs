@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -53,5 +55,11 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// a no-op and original solution will be returned.
         /// </remarks>
         Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Using only the top level namespace declarations of a document, change all of them to the target namespace. Will only
+        /// use namespace containers considered valid by <see cref="CanChangeNamespaceAsync(Document, SyntaxNode, CancellationToken)"/>
+        /// </summary>
+        Task<Solution?> TryChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CancellationToken cancellationToken);
     }
 }
