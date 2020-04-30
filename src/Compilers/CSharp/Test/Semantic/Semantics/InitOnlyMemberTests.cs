@@ -1057,15 +1057,9 @@ public class C
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
 
-            if (ExecutionConditionUtil.IsCoreClr)
-            {
-                CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
-            }
-            else
-            {
-                // PE verification fails:  [ : C::set_Property] Cannot change initonly field outside its .ctor.
-                CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator, verify: Verification.Fails);
-            }
+            // PE verification fails:  [ : C::set_Property] Cannot change initonly field outside its .ctor.
+            CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
 
             void symbolValidator(ModuleSymbol m)
             {
@@ -2156,10 +2150,13 @@ public class C
     }
 }
 ";
+
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
                 options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "42 43");
+            // [ : C::set_Property] Cannot change initonly field outside its .ctor.
+            CompileAndVerify(comp, expectedOutput: "42 43",
+                verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
         }
 
         [Fact]

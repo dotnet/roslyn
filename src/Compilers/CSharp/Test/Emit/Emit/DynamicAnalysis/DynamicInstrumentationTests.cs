@@ -2753,10 +2753,10 @@ class C
                 options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
 
             AssertNotInstrumented(verifier, "C.P1.get");
-            AssertNotInstrumented(verifier, "C.P1.set");
+            AssertNotInstrumented(verifier, "C.P1.init");
 
             AssertInstrumented(verifier, "C.P2.get");
-            AssertInstrumented(verifier, "C.P2.set");
+            AssertInstrumented(verifier, "C.P2.init");
         }
 
         [Fact]
