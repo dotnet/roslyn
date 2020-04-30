@@ -563,7 +563,34 @@ struct OtherStruct { }
         }
 
         [Theory, CombinatorialData]
-        public async Task ImplementingTypesDoesNotProduceEnums(TestHost host)
+        public async Task ImplementingTypesDoesProduceDelegates(TestHost host)
+        {
+            using var workspace = GetWorkspace(host);
+            var solution = workspace.CurrentSolution;
+
+            // create a normal assembly with a type derived from the portable abstract base
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
+delegate void D();
+", MscorlibRef);
+
+            // get symbols for types
+            var compilation = await GetNormalProject(solution).GetCompilationAsync();
+            var rootType = compilation.GetTypeByMetadataName("System.ICloneable");
+
+            Assert.NotNull(rootType);
+
+            var transitiveImpls = await SymbolFinder.FindImplementationsAsync(
+                rootType, solution, transitive: true);
+
+            var delegates = transitiveImpls.Where(i => i.TypeKind == TypeKind.Delegate);
+
+            Assert.NotEmpty(delegates); // We should find delegates when looking for implementations
+            Assert.True(delegates.Any(i => i.Locations.Any(loc => loc.IsInMetadata)), "We should find a metadata delegate");
+            Assert.Single(delegates.Where(i => i.Locations.Any(loc => loc.IsInSource))); // We should find a single source delegate
+        }
+
+        [Theory, CombinatorialData]
+        public async Task ImplementingTypesDoesProduceEnums(TestHost host)
         {
             using var workspace = GetWorkspace(host);
             var solution = workspace.CurrentSolution;
@@ -584,6 +611,12 @@ enum E
 
             var transitiveImpls = await SymbolFinder.FindImplementationsAsync(
                 rootType, solution, transitive: true);
+
+            var enums = transitiveImpls.Where(i => i.TypeKind == TypeKind.Enum);
+
+            Assert.NotEmpty(enums); // We should find enums when looking for implementations
+            Assert.True(enums.Any(i => i.Locations.Any(loc => loc.IsInMetadata)), "We should find a metadata enum");
+            Assert.Single(enums.Where(i => i.Locations.Any(loc => loc.IsInSource))); // We should find a single source type
         }
     }
 }
