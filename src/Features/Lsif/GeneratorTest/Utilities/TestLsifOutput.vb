@@ -64,7 +64,6 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
                                                         .Single()
                 Dim rangeVertices = GetLinkedVertices(Of Range)(documentVertex, "contains")
 
-
                 For Each selectedSpan In testDocument.SelectedSpans
                     Dim document = _workspace.CurrentSolution.GetDocument(testDocument.Id)
                     Dim text = Await document.GetTextAsync()
