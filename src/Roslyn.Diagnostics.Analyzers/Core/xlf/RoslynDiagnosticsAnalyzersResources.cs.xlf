@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="BlankLinesMessage">
+        <source>Avoid multiple blank lines</source>
+        <target state="new">Avoid multiple blank lines</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BracePlacementMessage">
         <source>Braces must not have blank lines between them</source>
         <target state="new">Braces must not have blank lines between them</target>
@@ -197,6 +202,11 @@
         <target state="translated">Importující konstruktor by měl být [Obsolete]</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="new">Place statement on following line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
         <source>Use 'null' instead of 'default'</source>
         <target state="translated">Místo default použijte null.</target>
@@ -225,6 +235,11 @@
       <trans-unit id="Remove_blank_lines_between_braces">
         <source>Remove blank lines between braces</source>
         <target state="new">Remove blank lines between braces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_extra_blank_lines">
+        <source>Remove extra blank lines</source>
+        <target state="new">Remove extra blank lines</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
@@ -380,6 +395,11 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked as Shared</source>
         <target state="translated">Část {0} je exportovaná pomocí rozhraní MEFv2 a musí být proto označená jako sdílená.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WrapStatementsMessage">
+        <source>Statements must be placed on their own line</source>
+        <target state="new">Statements must be placed on their own line</target>
         <note />
       </trans-unit>
     </body>
