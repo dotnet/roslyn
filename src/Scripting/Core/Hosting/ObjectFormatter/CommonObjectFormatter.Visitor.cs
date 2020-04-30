@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Microsoft.Cci;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
@@ -708,14 +709,48 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             #region Scalars
 
+            private bool IsTuple(object obj)
+            {
+#if NETSTANDARD2_0
+                if (obj is null)
+                {
+                    return false;
+                }
+
+                var type = obj.GetType();
+                if (!type.IsGenericType)
+                {
+                    return false;
+                }
+
+                int backtick = type.FullName.IndexOf('`');
+                if (backtick < 0)
+                {
+                    return false;
+                }
+
+                var nonGenericName = type.FullName[0..backtick];
+                return nonGenericName == "System.ValueTuple" || nonGenericName == "System.Tuple";
+#else
+                return obj is ITuple;
+#endif
+            }
+
             private void ObjectToString(Builder result, object obj)
             {
                 try
                 {
                     string str = obj.ToString();
-                    result.Append('[');
-                    result.Append(str);
-                    result.Append(']');
+                    if (IsTuple(obj))
+                    {
+                        result.Append(str);
+                    }
+                    else
+                    {
+                        result.Append('[');
+                        result.Append(str);
+                        result.Append(']');
+                    }
                 }
                 catch (Exception e)
                 {
