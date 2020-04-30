@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<CustomModifier> refCustomModifiers,
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations)
         {
-            Debug.Assert(isInitOnly == CustomModifierUtils.HasIsExternalInitModifier(returnType.CustomModifiers));
+            Debug.Assert(returnType.IsDefault || isInitOnly == CustomModifierUtils.HasIsExternalInitModifier(returnType.CustomModifiers));
             _callingConvention = callingConvention;
             _typeParameters = typeParameters;
             _refKind = refKind;
