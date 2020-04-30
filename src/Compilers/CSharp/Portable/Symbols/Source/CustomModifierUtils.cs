@@ -157,6 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool HasIsExternalInitModifier(this ImmutableArray<CustomModifier> modifiers)
         {
+            if (modifiers.IsDefault)
+            {
+                return false;
+            }
+
             return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeIsExternalInit());
         }
     }
