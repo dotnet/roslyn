@@ -258,32 +258,5 @@ namespace System.Runtime.CompilerServices
 
             verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
         }
-
-        [Fact]
-        public void IgnoredWhenNamedArgumentIsSpecified()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-class C
-{
-    [ModuleInitializer(P = 42)]
-    internal static void M()
-    {
-    }
-}
-
-namespace System.Runtime.CompilerServices
-{
-    class ModuleInitializerAttribute : System.Attribute
-    {
-        public int P { get; set; }
-    }
-}
-";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
-        }
     }
 }
