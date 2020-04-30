@@ -59,16 +59,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static void VerifyInnerExceptionArgumentNull(AggregateException ex, string argName)
-        {
-            var exception = ex.InnerException as ArgumentNullException;
-            Assert.True(exception != null, string.Format("Expected InnerException to be 'System.ArgumentNullException' was '{0}'", ex.InnerException.ToString()));
-            Assert.True(exception.ParamName.Contains(argName), string.Format("Expected InnerException ParamName to contain '{0}', actual ParamName is: '{1}'", argName, exception.ParamName));
-        }
-
-        private static void VerifyInnerExceptionIsType<T>(Exception ex) where T : Exception
-            => Assert.True(ex.InnerException is T, string.Format("Expected InnerException to be '{0}' was '{1}'", typeof(T).Name, ex.InnerException.ToString()));
-
         private static Solution CreateSolution()
             => new AdhocWorkspace().CurrentSolution;
 

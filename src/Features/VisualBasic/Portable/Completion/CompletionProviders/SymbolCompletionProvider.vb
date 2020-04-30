@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return MyBase.GetFilterText(symbol, displayText, context)
         End Function
 
-        Private Shared cachedRules As Dictionary(Of ValueTuple(Of Boolean, Boolean, Boolean), CompletionItemRules) =
+        Private Shared ReadOnly cachedRules As Dictionary(Of ValueTuple(Of Boolean, Boolean, Boolean), CompletionItemRules) =
             InitCachedRules()
 
         Private Shared Function InitCachedRules() As Dictionary(Of ValueTuple(Of Boolean, Boolean, Boolean), CompletionItemRules)

@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
-    Friend Partial Class VisualBasicProximityExpressionsService
+    Partial Friend Class VisualBasicProximityExpressionsService
         Public Class RelevantExpressionsCollector
             Inherits VisualBasicSyntaxWalker
 
