@@ -143,15 +143,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var fields = ArrayBuilder<FieldSymbol>.GetInstance();
-            foreach (var member in ContainingType.GetMembers())
+            foreach (var f in ContainingType.GetFieldsToEmit())
             {
-                // PROTOTYPE: Should generate equality on user-written members as well
-                if (member is FieldSymbol { IsStatic: false } f)
-                {
-                    fields.Add(f);
-                }
+                fields.Add(f);
             }
-
             if (fields.Count > 0)
             {
                 retExpr = MethodBodySynthesizer.GenerateFieldEquals(

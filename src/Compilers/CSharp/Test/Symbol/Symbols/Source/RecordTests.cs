@@ -533,5 +533,62 @@ True");
 }");
         }
 
+        [Fact]
+        public void RecordEquals_12()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+using System.Collections.Generic;
+data class C(int X, int Y)
+{
+    private event Action E;
+
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        c.E = () => { };
+        var c2 = new C(1, 2);
+        c2.E = () => { };
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c.Equals((object)c2));
+        c2.E = c.E;
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c.Equals((object)c2));
+    }
+}", expectedOutput: @"False
+False
+True
+True");
+            verifier.VerifyIL("C.Equals(C)", @"
+{
+  // Code size       76 (0x4c)
+  .maxstack  3
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_004a
+  IL_0003:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0008:  ldarg.0
+  IL_0009:  ldfld      ""int C.<X>k__BackingField""
+  IL_000e:  ldarg.1
+  IL_000f:  ldfld      ""int C.<X>k__BackingField""
+  IL_0014:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0019:  brfalse.s  IL_004a
+  IL_001b:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0020:  ldarg.0
+  IL_0021:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0026:  ldarg.1
+  IL_0027:  ldfld      ""int C.<Y>k__BackingField""
+  IL_002c:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0031:  brfalse.s  IL_004a
+  IL_0033:  call       ""System.Collections.Generic.EqualityComparer<System.Action> System.Collections.Generic.EqualityComparer<System.Action>.Default.get""
+  IL_0038:  ldarg.0
+  IL_0039:  ldfld      ""System.Action C.E""
+  IL_003e:  ldarg.1
+  IL_003f:  ldfld      ""System.Action C.E""
+  IL_0044:  callvirt   ""bool System.Collections.Generic.EqualityComparer<System.Action>.Equals(System.Action, System.Action)""
+  IL_0049:  ret
+  IL_004a:  ldc.i4.0
+  IL_004b:  ret
+}");
+        }
     }
 }
