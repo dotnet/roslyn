@@ -82,8 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             {
                 context.RegisterOperationBlockStartAction(context =>
                 {
-                    var isConstructor = context.OwningSymbol is IMethodSymbol method &&
-                        method.MethodKind == MethodKind.Constructor;
+                    var isConstructor = context.OwningSymbol is IMethodSymbol { MethodKind: MethodKind.Constructor };
                     context.RegisterOperationAction(
                         context => AnalyzeAssignment(context, isConstructor), OperationKind.SimpleAssignment);
                 });
@@ -99,8 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                 }
 
                 var operationAssigmnent = (IAssignmentOperation)context.Operation;
-                if (operationAssigmnent.Target is IInstanceReferenceOperation instance &&
-                    instance.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance)
+                if (operationAssigmnent.Target is IInstanceReferenceOperation { ReferenceKind: InstanceReferenceKind.ContainingTypeInstance })
                 {
                     Volatile.Write(ref _hasTypeInstanceAssigment, true);
                 }
