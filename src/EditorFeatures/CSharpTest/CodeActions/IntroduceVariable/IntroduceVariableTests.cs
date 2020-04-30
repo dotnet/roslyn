@@ -7679,7 +7679,7 @@ class Program
 
         [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        public async Task TestMissingReturnStatementInAsyncValueTaskTypeMethod()
+        public async Task TestReturnStatementInAsyncValueTaskTypeMethod()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
