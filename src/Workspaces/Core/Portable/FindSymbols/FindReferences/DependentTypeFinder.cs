@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // to the names of the all the types that either immediately derive or 
             // implement that type.  Because the mapping is from the simple name
             // we might get false positives.  But that's fine as we still use 
-            // 'metadataTypeMatches' to make sure the match is correct.
+            // 'tpeMatches' to make sure the match is correct.
             var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                 project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
