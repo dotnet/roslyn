@@ -98,8 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                 }
 
                 var operationAssigmnent = (IAssignmentOperation)operationContext.Operation;
-                _hasTypeInstanceAssigment |= operationAssigmnent.Target is IInstanceReferenceOperation instance &&
-                                            instance.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance;
+                if (operationAssigmnent.Target is IInstanceReferenceOperation instance &&
+                    instance.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance)
+                {
+                    _hasTypeInstanceAssigment = true;
+                }
             }
 
             private void SymbolEndAction(SymbolAnalysisContext symbolEndContext)
