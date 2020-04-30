@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The list of custom modifiers, if any, associated with the <see cref="Type"/>.
         /// </summary>
-        public ImmutableArray<CustomModifier> CustomModifiers => _extensions?.CustomModifiers ?? default;
+        public ImmutableArray<CustomModifier> CustomModifiers => _extensions?.CustomModifiers ?? ImmutableArray<CustomModifier>.Empty;
 
         public TypeKind TypeKind => Type.TypeKind;
         public SpecialType SpecialType => _extensions.GetSpecialType(DefaultType);
