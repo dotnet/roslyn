@@ -7594,6 +7594,12 @@ class Program
 @"using System;
 using System.Threading.Tasks;
 
+namespace System.Threading.Tasks {
+    struct ValueTask
+    {
+    }
+}
+
 class Program
 {
     void M()
@@ -7608,14 +7614,20 @@ class Program
 @"using System;
 using System.Threading.Tasks;
 
+namespace System.Threading.Tasks {
+    struct ValueTask
+    {
+    }
+}
+
 class Program
 {
     void M()
     {
         Func<int, ValueTask> f = async x =>
         {
-            ValueTask {|Rename:task|} = M2();
-            await task;
+            ValueTask {|Rename:valueTask|} = M2();
+            await valueTask;
         };
     }
 
@@ -7659,6 +7671,59 @@ class Program
     }
 
     async Task<int> M2()
+    {
+        return 0;
+    }
+}");
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestMissingReturnStatementInAsyncValueTaskTypeMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask<T>
+    {
+    }
+}
+
+class Program
+{
+    void M()
+    {
+        Func<int, ValueTask<int>> f = async x => await [|M2()|];
+    }
+
+    async ValueTask<int> M2()
+    {
+        return 0;
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask<T>
+    {
+    }
+}
+
+class Program
+{
+    void M()
+    {
+        Func<int, ValueTask<int>> f = async x =>
+        {
+            ValueTask<int> {|Rename:valueTask|} = M2();
+            return await valueTask;
+        };
+    }
+
+    async ValueTask<int> M2()
     {
         return 0;
     }
