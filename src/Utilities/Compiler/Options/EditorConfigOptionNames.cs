@@ -35,7 +35,7 @@ namespace Analyzer.Utilities
         public const string OutputKind = "output_kind";
 
         /// <summary>
-        /// Boolean option to configure if single letter type parameter names are not flagged for CA1715 (https://docs.microsoft.com/visualstudio/code-quality/ca1715-identifiers-should-have-correct-prefix).
+        /// Boolean option to configure if single letter type parameter names are not flagged for CA1715 (https://docs.microsoft.com/visualstudio/code-quality/ca1715).
         /// </summary>
         public const string ExcludeSingleLetterTypeParameters = "exclude_single_letter_type_parameters";
 
@@ -50,7 +50,7 @@ namespace Analyzer.Utilities
         public const string ExcludeExtensionMethodThisParameter = "exclude_extension_method_this_parameter";
 
         /// <summary>
-        /// String option to configure names of null check validation methods (separated by '|') that validate arguments passed to the method are non-null for CA1062 (https://docs.microsoft.com/visualstudio/code-quality/ca1062-validate-arguments-of-public-methods).
+        /// String option to configure names of null check validation methods (separated by '|') that validate arguments passed to the method are non-null for CA1062 (https://docs.microsoft.com/visualstudio/code-quality/ca1062).
         /// Allowed method name formats:
         ///   1. Method name only (includes all methods with the name, regardless of the containing type or namespace)
         ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
@@ -59,7 +59,7 @@ namespace Analyzer.Utilities
         public const string NullCheckValidationMethods = "null_check_validation_methods";
 
         /// <summary>
-        /// String option to configure names of additional string formatting methods (separated by '|') for CA2241 (https://docs.microsoft.com/visualstudio/code-quality/ca2241-provide-correct-arguments-to-formatting-methods).
+        /// String option to configure names of additional string formatting methods (separated by '|') for CA2241 (https://docs.microsoft.com/visualstudio/code-quality/ca2241).
         /// Allowed method name formats:
         ///   1. Method name only (includes all methods with the name, regardless of the containing type or namespace)
         ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
@@ -69,7 +69,7 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// String option to configure names of symbols (separated by '|') that are excluded for analysis.
-        /// Configurable rules: CA1303 (https://docs.microsoft.com/visualstudio/code-quality/ca1303-do-not-pass-literals-as-localized-parameters).
+        /// Configurable rules: CA1303 (https://docs.microsoft.com/visualstudio/code-quality/ca1303).
         /// Allowed method name formats:
         ///   1. Symbol name only (includes all symbols with the name, regardless of the containing type or namespace)
         ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format.
@@ -80,7 +80,7 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// String option to configure names of types (separated by '|'), so that the type and all its derived types are excluded for analysis.
-        /// Configurable rules: CA1303 (https://docs.microsoft.com/visualstudio/code-quality/ca1303-do-not-pass-literals-as-localized-parameters).
+        /// Configurable rules: CA1303 (https://docs.microsoft.com/visualstudio/code-quality/ca1303).
         /// Allowed method name formats:
         ///   1. Type name only (includes all types with the name, regardless of the containing type or namespace)
         ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
@@ -90,7 +90,7 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// String option to configure names of symbols (separated by '|') that are disallowed in analysis.
-        /// Configurable rules: CA1031 (https://docs.microsoft.com/visualstudio/code-quality/ca1031-do-not-catch-general-exception-types).
+        /// Configurable rules: CA1031 (https://docs.microsoft.com/visualstudio/code-quality/ca1031).
         /// Allowed method name formats:
         ///   1. Symbol name only (includes all symbols with the name, regardless of the containing type or namespace)
         ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format.
@@ -122,7 +122,7 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// String option to configure names of types (separated by '|'), with their suffixes (separated by '->').
-        /// Configurable rules: CA1710 (https://docs.microsoft.com/visualstudio/code-quality/ca1710-identifiers-should-have-correct-suffix).
+        /// Configurable rules: CA1710 (https://docs.microsoft.com/visualstudio/code-quality/ca1710).
         /// Allowed type name formats:
         ///   1. Type name only (includes all types with the name, regardless of the containing type or namespace)
         ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
@@ -166,5 +166,14 @@ namespace Analyzer.Utilities
         /// Boolean option to configure if the naming heuristic should be used for CA1303 (https://docs.microsoft.com/en-us/visualstudio/code-quality/ca1303).
         /// </summary>
         public const string UseNamingHeuristic = "use_naming_heuristic";
+
+        /// <summary>
+        /// String option to configure names of additional methods (separated by '|') for CA1806 (https://docs.microsoft.com/visualstudio/code-quality/ca1806).
+        /// Allowed method name formats:
+        ///   1. Method name only (includes all methods with the name, regardless of the containing type or namespace)
+        ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
+        ///      with an optional "M:" prefix.
+        /// </summary>
+        public const string AdditionalUseResultsMethods = "additional_use_results_methods";
     }
 }
