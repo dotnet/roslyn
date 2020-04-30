@@ -1178,6 +1178,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (!methodSymbol.IsDefinition)
             {
                 Debug.Assert(!needDeclaration);
+                Debug.Assert(!(methodSymbol.OriginalDefinition is NativeIntegerMethodSymbol));
+                Debug.Assert(!(methodSymbol.ConstructedFrom is NativeIntegerMethodSymbol));
 
                 return methodSymbol;
             }

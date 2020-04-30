@@ -469,6 +469,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             {
                 Assert.Same(type, member.ContainingSymbol);
                 Assert.Same(type, member.ContainingType);
+
+                var method = member as MethodSymbol;
+                var parameters = method.Parameters;
+                Assert.Equal(parameters, method.Parameters); // same array
             }
         }
 
