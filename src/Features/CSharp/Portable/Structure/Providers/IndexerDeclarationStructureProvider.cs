@@ -35,8 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
             // Check IsNode to compress blank lines after this node if it is the last child of the parent.
             //
-            // Indexers are grouped together with properties.
-            var compressEmptyLines = !nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.IndexerDeclaration) || nextSibling.IsKind(SyntaxKind.PropertyDeclaration);
+            // Indexers are grouped together with properties in Metadata as Source.
+            var compressEmptyLines = isMetadataAsSource
+                && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.IndexerDeclaration) || nextSibling.IsKind(SyntaxKind.PropertyDeclaration));
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 indexerDeclaration,

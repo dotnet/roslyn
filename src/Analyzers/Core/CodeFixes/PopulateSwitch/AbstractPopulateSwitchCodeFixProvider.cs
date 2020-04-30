@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         {
             var diagnostic = context.Diagnostics.First();
             var properties = diagnostic.Properties;
-            var missingCases = bool.Parse(properties[PopulateSwitchStatementHelpers.MissingCases]);
-            var missingDefaultCase = bool.Parse(properties[PopulateSwitchStatementHelpers.MissingDefaultCase]);
+            var missingCases = bool.Parse(properties[PopulateSwitchStatementHelpers.MissingCases]!);
+            var missingDefaultCase = bool.Parse(properties[PopulateSwitchStatementHelpers.MissingDefaultCase]!);
 
             Debug.Assert(missingCases || missingDefaultCase);
 
@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             bool addCases, bool addDefaultCase, bool onlyOneDiagnostic,
             CancellationToken cancellationToken)
         {
-            var hasMissingCases = bool.Parse(diagnostic.Properties[PopulateSwitchStatementHelpers.MissingCases]);
-            var hasMissingDefaultCase = bool.Parse(diagnostic.Properties[PopulateSwitchStatementHelpers.MissingDefaultCase]);
+            var hasMissingCases = bool.Parse(diagnostic.Properties[PopulateSwitchStatementHelpers.MissingCases]!);
+            var hasMissingDefaultCase = bool.Parse(diagnostic.Properties[PopulateSwitchStatementHelpers.MissingDefaultCase]!);
 
             var switchLocation = diagnostic.AdditionalLocations[0];
             var switchNode = switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken) as TSwitchSyntax;

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -12,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirectives
@@ -54,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
 
         protected const string DelegateDefinition = @"public delegate void TestDelegate();";
 
-        private static TestParameters GetTestParameters(CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
-            => new TestParameters(options: OptionsSet((new OptionKey2(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement), preferredPlacementOption)));
+        private TestParameters GetTestParameters(CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
+            => new TestParameters(options: new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption } });
 
         private protected Task TestDiagnosticMissingAsync(string initialMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
             => TestDiagnosticMissingAsync(initialMarkup, GetTestParameters(preferredPlacementOption));
@@ -65,11 +64,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
 
         private protected Task TestInRegularAndScriptAsync(string initialMarkup, string expectedMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption, bool placeSystemNamespaceFirst)
         {
-            var options = OptionsSet
-                (
-                    (new OptionKey2(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement), preferredPlacementOption),
-                    (new OptionKey2(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), placeSystemNamespaceFirst)
-                );
+            var options = new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption },
+                { GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst },
+            };
             return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
         }
 

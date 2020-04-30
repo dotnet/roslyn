@@ -1490,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_NoRefOutWhenRefOnly = 8308,
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
-        ERR_BadOpOnNullOrDefault = 8310,
+        ERR_BadOpOnNullOrDefaultOrNew = 8310,
         // ERR_BadDynamicMethodArgDefaultLiteral = 8311,
         ERR_DefaultLiteralNotValid = 8312,
         // ERR_DefaultInSwitch = 8313,
@@ -1741,6 +1741,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InternalError = 8751,
 
+        ERR_TypelessNewIllegalTargetType = 8752,
+        ERR_TypelessNewNotValid = 8753,
+        ERR_TypelessNewNoTargetType = 8754,
+
         ERR_ExternEventInitializer = 8760,
         ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,
         WRN_ParameterConditionallyDisallowsNull = 8762,
@@ -1775,10 +1779,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_BadRecordDeclaration = 8800,
         ERR_DuplicateRecordConstructor = 8801,
-        ERR_InvalidWithReceiverType = 8802,
-        ERR_NoSingleCloneMethod = 8803,
-        ERR_ContainingTypeMustDeriveFromWithReturnType = 8804,
-        ERR_WithMemberIsNotRecordProperty = 8808,
+        ERR_AssignmentInitOnly = 8802,
+        ERR_CantChangeInitOnlyOnOverride = 8803,
+        ERR_CloseUnimplementedInterfaceMemberWrongInitOnly = 8804,
+        ERR_ExplicitPropertyMismatchInitOnly = 8805,
+        ERR_BadInitAccessor = 8806,
+        ERR_InvalidWithReceiverType = 8807,
+        ERR_NoSingleCloneMethod = 8808,
+        ERR_ContainingTypeMustDeriveFromWithReturnType = 8809,
+        ERR_WithMemberIsNotRecordProperty = 8810,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

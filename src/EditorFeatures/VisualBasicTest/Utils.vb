@@ -4,8 +4,6 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Text
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax

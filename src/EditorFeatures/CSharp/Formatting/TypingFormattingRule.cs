@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
@@ -17,14 +16,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
     {
         public readonly static TypingFormattingRule Instance = new TypingFormattingRule();
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             if (TryAddSuppressionOnMissingCloseBraceCase(list, node))
             {
                 return;
             }
 
-            base.AddSuppressOperations(list, node, options, in nextOperation);
+            base.AddSuppressOperations(list, node, in nextOperation);
         }
 
         private bool TryAddSuppressionOnMissingCloseBraceCase(List<SuppressOperation> list, SyntaxNode node)

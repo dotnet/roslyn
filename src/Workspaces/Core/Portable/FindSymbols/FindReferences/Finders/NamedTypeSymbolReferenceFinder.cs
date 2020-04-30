@@ -18,37 +18,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(INamedTypeSymbol symbol)
             => symbol.TypeKind != TypeKind.Error;
 
-        protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<INamedTypeSymbol> symbolAndProjectId,
+        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            INamedTypeSymbol symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+            var result = ArrayBuilder<ISymbol>.GetInstance();
 
-            var symbol = symbolAndProjectId.Symbol;
             if (symbol.AssociatedSymbol != null)
             {
-                Add(result, symbolAndProjectId, ImmutableArray.Create(symbol.AssociatedSymbol));
+                Add(result, ImmutableArray.Create(symbol.AssociatedSymbol));
             }
 
             // cascade to constructors
-            Add(result, symbolAndProjectId, symbol.Constructors);
+            Add(result, symbol.Constructors);
 
             // cascade to destructor
-            Add(result, symbolAndProjectId, symbol.GetMembers(WellKnownMemberNames.DestructorName));
+            Add(result, symbol.GetMembers(WellKnownMemberNames.DestructorName));
 
             return Task.FromResult(result.ToImmutableAndFree());
         }
 
-        private void Add<TSymbol>(
-            ArrayBuilder<SymbolAndProjectId> result,
-            SymbolAndProjectId symbolAndProjectId,
-            ImmutableArray<TSymbol> enumerable) where TSymbol : ISymbol
+        private void Add<TSymbol>(ArrayBuilder<ISymbol> result, ImmutableArray<TSymbol> enumerable) where TSymbol : ISymbol
         {
-            result.AddRange(enumerable.Select(
-                s => symbolAndProjectId.WithSymbol((ISymbol)s)));
+            result.AddRange(enumerable.Cast<ISymbol>());
         }
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

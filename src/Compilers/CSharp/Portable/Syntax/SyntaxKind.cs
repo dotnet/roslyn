@@ -200,9 +200,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         WhenKeyword = 8437,
         DataKeyword = 8438,
         WithKeyword = 8439,
+        InitKeyword = 8440,
         /// when adding a contextual keyword following functions must be adapted:
         /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
         /// <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
+        /// <see cref="SyntaxFacts.GetContextualKeywordKind(string)"/>
 
         // keywords with an enum value less than ElifKeyword are considered i.a. contextual keywords
         // additional preprocessor keywords
@@ -353,6 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitElementAccess = 8656,
         IsPatternExpression = 8657,
         RangeExpression = 8658,
+        ImplicitObjectCreationExpression = 8659,
 
         // binary expressions
         AddExpression = 8668,
@@ -602,5 +605,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         NullableDirectiveTrivia = 9055,
 
         WithExpression = 9060,
+        InitAccessorDeclaration = 9061,
     }
 }

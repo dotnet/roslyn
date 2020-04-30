@@ -54,7 +54,7 @@ This document provides guidance for thinking about language interactions and tes
 - Partial method
 - Named and optional parameters
 - String interpolation
-- Properties (read-write, read-only, write-only, auto-property, expression-bodied)
+- Properties (read-write, read-only, init-only, write-only, auto-property, expression-bodied)
 - Interfaces (implicit vs. explicit interface member implementation)
 - Delegates
 - Multi-declaration
@@ -209,6 +209,7 @@ a[e]
 x++ 
 x-- 
 new X() 
+new() 
 typeof(T) 
 default(T)
 default 
@@ -307,6 +308,8 @@ __makeref( x )
 - Interpolated string
 - Tuple literal
 - Tuple
+- Default literal
+- Implicit object creation (target-typed new)
 
 ## Types 
 

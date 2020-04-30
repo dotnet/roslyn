@@ -85,6 +85,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxKinds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpDocumentationCommentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\CSharpInferredMemberNameSimplifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\Simplifiers\CastSimplifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\FormattingRangeHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxComparer.cs" />

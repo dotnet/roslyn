@@ -3083,6 +3083,7 @@ parse_member_name:;
             {
                 case SyntaxKind.GetKeyword:
                 case SyntaxKind.SetKeyword:
+                case SyntaxKind.InitKeyword:
                 case SyntaxKind.AddKeyword:
                 case SyntaxKind.RemoveKeyword:
                     return true;
@@ -3255,7 +3256,7 @@ parse_member_name:;
 
         private AccessorDeclarationSyntax ParseAccessorDeclaration(bool isEvent)
         {
-            if (this.IsIncrementalAndFactoryContextMatches && CanReuseAccessorDeclaration())
+            if (this.IsIncrementalAndFactoryContextMatches && SyntaxFacts.IsAccessorDeclaration(this.CurrentNodeKind))
             {
                 return (AccessorDeclarationSyntax)this.EatNode();
             }
@@ -3327,7 +3328,7 @@ parse_member_name:;
                 else
                 {
                     // We didn't get something we recognized.  If we got an accessor type we 
-                    // recognized (i.e. get/set/add/remove) then try to parse out a block.
+                    // recognized (i.e. get/set/init/add/remove) then try to parse out a block.
                     // Only do this if it doesn't seem like we're at the end of the accessor/property.
                     // for example, if we have "get set", don't actually try to parse out the 
                     // block.  Otherwise we'll consume the 'set'.  In that case, just end the
@@ -3375,25 +3376,12 @@ parse_member_name:;
             {
                 case SyntaxKind.GetKeyword: return SyntaxKind.GetAccessorDeclaration;
                 case SyntaxKind.SetKeyword: return SyntaxKind.SetAccessorDeclaration;
+                case SyntaxKind.InitKeyword: return SyntaxKind.InitAccessorDeclaration;
                 case SyntaxKind.AddKeyword: return SyntaxKind.AddAccessorDeclaration;
                 case SyntaxKind.RemoveKeyword: return SyntaxKind.RemoveAccessorDeclaration;
             }
 
             return SyntaxKind.UnknownAccessorDeclaration;
-        }
-
-        private bool CanReuseAccessorDeclaration()
-        {
-            switch (this.CurrentNodeKind)
-            {
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                    return true;
-            }
-
-            return false;
         }
 
         internal ParameterListSyntax ParseParenthesizedParameterList()
@@ -4098,6 +4086,7 @@ tryAgain:
                     case SyntaxKind.RemoveAccessorDeclaration:
                     case SyntaxKind.GetAccessorDeclaration:
                     case SyntaxKind.SetAccessorDeclaration:
+                    case SyntaxKind.InitAccessorDeclaration:
                         return ((CSharp.Syntax.AccessorDeclarationSyntax)decl).Modifiers;
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
@@ -4782,7 +4771,7 @@ tryAgain:
             {
                 // Error tolerance for IntelliSense. Consider the following case: [EditorBrowsable( partial class Goo {
                 // } Because we're parsing an attribute argument we'll end up consuming the "partial" identifier and
-                // we'll eventually end up in an pretty confused state.  Because of that it becomes very difficult to
+                // we'll eventually end up in a pretty confused state.  Because of that it becomes very difficult to
                 // show the correct parameter help in this case.  So, when we see "partial" we check if it's being used
                 // as an identifier or as a contextual keyword.  If it's the latter then we bail out.  See
                 // Bug: vswhidbey/542125
@@ -5953,6 +5942,7 @@ done:
             AfterIs,
             DefinitePattern,
             AfterOut,
+            AfterRef,
             AfterTupleComma,
             AsExpression,
             NewExpression,
@@ -5973,7 +5963,7 @@ done:
                     readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadOnlyReferences);
                 }
 
-                var type = ParseTypeCore(mode);
+                var type = ParseTypeCore(ParseTypeMode.AfterRef);
                 return _syntaxFactory.RefType(refKeyword, readonlyKeyword, type);
             }
 
@@ -6004,13 +5994,14 @@ done:
                 case ParseTypeMode.AsExpression:
                 case ParseTypeMode.Normal:
                 case ParseTypeMode.Parameter:
+                case ParseTypeMode.AfterRef:
                     nameOptions = NameOptions.None;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(mode);
             }
 
-            var type = this.ParseUnderlyingType(parentIsParameter: mode == ParseTypeMode.Parameter, options: nameOptions);
+            var type = this.ParseUnderlyingType(mode, options: nameOptions);
             Debug.Assert(type != null);
 
             int lastTokenPosition = -1;
@@ -6060,6 +6051,7 @@ done:
                             case ParseTypeMode.Normal:
                             case ParseTypeMode.Parameter:
                             case ParseTypeMode.AfterOut:
+                            case ParseTypeMode.AfterRef:
                             case ParseTypeMode.AsExpression:
                             case ParseTypeMode.NewExpression:
                                 type = this.ParsePointerTypeMods(type);
@@ -6296,7 +6288,7 @@ done:;
                 expected);
         }
 
-        private TypeSyntax ParseUnderlyingType(bool parentIsParameter, NameOptions options = NameOptions.None)
+        private TypeSyntax ParseUnderlyingType(ParseTypeMode mode, NameOptions options = NameOptions.None)
         {
             if (IsPredefinedType(this.CurrentToken.Kind))
             {
@@ -6304,24 +6296,29 @@ done:;
                 var token = this.EatToken();
                 if (token.Kind == SyntaxKind.VoidKeyword && this.CurrentToken.Kind != SyntaxKind.AsteriskToken)
                 {
-                    token = this.AddError(token, parentIsParameter ? ErrorCode.ERR_NoVoidParameter : ErrorCode.ERR_NoVoidHere);
+                    token = this.AddError(token, mode == ParseTypeMode.Parameter ? ErrorCode.ERR_NoVoidParameter : ErrorCode.ERR_NoVoidHere);
                 }
 
                 return _syntaxFactory.PredefinedType(token);
             }
-            else if (IsTrueIdentifier())
+
+            if (IsTrueIdentifier())
             {
                 return this.ParseQualifiedName(options);
             }
-            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+
+            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 return this.ParseTupleType();
             }
-            else
+
+            var name = this.CreateMissingIdentifierName();
+            if (mode != ParseTypeMode.NewExpression)
             {
-                var name = this.CreateMissingIdentifierName();
                 return this.AddError(name, ErrorCode.ERR_TypeExpected);
             }
+
+            return name;
         }
 
         private TypeSyntax ParsePointerTypeMods(TypeSyntax type)
@@ -6606,7 +6603,7 @@ done:;
             //      Task.
             //      await Task.Delay()
             //
-            // In this case we don't want to parse this as as a local declaration like:
+            // In this case we don't want to parse this as a local declaration like:
             //
             //      Task.await Task
             //
@@ -8889,6 +8886,7 @@ tryAgain:
                 case SyntaxKind.IdentifierName:
                 case SyntaxKind.ImplicitArrayCreationExpression:
                 case SyntaxKind.ImplicitStackAllocArrayCreationExpression:
+                case SyntaxKind.ImplicitObjectCreationExpression:
                 case SyntaxKind.InterpolatedStringExpression:
                 case SyntaxKind.InvocationExpression:
                 case SyntaxKind.NullLiteralExpression:
@@ -10532,43 +10530,83 @@ tryAgain:
         private ExpressionSyntax ParseArrayOrObjectCreationExpression()
         {
             SyntaxToken @new = this.EatToken(SyntaxKind.NewKeyword);
-            var type = this.ParseType(ParseTypeMode.NewExpression);
 
-            if (type.Kind == SyntaxKind.ArrayType)
+            TypeSyntax type = null;
+            InitializerExpressionSyntax initializer = null;
+
+            if (IsTargetTypedObjectCreation())
             {
-                // Check for an initializer.
-                InitializerExpressionSyntax initializer = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-                {
-                    initializer = this.ParseArrayInitializer();
-                }
-
-                return _syntaxFactory.ArrayCreationExpression(@new, (ArrayTypeSyntax)type, initializer);
+                @new = CheckFeatureAvailability(@new, MessageID.IDS_FeatureTargetTypedObjectCreation);
             }
             else
             {
-                ArgumentListSyntax argumentList = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+                type = this.ParseType(ParseTypeMode.NewExpression);
+                if (type.Kind == SyntaxKind.ArrayType)
                 {
-                    argumentList = this.ParseParenthesizedArgumentList();
-                }
+                    // Check for an initializer.
+                    if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+                    {
+                        initializer = this.ParseArrayInitializer();
+                    }
 
-                InitializerExpressionSyntax initializer = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+                    return _syntaxFactory.ArrayCreationExpression(@new, (ArrayTypeSyntax)type, initializer);
+                }
+            }
+
+            ArgumentListSyntax argumentList = null;
+            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            {
+                argumentList = this.ParseParenthesizedArgumentList();
+            }
+
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+            {
+                initializer = this.ParseObjectOrCollectionInitializer();
+            }
+
+            // we need one or the other
+            if (argumentList == null && initializer == null)
+            {
+                argumentList = _syntaxFactory.ArgumentList(
+                    this.EatToken(SyntaxKind.OpenParenToken, ErrorCode.ERR_BadNewExpr),
+                    default(SeparatedSyntaxList<ArgumentSyntax>),
+                    SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
+            }
+
+            return type is null
+                ? (ExpressionSyntax)_syntaxFactory.ImplicitObjectCreationExpression(@new, argumentList, initializer)
+                : (ExpressionSyntax)_syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
+        }
+
+        private bool IsTargetTypedObjectCreation()
+        {
+            // The caller is expected to have consumed the new keyword.
+            if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
+            {
+                return false;
+            }
+
+            var point = this.GetResetPoint();
+            try
+            {
+                this.EatToken(); // open paren
+                ScanTypeFlags scanTypeFlags = ScanTupleType(out _);
+                if (scanTypeFlags != ScanTypeFlags.NotType)
                 {
-                    initializer = this.ParseObjectOrCollectionInitializer();
+                    switch (this.CurrentToken.Kind)
+                    {
+                        case SyntaxKind.QuestionToken:    // e.g. `new(a, b)?()`
+                        case SyntaxKind.OpenBracketToken: // e.g. `new(a, b)[]`
+                        case SyntaxKind.OpenParenToken:   // e.g. `new(a, b)()` for better error recovery
+                            return false;
+                    }
                 }
-
-                // we need one or the other
-                if (argumentList == null && initializer == null)
-                {
-                    argumentList = _syntaxFactory.ArgumentList(
-                        this.EatToken(SyntaxKind.OpenParenToken, ErrorCode.ERR_BadNewExpr),
-                        default(SeparatedSyntaxList<ArgumentSyntax>),
-                        SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
-                }
-
-                return _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
+                return true;
+            }
+            finally
+            {
+                this.Reset(ref point);
+                this.Release(ref point);
             }
         }
 

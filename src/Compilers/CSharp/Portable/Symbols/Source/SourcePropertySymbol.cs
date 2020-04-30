@@ -192,9 +192,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     string fieldName = GeneratedNames.MakeBackingFieldName(_sourceName);
+                    bool isInitOnly = !IsStatic && setSyntax?.Keyword.IsKind(SyntaxKind.InitKeyword) == true;
                     BackingField = new SynthesizedBackingFieldSymbol(this,
                                                                           fieldName,
-                                                                          isGetterOnly,
+                                                                          isReadOnly: isGetterOnly || isInitOnly,
                                                                           this.IsStatic,
                                                                           hasInitializer);
                 }
@@ -456,6 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             break;
                         case SyntaxKind.SetAccessorDeclaration:
+                        case SyntaxKind.InitAccessorDeclaration:
                             if (setSyntax == null)
                             {
                                 setSyntax = accessor;
@@ -1090,6 +1092,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (!otherHasAccessor && thisHasAccessor)
             {
                 diagnostics.Add(ErrorCode.ERR_ExplicitPropertyAddingAccessor, thisAccessor.Locations[0], thisAccessor, explicitlyImplementedProperty);
+            }
+            else if (TypeSymbol.HaveInitOnlyMismatch(thisAccessor, otherAccessor))
+            {
+                Debug.Assert(thisAccessor.MethodKind == MethodKind.PropertySet);
+                diagnostics.Add(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, thisAccessor.Locations[0], thisAccessor, otherAccessor);
             }
         }
 

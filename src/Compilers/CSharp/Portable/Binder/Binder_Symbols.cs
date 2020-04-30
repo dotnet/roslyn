@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportUseSiteDiagnostics(constructedType.Type.OriginalDefinition, diagnostics, syntax);
                     var type = (NamedTypeSymbol)constructedType.Type;
                     var location = syntax.Location;
-                    type.CheckConstraints(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics);
+                    type.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics));
                 }
                 else if (constructedType.Type.IsTypeParameterDisallowingAnnotation())
                 {
@@ -1442,9 +1442,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type, DiagnosticBag diagnostics, SyntaxNode node)
         {
-            NamedTypeSymbol typeSymbol = this.Compilation.GetWellKnownType(type);
+            return GetWellKnownType(this.Compilation, type, diagnostics, node.Location);
+        }
+
+        /// <summary>
+        /// This is a layer on top of the Compilation version that generates a diagnostic if the well-known
+        /// type isn't found.
+        /// </summary>
+        internal static NamedTypeSymbol GetWellKnownType(CSharpCompilation compilation, WellKnownType type, DiagnosticBag diagnostics, Location location)
+        {
+            NamedTypeSymbol typeSymbol = compilation.GetWellKnownType(type);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
-            ReportUseSiteDiagnostics(typeSymbol, diagnostics, node);
+            ReportUseSiteDiagnostics(typeSymbol, diagnostics, location);
             return typeSymbol;
         }
 
@@ -1622,8 +1631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             //if names match, arities match, and containing symbols match (recursively), ...
-                            if (srcSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
-                                mdSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+                            if (NameAndArityMatchRecursively(srcSymbol, mdSymbol))
                             {
                                 if (srcSymbol.Kind == SymbolKind.Namespace && mdSymbol.Kind == SymbolKind.NamedType)
                                 {
@@ -1680,8 +1688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         //if names match, arities match, and containing symbols match (recursively), ...
                         if (first != second &&
-                            first.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
-                                second.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+                            NameAndArityMatchRecursively(first, second))
                         {
                             // suppress reporting the error if we found multiple symbols from source module
                             // since an error has already been reported from the declaration
