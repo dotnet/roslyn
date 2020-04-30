@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace IdeBenchmarks
 {
+    [GcServer(true)]
     public class FormatterBenchmarks
     {
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
