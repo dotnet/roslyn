@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public abstract Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken);
+        protected abstract Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken);
 
         public abstract bool IsRemoteHost64Bit { get; }
 
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public override string ClientId => nameof(NoOpClient);
             public override bool IsRemoteHost64Bit => false;
 
-            public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+            protected override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
                 => SpecializedTasks.Null<Connection>();
 
             protected override void OnStarted()

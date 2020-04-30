@@ -39,8 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 return null;
             }
 
-            var connection = await _client.TryCreateConnectionAsync(_serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (connection == null)
+            var keepAliveSession = await _client.TryCreateKeepAliveSessionAsync(_serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
+            if (keepAliveSession == null)
             {
                 return null;
             }
@@ -49,13 +49,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             try
             {
                 // transfer ownership of the connection to the session object:
-                session = await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
+                session = await SessionWithSolution.CreateAsync(keepAliveSession, solution, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
                 if (session == null)
                 {
-                    connection.Dispose();
+                    keepAliveSession.Dispose();
                 }
             }
 

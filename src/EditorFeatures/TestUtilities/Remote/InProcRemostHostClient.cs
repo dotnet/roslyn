@@ -98,7 +98,7 @@ namespace Roslyn.Test.Utilities.Remote
         public override string ClientId { get; }
         public override bool IsRemoteHost64Bit => IntPtr.Size == 8;
 
-        public override async Task<Connection?> TryCreateConnectionAsync(
+        protected override async Task<Connection?> TryCreateConnectionAsync(
             string serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate service specific information 
