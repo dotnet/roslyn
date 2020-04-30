@@ -7546,5 +7546,123 @@ class Program
     }
 }");
         }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestMissingReturnStatementInAsyncTaskMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    void M()
+    {
+        Func<int, Task> f = async x => await [|M2()|];
+    }
+
+    async Task M2()
+    {
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    void M()
+    {
+        Func<int, Task> f = async x =>
+        {
+            Task {|Rename:task|} = M2();
+            await task;
+        };
+    }
+
+    async Task M2()
+    {
+    }
+}");
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestMissingReturnStatementInAsyncValueTaskMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    void M()
+    {
+        Func<int, ValueTask> f = async x => await [|M2()|];
+    }
+
+    async ValueTask M2()
+    {
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    void M()
+    {
+        Func<int, ValueTask> f = async x =>
+        {
+            ValueTask {|Rename:task|} = M2();
+            await task;
+        };
+    }
+
+    async ValueTask M2()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestReturnStatementInAsyncTaskTypeMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    void M()
+    {
+        Func<int, Task<int>> f = async x => await [|M2()|];
+    }
+
+    async Task<int> M2()
+    {
+        return 0;
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    void M()
+    {
+        Func<int, Task<int>> f = async x =>
+        {
+            Task<int> {|Rename:task|} = M2();
+            return await task;
+        };
+    }
+
+    async Task<int> M2()
+    {
+        return 0;
+    }
+}");
+        }
     }
 }
