@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.InitAccessorDeclaration = 9061 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax.AddBodyAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.AddBlockAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
@@ -120,6 +121,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.YieldStatementSyntax.AddAttributeLists(para
 Microsoft.CodeAnalysis.CSharp.Syntax.YieldStatementSyntax.Update(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxToken yieldKeyword, Microsoft.CodeAnalysis.SyntaxToken returnOrBreakKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.YieldStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.YieldStatementSyntax.WithAttributeLists(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists) -> Microsoft.CodeAnalysis.CSharp.Syntax.YieldStatementSyntax
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DataKeyword = 8438 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.InitKeyword = 8440 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithExpression = 9060 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithKeyword = 8439 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitWithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode

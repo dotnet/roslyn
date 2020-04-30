@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     var propertySymbol = GetPropertySymbol((BasePropertyDeclarationSyntax)propertyOrEventDecl, resultBinder);
                                     if ((object)propertySymbol != null)
                                     {
-                                        accessor = (parent.Kind() == SyntaxKind.SetAccessorDeclaration) ? propertySymbol.SetMethod : propertySymbol.GetMethod;
+                                        accessor = (parent.Kind() == SyntaxKind.GetAccessorDeclaration) ? propertySymbol.GetMethod : propertySymbol.SetMethod;
                                     }
                                     break;
                                 }

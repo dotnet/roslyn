@@ -47,6 +47,11 @@
         <target state="translated">Non è consentito usare il tipo riferimento nullable '{0}?' in un'espressione as. Usare il tipo sottostante '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AssignmentInitOnly">
+        <source>Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</source>
+        <target state="new">Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
         <target state="translated">L'attributo '{0}' non è valido nelle funzioni di accesso a eventi. È valido solo nelle dichiarazioni di '{1}'.</target>
@@ -75,6 +80,11 @@
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">Non è possibile usare una raccolta di tipo dinamico in un'istruzione foreach asincrona</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadInitAccessor">
+        <source>The 'init' accessor is not valid on static members</source>
+        <target state="new">The 'init' accessor is not valid on static members</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
@@ -107,9 +117,19 @@
         <target state="translated">Errore di sintassi della riga di comando: '{0}' non è un valore valido per l'opzione '{1}'. Il valore deve essere espresso nel formato '{2}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CantChangeInitOnlyOnOverride">
+        <source>'{0}' must match by init-only of overridden member '{1}'</source>
+        <target state="new">'{0}' must match by init-only of overridden member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist non può contenere un argomento passato da 'in' o 'out'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -180,6 +200,11 @@
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">L'applicazione esplicita di 'System.Runtime.CompilerServices.NullableAttribute' non è consentita.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
+        <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
+        <target state="new">Accessors '{0}' and '{1}' should both be init-only or neither</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
@@ -937,6 +962,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">indicizzazione di buffer fissi mobili</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInitOnlySetters">
+        <source>init-only setters</source>
+        <target state="new">init-only setters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLocalFunctionAttributes">
@@ -6178,8 +6208,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">Non è possibile effettuare un'assegnazione a un campo di sola lettura, tranne che in un costruttore della classe in cui è definito il campo o in un inizializzatore di variabile</target>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
+        <target state="needs-review-translation">Non è possibile effettuare un'assegnazione a un campo di sola lettura, tranne che in un costruttore della classe in cui è definito il campo o in un inizializzatore di variabile</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
