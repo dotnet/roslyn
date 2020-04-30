@@ -499,7 +499,7 @@ struct MyStruct2
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43828"), Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task NestedStructDeclaration_SingleReadonlyField_ThisAssigmentInMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(
