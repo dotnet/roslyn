@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         internal RemoteHostClient UnderlyingObject { get; }
 
-        public async Task<UnitTestingKeepAliveSessionWrapper> TryCreateUnitTestingKeepAliveSessionWrapperAsync(string serviceName, CancellationToken cancellationToken)
+        public async Task<UnitTestingKeepAliveSessionWrapper> TryCreateUnitTestingKeepAliveSessionWrapperAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
-            var keepAliveSession = await UnderlyingObject.TryCreateKeepAliveSessionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
+            var keepAliveSession = await UnderlyingObject.TryCreateKeepAliveSessionAsync(serviceName, callbackTarget: callbackTarget, cancellationToken).ConfigureAwait(false);
             return new UnitTestingKeepAliveSessionWrapper(keepAliveSession);
         }
 

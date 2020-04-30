@@ -7,13 +7,13 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal readonly struct UnitTestingAssetStorageWrappper
+    internal readonly struct UnitTestingAssetStorageWrapper
     {
-        public static UnitTestingAssetStorageWrappper Instance { get; } = new UnitTestingAssetStorageWrappper(AssetStorage.Default);
+        public static UnitTestingAssetStorageWrapper Instance { get; } = new UnitTestingAssetStorageWrapper(AssetStorage.Default);
 
         internal AssetStorage UnderlyingObject { get; }
 
-        internal UnitTestingAssetStorageWrappper(AssetStorage underlyingObject)
+        internal UnitTestingAssetStorageWrapper(AssetStorage underlyingObject)
             => UnderlyingObject = underlyingObject ?? throw new ArgumentNullException(nameof(underlyingObject));
 
         public void UpdateLastActivityTime()
