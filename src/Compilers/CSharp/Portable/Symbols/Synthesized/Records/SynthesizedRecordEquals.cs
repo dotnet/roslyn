@@ -145,7 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var fields = ArrayBuilder<FieldSymbol>.GetInstance();
             foreach (var f in ContainingType.GetFieldsToEmit())
             {
-                fields.Add(f);
+                if (!f.IsStatic)
+                {
+                    fields.Add(f);
+                }
             }
             if (fields.Count > 0)
             {
