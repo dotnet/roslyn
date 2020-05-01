@@ -6106,4 +6106,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RelationalPatternWithNaN" xml:space="preserve">
     <value>Relational patterns may not be used for a floating-point NaN.</value>
   </data>
+  <data name="WRN_MultipleGlobalAnalyzerKeys" xml:space="preserve">
+    <value>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</value>
+  </data>
+  <data name="WRN_MultipleGlobalAnalyzerKeys_Title" xml:space="preserve">
+    <value>Multiple global analyzer config files set the same key. It has been unset.</value>
+  </data>
 </root>

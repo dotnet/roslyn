@@ -133,6 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override int ERR_FailedToCreateTempFile => (int)ErrorCode.ERR_CantMakeTempFile;
         public override int ERR_MultipleAnalyzerConfigsInSameDir => (int)ErrorCode.ERR_MultipleAnalyzerConfigsInSameDir;
+        public override int WRN_MultipleGlobalAnalyzerKeys => (int)ErrorCode.WRN_MultipleGlobalAnalyzerKeys;
 
         // command line:
         public override int ERR_ExpectedSingleScript => (int)ErrorCode.ERR_ExpectedSingleScript;

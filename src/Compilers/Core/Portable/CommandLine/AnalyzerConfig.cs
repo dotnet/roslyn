@@ -76,18 +76,31 @@ namespace Microsoft.CodeAnalysis
         internal ImmutableArray<Section> NamedSections { get; }
 
         /// <summary>
+        /// Gets the concatenation of the <see cref="GlobalSection" /> and <see cref="NamedSections" />
+        /// </summary>
+        internal ImmutableArray<Section> AllSections { get; }
+
+        /// <summary>
         /// Gets whether this editorconfig is a topmost editorconfig.
         /// </summary>
         internal bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
 
-        private AnalyzerConfig(
+        /// <summary>
+        /// Gets whether this editorconfig is a global editorconfig
+        /// </summary>
+        internal bool IsGlobal { get; }
+
+        internal AnalyzerConfig(
             Section globalSection,
             ImmutableArray<Section> namedSections,
-            string pathToFile)
+            string pathToFile,
+            bool isGlobal)
         {
             GlobalSection = globalSection;
             NamedSections = namedSections;
+            AllSections = NamedSections.Insert(0, globalSection);
             PathToFile = pathToFile;
+            IsGlobal = isGlobal;
 
             // Find the containing directory and normalize the path separators
             string directory = Path.GetDirectoryName(pathToFile) ?? pathToFile;
@@ -179,7 +192,7 @@ namespace Microsoft.CodeAnalysis
             // Add the last section
             addNewSection();
 
-            return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile);
+            return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile, isGlobal: false);
 
             void addNewSection()
             {

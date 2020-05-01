@@ -53,6 +53,14 @@ namespace Roslyn.Test.Utilities
 
         public override int ERR_MultipleAnalyzerConfigsInSameDir => throw new NotImplementedException();
 
+        public override int WRN_MultipleGlobalAnalyzerKeys
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public override int ERR_ExpectedSingleScript
         {
             get { throw new NotImplementedException(); }

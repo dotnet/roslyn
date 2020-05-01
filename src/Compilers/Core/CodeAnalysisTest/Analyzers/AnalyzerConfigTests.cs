@@ -1471,5 +1471,318 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
         }
 
         #endregion
+
+        #region Processing of Global configs
+
+        [Fact]
+        public void IsReportedAsGlobal()
+        {
+            var config = Parse(@"is_global = true ", "/.editorconfig");
+            var configs = GlobalAnalyzerConfigBuilder.FilterGlobalConfigs(new[] { config }, out _);
+
+            Assert.True(configs.Single().IsGlobal);
+        }
+
+        [Fact]
+        public void IsNotGlobalIfInSection()
+        {
+            var config = Parse(@"
+[*.cs]
+is_global = true ", "/.editorconfig");
+            var configs = GlobalAnalyzerConfigBuilder.FilterGlobalConfigs(new[] { config }, out _);
+
+            Assert.False(configs.Single().IsGlobal);
+        }
+
+        [Fact]
+        public void FilterReturnsSingleGlobalConfig()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = value1", "/.globalconfig1"));
+
+            configs.Add(Parse(@"option2 = value2", "/.editorconfig1"));
+            configs.Add(Parse(@"option3 = value3", "/.editorconfig2"));
+
+            var filteredSet = GlobalAnalyzerConfigBuilder.FilterGlobalConfigs(configs, out var unsetKeys);
+            var globalConfig = filteredSet.Single(ac => ac.IsGlobal);
+
+            Assert.Empty(unsetKeys);
+            Assert.Equal(3, filteredSet.Length);
+            Assert.True(globalConfig.IsGlobal);
+            Assert.Equal("value1", globalConfig.GlobalSection.Properties["option1"]);
+        }
+
+        [Fact]
+        public void FilterReturnsSingleCombinedGlobalConfig()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = value1", "/.globalconfig1"));
+
+            configs.Add(Parse(@"is_global = true
+option2 = value2", "/.globalconfig2"));
+
+            configs.Add(Parse(@"option3 = value3", "/.editorconfig1"));
+            configs.Add(Parse(@"option4 = value4", "/.editorconfig2"));
+
+            var filteredSet = GlobalAnalyzerConfigBuilder.FilterGlobalConfigs(configs, out var unsetKeys);
+            var globalConfig = filteredSet.Single(ac => ac.IsGlobal);
+
+            Assert.Empty(unsetKeys);
+            Assert.Equal(3, filteredSet.Length);
+            Assert.True(globalConfig.IsGlobal);
+            Assert.Equal("value1", globalConfig.GlobalSection.Properties["option1"]);
+            Assert.Equal("value2", globalConfig.GlobalSection.Properties["option2"]);
+        }
+
+        [Fact]
+        public void FilterCombinesSections()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = value1
+
+[c:\path\to\file1.cs]
+option1 = value1
+
+[c:\path\to\file2.cs]
+option1 = value1
+", "/.globalconfig1"));
+
+            configs.Add(Parse(@"is_global = true
+option2 = value2
+
+[c:\path\to\file1.cs]
+option2 = value2
+
+[c:\path\to\file3.cs]
+option1 = value1",
+"/.globalconfig2"));
+
+            var filteredSet = GlobalAnalyzerConfigBuilder.FilterGlobalConfigs(configs, out var unsetKeys);
+            var globalConfig = filteredSet.Single();
+
+            Assert.Empty(unsetKeys);
+            Assert.Equal(1, filteredSet.Length);
+            Assert.True(globalConfig.IsGlobal);
+            Assert.Equal("value1", globalConfig.GlobalSection.Properties["option1"]);
+            Assert.Equal("value2", globalConfig.GlobalSection.Properties["option2"]);
+
+            var file1Section = globalConfig.NamedSections[0];
+            var file2Section = globalConfig.NamedSections[1];
+            var file3Section = globalConfig.NamedSections[2];
+
+            Assert.Equal(@"c:\path\to\file1.cs", file1Section.Name);
+            Assert.Equal(2, file1Section.Properties.Count);
+            Assert.Equal("value1", file1Section.Properties["option1"]);
+            Assert.Equal("value2", file1Section.Properties["option2"]);
+
+            Assert.Equal(@"c:\path\to\file2.cs", file2Section.Name);
+            Assert.Equal(1, file2Section.Properties.Count);
+            Assert.Equal("value1", file2Section.Properties["option1"]);
+
+            Assert.Equal(@"c:\path\to\file3.cs", file3Section.Name);
+            Assert.Equal(1, file3Section.Properties.Count);
+            Assert.Equal("value1", file3Section.Properties["option1"]);
+        }
+
+        [Fact]
+        public void DuplicateOptionsInGlobalConfigsAreUnset()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = value1", "/.globalconfig1"));
+
+            configs.Add(Parse(@"is_global = true
+option1 = value2", "/.globalconfig2"));
+
+            var filteredSet = AnalyzerConfigSet.Create(configs, out var unsetKeys);
+
+            Assert.Equal(1, unsetKeys.Length);
+            Assert.Equal("option1", unsetKeys[0].KeyName);
+            Assert.True(unsetKeys[0].IsGlobalSection);
+
+            Assert.Collection(unsetKeys[0].ConfigPaths,
+                                (s) => Assert.Equal("/.globalconfig1", s),
+                                (s) => Assert.Equal("/.globalconfig2", s));
+        }
+
+        [Fact]
+        public void DuplicateOptionsInGlobalConfigsSectionsAreUnset()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+[c:\path\to\file1.cs]
+option1 = value1
+", "/.globalconfig1"));
+
+            configs.Add(Parse(@"is_global = true
+[c:\path\to\file1.cs]
+option1 = value2",
+"/.globalconfig2"));
+
+            var filteredSet = AnalyzerConfigSet.Create(configs.ToImmutableAndFree(), out var unsetKeys);
+
+            Assert.Equal(1, unsetKeys.Length);
+            Assert.Equal("option1", unsetKeys[0].KeyName);
+            Assert.False(unsetKeys[0].IsGlobalSection);
+            Assert.Equal(@"c:\path\to\file1.cs", unsetKeys[0].SectionName);
+
+            Assert.Collection(unsetKeys[0].ConfigPaths,
+                                (s) => Assert.Equal("/.globalconfig1", s),
+                                (s) => Assert.Equal("/.globalconfig2", s));
+        }
+
+        [Fact]
+        public void DuplicateGlobalOptionsInNonGlobalConfigsAreKept()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = value1", "/.globalconfig1"));
+
+            configs.Add(Parse(@"
+option1 = value2", "/.globalconfig2"));
+
+            var filteredSet = AnalyzerConfigSet.Create(configs.ToImmutableAndFree(), out var unsetKeys);
+            Assert.Empty(unsetKeys);
+        }
+
+        [Fact]
+        public void DuplicateSectionOptionsInNonGlobalConfigsAreKept()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+[c:\path\to\file1.cs]
+option1 = value1
+", "/.globalconfig1"));
+
+            configs.Add(Parse(@"
+[c:\path\to\file1.cs]
+option1 = value2",
+"/.globalconfig2"));
+
+            var configSet = AnalyzerConfigSet.Create(configs.ToImmutableAndFree(), out var unsetKeys);
+            Assert.Empty(unsetKeys);
+        }
+
+        [Fact]
+        public void GlobalConfigsPropertiesAreGlobal()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = value1
+", "/.globalconfig1"));
+
+            var options = GetAnalyzerConfigOptions(
+     new[] { "/file1.cs", "/path/to/file1.cs", "c:/path/to/file1.cs", "/file1.vb" },
+     configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+              new[]
+              {
+                    new[] { ("option1", "value1") },
+                    new[] { ("option1", "value1") },
+                    new[] { ("option1", "value1") },
+                    new[] { ("option1", "value1") }
+              },
+              options);
+        }
+
+        [Fact]
+        public void GlobalConfigsSectionsMustBeFullPath()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+[c:/path/to/file1.cs]
+option1 = value1
+
+[*.cs]
+option2 = value2
+
+[.*/path/*.cs]
+option3 = value3
+
+[c:/.*/*.cs]
+option4 = value4
+", "/.globalconfig1"));
+
+            var options = GetAnalyzerConfigOptions(
+     new[] { "/file1.cs", "/path/to/file1.cs", "c:/path/to/file1.cs", "/file1.vb" },
+     configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+              new[]
+              {
+                    new (string, string)[] { },
+                    new (string, string)[] { },
+                    new (string, string)[]
+                    {
+                        ("option1", "value1")
+                    },
+                    new (string, string)[] { }
+              },
+              options);
+        }
+
+        [Fact]
+        public void GlobalConfigsSectionsAreOverriddenByNonGlobal()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = global
+
+[c:/path/to/file1.cs]
+option2 = global
+option3 = global
+", "/.globalconfig1"));
+
+            configs.Add(Parse(@"
+[*.cs]
+option2 = config1
+", "c:/.editorconfig"));
+
+            configs.Add(Parse(@"
+[*.cs]
+option3 = config2
+", "c:/path/.editorconfig"));
+
+            configs.Add(Parse(@"
+[*.cs]
+option2 = config3
+", "c:/path/to/.editorconfig"));
+
+
+            var options = GetAnalyzerConfigOptions(
+     new[] { "c:/path/to/file1.cs", "c:/path/file1.cs", "c:/file1.cs" },
+     configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+              new[]
+              {
+                    new []
+                    {
+                        ("option1", "global"),
+                        ("option2", "config3"), // overridden by config3
+                        ("option3", "config2")  // overridden by config2
+                    },
+                    new []
+                    {
+                        ("option1", "global"),
+                        ("option2", "config1"),
+                        ("option3", "config2")
+                    },
+                    new []
+                    {
+                        ("option1", "global"),
+                        ("option2", "config1")
+                    }
+              },
+              options);
+        }
+        #endregion
     }
 }

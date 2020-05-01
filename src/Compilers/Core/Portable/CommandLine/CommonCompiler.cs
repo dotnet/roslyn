@@ -299,18 +299,20 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var directory = Path.GetDirectoryName(normalizedPath) ?? normalizedPath;
-
-                if (processedDirs.Contains(directory))
-                {
-                    diagnostics.Add(Diagnostic.Create(
-                        MessageProvider,
-                        MessageProvider.ERR_MultipleAnalyzerConfigsInSameDir,
-                        directory));
-                    break;
-                }
-                processedDirs.Add(directory);
-
                 var editorConfig = AnalyzerConfig.Parse(fileContent, normalizedPath);
+
+                if (!GlobalAnalyzerConfigBuilder.IsGlobalConfig(editorConfig))
+                {
+                    if (processedDirs.Contains(directory))
+                    {
+                        diagnostics.Add(Diagnostic.Create(
+                            MessageProvider,
+                            MessageProvider.ERR_MultipleAnalyzerConfigsInSameDir,
+                            directory));
+                        break;
+                    }
+                    processedDirs.Add(directory);
+                }
                 configs.Add(editorConfig);
             }
 
@@ -323,7 +325,16 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            analyzerConfigSet = AnalyzerConfigSet.Create(configs);
+            analyzerConfigSet = AnalyzerConfigSet.Create(configs, out var unsetGlobalKeys);
+            foreach (var unsetKey in unsetGlobalKeys)
+            {
+                diagnostics.Add(Diagnostic.Create(
+                            MessageProvider,
+                            MessageProvider.WRN_MultipleGlobalAnalyzerKeys,
+                            unsetKey.KeyName,
+                            unsetKey.SectionName,
+                            string.Join(", ", unsetKey.ConfigPaths)));
+            }
             return true;
         }
 
