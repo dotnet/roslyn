@@ -68,7 +68,7 @@
     <ExpectedDependency Include="System.Threading.Tasks.Extensions" />
   </ItemGroup>
 
-  <Target Name="_CalculateDependenciesToInsert" DependsOnTargets="ResolveAssemblyReferences">
+  <Target Name="_CalculateDependenciesToInsert" DependsOnTargets="ResolveAssemblyReferences;GetAssemblyVersion">
     <ItemGroup>
       <!-- Take all resolved non-framework dependencies of this project that originate from a NuGet package -->
       <_Dependency Include="@(ReferencePath->'%(NuGetPackageId)')" 
@@ -108,6 +108,7 @@
       <_AssemblyVersionVariable Include="RoslynLanguageServerProtocol" Condition="'%(_Dependency.Identity)' == 'Microsoft.VisualStudio.LanguageServer.Protocol'">
         <Version>%(_Dependency._AssemblyVersion)</Version>
       </_AssemblyVersionVariable>
+      <_AssemblyVersionVariable  Include="Roslyn" Version="$(AssemblyVersion)"/>
     </ItemGroup>
 
     <!--     
@@ -234,8 +235,6 @@
 
     <MakeDir Directories="$(VisualStudioBuildPackagesDir)"/>
     <WriteLinesToFile Lines="@(_AssemblyVersionVariable->'%(Identity),%(Version)')" File="$(_DependentAssemblyVersionsFile)" Overwrite="true"/>
-    <!-- This must be done inside the target so that the AssemblyVersion variable is present -->
-    <WriteLinesToFile Lines="Roslyn,$(AssemblyVersion)" File="$(_DependentAssemblyVersionsFile)" Overwrite="false" />
     <ItemGroup>
       <FileWrites Include="$(_DependentAssemblyVersionsFile)"/>
     </ItemGroup>
