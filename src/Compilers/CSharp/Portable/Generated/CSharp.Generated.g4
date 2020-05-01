@@ -243,7 +243,7 @@ accessor_list
   ;
 
 accessor_declaration
-  : attribute_list* modifier* ('get' | 'set' | 'add' | 'remove' | identifier_token) (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* ('get' | 'set' | 'init' | 'add' | 'remove' | identifier_token) (block | (arrow_expression_clause ';'))
   ;
 
 indexer_declaration

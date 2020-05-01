@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.CompilationUnit:
