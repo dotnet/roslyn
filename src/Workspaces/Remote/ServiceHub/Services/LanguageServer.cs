@@ -48,7 +48,12 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 Capabilities = new VSServerCapabilities()
                 {
-                    WorkspaceStreamingSymbolProvider = true
+                    WorkspaceStreamingSymbolProvider = true,
+                    TextDocumentSync = new TextDocumentSyncOptions
+                    {
+                        OpenClose = false,
+                        Change = TextDocumentSyncKind.None
+                    }
                 }
             });
         }
