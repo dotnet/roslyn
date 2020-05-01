@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// user can create a connection to communicate with the server (remote host) through this client
     /// </summary>
-    internal abstract partial class RemoteHostClient : IDisposable
+    internal abstract class RemoteHostClient : IDisposable
     {
         public readonly Workspace Workspace;
         public event EventHandler<bool>? StatusChanged;

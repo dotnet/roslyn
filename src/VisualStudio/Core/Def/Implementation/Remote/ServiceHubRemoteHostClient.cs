@@ -35,7 +35,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         }
 
         private readonly RemoteEndPoint _endPoint;
-        private readonly ConnectionManager _connectionManager;
+        private readonly HubClient _hubClient;
+        private readonly HostGroup _hostGroup;
+
+        private readonly ConnectionPool? _connectionPool;
         private readonly CancellationTokenSource _shutdownCancellationTokenSource;
 
         /// <summary>
@@ -50,16 +53,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private ServiceHubRemoteHostClient(
             Workspace workspace,
-            TraceSource logger,
-            ConnectionManager connectionManager,
+            HubClient hubClient,
+            HostGroup hostGroup,
             Stream stream)
             : base(workspace)
         {
             _shutdownCancellationTokenSource = new CancellationTokenSource();
 
-            _connectionManager = connectionManager;
+            if (workspace.Options.GetOption(RemoteHostOptions.EnableConnectionPool))
+            {
+                int maxPoolConnection = workspace.Options.GetOption(RemoteHostOptions.MaxPoolConnection);
 
-            _endPoint = new RemoteEndPoint(stream, logger, incomingCallTarget: this);
+                _connectionPool = new ConnectionPool(
+                    connectionFactory: (serviceName, cancellationToken) => CreateConnectionAsync(serviceName, callbackTarget: null, cancellationToken),
+                    maxPoolConnection);
+            }
+
+            _hubClient = hubClient;
+            _hostGroup = hostGroup;
+
+            _endPoint = new RemoteEndPoint(stream, hubClient.Logger, incomingCallTarget: this);
             _endPoint.Disconnected += OnDisconnected;
             _endPoint.UnexpectedExceptionThrown += OnUnexpectedExceptionThrown;
             _endPoint.StartListening();
@@ -72,9 +85,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
             {
-                var enableConnectionPool = workspace.Options.GetOption(RemoteHostOptions.EnableConnectionPool);
-                var maxConnection = workspace.Options.GetOption(RemoteHostOptions.MaxPoolConnection);
-
                 // let each client to have unique id so that we can distinguish different clients when service is restarted
                 var clientId = CreateClientId(Process.GetCurrentProcess().Id.ToString());
 
@@ -85,9 +95,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 WatsonReporter.InitializeLogger(hubClient.Logger);
 
                 var remoteHostStream = await RequestServiceAsync(workspace, hubClient, WellKnownRemoteHostServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
-                var connectionManager = new ConnectionManager(workspace, hubClient, hostGroup, enableConnectionPool, maxConnection);
 
-                var client = new ServiceHubRemoteHostClient(workspace, hubClient.Logger, connectionManager, remoteHostStream);
+                var client = new ServiceHubRemoteHostClient(workspace, hubClient, hostGroup, remoteHostStream);
 
                 var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
                 var cultureLCID = CultureInfo.CurrentCulture.LCID;
@@ -157,11 +166,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
-        public override string ClientId => _connectionManager.HostGroup.Id;
+        public HostGroup HostGroup => _hostGroup;
+
+        public override string ClientId => _hostGroup.Id;
         public override bool IsRemoteHost64Bit => RemoteHostOptions.IsServiceHubProcess64Bit(Workspace);
 
         protected override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
-            => _connectionManager.CreateConnectionAsync(serviceName, callbackTarget, cancellationToken).AsNullable();
+        {
+            // When callbackTarget is given, we can't share/pool connection since callbackTarget attaches a state to connection.
+            // so connection is only valid for that specific callbackTarget. it is up to the caller to keep connection open
+            // if he wants to reuse same connection.
+
+            if (callbackTarget != null && _connectionPool != null)
+            {
+                return _connectionPool.GetOrCreateConnectionAsync(serviceName, cancellationToken).AsNullable();
+            }
+
+            return CreateConnectionAsync(serviceName, callbackTarget, cancellationToken).AsNullable();
+        }
+
+        private async Task<Connection> CreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+        {
+            var serviceStream = await RequestServiceAsync(Workspace, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
+            return new JsonRpcConnection(Workspace, _hubClient.Logger, callbackTarget, serviceStream);
+        }
 
         protected override void OnStarted()
             => RegisterGlobalOperationNotifications();
@@ -182,19 +210,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _endPoint.UnexpectedExceptionThrown -= OnUnexpectedExceptionThrown;
             _endPoint.Dispose();
 
-            _connectionManager.Dispose();
+            _connectionPool?.Dispose();
+            _hubClient.Dispose();
 
             base.Dispose();
         }
 
-        public HostGroup HostGroup
-        {
-            get
-            {
-                Debug.Assert(_connectionManager.HostGroup.Id == ClientId);
-                return _connectionManager.HostGroup;
-            }
-        }
+        private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
+            => Dispose();
 
         #region Global Operation Notifications
 
@@ -328,8 +351,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         }
 
         #endregion
-
-        private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
-            => Dispose();
     }
 }
