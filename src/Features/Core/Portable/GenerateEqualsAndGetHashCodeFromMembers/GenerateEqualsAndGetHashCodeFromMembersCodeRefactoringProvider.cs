@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         private const string EqualsName = nameof(object.Equals);
         private const string GetHashCodeName = nameof(object.GetHashCode);
 
-        private readonly IPickMembersService _pickMembersService_forTestingPurposes;
+        private readonly IPickMembersService? _pickMembersService_forTestingPurposes;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         }
 
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService)
+        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService? pickMembersService)
             => _pickMembersService_forTestingPurposes = pickMembersService;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -69,9 +71,9 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         {
             var (document, textSpan, cancellationToken) = context;
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
@@ -134,13 +136,13 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private bool CanImplementIEquatable(
             SemanticModel semanticModel, INamedTypeSymbol containingType,
-            [NotNullWhen(true)] out INamedTypeSymbol constructedType)
+            [NotNullWhen(true)] out INamedTypeSymbol? constructedType)
         {
             // A ref struct can never implement an interface, therefore never add IEquatable to the selection
             // options if the type is a ref struct.
             if (!containingType.IsRefLikeType)
             {
-                var equatableTypeOpt = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
+                var equatableTypeOpt = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName!);
                 if (equatableTypeOpt != null)
                 {
                     constructedType = equatableTypeOpt.Construct(containingType);
@@ -182,8 +184,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                         GetExistingMemberInfo(
                             info.ContainingType, out var hasEquals, out var hasGetHashCode);
 
-                        var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                         var typeDeclaration = syntaxFacts.GetContainingTypeDeclaration(root, textSpan.Start);
 
                         return await CreateActionsAsync(
@@ -248,15 +250,12 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
             bool generateEquals, bool generateGetHashCode, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<PickMembersOption>.GetInstance(out var pickMembersOptions);
 
-            var canImplementIEquatable = CanImplementIEquatable(semanticModel, containingType, out var equatableTypeOpt);
-            var hasExistingOperators = HasOperators(containingType);
-
-            if (canImplementIEquatable)
+            if (CanImplementIEquatable(semanticModel, containingType, out var equatableTypeOpt))
             {
                 var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable);
 
@@ -270,7 +269,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     value));
             }
 
-            if (!hasExistingOperators)
+            if (!HasOperators(containingType))
             {
                 var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators);
                 pickMembersOptions.Add(new PickMembersOption(
@@ -295,7 +294,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             {
                 // if we're generating equals for a struct, then also add IEquatable<S> support as
                 // well as operators (as long as the struct does not already have them).
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 implementIEquatable = CanImplementIEquatable(semanticModel, containingType, out _);
                 generateOperators = !HasOperators(containingType);
             }
