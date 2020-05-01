@@ -125,14 +125,15 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             Contract.ThrowIfNull(solution);
             Contract.ThrowIfNull(symbol);
-            Contract.ThrowIfNull(solution.GetOriginatingProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
             {
+                var project = solution.GetOriginatingProject(symbol);
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
+                if (client != null &&
+                    project != null)
                 {
                     var result = await client.TryRunRemoteAsync<SerializableRenameLocations>(
                         WellKnownServiceHubServices.CodeAnalysisService,
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Rename
                         solution,
                         new object[]
                         {
-                            SerializableSymbolAndProjectId.Dehydrate(solution, symbol, cancellationToken),
+                            SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken),
                             SerializableRenameOptionSet.Dehydrate(optionSet),
                         },
                         callbackTarget: null,

@@ -53,16 +53,18 @@ namespace Microsoft.CodeAnalysis.Remote
         public static SerializableSymbolAndProjectId Dehydrate(
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var symbolKey = symbol.GetSymbolKey(cancellationToken);
-            var projectId = solution.GetOriginatingProjectId(symbol);
-            Contract.ThrowIfNull(projectId, WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
+            var project = solution.GetOriginatingProject(symbol);
+            Contract.ThrowIfNull(project, WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
 
-            return new SerializableSymbolAndProjectId
-            {
-                SymbolKeyData = symbolKey.ToString(),
-                ProjectId = projectId,
-            };
+            return Create(symbol, project, cancellationToken);
         }
+
+        public static SerializableSymbolAndProjectId Create(ISymbol symbol, Project project, CancellationToken cancellationToken)
+            => new SerializableSymbolAndProjectId
+            {
+                SymbolKeyData = symbol.GetSymbolKey(cancellationToken).ToString(),
+                ProjectId = project.Id,
+            };
 
         public async Task<ISymbol> TryRehydrateAsync(
             Solution solution, CancellationToken cancellationToken)

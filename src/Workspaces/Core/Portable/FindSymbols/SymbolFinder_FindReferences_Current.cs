@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(solution.GetOriginatingProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
-
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
+                var project = solution.GetOriginatingProject(symbol);
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
+                if (client != null &&
+                    project != null)
                 {
                     // Create a callback that we can pass to the server process to hear about the 
                     // results as it finds them.  When we hear about results we'll forward them to
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         solution,
                         new object[]
                         {
-                            SerializableSymbolAndProjectId.Dehydrate(solution, symbol, cancellationToken),
+                            SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken),
                             documents?.Select(d => d.Id).ToArray(),
                             SerializableFindReferencesSearchOptions.Dehydrate(options),
                         },

@@ -24,9 +24,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindOverridesAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
-
             return await FindOverridesArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
         }
 
@@ -86,9 +83,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindImplementedInterfaceMembersAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
-
             return await FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
         }
 
@@ -210,9 +204,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (solution == null)
                 throw new ArgumentNullException(nameof(solution));
 
-            if (solution.GetOriginatingProjectId(type) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
-
             return await FindDerivedClassesArrayAsync(type, solution, transitive, projects, cancellationToken).ConfigureAwait(false);
         }
 
@@ -263,9 +254,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (solution == null)
                 throw new ArgumentNullException(nameof(solution));
 
-            if (solution.GetOriginatingProjectId(type) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
-
             return await FindDerivedInterfacesArrayAsync(type, solution, transitive, projects, cancellationToken).ConfigureAwait(false);
         }
 
@@ -314,9 +302,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (solution == null)
                 throw new ArgumentNullException(nameof(solution));
-
-            if (solution.GetOriginatingProjectId(type) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
 
             return await FindImplementationsArrayAsync(type, solution, transitive, projects, cancellationToken).ConfigureAwait(false);
         }
