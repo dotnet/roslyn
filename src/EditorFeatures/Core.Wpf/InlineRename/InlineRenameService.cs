@@ -97,12 +97,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             static InlineRenameSessionInfo? IsReadOnlyOrCannotNavigateToSpan(IInlineRenameInfo renameInfo, Document document, CancellationToken cancellationToken)
             {
-                if (renameInfo is IInlineRenameInfo inlineRenameInfo && inlineRenameInfo.DefinitionLocations != default)
+                if (renameInfo is IInlineRenameInfoWithFileRename renameInfoWithFileRename)
                 {
                     var workspace = document.Project.Solution.Workspace;
                     var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-
-                    foreach (var documentSpan in inlineRenameInfo.DefinitionLocations)
+                    foreach (var documentSpan in renameInfoWithFileRename.DefinitionLocations)
                     {
                         var sourceText = documentSpan.Document.GetTextSynchronously(cancellationToken);
                         var textSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();

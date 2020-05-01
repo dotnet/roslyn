@@ -351,6 +351,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: MaybeNull]
         public virtual TResult VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a ParenthesizedPatternSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitParenthesizedPattern(ParenthesizedPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a RelationalPatternSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitRelationalPattern(RelationalPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a TypePatternSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitTypePattern(TypePatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a BinaryPatternSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitBinaryPattern(BinaryPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a UnaryPatternSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitUnaryPattern(UnaryPatternSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a InterpolatedStringTextSyntax node.</summary>
         [return: MaybeNull]
         public virtual TResult VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
@@ -1134,6 +1154,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a ConstantPatternSyntax node.</summary>
         public virtual void VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a ParenthesizedPatternSyntax node.</summary>
+        public virtual void VisitParenthesizedPattern(ParenthesizedPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a RelationalPatternSyntax node.</summary>
+        public virtual void VisitRelationalPattern(RelationalPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a TypePatternSyntax node.</summary>
+        public virtual void VisitTypePattern(TypePatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a BinaryPatternSyntax node.</summary>
+        public virtual void VisitBinaryPattern(BinaryPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a UnaryPatternSyntax node.</summary>
+        public virtual void VisitUnaryPattern(UnaryPatternSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a InterpolatedStringTextSyntax node.</summary>
         public virtual void VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
 
@@ -1784,6 +1819,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode? VisitConstantPattern(ConstantPatternSyntax node)
             => node.Update((ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
+
+        public override SyntaxNode? VisitParenthesizedPattern(ParenthesizedPatternSyntax node)
+            => node.Update(VisitToken(node.OpenParenToken), (PatternSyntax?)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"), VisitToken(node.CloseParenToken));
+
+        public override SyntaxNode? VisitRelationalPattern(RelationalPatternSyntax node)
+            => node.Update(VisitToken(node.OperatorToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
+
+        public override SyntaxNode? VisitTypePattern(TypePatternSyntax node)
+            => node.Update((TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
+
+        public override SyntaxNode? VisitBinaryPattern(BinaryPatternSyntax node)
+            => node.Update((PatternSyntax?)Visit(node.Left) ?? throw new ArgumentNullException("left"), VisitToken(node.OperatorToken), (PatternSyntax?)Visit(node.Right) ?? throw new ArgumentNullException("right"));
+
+        public override SyntaxNode? VisitUnaryPattern(UnaryPatternSyntax node)
+            => node.Update(VisitToken(node.OperatorToken), (PatternSyntax?)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"));
 
         public override SyntaxNode? VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
             => node.Update(VisitToken(node.TextToken));
@@ -3622,6 +3672,87 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             return (ConstantPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ConstantPattern((Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
+
+        /// <summary>Creates a new ParenthesizedPatternSyntax instance.</summary>
+        public static ParenthesizedPatternSyntax ParenthesizedPattern(SyntaxToken openParenToken, PatternSyntax pattern, SyntaxToken closeParenToken)
+        {
+            if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
+            if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            return (ParenthesizedPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedPattern((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new ParenthesizedPatternSyntax instance.</summary>
+        public static ParenthesizedPatternSyntax ParenthesizedPattern(PatternSyntax pattern)
+            => SyntaxFactory.ParenthesizedPattern(SyntaxFactory.Token(SyntaxKind.OpenParenToken), pattern, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+
+        /// <summary>Creates a new RelationalPatternSyntax instance.</summary>
+        public static RelationalPatternSyntax RelationalPattern(SyntaxToken operatorToken, ExpressionSyntax expression)
+        {
+            switch (operatorToken.Kind())
+            {
+                case SyntaxKind.EqualsEqualsToken:
+                case SyntaxKind.ExclamationEqualsToken:
+                case SyntaxKind.LessThanToken:
+                case SyntaxKind.LessThanEqualsToken:
+                case SyntaxKind.GreaterThanToken:
+                case SyntaxKind.GreaterThanEqualsToken: break;
+                default: throw new ArgumentException(nameof(operatorToken));
+            }
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+            return (RelationalPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.RelationalPattern((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new TypePatternSyntax instance.</summary>
+        public static TypePatternSyntax TypePattern(TypeSyntax type)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            return (TypePatternSyntax)Syntax.InternalSyntax.SyntaxFactory.TypePattern((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new BinaryPatternSyntax instance.</summary>
+        public static BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax left, SyntaxToken operatorToken, PatternSyntax right)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.OrPattern:
+                case SyntaxKind.AndPattern: break;
+                default: throw new ArgumentException(nameof(kind));
+            }
+            if (left == null) throw new ArgumentNullException(nameof(left));
+            switch (operatorToken.Kind())
+            {
+                case SyntaxKind.OrKeyword:
+                case SyntaxKind.AndKeyword: break;
+                default: throw new ArgumentException(nameof(operatorToken));
+            }
+            if (right == null) throw new ArgumentNullException(nameof(right));
+            return (BinaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.BinaryPattern(kind, (Syntax.InternalSyntax.PatternSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.PatternSyntax)right.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new BinaryPatternSyntax instance.</summary>
+        public static BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax left, PatternSyntax right)
+            => SyntaxFactory.BinaryPattern(kind, left, SyntaxFactory.Token(GetBinaryPatternOperatorTokenKind(kind)), right);
+
+        private static SyntaxKind GetBinaryPatternOperatorTokenKind(SyntaxKind kind)
+            => kind switch
+            {
+                SyntaxKind.OrPattern => SyntaxKind.OrKeyword,
+                SyntaxKind.AndPattern => SyntaxKind.AndKeyword,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+
+        /// <summary>Creates a new UnaryPatternSyntax instance.</summary>
+        public static UnaryPatternSyntax UnaryPattern(SyntaxToken operatorToken, PatternSyntax pattern)
+        {
+            if (operatorToken.Kind() != SyntaxKind.NotKeyword) throw new ArgumentException(nameof(operatorToken));
+            if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            return (UnaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.UnaryPattern((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new UnaryPatternSyntax instance.</summary>
+        public static UnaryPatternSyntax UnaryPattern(PatternSyntax pattern)
+            => SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), pattern);
 
         /// <summary>Creates a new InterpolatedStringTextSyntax instance.</summary>
         public static InterpolatedStringTextSyntax InterpolatedStringText(SyntaxToken textToken)

@@ -72,18 +72,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
 
         public static IEnumerable<TextSpan> GetBreakpointSequence(SyntaxNode root, int position)
         {
+            TextSpan lastSpan = default;
             var endPosition = root.Span.End;
-            var lastSpanEnd = 0;
-            while (position < endPosition)
+            for (int p = position; p < endPosition; p++)
             {
-                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out var span) && span.End > lastSpanEnd)
+                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, p, out var span) && span.Start > lastSpan.Start)
                 {
-                    position = lastSpanEnd = span.End;
+                    lastSpan = span;
                     yield return span;
-                }
-                else
-                {
-                    position++;
                 }
             }
         }
@@ -238,6 +234,245 @@ class C
             [|}|]    
         [|}|]
     [|}|]
+}");
+        }
+
+        [Fact]
+        public void GetBreakpointSequence7()
+        {
+            TestAll(@"
+class C
+{
+    IEnumerable<int> Goo()
+    $$[|{|]
+        [|_ = M2(
+            c
+            switch
+            {
+                (1) _ [|when f|] => [|M(0)|],
+                (3) _ [|when f|] => [|M(1)|],
+                (1, 2) _ [|when f|] => [|M(0)|],
+                (3, 4) _ [|when f|] => [|M(2)|],
+                _ => [|M(4)|],
+            },
+            M(5));|]
+    [|}|]
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression01()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+$$        [|_ = e switch
+        {
+            1 when f => 2,
+            3 when g => 4,
+            _ => 5,
+        };|]
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression02()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        [|_ = e switch
+        $${
+            1 when f => 2,
+            3 when g => 4,
+            _ => 5,
+        };|]
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression03()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {$$
+            1 [|when f|] => 2,
+            3 when g => 4,
+            _ => 5,
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression04()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 [|when f|] $$=> 2,
+            3 when g => 4,
+            _ => 5,
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression05()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 when f =$$> [|2|],
+            3 when g => 4,
+            _ => 5,
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression06()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 when f => [|2|],$$
+            3 when g => 4,
+            _ => 5,
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression07()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 when f => 2,
+$$            3 [|when g|] => 4,
+            _ => 5,
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression08()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 when f => 2,
+            3 when g => [|4|],$$
+            _ => 5,
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression09()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 when f => 2,
+            3 when g => 4,
+$$            _ => [|5|],
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression10()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 when f => 2,
+            3 when g => 4,
+            _ => [|5|],$$
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression11()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 when f => 2,
+            3 when g => 4,
+            _ => [|5|],
+        $$};
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression12()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        [|_ = e switch
+        {
+            1 when f => 2,
+            3 when g => 4,
+            _ => 5,
+        }$$;|]
+    }
 }");
         }
 

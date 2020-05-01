@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -42,11 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
         /// The kind of symbol being renamed, for use in displaying information to the user.
         /// </summary>
         SymbolKind Kind { get; }
-
-        /// <summary>
-        /// The locations of the potential rename candidates for the symbol.
-        /// </summary>
-        ImmutableArray<CodeAnalysis.DocumentSpan> DefinitionLocations { get; }
 
         /// <summary>
         /// Find all locations to be renamed.
