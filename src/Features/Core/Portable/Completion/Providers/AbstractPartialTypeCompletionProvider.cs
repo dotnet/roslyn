@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        public async sealed override Task ProvideCompletionsAsync(CompletionContext completionContext)
+        public sealed override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             try
             {
