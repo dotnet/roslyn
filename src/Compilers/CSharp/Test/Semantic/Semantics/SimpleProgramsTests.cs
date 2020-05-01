@@ -964,6 +964,32 @@ System.Console.Write(x);
         }
 
         [Fact]
+        public void LocalDeclarationStatement_12()
+        {
+            var text = @"
+(int x, int y) = (1, 2);
+System.Console.WriteLine(x+y);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            CompileAndVerify(comp, expectedOutput: "3");
+        }
+
+        [Fact]
+        public void LocalDeclarationStatement_13()
+        {
+            var text = @"
+var (x, y) = (1, 2);
+System.Console.WriteLine(x+y);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            CompileAndVerify(comp, expectedOutput: "3");
+        }
+
+        [Fact]
         public void UsingStatement_01()
         {
             string source = @"
@@ -1018,6 +1044,28 @@ class C : System.IAsyncDisposable, System.IDisposable
         }
 
         [Fact]
+        public void UsingStatement_03()
+        {
+            string source = @"
+using (new C())
+{
+    System.Console.Write(""body "");
+}
+
+class C : System.IDisposable
+{
+    public void Dispose()
+    {
+        System.Console.Write(""Dispose"");
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "body Dispose");
+        }
+
+        [Fact]
         public void ForeachStatement_01()
         {
             string source = @"
@@ -1058,6 +1106,40 @@ class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
+        }
+
+        [Fact]
+        public void ForeachStatement_02()
+        {
+            var text = @"
+int i = 0;
+foreach (var j in new [] {2, 3})
+{
+    i += j;
+} 
+
+System.Console.WriteLine(i);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void ForeachStatement_03()
+        {
+            var text = @"
+int i = 0;
+foreach (var (j, k) in new [] {(2,200), (3,300)})
+{
+    i += j;
+} 
+
+System.Console.WriteLine(i);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "5");
         }
 
         [Fact]
@@ -3930,6 +4012,40 @@ void local2()
             var symbol2 = model1.GetDeclaredSymbol(tree1.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Skip(1).First());
             Assert.Equal("void local1(System.Byte y)", symbol2.ToTestDisplayString());
             Assert.Same(symbol1, model1.GetSymbolInfo(tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "local1").Skip(1).Single()).Symbol);
+        }
+
+        [Fact]
+        public void LocalFunctionStatement_10()
+        {
+            var text = @"
+int i = 1;
+local();
+System.Console.WriteLine(i);
+
+void local()
+{
+    i++;
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            CompileAndVerify(comp, expectedOutput: "2");
+        }
+
+        [Fact]
+        public void Lambda_01()
+        {
+            var text = @"
+int i = 1;
+System.Action l = () => i++;
+l();
+System.Console.WriteLine(i);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            CompileAndVerify(comp, expectedOutput: "2");
         }
 
         [Fact]
@@ -6957,6 +7073,471 @@ return default;
                 // error CS9004: Program using top-level statements must be an executable.
                 Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1)
                 );
+        }
+
+        [Fact]
+        public void ExpressionStatement_01()
+        {
+            // Await expression is covered in other tests
+            var text = @"
+new Test(0); // ObjectCreationExpression:
+Test x;
+x = new Test(1); // SimpleAssignmentExpression:
+x += 1; // AddAssignmentExpression:
+x -= 2; // SubtractAssignmentExpression:
+x *= 3; // MultiplyAssignmentExpression:
+x /= 4; // DivideAssignmentExpression:
+x %= 5; // ModuloAssignmentExpression:
+x &= 6; // AndAssignmentExpression:
+x |= 7; // OrAssignmentExpression:
+x ^= 8; // ExclusiveOrAssignmentExpression:
+x <<= 9; // LeftShiftAssignmentExpression:
+x >>= 10; // RightShiftAssignmentExpression:
+x++; // PostIncrementExpression:
+x--; // PostDecrementExpression:
+++x; // PreIncrementExpression:
+--x; // PreDecrementExpression:
+System.Console.WriteLine(x.Count); // InvocationExpression:
+x?.WhenNotNull(); // ConditionalAccessExpression:
+x = null;
+x ??= new Test(-1); // CoalesceAssignmentExpression:
+System.Console.WriteLine(x.Count); // InvocationExpression:
+
+class Test
+{
+    public readonly int Count;
+
+    public Test(int count)
+    {
+        Count = count;
+        if (count == 0)
+        {
+            System.Console.WriteLine(""Test..ctor"");
+        }
+    }
+
+    public static Test operator +(Test x, int y)
+    {
+        return new Test(x.Count + 1);
+    }
+
+    public static Test operator -(Test x, int y)
+    {
+        return new Test(x.Count + 1);
+    }
+
+    public static Test operator *(Test x, int y)
+    {
+        return new Test(x.Count + 1);
+    }
+
+    public static Test operator /(Test x, int y)
+    {
+        return new Test(x.Count + 1);
+    }
+
+    public static Test operator %(Test x, int y)
+    {
+        return new Test(x.Count + 1);
+    }
+
+    public static Test operator &(Test x, int y)
+    {
+        return new Test(x.Count + 1);
+    }
+
+    public static Test operator |(Test x, int y)
+    {
+        return new Test(x.Count + 1);
+    }
+
+    public static Test operator ^(Test x, int y)
+    {
+        return new Test(x.Count + 1);
+    }
+
+    public static Test operator <<(Test x, int y)
+    {
+        return new Test(x.Count + 1);
+    }
+
+    public static Test operator >>(Test x, int y)
+    {
+        return new Test(x.Count + 1);
+    }
+
+    public static Test operator ++(Test x)
+    {
+        return new Test(x.Count + 1);
+    }
+
+    public static Test operator --(Test x)
+    {
+        return new Test(x.Count + 1);
+    }
+
+    public void WhenNotNull()
+    {
+        System.Console.WriteLine(""WhenNotNull"");
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput:
+@"Test..ctor
+15
+WhenNotNull
+-1
+");
+        }
+
+        [Fact]
+        public void Block_01()
+        {
+            var text = @"
+{
+    System.Console.WriteLine(""Hi!"");
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void EmptyStatement_01()
+        {
+            var text = @"
+;
+System.Console.WriteLine(""Hi!"");
+;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void BreakStatement_01()
+        {
+            var text = @"break;";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (1,1): error CS0139: No enclosing loop out of which to break or continue
+                // break;
+                Diagnostic(ErrorCode.ERR_NoBreakOrCont, "break;").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void ContinueStatement_01()
+        {
+            var text = @"continue;";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (1,1): error CS0139: No enclosing loop out of which to break or continue
+                // continue;
+                Diagnostic(ErrorCode.ERR_NoBreakOrCont, "continue;").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void ThrowStatement_01()
+        {
+            var text = @"throw;";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (1,1): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
+                // throw;
+                Diagnostic(ErrorCode.ERR_BadEmptyThrow, "throw").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void ThrowStatement_02()
+        {
+            var text = @"throw null;";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp).VerifyIL("<simple-program-entry-point>", sequencePoints: "$Program.$Main", expectedIL:
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+ -IL_0000:  ldnull
+  IL_0001:  throw
+}
+");
+        }
+
+        [Fact]
+        public void DoStatement_01()
+        {
+            var text = @"
+int i = 1;
+do
+{
+    i++;
+} while (i < 4);
+
+System.Console.WriteLine(i);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "4");
+        }
+
+        [Fact]
+        public void WhileStatement_01()
+        {
+            var text = @"
+int i = 1;
+while (i < 4)
+{
+    i++;
+} 
+
+System.Console.WriteLine(i);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "4");
+        }
+
+        [Fact]
+        public void ForStatement_01()
+        {
+            var text = @"
+int i = 1;
+for (;i < 4;)
+{
+    i++;
+} 
+
+System.Console.WriteLine(i);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "4");
+        }
+
+        [Fact]
+        public void CheckedStatement_01()
+        {
+            var text = @"
+int i = 1;
+i++;
+checked
+{
+    i++;
+} 
+
+System.Console.WriteLine(i);
+";
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<simple-program-entry-point>", sequencePoints: "$Program.$Main", expectedIL:
+@"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  .locals init (int V_0) //i
+ -IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+ -IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  add
+  IL_0005:  stloc.0
+ -IL_0006:  nop
+ -IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  add.ovf
+  IL_000a:  stloc.0
+ -IL_000b:  nop
+ -IL_000c:  ldloc.0
+  IL_000d:  call       ""void System.Console.WriteLine(int)""
+  IL_0012:  nop
+  IL_0013:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UncheckedStatement_01()
+        {
+            var text = @"
+int i = 1;
+i++;
+unchecked
+{
+    i++;
+} 
+
+System.Console.WriteLine(i);
+";
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithOverflowChecks(true), parseOptions: DefaultParseOptions);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<simple-program-entry-point>", sequencePoints: "$Program.$Main", expectedIL:
+@"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  .locals init (int V_0) //i
+ -IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+ -IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  add.ovf
+  IL_0005:  stloc.0
+ -IL_0006:  nop
+ -IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  add
+  IL_000a:  stloc.0
+ -IL_000b:  nop
+ -IL_000c:  ldloc.0
+  IL_000d:  call       ""void System.Console.WriteLine(int)""
+  IL_0012:  nop
+  IL_0013:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnsafeStatement_01()
+        {
+            var text = @"
+unsafe
+{
+    int* p = (int*)0;
+    p++;
+    System.Console.WriteLine((int)p);
+} 
+";
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "4", verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void FixedStatement_01()
+        {
+            var text = @"
+fixed(int *p = &new C().i) {}
+
+class C
+{
+    public int i = 2;
+}
+";
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // fixed(int *p = &new C().i) {}
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "fixed(int *p = &new C().i) {}").WithLocation(2, 1),
+                // (2,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // fixed(int *p = &new C().i) {}
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int *").WithLocation(2, 7),
+                // (2,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // fixed(int *p = &new C().i) {}
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&new C().i").WithLocation(2, 16)
+                );
+        }
+
+        [Fact]
+        public void LockStatement_01()
+        {
+            var text = @"
+int i = 1;
+lock (new object())
+{
+    i++;
+} 
+
+System.Console.WriteLine(i);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "2");
+        }
+
+        [Fact]
+        public void IfStatement_01()
+        {
+            var text = @"
+int i = 1;
+if (i == 1)
+{
+    i++;
+}
+else
+{
+    i--;
+}
+
+if (i != 2)
+{
+    i--;
+}
+else
+{
+    i++;
+}
+
+System.Console.WriteLine(i);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "3");
+        }
+
+        [Fact]
+        public void SwitchStatement_01()
+        {
+            var text = @"
+int i = 1;
+switch (i)
+{
+    case 1:
+        i++;
+        break;
+    default:
+        i--;
+        break;
+}
+
+System.Console.WriteLine(i);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "2");
+        }
+
+        [Fact]
+        public void TryStatement_01()
+        {
+            var text = @"
+try
+{
+    System.Console.Write(1);
+    throw null;
+}
+catch
+{
+    System.Console.Write(2);
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "12");
         }
     }
 }
