@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Remote;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -17,13 +14,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     /// </summary>
     internal static class RemoteHostCrashInfoBar
     {
+#if false
         // OOP killed more info page link
         private const string OOPKilledMoreInfoLink = "https://go.microsoft.com/fwlink/?linkid=842308";
 
         private static bool s_infoBarReported = false;
+#endif
 
         public static void ShowInfoBar(Workspace workspace, Exception exception = null)
         {
+            FatalError.Report(exception ?? new InvalidOperationException(ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio));
+            throw ExceptionUtilities.Unreachable;
+
+#if false
             // use info bar to show warning to users
             if (workspace == null || s_infoBarReported)
             {
@@ -66,6 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             errorReportingService.ShowGlobalErrorInfo(
                 ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio,
                 infoBarUIs.ToArray());
+#endif
         }
     }
 }
