@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
@@ -122,7 +124,8 @@ class Program
                         LanguageNames.CSharp,
                         ImmutableArray.Create<DiagnosticAnalyzer>(
                             new CSharpSimplifyTypeNamesDiagnosticAnalyzer(),
-                            new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer())
+                            new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer(),
+                            new ReportOnClassWithLink())
                     }
                 };
 
@@ -133,10 +136,11 @@ class Program
                     .Zip(diagnosticsAndSpans.Item2, (diagnostic, span) => (diagnostic, span))
                     .OrderBy(s => s.span.Span.Span.Start).ToImmutableArray();
 
-            Assert.Equal(3, spans.Length);
+            Assert.Equal(4, spans.Length);
             var first = spans[0].span;
             var second = spans[1].span;
             var third = spans[2].span;
+            var fourth = spans[3].span;
 
             var expectedToolTip = new ContainerElement(
                 ContainerElementStyle.Wrapped,
@@ -167,15 +171,28 @@ class Program
             expectedToolTip = new ContainerElement(
                 ContainerElementStyle.Wrapped,
                 new ClassifiedTextElement(
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, "id", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://github.com/dotnet/roslyn", UriKind.Absolute)), "https://github.com/dotnet/roslyn"),
+                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
+                    new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, "messageFormat")));
+
+            Assert.Equal(PredefinedErrorTypeNames.Warning, third.Tag.ErrorType);
+            ToolTipAssert.EqualContent(expectedToolTip, third.Tag.ToolTipContent);
+            Assert.Equal(152, third.Span.Start);
+            Assert.Equal(7, third.Span.Length);
+
+            expectedToolTip = new ContainerElement(
+                ContainerElementStyle.Wrapped,
+                new ClassifiedTextElement(
                     new ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0049"),
                     new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                     new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                     new ClassifiedTextRun(ClassificationTypeNames.Text, WorkspacesResources.Name_can_be_simplified)));
 
-            Assert.Equal(PredefinedErrorTypeNames.SyntaxError, third.Tag.ErrorType);
-            ToolTipAssert.EqualContent(expectedToolTip, third.Tag.ToolTipContent);
-            Assert.Equal(196, third.Span.Start);
-            Assert.Equal(5, third.Span.Length);
+            Assert.Equal(PredefinedErrorTypeNames.SyntaxError, fourth.Tag.ErrorType);
+            ToolTipAssert.EqualContent(expectedToolTip, fourth.Tag.ToolTipContent);
+            Assert.Equal(196, fourth.Span.Start);
+            Assert.Equal(5, fourth.Span.Length);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
@@ -337,6 +354,38 @@ class Program
         {
             using var workspace = TestWorkspace.CreateCSharp(content);
             return (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
+        }
+
+        private sealed class ReportOnClassWithLink : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+                "id",
+                "title",
+                "messageFormat",
+                "category",
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true,
+                "description",
+                "https://github.com/dotnet/roslyn");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.EnableConcurrentExecution();
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
+                context.RegisterSymbolAction(
+                    context =>
+                    {
+                        if (!context.Symbol.IsImplicitlyDeclared && context.Symbol.Locations.First().IsInSource)
+                        {
+                            context.ReportDiagnostic(Diagnostic.Create(Rule, context.Symbol.Locations.First()));
+                        }
+                    },
+                    SymbolKind.NamedType);
+                throw new NotImplementedException();
+            }
         }
     }
 }
