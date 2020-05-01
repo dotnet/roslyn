@@ -453,6 +453,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_GeneratorFailedDuringInitialization:
                 case ErrorCode.WRN_GeneratorFailedDuringGeneration:
                 case ErrorCode.WRN_ParameterDisallowsNull:
+                case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
+                case ErrorCode.WRN_IsPatternAlways:
                     return 1;
                 default:
                     return 0;

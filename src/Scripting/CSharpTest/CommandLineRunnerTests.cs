@@ -235,7 +235,7 @@ $@"{LogoAndHelpPrompt}
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"{LogoAndHelpPrompt}
 > (1,2)
-[(1, 2)]
+(1, 2)
 > ", runner.Console.Out.ToString());
         }
 
