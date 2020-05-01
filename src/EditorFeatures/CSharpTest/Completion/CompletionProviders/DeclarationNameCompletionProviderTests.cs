@@ -1866,6 +1866,59 @@ class ClassA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(43816, "https://github.com/dotnet/roslyn/pull/43816")]
+        public async Task ConflictingLocalVariable()
+        {
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
+                MultipleCamelCaseLocalRules())));
+
+            var markup = @"
+public class MyClass
+{
+    void M()
+    {
+        MyClass myClass;
+        MyClass $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "myClass1", glyph: (int)Glyph.Local);
+        }
+
+        private static NamingStylePreferences MultipleCamelCaseLocalRules()
+        {
+            var styles = new[]
+            {
+                SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Local), name: "Local1"),
+                SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Local), name: "Local1"),
+            };
+
+            return new NamingStylePreferences(
+                styles.Select(t => t.specification).ToImmutableArray(),
+                styles.Select(t => t.style).ToImmutableArray(),
+                styles.Select(t => CreateRule(t.specification, t.style)).ToImmutableArray());
+
+            // Local functions
+
+            static (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string name)
+            {
+                var symbolSpecification = new SymbolSpecification(
+                    id: null,
+                    symbolSpecName: name,
+                    ImmutableArray.Create(kind));
+
+                var namingStyle = new NamingStyle(
+                    Guid.NewGuid(),
+                    name,
+                    capitalizationScheme: Capitalization.CamelCase);
+
+                return (symbolSpecification, namingStyle);
+            }
+        }
+
         private static NamingStylePreferences NamesEndWithSuffixPreferences()
         {
             var specificationStyles = new[]
@@ -1903,16 +1956,16 @@ class ClassA
 
                 return (symbolSpecification, namingStyle);
             }
+        }
 
-            static SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
+        private static SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
+        {
+            return new SerializableNamingRule()
             {
-                return new SerializableNamingRule()
-                {
-                    SymbolSpecificationID = specification.ID,
-                    NamingStyleID = style.ID,
-                    EnforcementLevel = ReportDiagnostic.Error
-                };
-            }
+                SymbolSpecificationID = specification.ID,
+                NamingStyleID = style.ID,
+                EnforcementLevel = ReportDiagnostic.Error
+            };
         }
     }
 }

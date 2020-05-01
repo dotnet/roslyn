@@ -329,16 +329,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
-            switch (node)
+            if (node == null)
+                return ImmutableArray<ISymbol>.Empty;
+
+            return node switch
             {
-                case AssignmentExpressionSyntax assignment when token.Kind() == SyntaxKind.EqualsToken:
-                    return GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>();
-
-                case ForEachVariableStatementSyntax deconstructionForeach when token.Kind() == SyntaxKind.InKeyword:
-                    return GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>();
-            }
-
-            return GetSymbolInfo(semanticModel, node, token, cancellationToken).GetBestOrAllSymbols();
+                AssignmentExpressionSyntax _ when token.Kind() == SyntaxKind.EqualsToken => GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>(),
+                ForEachVariableStatementSyntax _ when token.Kind() == SyntaxKind.InKeyword => GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>(),
+                _ => GetSymbolInfo(semanticModel, node, token, cancellationToken).GetBestOrAllSymbols(),
+            };
         }
 
         private SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
