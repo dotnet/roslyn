@@ -15,9 +15,11 @@ if ($projectFileInfo) {
   $buildTool = InitializeBuildTool
   $frameworkArg = if ($framework -ne "") { " -p:TargetFramework=$framework" } else { "" }
   $buildArgs = "$($buildTool.Command) -v:m -m -p:UseRoslynAnalyzers=false -p:GenerateFullPaths=true$frameworkArg $($projectFileInfo.FullName)"
+  # InitializeBuildTool is hard coded for dotnet.exe, so use Ensure-DotnetSdk as it is xplat aware.
+  $buildPath = Ensure-DotnetSdk
 
-  Write-Host "$($buildTool.Path) $buildArgs"
-  Exec-Console $buildTool.Path $buildArgs
+  Write-Host "$($buildPath) $buildArgs"
+  Exec-Console $buildPath $buildArgs
   exit 0
 }
 else {
