@@ -74,12 +74,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
             public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             {
-                return _inner.Connection.InvokeAsync(targetName, arguments, cancellationToken);
+                return _inner.KeepAliveSession.RunRemoteAsync(targetName, solution: null, arguments, cancellationToken);
             }
 
             public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             {
-                return _inner.Connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
+                return _inner.KeepAliveSession.RunRemoteAsync<T>(targetName, solution: null, arguments, cancellationToken);
             }
 
             public void Dispose()
