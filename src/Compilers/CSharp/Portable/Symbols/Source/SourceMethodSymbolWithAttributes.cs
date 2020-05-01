@@ -780,39 +780,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Debug.Assert(ContainingType is object);
+            var hasError = false;
 
             if (isInaccessible(this) || containingTypes(this).Any(isInaccessible))
             {
                 var topLevelType = containingTypes(this).Last();
                 arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, arguments.AttributeSyntaxOpt.Location, Name, topLevelType.Name);
+                hasError = true;
             }
 
             if (!IsStatic)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeStatic, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
             }
 
             if (ParameterCount > 0)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustNotHaveParameters, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
             }
 
             if (!ReturnsVoid)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustReturnVoid, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
             }
 
             if (IsGenericMethod)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustNotBeGeneric, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
             }
 
             if (ContainingType.IsGenericType)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustNotBeContainedInGenericType, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
             }
 
-            DeclaringCompilation.AddModuleInitializerMethod(this);
+            if (!hasError)
+            {
+                DeclaringCompilation.AddModuleInitializerMethod(this);
+            }
 
             static bool isInaccessible(Symbol symbol)
             {
