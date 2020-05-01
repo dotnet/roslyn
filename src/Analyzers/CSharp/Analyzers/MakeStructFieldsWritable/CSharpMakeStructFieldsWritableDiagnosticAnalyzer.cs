@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -98,8 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                 }
 
                 var operationAssigmnent = (IAssignmentOperation)operationContext.Operation;
-                _hasTypeInstanceAssigment |= operationAssigmnent.Target is IInstanceReferenceOperation instance &&
-                                            instance.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance;
+                if (operationAssigmnent.Target is IInstanceReferenceOperation instance &&
+                    instance.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance)
+                {
+                    Volatile.Write(ref _hasTypeInstanceAssigment, true);
+                }
             }
 
             private void SymbolEndAction(SymbolAnalysisContext symbolEndContext)
