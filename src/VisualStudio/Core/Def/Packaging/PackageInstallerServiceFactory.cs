@@ -104,21 +104,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return packageSources;
             }
 
-            lock (_gate)
+            if (_packageSourcesAsync is null)
             {
-                if (_packageSourcesAsync is null)
+                lock (_gate)
                 {
-                    _packageSourcesAsync = ThreadingContext.JoinableTaskFactory.RunAsync(() => GetPackageSourcesImplAsync());
+                    if (_packageSourcesAsync is null)
+                    {
+                        _packageSourcesAsync = ThreadingContext.JoinableTaskFactory.RunAsync(() => GetPackageSourcesImplAsync());
+                    }
                 }
             }
 
             if (allowSwitchToMainThread)
             {
-                using var combinedToken = _tokenSource.Token.CombineWith(cancellationToken);
-                packageSources = await _packageSourcesAsync.JoinAsync(combinedToken.Token).ConfigureAwait(false);
+                try
+                {
+                    using var combinedToken = _tokenSource.Token.CombineWith(cancellationToken);
+                    packageSources = await _packageSourcesAsync.JoinAsync(combinedToken.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                {
+                    // The operation did not complete successfully due to a change in the workspace. Return but do not
+                    // cache this result.
+                    return null;
+                }
             }
             else if (_packageSourcesAsync.IsCompleted)
             {
+                if (_packageSourcesAsync.Task.Status != TaskStatus.RanToCompletion)
+                {
+                    // The operation did not complete successfully
+                    return null;
+                }
+
                 packageSources = _packageSourcesAsync.GetAwaiter().GetResult();
             }
             else
@@ -140,23 +158,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private async Task<ImmutableArray<PackageSource>> GetPackageSourcesImplAsync()
         {
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_tokenSource.Token);
+            // Automatically retry the operation if it gets cancelled due to a change in the workspace.
+            while (true)
+            {
+                var cancellationToken = _tokenSource.Token;
+                try
+                {
+                    var result = await GetPackageSourcesImplAsync(cancellationToken).ConfigureAwait(false);
+                    if (result.IsEmpty && cancellationToken.IsCancellationRequested)
+                    {
+                        // The failure may have been caused by a workspace change; try again after a short delay
+                        await Task.Delay(TimeSpan.FromMilliseconds(250)).ConfigureAwait(false);
+                        continue;
+                    }
 
-            try
-            {
-                return _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
-                    .SelectAsArray(r => new PackageSource(r.Key, r.Value));
+                    return result;
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // The failure may have been caused by a workspace change; try again after a short delay
+                    await Task.Delay(TimeSpan.FromMilliseconds(250)).ConfigureAwait(false);
+                }
             }
-            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
+
+            // Local function
+            async Task<ImmutableArray<PackageSource>> GetPackageSourcesImplAsync(CancellationToken cancellationToken)
             {
-                // These exceptions can happen when the nuget.config file is broken.
-                return ImmutableArray<PackageSource>.Empty;
-            }
-            catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
-            {
-                // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
-                // https://github.com/dotnet/roslyn/issues/40857
-                return ImmutableArray<PackageSource>.Empty;
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                try
+                {
+                    return _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
+                        .SelectAsArray(r => new PackageSource(r.Key, r.Value));
+                }
+                catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
+                {
+                    // These exceptions can happen when the nuget.config file is broken.
+                    return ImmutableArray<PackageSource>.Empty;
+                }
+                catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
+                {
+                    // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
+                    // https://github.com/dotnet/roslyn/issues/40857
+                    return ImmutableArray<PackageSource>.Empty;
+                }
             }
         }
 
