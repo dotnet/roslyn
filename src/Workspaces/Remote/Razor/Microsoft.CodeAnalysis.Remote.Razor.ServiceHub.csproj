@@ -31,7 +31,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35079" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\ServiceHub\IntegrationTestTraceListener.cs" Link="Shared\IntegrationTestTraceListener.cs" />
     <Compile Include="..\ServiceHub\Shared\RoslynJsonConverter.cs">
       <Link>Shared\RoslynJsonConverter.cs</Link>
     </Compile>
@@ -44,5 +43,6 @@
     <Compile Include="..\ServiceHub\Shared\RemoteEndPoint.cs">
       <Link>Shared\RemoteEndPoint.cs</Link>
     </Compile>
+    <Compile Include="..\ServiceHub\WatsonTraceListener.cs" Link="Shared\WatsonTraceListener.cs" />
   </ItemGroup>
 </Project>

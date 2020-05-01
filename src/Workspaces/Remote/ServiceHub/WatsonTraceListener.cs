@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     using Debugger = System.Diagnostics.Debugger;
 
-    internal class IntegrationTestTraceListener : TraceListener
+    internal class WatsonTraceListener : TraceListener
     {
         public override void Fail(string message, string detailMessage)
         {
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Remote
         internal static void Install()
         {
             Trace.Listeners.Clear();
-            Trace.Listeners.Add(new IntegrationTestTraceListener());
+            Trace.Listeners.Add(new WatsonTraceListener());
         }
     }
 }

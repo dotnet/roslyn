@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             {
                 AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainAssemblyResolve;
 
-                IntegrationTestTraceListener.Install();
+                WatsonTraceListener.Install();
 
                 _service = new IntegrationService();
 
