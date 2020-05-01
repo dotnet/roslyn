@@ -5133,6 +5133,50 @@ public unsafe class C
             }
         }
 
+        [Theory]
+        [InlineData("delegate*<Z, Z, (Z a, Z b)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b""})")]
+        [InlineData("delegate*<(Z a, Z b), Z, Z>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b""})")]
+        [InlineData("delegate*<Z, (Z a, Z b)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b""})")]
+        [InlineData("delegate*<(Z c, Z d), (Z e, Z f), (Z a, Z b)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b"", ""c"", ""d"", ""e"", ""f""})")]
+        [InlineData("delegate*<(Z, Z), (Z, Z), (Z a, Z b)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b"", null, null, null, null})")]
+        [InlineData("delegate*<(Z, Z), (Z, Z), (Z a, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", null, null, null, null, null})")]
+        [InlineData("delegate*<(Z, Z), (Z, Z), (Z, Z b)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, ""b"", null, null, null, null})")]
+        [InlineData("delegate*<(Z c, Z d), (Z, Z), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, ""c"", ""d"", null, null})")]
+        [InlineData("delegate*<(Z c, Z), (Z, Z), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, ""c"", null, null, null})")]
+        [InlineData("delegate*<(Z, Z d), (Z, Z), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, null, ""d"", null, null})")]
+        [InlineData("delegate*<(Z, Z), (Z e, Z f), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, null, null, ""e"", ""f""})")]
+        [InlineData("delegate*<(Z, Z), (Z e, Z), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, null, null, ""e"", null})")]
+        [InlineData("delegate*<(Z, Z), (Z, Z f), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, null, null, null, ""f""})")]
+        [InlineData("delegate*<(Z, Z), (Z, Z), (Z, Z)>", null)]
+        public void TupleNamesInMetadata(string type, string? expectedAttribute)
+        {
+            var comp = CompileAndVerifyFunctionPointers($@"
+#pragma warning disable CS0649 // Unassigned field
+unsafe class Z
+{{
+    public {type} F;
+}}
+", symbolValidator: symbolValidator);
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                var c = module.GlobalNamespace.GetTypeMember("Z");
+
+                var field = c.GetField("F");
+                if (expectedAttribute == null)
+                {
+                    Assert.Empty(field.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal(expectedAttribute, field.GetAttributes().Single().ToString());
+                }
+
+                CommonVerifyFunctionPointer((FunctionPointerTypeSymbol)field.Type);
+                Assert.Equal(type, field.Type.ToTestDisplayString());
+            }
+        }
+
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
         private static readonly BlobContentId s_contentId = new BlobContentId(s_guid, 0x04030201);
 
