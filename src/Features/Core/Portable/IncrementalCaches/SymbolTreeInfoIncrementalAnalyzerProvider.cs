@@ -316,15 +316,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             }
 
             private bool SupportAnalysis(Project project)
-            {
-                if (!project.SupportsCompilation)
-                {
-                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
-                    return false;
-                }
-
-                return RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace);
-            }
+                => project.SupportsCompilation;
         }
     }
 }
