@@ -190,9 +190,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLocalFunctionAttributes = MessageBase + 12766,
         IDS_FeatureExternLocalFunctions = MessageBase + 12767,
         IDS_FeatureMemberNotNull = MessageBase + 12768,
+
         IDS_FeatureNativeInt = MessageBase + 12769,
         IDS_FeatureTargetTypedObjectCreation = MessageBase + 12770,
         IDS_FeatureRecords = MessageBase + 12771,
+        IDS_FeatureInitOnlySetters = MessageBase + 12772,
         IDS_FeatureSimplePrograms = MessageBase + 12780,
     }
 
@@ -308,6 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureMemberNotNull:
                 case MessageID.IDS_FeatureRecords:
                 case MessageID.IDS_FeatureNativeInt:
+                case MessageID.IDS_FeatureInitOnlySetters: // semantic check
                 case MessageID.IDS_FeatureSimplePrograms:
                     return LanguageVersion.Preview;
 

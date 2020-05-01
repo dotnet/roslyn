@@ -64,6 +64,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return type.IsWellKnownTypeInAttribute();
         }
 
+        internal override bool IsAcceptedIsExternalInitModifierType(TypeSymbol type)
+        {
+            return type.IsWellKnownTypeIsExternalInit();
+        }
+
         internal override bool IsAcceptedUnmanagedTypeModifierType(TypeSymbol type)
         {
             return type.IsWellKnownTypeUnmanagedType();
