@@ -25,25 +25,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(functionId, cancellationToken))
             {
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
+                var project = solution.GetOriginatingProject(type);
+                if (project != null)
                 {
-                    var result = await client.TryRunRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
-                        remoteFunctionName,
-                        solution,
-                        new object[]
-                        {
-                            SerializableSymbolAndProjectId.Dehydrate(solution, type, cancellationToken),
-                            projects?.Select(p => p.Id).ToArray(),
-                            transitive,
-                        },
-                        null,
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (result.HasValue)
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                    if (client != null)
                     {
-                        return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
+                        var result = await client.TryRunRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+                            WellKnownServiceHubServices.CodeAnalysisService,
+                            remoteFunctionName,
+                            solution,
+                            new object[]
+                            {
+                                SerializableSymbolAndProjectId.Create(type, project, cancellationToken),
+                                projects?.Select(p => p.Id).ToArray(),
+                                transitive,
+                            },
+                            null,
+                            cancellationToken).ConfigureAwait(false);
+
+                        if (result.HasValue)
+                        {
+                            return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
+                        }
                     }
                 }
             }

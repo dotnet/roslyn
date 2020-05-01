@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     /// once it is fully indexed, then total results will be returned.
     /// </summary>
     [Shared]
-    [ExportIncrementalAnalyzerProvider(nameof(SymbolTreeInfoIncrementalAnalyzerProvider), new[] { WorkspaceKind.Host, WorkspaceKind.RemoteWorkspace })]
+    [ExportIncrementalAnalyzerProvider(nameof(SymbolTreeInfoIncrementalAnalyzerProvider), new[] { WorkspaceKind.RemoteWorkspace })]
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {
@@ -316,15 +315,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             }
 
             private bool SupportAnalysis(Project project)
-            {
-                if (!project.SupportsCompilation)
-                {
-                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
-                    return false;
-                }
-
-                return RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace);
-            }
+                => project.SupportsCompilation;
         }
     }
 }

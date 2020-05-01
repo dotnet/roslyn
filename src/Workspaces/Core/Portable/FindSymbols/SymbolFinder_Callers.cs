@@ -2,14 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+
+#if !NETCOREAPP
 using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -21,9 +23,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken = default)
         {
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
-
             return FindCallersAsync(symbol, solution, documents: null, cancellationToken: cancellationToken);
         }
 
@@ -33,9 +32,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Document> documents, CancellationToken cancellationToken = default)
         {
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
-
             symbol = symbol.OriginalDefinition;
             var foundSymbol = await FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
             symbol = foundSymbol ?? symbol;
@@ -77,8 +73,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken = default)
         {
-            Contract.ThrowIfNull(solution.GetOriginatingProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
-
             if (symbol != null)
             {
                 if (symbol.Kind == SymbolKind.Event ||
