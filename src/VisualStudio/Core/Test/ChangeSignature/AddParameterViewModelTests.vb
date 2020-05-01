@@ -31,14 +31,18 @@ class MyClass
             VerifyOpeningState(viewModel)
 
             viewModel.VerbatimTypeName = "int"
-            Assert.False(viewModel.TrySubmit())
+            Dim message As String = Nothing
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.A_type_and_name_must_be_provided, message)
 
             viewModel.VerbatimTypeName = ""
             viewModel.ParameterName = "x"
-            Assert.False(viewModel.TrySubmit())
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.A_type_and_name_must_be_provided, message)
 
             viewModel.VerbatimTypeName = "int"
-            Assert.False(viewModel.TrySubmit())
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.Enter_a_call_site_value_or_choose_a_different_value_injection_kind, message)
 
             viewModel.CallSiteValue = "7"
             Assert.True(viewModel.TrySubmit())
@@ -279,7 +283,9 @@ class MyClass
             Assert.False(viewModel.IsCallsiteTodo)
             Assert.False(viewModel.IsCallsiteOmitted)
 
-            Assert.False(viewModel.TrySubmit)
+            Dim message As String = Nothing
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.A_type_and_name_must_be_provided, message)
         End Sub
 
         Private Function GetViewModelTestStateAsync(

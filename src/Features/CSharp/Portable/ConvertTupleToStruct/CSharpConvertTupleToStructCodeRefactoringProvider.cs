@@ -7,10 +7,12 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
 {
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
+    [ExportLanguageService(typeof(IConvertTupleToStructCodeRefactoringProvider), LanguageNames.CSharp)]
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.ConvertTupleToStruct)), Shared]
     internal class CSharpConvertTupleToStructCodeRefactoringProvider :
         AbstractConvertTupleToStructCodeRefactoringProvider<
@@ -29,13 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpConvertTupleToStructCodeRefactoringProvider()
         {
-        }
-
-        protected override ObjectCreationExpressionSyntax CreateObjectCreationExpression(
-            NameSyntax nameNode, SyntaxToken openParen, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParen)
-        {
-            return SyntaxFactory.ObjectCreationExpression(
-                nameNode, SyntaxFactory.ArgumentList(openParen, arguments, closeParen), initializer: null);
         }
     }
 }

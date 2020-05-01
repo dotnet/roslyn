@@ -67,8 +67,6 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
             public TextSpan TriggerSpan => _renameInfo.TriggerSpan;
 
-            public ImmutableArray<CodeAnalysis.DocumentSpan> DefinitionLocations => _renameInfo.DefinitionLocations;
-
             public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var references = new List<InlineRenameLocation>();
@@ -86,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                     references.ToImmutableArray());
             }
 
-            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)
+            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken)
             {
                 return location.TextSpan;
             }
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                 return replacementText;
             }
 
-            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken)
+            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken)
             {
                 return location.TextSpan;
             }
