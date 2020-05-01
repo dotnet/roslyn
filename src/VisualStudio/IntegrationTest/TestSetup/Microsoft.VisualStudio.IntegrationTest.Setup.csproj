@@ -14,6 +14,9 @@
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\IntegrationTestTraceListener.cs" Link="IntegrationTestTraceListener.cs" />
+  </ItemGroup>
   <ItemGroup Label="PkgDef">
     <PkgDefPackageRegistration Include="{d02dac01-ddd0-4ecc-8687-79a554852b14}"
                                Name="IntegrationTestServicePackage"
