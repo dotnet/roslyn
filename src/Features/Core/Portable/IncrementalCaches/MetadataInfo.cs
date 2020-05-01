@@ -10,7 +10,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 {
     internal partial class SymbolTreeInfoIncrementalAnalyzerProvider
     {
-
         private readonly struct MetadataInfo
         {
             /// <summary>
