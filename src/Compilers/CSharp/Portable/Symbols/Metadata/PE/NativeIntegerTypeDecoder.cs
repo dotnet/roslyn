@@ -14,6 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
     internal struct NativeIntegerTypeDecoder
     {
+        private enum DecodeStatus
+        {
+            NotFailed,
+            FailedToErrorType,
+            FailedToBadMetadata,
+        }
+
         internal static TypeSymbol TransformType(TypeSymbol type, EntityHandle handle, PEModuleSymbol containingModule)
         {
             return containingModule.Module.HasNativeIntegerAttribute(handle, out var transformFlags) ?
@@ -27,24 +34,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             try
             {
                 var result = decoder.TransformType(type);
+                Debug.Assert(decoder._decodeStatus == DecodeStatus.NotFailed);
                 if (decoder._index == transformFlags.Length)
                 {
                     return result;
                 }
+                else
+                {
+                    return new UnsupportedMetadataTypeSymbol();
+                }
             }
             catch (ArgumentException)
             {
+                if (decoder._decodeStatus == DecodeStatus.FailedToErrorType)
+                {
+                    // If we failed to decode because there was an error type involved, marking the
+                    // metadata as unsupported means that we'll cover up the error that would otherwise
+                    // be reported for the type. This would likely lead to a worse error message as we
+                    // would just report a BindToBogus, so return the type unchanged.
+                    Debug.Assert(type.ContainsErrorType());
+                    return type;
+                }
+
+                Debug.Assert(decoder._decodeStatus == DecodeStatus.FailedToBadMetadata);
+                return new UnsupportedMetadataTypeSymbol();
             }
-            return type;
         }
 
         private readonly ImmutableArray<bool> _transformFlags;
         private int _index;
+        private DecodeStatus _decodeStatus;
 
         private NativeIntegerTypeDecoder(ImmutableArray<bool> transformFlags)
         {
             _transformFlags = transformFlags;
             _index = 0;
+            _decodeStatus = DecodeStatus.NotFailed;
         }
 
         private TypeWithAnnotations TransformTypeWithAnnotations(TypeWithAnnotations type)
@@ -72,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return TransformNamedType((NamedTypeSymbol)type);
                 default:
                     Debug.Assert(type.TypeKind == TypeKind.Error);
+                    _decodeStatus = DecodeStatus.FailedToErrorType;
                     throw new ArgumentException();
             }
         }
@@ -85,7 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _transformFlags[index] ? TransformTypeDefinition(type) : type;
             }
 
-            Debug.Assert(!_transformFlags[index]);
+            if (_transformFlags[index])
+            {
+                _decodeStatus = DecodeStatus.FailedToBadMetadata;
+                throw new ArgumentException();
+            }
 
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             type.GetAllTypeArgumentsNoUseSiteDiagnostics(allTypeArguments);
@@ -125,16 +155,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return _index++;
             }
+            _decodeStatus = DecodeStatus.FailedToBadMetadata;
             throw new ArgumentException();
         }
 
         private void IgnoreIndex()
         {
             var index = Increment();
-            Debug.Assert(!_transformFlags[index]);
+            if (_transformFlags[index])
+            {
+                _decodeStatus = DecodeStatus.FailedToBadMetadata;
+                throw new ArgumentException();
+            }
         }
 
-        private static NamedTypeSymbol TransformTypeDefinition(NamedTypeSymbol type)
+        private NamedTypeSymbol TransformTypeDefinition(NamedTypeSymbol type)
         {
             switch (type.SpecialType)
             {
@@ -142,6 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case SpecialType.System_UIntPtr:
                     return type.AsNativeInteger();
                 default:
+                    _decodeStatus = DecodeStatus.FailedToBadMetadata;
                     throw new ArgumentException();
             }
         }

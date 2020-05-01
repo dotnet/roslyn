@@ -261,24 +261,37 @@ using System.Runtime.CompilerServices;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(3, 21),
                 // (3,27): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static void F(A<nint, nuint> a)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(3, 27));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(3, 27),
+                // (6,11): error CS0570: 'B.F2(?)' is not supported by the language
+                //         B.F2(a);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F2").WithArguments("B.F2(?)").WithLocation(6, 11),
+                // (7,11): error CS0570: 'B.F3(?)' is not supported by the language
+                //         B.F3(a);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("B.F3(?)").WithLocation(7, 11));
 
             comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0570: 'B.F2(?)' is not supported by the language
+                //         B.F2(a);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F2").WithArguments("B.F2(?)").WithLocation(6, 11),
+                // (7,11): error CS0570: 'B.F3(?)' is not supported by the language
+                //         B.F3(a);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("B.F3(?)").WithLocation(7, 11)
+            );
 
             var type = comp.GetTypeByMetadataName("B");
             Assert.Equal("void B.F1(A<nint, nuint> a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F2(A<System.IntPtr, System.UIntPtr> a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F3(A<System.IntPtr, System.UIntPtr> a)", type.GetMember("F3").ToDisplayString(FormatWithSpecialTypes));
+            Assert.Equal("void B.F2( a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
+            Assert.Equal("void B.F3( a)", type.GetMember("F3").ToDisplayString(FormatWithSpecialTypes));
 
             var expected =
 @"B
     void F1(A<System.IntPtr, System.UIntPtr> a)
         [NativeInteger({ False, True, True })] A<System.IntPtr, System.UIntPtr> a
-    void F2(A<System.IntPtr, System.UIntPtr> a)
-        [NativeInteger({ False, True })] A<System.IntPtr, System.UIntPtr> a
-    void F3(A<System.IntPtr, System.UIntPtr> a)
-        [NativeInteger({ False, False, True, True })] A<System.IntPtr, System.UIntPtr> a
+    void F2(? a)
+        [NativeInteger({ False, True })] ? a
+    void F3(? a)
+        [NativeInteger({ False, False, True, True })] ? a
 ";
             AssertNativeIntegerAttributes(type.ContainingModule, expected);
         }
@@ -328,10 +341,30 @@ using System.Runtime.CompilerServices;
 }";
 
             var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,11): error CS0570: 'B.F1(?)' is not supported by the language
+                //         B.F1(default);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F1").WithArguments("B.F1(?)").WithLocation(5, 11),
+                // (6,11): error CS0570: 'B.F2(?)' is not supported by the language
+                //         B.F2(default);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F2").WithArguments("B.F2(?)").WithLocation(6, 11),
+                // (7,11): error CS0570: 'B.F3(?)' is not supported by the language
+                //         B.F3(default);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("B.F3(?)").WithLocation(7, 11)
+            );
 
             comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,11): error CS0570: 'B.F1(?)' is not supported by the language
+                //         B.F1(default);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F1").WithArguments("B.F1(?)").WithLocation(5, 11),
+                // (6,11): error CS0570: 'B.F2(?)' is not supported by the language
+                //         B.F2(default);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F2").WithArguments("B.F2(?)").WithLocation(6, 11),
+                // (7,11): error CS0570: 'B.F3(?)' is not supported by the language
+                //         B.F3(default);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("B.F3(?)").WithLocation(7, 11)
+            );
         }
 
         [Fact]
@@ -916,30 +949,41 @@ class B : A<nint>
             });
         }
 
-        [Theory]
-        [InlineData("C<dynamic, nint, System.IntPtr>", "C<dynamic, System.IntPtr, System.IntPtr>", "False, False, True, False")]
-        [InlineData("C<dynamic, nuint, System.UIntPtr>", "C<dynamic, System.UIntPtr, System.UIntPtr>", "False, False, True, False")]
-        [InlineData("C<T, nint, System.IntPtr>", "C<T, System.IntPtr, System.IntPtr>", "False, False, True, False")]
-        [InlineData("C<T, nuint, System.UIntPtr>", "C<T, System.UIntPtr, System.UIntPtr>", "False, False, True, False")]
-        public void NestedNativeIntegerWithPrecedingType(string sourceType, string metadataType, string expectedAttribute)
+        [Fact]
+        public void NestedNativeIntegerWithPrecedingType()
         {
-            var comp = CompileAndVerify($@"
+            var comp = CompileAndVerify(@"
 class C<T, U, V>
-{{
-    public {sourceType} F;
-}}
+{
+    public C<dynamic, nint, System.IntPtr> F1;
+    public C<dynamic, nuint, System.UIntPtr> F2;
+    public C<T, nint, System.IntPtr> F3;
+    public C<T, nuint, System.UIntPtr> F4;
+}
 ", options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview, symbolValidator: symbolValidator);
 
-            void symbolValidator(ModuleSymbol module)
+            static void symbolValidator(ModuleSymbol module)
             {
-                var expectedAttributes = $@"
+                var expectedAttributes = @"
 C<T, U, V>
-    [NativeInteger({{ {expectedAttribute} }})] {metadataType} F";
+    [NativeInteger({ False, False, True, False })] C<dynamic, System.IntPtr, System.IntPtr> F1
+    [NativeInteger({ False, False, True, False })] C<dynamic, System.UIntPtr, System.UIntPtr> F2
+    [NativeInteger({ False, False, True, False })] C<T, System.IntPtr, System.IntPtr> F3
+    [NativeInteger({ False, False, True, False })] C<T, System.UIntPtr, System.UIntPtr> F4
+";
 
                 AssertNativeIntegerAttributes(module, expectedAttributes);
                 var c = module.GlobalNamespace.GetTypeMember("C");
-                var field = c.GetField("F");
-                Assert.Equal(sourceType, field.Type.ToTestDisplayString());
+
+                assert("C<dynamic, nint, System.IntPtr>", "F1");
+                assert("C<dynamic, nuint, System.UIntPtr>", "F2");
+                assert("C<T, nint, System.IntPtr>", "F3");
+                assert("C<T, nuint, System.UIntPtr>", "F4");
+
+                void assert(string expectedType, string fieldName)
+                {
+                    Assert.Equal(expectedType, c.GetField(fieldName).Type.ToTestDisplayString());
+                }
             }
         }
 
