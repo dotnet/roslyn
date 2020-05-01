@@ -782,7 +782,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(ContainingType is object);
             var hasError = false;
 
-            if (isInaccessible(this) || containingTypes(this).Any(isInaccessible))
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            if (!AccessCheck.IsSymbolAccessible(this, ContainingAssembly, ref useSiteDiagnostics))
             {
                 var topLevelType = containingTypes(this).Last();
                 arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, arguments.AttributeSyntaxOpt.Location, Name, topLevelType.Name);
@@ -822,19 +823,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!hasError)
             {
                 DeclaringCompilation.AddModuleInitializerMethod(this);
-            }
-
-            static bool isInaccessible(Symbol symbol)
-            {
-                switch (symbol.DeclaredAccessibility)
-                {
-                    case Accessibility.Private:
-                    case Accessibility.Protected:
-                    case Accessibility.ProtectedAndInternal:
-                        return true;
-                    default:
-                        return false;
-                }
             }
 
             static IEnumerable<NamedTypeSymbol> containingTypes(Symbol symbol)
