@@ -136,14 +136,19 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             SemanticModel semanticModel, INamedTypeSymbol containingType,
             [NotNullWhen(true)] out INamedTypeSymbol constructedType)
         {
-            var equatableTypeOpt = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
-            if (equatableTypeOpt != null)
+            // A ref struct can never implement an interface, therefore never add IEquatable to the selection
+            // options if the type is a ref struct.
+            if (!containingType.IsRefLikeType)
             {
-                constructedType = equatableTypeOpt.Construct(containingType);
+                var equatableTypeOpt = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
+                if (equatableTypeOpt != null)
+                {
+                    constructedType = equatableTypeOpt.Construct(containingType);
 
-                // A ref struct can never implement an interface, therefore never add IEquatable to the selection
-                // options if the type is a ref struct.
-                return !containingType.AllInterfaces.Contains(constructedType) && !containingType.IsRefLikeType;
+                    // A ref struct can never implement an interface, therefore never add IEquatable to the selection
+                    // options if the type is a ref struct.
+                    return !containingType.AllInterfaces.Contains(constructedType);
+                }
             }
 
             constructedType = null;
