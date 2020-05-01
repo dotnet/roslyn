@@ -152,9 +152,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 Contract.ThrowIfFalse(Properties.ContainsKey(MetadataSymbolOriginatingProjectIdDebugName));
             }
         }
-
         public abstract bool CanNavigateTo(Workspace workspace);
-        public abstract bool TryNavigateTo(Workspace workspace, bool isPreview);
+        public abstract bool TryNavigateTo(Workspace workspace, NavigationBehavior navigationBehavior);
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,

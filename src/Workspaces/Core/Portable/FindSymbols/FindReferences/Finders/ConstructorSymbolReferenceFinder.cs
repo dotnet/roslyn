@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var findParentNode = GetFindParentNodeFunction(syntaxFacts);
 
             var normalReferences = await FindReferencesInDocumentWorkerAsync(methodSymbol, document, semanticModel, findParentNode, cancellationToken).ConfigureAwait(false);
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static Func<SyntaxToken, SyntaxNode> GetFindParentNodeFunction(ISyntaxFactsService syntaxFacts)
-            => t => syntaxFacts.GetBindableParent(t);
+            => t => syntaxFacts.TryGetBindableParent(t) ?? t.Parent!;
 
         private async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentWorkerAsync(
             IMethodSymbol symbol,
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return SpecializedTasks.EmptyImmutableArray<FinderLocation>();
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             return FindReferencesInDocumentAsync(symbol, document,
                 semanticModel,
                 t => IsPotentialReference(predefinedType, syntaxFacts, t),
