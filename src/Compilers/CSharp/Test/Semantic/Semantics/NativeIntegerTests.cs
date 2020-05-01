@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Same(underlyingType.ContainingSymbol, nativeIntegerType.ContainingSymbol);
             Assert.Same(underlyingType.Name, nativeIntegerType.Name);
 
-            VerifyMembers(underlyingType, nativeIntegerType);
+            VerifyMembers(underlyingType, nativeIntegerType, signed);
 
             verifyInterfaces(underlyingType, underlyingType.InterfacesNoUseSiteDiagnostics(), nativeIntegerType, nativeIntegerType.InterfacesNoUseSiteDiagnostics());
             verifyInterfaces(underlyingType, underlyingType.GetDeclaredInterfaces(null), nativeIntegerType, nativeIntegerType.GetDeclaredInterfaces(null));
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             }
         }
 
-        private static void VerifyMembers(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType)
+        private static void VerifyMembers(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType, bool signed)
         {
             Assert.Empty(nativeIntegerType.GetTypeMembers());
 
@@ -370,13 +370,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             var expectedMembers = underlyingMembers.WhereAsArray(m => includeUnderlyingMember(m)).Sort(SymbolComparison);
             var actualMembers = nativeIntegerMembers.WhereAsArray(m => includeNativeIntegerMember(m)).Sort(SymbolComparison);
-            Assert.Equal(expectedMembers, actualMembers, SymbolComparer.IgnoreNativeIntegers);
-            if (expectedMembers.Length > 0)
+
+            Assert.Equal(expectedMembers.Length, actualMembers.Length);
+            for (int i = 0; i < expectedMembers.Length; i++)
             {
-                Assert.NotEqual(expectedMembers, actualMembers, SymbolComparer.ConsiderEverything);
+                VerifyMember(actualMembers[i], expectedMembers[i], signed);
             }
-            Assert.Equal(expectedMembers, actualMembers.SelectAsArray(m => getUnderlyingMember(m)), ReferenceEqualityComparer.Instance);
-            AssertEx.Equal(expectedMembers.SelectAsArray(m => m.GetHashCode()), actualMembers.SelectAsArray(m => m.GetHashCode()));
 
             static bool includeUnderlyingMember(Symbol underlyingMember)
             {
@@ -407,19 +406,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                         return property.ParameterCount == 0 && !IsSkippedPropertyName(property.Name);
                     default:
                         return false;
-                }
-            }
-
-            static Symbol getUnderlyingMember(Symbol nativeIntegerMember)
-            {
-                switch (nativeIntegerMember.Kind)
-                {
-                    case SymbolKind.Method:
-                        return ((WrappedMethodSymbol)nativeIntegerMember).UnderlyingMethod;
-                    case SymbolKind.Property:
-                        return ((WrappedPropertySymbol)nativeIntegerMember).UnderlyingProperty;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(nativeIntegerMember.Kind);
                 }
             }
 
@@ -517,6 +503,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Equal(member.DeclaredAccessibility, underlyingMember.DeclaredAccessibility);
             Assert.Equal(member.IsStatic, underlyingMember.IsStatic);
 
+            Assert.NotEqual(member, underlyingMember);
+            Assert.True(member.Equals(underlyingMember, TypeCompareKind.IgnoreNativeIntegers));
+            Assert.False(member.Equals(underlyingMember, TypeCompareKind.ConsiderEverything));
+            Assert.Same(underlyingMember, getUnderlyingMember(member));
+            Assert.Equal(member.GetHashCode(), underlyingMember.GetHashCode());
+
             switch (member.Kind)
             {
                 case SymbolKind.Method:
@@ -549,32 +541,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             }
 
             var explicitImplementations = member.GetExplicitInterfaceImplementations();
-            var underlyingExplicitImplementations = underlyingMember.GetExplicitInterfaceImplementations();
-            Assert.Equal(explicitImplementations.Length, underlyingExplicitImplementations.Length);
-            for (int i = 0; i < explicitImplementations.Length; i++)
-            {
-                verifyExplicitImplementation(explicitImplementations[i], underlyingExplicitImplementations[i]);
-            }
+            Assert.Equal(0, explicitImplementations.Length);
 
             void verifyTypes(TypeWithAnnotations fromMember, TypeWithAnnotations fromUnderlyingMember)
             {
-                Assert.True(fromMember.Equals(fromUnderlyingMember, TypeCompareKind.ConsiderEverything));
+                Assert.True(fromMember.Equals(fromUnderlyingMember, TypeCompareKind.IgnoreNativeIntegers));
                 // No use of underlying type in native integer member.
                 Assert.False(containsType(fromMember, useNativeInteger: false));
                 // No use of native integer in underlying member.
                 Assert.False(containsType(fromUnderlyingMember, useNativeInteger: true));
                 // Use of underlying type in underlying member should match use of native type in native integer member.
                 Assert.Equal(containsType(fromMember, useNativeInteger: true), containsType(fromUnderlyingMember, useNativeInteger: false));
-            }
-
-            void verifyExplicitImplementation(Symbol explicitImplementation, Symbol underlyingExplicitImplementation)
-            {
-                Assert.False(true);
+                Assert.NotEqual(containsType(fromMember, useNativeInteger: true), fromMember.Equals(fromUnderlyingMember, TypeCompareKind.ConsiderEverything));
             }
 
             bool containsType(TypeWithAnnotations type, bool useNativeInteger)
             {
                 return type.Type.VisitType((type, unused1, unused2) => type.SpecialType == specialType && useNativeInteger == type.IsNativeIntegerType, (object)null) is { };
+            }
+
+            static Symbol getUnderlyingMember(Symbol nativeIntegerMember)
+            {
+                switch (nativeIntegerMember.Kind)
+                {
+                    case SymbolKind.Method:
+                        return ((WrappedMethodSymbol)nativeIntegerMember).UnderlyingMethod;
+                    case SymbolKind.Property:
+                        return ((WrappedPropertySymbol)nativeIntegerMember).UnderlyingProperty;
+                    case SymbolKind.Parameter:
+                        return ((WrappedParameterSymbol)nativeIntegerMember).UnderlyingParameter;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(nativeIntegerMember.Kind);
+                }
             }
         }
 
@@ -1726,8 +1724,13 @@ namespace System
                 };
                 AssertEx.Equal(expectedMembers, actualMembers);
 
+                var property = (PropertySymbol)members.Single(m => m.Name == "MaxValue");
+                var getMethod = (MethodSymbol)members.Single(m => m.Name == "get_MaxValue");
+                Assert.Same(getMethod, property.GetMethod);
+                Assert.Null(property.SetMethod);
+
                 var underlyingType = type.NativeIntegerUnderlyingType;
-                VerifyMembers(underlyingType, type);
+                VerifyMembers(underlyingType, type, signed);
                 VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
             }
         }
@@ -1878,7 +1881,7 @@ class Program
                 AssertEx.Equal(expectedMembers, actualMembers);
 
                 var underlyingType = type.NativeIntegerUnderlyingType;
-                VerifyMembers(underlyingType, type);
+                VerifyMembers(underlyingType, type, signed);
                 VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
             }
         }
@@ -2033,7 +2036,7 @@ class Program
                 AssertEx.Equal(expectedMembers, actualMembers);
 
                 var underlyingType = type.NativeIntegerUnderlyingType;
-                VerifyMembers(underlyingType, type);
+                VerifyMembers(underlyingType, type, signed);
                 VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
             }
         }
@@ -2123,7 +2126,7 @@ class Program
                 AssertEx.Equal(expectedMembers, actualMembers);
 
                 var underlyingType = type.NativeIntegerUnderlyingType;
-                VerifyMembers(underlyingType, type);
+                VerifyMembers(underlyingType, type, signed);
                 VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
             }
         }
@@ -2238,7 +2241,7 @@ class Program
                 };
                 AssertEx.Equal(expectedMembers, actualMembers);
 
-                VerifyMembers(underlyingType, type);
+                VerifyMembers(underlyingType, type, signed);
                 VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
             }
         }
@@ -2378,7 +2381,7 @@ class Program
                 };
                 AssertEx.Equal(expectedMembers, actualMembers);
 
-                VerifyMembers(underlyingType, type);
+                VerifyMembers(underlyingType, type, signed);
                 VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
             }
         }
@@ -2471,7 +2474,7 @@ namespace System.Reflection
                 };
                 AssertEx.Equal(expectedMembers, actualMembers);
 
-                VerifyMembers(underlyingType, type);
+                VerifyMembers(underlyingType, type, signed);
                 VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
             }
         }

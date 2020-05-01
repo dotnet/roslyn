@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         case "ToPointer":
                                             break;
                                         default:
-                                            addMethodIfAny(builder, underlyingMethod);
+                                            builder.Add(new NativeIntegerMethodSymbol(this, underlyingMethod, associatedSymbol: null));
                                             break;
                                     }
                                     break;
@@ -108,24 +108,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (underlyingProperty.ParameterCount == 0 &&
                                 underlyingProperty.Name != "Size")
                             {
-                                var property = new NativeIntegerPropertySymbol(this, underlyingProperty);
+                                var property = new NativeIntegerPropertySymbol(
+                                    this,
+                                    underlyingProperty,
+                                    (container, property, underlyingAccessor) => underlyingAccessor is null ? null : new NativeIntegerMethodSymbol(container, underlyingAccessor, property));
                                 builder.Add(property);
-                                addMethodIfAny(builder, underlyingProperty.GetMethod, property);
-                                addMethodIfAny(builder, underlyingProperty.SetMethod, property);
+                                builder.AddIfNotNull(property.GetMethod);
+                                builder.AddIfNotNull(property.SetMethod);
                             }
                             break;
                     }
                 }
                 return builder.ToImmutableAndFree();
-            }
-
-            void addMethodIfAny(ArrayBuilder<Symbol> builder, MethodSymbol underlyingMethod, NativeIntegerPropertySymbol? associatedProperty = null)
-            {
-                Debug.Assert(associatedProperty is null || (object)associatedProperty.ContainingSymbol == this);
-                if (underlyingMethod is { })
-                {
-                    builder.Add(new NativeIntegerMethodSymbol(this, underlyingMethod, associatedProperty));
-                }
             }
         }
 
@@ -223,6 +217,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal NamedTypeSymbol SubstituteUnderlyingType(NamedTypeSymbol type) => GetTypeMap().SubstituteNamedType(type);
 
+        internal static bool EqualsHelper<TSymbol>(TSymbol symbol, Symbol? other, TypeCompareKind comparison, Func<TSymbol, Symbol> getUnderlyingSymbol)
+            where TSymbol : Symbol
+        {
+            if (other is null)
+            {
+                return false;
+            }
+            if ((object)symbol == other)
+            {
+                return true;
+            }
+            if (!getUnderlyingSymbol(symbol).Equals(other, comparison))
+            {
+                return false;
+            }
+            return (comparison & TypeCompareKind.IgnoreNativeIntegers) != 0 ||
+                other is TSymbol;
+        }
+
         [Conditional("DEBUG")]
         internal static void VerifyEquality(Symbol nativeIntegerSymbol, Symbol underlyingSymbol)
         {
@@ -306,23 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override bool Equals(Symbol? other, TypeCompareKind comparison)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-            if ((object)this == other)
-            {
-                return true;
-            }
-            if (!UnderlyingMethod.Equals(other, comparison))
-            {
-                return false;
-            }
-            return (comparison & TypeCompareKind.IgnoreNativeIntegers) != 0 ||
-                other is NativeIntegerMethodSymbol;
-        }
+        public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol.UnderlyingMethod);
 
         public override int GetHashCode() => UnderlyingMethod.GetHashCode();
 
@@ -345,7 +342,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override Symbol ContainingSymbol => _container;
 
-            public override TypeWithAnnotations TypeWithAnnotations => _containingType.SubstituteUnderlyingType(UnderlyingParameter.TypeWithAnnotations);
+            public override TypeWithAnnotations TypeWithAnnotations => _containingType.SubstituteUnderlyingType(_underlyingParameter.TypeWithAnnotations);
+
+            public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingParameter);
+
+            public override int GetHashCode() => _underlyingParameter.GetHashCode();
 
             void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
             {
@@ -359,10 +360,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly NativeIntegerTypeSymbol _container;
 
-        internal NativeIntegerPropertySymbol(NativeIntegerTypeSymbol container, PropertySymbol underlyingProperty) : base(underlyingProperty)
+        internal NativeIntegerPropertySymbol(
+            NativeIntegerTypeSymbol container,
+            PropertySymbol underlyingProperty,
+            Func<NativeIntegerTypeSymbol, NativeIntegerPropertySymbol, MethodSymbol?, NativeIntegerMethodSymbol?> getAccessor) :
+            base(underlyingProperty)
         {
             Debug.Assert(underlyingProperty.ParameterCount == 0);
             _container = container;
+            GetMethod = getAccessor(container, this, underlyingProperty.GetMethod);
+            SetMethod = getAccessor(container, this, underlyingProperty.SetMethod);
             NativeIntegerTypeSymbol.VerifyEquality(this, underlyingProperty);
         }
 
@@ -374,33 +381,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
 
-        public override MethodSymbol? GetMethod => MakeAccessor(UnderlyingProperty.GetMethod);
+        public override MethodSymbol? GetMethod { get; }
 
-        public override MethodSymbol? SetMethod => MakeAccessor(UnderlyingProperty.SetMethod);
+        public override MethodSymbol? SetMethod { get; }
 
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations => ImmutableArray<PropertySymbol>.Empty;
 
         internal override bool MustCallMethodsDirectly => _underlyingProperty.MustCallMethodsDirectly;
 
-        private NativeIntegerMethodSymbol? MakeAccessor(MethodSymbol? accessor) => accessor is null ? null : new NativeIntegerMethodSymbol(_container, accessor, this);
-
-        public override bool Equals(Symbol? other, TypeCompareKind comparison)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-            if ((object)this == other)
-            {
-                return true;
-            }
-            if (!_underlyingProperty.Equals(other, comparison))
-            {
-                return false;
-            }
-            return (comparison & TypeCompareKind.IgnoreNativeIntegers) != 0 ||
-                other is NativeIntegerPropertySymbol;
-        }
+        public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingProperty);
 
         public override int GetHashCode() => _underlyingProperty.GetHashCode();
 
