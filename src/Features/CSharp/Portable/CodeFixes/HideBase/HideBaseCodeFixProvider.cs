@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
     internal partial class HideBaseCodeFixProvider : CodeFixProvider
     {
         internal const string CS0108 = nameof(CS0108); // 'SomeClass.SomeMember' hides inherited member 'SomeClass.SomeMember'. Use the new keyword if hiding was intended.
+        internal const string CS0109 = nameof(CS0109); // The member 'SomeClass.SomeMember' does not hide an accessible member. The new keyword is not required.
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0108);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0108, CS0109);
 
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;
@@ -54,7 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
                 return;
             }
 
-            context.RegisterCodeFix(new AddNewKeywordAction(context.Document, originalNode), context.Diagnostics);
+            if (diagnostic.Id == CS0108)
+                context.RegisterCodeFix(new AddNewKeywordAction(context.Document, originalNode), context.Diagnostics);
+            else if (diagnostic.Id == CS0109)
+                context.RegisterCodeFix(new RemoveNewKeywordAction(context.Document, originalNode), context.Diagnostics);
         }
     }
 }

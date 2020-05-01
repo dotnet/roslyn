@@ -178,5 +178,100 @@ class App : Application
 {
     /* start */ public /* middle */ new readonly /* end */ int Test;
 }");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveNew)]
+        public async Task TestRemoveNewFromProperty()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class App
+{
+    [|public static new App Current|] { get; set; }
+}",
+                @"class App
+{
+    public static App Current { get; set; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveNew)]
+        public async Task TestRemoveNewFromMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class App
+{
+    [|public static new void Method()
+    {
+    }|]
+}",
+@"class App
+{
+    public static void Method()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveNew)]
+        public async Task TestRemoveNewFromField()
+        {
+            await TestInRegularAndScriptAsync(
+@"class App
+{
+    [|public new int Test;|]
+}",
+@"class App
+{
+    public int Test;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveNew)]
+        public async Task TestRemoveNewFromConstant()
+        {
+            await TestInRegularAndScriptAsync(
+@"class App
+{
+    [|public const new int Test = 1;|]
+}",
+@"class App
+{
+    public const int Test = 1;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveNew)]
+        public async Task TestRemoveNewFromConstantInternalFields()
+        {
+            await TestInRegularAndScriptAsync(
+@"class A { [|internal const new int i = 1;|] }",
+@"class A { internal const int i = 1; }");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveNew)]
+        [InlineData(
+            "/* start */ public /* middle */ new /* end */ int Test;",
+            "/* start */ public /* middle */ /* end */ int Test;")]
+        [InlineData(
+            "/* start */ public /* middle */ new    /* end */ int Test;",
+            "/* start */ public /* middle */ /* end */ int Test;")]
+        [InlineData(
+            "/* start */ public /* middle */new /* end */ int Test;",
+            "/* start */ public /* middle */ /* end */ int Test;")]
+        [InlineData(
+            "new /* end */ int Test;",
+            "/* end */ int Test;")]
+        [InlineData(
+            "/* start */ new /* end */ int Test;",
+            "/* start */ /* end */ int Test;")]
+        public async Task TestRemoveNewFromModifiersWithTrivia(string original, string expected) =>
+            await TestInRegularAndScript1Async(
+$@"class App
+{{
+    [|{original}|]
+}}",
+$@"class App
+{{
+    {expected}
+}}");
     }
 }
