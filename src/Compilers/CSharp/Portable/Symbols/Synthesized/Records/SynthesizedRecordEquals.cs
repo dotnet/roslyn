@@ -9,8 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.Cci;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -144,25 +142,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 retExpr = F.ObjectNotEqual(other, F.Null(F.SpecialType(SpecialType.System_Object)));
             }
 
-            var recordProperties = ArrayBuilder<FieldSymbol>.GetInstance();
-            foreach (var member in ContainingType.GetMembers())
+            var fields = ArrayBuilder<FieldSymbol>.GetInstance();
+            foreach (var f in ContainingType.GetFieldsToEmit())
             {
-                // PROTOTYPE: Should generate equality on user-written members as well
-                if (member is SynthesizedRecordPropertySymbol p)
+                if (!f.IsStatic)
                 {
-                    recordProperties.Add(p.BackingField);
+                    fields.Add(f);
                 }
             }
-            if (recordProperties.Count > 0)
+            if (fields.Count > 0)
             {
-                var comparisons = EqualityMethodBodySynthesizer.GenerateEqualsComparisons(
-                    ContainingType,
+                retExpr = MethodBodySynthesizer.GenerateFieldEquals(
+                    retExpr,
                     other,
-                    recordProperties,
+                    fields,
                     F);
-                retExpr = retExpr is null ? comparisons : F.LogicalAnd(retExpr, comparisons);
             }
-            recordProperties.Free();
+            fields.Free();
 
             F.CloseMethod(F.Block(F.Return(retExpr)));
         }
