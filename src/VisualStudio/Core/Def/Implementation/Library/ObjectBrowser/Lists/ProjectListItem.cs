@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         public ProjectListItem(Project project)
             : base(project.Id, GetProjectGlyph(project))
         {
-            _displayText = project.Name;
+            _displayText = project.GetProjectDisplayName();
         }
 
         private static StandardGlyphGroup GetProjectGlyph(Project project)

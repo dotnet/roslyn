@@ -5,6 +5,7 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
@@ -46,6 +47,51 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return typeSymbol != null
                 ? typeSymbol.ToDisplayString(s_typeDisplayFormat)
                 : string.Empty;
+        }
+
+        public static string GetProjectDisplayName(this Project project)
+        {
+            // If the project name is unambiguous within the solution, use that name. Otherwise, use the unique name
+            // provided by IVsSolution3.GetUniqueUINameOfProject. This covers all cases except for a single solution
+            // with two or more multi-targeted projects with the same name and same targets.
+            //
+            // https://github.com/dotnet/roslyn/pull/43800
+            // http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949113
+
+            if (IsUnambiguousProjectNameInSolution(project))
+            {
+                return project.Name;
+            }
+            else if (project.Solution.Workspace is VisualStudioWorkspaceImpl workspace
+                && workspace.GetHierarchy(project.Id) is { } hierarchy
+                && (IVsSolution3)ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution)) is { } solution)
+            {
+                if (ErrorHandler.Succeeded(solution.GetUniqueUINameOfProject(hierarchy, out var name)) && name != null)
+                {
+                    return name;
+                }
+            }
+
+            return project.Name;
+
+            // Local functions
+            static bool IsUnambiguousProjectNameInSolution(Project project)
+            {
+                foreach (var other in project.Solution.Projects)
+                {
+                    if (other.Id == project.Id)
+                        continue;
+
+                    if (other.Name == project.Name)
+                    {
+                        // Another project with the same name was found in the solution. This project name is _not_
+                        // unambiguous.
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
 
         public static bool IsVenus(this Project project)
