@@ -121,27 +121,27 @@ namespace Microsoft.CodeAnalysis.Rename
             using (Logger.LogBlock(FunctionId.Renamer_RenameSymbolAsync, cancellationToken))
             {
                 var project = solution.GetOriginatingProject(symbol);
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (project != null &&
-                    client != null)
+                if (project != null)
                 {
-                    var result = await client.TryRunRemoteAsync<SerializableConflictResolution>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
-                        nameof(IRemoteRenamer.RenameSymbolAsync),
-                        solution,
-                        new object[]
-                        {
-                            SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken),
-                            newName,
-                            SerializableRenameOptionSet.Dehydrate(optionSet),
-                            nonConflictSymbols?.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
-                        },
-                        callbackTarget: null,
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (result.HasValue)
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                    if (client != null)
                     {
-                        return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                        var result = await client.TryRunRemoteAsync<SerializableConflictResolution>(
+                            WellKnownServiceHubServices.CodeAnalysisService,
+                            nameof(IRemoteRenamer.RenameSymbolAsync),
+                            solution,
+                            new object[]
+                            {
+                                SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken),
+                                newName,
+                                SerializableRenameOptionSet.Dehydrate(optionSet),
+                                nonConflictSymbols?.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
+                            },
+                            callbackTarget: null,
+                            cancellationToken).ConfigureAwait(false);
+
+                        if (result.HasValue)
+                            return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

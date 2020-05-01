@@ -131,26 +131,28 @@ namespace Microsoft.CodeAnalysis.Rename
             using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
             {
                 var project = solution.GetOriginatingProject(symbol);
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null &&
-                    project != null)
+                if (project != null)
                 {
-                    var result = await client.TryRunRemoteAsync<SerializableRenameLocations>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
-                        nameof(IRemoteRenamer.FindRenameLocationsAsync),
-                        solution,
-                        new object[]
-                        {
-                            SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken),
-                            SerializableRenameOptionSet.Dehydrate(optionSet),
-                        },
-                        callbackTarget: null,
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (result.HasValue)
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                    if (client != null)
                     {
-                        return await RenameLocations.RehydrateAsync(
-                            solution, result.Value, cancellationToken).ConfigureAwait(false);
+                        var result = await client.TryRunRemoteAsync<SerializableRenameLocations>(
+                            WellKnownServiceHubServices.CodeAnalysisService,
+                            nameof(IRemoteRenamer.FindRenameLocationsAsync),
+                            solution,
+                            new object[]
+                            {
+                                SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken),
+                                SerializableRenameOptionSet.Dehydrate(optionSet),
+                            },
+                            callbackTarget: null,
+                            cancellationToken).ConfigureAwait(false);
+
+                        if (result.HasValue)
+                        {
+                            return await RenameLocations.RehydrateAsync(
+                                solution, result.Value, cancellationToken).ConfigureAwait(false);
+                        }
                     }
                 }
             }
