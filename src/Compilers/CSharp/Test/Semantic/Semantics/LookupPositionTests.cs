@@ -25,12 +25,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void PositionalRecord1()
         {
             var text = @"
-class C(int x, int y);";
+data class C(int x, int y)
+`{
+`}";
             var expectedNames = MakeExpectedSymbols(
                 Add( // Global
                     "System",
                     "Microsoft",
-                    "C"));
+                    "C"),
+                Add( // Members
+                    "C C.Clone()",
+                    "System.Boolean C.Equals(C? )",
+                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 C.GetHashCode()",
+                    "System.Int32 C.x { get; init; }",
+                    "System.Int32 C.y { get; init; }",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "System.String System.Object.ToString()",
+                    "System.Type System.Object.GetType()",
+                    "void System.Object.Finalize()"),
+                s_pop
+            );
 
             TestLookupNames(text, expectedNames);
         }
@@ -39,7 +58,7 @@ class C(int x, int y);";
         public void PositionalRecord2()
         {
             var text = @"
-`class C`<T`>(int x, T t = default(T));";
+data `class C`<T`>(int x, T t = default(T));";
             var expectedNames = MakeExpectedSymbols(
                 Add( // Global
                     "System",
@@ -63,6 +82,47 @@ class C(int x, int y);";
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()"),
                 s_pop
+                );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void NominalRecord()
+        {
+            var text = @"
+data `class C`<T`>
+`{
+    int x { get; }
+    T t { get; }
+`}";
+            var members = new[] {
+                "C<T> C<T>.Clone()",
+                "System.Int32 C<T>.x { get; }",
+                "T C<T>.t { get; }",
+                "System.Boolean C<T>.Equals(C<T>? )",
+                "System.Boolean C<T>.Equals(System.Object? )",
+                "System.Boolean System.Object.Equals(System.Object obj)",
+                "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                "System.Int32 C<T>.GetHashCode()",
+                "System.Int32 System.Object.GetHashCode()",
+                "System.Object System.Object.MemberwiseClone()",
+                "void System.Object.Finalize()",
+                "System.String System.Object.ToString()",
+                "System.Type System.Object.GetType()",
+            };
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C<T>"),
+                Add( // C decl
+                    "T"),
+                Add(members), // members are visible in type parameter list
+                s_pop,
+                Add(members), // body
+                Combine(s_pop, s_pop) // remove members and type parameters
                 );
 
             TestLookupNames(text, expectedNames);
