@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///   ToInt32(), ToInt64(), ToPointer() should be used from underlying types only.
         /// The remaining members are exposed on the native integer types with appropriate
         /// substitution of underlying types in the signatures.
-        /// Specifically, we expose non-generic instance and static methods and properties,
-        /// including explicit implementations, other than those named above.
+        /// Specifically, we expose public, non-generic instance and static methods and properties
+        /// other than those named above.
         /// </summary>
         public override ImmutableArray<Symbol> GetMembers()
         {
@@ -73,6 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var underlyingMember in underlyingMembers)
                 {
                     Debug.Assert(_underlyingType.Equals(underlyingMember.ContainingSymbol));
+                    if (underlyingMember.DeclaredAccessibility != Accessibility.Public)
+                    {
+                        continue;
+                    }
                     switch (underlyingMember)
                     {
                         case MethodSymbol underlyingMethod:
@@ -80,32 +84,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 break;
                             }
-                            if (underlyingMethod.IsMetadataVirtual(ignoreInterfaceImplementationChanges: true))
+                            switch (underlyingMethod.MethodKind)
                             {
-                                // Overrides and explicit interface implementations.
-                                addMethodIfAny(builder, underlyingMethod);
-                            }
-                            else
-                            {
-                                switch (underlyingMethod.MethodKind)
-                                {
-                                    case MethodKind.Ordinary:
-                                        switch (underlyingMethod.Name)
-                                        {
-                                            case "Add":
-                                            case "Subtract":
-                                            case "ToInt32":
-                                            case "ToInt64":
-                                            case "ToUInt32":
-                                            case "ToUInt64":
-                                            case "ToPointer":
-                                                break;
-                                            default:
-                                                addMethodIfAny(builder, underlyingMethod);
-                                                break;
-                                        }
-                                        break;
-                                }
+                                case MethodKind.Ordinary:
+                                    switch (underlyingMethod.Name)
+                                    {
+                                        case "Add":
+                                        case "Subtract":
+                                        case "ToInt32":
+                                        case "ToInt64":
+                                        case "ToUInt32":
+                                        case "ToUInt64":
+                                        case "ToPointer":
+                                            break;
+                                        default:
+                                            addMethodIfAny(builder, underlyingMethod);
+                                            break;
+                                    }
+                                    break;
                             }
                             break;
                         case PropertySymbol underlyingProperty:
@@ -299,10 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations =>
-            UnderlyingMethod.ExplicitInterfaceImplementations.SelectAsArray(
-                (method, map) => method.OriginalDefinition.AsMember(_container.SubstituteUnderlyingType(method.ContainingType)),
-                _container);
+        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => UnderlyingMethod.RefCustomModifiers;
 
@@ -385,10 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override MethodSymbol? SetMethod => MakeAccessor(UnderlyingProperty.SetMethod);
 
-        public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations =>
-            UnderlyingProperty.ExplicitInterfaceImplementations.SelectAsArray(
-                (property, map) => property.OriginalDefinition.AsMember(_container.SubstituteUnderlyingType(property.ContainingType)),
-                _container);
+        public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations => ImmutableArray<PropertySymbol>.Empty;
 
         internal override bool MustCallMethodsDirectly => _underlyingProperty.MustCallMethodsDirectly;
 

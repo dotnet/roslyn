@@ -262,9 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             static bool includeUnderlyingMember(ISymbol underlyingMember)
             {
-                if (underlyingMember.IsOverride)
+                if (underlyingMember.DeclaredAccessibility != Accessibility.Public)
                 {
-                    return true;
+                    return false;
                 }
                 switch (underlyingMember.Kind)
                 {
@@ -281,8 +281,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                             case MethodKind.PropertyGet:
                             case MethodKind.PropertySet:
                                 return includeUnderlyingMember(method.AssociatedSymbol);
-                            case MethodKind.ExplicitInterfaceImplementation:
-                                return true;
                             default:
                                 return false;
                         }
@@ -382,9 +380,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             static bool includeUnderlyingMember(Symbol underlyingMember)
             {
-                if (underlyingMember.IsOverride)
+                if (underlyingMember.DeclaredAccessibility != Accessibility.Public)
                 {
-                    return true;
+                    return false;
                 }
                 switch (underlyingMember.Kind)
                 {
@@ -401,8 +399,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                             case MethodKind.PropertyGet:
                             case MethodKind.PropertySet:
                                 return includeUnderlyingMember(method.AssociatedSymbol);
-                            case MethodKind.ExplicitInterfaceImplementation:
-                                return true;
                             default:
                                 return false;
                         }
@@ -470,9 +466,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.Same(type, member.ContainingSymbol);
                 Assert.Same(type, member.ContainingType);
 
-                var method = member as MethodSymbol;
-                var parameters = method.Parameters;
-                Assert.Equal(parameters, method.Parameters); // same array
+                if (member is MethodSymbol method)
+                {
+                    var parameters = method.Parameters;
+                    Assert.Equal(parameters, method.Parameters); // same array
+                }
             }
         }
 
@@ -2233,25 +2231,149 @@ class Program
 
                 var underlyingType = type.NativeIntegerUnderlyingType;
                 var members = type.GetMembers().Sort(SymbolComparison);
-
-                // Note: Explicit implementation names use the underlying type
-                // in the name rather than the native integer type.
-                var expectedNames = new[]
-                {
-                    $"System.I<{underlyingType}>.F",
-                    $"System.I<{underlyingType}>.P",
-                    $"System.I<{underlyingType}>.get_P",
-                     $".ctor",
-               };
-                AssertEx.Equal(expectedNames, members.SelectAsArray(m => m.Name));
-                AssertEx.Equal(expectedNames, members.SelectAsArray(m => m.MetadataName));
-
                 var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
                 var expectedMembers = new[]
                 {
-                    $"{type} {type}.System.I<{type}>.F()",
-                    $"{type} {type}.System.I<{type}>.P {{ get; }}",
-                    $"{type} {type}.System.I<{type}>.P.get",
+                    $"{type}..ctor()",
+                };
+                AssertEx.Equal(expectedMembers, actualMembers);
+
+                VerifyMembers(underlyingType, type);
+                VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
+            }
+        }
+
+        [Fact]
+        public void NonPublicMembers_InternalUse()
+        {
+            var source =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr
+    {
+        private static IntPtr F1() => default;
+        internal IntPtr F2() => default;
+        public static IntPtr F3()
+        {
+            nint i = 0;
+            _ = nint.F1();
+            _ = i.F2();
+            return nint.F3();
+        }
+    }
+    public struct UIntPtr
+    {
+        private static UIntPtr F1() => default;
+        internal UIntPtr F2() => default;
+        public static UIntPtr F3()
+        {
+            nuint i = 0;
+            _ = nuint.F1();
+            _ = i.F2();
+            return nuint.F3();
+        }
+    }
+}";
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (16,22): error CS0117: 'nint' does not contain a definition for 'F1'
+                //             _ = nint.F1();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("nint", "F1").WithLocation(16, 22),
+                // (17,19): error CS1061: 'nint' does not contain a definition for 'F2' and no accessible extension method 'F2' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //             _ = i.F2();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F2").WithArguments("nint", "F2").WithLocation(17, 19),
+                // (28,23): error CS0117: 'nuint' does not contain a definition for 'F1'
+                //             _ = nuint.F1();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("nuint", "F1").WithLocation(28, 23),
+                // (29,19): error CS1061: 'nuint' does not contain a definition for 'F2' and no accessible extension method 'F2' accepting a first argument of type 'nuint' could be found (are you missing a using directive or an assembly reference?)
+                //             _ = i.F2();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F2").WithArguments("nuint", "F2").WithLocation(29, 19));
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void NonPublicMembers(bool useCompilationReference)
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr
+    {
+        private static IntPtr F1() => default;
+        internal IntPtr F2() => default;
+        public static IntPtr F3() => default;
+    }
+    public struct UIntPtr
+    {
+        private static UIntPtr F1() => default;
+        internal UIntPtr F2() => default;
+        public static UIntPtr F3() => default;
+    }
+}";
+            var comp = CreateEmptyCompilation(sourceA);
+            comp.VerifyDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class Program
+{
+    static void F1(nint x)
+    {
+        _ = nint.F1();
+        _ = x.F2();
+        _ = nint.F3();
+    }
+    static void F2(nuint y)
+    {
+        _ = nuint.F1();
+        _ = y.F2();
+        _ = nuint.F3();
+    }
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,18): error CS0117: 'nint' does not contain a definition for 'F1'
+                //         _ = nint.F1();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("nint", "F1").WithLocation(5, 18),
+                // (6,15): error CS1061: 'nint' does not contain a definition for 'F2' and no accessible extension method 'F2' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = x.F2();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F2").WithArguments("nint", "F2").WithLocation(6, 15),
+                // (11,19): error CS0117: 'nuint' does not contain a definition for 'F1'
+                //         _ = nuint.F1();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("nuint", "F1").WithLocation(11, 19),
+                // (12,15): error CS1061: 'nuint' does not contain a definition for 'F2' and no accessible extension method 'F2' accepting a first argument of type 'nuint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = y.F2();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F2").WithArguments("nuint", "F2").WithLocation(12, 15));
+
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F1").Parameters[0].Type, signed: true);
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F2").Parameters[0].Type, signed: false);
+
+            static void verifyType(NamedTypeSymbol type, bool signed)
+            {
+                Assert.True(type.IsNativeIntegerType);
+
+                VerifyType(type, signed: signed, isNativeInt: true);
+                VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
+
+                var underlyingType = type.NativeIntegerUnderlyingType;
+                var members = type.GetMembers().Sort(SymbolComparison);
+                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var expectedMembers = new[]
+                {
+                    $"{type} {type}.F3()",
                     $"{type}..ctor()",
                 };
                 AssertEx.Equal(expectedMembers, actualMembers);
