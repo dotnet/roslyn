@@ -5369,12 +5369,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
             ConstraintsHelper.CheckMethodConstraints(
                 method,
-                _conversions,
-                compilation,
+                new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: true, NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded),
                 diagnosticsBuilder,
                 nullabilityBuilder,
-                ref useSiteDiagnosticsBuilder,
-                template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
+                ref useSiteDiagnosticsBuilder);
             foreach (var pair in nullabilityBuilder)
             {
                 if (pair.UseSiteInfo.DiagnosticInfo is object)
@@ -5738,7 +5736,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!_disableDiagnostics)
                 {
                     var locations = tupleOpt.TupleElements.SelectAsArray((element, location) => element.Locations.FirstOrDefault() ?? location, node.Syntax.Location);
-                    tupleOpt.CheckConstraints(_conversions, typeSyntax: node.Syntax, locations, currentCompilation: compilation, diagnosticsOpt: null, nullabilityDiagnosticsOpt: new BindingDiagnosticBag(Diagnostics));
+                    tupleOpt.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: true, node.Syntax.Location, diagnostics: null),
+                                              typeSyntax: node.Syntax, locations, nullabilityDiagnosticsOpt: new BindingDiagnosticBag(Diagnostics));
                 }
 
                 SetResultType(node, TypeWithState.Create(tupleOpt, NullableFlowState.NotNull));
