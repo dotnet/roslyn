@@ -104,7 +104,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             if (local != null)
             {
                 var findReferencesResult = await SymbolFinder.FindReferencesAsync(local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
-                var locations = findReferencesResult.Single(r => Equals(r.Definition, local)).Locations;
+                var referencedSymbol = findReferencesResult.SingleOrDefault(r => Equals(r.Definition, local));
+                if (referencedSymbol == null)
+                {
+                    return SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
+                }
+
+                var locations = referencedSymbol.Locations;
                 if (!locations.Any(loc => semanticModel.SyntaxTree.OverlapsHiddenPosition(loc.Location.SourceSpan, cancellationToken)))
                 {
                     return locations;
