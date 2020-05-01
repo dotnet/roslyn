@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ImmutableArray<ISymbol> members,
             string localNameOpt)
         {
-            var statements = ArrayBuilder<SyntaxNode>.GetInstance();
+            using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var statements);
 
             // A ref like type can not be boxed. Because of this an overloaded Equals
             // taking object in the general case can never be true, because an equivelent
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (containingType.IsRefLikeType)
             {
                 statements.Add(factory.ReturnStatement(factory.FalseLiteralExpression()));
-                return statements.ToImmutableAndFree();
+                return statements.ToImmutable();
             }
 
             // Come up with a good name for the local variable we're going to compare against.
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // These will be all the expressions that we'll '&&' together inside the final
             // return statement of 'Equals'.
-            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var expressions);
+            using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var expressions);
 
             if (factory.SupportsPatterns(parseOptions))
             {
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             statements.Add(factory.ReturnStatement(
                 expressions.Aggregate(factory.LogicalAndExpression)));
 
-            return statements.ToImmutableAndFree();
+            return statements.ToImmutable();
         }
 
         private static void AddMemberChecks(
