@@ -687,8 +687,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public RefTypeSyntax WithType(TypeSyntax type) => Update(this.RefKeyword, this.ReadOnlyKeyword, type);
     }
 
+    public abstract partial class ExpressionOrPatternSyntax : CSharpSyntaxNode
+    {
+        internal ExpressionOrPatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+    }
+
     /// <summary>Provides the base class from which the classes that represent expression syntax nodes are derived. This is an abstract class.</summary>
-    public abstract partial class ExpressionSyntax : CSharpSyntaxNode
+    public abstract partial class ExpressionSyntax : ExpressionOrPatternSyntax
     {
         internal ExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -4067,7 +4075,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public WhenClauseSyntax WithCondition(ExpressionSyntax condition) => Update(this.WhenKeyword, condition);
     }
 
-    public abstract partial class PatternSyntax : CSharpSyntaxNode
+    public abstract partial class PatternSyntax : ExpressionOrPatternSyntax
     {
         internal PatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -4448,6 +4456,209 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         public ConstantPatternSyntax WithExpression(ExpressionSyntax expression) => Update(expression);
+    }
+
+    public sealed partial class ParenthesizedPatternSyntax : PatternSyntax
+    {
+        private PatternSyntax? pattern;
+
+        internal ParenthesizedPatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedPatternSyntax)this.Green).openParenToken, Position, 0);
+
+        public PatternSyntax Pattern => GetRed(ref this.pattern, 1)!;
+
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedPatternSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.pattern, 1)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.pattern : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedPattern(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedPattern(this);
+
+        public ParenthesizedPatternSyntax Update(SyntaxToken openParenToken, PatternSyntax pattern, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || pattern != this.Pattern || closeParenToken != this.CloseParenToken)
+            {
+                var newNode = SyntaxFactory.ParenthesizedPattern(openParenToken, pattern, closeParenToken);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public ParenthesizedPatternSyntax WithOpenParenToken(SyntaxToken openParenToken) => Update(openParenToken, this.Pattern, this.CloseParenToken);
+        public ParenthesizedPatternSyntax WithPattern(PatternSyntax pattern) => Update(this.OpenParenToken, pattern, this.CloseParenToken);
+        public ParenthesizedPatternSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.OpenParenToken, this.Pattern, closeParenToken);
+    }
+
+    public sealed partial class RelationalPatternSyntax : PatternSyntax
+    {
+        private ExpressionSyntax? expression;
+
+        internal RelationalPatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>SyntaxToken representing the operator of the relational pattern.</summary>
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.RelationalPatternSyntax)this.Green).operatorToken, Position, 0);
+
+        public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.expression : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRelationalPattern(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRelationalPattern(this);
+
+        public RelationalPatternSyntax Update(SyntaxToken operatorToken, ExpressionSyntax expression)
+        {
+            if (operatorToken != this.OperatorToken || expression != this.Expression)
+            {
+                var newNode = SyntaxFactory.RelationalPattern(operatorToken, expression);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public RelationalPatternSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(operatorToken, this.Expression);
+        public RelationalPatternSyntax WithExpression(ExpressionSyntax expression) => Update(this.OperatorToken, expression);
+    }
+
+    public sealed partial class TypePatternSyntax : PatternSyntax
+    {
+        private TypeSyntax? type;
+
+        internal TypePatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>The type for the type pattern.</summary>
+        public TypeSyntax Type => GetRedAtZero(ref this.type)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.type)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.type : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypePattern(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypePattern(this);
+
+        public TypePatternSyntax Update(TypeSyntax type)
+        {
+            if (type != this.Type)
+            {
+                var newNode = SyntaxFactory.TypePattern(type);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public TypePatternSyntax WithType(TypeSyntax type) => Update(type);
+    }
+
+    public sealed partial class BinaryPatternSyntax : PatternSyntax
+    {
+        private PatternSyntax? left;
+        private PatternSyntax? right;
+
+        internal BinaryPatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public PatternSyntax Left => GetRedAtZero(ref this.left)!;
+
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BinaryPatternSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+
+        public PatternSyntax Right => GetRed(ref this.right, 2)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                0 => GetRedAtZero(ref this.left)!,
+                2 => GetRed(ref this.right, 2)!,
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                0 => this.left,
+                2 => this.right,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBinaryPattern(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBinaryPattern(this);
+
+        public BinaryPatternSyntax Update(PatternSyntax left, SyntaxToken operatorToken, PatternSyntax right)
+        {
+            if (left != this.Left || operatorToken != this.OperatorToken || right != this.Right)
+            {
+                var newNode = SyntaxFactory.BinaryPattern(this.Kind(), left, operatorToken, right);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public BinaryPatternSyntax WithLeft(PatternSyntax left) => Update(left, this.OperatorToken, this.Right);
+        public BinaryPatternSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(this.Left, operatorToken, this.Right);
+        public BinaryPatternSyntax WithRight(PatternSyntax right) => Update(this.Left, this.OperatorToken, right);
+    }
+
+    public sealed partial class UnaryPatternSyntax : PatternSyntax
+    {
+        private PatternSyntax? pattern;
+
+        internal UnaryPatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.UnaryPatternSyntax)this.Green).operatorToken, Position, 0);
+
+        public PatternSyntax Pattern => GetRed(ref this.pattern, 1)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.pattern, 1)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.pattern : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnaryPattern(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUnaryPattern(this);
+
+        public UnaryPatternSyntax Update(SyntaxToken operatorToken, PatternSyntax pattern)
+        {
+            if (operatorToken != this.OperatorToken || pattern != this.Pattern)
+            {
+                var newNode = SyntaxFactory.UnaryPattern(operatorToken, pattern);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public UnaryPatternSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(operatorToken, this.Pattern);
+        public UnaryPatternSyntax WithPattern(PatternSyntax pattern) => Update(this.OperatorToken, pattern);
     }
 
     public abstract partial class InterpolatedStringContentSyntax : CSharpSyntaxNode

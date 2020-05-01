@@ -100,7 +100,7 @@ namespace GeneratedNamespace
             // generated code
         }
     }
-}"));
+}", Encoding.UTF8));
     }
 }
 ```
@@ -131,7 +131,7 @@ public class FileTransformGenerator : ISourceGenerator
                 // do some transforms based on the file context
                 string output = MyXmlToCSharpCompiler.Compile(content);
 
-                var sourceText = SourceText.From(output);
+                var sourceText = SourceText.From(output, Encoding.UTF8);
 
                 context.AddSource($"{file.Name}generated.cs", sourceText);
             }
@@ -193,7 +193,7 @@ public partial class {userClass.Identifier}
     {{
         // generated code
     }}
-}");
+}", Encoding.UTF8);
         context.AddSource("UserClass.Generated.cs", sourceText);
     }
 

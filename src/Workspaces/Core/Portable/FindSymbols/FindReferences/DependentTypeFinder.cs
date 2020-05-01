@@ -27,14 +27,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     using SymbolSet = HashSet<INamedTypeSymbol>;
 
     /// <summary>
-    /// Provides helper methods for finding dependent types (derivations, implementations, 
-    /// etc.) across a solution.  The results found are returned in pairs of <see cref="ISymbol"/>s
-    /// and <see cref="ProjectId"/>s.  The Ids specify what project we were searching in when
-    /// we found the symbol.  That project has the compilation that we found the specific
-    /// source or metadata symbol within.  Note that for metadata symbols there could be
-    /// many projects where the same symbol could be found.  However, we only return the
-    /// first instance we found.
+    /// Provides helper methods for finding dependent types (derivations, implementations, etc.) across a solution. This
+    /// is effectively a graph walk between INamedTypeSymbols walking down the inheritance hierarchy to find related
+    /// types based either on <see cref="ITypeSymbol.BaseType"/> or <see cref="ITypeSymbol.Interfaces"/>.
     /// </summary>
+    /// <remarks>
+    /// While walking up the inheritance hierarchy is trivial (as the information is directly contained on the <see
+    /// cref="ITypeSymbol"/>'s themselves), walking down is complicated.  The general way this works is by using
+    /// out-of-band indices that are built that store this type information in a weak manner.  Specifically, for both
+    /// source and metadata types we have indices that map between the base type name and the inherited type name. i.e.
+    /// for the case <c>class A { } class B : A { }</c> the index stores a link saying "There is a type 'A' somewhere
+    /// which has derived type called 'B' somewhere".  So when the index is examined for the name 'A', it will say
+    /// 'examine types called 'B' to see if they're an actual match'.
+    /// <para/>
+    /// These links are then continually tranversed to get the full set of results.
+    /// </remarks>
     internal static partial class DependentTypeFinder
     {
         // Static helpers so we can pass delegates around without allocations.

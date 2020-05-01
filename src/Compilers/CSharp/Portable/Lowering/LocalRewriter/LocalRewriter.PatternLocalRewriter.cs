@@ -25,21 +25,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected readonly SyntheticBoundNodeFactory _factory;
             protected readonly DagTempAllocator _tempAllocator;
 
-            public PatternLocalRewriter(SyntaxNode node, LocalRewriter localRewriter)
+            public PatternLocalRewriter(SyntaxNode node, LocalRewriter localRewriter, bool generateInstrumentation)
             {
                 _localRewriter = localRewriter;
                 _factory = localRewriter._factory;
-                _tempAllocator = new DagTempAllocator(_factory, node, IsSwitchStatement);
+                GenerateInstrumentation = generateInstrumentation;
+                _tempAllocator = new DagTempAllocator(_factory, node, generateInstrumentation);
             }
 
             /// <summary>
-            /// True if this is a rewriter for a switch statement. This affects 
-            /// - sequence points
-            ///   When clause gets a sequence point in a switch statement, but not in a switch expression.
+            /// True if we should produce instrumentation and sequence points, which we do for a switch statement and a switch expression.
+            /// This affects 
+            /// - whether or not we invoke the instrumentation APIs
+            /// - production of sequence points
             /// - synthesized local variable kind
             ///   The temp variables must be long lived in a switch statement since their lifetime spans across sequence points.
             /// </summary>
-            protected abstract bool IsSwitchStatement { get; }
+            protected bool GenerateInstrumentation { get; }
 
             public void Free()
             {
@@ -53,13 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly ArrayBuilder<LocalSymbol> _temps = ArrayBuilder<LocalSymbol>.GetInstance();
                 private readonly SyntaxNode _node;
 
-                private readonly bool _isSwitchStatement;
+                private readonly bool _generateSequencePoints;
 
-                public DagTempAllocator(SyntheticBoundNodeFactory factory, SyntaxNode node, bool isSwitchStatement)
+                public DagTempAllocator(SyntheticBoundNodeFactory factory, SyntaxNode node, bool generateSequencePoints)
                 {
                     _factory = factory;
                     _node = node;
-                    _isSwitchStatement = isSwitchStatement;
+                    _generateSequencePoints = generateSequencePoints;
                 }
 
                 public void Free()
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!_map.TryGetValue(dagTemp, out BoundExpression result))
                     {
-                        var kind = _isSwitchStatement ? SynthesizedLocalKind.SwitchCasePatternMatching : SynthesizedLocalKind.LoweringTemp;
+                        var kind = _generateSequencePoints ? SynthesizedLocalKind.SwitchCasePatternMatching : SynthesizedLocalKind.LoweringTemp;
                         LocalSymbol temp = _factory.SynthesizedLocal(dagTemp.Type, syntax: _node, kind: kind);
                         result = _factory.Local(temp);
                         _map.Add(dagTemp, result);
@@ -268,78 +270,54 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundDagValueTest d:
                         Debug.Assert(!input.Type.IsNullableType());
-                        return MakeEqual(_localRewriter.MakeLiteral(d.Syntax, d.Value, input.Type), input);
+                        return MakeValueTest(d.Syntax, input, d.Value);
+
+                    case BoundDagRelationalTest d:
+                        Debug.Assert(!input.Type.IsNullableType());
+                        Debug.Assert(input.Type.IsValueType);
+                        return MakeRelationalTest(d.Syntax, input, d.OperatorKind, d.Value);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(test);
                 }
             }
-
-            private BoundExpression MakeEqual(BoundExpression loweredLiteral, BoundExpression input)
+            protected BoundExpression MakeValueTest(SyntaxNode syntax, BoundExpression input, ConstantValue value)
             {
-                Debug.Assert(loweredLiteral.Type is { });
-                Debug.Assert(loweredLiteral.Type.Equals(input.Type, TypeCompareKind.AllIgnoreOptions));
+                TypeSymbol comparisonType = input.Type.EnumUnderlyingTypeOrSelf();
+                var operatorType = Binder.RelationalOperatorType(comparisonType);
+                Debug.Assert(operatorType != BinaryOperatorKind.Error);
+                var operatorKind = BinaryOperatorKind.Equal | operatorType;
+                return MakeRelationalTest(syntax, input, operatorKind, value);
+            }
 
-                if (loweredLiteral.Type.SpecialType == SpecialType.System_Double && double.IsNaN(loweredLiteral.ConstantValue!.DoubleValue))
+            protected BoundExpression MakeRelationalTest(SyntaxNode syntax, BoundExpression input, BinaryOperatorKind operatorKind, ConstantValue value)
+            {
+                if (input.Type.SpecialType == SpecialType.System_Double && double.IsNaN(value.DoubleValue) ||
+                    input.Type.SpecialType == SpecialType.System_Single && float.IsNaN(value.SingleValue))
                 {
-                    // produce double.IsNaN(input)
-                    return _factory.StaticCall(SpecialMember.System_Double__IsNaN, input);
-                }
-                else if (loweredLiteral.Type.SpecialType == SpecialType.System_Single && float.IsNaN(loweredLiteral.ConstantValue!.SingleValue))
-                {
-                    // produce float.IsNaN(input)
-                    return _factory.StaticCall(SpecialMember.System_Single__IsNaN, input);
+                    Debug.Assert(operatorKind.Operator() == BinaryOperatorKind.Equal);
+                    return _factory.MakeIsNotANumberTest(input);
                 }
 
-                NamedTypeSymbol booleanType = _factory.SpecialType(SpecialType.System_Boolean);
-                NamedTypeSymbol intType = _factory.SpecialType(SpecialType.System_Int32);
-                switch (loweredLiteral.Type.SpecialType)
+                BoundExpression literal = _localRewriter.MakeLiteral(syntax, value, input.Type);
+                TypeSymbol comparisonType = input.Type.EnumUnderlyingTypeOrSelf();
+                if (operatorKind.OperandTypes() == BinaryOperatorKind.Int && comparisonType.SpecialType != SpecialType.System_Int32)
                 {
-                    case SpecialType.System_Boolean:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.BoolEqual, input, loweredLiteral, booleanType, method: null);
-                    case SpecialType.System_Byte:
-                    case SpecialType.System_Char:
-                    case SpecialType.System_Int16:
-                    case SpecialType.System_SByte:
-                    case SpecialType.System_UInt16:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.IntEqual, _factory.Convert(intType, input), _factory.Convert(intType, loweredLiteral), booleanType, method: null);
-                    case SpecialType.System_Decimal:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.DecimalEqual, input, loweredLiteral, booleanType, method: null);
-                    case SpecialType.System_Double:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.DoubleEqual, input, loweredLiteral, booleanType, method: null);
-                    case SpecialType.System_Int32:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.IntEqual, input, loweredLiteral, booleanType, method: null);
-                    case SpecialType.System_Int64:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.LongEqual, input, loweredLiteral, booleanType, method: null);
-                    case SpecialType.System_Single:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.FloatEqual, input, loweredLiteral, booleanType, method: null);
-                    case SpecialType.System_String:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.StringEqual, input, loweredLiteral, booleanType, method: null);
-                    case SpecialType.System_UInt32:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.UIntEqual, input, loweredLiteral, booleanType, method: null);
-                    case SpecialType.System_UInt64:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.ULongEqual, input, loweredLiteral, booleanType, method: null);
-                    case SpecialType.System_IntPtr when loweredLiteral.Type.IsNativeIntegerType:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.NIntEqual, input, loweredLiteral, booleanType, method: null);
-                    case SpecialType.System_UIntPtr when loweredLiteral.Type.IsNativeIntegerType:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.NUIntEqual, input, loweredLiteral, booleanType, method: null);
-                    default:
-                        if (loweredLiteral.Type.IsEnumType())
-                        {
-                            return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.EnumEqual, input, loweredLiteral, booleanType, method: null);
-                        }
-
-                        // This is the (correct but inefficient) fallback for any type that isn't yet implemented.
-                        // However, the above should handle all types.
-                        Debug.Assert(false); // don't fail in non-debug builds
-                        NamedTypeSymbol systemObject = _factory.SpecialType(SpecialType.System_Object);
-                        return _factory.StaticCall(
-                            systemObject,
-                            "Equals",
-                            _factory.Convert(systemObject, loweredLiteral),
-                            _factory.Convert(systemObject, input)
-                            );
+                    // Promote operands to int before comparison for byte, sbyte, short, ushort
+                    Debug.Assert(comparisonType.SpecialType switch
+                    {
+                        SpecialType.System_Byte => true,
+                        SpecialType.System_SByte => true,
+                        SpecialType.System_Int16 => true,
+                        SpecialType.System_UInt16 => true,
+                        _ => false
+                    });
+                    comparisonType = _factory.SpecialType(SpecialType.System_Int32);
+                    input = _factory.Convert(comparisonType, input);
+                    literal = _factory.Convert(comparisonType, literal);
                 }
+
+                return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null);
             }
 
             /// <summary>
@@ -407,11 +385,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out BoundExpression savedInputExpression)
             {
                 Debug.Assert(loweredInput.Type is { });
+
+                // We share input variables if there is no when clause (because a when clause might mutate them).
+                bool anyWhenClause =
+                    decisionDag.TopologicallySortedNodes
+                    .Any(node => node is BoundWhenDecisionDagNode { WhenExpression: { ConstantValue: null } });
+
                 var inputDagTemp = BoundDagTemp.ForOriginalInput(loweredInput);
                 if ((loweredInput.Kind == BoundKind.Local || loweredInput.Kind == BoundKind.Parameter)
-                    && loweredInput.GetRefKind() == RefKind.None)
+                    && loweredInput.GetRefKind() == RefKind.None &&
+                    !anyWhenClause)
                 {
-                    // If we're switching on a local variable and there is no when clause (checked by the caller),
+                    // If we're switching on a local variable and there is no when clause,
                     // we assume the value of the local variable does not change during the execution of the
                     // decision automaton and we just reuse the local variable when we need the input expression.
                     // It is possible for this assumption to be violated by a side-effecting Deconstruct that
@@ -449,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // (though perhaps its component parts are used), then we can save the component parts
                     // and assign them into temps (or perhaps user variables) to avoid the creation of
                     // the tuple altogether.
-                    decisionDag = RewriteTupleInput(decisionDag, expr, addCode, out savedInputExpression);
+                    decisionDag = RewriteTupleInput(decisionDag, expr, addCode, !anyWhenClause, out savedInputExpression);
                 }
                 else
                 {
@@ -500,6 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundDecisionDag decisionDag,
                 BoundObjectCreationExpression loweredInput,
                 Action<BoundExpression> addCode,
+                bool canShareInputs,
                 out BoundExpression savedInputExpression)
             {
                 int count = loweredInput.Arguments.Length;
@@ -528,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 void storeToTemp(BoundDagTemp temp, BoundExpression expr)
                 {
-                    if ((expr.Kind == BoundKind.Parameter || expr.Kind == BoundKind.Local) && _tempAllocator.TrySetTemp(temp, expr))
+                    if (canShareInputs && (expr.Kind == BoundKind.Parameter || expr.Kind == BoundKind.Local) && _tempAllocator.TrySetTemp(temp, expr))
                     {
                         // we've arranged to use the input value from the variable it is already stored in
                     }
