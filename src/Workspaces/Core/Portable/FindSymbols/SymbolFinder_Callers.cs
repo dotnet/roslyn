@@ -9,6 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
+#if !NETCOREAPP
+using Roslyn.Utilities;
+#endif
+
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
