@@ -151,12 +151,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var callback = new TodoCommentsListener();
 
             using var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
-            var invokeTask = client.TryRunRemoteAsync(
+            using var session = await client.TryCreateKeepAliveSessionAsync(
                 WellKnownServiceHubServices.RemoteTodoCommentsService,
+                callback,
+                cancellationTokenSource.Token);
+
+            var invokeTask = session.RunRemoteAsync(
                 nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),
-                callbackTarget: callback,
                 cancellationTokenSource.Token);
 
             var data = await callback.Data;
