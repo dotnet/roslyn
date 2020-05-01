@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
-namespace Microsoft.VisualStudio.IntegrationTest.Setup
+namespace Microsoft.CodeAnalysis.Remote
 {
     using Debugger = System.Diagnostics.Debugger;
 
