@@ -51,7 +51,7 @@ data class Point(int x, int y);
                 // (2,12): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("records").WithLocation(2, 12),
-                // (2,12): error CS8800: Records must have both a 'data' modifier and non-empty parameter list
+                // (2,12): error CS8800: A positional record must have both a 'data' modifier and non-empty parameter list
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "(int x, int y)").WithLocation(2, 12),
                 // (2,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
@@ -68,10 +68,7 @@ data class Point(int x, int y);
             comp.VerifyDiagnostics(
                 // (2,1): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // data class Point { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "data").WithArguments("records").WithLocation(2, 1),
-                // (2,12): error CS8761: Records must have both a 'data' modifier and parameter list
-                // data class Point { }
-                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "Point").WithLocation(2, 12)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "data").WithArguments("records").WithLocation(2, 1)
             );
             comp = CreateCompilation(src3, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -94,15 +91,12 @@ data class Point(int x, int y);
 
             comp = CreateCompilation(src1);
             comp.VerifyDiagnostics(
-                // (2,12): error CS8761: Records must have both a 'data' modifier and parameter list
+                // (2,12): error CS8800: A positional record must have both a 'data' modifier and non-empty parameter list
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "(int x, int y)").WithLocation(2, 12)
             );
             comp = CreateCompilation(src2);
             comp.VerifyDiagnostics(
-                // (2,12): error CS8761: Records must have both a 'data' modifier and parameter list
-                // data class Point { }
-                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "Point").WithLocation(2, 12)
             );
             comp = CreateCompilation(src3);
             comp.VerifyDiagnostics();
@@ -2116,6 +2110,35 @@ data class B(int X, int Y) : A
                 "B..ctor(System.Int32 X, System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void NominalRecordWith()
+        {
+            var src = @"
+using System;
+data class C
+{
+    public int X { get; init; }
+    public string Y;
+    public int Z { get; set; }
+
+    public static void Main()
+    {
+        var c = new C() { X = 1, Y = ""2"", Z = 3 };
+        var c2 = new C() { X = 1, Y = ""2"", Z = 3 };
+        Console.WriteLine(c.Equals(c2));
+        var c3 = c2 with { X = 3, Y = ""2"", Z = 1 };
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c3.Equals(c2));
+        Console.WriteLine(c2.X + "" "" + c2.Y + "" "" + c2.Z);
+    }
+}";
+            CompileAndVerify(src, expectedOutput: @"
+True
+True
+False
+1 2 3");
         }
 
         private static ImmutableArray<Symbol> GetProperties(CSharpCompilation comp, string typeName)
