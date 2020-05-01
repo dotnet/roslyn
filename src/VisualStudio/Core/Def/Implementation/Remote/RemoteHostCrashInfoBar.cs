@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.ExceptionServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
@@ -23,7 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public static void ShowInfoBar(Workspace workspace, Exception exception = null)
         {
-            FatalError.Report(exception ?? new InvalidOperationException(ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio));
+            exception ??= new InvalidOperationException(ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio);
+            FatalError.Report(exception);
+            ExceptionDispatchInfo.Capture(exception).Throw();
             throw ExceptionUtilities.Unreachable;
 
 #if false
