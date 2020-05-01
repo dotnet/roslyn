@@ -122,22 +122,25 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         public void MayBeAsyncVoid()
         {
             string source = @"
+using System;
 using System.Runtime.CompilerServices;
 
 static class C
 {
     [ModuleInitializer]
-    internal static async void M() { }
+    internal static async void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyEmitDiagnostics(
-                // (7,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     internal static async void M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(7, 32)
-                );
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+C.M
+Program.Main");
         }
 
         [Fact]

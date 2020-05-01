@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -40,18 +42,25 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         public void AllowedMethodAccessibility(string keywords)
         {
             string source = @"
+using System;
 using System.Runtime.CompilerServices;
 
 class C
 {
     [ModuleInitializer]
-    " + keywords + @" static void M() { }
+    " + keywords + @" static void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyEmitDiagnostics();
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+C.M
+Program.Main");
         }
 
         [Theory]
@@ -60,18 +69,25 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         public void AllowedTopLevelTypeAccessibility(string keywords)
         {
             string source = @"
+using System;
 using System.Runtime.CompilerServices;
 
 " + keywords + @" class C
 {
     [ModuleInitializer]
-    public static void M() { }
+    public static void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyEmitDiagnostics();
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+C.M
+Program.Main");
         }
 
         [Theory]
@@ -109,6 +125,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         public void AllowedNestedTypeAccessibility(string keywords)
         {
             string source = @"
+using System;
 using System.Runtime.CompilerServices;
 
 public class C
@@ -116,86 +133,112 @@ public class C
     " + keywords + @" class Nested
     {
         [ModuleInitializer]
-        public static void M() { }
+        public static void M() => Console.WriteLine(""C.M"");
     }
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyEmitDiagnostics();
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+C.M
+Program.Main");
         }
 
         [Fact]
         public void MayBeDeclaredByStruct()
         {
             string source = @"
+using System;
 using System.Runtime.CompilerServices;
 
 struct S
 {
     [ModuleInitializer]
-    internal static void M() { }
+    internal static void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyEmitDiagnostics();
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+C.M
+Program.Main");
         }
 
         [Fact]
         public void MayBeDeclaredByInterface()
         {
             string source = @"
+using System;
 using System.Runtime.CompilerServices;
 
 interface I
 {
     [ModuleInitializer]
-    internal static void M() { }
+    internal static void M() => Console.WriteLine(""I.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-
-            compilation.VerifyEmitDiagnostics(
-                // (7,26): error CS8701: Target runtime doesn't support default interface implementation.
-                //     internal static void M() { }
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M").WithLocation(7, 26)
-                );
+            CompileAndVerify(
+                source,
+                parseOptions: s_parseOptions,
+                targetFramework: TargetFramework.NetStandardLatest,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"
+I.M
+Program.Main" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
         }
 
         [Fact]
         public void ImplicitPublicInterfaceMethodAccessibility()
         {
             string source = @"
+using System;
 using System.Runtime.CompilerServices;
 
 interface I
 {
     [ModuleInitializer]
-    static void M() { }
+    static void M() => Console.WriteLine(""I.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-
-            // Intentionally demonstrated without DIM support.
-
-            compilation.VerifyEmitDiagnostics(
-                // (7,17): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static void M() { }
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M").WithLocation(7, 17)
-                );
+            CompileAndVerify(
+                source,
+                parseOptions: s_parseOptions,
+                targetFramework: TargetFramework.NetStandardLatest,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"
+I.M
+Program.Main" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
         }
 
         [Fact]
         public void ImplicitPublicInterfaceNestedTypeAccessibility()
         {
             string source = @"
+using System;
 using System.Runtime.CompilerServices;
 
 interface I
@@ -203,14 +246,20 @@ interface I
     class Nested
     {
         [ModuleInitializer]
-        internal static void M() { }
+        internal static void M() => Console.WriteLine(""C.M"");
     }
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-            compilation.VerifyEmitDiagnostics();
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+C.M
+Program.Main");
         }
     }
 }
