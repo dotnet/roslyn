@@ -2932,6 +2932,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (paramList.ParameterCount == 0 || !_declModifiers.HasFlag(DeclarationModifiers.Data))
             {
+                // PROTOTYPE: The semantics of an empty parameter list have not been decided. Error
+                // for now
                 diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
             }
 
