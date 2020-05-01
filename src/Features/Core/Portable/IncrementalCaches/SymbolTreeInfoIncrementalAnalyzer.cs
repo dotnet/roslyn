@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
             }
 
-            private Task UpdateReferencesAsync(Project project, CancellationToken cancellationToken)
+            private async Task UpdateReferencesAsync(Project project, CancellationToken cancellationToken)
             {
                 // Process all metadata references. If it remote workspace, do this in parallel.
                 using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
                     tasks.Add(Task.Run(() => this.UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken));
 
-                return Task.WhenAll(tasks);
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
             private async Task UpdateReferenceAsync(
