@@ -100,6 +100,16 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol)
+            {
+                Debug.Assert(symbol.Kind == SymbolKind.Assembly ||
+                             symbol.Kind == SymbolKind.NetModule ||
+                             symbol.Kind == SymbolKind.DynamicType);
+                var state = this.ReadState();
+                var unrootedSymbolSet = state.UnrootedSymbolSet;
+                return unrootedSymbolSet != null && unrootedSymbolSet.TryGetValue(symbol, out _);
+            }
+
             /// <summary>
             /// Creates a new instance of the compilation info, retaining any already built
             /// compilation state as the now 'old' state
@@ -188,7 +198,8 @@ namespace Microsoft.CodeAnalysis
                         new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                         inProgressCompilation,
                         generatorDriver: new TrackedGeneratorDriver(null),
-                        hasSuccessfullyLoaded: false));
+                        hasSuccessfullyLoaded: false,
+                        State.GetUnrootedSymbols(inProgressCompilation)));
             }
 
             /// <summary>
@@ -315,7 +326,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Gets the final compilation if it is available.
             /// </summary>
-            public bool TryGetCompilation([NotNullWhen(true)]out Compilation? compilation)
+            public bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation)
             {
                 var state = ReadState();
                 if (state.FinalCompilation != null && state.FinalCompilation.TryGetValue(out var compilationOpt) && compilationOpt.HasValue)
@@ -710,7 +721,8 @@ namespace Microsoft.CodeAnalysis
                             State.CreateValueSource(compilationWithoutGeneratedFiles, solution.Services),
                             compilationWithoutGeneratedFiles,
                             generatorDriver,
-                            hasSuccessfullyLoaded),
+                            hasSuccessfullyLoaded,
+                            State.GetUnrootedSymbols(compilation)),
                         solution.Services);
 
                     return new CompilationInfo(compilation, hasSuccessfullyLoaded);

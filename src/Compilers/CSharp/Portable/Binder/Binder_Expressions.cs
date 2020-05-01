@@ -236,6 +236,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindToNaturalType(BindValue(node, diagnostics, BindValueKind.RValue), diagnostics, reportNoTargetType);
         }
 
+        /// <summary>
+        /// When binding a switch case's expression, it is possible that it resolves to a type (technically, a type pattern).
+        /// This implementation permits either an rvalue or a BoundTypeExpression.
+        /// </summary>
+        internal BoundExpression BindTypeOrRValue(ExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            var valueOrType = BindExpression(node, diagnostics: diagnostics, invoked: false, indexed: false);
+            if (valueOrType.Kind == BoundKind.TypeExpression)
+            {
+                // In the Color Color case (Kind == BoundKind.TypeOrValueExpression), we treat it as a value
+                // by not entering this if statement
+                return valueOrType;
+            }
+
+            return CheckValue(valueOrType, BindValueKind.RValue, diagnostics);
+        }
+
         internal BoundExpression BindToTypeForErrorRecovery(BoundExpression expression, TypeSymbol type = null)
         {
             if (expression is null)
@@ -6628,7 +6645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!hasError && fieldSymbol.IsFixedSizeBuffer && !IsInsideNameof)
             {
                 // SPEC: In a member access of the form E.I, if E is of a struct type and a member lookup of I in
-                // that struct type identifies a fixed size member, then E.I is evaluated an classified as follows:
+                // that struct type identifies a fixed size member, then E.I is evaluated and classified as follows:
                 // * If the expression E.I does not occur in an unsafe context, a compile-time error occurs.
                 // * If E is classified as a value, a compile-time error occurs.
                 // * Otherwise, if E is a moveable variable and the expression E.I is not a fixed_pointer_initializer,

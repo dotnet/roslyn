@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
     ''' A implementation of <see cref="ILsifJsonWriter" /> for use in unit tests. It does additional validation of the
     ''' correctness of the output, And stores the entire output And offers useful helpers to inspect the result.
     ''' </summary>
-    Class TestLsifJsonWriter
+    Friend Class TestLsifJsonWriter
         Implements ILsifJsonWriter
 
         Private ReadOnly _elementsById As Dictionary(Of Id(Of Element), Element) = New Dictionary(Of Id(Of Element), Element)

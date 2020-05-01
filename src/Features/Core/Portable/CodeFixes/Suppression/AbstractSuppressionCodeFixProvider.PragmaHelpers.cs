@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         /// </summary>
         private static class PragmaHelpers
         {
-            internal async static Task<Document> GetChangeDocumentWithPragmaAdjustedAsync(
+            internal static async Task<Document> GetChangeDocumentWithPragmaAdjustedAsync(
                 Document document,
                 TextSpan diagnosticSpan,
                 SuppressionTargetInfo suppressionTargetInfo,

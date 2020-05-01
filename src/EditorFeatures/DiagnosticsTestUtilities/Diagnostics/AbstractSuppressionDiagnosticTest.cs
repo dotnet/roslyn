@@ -69,20 +69,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return FilterDiagnostics(diagnostics);
         }
 
-        private class FromFileLoader : IAnalyzerAssemblyLoader
-        {
-            public static FromFileLoader Instance = new FromFileLoader();
-
-            public void AddDependencyLocation(string fullPath)
-            {
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-            {
-                return Assembly.LoadFrom(fullPath);
-            }
-        }
-
         internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
             TestWorkspace workspace, TestParameters parameters)
         {

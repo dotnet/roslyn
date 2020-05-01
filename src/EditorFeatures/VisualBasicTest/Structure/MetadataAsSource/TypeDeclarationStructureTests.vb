@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Structure
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -35,20 +34,14 @@ End Class|}|}
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function WithAttributes() As Task
             Dim code = "
-{|hint:{|textspan:<Goo>
-|}Class $$C|}
-End Class
+{|textspan2:{|hint:{|textspan:<Goo>
+|}{|#0:Class $$C|}
+End Class|#0}|}
 "
 
             Await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True),
-                New BlockSpan(
-                    isCollapsible:=True,
-                    textSpan:=TextSpan.FromBounds(2, 27),
-                    hintSpan:=TextSpan.FromBounds(9, 27),
-                    type:=BlockTypes.Nonstructural,
-                    bannerText:="<Goo> Class C " & Ellipsis,
-                    autoCollapse:=False))
+                Region("textspan2", "#0", "<Goo> Class C " & VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=False))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
@@ -56,20 +49,14 @@ End Class
             Dim code = "
 {|hint:{|textspan:' Summary:
 '     This is a summary.
-<Goo>
-|}Class $$C|}
-End Class
+{|#1:<Goo>
+|}{|#0:Class $$C|}
+End Class|#0}|#1}
 "
 
             Await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True),
-                New BlockSpan(
-                    isCollapsible:=True,
-                    textSpan:=TextSpan.FromBounds(40, 65),
-                    hintSpan:=TextSpan.FromBounds(47, 65),
-                    type:=BlockTypes.Nonstructural,
-                    bannerText:="<Goo> Class C " & Ellipsis,
-                    autoCollapse:=False))
+                Region("#1", "#0", "<Goo> Class C " & VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=False))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
@@ -77,20 +64,14 @@ End Class
             Dim code = "
 {|hint:{|textspan:' Summary:
 '     This is a summary.
-<Goo>
-|}Public Class $$C|}
-End Class
+{|#1:<Goo>
+|}{|#0:Public Class $$C|}
+End Class|#0}|#1}
 "
 
             Await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True),
-                New BlockSpan(
-                    isCollapsible:=True,
-                    textSpan:=TextSpan.FromBounds(40, 72),
-                    hintSpan:=TextSpan.FromBounds(47, 72),
-                    type:=BlockTypes.Nonstructural,
-                    bannerText:="<Goo> Public Class C " & Ellipsis,
-                    autoCollapse:=False))
+                Region("#1", "#0", "<Goo> Public Class C " & VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=False))
         End Function
     End Class
 End Namespace

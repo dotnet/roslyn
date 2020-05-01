@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
         }
     }
 
-    interface ISerializableId
+    internal interface ISerializableId
     {
         public int NumericId { get; }
     }

@@ -48,6 +48,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.SeparatedList(Of TElement)(list)
         End Function
 
+        Friend Overrides Function CreateInterpolatedStringStartToken(isVerbatim As Boolean) As SyntaxToken
+            Return SyntaxFactory.Token(SyntaxKind.DollarSignDoubleQuoteToken)
+        End Function
+
+        Friend Overrides Function CreateInterpolatedStringEndToken() As SyntaxToken
+            Return SyntaxFactory.Token(SyntaxKind.DoubleQuoteToken)
+        End Function
+
         Friend Overrides Function SeparatedList(Of TElement As SyntaxNode)(nodes As IEnumerable(Of TElement), separators As IEnumerable(Of SyntaxToken)) As SeparatedSyntaxList(Of TElement)
             Return SyntaxFactory.SeparatedList(nodes, separators)
         End Function
@@ -58,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return SyntaxFactory.Trivia(structuredTrivia)
             End If
 
-            Return Nothing
+            Throw ExceptionUtilities.UnexpectedValue(node.Kind())
         End Function
 
         Friend Overrides Function DocumentationCommentTrivia(nodes As IEnumerable(Of SyntaxNode), trailingTrivia As SyntaxTriviaList, lastWhitespaceTrivia As SyntaxTrivia, endOfLineString As String) As SyntaxNode
@@ -66,41 +74,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return node.WithLeadingTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia("''' ")).
                     WithTrailingTrivia(node.GetTrailingTrivia()).
                     WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLineString), lastWhitespaceTrivia)
-        End Function
-
-        Friend Overrides Function IsNamedArgument(syntaxNode As SyntaxNode) As Boolean
-            Dim argument = TryCast(syntaxNode, ArgumentSyntax)
-            If argument IsNot Nothing Then
-                Return argument.IsNamed
-            Else
-                Return False
-            End If
-        End Function
-
-        Friend Overrides Function IsWhitespaceTrivia(trivia As SyntaxTrivia) As Boolean
-            Return trivia.IsKind(SyntaxKind.WhitespaceTrivia)
-        End Function
-
-        Friend Overrides Function IsDocumentationCommentTriviaSyntax(node As SyntaxNode) As Boolean
-            Return node.IsKind(SyntaxKind.DocumentationCommentTrivia)
-        End Function
-
-        Friend Overrides Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean
-            Dim xmlElement = TryCast(node, XmlElementSyntax)
-            If xmlElement IsNot Nothing Then
-                Return xmlElement.StartTag.Name.ToString() = DocumentationCommentXmlNames.ParameterElementName
-            End If
-
-            Return False
-        End Function
-
-        Friend Overrides Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxNode()
-            Dim documentationCommentTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
-            If documentationCommentTrivia IsNot Nothing Then
-                Return documentationCommentTrivia.Content.ToArray()
-            End If
-
-            Return Nothing
         End Function
 
         Friend Overrides Function DocumentationCommentTriviaWithUpdatedContent(trivia As SyntaxTrivia, content As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -379,10 +352,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overloads Overrides Function ObjectCreationExpression(typeName As SyntaxNode, arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.ObjectCreationExpression(
-                Nothing,
+                attributeLists:=Nothing,
                 DirectCast(typeName, TypeSyntax),
                 CreateArgumentList(arguments),
-                Nothing)
+                initializer:=Nothing)
+        End Function
+
+        Friend Overrides Function ObjectCreationExpression(typeName As SyntaxNode, openParen As SyntaxToken, arguments As SeparatedSyntaxList(Of SyntaxNode), closeParen As SyntaxToken) As SyntaxNode
+            Return SyntaxFactory.ObjectCreationExpression(
+                attributeLists:=Nothing,
+                DirectCast(typeName, TypeSyntax),
+                SyntaxFactory.ArgumentList(openParen, arguments, closeParen),
+                initializer:=Nothing)
         End Function
 
         Public Overrides Function QualifiedName(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
@@ -555,10 +536,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return cases
         End Function
 
-        Private Function AsCaseClause(expression As SyntaxNode) As CaseClauseSyntax
-            Return SyntaxFactory.SimpleCaseClause(DirectCast(expression, ExpressionSyntax))
-        End Function
-
         Public Overrides Function ExitSwitchStatement() As SyntaxNode
             Return SyntaxFactory.ExitSelectStatement()
         End Function
@@ -706,24 +683,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Overrides Function ParseExpression(stringToParse As String) As SyntaxNode
             Return SyntaxFactory.ParseExpression(stringToParse)
         End Function
-
-        Friend Overrides Function CommaTokenWithElasticSpace() As SyntaxToken
-            Return SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace)
-        End Function
-
 #End Region
 
 #Region "Declarations"
 
-        Private Shared s_fieldModifiers As DeclarationModifiers = DeclarationModifiers.Const Or DeclarationModifiers.[New] Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.Static Or DeclarationModifiers.WithEvents
-        Private Shared s_methodModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.Async Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.Partial Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
-        Private Shared s_constructorModifiers As DeclarationModifiers = DeclarationModifiers.Static
-        Private Shared s_propertyModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WriteOnly Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
-        Private Shared s_indexerModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WriteOnly Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
-        Private Shared s_classModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Partial Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static
-        Private Shared s_structModifiers As DeclarationModifiers = DeclarationModifiers.[New] Or DeclarationModifiers.Partial
-        Private Shared s_interfaceModifiers As DeclarationModifiers = DeclarationModifiers.[New] Or DeclarationModifiers.Partial
-        Private Shared s_accessorModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.Virtual
+        Private Shared ReadOnly s_fieldModifiers As DeclarationModifiers = DeclarationModifiers.Const Or DeclarationModifiers.[New] Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.Static Or DeclarationModifiers.WithEvents
+        Private Shared ReadOnly s_methodModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.Async Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.Partial Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
+        Private Shared ReadOnly s_constructorModifiers As DeclarationModifiers = DeclarationModifiers.Static
+        Private Shared ReadOnly s_propertyModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WriteOnly Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
+        Private Shared ReadOnly s_indexerModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WriteOnly Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
+        Private Shared ReadOnly s_classModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Partial Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static
+        Private Shared ReadOnly s_structModifiers As DeclarationModifiers = DeclarationModifiers.[New] Or DeclarationModifiers.Partial
+        Private Shared ReadOnly s_interfaceModifiers As DeclarationModifiers = DeclarationModifiers.[New] Or DeclarationModifiers.Partial
+        Private Shared ReadOnly s_accessorModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.Virtual
 
         Private Function GetAllowedModifiers(kind As SyntaxKind) As DeclarationModifiers
             Select Case kind
@@ -1406,18 +1378,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 [inherits]:=Nothing,
                 [implements]:=If(itypes IsNot Nothing, SyntaxFactory.SingletonList(SyntaxFactory.ImplementsStatement(SyntaxFactory.SeparatedList(itypes))), Nothing),
                 members:=If(members IsNot Nothing, SyntaxFactory.List(members.Cast(Of StatementSyntax)()), Nothing))
-        End Function
-
-        Private Function AsStructureMembers(nodes As IEnumerable(Of SyntaxNode)) As SyntaxList(Of StatementSyntax)
-            If nodes IsNot Nothing Then
-                Return SyntaxFactory.List(nodes.Select(AddressOf AsStructureMember).Where(Function(n) n IsNot Nothing))
-            Else
-                Return Nothing
-            End If
-        End Function
-
-        Private Function AsStructureMember(node As SyntaxNode) As StatementSyntax
-            Return TryCast(node, StatementSyntax)
         End Function
 
         Public Overrides Function InterfaceDeclaration(
@@ -2600,65 +2560,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return _list
         End Function
 
-        Private Sub GetAccessibilityAndModifiers(modifierTokens As SyntaxTokenList, ByRef accessibility As Accessibility, ByRef modifiers As DeclarationModifiers, ByRef isDefault As Boolean)
-            accessibility = Accessibility.NotApplicable
-            modifiers = DeclarationModifiers.None
-            isDefault = False
-
-            For Each token In modifierTokens
-                Select Case token.Kind
-                    Case SyntaxKind.DefaultKeyword
-                        isDefault = True
-                    Case SyntaxKind.PublicKeyword
-                        accessibility = Accessibility.Public
-                    Case SyntaxKind.PrivateKeyword
-                        If accessibility = Accessibility.Protected Then
-                            accessibility = Accessibility.ProtectedAndFriend
-                        Else
-                            accessibility = Accessibility.Private
-                        End If
-                    Case SyntaxKind.FriendKeyword
-                        If accessibility = Accessibility.Protected Then
-                            accessibility = Accessibility.ProtectedOrFriend
-                        Else
-                            accessibility = Accessibility.Friend
-                        End If
-                    Case SyntaxKind.ProtectedKeyword
-                        If accessibility = Accessibility.Friend Then
-                            accessibility = Accessibility.ProtectedOrFriend
-                        ElseIf accessibility = Accessibility.Private Then
-                            accessibility = Accessibility.ProtectedAndFriend
-                        Else
-                            accessibility = Accessibility.Protected
-                        End If
-                    Case SyntaxKind.MustInheritKeyword, SyntaxKind.MustOverrideKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Abstract
-                    Case SyntaxKind.ShadowsKeyword
-                        modifiers = modifiers Or DeclarationModifiers.[New]
-                    Case SyntaxKind.OverridesKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Override
-                    Case SyntaxKind.OverridableKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Virtual
-                    Case SyntaxKind.SharedKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Static
-                    Case SyntaxKind.AsyncKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Async
-                    Case SyntaxKind.ConstKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Const
-                    Case SyntaxKind.ReadOnlyKeyword
-                        modifiers = modifiers Or DeclarationModifiers.ReadOnly
-                    Case SyntaxKind.WriteOnlyKeyword
-                        modifiers = modifiers Or DeclarationModifiers.WriteOnly
-                    Case SyntaxKind.NotInheritableKeyword, SyntaxKind.NotOverridableKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Sealed
-                    Case SyntaxKind.WithEventsKeyword
-                        modifiers = modifiers Or DeclarationModifiers.WithEvents
-                    Case SyntaxKind.PartialKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Partial
-                End Select
-            Next
-        End Sub
-
         Private Function GetTypeParameters(typeParameterNames As IEnumerable(Of String)) As TypeParameterListSyntax
             If typeParameterNames Is Nothing Then
                 Return Nothing
@@ -3822,7 +3723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return False
         End Function
 
-        Friend Overrides Function IsPatternExpression(expression As SyntaxNode, pattern As SyntaxNode) As SyntaxNode
+        Friend Overrides Function IsPatternExpression(expression As SyntaxNode, isToken As SyntaxToken, pattern As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
@@ -3831,6 +3732,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Friend Overrides Function DeclarationPattern(type As INamedTypeSymbol, name As String) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function AndPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function NotPattern(pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function OrPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function ParenthesizedPattern(pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function TypePattern(type As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 

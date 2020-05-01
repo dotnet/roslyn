@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                 if (syntaxFactsService.IsBindableToken(syntaxToken))
                 {
-                    var bindableParent = syntaxFactsService.GetBindableParent(syntaxToken);
+                    var bindableParent = syntaxFactsService.TryGetBindableParent(syntaxToken);
 
                     if (bindableParent != null)
                     {

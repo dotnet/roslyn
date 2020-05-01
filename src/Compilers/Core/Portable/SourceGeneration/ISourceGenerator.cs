@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// Called before generation occurs. A generator can use the <paramref name="context"/>
-        /// to register callbacks required to peform generation.
+        /// to register callbacks required to perform generation.
         /// </summary>
         /// <param name="context">The <see cref="InitializationContext"/> to register callbacks on</param>
         void Initialize(InitializationContext context);
 
         /// <summary>
-        /// Called to peform source generation. A generator can use the <paramref name="context"/>
+        /// Called to perform source generation. A generator can use the <paramref name="context"/>
         /// to add source files via the <see cref="SourceGeneratorContext.AddSource(string, SourceText)"/> 
         /// method.
         /// </summary>

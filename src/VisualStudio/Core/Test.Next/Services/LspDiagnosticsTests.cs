@@ -119,7 +119,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Contains(results[1].Diagnostics, d => d.Code == "doc2Diagnostic");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43046")]
+        [Fact]
         public async Task RemoveDiagnosticTestAsync()
         {
             using var workspace = CreateTestWorkspace("", out _);
@@ -250,7 +250,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Empty(testAccessor.GetDiagnosticsForUriAndDocument(documents[0].Id, expectedUri));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43046")]
+        [Fact]
         public async Task ClearAllDiagnosticsForMappedFilesTestAsync()
         {
             using var workspace = CreateTestWorkspace("", out _);
@@ -296,7 +296,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Empty(testAccessor.GetFileUrisInPublishDiagnostics());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43046")]
+        [Fact]
         public async Task ClearAllDiagnosticsForMappedFileToManyDocumentsTestAsync()
         {
             using var workspace = CreateTestWorkspace(new string[] { "", "" }, out _);
@@ -378,7 +378,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             {
                 var protocol = ((TestWorkspace)workspace).ExportProvider.GetExportedValue<LanguageServerProtocol>();
 
-                var languageServer = new InProcLanguageServer(inputStream, outputStream, protocol, workspace, mockDiagnosticService, clientName: "RazorCSharp");
+                var languageServer = new InProcLanguageServer(inputStream, outputStream, protocol, workspace, mockDiagnosticService, clientName: "RazorCSharp", supportsHover: false);
                 return languageServer;
             }
         }

@@ -208,6 +208,7 @@ End Class");
             AddParameterDialog.VerifyOpen();
             AddParameterDialog.FillTypeField("String");
             AddParameterDialog.FillNameField("c");
+            AddParameterDialog.SetCallSiteTodo();
             AddParameterDialog.ClickOK();
             AddParameterDialog.VerifyClosed();
 
