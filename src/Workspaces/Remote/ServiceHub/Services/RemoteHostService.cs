@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private static bool ExpectedCultureIssue(Exception ex)
         {
             // report exception
-            WatsonReporter.ReportNonFatal(ex);
+            WatsonReporter.ReportNonFatal(ex, nameof(ExpectedCultureIssue));
 
             // ignore expected exception
             return ex is ArgumentOutOfRangeException || ex is CultureNotFoundException;

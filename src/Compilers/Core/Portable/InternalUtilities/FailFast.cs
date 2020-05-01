@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     {
         [DebuggerHidden]
         [DoesNotReturn]
-        internal static void OnFatalException(Exception exception)
+        internal static void OnFatalException(Exception exception, string? unused)
         {
             // EDMAURER Now using the managed API to fail fast so as to default
             // to the managed VS debug engine and hopefully get great

@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private readonly IRemoteControlService _remoteControlService;
         private readonly IPatchService _patchService;
         private readonly IDatabaseFactoryService _databaseFactoryService;
-        private readonly Func<Exception, bool> _reportAndSwallowException;
+        private readonly Func<Exception, string, bool> _reportAndSwallowException;
 
         private Task LogInfoAsync(string text) => _logService.LogInfoAsync(text);
 
@@ -84,6 +85,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             // the updating.
             return new Updater(this, source, localSettingsDirectory).UpdateInBackgroundAsync(cancellationToken);
         }
+
+        private bool ReportAndSwallowException(Exception exception, [CallerMemberName] string callerName = null)
+            => _reportAndSwallowException(exception, callerName);
 
         private class Updater
         {
@@ -195,7 +199,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // Just allow our caller to handle this (they will use this to stop their loop).
                     throw;
                 }
-                catch (Exception e) when (_service._reportAndSwallowException(e))
+                catch (Exception e) when (_service.ReportAndSwallowException(e))
                 {
                     // Something bad happened (IO Exception, network exception etc.).
                     // ask our caller to try updating again a minute from now.
@@ -301,7 +305,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 {
                     await CreateAndSetInMemoryDatabaseAsync(bytes).ConfigureAwait(false);
                 }
-                catch (Exception e) when (_service._reportAndSwallowException(e))
+                catch (Exception e) when (_service.ReportAndSwallowException(e))
                 {
                     // We retrieved bytes from the server, but we couldn't make a DB
                     // out of it.  That's very bad.  Just trying again one minute later
@@ -391,7 +395,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 {
                     database = await CreateAndSetInMemoryDatabaseAsync(databaseBytes).ConfigureAwait(false);
                 }
-                catch (Exception e) when (_service._reportAndSwallowException(e))
+                catch (Exception e) when (_service.ReportAndSwallowException(e))
                 {
                     await _service.LogExceptionAsync(e, "Error creating database from local copy. Downloading full database").ConfigureAwait(false);
                     return await DownloadFullDatabaseAsync(cancellationToken).ConfigureAwait(false);
@@ -441,7 +445,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                     // Fall through and download full database.
                 }
-                catch (Exception e) when (_service._reportAndSwallowException(e))
+                catch (Exception e) when (_service.ReportAndSwallowException(e))
                 {
                     await _service.LogExceptionAsync(e, "Error occurred while processing patch element. Downloading full database").ConfigureAwait(false);
                     // Fall through and download full database.
@@ -605,7 +609,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         await action().ConfigureAwait(false);
                         return;
                     }
-                    catch (Exception e) when (IOUtilities.IsNormalIOException(e) || _service._reportAndSwallowException(e))
+                    catch (Exception e) when (IOUtilities.IsNormalIOException(e) || _service.ReportAndSwallowException(e))
                     {
                         // The exception filter above might be a little funny looking. We always
                         // want to enter this catch block, but if we ran into a normal IO exception
@@ -627,7 +631,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 var contentsAttribute = element.Attribute(ContentAttributeName);
                 if (contentsAttribute == null)
                 {
-                    _service._reportAndSwallowException(new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute"));
+                    _service.ReportAndSwallowException(new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute"));
 
                     return (succeeded: false, (byte[])null);
                 }
@@ -646,7 +650,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                     if (!StringComparer.Ordinal.Equals(expectedChecksum, actualChecksum))
                     {
-                        _service._reportAndSwallowException(new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}"));
+                        _service.ReportAndSwallowException(new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}"));
 
                         return (succeeded: false, (byte[])null);
                     }

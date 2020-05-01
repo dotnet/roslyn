@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Execution
             if (!_storages.TryAdd(scopeId, storage))
             {
                 // this should make failure more explicit
-                FailFast.OnFatalException(new Exception("who is adding same snapshot?"));
+                FailFast.OnFatalException(new Exception("who is adding same snapshot?"), nameof(RegisterSnapshot));
             }
         }
 
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Execution
             if (!_storages.TryRemove(scopeId, out _))
             {
                 // this should make failure more explicit
-                FailFast.OnFatalException(new Exception("who is removing same snapshot?"));
+                FailFast.OnFatalException(new Exception("who is removing same snapshot?"), nameof(UnregisterSnapshot));
             }
         }
 

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             IIOService ioService,
             IPatchService patchService,
             IDatabaseFactoryService databaseFactoryService,
-            Func<Exception, bool> reportAndSwallowException)
+            Func<Exception, string, bool> reportAndSwallowException)
         {
             _delayService = delayService;
             _ioService = ioService;

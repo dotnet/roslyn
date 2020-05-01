@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             Debug.Assert(s_telemetrySession == null);
             s_telemetrySession = session;
 
-            var fatalReporter = new Action<Exception>(ReportFatal);
-            var nonFatalReporter = new Action<Exception>(ReportNonFatal);
+            var fatalReporter = new Action<Exception, string?>(ReportFatal);
+            var nonFatalReporter = new Action<Exception, string?>(ReportNonFatal);
 
             FatalError.Handler = fatalReporter;
             FatalError.NonFatalHandler = nonFatalReporter;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             s_logger = logger;
         }
 
-        public static void ReportFatal(Exception exception)
+        public static void ReportFatal(Exception exception, string? extraInfo)
         {
             try
             {
@@ -60,18 +60,18 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 // ignore any exceptions (e.g. OOM)
             }
 
-            FailFast.OnFatalException(exception);
+            FailFast.OnFatalException(exception, extraInfo);
         }
 
         /// <summary>
         /// Report Non-Fatal Watson for a given unhandled exception.
         /// </summary>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
-        public static void ReportNonFatal(Exception exception)
+        public static void ReportNonFatal(Exception exception, string? extraInfo)
         {
             if (exception is OutOfMemoryException)
             {
-                FailFast.OnFatalException(exception);
+                FailFast.OnFatalException(exception, extraInfo);
             }
 
             var emptyCallstack = exception.SetCallstackIfEmpty();
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
             var faultEvent = new FaultEvent(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
-                description: "Roslyn NonFatal Watson",
+                description: extraInfo ?? "Roslyn NonFatal Watson",
                 FaultSeverity.Diagnostic,
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>

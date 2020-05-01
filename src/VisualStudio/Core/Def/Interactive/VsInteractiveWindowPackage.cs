@@ -71,8 +71,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             var handlerSetter = type.GetDeclaredMethod("set_Handler");
             var nonFatalHandlerSetter = type.GetDeclaredMethod("set_NonFatalHandler");
 
-            handlerSetter.Invoke(null, new object[] { new Action<Exception>(FailFast.OnFatalException) });
-            nonFatalHandlerSetter.Invoke(null, new object[] { new Action<Exception>(WatsonReporter.ReportNonFatal) });
+            handlerSetter.Invoke(null, new object[] { new Action<Exception, string>(FailFast.OnFatalException) });
+            nonFatalHandlerSetter.Invoke(null, new object[] { new Action<Exception, string>(WatsonReporter.ReportNonFatal) });
         }
 
         protected TVsInteractiveWindowProvider InteractiveWindowProvider

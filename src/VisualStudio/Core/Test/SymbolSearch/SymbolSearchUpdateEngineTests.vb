@@ -15,8 +15,8 @@ Imports Moq
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
     <[UseExportProvider]>
     Public Class SymbolSearchUpdateEngineTests
-        Private Shared ReadOnly s_allButMoqExceptions As Func(Of Exception, Boolean) =
-            Function(e) TypeOf e IsNot MockException
+        Private Shared ReadOnly s_allButMoqExceptions As Func(Of Exception, String, Boolean) =
+            Function(e, s) TypeOf e IsNot MockException
 
         <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
         Public Async Function CreateCacheFolderIfMissing() As Task

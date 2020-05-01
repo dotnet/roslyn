@@ -7,7 +7,18 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
+
+#if NET20
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    public sealed class CallerMemberNameAttribute : Attribute
+    {
+    }
+}
+#endif
 
 #if COMPILERCORE
 namespace Microsoft.CodeAnalysis
@@ -15,10 +26,16 @@ namespace Microsoft.CodeAnalysis
 namespace Microsoft.CodeAnalysis.ErrorReporting
 #endif
 {
+#if NET20
+    internal delegate void ErrorReportingCallback(Exception exception, string? extraInfo);
+#else
+    using ErrorReportingCallback = Action<Exception, string?>;
+#endif
+
     internal static class FatalError
     {
-        private static Action<Exception>? s_fatalHandler;
-        private static Action<Exception>? s_nonFatalHandler;
+        private static ErrorReportingCallback? s_fatalHandler;
+        private static ErrorReportingCallback? s_nonFatalHandler;
 
 #pragma warning disable IDE0052 // Remove unread private members - We want to hold onto last exception to make investigation easier
         private static Exception? s_reportedException;
@@ -30,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// if the host desires to crash the process on a fatal exception.
         /// </summary>
         [DisallowNull]
-        public static Action<Exception>? Handler
+        public static ErrorReportingCallback? Handler
         {
             get
             {
@@ -52,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// if the host desires to NOT crash the process on a non fatal exception.
         /// </summary>
         [DisallowNull]
-        public static Action<Exception>? NonFatalHandler
+        public static ErrorReportingCallback? NonFatalHandler
         {
             get
             {
@@ -72,7 +89,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         // Same as setting the Handler property except that it avoids the assert.  This is useful in 
         // test code which needs to verify the handler is called in specific cases and will continually
         // overwrite this value.
-        public static void OverwriteHandler(Action<Exception>? value)
+        public static void OverwriteHandler(ErrorReportingCallback? value)
         {
             s_fatalHandler = value;
         }
@@ -175,9 +192,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns>False to avoid catching the exception.</returns>
         [DebuggerHidden]
-        public static bool Report(Exception exception)
+        public static bool Report(Exception exception, [CallerMemberName] string? callerName = null)
         {
-            Report(exception, s_fatalHandler);
+            Report(exception, callerName, s_fatalHandler);
             return false;
         }
 
@@ -192,9 +209,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns>True to catch the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportWithoutCrash(Exception exception)
+        public static bool ReportWithoutCrash(Exception exception, [CallerMemberName] string? callerName = null)
         {
-            Report(exception, s_nonFatalHandler);
+            Report(exception, callerName, s_nonFatalHandler);
             return true;
         }
 
@@ -203,9 +220,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns>False to propagate the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportWithoutCrashAndPropagate(Exception exception)
+        public static bool ReportWithoutCrashAndPropagate(Exception exception, [CallerMemberName] string? callerName = null)
         {
-            Report(exception, s_nonFatalHandler);
+            Report(exception, callerName, s_nonFatalHandler);
             return false;
         }
 
@@ -214,11 +231,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns>False to propagate the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportWithoutCrashUnlessCanceledAndPropagate(Exception exception)
+        public static bool ReportWithoutCrashUnlessCanceledAndPropagate(Exception exception, [CallerMemberName] string? callerName = null)
         {
             if (!(exception is OperationCanceledException))
             {
-                Report(exception, s_nonFatalHandler);
+                Report(exception, callerName, s_nonFatalHandler);
             }
 
             return false;
@@ -229,11 +246,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns>False to propagate the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportWithoutCrashUnlessCanceledAndPropagate(Exception exception, CancellationToken cancellationToken)
+        public static bool ReportWithoutCrashUnlessCanceledAndPropagate(Exception exception, CancellationToken cancellationToken, [CallerMemberName] string? callerName = null)
         {
             if (!IsCurrentOperationBeingCancelled(exception, cancellationToken))
             {
-                Report(exception, s_nonFatalHandler);
+                Report(exception, callerName, s_nonFatalHandler);
             }
 
             return false;
@@ -241,7 +258,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         private static readonly object s_reportedMarker = new object();
 
-        private static void Report(Exception exception, Action<Exception>? handler)
+        private static void Report(Exception exception, string? extraInfo, ErrorReportingCallback? handler)
         {
             // hold onto last exception to make investigation easier
             s_reportedException = exception;
@@ -269,7 +286,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 exception.Data[s_reportedMarker] = s_reportedMarker;
             }
 
-            handler.Invoke(exception);
+            handler.Invoke(exception, extraInfo);
         }
     }
 }
