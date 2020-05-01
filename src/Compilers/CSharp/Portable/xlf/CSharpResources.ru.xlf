@@ -4968,11 +4968,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">Разделяемый метод должен быть объявлен в разделяемом классе, разделяемой структуре или разделяемом интерфейсе</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
-        <source>A partial method cannot have out parameters</source>
-        <target state="translated">Разделяемый метод не может иметь параметры out.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
         <source>A partial method may not explicitly implement an interface method</source>
         <target state="translated">Разделяемый метод не может явно реализовывать метод интерфейса.</target>
@@ -5031,11 +5026,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_PartialMethodInExpressionTree">
         <source>Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees</source>
         <target state="translated">В деревьях выражений не могут использоваться разделяемые методы, имеющие только определяющее объявление или только удаленные условные методы.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodMustReturnVoid">
-        <source>Partial methods must have a void return type</source>
-        <target state="translated">Разделяемые методы должны иметь тип возвращаемого значения void.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteOverridingNonObsolete">

@@ -4968,11 +4968,6 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <target state="translated">Částečná metoda musí být deklarovaná uvnitř částečné třídy, částečné struktury nebo částečného rozhraní.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
-        <source>A partial method cannot have out parameters</source>
-        <target state="translated">Částečná metoda nemůže mít výstupní parametry.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
         <source>A partial method may not explicitly implement an interface method</source>
         <target state="translated">Částečná metoda nesmí explicitně implementovat metodu rozhraní.</target>
@@ -5031,11 +5026,6 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       <trans-unit id="ERR_PartialMethodInExpressionTree">
         <source>Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees</source>
         <target state="translated">Ve stromech výrazů nejde používat částečné metody, pro které existuje jenom definující deklarace, nebo odebrané podmíněné metody.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodMustReturnVoid">
-        <source>Partial methods must have a void return type</source>
-        <target state="translated">Částečné metody musí mít návratový typ void.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteOverridingNonObsolete">

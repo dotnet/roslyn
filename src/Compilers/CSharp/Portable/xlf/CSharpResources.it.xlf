@@ -4968,11 +4968,6 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <target state="translated">Un metodo parziale deve essere dichiarato in una classe, uno struct o un'interfaccia parziale</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
-        <source>A partial method cannot have out parameters</source>
-        <target state="translated">Un metodo parziale non può avere parametri out</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
         <source>A partial method may not explicitly implement an interface method</source>
         <target state="translated">Un metodo parziale non può implementare in modo esplicito un metodo di interfaccia</target>
@@ -5031,11 +5026,6 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       <trans-unit id="ERR_PartialMethodInExpressionTree">
         <source>Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees</source>
         <target state="translated">Non è possibile usare negli alberi delle espressioni metodi parziali contenenti solo una dichiarazione di definizione o metodi condizionali rimossi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodMustReturnVoid">
-        <source>Partial methods must have a void return type</source>
-        <target state="translated">I metodi parziali devono avere un tipo restituito void</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteOverridingNonObsolete">

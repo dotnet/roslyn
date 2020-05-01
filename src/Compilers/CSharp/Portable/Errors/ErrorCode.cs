@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InconsistentLambdaParameterUsage = 748,
         ERR_PartialMethodInvalidModifier = 750,
         ERR_PartialMethodOnlyInPartialClass = 751,
-        ERR_PartialMethodCannotHaveOutParameters = 752,
+        // ERR_PartialMethodCannotHaveOutParameters = 752, Removed as part of 'extended partial methods' feature
         // ERR_PartialMethodOnlyMethods = 753, Removed as it is subsumed by ERR_PartialMisplaced
         ERR_PartialMethodNotExplicit = 754,
         ERR_PartialMethodExtensionDifference = 755,
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodStaticDifference = 763,
         ERR_PartialMethodUnsafeDifference = 764,
         ERR_PartialMethodInExpressionTree = 765,
-        ERR_PartialMethodMustReturnVoid = 766,
+        // ERR_PartialMethodMustReturnVoid = 766, Removed as part of 'extended partial methods' feature
         ERR_ExplicitImplCollisionOnRefOut = 767,
         ERR_IndirectRecursiveConstructorCall = 768,
 

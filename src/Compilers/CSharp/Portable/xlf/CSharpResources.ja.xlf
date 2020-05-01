@@ -4968,11 +4968,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">部分メソッドは、部分クラス、部分構造体、部分インターフェイス内で宣言される必要があります</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
-        <source>A partial method cannot have out parameters</source>
-        <target state="translated">部分メソッドは、out パラメーターを含むことはできません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
         <source>A partial method may not explicitly implement an interface method</source>
         <target state="translated">部分メソッドは、インターフェイス メソッドを明示的に実装できないことがあります</target>
@@ -5031,11 +5026,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_PartialMethodInExpressionTree">
         <source>Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees</source>
         <target state="translated">定義宣言だけを含む部分メソッドまたは削除された条件付きメソッドは、式ツリーで使用できません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodMustReturnVoid">
-        <source>Partial methods must have a void return type</source>
-        <target state="translated">部分メソッドには、void である戻り値の型が含まれている必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteOverridingNonObsolete">

@@ -4968,11 +4968,6 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <target state="translated">Kısmi bir yöntemin kısmi bir sınıf, kısmi bir yapı veya kısmi bir arabirim içinde bildirilmesi gerekir</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
-        <source>A partial method cannot have out parameters</source>
-        <target state="translated">Kısmi bir yöntemin out parametreleri olamaz</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
         <source>A partial method may not explicitly implement an interface method</source>
         <target state="translated">Kısmi bir yöntem bir arabirim yöntemini açık olarak uygulayamaz</target>
@@ -5031,11 +5026,6 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       <trans-unit id="ERR_PartialMethodInExpressionTree">
         <source>Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees</source>
         <target state="translated">Yalnızca bir tanımlama bildirimi olan kısmi yöntemler veya kaldırılmış koşullu yöntemler ifade ağaçlarında kullanılamaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodMustReturnVoid">
-        <source>Partial methods must have a void return type</source>
-        <target state="translated">Kısmi yöntemlerin dönüş türü void olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteOverridingNonObsolete">

@@ -4968,11 +4968,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">在部分類別、部分結構或部分介面中必須宣告部分方法</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
-        <source>A partial method cannot have out parameters</source>
-        <target state="translated">部分方法不可有 out 參數</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
         <source>A partial method may not explicitly implement an interface method</source>
         <target state="translated">部分方法不可明確地實作介面方法</target>
@@ -5031,11 +5026,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_PartialMethodInExpressionTree">
         <source>Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees</source>
         <target state="translated">在運算式樹狀結構中，不可使用只具有定義宣告或已移除條件式方法的部分方法。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodMustReturnVoid">
-        <source>Partial methods must have a void return type</source>
-        <target state="translated">部分方法必須有 void 傳回類型</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteOverridingNonObsolete">

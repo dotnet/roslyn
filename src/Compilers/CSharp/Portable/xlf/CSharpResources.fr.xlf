@@ -4968,11 +4968,6 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <target state="translated">Une méthode partielle doit être déclarée dans une classe partielle, un struct partiel ou une interface partielle</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
-        <source>A partial method cannot have out parameters</source>
-        <target state="translated">Une méthode partielle ne peut pas avoir de paramètres out</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
         <source>A partial method may not explicitly implement an interface method</source>
         <target state="translated">Une méthode partielle ne peut pas implémenter explicitement une méthode d'interface</target>
@@ -5031,11 +5026,6 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
       <trans-unit id="ERR_PartialMethodInExpressionTree">
         <source>Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees</source>
         <target state="translated">Les méthodes partielles avec uniquement une déclaration de définition ou des méthodes conditionnelles supprimées ne peuvent pas être utilisées dans des arborescences d'expressions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodMustReturnVoid">
-        <source>Partial methods must have a void return type</source>
-        <target state="translated">Les méthodes partielles doivent avoir un type de retour void</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteOverridingNonObsolete">

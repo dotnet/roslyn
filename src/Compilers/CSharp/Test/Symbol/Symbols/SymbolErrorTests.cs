@@ -13561,6 +13561,25 @@ public partial class C : Base
         }
 
         [Fact]
+        public void CS0752ERR_PartialMethodCannotHaveOutParameters()
+        {
+            var text = @"
+
+namespace NS
+{
+    public partial class C
+    {
+        partial void F(out int x);
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
+                // (7,22): error CS8795: Partial method 'C.F(out int)' must have accessibility modifiers because it has 'out' parameters.
+                //         partial void F(out int x);
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "F").WithArguments("NS.C.F(out int)").WithLocation(7, 22));
+        }
+
+        [Fact]
         public void CS0751ERR_PartialMethodOnlyInPartialClass()
         {
             var text = @"
@@ -13942,6 +13961,35 @@ namespace N
                 Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "M1").WithLocation(4, 18),
                 // (5,25): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
                 Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "M2").WithLocation(5, 25));
+        }
+
+        [Fact]
+        public void CS0766ERR_PartialMethodMustReturnVoid()
+        {
+            var text = @"
+
+public partial class C
+{
+    partial int Part();
+    partial int Part()
+    {
+        return 1;
+    }
+
+    public static int Main()
+    {
+        return 1;
+    }
+
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (5,17): error CS8794: Partial method 'C.Part()' must have accessibility modifiers because it has a non-void return type.
+                //     partial int Part();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "Part").WithArguments("C.Part()").WithLocation(5, 17),
+                // (6,17): error CS8794: Partial method 'C.Part()' must have accessibility modifiers because it has a non-void return type.
+                //     partial int Part()
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "Part").WithArguments("C.Part()").WithLocation(6, 17));
         }
 
         [Fact]

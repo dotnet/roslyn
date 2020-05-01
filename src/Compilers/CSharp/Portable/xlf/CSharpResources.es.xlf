@@ -4968,11 +4968,6 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
         <target state="translated">Un método parcial debe declararse dentro de una clase parcial, una estructura parcial o una interfaz parcial</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
-        <source>A partial method cannot have out parameters</source>
-        <target state="translated">Un método parcial no puede tener parámetros out</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
         <source>A partial method may not explicitly implement an interface method</source>
         <target state="translated">Un método parcial no puede implementar explícitamente un método de interfaz</target>
@@ -5031,11 +5026,6 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
       <trans-unit id="ERR_PartialMethodInExpressionTree">
         <source>Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees</source>
         <target state="translated">En los árboles de expresión no se pueden usar métodos parciales con solo una declaración de definición ni métodos condicionales quitados</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodMustReturnVoid">
-        <source>Partial methods must have a void return type</source>
-        <target state="translated">Los métodos parciales deben tener un tipo de valor devuelto void</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteOverridingNonObsolete">

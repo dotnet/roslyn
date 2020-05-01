@@ -2117,9 +2117,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PartialMethodOnlyInPartialClass" xml:space="preserve">
     <value>A partial method must be declared within a partial class, partial struct, or partial interface</value>
   </data>
-  <data name="ERR_PartialMethodCannotHaveOutParameters" xml:space="preserve">
-    <value>A partial method cannot have out parameters</value>
-  </data>
   <data name="ERR_PartialMethodNotExplicit" xml:space="preserve">
     <value>A partial method may not explicitly implement an interface method</value>
   </data>
@@ -2155,9 +2152,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_PartialMethodInExpressionTree" xml:space="preserve">
     <value>Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees</value>
-  </data>
-  <data name="ERR_PartialMethodMustReturnVoid" xml:space="preserve">
-    <value>Partial methods must have a void return type</value>
   </data>
   <data name="WRN_ObsoleteOverridingNonObsolete" xml:space="preserve">
     <value>Obsolete member '{0}' overrides non-obsolete member '{1}'</value>
