@@ -916,6 +916,33 @@ class B : A<nint>
             });
         }
 
+        [Theory]
+        [InlineData("C<dynamic, nint, System.IntPtr>", "C<dynamic, System.IntPtr, System.IntPtr>", "False, False, True, False")]
+        [InlineData("C<dynamic, nuint, System.UIntPtr>", "C<dynamic, System.UIntPtr, System.UIntPtr>", "False, False, True, False")]
+        [InlineData("C<T, nint, System.IntPtr>", "C<T, System.IntPtr, System.IntPtr>", "False, False, True, False")]
+        [InlineData("C<T, nuint, System.UIntPtr>", "C<T, System.UIntPtr, System.UIntPtr>", "False, False, True, False")]
+        public void NestedNativeIntegerWithPrecedingType(string sourceType, string metadataType, string expectedAttribute)
+        {
+            var comp = CompileAndVerify($@"
+class C<T, U, V>
+{{
+    public {sourceType} F;
+}}
+", options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview, symbolValidator: symbolValidator);
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                var expectedAttributes = $@"
+C<T, U, V>
+    [NativeInteger({{ {expectedAttribute} }})] {metadataType} F";
+
+                AssertNativeIntegerAttributes(module, expectedAttributes);
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var field = c.GetField("F");
+                Assert.Equal(sourceType, field.Type.ToTestDisplayString());
+            }
+        }
+
         private static TypeDefinition GetTypeDefinitionByName(MetadataReader reader, string name)
         {
             return reader.GetTypeDefinition(reader.TypeDefinitions.Single(h => reader.StringComparer.Equals(reader.GetTypeDefinition(h).Name, name)));

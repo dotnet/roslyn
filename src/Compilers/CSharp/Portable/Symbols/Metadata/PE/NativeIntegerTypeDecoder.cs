@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return TransformPointerType((PointerTypeSymbol)type);
                 case TypeKind.TypeParameter:
                 case TypeKind.Dynamic:
+                    IgnoreIndex();
                     return type;
                 case TypeKind.Class:
                 case TypeKind.Struct:
@@ -83,6 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return _transformFlags[index] ? TransformTypeDefinition(type) : type;
             }
+
+            Debug.Assert(!_transformFlags[index]);
 
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             type.GetAllTypeArgumentsNoUseSiteDiagnostics(allTypeArguments);
@@ -106,13 +109,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ArrayTypeSymbol TransformArrayType(ArrayTypeSymbol type)
         {
-            Increment();
+            IgnoreIndex();
             return type.WithElementType(TransformTypeWithAnnotations(type.ElementTypeWithAnnotations));
         }
 
         private PointerTypeSymbol TransformPointerType(PointerTypeSymbol type)
         {
-            Increment();
+            IgnoreIndex();
             return type.WithPointedAtType(TransformTypeWithAnnotations(type.PointedAtTypeWithAnnotations));
         }
 
@@ -123,6 +126,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _index++;
             }
             throw new ArgumentException();
+        }
+
+        private void IgnoreIndex()
+        {
+            var index = Increment();
+            Debug.Assert(!_transformFlags[index]);
         }
 
         private static NamedTypeSymbol TransformTypeDefinition(NamedTypeSymbol type)
