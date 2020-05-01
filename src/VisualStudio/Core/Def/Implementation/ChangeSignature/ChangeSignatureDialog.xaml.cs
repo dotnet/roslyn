@@ -212,6 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void Members_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
+            Members.SelectedIndex = Members.Items.IndexOf(Members.CurrentItem);
             if (Members.SelectedIndex == -1)
             {
                 Members.SelectedIndex = _viewModel.GetStartingSelectionIndex();
