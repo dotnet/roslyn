@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -1534,6 +1535,76 @@ public class Program
                 VerifyOverride(comp, "Derived2.M", "System.String Derived2.M()", "System.IComparable Derived.M()");
                 VerifyAssignments(comp);
             }
+        }
+
+        [Fact]
+        public void TestVBConsumption_01()
+        {
+            var source0 = @"
+public class Base
+{
+    public virtual object M() => null;
+    public virtual object P => null;
+    public virtual object this[int i] => null;
+}
+public abstract class Derived : Base
+{
+    public override string M() => null;
+    public override string P => null;
+    public override string this[int i] => null;
+}
+";
+            var csComp = CreateCompilation(source0, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+                );
+            csComp.VerifyDiagnostics();
+            var csRef = csComp.EmitToImageReference();
+
+            var vbSource = @"
+Public Class Derived2 : Inherits Derived
+    Public Overrides Function M() As String
+        Return Nothing
+    End Function
+    Public Overrides ReadOnly Property P As String
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Public Overrides Default ReadOnly Property Item(i As Integer) As String
+        Get
+            Return Nothing
+        End Get
+    End Property
+    
+    Public Sub T(b as Base, d as Derived, d2 as Derived2)
+        Dim x1 As Object = b.M()
+        Dim x2 As Object = b.P
+        Dim x3 As Object = b(0)
+        Dim x4 As String = d.M()
+        Dim x5 As String = d.P
+        Dim x6 As String = d(0)
+        Dim x7 As String = d2.M()
+        Dim x8 As String = d2.P
+        Dim x9 As String = d2(0)
+    End Sub
+End Class
+";
+            var vbComp = CreateVisualBasicCompilation(code: vbSource, referencedAssemblies: csComp.References.Append(csRef));
+            vbComp.VerifyDiagnostics();
+            var vbTree = vbComp.SyntaxTrees[0];
+            var model = vbComp.GetSemanticModel(vbTree);
+            int count = 0;
+            foreach (var localDeclaration in vbTree.GetRoot().DescendantNodes().OfType<VisualBasic.Syntax.LocalDeclarationStatementSyntax>())
+            {
+                foreach (var declarator in localDeclaration.Declarators)
+                {
+                    count++;
+                    var initialValue = declarator.Initializer.Value;
+                    var typeInfo = model.GetTypeInfo(initialValue);
+                    Assert.True(typeInfo.Type.Equals(typeInfo.ConvertedType, TypeCompareKind.AllIgnoreOptions));
+                }
+            }
+
+            Assert.Equal(9, count);
         }
     }
 }
