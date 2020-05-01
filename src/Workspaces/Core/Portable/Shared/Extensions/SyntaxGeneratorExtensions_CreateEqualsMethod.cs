@@ -101,10 +101,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var statements);
 
-            // A ref like type can not be boxed. Because of this an overloaded Equals
-            // taking object in the general case can never be true, because an equivelent
-            // object can never be boxed into the object itself. Therefore only need to
-            // return false.
+            // A ref like type can not be boxed. Because of this an overloaded Equals taking object in the general case
+            // can never be true, because an equivalent object can never be boxed into the object itself. Therefore only
+            // need to return false.
             if (containingType.IsRefLikeType)
             {
                 statements.Add(factory.ReturnStatement(factory.FalseLiteralExpression()));
