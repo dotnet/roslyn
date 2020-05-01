@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis
 
         private GlobalAnalyzerConfigBuilder()
         {
-            _values = PooledDictionary<string, ImmutableDictionary<string, (string, string)>.Builder>.GetInstance(); //TODO: we need the section comparer here, right?
+            _values = PooledDictionary<string, ImmutableDictionary<string, (string, string)>.Builder>.GetInstance();
             _duplicates = PooledDictionary<string, PooledDictionary<string, ArrayBuilder<string>>>.GetInstance();
         }
 
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis
                 return analyzerConfigs.ToImmutableArray();
             }
 
-            ArrayBuilder<AnalyzerConfig> filteredConfigs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            ArrayBuilder<AnalyzerConfig> filteredConfigs = ArrayBuilder<AnalyzerConfig>.GetInstance(analyzerConfigs.Count);
             GlobalAnalyzerConfigBuilder globalAnalyzerConfigBuilder = new GlobalAnalyzerConfigBuilder();
             foreach (var config in analyzerConfigs)
             {
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis
             Section globalSection = GetSection(string.Empty);
             _values.Remove(string.Empty);
 
-            ArrayBuilder<Section> namedSectionBuilder = new ArrayBuilder<Section>();
+            ArrayBuilder<Section> namedSectionBuilder = new ArrayBuilder<Section>(_values.Count);
             foreach (var sectionName in _values.Keys)
             {
                 namedSectionBuilder.Add(GetSection(sectionName));
