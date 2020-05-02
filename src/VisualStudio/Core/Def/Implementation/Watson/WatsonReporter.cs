@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
             var faultEvent = new FaultEvent(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
-                description: "Roslyn NonFatal Watson",
+                description: GetDescription(),
                 FaultSeverity.Diagnostic,
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>
@@ -112,6 +112,39 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             faultEvent.SetExtraParameters(exception, emptyCallstack);
 
             session.PostEvent(faultEvent);
+        }
+
+        private static string GetDescription()
+        {
+            const string OurNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis) + "." + nameof(ErrorReporting);
+
+            // Be resilient to failing here.  If we can't get a suitable name, just fallback to the standard name we
+            // used to report.
+            try
+            {
+                // walk up the stack looking for the first call from a type that isn't in the ErrorReporting namespace.
+                foreach (var frame in new StackTrace().GetFrames())
+                {
+                    var method = frame.GetMethod();
+                    var methodName = method?.Name;
+                    if (methodName == null)
+                        continue;
+
+                    var declaringTypeName = method?.DeclaringType?.FullName;
+                    if (declaringTypeName == null)
+                        continue;
+
+                    if (declaringTypeName.StartsWith(OurNamespace))
+                        continue;
+
+                    return declaringTypeName + "." + methodName;
+                }
+            }
+            catch
+            {
+            }
+
+            return "Roslyn NonFatal Watson";
         }
 
         private static List<string> CollectServiceHubLogFilePaths()
