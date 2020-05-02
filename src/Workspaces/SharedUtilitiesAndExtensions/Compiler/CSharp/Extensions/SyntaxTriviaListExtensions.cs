@@ -91,6 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
+        /// <summary>
+        /// Removes multiple <see cref="SyntaxToken"/> with kind <see cref="SyntaxKind.WhitespaceTrivia"/>
+        /// arranged in a sequence from the <paramref name="triviaList"/>
+        /// preserving only the first one: [space1][space2][space3] -> [space1]. 
+        /// </summary>
         public static SyntaxTriviaList CollapseSequentialWhitespaceTrivia(this SyntaxTriviaList triviaList)
         {
             var result = new SyntaxTriviaList();
