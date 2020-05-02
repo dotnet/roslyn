@@ -293,11 +293,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static bool IsInternalsVisibleToAttribute(AttributeData attr)
         {
             var attrType = attr.AttributeClass;
-            if (attrType == null)
-                return false;
-
-            var attributeName = attr.AttributeClass?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted));
-            return attributeName == "System.Runtime.CompilerServices.InternalsVisibleToAttribute";
+            return attrType?.Name == nameof(InternalsVisibleToAttribute) &&
+                   attrType.ContainingNamespace?.Name == nameof(System.Runtime.CompilerServices) &&
+                   attrType.ContainingNamespace.ContainingNamespace?.Name == nameof(System.Runtime) &&
+                   attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace?.Name == nameof(System) &&
+                   attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
         }
 
         private static async Task AddNonSubmissionDependentProjectsAsync(
