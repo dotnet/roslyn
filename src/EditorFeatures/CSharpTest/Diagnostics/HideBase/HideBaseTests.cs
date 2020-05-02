@@ -183,11 +183,11 @@ class App : Application
         public async Task TestRemoveNewFromProperty()
         {
             await TestInRegularAndScriptAsync(
-                @"class App
+@"class App
 {
     [|public static new App Current|] { get; set; }
 }",
-                @"class App
+@"class App
 {
     public static App Current { get; set; }
 }");
@@ -243,11 +243,11 @@ class App : Application
         public async Task TestRemoveNewFirstModifier()
         {
             await TestInRegularAndScriptAsync(
-                @"class App
+@"class App
 {
     [|new App Current|] { get; set; }
 }",
-                @"class App
+@"class App
 {
     App Current { get; set; }
 }");
