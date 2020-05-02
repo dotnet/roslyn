@@ -178,8 +178,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
-        <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">모든 public 형식 및 멤버는 PublicAPI.txt에서 Null 허용 여부 주석을 포함하여 선언되어야 합니다. 그러면 코드 검토 및 소스 제어 기록에서 API Null 허용 여부 변경 내용을 쉽게 확인할 수 있고 호환성이 손상되는 변경을 방지할 수 있습니다.</target>
+        <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
+        <target state="needs-review-translation">모든 public 형식 및 멤버는 PublicAPI.txt에서 Null 허용 여부 주석을 포함하여 선언되어야 합니다. 그러면 코드 검토 및 소스 제어 기록에서 API Null 허용 여부 변경 내용을 쉽게 확인할 수 있고 호환성이 손상되는 변경을 방지할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
