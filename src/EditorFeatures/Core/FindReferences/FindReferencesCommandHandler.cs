@@ -109,9 +109,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         {
             try
             {
-                if (document != null)
-                    throw new Exception();
-
                 using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync));
 
                 // Let the presented know we're starting a search.  It will give us back
