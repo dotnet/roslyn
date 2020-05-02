@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var types = await func(namedType, solution, projects).ConfigureAwait(false);
 
                     return types.SelectAsArray(
-                        (Func<INamedTypeSymbol, SerializableSymbolAndProjectId>)(t => SerializableSymbolAndProjectId.Dehydrate(solution, t, cancellationToken)));
+                        t => SerializableSymbolAndProjectId.Dehydrate(solution, t, cancellationToken));
                 }
             }, cancellationToken);
         }

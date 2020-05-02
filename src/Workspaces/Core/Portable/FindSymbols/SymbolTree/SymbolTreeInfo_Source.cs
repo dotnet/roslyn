@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
-            Project project, Checksum checksum, CancellationToken cancellationToken)
+            Project project, Checksum checksum, bool loadOnly, CancellationToken cancellationToken)
         {
             var result = TryLoadOrCreateAsync(
                 project.Solution,
                 checksum,
-                loadOnly: false,
+                loadOnly,
                 createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
                 keySuffix: "_Source_" + project.FilePath,
                 tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerAsync(project.Solution, checksum, project.FilePath, names, nodes)),
