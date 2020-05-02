@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
             private readonly Document _document;
             private readonly SyntaxNode _node;
 
-            //TODO: use resources
-            public override string Title => "Remove 'new' keyword";
+            public override string Title => CSharpFeaturesResources.Remove_new_keyword;
 
             public RemoveNewKeywordAction(Document document, SyntaxNode node)
             {

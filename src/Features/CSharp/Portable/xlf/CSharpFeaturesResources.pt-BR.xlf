@@ -147,6 +147,11 @@
         <target state="translated">Alterar 'ref struct'</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Remove_new_keyword">
+        <source>Remove 'new' keyword</source>
+        <target state="new">Remove 'new' keyword</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">Remover conversões desnecessárias</target>
