@@ -1784,6 +1784,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CloseUnimplementedInterfaceMemberWrongInitOnly = 8804,
         ERR_ExplicitPropertyMismatchInitOnly = 8805,
         ERR_BadInitAccessor = 8806,
+        ERR_InvalidWithReceiverType = 8807,
+        ERR_NoSingleCloneMethod = 8808,
+        ERR_ContainingTypeMustDeriveFromWithReturnType = 8809,
+        ERR_WithMemberIsNotRecordProperty = 8810,
 
         ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement = 9000,
         ERR_SimpleProgramMultipleUnitsWithTopLevelStatements = 9001,
