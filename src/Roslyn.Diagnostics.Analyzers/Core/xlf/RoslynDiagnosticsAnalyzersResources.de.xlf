@@ -17,6 +17,11 @@
         <target state="new">Avoid the 'Opt' suffix</target>
         <note />
       </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeRuleIdTitleCodeFixTitle">
+        <source>Remove the 'Opt' suffix</source>
+        <target state="new">Remove the 'Opt' suffix</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BlankLinesMessage">
         <source>Avoid multiple blank lines</source>
         <target state="new">Avoid multiple blank lines</target>

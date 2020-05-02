@@ -34,18 +34,6 @@ public class Class1
 
 public class Class1
 {
-    private Class1? _instanceOpt, [|otherInstanceOpt|];
-
-    public void Method1(string? [|sOpt|])
-    {
-        string? [|localOpt|], [|otherLocalOpt|];
-    }
-}",
-                BatchFixedCode = @"
-#nullable enable
-
-public class Class1
-{
     private Class1? _instance, otherInstance;
 
     public void Method1(string? s)
@@ -53,6 +41,7 @@ public class Class1
         string? other, otherLocalOpt;
     }
 }",
+                NumberOfFixAllIterations = 2,
 
             }.RunAsync();
         }

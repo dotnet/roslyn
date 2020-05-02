@@ -13,7 +13,7 @@ using Roslyn.Diagnostics.Analyzers;
 
 namespace Roslyn.Diagnostics.CSharp.Analyzers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpAvoidOptSuffixForNullableEnableCodeCodeFixProvider))]
+    [ExportCodeFixProvider(LanguageNames.CSharp)]
     [Shared]
     public sealed class CSharpAvoidOptSuffixForNullableEnableCodeCodeFixProvider : CodeFixProvider
     {
@@ -24,20 +24,22 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
+            var title = RoslynDiagnosticsAnalyzersResources.TestExportsShouldNotBeDiscoverableCodeFix;
+
             foreach (var diagnostic in context.Diagnostics)
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        RoslynDiagnosticsAnalyzersResources.TestExportsShouldNotBeDiscoverableCodeFix,
+                        title,
                         cancellationToken => RemoveOptSuffixOnVariableAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
-                        equivalenceKey: nameof(CSharpAvoidOptSuffixForNullableEnableCode)),
+                        equivalenceKey: title),
                     diagnostic);
             }
 
             return Task.CompletedTask;
         }
 
-        private static async Task<Solution> RemoveOptSuffixOnVariableAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        private static async Task<Document> RemoveOptSuffixOnVariableAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -45,12 +47,15 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             var variable = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
             var variableSymbol = semanticModel.GetDeclaredSymbol(variable, cancellationToken);
 
-            return await Renamer.RenameSymbolAsync(
-                document.Project.Solution,
-                variableSymbol,
-                variableSymbol.Name.Substring(0, variableSymbol.Name.Length - CSharpAvoidOptSuffixForNullableEnableCode.OptSuffix.Length),
-                document.Project.Solution.Options,
-                cancellationToken).ConfigureAwait(false);
+            var newSolution = await Renamer.RenameSymbolAsync(
+                    document.Project.Solution,
+                    variableSymbol,
+                    variableSymbol.Name.Substring(0, variableSymbol.Name.Length - CSharpAvoidOptSuffixForNullableEnableCode.OptSuffix.Length),
+                    document.Project.Solution.Options,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            return newSolution.GetDocument(document.Id)!;
         }
     }
 }
