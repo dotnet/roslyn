@@ -785,6 +785,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasError = true;
             }
 
+            arguments.Diagnostics.Add(arguments.AttributeSyntaxOpt, useSiteDiagnostics);
+
             if (!IsStatic)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeStatic, arguments.AttributeSyntaxOpt.Location, Name);
