@@ -240,6 +240,20 @@ class App : Application
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveNew)]
+        public async Task TestRemoveNewFirstModifier()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class App
+{
+    [|new App Current|] { get; set; }
+}",
+                @"class App
+{
+    App Current { get; set; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveNew)]
         public async Task TestRemoveNewFromConstantInternalFields()
         {
             await TestInRegularAndScriptAsync(
@@ -258,8 +272,17 @@ class App : Application
             "/* start */ public /* middle */new /* end */ int Test;",
             "/* start */ public /* middle */ /* end */ int Test;")]
         [InlineData(
+            "/* start */ public /* middle */ new/* end */ int Test;",
+            "/* start */ public /* middle */ /* end */ int Test;")]
+        [InlineData(
+            "/* start */ public /* middle */new/* end */ int Test;",
+            "/* start */ public /* middle *//* end */ int Test;")]
+        [InlineData(
             "new /* end */ int Test;",
             "/* end */ int Test;")]
+        [InlineData(
+            "new     int Test;",
+            "int Test;")]
         [InlineData(
             "/* start */ new /* end */ int Test;",
             "/* start */ /* end */ int Test;")]

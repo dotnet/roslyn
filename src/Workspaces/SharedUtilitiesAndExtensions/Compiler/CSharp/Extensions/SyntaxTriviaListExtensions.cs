@@ -90,5 +90,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 yield return triviaList[start++];
             }
         }
+
+        public static SyntaxTriviaList CollapseSequentialWhitespaces(this SyntaxTriviaList triviaList)
+        {
+            var result = new SyntaxTriviaList();
+            var previous = default(SyntaxTrivia);
+            foreach (var current in triviaList)
+            {
+                if (!(previous.IsWhitespace() && current.IsWhitespace()))
+                    result = result.Add(current);
+                previous = current;
+            }
+
+            return result;
+        }
     }
 }

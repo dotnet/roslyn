@@ -1,10 +1,9 @@
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 {
@@ -13,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
         private class RemoveNewKeywordAction : CodeActions.CodeAction
         {
             private readonly Document _document;
-            private readonly MemberDeclarationSyntax _node;
+            private readonly SyntaxNode _node;
 
             //TODO: use resources
             public override string Title => "Remove 'new' keyword";
 
-            public RemoveNewKeywordAction(Document document, MemberDeclarationSyntax node)
+            public RemoveNewKeywordAction(Document document, SyntaxNode node)
             {
                 _document = document;
                 _node = node;
@@ -27,42 +26,52 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var syntaxFacts = CSharpSyntaxFacts.Instance;
-                var modifiers = syntaxFacts.GetModifiers(_node);
 
-                var newModifiers = modifiers;
-                int i;
-                SyntaxToken modifier = default;
-                for (i = 0; i < modifiers.Count; i++)
+                var newModifier = GetNewModifier(_node);
+                Debug.Assert(newModifier != default, $"'new' keyword was not found, but diagnostic was triggered");
+
+                var newNode = _node;
+
+                if (newModifier.HasTrailingTrivia || newModifier.HasLeadingTrivia)
                 {
-                    modifier = modifiers[i];
-                    if (modifier.Kind() == SyntaxKind.NewKeyword)
+                    var newModifierTrivia = newModifier.GetAllTrivia().ToSyntaxTriviaList();
+                    var previousToken = newModifier.GetPreviousToken();
+                    var nextToken = newModifier.GetNextToken();
+
+                    var sourceText = _document.GetTextSynchronously(cancellationToken);
+                    var isFirstTokenOnLine = newModifier.IsFirstTokenOnLine(sourceText);
+
+                    var newTrivia = new SyntaxTriviaList();
+                    if (!isFirstTokenOnLine)
                     {
-                        break;
+                        newTrivia = newTrivia.AddRange(previousToken.TrailingTrivia);
+                    }
+                    newTrivia = newTrivia
+                        .AddRange(newModifierTrivia)
+                        .AddRange(nextToken.LeadingTrivia)
+                        .CollapseSequentialWhitespaces();
+
+                    if (isFirstTokenOnLine)
+                    {
+                        var nextTokenWithMovedTrivia = nextToken.WithLeadingTrivia(newTrivia);
+                        newNode = newNode.ReplaceToken(nextToken, nextTokenWithMovedTrivia);
+                    }
+                    else
+                    {
+                        var previousTokenWithMovedTrivia = previousToken.WithTrailingTrivia(newTrivia);
+                        newNode = newNode.ReplaceToken(previousToken, previousTokenWithMovedTrivia);
                     }
                 }
-                Debug.Assert(modifier != default, $"'new' keyword was not found, but diagnostic was triggered");
 
-                newModifiers = modifiers.RemoveAt(i);
+                newNode = newNode.ReplaceToken(GetNewModifier(newNode), SyntaxFactory.Token(SyntaxKind.None));
 
-                var trivia = modifier.TrailingTrivia;
-                if (trivia.Any())
-                {
-                    var previousModifier = newModifiers[i - 1];
-
-                    if (trivia[0].IsWhitespace() && previousModifier.TrailingTrivia.Last().IsWhitespace())
-                    {
-                        trivia = trivia.RemoveAt(0);
-                    }
-
-                    var previousModifierWithMovedTrivia = previousModifier.WithAppendedTrailingTrivia(trivia);
-                    newModifiers = newModifiers.Replace(previousModifier, previousModifierWithMovedTrivia);
-                }
-
-                var newNode = syntaxFacts.WithModifiers(_node, newModifiers);
                 var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var newRoot = root.ReplaceNode(_node, newNode);
 
                 return _document.WithSyntaxRoot(newRoot);
+
+                SyntaxToken GetNewModifier(SyntaxNode node) =>
+                    syntaxFacts.GetModifierTokens(node).FirstOrDefault(m => m.IsKind(SyntaxKind.NewKeyword));
             }
         }
     }
