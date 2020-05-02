@@ -487,6 +487,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 broker.DismissSession(view);
             });
 
+        public void DismissCompletionSessions()
+            => ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModel().GetService<ICompletionBroker>();
+                broker.DismissAllSessions(view);
+            });
+
         protected abstract bool HasActiveTextView();
 
         protected abstract IWpfTextView GetActiveTextView();
