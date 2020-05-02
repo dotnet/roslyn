@@ -96,15 +96,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = new HashSet<IDynamicFileInfoProvider>();
 
         /// <summary>
-        /// map original dynamic file path to <see cref="DynamicFileInfo.FilePath"/>
-        /// 
-        /// original dyanmic file path points to something like xxx.cshtml that are given to project system
-        /// and <see cref="DynamicFileInfo.FilePath"/> points to a mapped file path provided by <see cref="IDynamicFileInfoProvider"/>
-        /// and how and what it got mapped to is up to the provider. 
-        /// 
-        /// Workspace will only knows about <see cref="DynamicFileInfo.FilePath"/> but not the original dynamic file path
+        /// Map of the original dynamic file path to the <see cref="DynamicFileInfo.FilePath"/> that was associated with it.
+        ///
+        /// For example, the key is something like Page.cshtml which is given to us from the project system calling
+        /// <see cref="AddDynamicSourceFile(string, ImmutableArray{string})"/>. The value of the map is a generated file that
+        /// corresponds to the original path, say Page.g.cs. If we were given a file by the project system but no
+        /// <see cref="IDynamicFileInfoProvider"/> provided a file for it, we will record the value as null so we still can track
+        /// the addition of the .cshtml file for a later call to <see cref="RemoveDynamicSourceFile(string)"/>.
+        ///
+        /// The workspace snapshot will only have a document with  <see cref="DynamicFileInfo.FilePath"/> (the value) but not the
+        /// original dynamic file path (the key).
         /// </summary>
-        private readonly Dictionary<string, string> _dynamicFilePathMaps = new Dictionary<string, string>();
+        private readonly Dictionary<string, string?> _dynamicFilePathMaps = new Dictionary<string, string?>();
 
         private readonly BatchingDocumentCollection _sourceFiles;
         private readonly BatchingDocumentCollection _additionalFiles;
@@ -612,43 +615,71 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void AddDynamicSourceFile(string dynamicFilePath, ImmutableArray<string> folders)
         {
+            DynamicFileInfo? fileInfo = null;
+            IDynamicFileInfoProvider? providerForFileInfo = null;
+
             var extension = FileNameUtilities.GetExtension(dynamicFilePath)?.TrimStart('.');
             if (extension?.Length == 0)
             {
-                return;
+                fileInfo = null;
+            }
+            else
+            {
+                foreach (var provider in _dynamicFileInfoProviders)
+                {
+                    // skip unrelated providers
+                    if (!provider.Metadata.Extensions.Any(e => string.Equals(e, extension, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        continue;
+                    }
+
+                    // Don't get confused by _filePath and filePath.
+                    // VisualStudioProject._filePath points to csproj/vbproj of the project
+                    // and the parameter filePath points to dynamic file such as ASP.NET .g.cs files.
+                    // 
+                    // Also, provider is free-threaded. so fine to call Wait rather than JTF.
+                    fileInfo = provider.Value.GetDynamicFileInfoAsync(
+                        projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+
+                    if (fileInfo != null)
+                    {
+                        fileInfo = FixUpDynamicFileInfo(fileInfo, dynamicFilePath);
+                        providerForFileInfo = provider.Value;
+                        break;
+                    }
+                }
             }
 
-            foreach (var provider in _dynamicFileInfoProviders)
+            lock (_gate)
             {
-                // skip unrelated providers
-                if (!provider.Metadata.Extensions.Any(e => string.Equals(e, extension, StringComparison.OrdinalIgnoreCase)))
+                if (_dynamicFilePathMaps.ContainsKey(dynamicFilePath))
                 {
-                    continue;
+                    // TODO: if we have a duplicate, we are not calling RemoveDynamicFileInfoAsync since we
+                    // don't want to call with that under a lock. If we are getting duplicates we have bigger problems
+                    // at that point since our workspace is generally out of sync with the project system.
+                    // Given we're taking this as a late fix prior to a release, I don't think it's worth the added
+                    // risk to handle a case that wasn't handled before either.
+                    throw new ArgumentException($"{dynamicFilePath} has already been added to this project.");
                 }
 
-                // Don't get confused by _filePath and filePath.
-                // VisualStudioProject._filePath points to csproj/vbproj of the project
-                // and the parameter filePath points to dynamic file such as ASP.NET .g.cs files.
-                // 
-                // Also, provider is free-threaded. so fine to call Wait rather than JTF.
-                var fileInfo = provider.Value.GetDynamicFileInfoAsync(
-                    projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                // Record the mapping from the dynamic file path to the source file it generated. We will record
+                // 'null' if no provider was able to produce a source file for this input file. That could happen
+                // if the provider (say ASP.NET Razor) doesn't recognize the file, or the wrong type of file
+                // got passed through the system. That's not a failure from the project system's perspective:
+                // adding dynamic files is a hint at best that doesn't impact it.
+                _dynamicFilePathMaps.Add(dynamicFilePath, fileInfo?.FilePath);
 
-                if (fileInfo == null)
+                if (fileInfo != null)
                 {
-                    continue;
+                    // If fileInfo is not null, that means we found a provider so this should be not-null as well
+                    // since we had to go through the earlier assignment.
+                    Contract.ThrowIfNull(providerForFileInfo);
+                    _sourceFiles.AddDynamicFile(providerForFileInfo, fileInfo, folders);
                 }
-
-                fileInfo = FixUpDynamicFileInfo(fileInfo, dynamicFilePath);
-
-                // remember map between original dynamic file path to DynamicFileInfo.FilePath
-                _dynamicFilePathMaps.Add(dynamicFilePath, fileInfo.FilePath);
-                _sourceFiles.AddDynamicFile(provider.Value, fileInfo, folders);
-                return;
             }
         }
 
-        private DynamicFileInfo FixUpDynamicFileInfo(DynamicFileInfo fileInfo, string filePath)
+        private static DynamicFileInfo FixUpDynamicFileInfo(DynamicFileInfo fileInfo, string filePath)
         {
             // we might change contract and just throw here. but for now, we keep existing contract where one can return null for DynamicFileInfo.FilePath.
             // In this case we substitute the file being generated from so we still have some path.
@@ -662,7 +693,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RemoveDynamicSourceFile(string dynamicFilePath)
         {
-            var provider = _sourceFiles.RemoveDynamicFile(_dynamicFilePathMaps[dynamicFilePath]);
+            IDynamicFileInfoProvider provider;
+
+            lock (_gate)
+            {
+                if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out var sourceFilePath))
+                {
+                    throw new ArgumentException($"{dynamicFilePath} wasn't added by a previous call to {nameof(AddDynamicSourceFile)}");
+                }
+
+                _dynamicFilePathMaps.Remove(dynamicFilePath);
+
+                // If we got a null path back, it means we never had a source file to add. In that case,
+                // we're done
+                if (sourceFilePath == null)
+                {
+                    return;
+                }
+
+                provider = _sourceFiles.RemoveDynamicFile(sourceFilePath);
+            }
 
             // provider is free-threaded. so fine to call Wait rather than JTF
             provider.RemoveDynamicFileInfoAsync(
@@ -671,14 +721,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OnDynamicFileInfoUpdated(object sender, string dynamicFilePath)
         {
-            if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out var fileInfoPath))
+            string? fileInfoPath;
+
+            lock (_gate)
             {
-                // given file doesn't belong to this project. 
-                // this happen since the event this is handling is shared between all projects
-                return;
+                if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out fileInfoPath))
+                {
+                    // given file doesn't belong to this project. 
+                    // this happen since the event this is handling is shared between all projects
+                    return;
+                }
             }
 
-            _sourceFiles.ProcessFileChange(dynamicFilePath, fileInfoPath);
+            if (fileInfoPath != null)
+            {
+                _sourceFiles.ProcessFileChange(dynamicFilePath, fileInfoPath);
+            }
         }
 
         #endregion
