@@ -545,7 +545,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             void verifyTypes(TypeWithAnnotations fromMember, TypeWithAnnotations fromUnderlyingMember)
             {
-                Assert.True(fromMember.Equals(fromUnderlyingMember, TypeCompareKind.IgnoreNativeIntegers));
+                if (fromUnderlyingMember.CustomModifiers.Length > 0)
+                {
+                    // TypeWithAnnotations.Equals does not use TypeCompareKind to compare CustomModifiers.
+                    Assert.True(fromMember.Type.Equals(fromUnderlyingMember.Type, TypeCompareKind.IgnoreNativeIntegers));
+                }
+                else
+                {
+                    Assert.True(fromMember.Equals(fromUnderlyingMember, TypeCompareKind.IgnoreNativeIntegers));
+                }
                 // No use of underlying type in native integer member.
                 Assert.False(containsType(fromMember, useNativeInteger: false));
                 // No use of native integer in underlying member.
@@ -2471,6 +2479,143 @@ namespace System.Reflection
                 var expectedMembers = new[]
                 {
                     $"{type}..ctor()",
+                };
+                AssertEx.Equal(expectedMembers, actualMembers);
+
+                VerifyMembers(underlyingType, type, signed);
+                VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
+            }
+        }
+
+        [Fact]
+        public void CustomModifiers()
+        {
+            var sourceA =
+@".assembly mscorlib
+{
+  .ver 0:0:0:0
+}
+.class public System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig newslot virtual instance string ToString() cil managed { ldnull throw }
+  .method public hidebysig newslot virtual instance bool Equals(object obj) cil managed { ldnull throw }
+  .method public hidebysig newslot virtual instance int32 GetHashCode() cil managed { ldnull throw }
+}
+.class public abstract System.ValueType extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public System.String extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Void extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Boolean extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Int32 extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.IntPtr extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig static native int modopt(native int) F1() cil managed { ldnull throw }
+  .method public hidebysig static native int& modopt(native int) F2() cil managed { ldnull throw }
+  .method public hidebysig static void F3(native int modopt(native int) i) cil managed { ret }
+  .method public hidebysig static void F4(native int& modopt(native int) i) cil managed { ret }
+  .method public hidebysig instance native int modopt(native int) get_P() cil managed { ldnull throw }
+  .method public hidebysig instance native int& modopt(native int) get_Q() cil managed { ldnull throw }
+  .method public hidebysig instance void set_P(native int modopt(native int) i) cil managed { ret }
+  .property instance native int modopt(native int) P()
+  {
+    .get instance native int modopt(native int) System.IntPtr::get_P()
+    .set instance void System.IntPtr::set_P(native int modopt(native int))
+  }
+  .property instance native int& modopt(native int) Q()
+  {
+    .get instance native int& modopt(native int) System.IntPtr::get_Q()
+  }
+}
+.class public sealed System.UIntPtr extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig static native uint modopt(native uint) F1() cil managed { ldnull throw }
+  .method public hidebysig static native uint& modopt(native uint) F2() cil managed { ldnull throw }
+  .method public hidebysig static void F3(native uint modopt(native uint) i) cil managed { ret }
+  .method public hidebysig static void F4(native uint& modopt(native uint) i) cil managed { ret }
+  .method public hidebysig instance native uint modopt(native uint) get_P() cil managed { ldnull throw }
+  .method public hidebysig instance native uint& modopt(native uint) get_Q() cil managed { ldnull throw }
+  .method public hidebysig instance void set_P(native uint modopt(native uint) i) cil managed { ret }
+  .property instance native uint modopt(native uint) P()
+  {
+    .get instance native uint modopt(native uint) System.UIntPtr::get_P()
+    .set instance void System.UIntPtr::set_P(native uint modopt(native uint))
+  }
+  .property instance native uint& modopt(native uint) Q()
+  {
+    .get instance native uint& modopt(native uint) System.UIntPtr::get_Q()
+  }
+}";
+            var refA = CompileIL(sourceA, prependDefaultHeader: false, autoInherit: false);
+            var sourceB =
+@"class Program
+{
+    static void F1(nint i)
+    {
+        var x1 = nint.F1();
+        var x2 = nint.F2();
+        nint.F3(i);
+        nint.F4(ref i);
+        var x3 = i.P;
+        var x4 = i.Q;
+        i.P = x3;
+    }
+    static void F2(nuint u)
+    {
+        var y1 = nuint.F1();
+        var y2 = nuint.F2();
+        nuint.F3(u);
+        nuint.F4(ref u);
+        var y3 = u.P;
+        var y4 = u.Q;
+        u.P = y3;
+    }
+}";
+
+            var comp = CreateEmptyCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F1").Parameters[0].Type, signed: true);
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F2").Parameters[0].Type, signed: false);
+
+            static void verifyType(NamedTypeSymbol type, bool signed)
+            {
+                Assert.True(type.IsNativeIntegerType);
+
+                VerifyType(type, signed: signed, isNativeInt: true);
+                VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
+
+                var underlyingType = type.NativeIntegerUnderlyingType;
+                var members = type.GetMembers().Sort(SymbolComparison);
+                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var expectedMembers = new[]
+                {
+                    $"{type} modopt({type}) {type}.F1()",
+                    $"{type} modopt({type}) {type}.P {{ get; set; }}",
+                    $"{type} modopt({type}) {type}.P.get",
+                    $"{type}..ctor()",
+                    $"ref modopt({type}) {type} {type}.F2()",
+                    $"ref modopt({type}) {type} {type}.Q {{ get; }}",
+                    $"ref modopt({type}) {type} {type}.Q.get",
+                    $"void {type}.F3({type} modopt({type}) i)",
+                    $"void {type}.F4(ref modopt({type}) {type} i)",
+                    $"void {type}.P.set",
                 };
                 AssertEx.Equal(expectedMembers, actualMembers);
 

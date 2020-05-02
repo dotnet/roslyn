@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyInterfaces.IsDefault)
             {
-                var interfaces = _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved).SelectAsArray((type, map) => map.SubstituteNamedType(type), GetTypeMap());
+                var interfaces = _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved).SelectAsArray((Func<NamedTypeSymbol, NativeIntegerTypeMap, NamedTypeSymbol>)((type, map) => map.SubstituteNamedType(type)), GetTypeMap());
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyInterfaces, interfaces);
             }
             return _lazyInterfaces;
@@ -216,6 +216,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Replaces references to underlying type with references to native integer type.
         /// </summary>
         internal NamedTypeSymbol SubstituteUnderlyingType(NamedTypeSymbol type) => GetTypeMap().SubstituteNamedType(type);
+
+        /// <summary>
+        /// Replaces references to underlying type with references to native integer type.
+        /// </summary>
+        internal ImmutableArray<CustomModifier> SubstituteCustomModifiers(ImmutableArray<CustomModifier> customModifiers) => GetTypeMap().SubstituteCustomModifiers(customModifiers);
 
         internal static bool EqualsHelper<TSymbol>(TSymbol symbol, Symbol? other, TypeCompareKind comparison, Func<TSymbol, Symbol> getUnderlyingSymbol)
             where TSymbol : Symbol
@@ -300,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyParameters.IsDefault)
                 {
                     var parameters = UnderlyingMethod.Parameters.SelectAsArray(
-                        (p, m) => (ParameterSymbol)new NativeIntegerParameterSymbol(m._container, m, p),
+                        (Func<ParameterSymbol, NativeIntegerMethodSymbol, ParameterSymbol>)((p, m) => (ParameterSymbol)new NativeIntegerParameterSymbol(m._container, m, p)),
                         this);
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, parameters);
                 }
@@ -310,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers => UnderlyingMethod.RefCustomModifiers;
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => _container.SubstituteCustomModifiers(UnderlyingMethod.RefCustomModifiers);
 
         public override Symbol? AssociatedSymbol => _associatedSymbol;
 
@@ -346,6 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override TypeWithAnnotations TypeWithAnnotations => _containingType.SubstituteUnderlyingType(_underlyingParameter.TypeWithAnnotations);
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => _containingType.SubstituteCustomModifiers(_underlyingParameter.RefCustomModifiers);
+
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingParameter);
 
         public override int GetHashCode() => _underlyingParameter.GetHashCode();
@@ -378,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override TypeWithAnnotations TypeWithAnnotations => _container.SubstituteUnderlyingType(_underlyingProperty.TypeWithAnnotations);
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers => UnderlyingProperty.RefCustomModifiers;
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => _container.SubstituteCustomModifiers(UnderlyingProperty.RefCustomModifiers);
 
         public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
 
