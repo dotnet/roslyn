@@ -123,9 +123,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             if (context.Message != null)
                 return context.Message;
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
             await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                document.Project.Solution.Workspace, context.SearchTitle, context.GetDefinitions()).ConfigureAwait(false);
+                _threadingContext, document.Project.Solution.Workspace, context.SearchTitle, context.GetDefinitions()).ConfigureAwait(false);
             return null;
         }
     }
