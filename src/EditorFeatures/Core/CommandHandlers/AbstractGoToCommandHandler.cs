@@ -53,29 +53,25 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
             using (context.OperationContext.AddScope(allowCancellation: true, ScopeDescription))
             {
+                var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
+                if (caret.HasValue)
+                    return false;
+
                 var subjectBuffer = args.SubjectBuffer;
                 if (!subjectBuffer.TryGetWorkspace(out var workspace))
-                {
                     return false;
-                }
 
                 var service = workspace.Services.GetLanguageServices(args.SubjectBuffer)?.GetService<TLanguageService>();
-                if (service != null)
-                {
-                    var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
-                    if (caret.HasValue)
-                    {
-                        var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
-                            context.OperationContext, _threadingContext);
-                        if (document != null)
-                        {
-                            ExecuteCommand(document, caret.Value, service, context);
-                            return true;
-                        }
-                    }
-                }
+                if (service == null)
+                    return false;
 
-                return false;
+                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+                    context.OperationContext, _threadingContext);
+                if (document == null)
+                    return false;
+
+                ExecuteCommand(document, caret.Value, service, context);
+                return true;
             }
         }
 
