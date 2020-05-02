@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 {
     internal partial class HideBaseCodeFixProvider
     {
-        private class RemoveNewKeywordAction : CodeActions.CodeAction
+        private class RemoveNewModifierAction : CodeActions.CodeAction
         {
             private readonly Document _document;
             private readonly SyntaxNode _node;
 
-            public override string Title => CSharpFeaturesResources.Remove_new_keyword;
+            public override string Title => CSharpFeaturesResources.Remove_new_modifier;
 
-            public RemoveNewKeywordAction(Document document, SyntaxNode node)
+            public RemoveNewModifierAction(Document document, SyntaxNode node)
             {
                 _document = document;
                 _node = node;
