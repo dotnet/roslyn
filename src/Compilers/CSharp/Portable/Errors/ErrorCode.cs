@@ -1779,11 +1779,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_ModuleInitializerMethodMustBeOrdinary = 8793,
         ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType = 8794,
-        ERR_ModuleInitializerMethodMustBeStatic = 8795,
-        ERR_ModuleInitializerMethodMustNotHaveParameters = 8796,
-        ERR_ModuleInitializerMethodMustReturnVoid = 8797,
-        ERR_ModuleInitializerMethodMustNotBeGeneric = 8798,
-        ERR_ModuleInitializerMethodMustNotBeContainedInGenericType = 8799,
+        ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid = 8795,
+        ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric = 8796,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

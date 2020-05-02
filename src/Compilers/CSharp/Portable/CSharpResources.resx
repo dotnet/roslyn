@@ -6076,22 +6076,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType" xml:space="preserve">
     <value>Module initializer method '{0}' must be accessible outside top-level type '{1}'</value>
   </data>
-  <data name="ERR_ModuleInitializerMethodMustBeStatic" xml:space="preserve">
-    <value>Module initializer method '{0}' must be static</value>
+  <data name="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid" xml:space="preserve">
+    <value>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</value>
   </data>
-  <data name="ERR_ModuleInitializerMethodMustNotBeContainedInGenericType" xml:space="preserve">
-    <value>Module initializer method '{0}' must not be contained in a generic type</value>
-  </data>
-  <data name="ERR_ModuleInitializerMethodMustNotBeGeneric" xml:space="preserve">
-    <value>Module initializer method '{0}' must not have generic parameters</value>
-  </data>
-  <data name="ERR_ModuleInitializerMethodMustNotHaveParameters" xml:space="preserve">
-    <value>Module initializer method '{0}' must not have parameters</value>
-  </data>
-  <data name="ERR_ModuleInitializerMethodMustReturnVoid" xml:space="preserve">
-    <value>Module initializer method '{0}' must return void</value>
+  <data name="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric" xml:space="preserve">
+    <value>Module initializer method '{0}' must not be generic and must not be contained in a generic type</value>
   </data>
   <data name="ERR_ModuleInitializerMethodMustBeOrdinary" xml:space="preserve">
-    <value>A module initializer must be an ordinary method</value>
+    <value>A module initializer must be an ordinary member method</value>
   </data>
 </root>

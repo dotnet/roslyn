@@ -787,33 +787,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             arguments.Diagnostics.Add(arguments.AttributeSyntaxOpt, useSiteDiagnostics);
 
-            if (!IsStatic)
+            if (!IsStatic || ParameterCount > 0 || !ReturnsVoid)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeStatic, arguments.AttributeSyntaxOpt.Location, Name);
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, arguments.AttributeSyntaxOpt.Location, Name);
                 hasError = true;
             }
 
-            if (ParameterCount > 0)
+            if (IsGenericMethod || ContainingType.IsGenericType)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustNotHaveParameters, arguments.AttributeSyntaxOpt.Location, Name);
-                hasError = true;
-            }
-
-            if (!ReturnsVoid)
-            {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustReturnVoid, arguments.AttributeSyntaxOpt.Location, Name);
-                hasError = true;
-            }
-
-            if (IsGenericMethod)
-            {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustNotBeGeneric, arguments.AttributeSyntaxOpt.Location, Name);
-                hasError = true;
-            }
-
-            if (ContainingType.IsGenericType)
-            {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustNotBeContainedInGenericType, arguments.AttributeSyntaxOpt.Location, Name);
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, arguments.AttributeSyntaxOpt.Location, Name);
                 hasError = true;
             }
 
