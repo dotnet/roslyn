@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
                     var previousToken = newModifier.GetPreviousToken();
                     var nextToken = newModifier.GetNextToken();
 
-                    var sourceText = _document.GetTextSynchronously(cancellationToken);
+                    var sourceText = await _document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     var isFirstTokenOnLine = newModifier.IsFirstTokenOnLine(sourceText);
 
                     var newTrivia = new SyntaxTriviaList();
