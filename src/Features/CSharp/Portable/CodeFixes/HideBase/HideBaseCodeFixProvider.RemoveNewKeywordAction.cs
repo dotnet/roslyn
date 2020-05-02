@@ -46,9 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 
                     var newTrivia = new SyntaxTriviaList();
                     if (!isFirstTokenOnLine)
-                    {
                         newTrivia = newTrivia.AddRange(previousToken.TrailingTrivia);
-                    }
                     newTrivia = newTrivia
                         .AddRange(newModifierTrivia)
                         .AddRange(nextToken.LeadingTrivia)
