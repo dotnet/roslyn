@@ -8,15 +8,10 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -92,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var token = _shutdownCancellationTokenSource.Token;
 
                     // create solution checksum updater
-                    _checksumUpdater = new SolutionChecksumUpdater(this, token);
+                    _checksumUpdater = new SolutionChecksumUpdater(Workspace, Listener, token);
 
                     _remoteClientTask = Task.Run(() => EnableAsync(token), token);
                 }
