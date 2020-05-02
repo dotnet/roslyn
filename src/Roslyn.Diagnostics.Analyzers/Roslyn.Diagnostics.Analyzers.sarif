@@ -12,7 +12,7 @@
         "RS0006": {
           "id": "RS0006",
           "shortDescription": "Do not mix attributes from different versions of MEF",
-          "fullDescription": "Do not mix attributes from different versions of MEF",
+          "fullDescription": "Do not mix attributes from different versions of MEF.",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsReliability",
@@ -29,8 +29,8 @@
         },
         "RS0023": {
           "id": "RS0023",
-          "shortDescription": "Parts exported with MEFv2 must be marked as Shared",
-          "fullDescription": "Part exported with MEFv2 must be marked with the Shared attribute.",
+          "shortDescription": "Parts exported with MEFv2 must be marked with 'SharedAttribute'",
+          "fullDescription": "Part exported with MEFv2 must be marked with the 'SharedAttribute'.",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsReliability",
@@ -48,7 +48,7 @@
         "RS0032": {
           "id": "RS0032",
           "shortDescription": "Test exports should not be discoverable",
-          "fullDescription": "Test exports should not be discoverable",
+          "fullDescription": "Test exports should not be discoverable.",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsReliability",
@@ -65,8 +65,8 @@
         },
         "RS0033": {
           "id": "RS0033",
-          "shortDescription": "Importing constructor should be [Obsolete]",
-          "fullDescription": "Importing constructor should be [Obsolete]",
+          "shortDescription": "Importing constructor should be marked with 'ObsoleteAttribute'",
+          "fullDescription": "Importing constructor should be marked with 'ObsoleteAttribute'.",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsReliability",
@@ -83,8 +83,8 @@
         },
         "RS0034": {
           "id": "RS0034",
-          "shortDescription": "Exported parts should have [ImportingConstructor]",
-          "fullDescription": "Exported parts should have [ImportingConstructor]",
+          "shortDescription": "Exported parts should be marked with 'ImportingConstructorAttribute'",
+          "fullDescription": "Exported parts should be marked with 'ImportingConstructorAttribute'.",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsReliability",
@@ -102,7 +102,7 @@
         "RS0040": {
           "id": "RS0040",
           "shortDescription": "Defaultable types should have defaultable fields",
-          "fullDescription": "Defaultable types should have defaultable fields",
+          "fullDescription": "Defaultable types should have defaultable fields.",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsReliability",
@@ -136,8 +136,8 @@
         },
         "RS0043": {
           "id": "RS0043",
-          "shortDescription": "Do not call GetTestAccessor()",
-          "fullDescription": "GetTestAccessor() is a helper method reserved for testing. Production code must not call this member.",
+          "shortDescription": "Do not call 'GetTestAccessor()'",
+          "fullDescription": "'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsMaintainability",
@@ -155,7 +155,7 @@
         "RS0044": {
           "id": "RS0044",
           "shortDescription": "Create test accessor",
-          "fullDescription": "This is a refactoring which simplifies the process of creating test accessors using the TestAccessor pattern",
+          "fullDescription": "This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.",
           "defaultLevel": "hidden",
           "properties": {
             "category": "RoslynDiagnosticsMaintainability",
@@ -174,7 +174,7 @@
         "RS0045": {
           "id": "RS0045",
           "shortDescription": "Expose member for testing",
-          "fullDescription": "Expose member for testing",
+          "fullDescription": "Expose member for testing.",
           "defaultLevel": "hidden",
           "properties": {
             "category": "RoslynDiagnosticsMaintainability",
@@ -201,8 +201,8 @@
       "rules": {
         "RS0001": {
           "id": "RS0001",
-          "shortDescription": "Use SpecializedCollections.EmptyEnumerable()",
-          "fullDescription": "Use SpecializedCollections.EmptyEnumerable()",
+          "shortDescription": "Use 'SpecializedCollections.EmptyEnumerable()'",
+          "fullDescription": "Use 'SpecializedCollections.EmptyEnumerable()'",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsPerformance",
@@ -218,8 +218,8 @@
         },
         "RS0002": {
           "id": "RS0002",
-          "shortDescription": "Use SpecializedCollections.SingletonEnumerable()",
-          "fullDescription": "Use SpecializedCollections.SingletonEnumerable()",
+          "shortDescription": "Use 'SpecializedCollections.SingletonEnumerable()'",
+          "fullDescription": "Use 'SpecializedCollections.SingletonEnumerable()'",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsPerformance",
@@ -235,8 +235,8 @@
         },
         "RS0005": {
           "id": "RS0005",
-          "shortDescription": "Do not use generic CodeAction.Create to create CodeAction",
-          "fullDescription": "Do not use generic CodeAction.Create to create CodeAction",
+          "shortDescription": "Do not use generic 'CodeAction.Create' to create 'CodeAction'",
+          "fullDescription": "Do not use generic 'CodeAction.Create' to create 'CodeAction'",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsPerformance",
@@ -252,8 +252,8 @@
         },
         "RS0013": {
           "id": "RS0013",
-          "shortDescription": "Do not invoke Diagnostic.Descriptor",
-          "fullDescription": "Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.",
+          "shortDescription": "Do not invoke 'Diagnostic.Descriptor'",
+          "fullDescription": "Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsPerformance",
@@ -269,7 +269,7 @@
         },
         "RS0019": {
           "id": "RS0019",
-          "shortDescription": "SymbolDeclaredEvent must be generated for source symbols",
+          "shortDescription": "'SymbolDeclaredEvent' must be generated for source symbols",
           "fullDescription": "Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.",
           "defaultLevel": "error",
           "properties": {
@@ -312,8 +312,8 @@
       "rules": {
         "RS0001": {
           "id": "RS0001",
-          "shortDescription": "Use SpecializedCollections.EmptyEnumerable()",
-          "fullDescription": "Use SpecializedCollections.EmptyEnumerable()",
+          "shortDescription": "Use 'SpecializedCollections.EmptyEnumerable()'",
+          "fullDescription": "Use 'SpecializedCollections.EmptyEnumerable()'",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsPerformance",
@@ -329,8 +329,8 @@
         },
         "RS0002": {
           "id": "RS0002",
-          "shortDescription": "Use SpecializedCollections.SingletonEnumerable()",
-          "fullDescription": "Use SpecializedCollections.SingletonEnumerable()",
+          "shortDescription": "Use 'SpecializedCollections.SingletonEnumerable()'",
+          "fullDescription": "Use 'SpecializedCollections.SingletonEnumerable()'",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsPerformance",
@@ -346,8 +346,8 @@
         },
         "RS0004": {
           "id": "RS0004",
-          "shortDescription": "Invoke the correct property to ensure correct use site diagnostics.",
-          "fullDescription": "Invoke the correct property to ensure correct use site diagnostics.",
+          "shortDescription": "Invoke the correct property to ensure correct use site diagnostics",
+          "fullDescription": "Invoke the correct property to ensure correct use site diagnostics",
           "defaultLevel": "error",
           "properties": {
             "category": "Usage",
@@ -363,8 +363,8 @@
         },
         "RS0005": {
           "id": "RS0005",
-          "shortDescription": "Do not use generic CodeAction.Create to create CodeAction",
-          "fullDescription": "Do not use generic CodeAction.Create to create CodeAction",
+          "shortDescription": "Do not use generic 'CodeAction.Create' to create 'CodeAction'",
+          "fullDescription": "Do not use generic 'CodeAction.Create' to create 'CodeAction'",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsPerformance",
@@ -380,8 +380,8 @@
         },
         "RS0013": {
           "id": "RS0013",
-          "shortDescription": "Do not invoke Diagnostic.Descriptor",
-          "fullDescription": "Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.",
+          "shortDescription": "Do not invoke 'Diagnostic.Descriptor'",
+          "fullDescription": "Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsPerformance",
@@ -397,7 +397,7 @@
         },
         "RS0019": {
           "id": "RS0019",
-          "shortDescription": "SymbolDeclaredEvent must be generated for source symbols",
+          "shortDescription": "'SymbolDeclaredEvent' must be generated for source symbols",
           "fullDescription": "Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.",
           "defaultLevel": "error",
           "properties": {

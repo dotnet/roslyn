@@ -17,9 +17,19 @@
         <target state="new">Avoid the 'Opt' suffix</target>
         <note />
       </trans-unit>
+      <trans-unit id="BlankLinesMessage">
+        <source>Avoid multiple blank lines</source>
+        <target state="new">Avoid multiple blank lines</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BracePlacementMessage">
+        <source>Braces must not have blank lines between them</source>
+        <target state="new">Braces must not have blank lines between them</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
-        <source>This is a refactoring which simplifies the process of creating test accessors using the TestAccessor pattern</source>
-        <target state="translated">Si tratta di un refactoring che semplifica il processo di creazione delle funzioni di accesso ai test con il criterio TestAccessor</target>
+        <source>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</source>
+        <target state="needs-review-translation">Si tratta di un refactoring che semplifica il processo di creazione delle funzioni di accesso ai test con il criterio TestAccessor</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorMessage">
@@ -33,8 +43,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
-        <source>Defaultable types should have defaultable fields</source>
-        <target state="translated">I tipi defaultable devono avere campi defaultable</target>
+        <source>Defaultable types should have defaultable fields.</source>
+        <target state="needs-review-translation">I tipi defaultable devono avere campi defaultable</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
@@ -48,23 +58,23 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorDescription">
-        <source>GetTestAccessor() is a helper method reserved for testing. Production code must not call this member.</source>
-        <target state="translated">GetTestAccessor() è un metodo helper riservato per il test. IL codice di produzione non deve chiamare questo membro.</target>
+        <source>'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.</source>
+        <target state="needs-review-translation">GetTestAccessor() è un metodo helper riservato per il test. IL codice di produzione non deve chiamare questo membro.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorMessage">
-        <source>Do not call GetTestAccessor() from production code</source>
-        <target state="translated">Non chiamare GetTestAccessor() dal codice di produzione</target>
+        <source>Do not call 'GetTestAccessor()' from production code</source>
+        <target state="needs-review-translation">Non chiamare GetTestAccessor() dal codice di produzione</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorTitle">
-        <source>Do not call GetTestAccessor()</source>
-        <target state="translated">Non chiamare GetTestAccessor()</target>
+        <source>Do not call 'GetTestAccessor()'</source>
+        <target state="needs-review-translation">Non chiamare GetTestAccessor()</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperDescription">
-        <source>Avoid nullable wrapper</source>
-        <target state="new">Avoid nullable wrapper</target>
+        <source>Avoid nullable wrapper.</source>
+        <target state="new">Avoid nullable wrapper.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperMessage">
@@ -73,8 +83,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueDescription">
-        <source>Do not copy value</source>
-        <target state="new">Do not copy value</target>
+        <source>Do not copy value.</source>
+        <target state="new">Do not copy value.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueMessage">
@@ -108,8 +118,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueUnsupportedUseDescription">
-        <source>Unsupported use of non-copyable type</source>
-        <target state="new">Unsupported use of non-copyable type</target>
+        <source>Unsupported use of non-copyable type.</source>
+        <target state="new">Unsupported use of non-copyable type.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueUnsupportedUseMessage">
@@ -133,8 +143,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
-        <source>Exported parts should have [ImportingConstructor]</source>
-        <target state="translated">Le parti esportate devono includere [ImportingConstructor]</target>
+        <source>Exported parts should be marked with 'ImportingConstructorAttribute'.</source>
+        <target state="needs-review-translation">Le parti esportate devono includere [ImportingConstructor]</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
@@ -143,13 +153,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
-        <source>Exported parts should have [ImportingConstructor]</source>
-        <target state="translated">Le parti esportate devono includere [ImportingConstructor]</target>
+        <source>Exported parts should be marked with 'ImportingConstructorAttribute'</source>
+        <target state="needs-review-translation">Le parti esportate devono includere [ImportingConstructor]</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingDescription">
-        <source>Expose member for testing</source>
-        <target state="translated">Espone il membro per il test</target>
+        <source>Expose member for testing.</source>
+        <target state="needs-review-translation">Espone il membro per il test</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingMessage">
@@ -168,43 +178,48 @@
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
-        <source>Set ObsoleteAttribute.Error to true</source>
-        <target state="translated">Impostare ObsoleteAttribute.Error su true</target>
+        <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
+        <target state="needs-review-translation">Impostare ObsoleteAttribute.Error su true</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription">
-        <source>Use correct ObsoleteAttribute message</source>
-        <target state="translated">Usare il messaggio ObsoleteAttribute corretto</target>
+        <source>Use correct 'ObsoleteAttribute' message.</source>
+        <target state="needs-review-translation">Usare il messaggio ObsoleteAttribute corretto</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute">
-        <source>Add ObsoleteAttribute</source>
-        <target state="translated">Aggiungere ObsoleteAttribute</target>
+        <source>Add 'ObsoleteAttribute'</source>
+        <target state="needs-review-translation">Aggiungere ObsoleteAttribute</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription">
-        <source>Configure ObsoleteAttribute for importing constructor</source>
-        <target state="translated">Configurare ObsoleteAttribute per il costruttore di importazione</target>
+        <source>Configure 'ObsoleteAttribute' for importing constructor.</source>
+        <target state="needs-review-translation">Configurare ObsoleteAttribute per il costruttore di importazione</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingError">
-        <source>Set ObsoleteAttribute.Error to true</source>
-        <target state="translated">Impostare ObsoleteAttribute.Error su true</target>
+        <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
+        <target state="needs-review-translation">Impostare ObsoleteAttribute.Error su true</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
-        <source>Importing constructor should be [Obsolete]</source>
-        <target state="translated">Il costruttore di importazione deve essere [Obsolete]</target>
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'.</source>
+        <target state="needs-review-translation">Il costruttore di importazione deve essere [Obsolete]</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteMessage">
-        <source>Importing constructor should be [Obsolete]</source>
-        <target state="translated">Il costruttore di importazione deve essere [Obsolete]</target>
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
+        <target state="needs-review-translation">Il costruttore di importazione deve essere [Obsolete]</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
-        <source>Importing constructor should be [Obsolete]</source>
-        <target state="translated">Il costruttore di importazione deve essere [Obsolete]</target>
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
+        <target state="needs-review-translation">Il costruttore di importazione deve essere [Obsolete]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="new">Place statement on following line</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
@@ -228,23 +243,33 @@
         <note />
       </trans-unit>
       <trans-unit id="RelaxTestNamingSuppressorJustification">
-        <source>Asynchronous test methods do not require the 'Async' suffix.</source>
-        <target state="translated">I metodi di test asincroni non richiedono il suffisso 'Async'.</target>
+        <source>Asynchronous test methods do not require the 'Async' suffix</source>
+        <target state="needs-review-translation">I metodi di test asincroni non richiedono il suffisso 'Async'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_blank_lines_between_braces">
+        <source>Remove blank lines between braces</source>
+        <target state="new">Remove blank lines between braces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_extra_blank_lines">
+        <source>Remove extra blank lines</source>
+        <target state="new">Remove extra blank lines</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
-        <source>Apply PartNotDiscoverableAttribute</source>
-        <target state="translated">Applicare PartNotDiscoverableAttribute</target>
+        <source>Apply 'PartNotDiscoverableAttribute'</source>
+        <target state="needs-review-translation">Applicare PartNotDiscoverableAttribute</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
-        <source>Test exports should not be discoverable</source>
-        <target state="translated">Le esportazioni di test non devono essere individuabili</target>
+        <source>Test exports should not be discoverable.</source>
+        <target state="needs-review-translation">Le esportazioni di test non devono essere individuabili</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
-        <source>'{0}' is exported for test purposes and should be marked PartNotDiscoverable</source>
-        <target state="translated">'{0}' viene esportato a scopo di test e deve essere contrassegnato come PartNotDiscoverable</target>
+        <source>'{0}' is exported for test purposes and should be marked with 'PartNotDiscoverableAttribute'</source>
+        <target state="needs-review-translation">'{0}' viene esportato a scopo di test e deve essere contrassegnato come PartNotDiscoverable</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">
@@ -253,8 +278,8 @@
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
-        <source>Use SpecializedCollections.EmptyEnumerable()</source>
-        <target state="translated">Usare SpecializedCollections.EmptyEnumerable()</target>
+        <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
+        <target state="needs-review-translation">Usare SpecializedCollections.EmptyEnumerable()</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableDescription">
@@ -263,13 +288,13 @@
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableMessage">
-        <source>Use SpecializedCollections.EmptyEnumerable()</source>
-        <target state="translated">Usare SpecializedCollections.EmptyEnumerable()</target>
+        <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
+        <target state="needs-review-translation">Usare SpecializedCollections.EmptyEnumerable()</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableTitle">
-        <source>Use SpecializedCollections.SingletonEnumerable()</source>
-        <target state="translated">Usare SpecializedCollections.SingletonEnumerable()</target>
+        <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
+        <target state="needs-review-translation">Usare SpecializedCollections.SingletonEnumerable()</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableDescription">
@@ -278,13 +303,13 @@
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableMessage">
-        <source>Use SpecializedCollections.SingletonEnumerable()</source>
-        <target state="translated">Usare SpecializedCollections.SingletonEnumerable()</target>
+        <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
+        <target state="needs-review-translation">Usare SpecializedCollections.SingletonEnumerable()</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
-        <source>Invoke the correct property to ensure correct use site diagnostics.</source>
-        <target state="translated">Richiamare la proprietà corretta per garantire l'uso corretto della diagnostica del sito.</target>
+        <source>Invoke the correct property to ensure correct use site diagnostics</source>
+        <target state="needs-review-translation">Richiamare la proprietà corretta per garantire l'uso corretto della diagnostica del sito.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
@@ -293,13 +318,13 @@
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
-        <source>Invoke the correct property to ensure correct use site diagnostics.</source>
-        <target state="translated">Richiamare la proprietà corretta per garantire l'uso corretto della diagnostica del sito.</target>
+        <source>Invoke the correct property to ensure correct use site diagnostics</source>
+        <target state="needs-review-translation">Richiamare la proprietà corretta per garantire l'uso corretto della diagnostica del sito.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
-        <source>Do not use generic CodeAction.Create to create CodeAction</source>
-        <target state="translated">Non usare il metodo CodeAction.Create per creare l'elemento CodeAction</target>
+        <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
+        <target state="needs-review-translation">Non usare il metodo CodeAction.Create per creare l'elemento CodeAction</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionDescription">
@@ -308,13 +333,13 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionMessage">
-        <source>Do not use generic CodeAction.Create to create CodeAction</source>
-        <target state="translated">Non usare il metodo CodeAction.Create per creare l'elemento CodeAction</target>
+        <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
+        <target state="needs-review-translation">Non usare il metodo CodeAction.Create per creare l'elemento CodeAction</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
-        <source>Override Object.Equals(object) when implementing Iequatable</source>
-        <target state="translated">Eseguire l'override di Object.Equals(object) durante l'implementazione di Iequatable</target>
+        <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
+        <target state="needs-review-translation">Eseguire l'override di Object.Equals(object) durante l'implementazione di Iequatable</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
@@ -323,18 +348,18 @@
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
-        <source>Override Object.Equals(object) when implementing Iequatable</source>
-        <target state="translated">Eseguire l'override di Object.Equals(object) durante l'implementazione di Iequatable</target>
+        <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
+        <target state="needs-review-translation">Eseguire l'override di Object.Equals(object) durante l'implementazione di Iequatable</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
-        <source>Do not invoke Diagnostic.Descriptor</source>
-        <target state="translated">Non richiamare Diagnostic.Descriptor</target>
+        <source>Do not invoke 'Diagnostic.Descriptor'</source>
+        <target state="needs-review-translation">Non richiamare Diagnostic.Descriptor</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
-        <source>Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.</source>
-        <target state="translated">L'accesso alla proprietà Descriptor di Diagnostic nel livello del compilatore implica allocazioni di stringa non necessarie per i campi del descrittore non utilizzati nella compilazione da riga di comando. È quindi opportuno evitare di accedere qui alla proprietà Descriptor del tipo Diagnostic del compilatore. È invece opportuno accedere direttamente a queste proprietà all'esterno del tipo Diagnostic.</target>
+        <source>Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.</source>
+        <target state="needs-review-translation">L'accesso alla proprietà Descriptor di Diagnostic nel livello del compilatore implica allocazioni di stringa non necessarie per i campi del descrittore non utilizzati nella compilazione da riga di comando. È quindi opportuno evitare di accedere qui alla proprietà Descriptor del tipo Diagnostic del compilatore. È invece opportuno accedere direttamente a queste proprietà all'esterno del tipo Diagnostic.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
@@ -343,8 +368,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
-        <source>SymbolDeclaredEvent must be generated for source symbols</source>
-        <target state="translated">È necessario generare SymbolDeclaredEvent per i simboli di origine</target>
+        <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
+        <target state="needs-review-translation">È necessario generare SymbolDeclaredEvent per i simboli di origine</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription">
@@ -353,8 +378,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage">
-        <source>SymbolDeclaredEvent must be generated for source symbols</source>
-        <target state="translated">È necessario generare SymbolDeclaredEvent per i simboli di origine</target>
+        <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
+        <target state="needs-review-translation">È necessario generare SymbolDeclaredEvent per i simboli di origine</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFTitle">
@@ -363,8 +388,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFDescription">
-        <source>Do not mix attributes from different versions of MEF</source>
-        <target state="translated">Non combinare attributi di versioni diverse di MEF</target>
+        <source>Do not mix attributes from different versions of MEF.</source>
+        <target state="needs-review-translation">Non combinare attributi di versioni diverse di MEF</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFMessage">
@@ -373,18 +398,23 @@
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle">
-        <source>Parts exported with MEFv2 must be marked as Shared</source>
-        <target state="translated">Le parti esportate con MEFv2 devono essere contrassegnate come Shared</target>
+        <source>Parts exported with MEFv2 must be marked with 'SharedAttribute'</source>
+        <target state="needs-review-translation">Le parti esportate con MEFv2 devono essere contrassegnate come Shared</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription">
-        <source>Part exported with MEFv2 must be marked with the Shared attribute.</source>
-        <target state="translated">La parte esportata con MEFv2 deve essere contrassegnata con l'attributo Shared.</target>
+        <source>Part exported with MEFv2 must be marked with the 'SharedAttribute'.</source>
+        <target state="needs-review-translation">La parte esportata con MEFv2 deve essere contrassegnata con l'attributo Shared.</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
-        <source>'{0}' is exported with MEFv2 and hence must be marked as Shared</source>
-        <target state="translated">'{0}' viene esportato con MEFv2 e di conseguenza deve essere contrassegnato come Shared</target>
+        <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
+        <target state="needs-review-translation">'{0}' viene esportato con MEFv2 e di conseguenza deve essere contrassegnato come Shared</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WrapStatementsMessage">
+        <source>Statements must be placed on their own line</source>
+        <target state="new">Statements must be placed on their own line</target>
         <note />
       </trans-unit>
     </body>

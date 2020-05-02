@@ -17,9 +17,19 @@
         <target state="new">Avoid the 'Opt' suffix</target>
         <note />
       </trans-unit>
+      <trans-unit id="BlankLinesMessage">
+        <source>Avoid multiple blank lines</source>
+        <target state="new">Avoid multiple blank lines</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BracePlacementMessage">
+        <source>Braces must not have blank lines between them</source>
+        <target state="new">Braces must not have blank lines between them</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
-        <source>This is a refactoring which simplifies the process of creating test accessors using the TestAccessor pattern</source>
-        <target state="translated">这是一种重构，它简化了使用 TestAccessor 模式创建测试访问器的过程</target>
+        <source>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</source>
+        <target state="needs-review-translation">这是一种重构，它简化了使用 TestAccessor 模式创建测试访问器的过程</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorMessage">
@@ -33,8 +43,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
-        <source>Defaultable types should have defaultable fields</source>
-        <target state="translated">可默认类型应具有可默认字段。</target>
+        <source>Defaultable types should have defaultable fields.</source>
+        <target state="needs-review-translation">可默认类型应具有可默认字段。</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
@@ -48,23 +58,23 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorDescription">
-        <source>GetTestAccessor() is a helper method reserved for testing. Production code must not call this member.</source>
-        <target state="translated">GetTestAccessor() 是保留以用于测试的 helper 方法。生产代码不能调用此成员。</target>
+        <source>'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.</source>
+        <target state="needs-review-translation">GetTestAccessor() 是保留以用于测试的 helper 方法。生产代码不能调用此成员。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorMessage">
-        <source>Do not call GetTestAccessor() from production code</source>
-        <target state="translated">请勿从生产代码中调用 GetTestAccessor()</target>
+        <source>Do not call 'GetTestAccessor()' from production code</source>
+        <target state="needs-review-translation">请勿从生产代码中调用 GetTestAccessor()</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorTitle">
-        <source>Do not call GetTestAccessor()</source>
-        <target state="translated">请勿调用 GetTestAccessor()</target>
+        <source>Do not call 'GetTestAccessor()'</source>
+        <target state="needs-review-translation">请勿调用 GetTestAccessor()</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperDescription">
-        <source>Avoid nullable wrapper</source>
-        <target state="new">Avoid nullable wrapper</target>
+        <source>Avoid nullable wrapper.</source>
+        <target state="new">Avoid nullable wrapper.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperMessage">
@@ -73,8 +83,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueDescription">
-        <source>Do not copy value</source>
-        <target state="new">Do not copy value</target>
+        <source>Do not copy value.</source>
+        <target state="new">Do not copy value.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueMessage">
@@ -108,8 +118,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueUnsupportedUseDescription">
-        <source>Unsupported use of non-copyable type</source>
-        <target state="new">Unsupported use of non-copyable type</target>
+        <source>Unsupported use of non-copyable type.</source>
+        <target state="new">Unsupported use of non-copyable type.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueUnsupportedUseMessage">
@@ -133,8 +143,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
-        <source>Exported parts should have [ImportingConstructor]</source>
-        <target state="translated">导出的部分应具有 [ImportingConstructor]</target>
+        <source>Exported parts should be marked with 'ImportingConstructorAttribute'.</source>
+        <target state="needs-review-translation">导出的部分应具有 [ImportingConstructor]</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
@@ -143,13 +153,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
-        <source>Exported parts should have [ImportingConstructor]</source>
-        <target state="translated">导出的部分应具有 [ImportingConstructor]</target>
+        <source>Exported parts should be marked with 'ImportingConstructorAttribute'</source>
+        <target state="needs-review-translation">导出的部分应具有 [ImportingConstructor]</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingDescription">
-        <source>Expose member for testing</source>
-        <target state="translated">公开要进行测试的成员</target>
+        <source>Expose member for testing.</source>
+        <target state="needs-review-translation">公开要进行测试的成员</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingMessage">
@@ -168,43 +178,48 @@
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
-        <source>Set ObsoleteAttribute.Error to true</source>
-        <target state="translated">将 ObsoleteAttribute.Error 设置为 true</target>
+        <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
+        <target state="needs-review-translation">将 ObsoleteAttribute.Error 设置为 true</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription">
-        <source>Use correct ObsoleteAttribute message</source>
-        <target state="translated">使用正确的 ObsoleteAttribute 消息</target>
+        <source>Use correct 'ObsoleteAttribute' message.</source>
+        <target state="needs-review-translation">使用正确的 ObsoleteAttribute 消息</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute">
-        <source>Add ObsoleteAttribute</source>
-        <target state="translated">添加 ObsoleteAttribute</target>
+        <source>Add 'ObsoleteAttribute'</source>
+        <target state="needs-review-translation">添加 ObsoleteAttribute</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription">
-        <source>Configure ObsoleteAttribute for importing constructor</source>
-        <target state="translated">配置 ObsoleteAttribute 以导入构造函数</target>
+        <source>Configure 'ObsoleteAttribute' for importing constructor.</source>
+        <target state="needs-review-translation">配置 ObsoleteAttribute 以导入构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingError">
-        <source>Set ObsoleteAttribute.Error to true</source>
-        <target state="translated">将 ObsoleteAttribute.Error 设置为 true</target>
+        <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
+        <target state="needs-review-translation">将 ObsoleteAttribute.Error 设置为 true</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
-        <source>Importing constructor should be [Obsolete]</source>
-        <target state="translated">导入构造函数应为 [Obsolete]</target>
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'.</source>
+        <target state="needs-review-translation">导入构造函数应为 [Obsolete]</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteMessage">
-        <source>Importing constructor should be [Obsolete]</source>
-        <target state="translated">导入构造函数应为 [Obsolete]</target>
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
+        <target state="needs-review-translation">导入构造函数应为 [Obsolete]</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
-        <source>Importing constructor should be [Obsolete]</source>
-        <target state="translated">导入构造函数应为 [Obsolete]</target>
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
+        <target state="needs-review-translation">导入构造函数应为 [Obsolete]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="new">Place statement on following line</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
@@ -228,23 +243,33 @@
         <note />
       </trans-unit>
       <trans-unit id="RelaxTestNamingSuppressorJustification">
-        <source>Asynchronous test methods do not require the 'Async' suffix.</source>
-        <target state="translated">异步测试方法不需要 "Async" 后缀。</target>
+        <source>Asynchronous test methods do not require the 'Async' suffix</source>
+        <target state="needs-review-translation">异步测试方法不需要 "Async" 后缀。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_blank_lines_between_braces">
+        <source>Remove blank lines between braces</source>
+        <target state="new">Remove blank lines between braces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_extra_blank_lines">
+        <source>Remove extra blank lines</source>
+        <target state="new">Remove extra blank lines</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
-        <source>Apply PartNotDiscoverableAttribute</source>
-        <target state="translated">应用 PartNotDiscoverableAttribute</target>
+        <source>Apply 'PartNotDiscoverableAttribute'</source>
+        <target state="needs-review-translation">应用 PartNotDiscoverableAttribute</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
-        <source>Test exports should not be discoverable</source>
-        <target state="translated">测试导出应该不可被发现</target>
+        <source>Test exports should not be discoverable.</source>
+        <target state="needs-review-translation">测试导出应该不可被发现</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
-        <source>'{0}' is exported for test purposes and should be marked PartNotDiscoverable</source>
-        <target state="translated">导出“{0}”以用于测试，并且应将其标记为 PartNotDiscoverable</target>
+        <source>'{0}' is exported for test purposes and should be marked with 'PartNotDiscoverableAttribute'</source>
+        <target state="needs-review-translation">导出“{0}”以用于测试，并且应将其标记为 PartNotDiscoverable</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">
@@ -253,8 +278,8 @@
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
-        <source>Use SpecializedCollections.EmptyEnumerable()</source>
-        <target state="translated">使用 SpecializedCollections.EmptyEnumerable()</target>
+        <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
+        <target state="needs-review-translation">使用 SpecializedCollections.EmptyEnumerable()</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableDescription">
@@ -263,13 +288,13 @@
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableMessage">
-        <source>Use SpecializedCollections.EmptyEnumerable()</source>
-        <target state="translated">使用 SpecializedCollections.EmptyEnumerable()</target>
+        <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
+        <target state="needs-review-translation">使用 SpecializedCollections.EmptyEnumerable()</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableTitle">
-        <source>Use SpecializedCollections.SingletonEnumerable()</source>
-        <target state="translated">使用 SpecializedCollections.SingletonEnumerable()</target>
+        <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
+        <target state="needs-review-translation">使用 SpecializedCollections.SingletonEnumerable()</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableDescription">
@@ -278,13 +303,13 @@
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableMessage">
-        <source>Use SpecializedCollections.SingletonEnumerable()</source>
-        <target state="translated">使用 SpecializedCollections.SingletonEnumerable()</target>
+        <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
+        <target state="needs-review-translation">使用 SpecializedCollections.SingletonEnumerable()</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
-        <source>Invoke the correct property to ensure correct use site diagnostics.</source>
-        <target state="translated">调用正确的属性以确保正确使用站点诊断。</target>
+        <source>Invoke the correct property to ensure correct use site diagnostics</source>
+        <target state="needs-review-translation">调用正确的属性以确保正确使用站点诊断。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
@@ -293,13 +318,13 @@
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
-        <source>Invoke the correct property to ensure correct use site diagnostics.</source>
-        <target state="translated">调用正确的属性以确保正确使用站点诊断。</target>
+        <source>Invoke the correct property to ensure correct use site diagnostics</source>
+        <target state="needs-review-translation">调用正确的属性以确保正确使用站点诊断。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
-        <source>Do not use generic CodeAction.Create to create CodeAction</source>
-        <target state="translated">不要使用通用的 CodeAction.Create 来创建 CodeAction</target>
+        <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
+        <target state="needs-review-translation">不要使用通用的 CodeAction.Create 来创建 CodeAction</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionDescription">
@@ -308,13 +333,13 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionMessage">
-        <source>Do not use generic CodeAction.Create to create CodeAction</source>
-        <target state="translated">不要使用通用的 CodeAction.Create 来创建 CodeAction</target>
+        <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
+        <target state="needs-review-translation">不要使用通用的 CodeAction.Create 来创建 CodeAction</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
-        <source>Override Object.Equals(object) when implementing Iequatable</source>
-        <target state="translated">当实现 IEquatable 时，重写 Object.Equals(object)</target>
+        <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
+        <target state="needs-review-translation">当实现 IEquatable 时，重写 Object.Equals(object)</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
@@ -323,18 +348,18 @@
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
-        <source>Override Object.Equals(object) when implementing Iequatable</source>
-        <target state="translated">当实现 IEquatable 时，重写 Object.Equals(object)</target>
+        <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
+        <target state="needs-review-translation">当实现 IEquatable 时，重写 Object.Equals(object)</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
-        <source>Do not invoke Diagnostic.Descriptor</source>
-        <target state="translated">不要调用 Diagnostic.Descriptor</target>
+        <source>Do not invoke 'Diagnostic.Descriptor'</source>
+        <target state="needs-review-translation">不要调用 Diagnostic.Descriptor</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
-        <source>Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.</source>
-        <target state="translated">在编译器层中访问诊断的描述符属性时，会导致在命令行编译中未使用的描述符字段发生不必要的字符串分配。因此，应避免在此处访问编译器诊断的描述符。而是直接从诊断类型访问这些属性。</target>
+        <source>Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.</source>
+        <target state="needs-review-translation">在编译器层中访问诊断的描述符属性时，会导致在命令行编译中未使用的描述符字段发生不必要的字符串分配。因此，应避免在此处访问编译器诊断的描述符。而是直接从诊断类型访问这些属性。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
@@ -343,8 +368,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
-        <source>SymbolDeclaredEvent must be generated for source symbols</source>
-        <target state="translated">必须为源符号生成 SymbolDeclaredEvent</target>
+        <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
+        <target state="needs-review-translation">必须为源符号生成 SymbolDeclaredEvent</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription">
@@ -353,8 +378,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage">
-        <source>SymbolDeclaredEvent must be generated for source symbols</source>
-        <target state="translated">必须为源符号生成 SymbolDeclaredEvent</target>
+        <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
+        <target state="needs-review-translation">必须为源符号生成 SymbolDeclaredEvent</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFTitle">
@@ -363,8 +388,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFDescription">
-        <source>Do not mix attributes from different versions of MEF</source>
-        <target state="translated">切勿混合不同版本 MEF 中的属性</target>
+        <source>Do not mix attributes from different versions of MEF.</source>
+        <target state="needs-review-translation">切勿混合不同版本 MEF 中的属性</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFMessage">
@@ -373,18 +398,23 @@
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle">
-        <source>Parts exported with MEFv2 must be marked as Shared</source>
-        <target state="translated">通过 MEFv2 导出的部件必须标记为 Shared</target>
+        <source>Parts exported with MEFv2 must be marked with 'SharedAttribute'</source>
+        <target state="needs-review-translation">通过 MEFv2 导出的部件必须标记为 Shared</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription">
-        <source>Part exported with MEFv2 must be marked with the Shared attribute.</source>
-        <target state="translated">通过 MEFv2 导出的部件必须标记为 Shared 属性。</target>
+        <source>Part exported with MEFv2 must be marked with the 'SharedAttribute'.</source>
+        <target state="needs-review-translation">通过 MEFv2 导出的部件必须标记为 Shared 属性。</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
-        <source>'{0}' is exported with MEFv2 and hence must be marked as Shared</source>
-        <target state="translated">“{0}”是通过 MEFv2 导出的，因此必须标记为 Shared</target>
+        <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
+        <target state="needs-review-translation">“{0}”是通过 MEFv2 导出的，因此必须标记为 Shared</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WrapStatementsMessage">
+        <source>Statements must be placed on their own line</source>
+        <target state="new">Statements must be placed on their own line</target>
         <note />
       </trans-unit>
     </body>
