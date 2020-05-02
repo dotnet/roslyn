@@ -5,11 +5,11 @@ using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Roslyn.Diagnostics.CSharp.Analyzers.CSharpAvoidOptSuffixForNullableEnableCode,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+    Roslyn.Diagnostics.CSharp.Analyzers.CSharpAvoidOptSuffixForNullableEnableCodeCodeFixProvider>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
-    public class AvoidOptSuffixForNullableEnableCodeTests
+    public class CSharpAvoidOptSuffixForNullableEnableCodeTests
     {
         [Fact]
         public async Task RS0046_CSharp8_NullableEnabledCode_Diagnostic()
@@ -17,18 +17,43 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp8,
-                TestCode =
-                        @"
+                TestCode = @"
 #nullable enable
 
 public class Class1
 {
-    private Class1? [|_instanceOpt|];
+    private Class1? [|_instanceOpt|], [|otherInstanceOpt|];
 
     public void Method1(string? [|sOpt|])
     {
+        string? [|localOpt|], [|otherLocalOpt|];
     }
 }",
+                FixedCode = @"
+#nullable enable
+
+public class Class1
+{
+    private Class1? _instanceOpt, [|otherInstanceOpt|];
+
+    public void Method1(string? [|sOpt|])
+    {
+        string? [|localOpt|], [|otherLocalOpt|];
+    }
+}",
+                BatchFixedCode = @"
+#nullable enable
+
+public class Class1
+{
+    private Class1? _instance, otherInstance;
+
+    public void Method1(string? s)
+    {
+        string? other, otherLocalOpt;
+    }
+}",
+
             }.RunAsync();
         }
 
@@ -42,10 +67,11 @@ public class Class1
                         @"
 public class Class1
 {
-    private Class1 _instanceOpt;
+    private Class1 _instanceOpt, otherInstanceOpt;
 
     public void Method1(string sOpt)
     {
+        string localOpt, otherLocalOpt;
     }
 }",
             }.RunAsync();
@@ -63,10 +89,11 @@ public class Class1
 
 public class Class1
 {
-    private Class1 _instanceOpt;
+    private Class1 _instanceOpt, otherInstanceOpt;
 
     public void Method1(string sOpt)
     {
+        string localOpt, otherLocalOpt;
     }
 }",
             }.RunAsync();
@@ -82,10 +109,11 @@ public class Class1
                         @"
 public class Class1
 {
-    private Class1 _instanceOpt;
+    private Class1 _instanceOpt, otherInstanceOpt;
 
     public void Method1(string sOpt)
     {
+        string localOpt, otherLocalOpt;
     }
 }",
             }.RunAsync();

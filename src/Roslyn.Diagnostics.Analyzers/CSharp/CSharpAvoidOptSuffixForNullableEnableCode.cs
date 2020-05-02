@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.Lightup;
 using Microsoft.CodeAnalysis;
@@ -10,9 +13,31 @@ using Roslyn.Diagnostics.Analyzers;
 
 namespace Roslyn.Diagnostics.CSharp.Analyzers
 {
+    /// <summary>
+    /// RS0046: Avoid 'Opt' suffix for nullable enable code
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class CSharpAvoidOptSuffixForNullableEnableCode : AvoidOptSuffixForNullableEnableCode
+    public sealed class CSharpAvoidOptSuffixForNullableEnableCode : DiagnosticAnalyzer
     {
+        internal const string OptSuffix = "Opt";
+
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.AvoidOptSuffixForNullableEnableCodeRuleIdTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.AvoidOptSuffixForNullableEnableCodeRuleIdMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
+        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.AvoidOptSuffixForNullableEnableCodeRuleIdDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
+
+        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+            RoslynDiagnosticIds.AvoidOptSuffixForNullableEnableCodeRuleId,
+            s_localizableTitle,
+            s_localizableMessage,
+            DiagnosticCategory.RoslynDiagnosticsDesign,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: s_localizableDescription,
+            helpLinkUri: null,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+
         public override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
@@ -21,27 +46,23 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             context.RegisterSyntaxNodeAction(context =>
             {
                 var parameter = (ParameterSyntax)context.Node;
-
-                if (parameter.Identifier.Text.EndsWith("Opt", System.StringComparison.Ordinal) &&
-                    context.SemanticModel.GetNullableContext(parameter.SpanStart).AnnotationsEnabled())
-                {
-                    context.ReportDiagnostic(parameter.Identifier.CreateDiagnostic(Rule));
-                }
+                ReportOnInvalidIdentifier(parameter.Identifier, context.SemanticModel, context.ReportDiagnostic);
             }, SyntaxKind.Parameter);
 
             context.RegisterSyntaxNodeAction(context =>
             {
-                var fieldDeclaration = (FieldDeclarationSyntax)context.Node;
+                var variableDeclarator = (VariableDeclaratorSyntax)context.Node;
+                ReportOnInvalidIdentifier(variableDeclarator.Identifier, context.SemanticModel, context.ReportDiagnostic);
+            }, SyntaxKind.VariableDeclarator);
+        }
 
-                foreach (var variable in fieldDeclaration.Declaration.Variables)
-                {
-                    if (variable.Identifier.Text.EndsWith("Opt", System.StringComparison.Ordinal) &&
-                        context.SemanticModel.GetNullableContext(variable.SpanStart).AnnotationsEnabled())
-                    {
-                        context.ReportDiagnostic(variable.Identifier.CreateDiagnostic(Rule));
-                    }
-                }
-            }, SyntaxKind.FieldDeclaration);
+        private static void ReportOnInvalidIdentifier(SyntaxToken identifier, SemanticModel semanticModel, Action<Diagnostic> reportAction)
+        {
+            if (identifier.Text.EndsWith(OptSuffix, StringComparison.Ordinal) &&
+                semanticModel.GetNullableContext(identifier.SpanStart).AnnotationsEnabled())
+            {
+                reportAction(identifier.CreateDiagnostic(Rule));
+            }
         }
     }
 }
