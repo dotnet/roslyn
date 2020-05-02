@@ -71,6 +71,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return true;
             }
 
+#if !CODE_STYLE
+
+            public override bool VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                if (!_visited.Add(symbol))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+#endif
+
             public override bool VisitProperty(IPropertySymbol symbol)
             {
                 if (!_visited.Add(symbol))
