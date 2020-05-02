@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -38,6 +39,27 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     await AbstractFindUsagesService.FindReferencesAsync(
                         context, symbol, project, options.Rehydrate()).ConfigureAwait(false);
+                }
+            }, cancellationToken);
+        }
+
+
+        public Task FindImplementationsAsync(PinnedSolutionInfo solutionInfo,
+            DocumentId documentId,
+            int position,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async () =>
+            {
+                using (UserOperationBooster.Boost())
+                {
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                    var document = solution.GetDocument(documentId);
+
+                    var context = new RemoteFindUsageContext(solution, EndPoint, cancellationToken);
+
+                    await AbstractFindUsagesService.FindImplementationsWorkerAsync(
+                        document, position, context).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }

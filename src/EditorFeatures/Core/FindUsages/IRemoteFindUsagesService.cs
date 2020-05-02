@@ -22,15 +22,21 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             SerializableSymbolAndProjectId symbolAndProjectIdArg,
             SerializableFindReferencesSearchOptions options,
             CancellationToken cancellationToken);
+
+        Task FindImplementationsAsync(
+            PinnedSolutionInfo solutionInfo,
+            DocumentId documentId,
+            int position,
+            CancellationToken cancellationToken);
     }
 
-    internal class FindReferencesServerCallback
+    internal class FindUsagesServerCallback
     {
         private readonly Solution _solution;
         private readonly IFindUsagesContext _context;
         private readonly Dictionary<int, DefinitionItem> _idToDefinition = new Dictionary<int, DefinitionItem>();
 
-        public FindReferencesServerCallback(Solution solution, IFindUsagesContext context)
+        public FindUsagesServerCallback(Solution solution, IFindUsagesContext context)
         {
             _solution = solution;
             _context = context;

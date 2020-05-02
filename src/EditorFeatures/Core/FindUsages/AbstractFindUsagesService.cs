@@ -26,7 +26,44 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         protected AbstractFindUsagesService(IThreadingContext threadingContext)
             => _threadingContext = threadingContext;
 
-        public async Task FindImplementationsAsync(
+        public Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context)
+            => FindImplementationsWorkerAsync(document, position, context);
+
+        public static async Task FindImplementationsWorkerAsync(
+            Document document, int position, IFindUsagesContext context)
+        {
+            var cancellationToken = context.CancellationToken;
+            var solution = document.Project.Solution;
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            if (client != null)
+            {
+                // Create a callback that we can pass to the server process to hear about the 
+                // results as it finds them.  When we hear about results we'll forward them to
+                // the 'progress' parameter which will then update the UI.
+                var serverCallback = new FindUsagesServerCallback(solution, context);
+
+                var success = await client.TryRunRemoteAsync(
+                    WellKnownServiceHubServices.CodeAnalysisService,
+                    nameof(IRemoteFindUsagesService.FindImplementationsAsync),
+                    solution,
+                    new object[]
+                    {
+                        document.Id,
+                        position,
+                    },
+                    serverCallback,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (success)
+                    return;
+            }
+
+            // Couldn't effectively search in OOP. Perform the search in-process.
+            await FindImplementationsInCurrentProcessAsync(
+                document, position, context).ConfigureAwait(false);
+        }
+
+        private static async Task FindImplementationsInCurrentProcessAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -176,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 // Create a callback that we can pass to the server process to hear about the 
                 // results as it finds them.  When we hear about results we'll forward them to
                 // the 'progress' parameter which will then update the UI.
-                var serverCallback = new FindReferencesServerCallback(solution, context);
+                var serverCallback = new FindUsagesServerCallback(solution, context);
 
                 var success = await client.TryRunRemoteAsync(
                     WellKnownServiceHubServices.CodeAnalysisService,
@@ -194,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     return;
             }
 
-            // Couldn't effectively search in OOP. Perform the search in-proc.
+            // Couldn't effectively search in OOP. Perform the search in-process.
             await FindReferencesInCurrentProcessAsync(
                 context, symbol, project, options).ConfigureAwait(false);
         }
