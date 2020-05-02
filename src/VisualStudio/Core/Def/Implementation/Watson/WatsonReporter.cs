@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
             var faultEvent = new FaultEvent(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
-                description: GetDescription(),
+                description: GetDescription(exception),
                 FaultSeverity.Diagnostic,
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>
@@ -114,16 +114,16 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             session.PostEvent(faultEvent);
         }
 
-        private static string GetDescription()
+        private static string GetDescription(Exception exception)
         {
-            const string OurNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis) + "." + nameof(ErrorReporting);
+            const string CodeAnalysisNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis);
 
-            // Be resilient to failing here.  If we can't get a suitable name, just fallback to the standard name we
+            // Be resilient to failing here.  If we can't get a suitable name, just fall back to the standard name we
             // used to report.
             try
             {
                 // walk up the stack looking for the first call from a type that isn't in the ErrorReporting namespace.
-                foreach (var frame in new StackTrace().GetFrames())
+                foreach (var frame in new StackTrace(exception).GetFrames())
                 {
                     var method = frame.GetMethod();
                     var methodName = method?.Name;
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                     if (declaringTypeName == null)
                         continue;
 
-                    if (declaringTypeName.StartsWith(OurNamespace))
+                    if (!declaringTypeName.StartsWith(CodeAnalysisNamespace))
                         continue;
 
                     return declaringTypeName + "." + methodName;
