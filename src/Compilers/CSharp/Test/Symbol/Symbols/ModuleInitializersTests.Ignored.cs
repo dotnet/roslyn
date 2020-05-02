@@ -98,48 +98,6 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void IgnoredOnStaticConstructor()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-class C
-{
-    [ModuleInitializer]
-    static C() { }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
-            {
-                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                Assert.Null(rootModuleType.GetMember(".cctor"));
-            });
-        }
-
-        [Fact]
-        public void IgnoredOnInstanceConstructor()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-class C
-{
-    [ModuleInitializer]
-    public C() { }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            CompileAndVerify(source, parseOptions: s_parseOptions, symbolValidator: module =>
-            {
-                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                Assert.Null(rootModuleType.GetMember(".cctor"));
-            });
-        }
-
-        [Fact]
         public void IgnoredOnEvent()
         {
             string source = @"

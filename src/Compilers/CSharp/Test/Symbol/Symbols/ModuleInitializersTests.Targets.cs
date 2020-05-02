@@ -189,5 +189,49 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(10, 10)
                 );
         }
+
+        [Fact]
+        public void TargetMustNotBeStaticConstructor()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer]
+    static C() { }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            compilation.VerifyEmitDiagnostics(
+                // (6,6): error CS8793: A module initializer must be an ordinary method
+                //     [ModuleInitializer]
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(6, 6)
+                );
+        }
+
+        [Fact]
+        public void TargetMustNotBeInstanceConstructor()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer]
+    public C() { }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            compilation.VerifyEmitDiagnostics(
+                // (6,6): error CS8793: A module initializer must be an ordinary method
+                //     [ModuleInitializer]
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(6, 6)
+                );
+        }
     }
 }

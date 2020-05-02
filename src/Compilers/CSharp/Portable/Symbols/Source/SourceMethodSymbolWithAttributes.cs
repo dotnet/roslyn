@@ -770,12 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (MethodKind != MethodKind.Ordinary)
             {
-                // Ignore cases where there will already be a warning due to the AttributeTargets.Method usage
-                // restriction on the attribute definition in the framework.
-                if (MethodKind != MethodKind.Constructor && MethodKind != MethodKind.StaticConstructor)
-                {
-                    arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
-                }
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
                 return;
             }
 
