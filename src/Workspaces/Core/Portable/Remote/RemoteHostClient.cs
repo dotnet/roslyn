@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Host;
 
 #if DEBUG
 using System.Diagnostics;
@@ -56,12 +57,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public abstract bool IsRemoteHost64Bit { get; }
 
-        protected abstract void OnStarted();
-
         protected void Started()
         {
-            OnStarted();
-
             OnStatusChanged(started: true);
         }
 
@@ -87,6 +84,17 @@ namespace Microsoft.CodeAnalysis.Remote
         public static Task<RemoteHostClient?> TryGetClientAsync(Workspace workspace, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IRemoteHostClientService>();
+            if (service == null)
+            {
+                return SpecializedTasks.Null<RemoteHostClient>();
+            }
+
+            return service.TryGetRemoteHostClientAsync(cancellationToken);
+        }
+
+        public static Task<RemoteHostClient?> TryGetClientAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
+        {
+            var service = services.GetService<IRemoteHostClientService>();
             if (service == null)
             {
                 return SpecializedTasks.Null<RemoteHostClient>();
@@ -198,11 +206,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             protected override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
                 => SpecializedTasks.Null<Connection>();
-
-            protected override void OnStarted()
-            {
-                // do nothing
-            }
         }
 
         /// <summary>

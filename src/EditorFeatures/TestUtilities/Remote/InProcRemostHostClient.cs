@@ -31,7 +31,7 @@ namespace Roslyn.Test.Utilities.Remote
         {
             var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
-            var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService).ConfigureAwait(false);
+            var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.RemoteHostService).ConfigureAwait(false);
 
             var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
             var instance = new InProcRemoteHostClient(current, workspace, inprocServices, remoteHostStream);
@@ -108,10 +108,6 @@ namespace Roslyn.Test.Utilities.Remote
             return new JsonRpcConnection(Workspace, _inprocServices.Logger, callbackTarget, serviceStream);
         }
 
-        protected override void OnStarted()
-        {
-        }
-
         public override void Dispose()
         {
             // we are asked to disconnect. unsubscribe and dispose to disconnect
@@ -165,7 +161,7 @@ namespace Roslyn.Test.Utilities.Remote
                 _serviceProvider = new ServiceProvider(runCacheCleanup);
                 _creatorMap = new Dictionary<string, Func<Stream, IServiceProvider, ServiceBase>>();
 
-                RegisterService(WellKnownRemoteHostServices.RemoteHostService, (s, p) => new RemoteHostService(s, p));
+                RegisterService(WellKnownServiceHubServices.RemoteHostService, (s, p) => new RemoteHostService(s, p));
                 RegisterService(WellKnownServiceHubServices.CodeAnalysisService, (s, p) => new CodeAnalysisService(s, p));
                 RegisterService(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, (s, p) => new RemoteSymbolSearchUpdateEngine(s, p));
                 RegisterService(WellKnownServiceHubServices.RemoteDesignerAttributeService, (s, p) => new RemoteDesignerAttributeService(s, p));

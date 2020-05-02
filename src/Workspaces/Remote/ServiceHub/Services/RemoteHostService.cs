@@ -143,30 +143,6 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Remote API.
         /// </summary>
-        public void OnGlobalOperationStarted(string unused)
-        {
-            RunService(() =>
-            {
-                var globalOperationNotificationService = GetGlobalOperationNotificationService();
-                globalOperationNotificationService?.OnStarted();
-            }, CancellationToken.None);
-        }
-
-        /// <summary>
-        /// Remote API.
-        /// </summary>
-        public void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
-        {
-            RunService(() =>
-            {
-                var globalOperationNotificationService = GetGlobalOperationNotificationService();
-                globalOperationNotificationService?.OnStopped(operations, cancelled);
-            }, CancellationToken.None);
-        }
-
-        /// <summary>
-        /// Remote API.
-        /// </summary>
         public void SetLoggingFunctionIds(List<string> loggerTypes, List<string> functionIds, CancellationToken cancellationToken)
         {
             RunService(() =>
@@ -268,12 +244,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // ignore expected exception
             return ex is ArgumentOutOfRangeException || ex is CultureNotFoundException;
-        }
-
-        private RemoteGlobalOperationNotificationService? GetGlobalOperationNotificationService()
-        {
-            var notificationService = SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
-            return notificationService;
         }
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
