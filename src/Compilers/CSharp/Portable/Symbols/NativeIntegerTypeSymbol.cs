@@ -328,31 +328,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Emit should use underlying symbol only.
             throw ExceptionUtilities.Unreachable;
         }
+    }
 
-        private sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol, Cci.IReference
+    internal sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol, Cci.IReference
+    {
+        private readonly NativeIntegerTypeSymbol _containingType;
+        private readonly NativeIntegerMethodSymbol _container;
+
+        internal NativeIntegerParameterSymbol(NativeIntegerTypeSymbol containingType, NativeIntegerMethodSymbol container, ParameterSymbol underlyingParameter) : base(underlyingParameter)
         {
-            private readonly NativeIntegerTypeSymbol _containingType;
-            private readonly NativeIntegerMethodSymbol _container;
+            _containingType = containingType;
+            _container = container;
+            NativeIntegerTypeSymbol.VerifyEquality(this, underlyingParameter);
+        }
 
-            internal NativeIntegerParameterSymbol(NativeIntegerTypeSymbol containingType, NativeIntegerMethodSymbol container, ParameterSymbol underlyingParameter) : base(underlyingParameter)
-            {
-                _containingType = containingType;
-                _container = container;
-            }
+        public override Symbol ContainingSymbol => _container;
 
-            public override Symbol ContainingSymbol => _container;
+        public override TypeWithAnnotations TypeWithAnnotations => _containingType.SubstituteUnderlyingType(_underlyingParameter.TypeWithAnnotations);
 
-            public override TypeWithAnnotations TypeWithAnnotations => _containingType.SubstituteUnderlyingType(_underlyingParameter.TypeWithAnnotations);
+        public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingParameter);
 
-            public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingParameter);
+        public override int GetHashCode() => _underlyingParameter.GetHashCode();
 
-            public override int GetHashCode() => _underlyingParameter.GetHashCode();
-
-            void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
-            {
-                // Emit should use underlying symbol only.
-                throw ExceptionUtilities.Unreachable;
-            }
+        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+        {
+            // Emit should use underlying symbol only.
+            throw ExceptionUtilities.Unreachable;
         }
     }
 

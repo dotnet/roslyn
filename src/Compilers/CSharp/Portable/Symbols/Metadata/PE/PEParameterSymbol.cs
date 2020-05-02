@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool filterOutParamArrayAttribute = (!_lazyIsParams.HasValue() || _lazyIsParams.Value());
 
                 ConstantValue defaultValue = this.ExplicitDefaultConstantValue;
-                AttributeDescription filterOutConstantAttributeDescription = default(AttributeDescription);
+                var filterOutConstantAttributeDescription = default(AttributeDescription);
 
                 if ((object)defaultValue != null)
                 {
@@ -928,6 +928,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
+        }
+
+        public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
+        {
+            return other is NativeIntegerParameterSymbol nps ?
+                nps.Equals(this, compareKind) :
+                base.Equals(other, compareKind);
         }
     }
 }
