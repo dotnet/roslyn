@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             using (context.OperationContext.AddScope(allowCancellation: true, ScopeDescription))
             {
                 var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
-                if (caret.HasValue)
+                if (!caret.HasValue)
                     return false;
 
                 var subjectBuffer = args.SubjectBuffer;
