@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                    _assemblyName == other._assemblyName;
 
             public override int GetHashCode()
-                => HashCode.Combine(_sourceProjectId, _assemblyName);
+                => Hash.Combine(_sourceProjectId, _assemblyName.GetHashCode());
         }
 
         private readonly struct DependentProject : IEquatable<DependentProject>
