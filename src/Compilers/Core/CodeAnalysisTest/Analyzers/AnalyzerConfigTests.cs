@@ -1573,16 +1573,16 @@ option1 = value1",
             var file2Section = globalConfig.NamedSections[1];
             var file3Section = globalConfig.NamedSections[2];
 
-            Assert.Equal(@"c:\path\to\file1.cs", file1Section.Name);
+            Assert.Equal(@"c:/path/to/file1.cs", file1Section.Name);
             Assert.Equal(2, file1Section.Properties.Count);
             Assert.Equal("value1", file1Section.Properties["option1"]);
             Assert.Equal("value2", file1Section.Properties["option2"]);
 
-            Assert.Equal(@"c:\path\to\file2.cs", file2Section.Name);
+            Assert.Equal(@"c:/path/to/file2.cs", file2Section.Name);
             Assert.Equal(1, file2Section.Properties.Count);
             Assert.Equal("value1", file2Section.Properties["option1"]);
 
-            Assert.Equal(@"c:\path\to\file3.cs", file3Section.Name);
+            Assert.Equal(@"c:/path/to/file3.cs", file3Section.Name);
             Assert.Equal(1, file3Section.Properties.Count);
             Assert.Equal("value1", file3Section.Properties["option1"]);
         }
@@ -1627,7 +1627,7 @@ option1 = value2",
             Assert.Equal(1, unsetKeys.Length);
             Assert.Equal("option1", unsetKeys[0].KeyName);
             Assert.False(unsetKeys[0].IsGlobalSection);
-            Assert.Equal(@"c:\path\to\file1.cs", unsetKeys[0].SectionName);
+            Assert.Equal(@"c:/path/to/file1.cs", unsetKeys[0].SectionName);
 
             Assert.Collection(unsetKeys[0].ConfigPaths,
                                 (s) => Assert.Equal("/.globalconfig1", s),
