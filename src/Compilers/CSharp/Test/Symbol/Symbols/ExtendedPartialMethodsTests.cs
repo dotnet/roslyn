@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -198,6 +199,32 @@ partial class C
     {
         new C().M1(out var value);
         System.Console.WriteLine(value);
+    }
+}";
+
+            const string text2 = @"
+partial class C
+{
+    private partial void M1(out int value) { value = 42; }
+}
+";
+            var verifier = CompileAndVerify(new[] { text1, text2 }, parseOptions: TestOptions.RegularWithExtendedPartialMethods, expectedOutput: "42");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutParam_DefiniteAssignment()
+        {
+            const string text1 = @"
+partial class C
+{
+    private partial void M1(out int value);
+
+    public static void Main()
+    {
+        int i;
+        new C().M1(out i);
+        System.Console.Write(i);
     }
 }";
 
@@ -574,8 +601,13 @@ partial class D
                 //     public override partial string ToString() => "hello";
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("extended partial methods").WithLocation(5, 36)
             );
+            var method = comp.GetMember<MethodSymbol>("D.ToString");
+            Assert.Equal("System.String System.Object.ToString()", method.OverriddenMethod.ToTestDisplayString());
+
             comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
+            method = comp.GetMember<MethodSymbol>("D.ToString");
+            Assert.Equal("System.String System.Object.ToString()", method.OverriddenMethod.ToTestDisplayString());
         }
 
         [Fact]
@@ -592,6 +624,8 @@ partial class D
                 // (4,38): error CS0507: 'D.ToString()': cannot change access modifiers when overriding 'public' inherited member 'object.ToString()'
                 //     internal override partial string ToString();
                 Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "ToString").WithArguments("D.ToString()", "public", "object.ToString()").WithLocation(4, 38));
+            var method = comp.GetMember<MethodSymbol>("D.ToString");
+            Assert.Equal("System.String System.Object.ToString()", method.OverriddenMethod.ToTestDisplayString());
         }
 
         [Fact]
@@ -610,6 +644,9 @@ partial class D : C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
+
+            var method = comp.GetMember<MethodSymbol>("D.M1");
+            Assert.Equal(comp.GetMember<MethodSymbol>("C.M1"), method.OverriddenMethod);
         }
 
         [Fact]
@@ -638,6 +675,8 @@ partial class D : C
                 //     override partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("D.M1()").WithLocation(10, 27)
             );
+            var method = comp.GetMember<MethodSymbol>("D.M1");
+            Assert.Equal(comp.GetMember<MethodSymbol>("C.M1"), method.OverriddenMethod);
         }
 
         [Fact]
@@ -1059,6 +1098,80 @@ partial class C
         }
 
         [Fact]
+        public void Async_04()
+        {
+            const string text = @"
+using System.Threading.Tasks;
+
+partial class C
+{
+    internal async partial Task M();
+}
+";
+
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS8793: Partial method 'C.M()' must have an implementation part because it has accessibility modifiers.
+                //     internal async partial Task M();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M").WithArguments("C.M()").WithLocation(6, 33),
+                // (6,33): error CS1994: The 'async' modifier can only be used in methods that have a body.
+                //     internal async partial Task M();
+                Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M").WithLocation(6, 33));
+        }
+
+        [Fact]
+        public void Async_05()
+        {
+            const string text = @"
+using System.Threading.Tasks;
+
+partial class C
+{
+    internal async partial Task M();
+    internal async partial Task M()
+    {
+        await Task.Yield();
+    }
+}
+";
+
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS1994: The 'async' modifier can only be used in methods that have a body.
+                //     internal async partial Task M();
+                Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M").WithLocation(6, 33));
+        }
+
+        [Fact]
+        public void Async_06()
+        {
+            const string text = @"
+using System.Threading.Tasks;
+
+partial class C
+{
+    internal async partial Task M();
+    internal partial Task M()
+    {
+        await Task.Yield();
+    }
+}
+";
+
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS1994: The 'async' modifier can only be used in methods that have a body.
+                //     internal async partial Task M();
+                Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M").WithLocation(6, 33),
+                // (7,27): error CS0161: 'C.M()': not all code paths return a value
+                //     internal partial Task M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(7, 27),
+                // (9,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task>'.
+                //         await Task.Yield();
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Yield()").WithArguments("System.Threading.Tasks.Task").WithLocation(9, 9));
+        }
+
+        [Fact]
         public void New_LangVersion()
         {
             const string text1 = @"
@@ -1310,8 +1423,6 @@ partial class C
     }
 }
 ";
-            // PROTOTYPE: should it be allowed to specify duplicate nullability attributes?
-            // if not, should there be some convention about which part should contain the nullability attributes?
             var comp = CreateCompilation(new[] { text, AllowNullAttributeDefinition }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (20,9): warning CS8602: Dereference of a possibly null reference.
@@ -1348,8 +1459,6 @@ partial class C
     }
 }
 ";
-            // PROTOTYPE: should it be allowed to specify duplicate nullability attributes?
-            // if not, should there be some convention about which part should contain the nullability attributes?
             var comp = CreateCompilation(new[] { text, AllowNullAttributeDefinition }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (13,28): error CS0579: Duplicate 'AllowNull' attribute
@@ -1425,6 +1534,261 @@ public partial class C
 
                 Assert.Equal(expectedAttributeNames, GetAttributeNames(method.GetReturnTypeAttributes()));
             }
+        }
+
+        [Fact]
+        public void ConflictingOverloads_RefOut_01()
+        {
+            const string text = @"
+partial class Program
+{
+    internal static partial void M(ref object o);
+    internal static partial void M(out object o);
+    internal static partial void M(out object o) { o = null; }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (4,34): error CS8793: Partial method 'Program.M(ref object)' must have an implementation part because it has accessibility modifiers.
+                //     internal static partial void M(ref object o);
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M").WithArguments("Program.M(ref object)").WithLocation(4, 34),
+                // (5,34): error CS0663: 'Program' cannot define an overloaded method that differs only on parameter modifiers 'out' and 'ref'
+                //     internal static partial void M(out object o);
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("Program", "method", "out", "ref").WithLocation(5, 34));
+        }
+
+        [Fact]
+        public void ConflictingOverloads_RefOut_02()
+        {
+            const string text = @"
+partial class Program
+{
+    internal static partial void M(ref object o);
+    internal static partial void M(ref object o) { }
+    internal static partial void M(out object o);
+    internal static partial void M(out object o) { o = null; }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (6,34): error CS0663: 'Program' cannot define an overloaded method that differs only on parameter modifiers 'out' and 'ref'
+                //     internal static partial void M(out object o);
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("Program", "method", "out", "ref").WithLocation(6, 34));
+        }
+
+        [Fact]
+        public void RefReturn()
+        {
+            const string text = @"
+using System;
+
+partial class Program
+{
+    static int i = 1;
+    private static partial ref int M();
+    private static partial ref int M() => ref i;
+
+    static void Main()
+    {
+        ref int local = ref M();
+        Console.Write(local);
+        i++;
+        Console.Write(local);
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                text,
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ProtectedAccessibility()
+        {
+            const string text1 = @"
+using System;
+
+partial class Base
+{
+    protected static partial void M1();
+    protected static partial void M1() { Console.Write(1); }
+}";
+
+            const string text2 = @"
+class Derived : Base
+{
+    static void Main()
+    {
+        M1();
+    }
+}";
+            var verifier = CompileAndVerify(
+                new[] { text1, text2 },
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InternalAccessibility()
+        {
+            const string text1 = @"
+using System;
+
+internal partial class C
+{
+    internal static partial void M1();
+    internal static partial void M1() { Console.Write(1); }
+}";
+
+            const string text2 = @"
+class Program
+{
+    static void Main()
+    {
+        C.M1();
+    }
+}";
+            var verifier = CompileAndVerify(
+                new[] { text1, text2 },
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PublicAccessibility()
+        {
+            const string text1 = @"
+using System;
+
+public partial class C
+{
+    public static partial void M1();
+    public static partial void M1() { Console.Write(1); }
+}";
+
+            const string text2 = @"
+class Program
+{
+    static void Main()
+    {
+        C.M1();
+    }
+}";
+            var comp1 = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var verifier = CompileAndVerify(
+                    text2,
+                    references: new[] { reference },
+                    parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                    expectedOutput: "1");
+                verifier.VerifyDiagnostics();
+            }
+        }
+
+        [Fact]
+        public void EntryPoint_01()
+        {
+            const string text1 = @"
+using System.Threading.Tasks;
+
+public partial class C
+{
+    public static partial Task Main();
+}";
+            var comp1 = CreateCompilation(
+                text1,
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                options: TestOptions.DebugExe);
+            comp1.VerifyDiagnostics(
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (6,32): error CS8793: Partial method 'C.Main()' must have an implementation part because it has accessibility modifiers.
+                //     public static partial Task Main();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "Main").WithArguments("C.Main()").WithLocation(6, 32));
+        }
+
+        [Fact]
+        public void EntryPoint_02()
+        {
+            const string text1 = @"
+using System.Threading.Tasks;
+using System;
+
+public partial class C
+{
+    public static partial Task Main();
+    public static partial async Task Main()
+    {
+        Console.Write(1);
+    }
+}";
+            var verifier = CompileAndVerify(
+                text1,
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                options: TestOptions.DebugExe,
+                expectedOutput: "1");
+            verifier.VerifyDiagnostics(
+                // (8,38): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static partial async Task Main()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(8, 38));
+        }
+
+        [Fact]
+        public void EntryPoint_03()
+        {
+            const string text1 = @"
+using System.Threading.Tasks;
+
+public partial class C
+{
+    public static partial Task<int> Main();
+}";
+            var comp1 = CreateCompilation(
+                text1,
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                options: TestOptions.DebugExe);
+            comp1.VerifyDiagnostics(
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (6,37): error CS8793: Partial method 'C.Main()' must have an implementation part because it has accessibility modifiers.
+                //     public static partial Task<int> Main();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "Main").WithArguments("C.Main()").WithLocation(6, 37));
+        }
+
+        [Fact]
+        public void EntryPoint_04()
+        {
+            const string text1 = @"
+using System.Threading.Tasks;
+using System;
+
+public partial class C
+{
+    public static partial Task<int> Main();
+    public static partial async Task<int> Main()
+    {
+        Console.Write(1);
+        return 1;
+    }
+}";
+            var verifier = CompileAndVerify(
+                text1,
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                options: TestOptions.DebugExe,
+                expectedOutput: "1");
+            verifier.VerifyDiagnostics(
+                // (8,43): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static partial async Task<int> Main()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(8, 43));
         }
     }
 }

@@ -1682,10 +1682,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // UNDONE: Consider adding a secondary location pointing to the second method.
         private void ReportMethodSignatureCollision(DiagnosticBag diagnostics, SourceMemberMethodSymbol method1, SourceMemberMethodSymbol method2)
         {
-            // Partial methods are allowed to collide by signature.
-            if (method1.IsPartial && method2.IsPartial)
+            switch (method1, method2)
             {
-                return;
+                case (SourceOrdinaryMethodSymbol { IsPartialDefinition: true }, SourceOrdinaryMethodSymbol { IsPartialImplementation: true }):
+                case (SourceOrdinaryMethodSymbol { IsPartialImplementation: true }, SourceOrdinaryMethodSymbol { IsPartialDefinition: true }):
+                    // these could be 2 parts of the same partial method.
+                    // Partial methods are allowed to collide by signature.
+                    return;
             }
 
             // If method1 is a constructor only because its return type is missing, then

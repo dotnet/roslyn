@@ -3226,11 +3226,17 @@ partial class C
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (13,9): error CS0103: The name 't' does not exist in the current context
+                //         t.ToString();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(13, 9),
                 // (14,9): error CS0103: The name 'u' does not exist in the current context
+                //         u.ToString();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u").WithArguments("u").WithLocation(14, 9),
                 // (16,18): error CS0756: A partial method may not have multiple defining declarations
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M").WithLocation(16, 18));
+                //     partial void M<T1, T2>(T1 t1, T2 t2)
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M").WithLocation(16, 18),
+                // (16,18): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
+                //     partial void M<T1, T2>(T1 t1, T2 t2)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "C").WithLocation(16, 18));
         }
 
         [WorkItem(542331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542331")]
