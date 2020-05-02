@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static SyntaxTriviaList CollapseSequentialWhitespaces(this SyntaxTriviaList triviaList)
+        public static SyntaxTriviaList CollapseSequentialWhitespaceTrivia(this SyntaxTriviaList triviaList)
         {
             var result = new SyntaxTriviaList();
             var previous = default(SyntaxTrivia);

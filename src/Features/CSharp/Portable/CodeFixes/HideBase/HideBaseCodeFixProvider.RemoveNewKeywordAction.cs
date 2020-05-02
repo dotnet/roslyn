@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
                     newTrivia = newTrivia
                         .AddRange(newModifierTrivia)
                         .AddRange(nextToken.LeadingTrivia)
-                        .CollapseSequentialWhitespaces();
+                        .CollapseSequentialWhitespaceTrivia();
 
                     if (isFirstTokenOnLine)
                     {
