@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteFindUsagesService
     {
-        public Task FindReferencesAsync(PinnedSolutionInfo solutionInfo,
+        public Task FindReferencesAsync(
+            PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId symbolAndProjectIdArg,
             SerializableFindReferencesSearchOptions options,
             CancellationToken cancellationToken)
@@ -26,16 +27,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (UserOperationBooster.Boost())
                 {
                     var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                    var project = solution.GetProject(symbolAndProjectIdArg.ProjectId);
 
                     var symbol = await symbolAndProjectIdArg.TryRehydrateAsync(
                         solution, cancellationToken).ConfigureAwait(false);
-                    var project = solution.GetProject(symbolAndProjectIdArg.ProjectId);
-
-                    var context = new RemoteFindUsageContext(solution, EndPoint, cancellationToken);
 
                     if (symbol == null)
                         return;
 
+                    var context = new RemoteFindUsageContext(solution, EndPoint, cancellationToken);
                     await AbstractFindUsagesService.FindReferencesAsync(
                         context, symbol, project, options.Rehydrate()).ConfigureAwait(false);
                 }
@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
 
-        public Task FindImplementationsAsync(PinnedSolutionInfo solutionInfo,
-            DocumentId documentId,
-            int position,
+        public Task FindImplementationsAsync(
+            PinnedSolutionInfo solutionInfo,
+            SerializableSymbolAndProjectId symbolAndProjectIdArg,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
@@ -53,12 +53,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (UserOperationBooster.Boost())
                 {
                     var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var document = solution.GetDocument(documentId);
+                    var project = solution.GetProject(symbolAndProjectIdArg.ProjectId);
+
+                    var symbol = await symbolAndProjectIdArg.TryRehydrateAsync(
+                        solution, cancellationToken).ConfigureAwait(false);
+                    if (symbol == null)
+                        return;
 
                     var context = new RemoteFindUsageContext(solution, EndPoint, cancellationToken);
-
-                    await AbstractFindUsagesService.FindImplementationsWorkerAsync(
-                        document, position, context).ConfigureAwait(false);
+                    await AbstractFindUsagesService.FindImplementationsAsync(
+                        symbol, project, context).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }

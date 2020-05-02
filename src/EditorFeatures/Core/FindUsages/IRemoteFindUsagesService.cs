@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
         Task FindImplementationsAsync(
             PinnedSolutionInfo solutionInfo,
-            DocumentId documentId,
-            int position,
+            SerializableSymbolAndProjectId symbolAndProjectIdArg,
             CancellationToken cancellationToken);
     }
 

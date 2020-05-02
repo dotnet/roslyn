@@ -26,14 +26,28 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         protected AbstractFindUsagesService(IThreadingContext threadingContext)
             => _threadingContext = threadingContext;
 
-        public Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context)
-            => FindImplementationsWorkerAsync(document, position, context);
-
-        public static async Task FindImplementationsWorkerAsync(
-            Document document, int position, IFindUsagesContext context)
+        public async Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var solution = document.Project.Solution;
+            var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
+            if (symbolAndProjectOpt == null)
+            {
+                await context.ReportMessageAsync(
+                    EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
+                return;
+            }
+
+            var symbolAndProject = symbolAndProjectOpt.Value;
+            await FindImplementationsAsync(
+                symbolAndProject.symbol, symbolAndProject.project, context).ConfigureAwait(false);
+        }
+
+        public static async Task FindImplementationsAsync(
+            ISymbol symbol, Project project, IFindUsagesContext context)
+        {
+            var cancellationToken = context.CancellationToken;
+            var solution = project.Solution;
             var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
@@ -48,8 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     solution,
                     new object[]
                     {
-                        document.Id,
-                        position,
+                        SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken),
                     },
                     serverCallback,
                     cancellationToken).ConfigureAwait(false);
@@ -60,23 +73,18 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             // Couldn't effectively search in OOP. Perform the search in-process.
             await FindImplementationsInCurrentProcessAsync(
-                document, position, context).ConfigureAwait(false);
+                symbol, project, context).ConfigureAwait(false);
         }
 
         private static async Task FindImplementationsInCurrentProcessAsync(
-            Document document, int position, IFindUsagesContext context)
+            ISymbol symbol, Project project, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var tupleOpt = await FindUsagesHelpers.FindSourceImplementationsAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
-            if (tupleOpt == null)
-            {
-                await context.ReportMessageAsync(
-                    EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
-                return;
-            }
 
-            var (solution, symbol, implementations, message) = tupleOpt.Value;
+            var solution = project.Solution;
+            var (implementations, message) = await FindUsagesHelpers.FindSourceImplementationsAsync(
+                solution, symbol, cancellationToken).ConfigureAwait(false);
+
             if (message != null)
             {
                 await context.ReportMessageAsync(message).ConfigureAwait(false);

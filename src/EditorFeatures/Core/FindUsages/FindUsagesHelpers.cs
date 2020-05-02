@@ -52,19 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return (mapping.Symbol, mapping.Project);
         }
 
-        public static async Task<(Solution solution, ISymbol symbol, ImmutableArray<ISymbol> implementations, string message)?> FindSourceImplementationsAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var symbolAndProjectOpt = await GetRelevantSymbolAndProjectAtPositionAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndProjectOpt == null)
-                return null;
-
-            var (symbol, project) = symbolAndProjectOpt.Value;
-            return await FindSourceImplementationsAsync(
-                project.Solution, symbol, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task<(Solution solution, ISymbol symbol, ImmutableArray<ISymbol> implementations, string message)?> FindSourceImplementationsAsync(
+        public static async Task<(ImmutableArray<ISymbol> implementations, string message)> FindSourceImplementationsAsync(
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             var builder = new HashSet<ISymbol>(SymbolEquivalenceComparer.Instance);
@@ -83,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var result = builder.ToImmutableArray();
             var message = result.IsEmpty ? EditorFeaturesResources.The_symbol_has_no_implementations : null;
 
-            return (solution, symbol, result, message);
+            return (result, message);
         }
 
         private static async Task<ImmutableArray<ISymbol>> FindSourceImplementationsWorkerAsync(
