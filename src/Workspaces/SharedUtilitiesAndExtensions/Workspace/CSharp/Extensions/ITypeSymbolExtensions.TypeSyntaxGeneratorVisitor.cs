@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -108,6 +109,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return AddInformationTo(
                     SyntaxFactory.IdentifierName("dynamic"), symbol);
             }
+
+#if !CODE_STYLE
+
+            public override TypeSyntax VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                // TODO(https://github.com/dotnet/roslyn/issues/39865): generate the calling convention once exposed through the API
+                var parameters = symbol.Signature.Parameters.Select(p => p.Type)
+                    .Concat(SpecializedCollections.SingletonEnumerable(symbol.Signature.ReturnType))
+                    .SelectAsArray(t => SyntaxFactory.Parameter(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken)).WithType(t.GenerateTypeSyntax()));
+
+                return AddInformationTo(
+                    SyntaxFactory.FunctionPointerType(SyntaxFactory.SeparatedList(parameters)), symbol);
+            }
+
+#endif
 
             public TypeSyntax CreateSimpleTypeSyntax(INamedTypeSymbol symbol)
             {
