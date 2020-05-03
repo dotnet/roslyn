@@ -217,11 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal NamedTypeSymbol SubstituteUnderlyingType(NamedTypeSymbol type) => GetTypeMap().SubstituteNamedType(type);
 
-        /// <summary>
-        /// Replaces references to underlying type with references to native integer type.
-        /// </summary>
-        internal ImmutableArray<CustomModifier> SubstituteCustomModifiers(ImmutableArray<CustomModifier> customModifiers) => GetTypeMap().SubstituteCustomModifiers(customModifiers);
-
         internal static bool EqualsHelper<TSymbol>(TSymbol symbol, Symbol? other, TypeCompareKind comparison, Func<TSymbol, Symbol> getUnderlyingSymbol)
             where TSymbol : Symbol
         {
@@ -270,6 +265,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _type :
                     base.SubstituteTypeDeclaration(previous);
             }
+
+            internal override ImmutableArray<CustomModifier> SubstituteCustomModifiers(ImmutableArray<CustomModifier> customModifiers)
+            {
+                return customModifiers;
+            }
         }
     }
 
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers => _container.SubstituteCustomModifiers(UnderlyingMethod.RefCustomModifiers);
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => UnderlyingMethod.RefCustomModifiers;
 
         public override Symbol? AssociatedSymbol => _associatedSymbol;
 
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override TypeWithAnnotations TypeWithAnnotations => _containingType.SubstituteUnderlyingType(_underlyingParameter.TypeWithAnnotations);
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers => _containingType.SubstituteCustomModifiers(_underlyingParameter.RefCustomModifiers);
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => _underlyingParameter.RefCustomModifiers;
 
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingParameter);
 
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override TypeWithAnnotations TypeWithAnnotations => _container.SubstituteUnderlyingType(_underlyingProperty.TypeWithAnnotations);
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers => _container.SubstituteCustomModifiers(UnderlyingProperty.RefCustomModifiers);
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => UnderlyingProperty.RefCustomModifiers;
 
         public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
 

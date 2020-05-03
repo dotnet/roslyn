@@ -545,15 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             void verifyTypes(TypeWithAnnotations fromMember, TypeWithAnnotations fromUnderlyingMember)
             {
-                if (fromUnderlyingMember.CustomModifiers.Length > 0)
-                {
-                    // TypeWithAnnotations.Equals does not use TypeCompareKind to compare CustomModifiers.
-                    Assert.True(fromMember.Type.Equals(fromUnderlyingMember.Type, TypeCompareKind.IgnoreNativeIntegers));
-                }
-                else
-                {
-                    Assert.True(fromMember.Equals(fromUnderlyingMember, TypeCompareKind.IgnoreNativeIntegers));
-                }
+                Assert.True(fromMember.Equals(fromUnderlyingMember, TypeCompareKind.IgnoreNativeIntegers));
                 // No use of underlying type in native integer member.
                 Assert.False(containsType(fromMember, useNativeInteger: false));
                 // No use of native integer in underlying member.
@@ -2617,17 +2609,17 @@ namespace System.Reflection
                 var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
                 var expectedMembers = new[]
                 {
-                    $"System.IComparable<{type} modopt({type})> {type}.F5()",
-                    $"{type} modopt({type}) {type}.F1()",
-                    $"{type} modopt({type}) {type}.P {{ get; set; }}",
-                    $"{type} modopt({type}) {type}.P.get",
+                    $"System.IComparable<{type} modopt({underlyingType})> {type}.F5()",
+                    $"{type} modopt({underlyingType}) {type}.F1()",
+                    $"{type} modopt({underlyingType}) {type}.P {{ get; set; }}",
+                    $"{type} modopt({underlyingType}) {type}.P.get",
                     $"{type}..ctor()",
-                    $"ref modopt({type}) {type} {type}.F2()",
-                    $"ref modopt({type}) {type} {type}.Q {{ get; }}",
-                    $"ref modopt({type}) {type} {type}.Q.get",
-                    $"void {type}.F3({type} modopt({type}) i)",
-                    $"void {type}.F4(ref modopt({type}) {type} i)",
-                    $"void {type}.F6({type} modopt(System.IComparable<{type}>) i)",
+                    $"ref modopt({underlyingType}) {type} {type}.F2()",
+                    $"ref modopt({underlyingType}) {type} {type}.Q {{ get; }}",
+                    $"ref modopt({underlyingType}) {type} {type}.Q.get",
+                    $"void {type}.F3({type} modopt({underlyingType}) i)",
+                    $"void {type}.F4(ref modopt({underlyingType}) {type} i)",
+                    $"void {type}.F6({type} modopt(System.IComparable<{underlyingType}>) i)",
                     $"void {type}.P.set",
                 };
                 AssertEx.Equal(expectedMembers, actualMembers);
