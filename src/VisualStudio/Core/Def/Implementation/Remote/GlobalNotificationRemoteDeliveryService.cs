@@ -22,15 +22,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private enum GlobalNotificationState
         {
             NotStarted,
-            Started,
-            Finished
+            Started
         }
 
         /// <summary>
         /// Lock for the <see cref="_globalNotificationsTask"/> task chain.  Each time we hear 
         /// about a global operation starting or stopping (i.e. a build) we will '.ContinueWith'
         /// this task chain with a new notification to the OOP side.  This way all the messages
-        /// are properly serialized and appera in the right order (i.e. we don't hear about a 
+        /// are properly serialized and appear in the right order (i.e. we don't hear about a 
         /// stop prior to hearing about the relevant start).
         /// </summary>
         private readonly object _globalNotificationsGate = new object();
@@ -74,13 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private void OnGlobalOperationStarted(object sender, EventArgs e)
         {
-            lock (_globalNotificationsGate)
-            {
-                _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
-                    continuation, _cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
-            }
-
-            async Task<GlobalNotificationState> continuation(Task<GlobalNotificationState> previousTask)
+            async Task<GlobalNotificationState> sendNotification(Task<GlobalNotificationState> previousTask)
             {
                 // Can only transition from NotStarted->Started.  If we hear about
                 // anything else, do nothing.
@@ -105,17 +98,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 return GlobalNotificationState.Started;
             }
+
+            lock (_globalNotificationsGate)
+            {
+                _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
+                    sendNotification, _cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
+            }
         }
 
         private void OnGlobalOperationStopped(object sender, GlobalOperationEventArgs e)
         {
-            lock (_globalNotificationsGate)
-            {
-                _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
-                    continuation, _cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
-            }
-
-            async Task<GlobalNotificationState> continuation(Task<GlobalNotificationState> previousTask)
+            async Task<GlobalNotificationState> sendNotification(Task<GlobalNotificationState> previousTask)
             {
                 // Can only transition from Started->NotStarted.  If we hear about
                 // anything else, do nothing.
@@ -140,6 +133,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // Mark that we're stopped now.
                 return GlobalNotificationState.NotStarted;
+            }
+
+            lock (_globalNotificationsGate)
+            {
+                _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
+                    sendNotification, _cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
             }
         }
     }
