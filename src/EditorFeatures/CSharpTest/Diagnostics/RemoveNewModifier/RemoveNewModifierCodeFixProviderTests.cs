@@ -17,106 +17,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveNewMo
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace) =>
             (null, new RemoveNewModifierCodeFixProvider());
 
-        [Fact]
-        public async Task TestRemoveNewFromProperty()
-        {
-            await TestInRegularAndScriptAsync(
-                @"class App
-{
-    public static new App [|Current|] { get; set; }
-}",
-                @"class App
-{
-    public static App Current { get; set; }
-}");
-        }
-
-        [Fact]
-        public async Task TestRemoveNewFromMethod()
-        {
-            await TestInRegularAndScriptAsync(
-                @"class App
-{
-    public static new void [|Method()|]
-    {
-    }
-}",
-                @"class App
-{
-    public static void Method()
-    {
-    }
-}");
-        }
-
-        [Fact]
-        public async Task TestRemoveNewFromField()
-        {
-            await TestInRegularAndScriptAsync(
-                @"class App
-{
-    public new int [|Test|];
-}",
-                @"class App
-{
-    public int Test;
-}");
-        }
-
-        [Fact]
-        public async Task TestRemoveNewFromConstant()
-        {
-            await TestInRegularAndScriptAsync(
-                @"class App
-{
-    public const new int [|Test|] = 1;
-}",
-                @"class App
-{
-    public const int Test = 1;
-}");
-        }
-
-        [Fact]
-        public async Task TestRemoveNewFirstModifier()
-        {
-            await TestInRegularAndScriptAsync(
-                @"class App
-{
-    new App [|Current|] { get; set; }
-}",
-                @"class App
-{
-    App Current { get; set; }
-}");
-        }
-
-        [Fact]
-        public async Task TestRemoveNewFromConstantInternalFields()
-        {
-            await TestInRegularAndScriptAsync(
-                @"class A { internal const new int [|i|] = 1; }",
-                @"class A { internal const int [|i|] = 1; }");
-        }
-
-        [Fact]
-        public async Task TestRemoveNewWithNoTrivia()
-        {
-            await TestInRegularAndScriptAsync(
-                @"class C
-{
-new(int a, int b) [|x|];
-}",
-                @"class C
-{
-(int a, int b) x;
-}");
-        }
-
         [Theory]
         [InlineData(
-            "public new event Action [|E|];",
-            "public event Action E;")]
+            @"public static new void [|Method()|] { }",
+            @"public static void [|Method()|] { }")]
+        [InlineData(
+            "public new int [|Test|];",
+            "public int [|Test|];")]
+        [InlineData(
+            "public new int [|Test|] { get; set; }",
+            "public int [|Test|] { get; set; }")]
+        [InlineData(
+            "public const new int [|test|] = 1;",
+            "public const int [|test|] = 1;")]
+        [InlineData(
+            "public new event Action [|Test|];",
+            "public event Action Test;")]
         [InlineData(
             "public new int [|this[int p]|] => p;",
             "public int this[int p] => p;")]
@@ -129,18 +45,17 @@ new(int a, int b) [|x|];
         [InlineData(
             "new interface [|Test|] { }",
             "interface Test { }")]
-        public async Task Test(string original, string expected)
-        {
-            await TestInRegularAndScriptAsync(
-                $@"class App
-{{
-    {original}
-}}",
-                $@"class App
-{{
-    {expected}
-}}");
-        }
+        [InlineData(
+            "new delegate [|Test|]()",
+            "delegate Test()")]
+        [InlineData(
+            "new enum [|Test|] { }",
+            "enum Test { }")]
+        [InlineData(
+            "new(int a, int b) [|test|];",
+            "(int a, int b) test;")]
+        public Task TestRemoveNewModifierFromMembersWithRegularFormatting(string original, string expected) =>
+            TestRemoveNewModifierCodeFixAsync(original, expected);
 
         [Theory]
         [InlineData(
@@ -167,15 +82,20 @@ new(int a, int b) [|x|];
         [InlineData(
             "/* start */ new /* end */ int [|Test|];",
             "/* start */ /* end */ int [|Test|];")]
-        public async Task TestRemoveNewFromModifiersWithComplexTrivia(string original, string expected) =>
-            await TestInRegularAndScript1Async(
-                $@"class App
+        public Task TestRemoveNewFromModifiersWithComplexTrivia(string original, string expected) =>
+            TestRemoveNewModifierCodeFixAsync(original, expected);
+
+        private Task TestRemoveNewModifierCodeFixAsync(string original, string expected)
+        {
+            return TestInRegularAndScript1Async(
+$@"class App
 {{
     {original}
 }}",
-                $@"class App
+$@"class App
 {{
     {expected}
 }}");
+        }
     }
 }
