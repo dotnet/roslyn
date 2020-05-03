@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return null;
             }
 
-            return new KeepAliveSession(this, connection, serviceName, callbackTarget);
+            return new KeepAliveSession(connection, RemotableDataService);
         }
 
         public async Task<bool> TryRunRemoteAsync(string serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
