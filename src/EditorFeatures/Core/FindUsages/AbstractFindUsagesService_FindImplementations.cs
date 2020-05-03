@@ -4,10 +4,17 @@
 
 #nullable enable
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -69,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var cancellationToken = context.CancellationToken;
 
             var solution = project.Solution;
-            var (implementations, message) = await FindUsagesHelpers.FindSourceImplementationsAsync(
+            var (implementations, message) = await FindSourceImplementationsAsync(
                 solution, symbol, cancellationToken).ConfigureAwait(false);
 
             if (message != null)
@@ -88,6 +95,90 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     solution, isPrimary: true, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
 
                 await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
+            }
+        }
+
+        private static async Task<(ImmutableArray<ISymbol> implementations, string? message)> FindSourceImplementationsAsync(
+            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            var builder = new HashSet<ISymbol>(SymbolEquivalenceComparer.Instance);
+
+            // If we're in a linked file, try to find all the symbols this links to, and find all the implementations of
+            // each of those linked symbols. De-dupe the results so the user only gets unique results.
+            var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(
+                symbol, solution, cancellationToken).ConfigureAwait(false);
+
+            foreach (var linkedSymbol in linkedSymbols)
+            {
+                builder.AddRange(await FindSourceImplementationsWorkerAsync(
+                    solution, linkedSymbol, cancellationToken).ConfigureAwait((bool)false));
+            }
+
+            var result = builder.ToImmutableArray();
+            var message = result.IsEmpty ? EditorFeaturesResources.The_symbol_has_no_implementations : null;
+
+            return (result, message);
+        }
+
+        private static async Task<ImmutableArray<ISymbol>> FindSourceImplementationsWorkerAsync(
+            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            var implementations = await FindSourceAndMetadataImplementationsAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+            return implementations.WhereAsArray(s => s.Locations.Any(l => l.IsInSource));
+        }
+
+        private static async Task<ImmutableArray<ISymbol>> FindSourceAndMetadataImplementationsAsync(
+            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            if (symbol.IsInterfaceType() || symbol.IsImplementableMember())
+            {
+                var implementations = await SymbolFinder.FindImplementationsAsync(
+                    symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                // It's important we use a HashSet here -- we may have cases in an inheritance hierarchy where more than one method
+                // in an overrides chain implements the same interface method, and we want to duplicate those. The easiest way to do it
+                // is to just use a HashSet.
+                var implementationsAndOverrides = new HashSet<ISymbol>();
+
+                foreach (var implementation in implementations)
+                {
+                    implementationsAndOverrides.Add(implementation);
+
+                    // FindImplementationsAsync will only return the base virtual/abstract method, not that method and the overrides
+                    // of the method. We should also include those.
+                    if (implementation.IsOverridable())
+                    {
+                        var overrides = await SymbolFinder.FindOverridesAsync(
+                            implementation, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        implementationsAndOverrides.AddRange(overrides);
+                    }
+                }
+
+                if (!symbol.IsInterfaceType() &&
+                    !symbol.IsAbstract)
+                {
+                    implementationsAndOverrides.Add(symbol);
+                }
+
+                return implementationsAndOverrides.ToImmutableArray();
+            }
+            else if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Class } namedType)
+            {
+                var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
+                    namedType, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                return derivedClasses.Concat(symbol).ToImmutableArray();
+            }
+            else if (symbol.IsOverridable())
+            {
+                var overrides = await SymbolFinder.FindOverridesAsync(
+                    symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return overrides.Concat(symbol).ToImmutableArray();
+            }
+            else
+            {
+                // This is something boring like a regular method or type, so we'll just go there directly
+                return ImmutableArray.Create(symbol);
             }
         }
     }
