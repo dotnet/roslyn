@@ -3051,7 +3051,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode ElementBindingExpression(IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.ElementBindingExpression(
-                SyntaxFactory.BracketedArgumentList(SyntaxFactory.SeparatedList(arguments)));
+                SyntaxFactory.BracketedArgumentList(SyntaxFactory.SeparatedList(arguments).CastDown<ArgumentSyntax>()));
 
         /// <summary>
         /// Parenthesize the left hand size of a member access, invocation or element access expression
@@ -3095,7 +3095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode ObjectCreationExpression(SyntaxNode type, SyntaxToken openParen, SeparatedSyntaxList<SyntaxNode> arguments, SyntaxToken closeParen)
             => SyntaxFactory.ObjectCreationExpression(
                 (TypeSyntax)type,
-                SyntaxFactory.ArgumentList(openParen, arguments, closeParen),
+                SyntaxFactory.ArgumentList(openParen, arguments.CastDown<ArgumentSyntax>(), closeParen),
                 initializer: null);
 
         private static ArgumentListSyntax CreateArgumentList(IEnumerable<SyntaxNode> arguments)

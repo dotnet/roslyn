@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             {
                 var expression = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
                 var candidates = semanticModel.GetMemberGroup(expression, cancellationToken).OfType<IMethodSymbol>().ToImmutableArray();
-                var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
+                var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression).CastDown<TArgumentSyntax>();
 
                 // In VB a constructor calls other constructor overloads via a Me.New(..) invocation.
                 // If the candidates are MethodKind.Constructor than these are the equivalent the a C# ConstructorInitializer.
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     return new RegisterFixData<TArgumentSyntax>();
                 }
 
-                var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreation);
+                var arguments = syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreation).CastDown<TArgumentSyntax>();
                 var methodCandidates = type.InstanceConstructors;
 
                 return new RegisterFixData<TArgumentSyntax>(arguments, methodCandidates, isConstructorInitializer: false);

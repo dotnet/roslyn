@@ -68,9 +68,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// For some Foo(int x, params int[] p), this helps convert the "1, 2, 3" in Foo(0, 1, 2, 3)
         /// to "new int[] { 1, 2, 3 }" in Foo(0, new int[] { 1, 2, 3 });
         /// </summary>
-        protected abstract SyntaxNode CreateExplicitParamsArrayFromIndividualArguments(SeparatedSyntaxList<SyntaxNode> newArguments, int startingIndex, IParameterSymbol parameterSymbol);
+        protected abstract TArgumentSyntax CreateExplicitParamsArrayFromIndividualArguments<TArgumentSyntax>(SeparatedSyntaxList<TArgumentSyntax> newArguments, int startingIndex, IParameterSymbol parameterSymbol)
+            where TArgumentSyntax : SyntaxNode;
 
-        protected abstract SyntaxNode AddNameToArgument(SyntaxNode argument, string name);
+        protected abstract TArgumentSyntax AddNameToArgument<TArgumentSyntax>(TArgumentSyntax argument, string name)
+            where TArgumentSyntax : SyntaxNode;
 
         /// <summary>
         /// Only some languages support:
@@ -763,15 +765,16 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return separators.ToImmutable();
         }
 
-        protected virtual SeparatedSyntaxList<SyntaxNode> AddNewArgumentsToList(
+        protected virtual SeparatedSyntaxList<TArgumentSyntax> AddNewArgumentsToList<TArgumentSyntax>(
             ISymbol declarationSymbol,
-            SeparatedSyntaxList<SyntaxNode> newArguments,
+            SeparatedSyntaxList<TArgumentSyntax> newArguments,
             SignatureChange signaturePermutation,
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
             bool generateAttributeArguments)
+            where TArgumentSyntax : SyntaxNode
         {
-            var fullList = ArrayBuilder<SyntaxNode>.GetInstance();
+            var fullList = ArrayBuilder<TArgumentSyntax>.GetInstance();
             var separators = ArrayBuilder<SyntaxToken>.GetInstance();
 
             var updatedParameters = signaturePermutation.UpdatedConfiguration.ToListOfParameters();
@@ -818,7 +821,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                                 refKind: RefKind.None,
                                 expression: Generator.ParseExpression(isCallsiteActuallyErrored ? "TODO" : addedParameter.CallSiteValue));
 
-                        fullList.Add(argument);
+                        fullList.Add((TArgumentSyntax)argument);
                         separators.Add(CommaTokenWithElasticSpace());
                     }
                     else

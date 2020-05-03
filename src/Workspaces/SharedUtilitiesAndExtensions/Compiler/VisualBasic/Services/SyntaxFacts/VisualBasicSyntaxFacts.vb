@@ -1522,7 +1522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
             Dim tupleExpr = DirectCast(node, TupleExpressionSyntax)
             openParen = tupleExpr.OpenParenToken
-            arguments = CType(CType(tupleExpr.Arguments, SeparatedSyntaxList(Of SyntaxNode)), SeparatedSyntaxList(Of TArgumentSyntax))
+            arguments = CType(tupleExpr.Arguments, SeparatedSyntaxList(Of SyntaxNode)).CastDown(Of TArgumentSyntax)()
             closeParen = tupleExpr.CloseParenToken
         End Sub
 

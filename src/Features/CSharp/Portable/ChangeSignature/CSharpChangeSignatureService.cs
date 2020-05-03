@@ -637,14 +637,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return newArgument;
         }
 
-        private SeparatedSyntaxList<SyntaxNode> AddNewArgumentsToList(
+        private SeparatedSyntaxList<TArgumentSyntax> AddNewArgumentsToList<TArgumentSyntax>(
             ISymbol declarationSymbol,
-            SeparatedSyntaxList<SyntaxNode> newArguments,
-            SeparatedSyntaxList<SyntaxNode> originalArguments,
+            SeparatedSyntaxList<TArgumentSyntax> newArguments,
+            SeparatedSyntaxList<TArgumentSyntax> originalArguments,
             SignatureChange signaturePermutation,
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
             bool generateAttributeArguments)
+            where TArgumentSyntax : SyntaxNode
         {
             var newArgumentList = AddNewArgumentsToList(
                 declarationSymbol, newArguments,
@@ -833,25 +834,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
             => Formatter.GetDefaultFormattingRules(document).Concat(new ChangeSignatureFormattingRule());
 
-        protected override SyntaxNode AddNameToArgument(SyntaxNode newArgument, string name)
+        protected override TArgumentSyntax AddNameToArgument<TArgumentSyntax>(TArgumentSyntax newArgument, string name)
         {
             return newArgument switch
             {
-                ArgumentSyntax a => a.WithNameColon(NameColon(name)),
-                AttributeArgumentSyntax a => a.WithNameColon(NameColon(name)),
+                ArgumentSyntax a => (TArgumentSyntax)(SyntaxNode)a.WithNameColon(NameColon(name)),
+                AttributeArgumentSyntax a => (TArgumentSyntax)(SyntaxNode)a.WithNameColon(NameColon(name)),
                 _ => throw ExceptionUtilities.UnexpectedValue(newArgument.Kind())
             };
         }
 
-        protected override SyntaxNode CreateExplicitParamsArrayFromIndividualArguments(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
+        protected override TArgumentSyntax CreateExplicitParamsArrayFromIndividualArguments<TArgumentSyntax>(SeparatedSyntaxList<TArgumentSyntax> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
         {
             RoslynDebug.Assert(parameterSymbol.IsParams);
 
             // These arguments are part of a params array, and should not have any modifiers, making it okay to just use their expressions.
-            var listOfArguments = SeparatedList(newArguments.Skip(indexInExistingList).Select(a => ((ArgumentSyntax)a).Expression), newArguments.GetSeparators().Skip(indexInExistingList));
+            var listOfArguments = SeparatedList(newArguments.Skip(indexInExistingList).Select(a => ((ArgumentSyntax)(SyntaxNode)a).Expression), newArguments.GetSeparators().Skip(indexInExistingList));
             var initializerExpression = InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);
             var objectCreation = ArrayCreationExpression((ArrayTypeSyntax)parameterSymbol.Type.GenerateTypeSyntax(), initializerExpression);
-            return Argument(objectCreation);
+            return (TArgumentSyntax)(SyntaxNode)Argument(objectCreation);
         }
 
         protected override bool SupportsOptionalAndParamsArrayParametersSimultaneously()

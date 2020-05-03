@@ -309,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function ElementBindingExpression(arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.InvocationExpression(expression:=Nothing,
-                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)))
+                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments).CastDown(Of ArgumentSyntax)()))
         End Function
 
         ' parenthesize the left-side of a dot or target of an invocation if not unnecessary
@@ -362,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.ObjectCreationExpression(
                 attributeLists:=Nothing,
                 DirectCast(typeName, TypeSyntax),
-                SyntaxFactory.ArgumentList(openParen, arguments, closeParen),
+                SyntaxFactory.ArgumentList(openParen, arguments.CastDown(Of ArgumentSyntax)(), closeParen),
                 initializer:=Nothing)
         End Function
 
