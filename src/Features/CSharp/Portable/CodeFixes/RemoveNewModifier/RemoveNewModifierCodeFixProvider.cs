@@ -35,24 +35,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveNewModifier
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             var token = root.FindToken(diagnosticSpan.Start);
+
             var memberDeclarationSyntax = token.GetAncestor<MemberDeclarationSyntax>();
+            if (memberDeclarationSyntax == null)
+                return;
 
-            var newModifier = CSharpSyntaxFacts.Instance.GetModifiers(memberDeclarationSyntax)
-                .FirstOrDefault(m => m.IsKind(SyntaxKind.NewKeyword));
+            var newModifier = GetNewModifier(memberDeclarationSyntax, CSharpSyntaxFacts.Instance);
+            if (newModifier == default)
+                return;
 
-            if (newModifier != default)
-            {
-                context.RegisterCodeFix(
-                    new MyCodeAction(ct => FixAsync(context.Document, memberDeclarationSyntax, ct)),
-                    context.Diagnostics);
-            }
+            context.RegisterCodeFix(
+                new MyCodeAction(ct => FixAsync(context.Document, memberDeclarationSyntax, ct)),
+                context.Diagnostics);
         }
 
         private async Task<Document> FixAsync(Document document, MemberDeclarationSyntax node, CancellationToken cancellationToken)
         {
             var syntaxFacts = CSharpSyntaxFacts.Instance;
 
-            var newModifier = GetNewModifier(node);
+            var newModifier = GetNewModifier(node, syntaxFacts);
 
             var newNode = node;
 
@@ -85,16 +86,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveNewModifier
                 }
             }
 
-            newNode = newNode.ReplaceToken(GetNewModifier(newNode), SyntaxFactory.Token(SyntaxKind.None));
+            newNode = newNode.ReplaceToken(GetNewModifier(newNode, syntaxFacts), SyntaxFactory.Token(SyntaxKind.None));
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(node, newNode);
 
             return document.WithSyntaxRoot(newRoot);
-
-            SyntaxToken GetNewModifier(SyntaxNode fromNode) =>
-                syntaxFacts.GetModifierTokens(fromNode).FirstOrDefault(m => m.IsKind(SyntaxKind.NewKeyword));
         }
+
+        private static SyntaxToken GetNewModifier(SyntaxNode fromNode, CSharpSyntaxFacts syntaxFacts) =>
+            syntaxFacts.GetModifierTokens(fromNode).FirstOrDefault(m => m.IsKind(SyntaxKind.NewKeyword));
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
