@@ -59,9 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 : s_definitionFormat;
         }
 
-        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
-            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
-
         private static readonly SymbolDisplayFormat s_definitionFormat =
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
@@ -86,8 +83,5 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
         public static ImmutableArray<TaggedText> GetDisplayParts(ISymbol definition)
             => definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
-
-        public static ImmutableArray<TaggedText> GetNameDisplayParts(ISymbol definition)
-            => definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();
     }
 }
