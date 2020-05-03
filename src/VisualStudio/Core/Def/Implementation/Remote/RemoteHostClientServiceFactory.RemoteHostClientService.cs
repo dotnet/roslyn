@@ -8,15 +8,10 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -33,6 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private readonly IAsynchronousOperationListener _listener;
             private readonly Workspace _workspace;
+
+            private GlobalNotificationRemoteDeliveryService? _globalNotificationDelivery;
 
             private readonly object _gate;
 
@@ -91,8 +88,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     var token = _shutdownCancellationTokenSource.Token;
 
-                    // create solution checksum updater
-                    _checksumUpdater = new SolutionChecksumUpdater(this, token);
+                    _checksumUpdater = new SolutionChecksumUpdater(Workspace, Listener, token);
+                    _globalNotificationDelivery = new GlobalNotificationRemoteDeliveryService(Workspace.Services, token);
 
                     _remoteClientTask = Task.Run(() => EnableAsync(token), token);
                 }
@@ -115,11 +112,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     Contract.ThrowIfNull(_shutdownCancellationTokenSource);
                     Contract.ThrowIfNull(_checksumUpdater);
+                    Contract.ThrowIfNull(_globalNotificationDelivery);
 
                     _shutdownCancellationTokenSource.Cancel();
 
                     _checksumUpdater.Shutdown();
                     _checksumUpdater = null;
+
+                    _globalNotificationDelivery.Dispose();
 
                     try
                     {
@@ -192,7 +192,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = x64));
 
                 // set service bitness
-                WellKnownRemoteHostServices.Set64bit(x64);
                 WellKnownServiceHubServices.Set64bit(x64);
             }
 

@@ -17,22 +17,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         internal KeepAliveSession UnderlyingObject { get; }
 
-        public async Task<T> TryInvokeAsync<T>(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        public Task<T> TryInvokeAsync<T>(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+            => UnderlyingObject.RunRemoteAsync<T>(targetName, solution, arguments, cancellationToken);
+
+        public async Task<bool> TryInvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            var result = await UnderlyingObject.TryInvokeAsync<T>(targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
-            return result.HasValue ? result.Value : default;
+            await UnderlyingObject.RunRemoteAsync(targetName, solution: null, arguments, cancellationToken).ConfigureAwait(false);
+            return true;
         }
 
-        public Task<bool> TryInvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => UnderlyingObject.TryInvokeAsync(targetName, solution: null, arguments, cancellationToken);
-
-        public Task<bool> TryInvokeAsync(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => UnderlyingObject.TryInvokeAsync(targetName, solution, arguments, cancellationToken);
-
-        public async Task<T> TryInvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        public async Task<bool> TryInvokeAsync(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            var result = await UnderlyingObject.TryInvokeAsync<T>(targetName, solution: null, arguments, cancellationToken).ConfigureAwait(false);
-            return result.HasValue ? result.Value : default;
+            await UnderlyingObject.RunRemoteAsync(targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
+            return true;
         }
+
+        public Task<T> TryInvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+            => UnderlyingObject.RunRemoteAsync<T>(targetName, solution: null, arguments, cancellationToken);
     }
 }

@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             {
                 ParameterListSyntax parameterListSyntax => parameterListSyntax.CloseParenToken.SpanStart,
                 BracketedParameterListSyntax bracketedParameterListSyntax => bracketedParameterListSyntax.CloseBracketToken.SpanStart,
-                _ => throw new ArgumentException("Unexpected SyntaxNode", nameof(matchingNode))
+                _ => matchingNode.SpanStart // e.g. unparenthesized lambda parameters
             };
         }
 

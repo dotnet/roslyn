@@ -11,15 +11,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
+    using static ConvertSwitchStatementToExpressionHelpers;
     using static SyntaxFactory;
 
     internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider
     {
         private sealed class Rewriter : CSharpSyntaxVisitor<ExpressionSyntax>
         {
-            private ExpressionSyntax _assignmentTargetOpt;
-
             private readonly bool _isAllThrowStatements;
+
+            private ExpressionSyntax _assignmentTargetOpt;
 
             private Rewriter(bool isAllThrowStatements)
                 => _isAllThrowStatements = isAllThrowStatements;
@@ -27,7 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             public static StatementSyntax Rewrite(
                 SwitchStatementSyntax switchStatement,
                 ITypeSymbol declaratorToRemoveTypeOpt,
-                SyntaxKind nodeToGenerate, bool shouldMoveNextStatementToSwitchExpression, bool generateDeclaration)
+                SyntaxKind nodeToGenerate,
+                bool shouldMoveNextStatementToSwitchExpression,
+                bool generateDeclaration)
             {
                 var rewriter = new Rewriter(isAllThrowStatements: nodeToGenerate == SyntaxKind.ThrowStatement);
 
@@ -102,9 +105,41 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             private SwitchExpressionArmSyntax GetSwitchExpressionArm(SwitchSectionSyntax node)
             {
                 return SwitchExpressionArm(
-                    pattern: GetPattern(SingleOrDefaultSwitchLabel(node.Labels), out var whenClauseOpt),
+                    pattern: GetPattern(node.Labels, out var whenClauseOpt),
                     whenClause: whenClauseOpt,
                     expression: RewriteStatements(node.Statements));
+            }
+
+            private static PatternSyntax GetPattern(SyntaxList<SwitchLabelSyntax> switchLabels, out WhenClauseSyntax whenClauseOpt)
+            {
+                if (switchLabels.Count == 1)
+                    return GetPattern(switchLabels[0], out whenClauseOpt);
+
+                if (switchLabels.Any(label => IsDefaultSwitchLabel(label)))
+                {
+                    // original group had a catch-all label.  just convert to a discard _ to indicate the same.
+                    whenClauseOpt = null;
+                    return DiscardPattern();
+                }
+
+                // Multiple labels, and no catch-all merge them using an 'or' pattern.
+                var totalPattern = GetPattern(switchLabels[0], out var whenClauseUnused);
+                Debug.Assert(whenClauseUnused == null, "We should not have offered to convert multiple cases if any have a when clause");
+
+#if !CODE_STYLE
+
+                for (int i = 1; i < switchLabels.Count; i++)
+                {
+                    var nextPatternPart = GetPattern(switchLabels[i], out whenClauseUnused);
+                    Debug.Assert(whenClauseUnused == null, "We should not have offered to convert multiple cases if any have a when clause");
+
+                    totalPattern = BinaryPattern(SyntaxKind.OrPattern, totalPattern.Parenthesize(), nextPatternPart.Parenthesize());
+                }
+
+#endif
+
+                whenClauseOpt = null;
+                return totalPattern;
             }
 
             private static PatternSyntax GetPattern(SwitchLabelSyntax switchLabel, out WhenClauseSyntax whenClauseOpt)
@@ -145,18 +180,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             public override ExpressionSyntax VisitSwitchStatement(SwitchStatementSyntax node)
                 => RewriteSwitchStatement(node);
 
-            private static SwitchLabelSyntax SingleOrDefaultSwitchLabel(SyntaxList<SwitchLabelSyntax> labels)
-            {
-                return labels.Count == 1
-                    ? labels[0]
-                    : labels.First(x => x.IsKind(SyntaxKind.DefaultSwitchLabel));
-            }
-
             private ExpressionSyntax RewriteSwitchStatement(SwitchStatementSyntax node, bool allowMoveNextStatementToSwitchExpression = true)
             {
                 var switchArms = node.Sections
                     // The default label must come last in the switch expression.
-                    .OrderBy(section => SingleOrDefaultSwitchLabel(section.Labels).IsKind(SyntaxKind.DefaultSwitchLabel))
+                    .OrderBy(section => section.Labels.Any(label => IsDefaultSwitchLabel(label)))
                     .Select(s =>
                         (tokensForLeadingTrivia: new[] { s.Labels[0].GetFirstToken(), s.Labels[0].GetLastToken() },
                          tokensForTrailingTrivia: new[] { s.Statements[0].GetFirstToken(), s.Statements[0].GetLastToken() },

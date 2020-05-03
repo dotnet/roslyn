@@ -314,7 +314,8 @@
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>
   <!-- Expressions -->
-  <AbstractNode Name="ExpressionSyntax" Base="CSharpSyntaxNode">
+  <AbstractNode Name="ExpressionOrPatternSyntax" Base="CSharpSyntaxNode" />
+  <AbstractNode Name="ExpressionSyntax" Base="ExpressionOrPatternSyntax">
     <TypeComment>
       <summary>Provides the base class from which the classes that represent expression syntax nodes are derived. This is an abstract class.</summary>
     </TypeComment>
@@ -1881,7 +1882,7 @@
     </Field>
     <Field Name="Condition" Type="ExpressionSyntax"/>
   </Node>
-  <AbstractNode Name="PatternSyntax" Base="CSharpSyntaxNode" />
+  <AbstractNode Name="PatternSyntax" Base="ExpressionOrPatternSyntax" />
   <Node Name="DiscardPatternSyntax" Base="PatternSyntax">
     <Kind Name="DiscardPattern" />
     <Field Name="UnderscoreToken" Type="SyntaxToken">
@@ -1945,6 +1946,58 @@
         <summary>ExpressionSyntax node representing the constant expression.</summary>
       </PropertyComment>
     </Field>
+  </Node>
+
+  <!-- Pattern forms added for C# 9.0 -->
+  <Node Name="ParenthesizedPatternSyntax" Base="PatternSyntax">
+    <Kind Name="ParenthesizedPattern"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" />
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="RelationalPatternSyntax" Base="PatternSyntax">
+    <Kind Name="RelationalPattern"/>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="EqualsEqualsToken"/>
+      <Kind Name="ExclamationEqualsToken"/>
+      <Kind Name="LessThanToken"/>
+      <Kind Name="LessThanEqualsToken"/>
+      <Kind Name="GreaterThanToken"/>
+      <Kind Name="GreaterThanEqualsToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the operator of the relational pattern.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" />
+  </Node>
+  <Node Name="TypePatternSyntax" Base="PatternSyntax">
+    <Kind Name="TypePattern"/>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>The type for the type pattern.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="BinaryPatternSyntax" Base="PatternSyntax">
+    <Kind Name="OrPattern"/>
+    <Kind Name="AndPattern"/>
+    <Field Name="Left" Type="PatternSyntax" />
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="OrKeyword"/>
+      <Kind Name="AndKeyword"/>
+    </Field>
+    <Field Name="Right" Type="PatternSyntax" />
+  </Node>
+  <Node Name="UnaryPatternSyntax" Base="PatternSyntax">
+    <Kind Name="NotPattern"/>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="NotKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" />
   </Node>
 
   <AbstractNode Name="InterpolatedStringContentSyntax" Base="CSharpSyntaxNode" />

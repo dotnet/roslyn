@@ -145,7 +145,7 @@
     <Rule Id="CA9999" Action="None" /> <!-- We know the analyzers will fail during a bootstrap build -->
   </Rules>
   <Rules AnalyzerId="xunit.analyzers" RuleNamespace="Xunit.Analyzers">
-    <Rule Id="xUnit1004" Action="None" /> <!-- allow skipped tests -->
+    <Rule Id="xUnit1004" Action="Hidden" /> <!-- allow skipped tests, with a code fix to unskip them -->
     <Rule Id="xUnit2006" Action="None" /> <!-- "do not use generic Assert.Equal to test string equality" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2009" Action="None" /> <!-- "do not use Assert.True to check for substrings" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2012" Action="None" /> <!-- "do not use Enumerable.Any() to check if a value exists in a collection" is a valid assert, but very noisy right now -->
