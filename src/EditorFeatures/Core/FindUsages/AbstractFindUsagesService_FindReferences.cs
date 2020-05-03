@@ -113,14 +113,14 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // engine will push results into the 'progress' instance passed into it.
             // We'll take those results, massage them, and forward them along to the 
             // FindReferencesContext instance we were given.
-            var normalFindReferencesTask = FindReferencesAsync(
-                context, symbol, project, options);
+            //
+            // Kick off work to search the online code index system in parallel.
+            //
+            // Do both in parallel so we can get all the results as soon as possible.
 
-            // Kick off work to search the online code index system in parallel
-            var codeIndexReferencesTask = FindSymbolMonikerReferencesAsync(
-                monikerUsagesService, symbol, context);
-
-            await Task.WhenAll(normalFindReferencesTask, codeIndexReferencesTask).ConfigureAwait(false);
+            await Task.WhenAll(
+                FindReferencesAsync(context, symbol, project, options),
+                FindSymbolMonikerReferencesAsync(monikerUsagesService, symbol, context)).ConfigureAwait(false);
         }
 
         public static async Task FindReferencesAsync(
