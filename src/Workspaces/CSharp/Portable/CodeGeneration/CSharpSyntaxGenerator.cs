@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var docTrivia = SyntaxFactory.DocumentationCommentTrivia(
                 SyntaxKind.MultiLineDocumentationCommentTrivia,
-                SyntaxFactory.List(nodes),
+                SyntaxFactory.List(nodes).CastDown<XmlNodeSyntax>(),
                 SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken));
 
             return docTrivia
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationCommentTrivia)
             {
-                return SyntaxFactory.DocumentationCommentTrivia(documentationCommentTrivia.Kind(), SyntaxFactory.List(content), documentationCommentTrivia.EndOfComment);
+                return SyntaxFactory.DocumentationCommentTrivia(documentationCommentTrivia.Kind(), SyntaxFactory.List(content).CastDown<XmlNodeSyntax>(), documentationCommentTrivia.EndOfComment);
             }
 
             return null;

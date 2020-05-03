@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public SyntaxList<TNode> ToList()
         {
-            return _builder.ToList();
+            return _builder.ToList().CastDown<TNode>();
         }
 
         public static implicit operator SyntaxListBuilder?(SyntaxListBuilder<TNode> builder)

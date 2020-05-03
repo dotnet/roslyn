@@ -447,6 +447,7 @@ namespace Microsoft.CodeAnalysis
             return _node?.GetHashCode() ?? 0;
         }
 
+        [Obsolete("Implicit downcast is not safe. Use CastDown<TNode>() instead", error: true)]
         public static implicit operator SyntaxList<TNode>(SyntaxList<SyntaxNode> nodes)
         {
             return new SyntaxList<TNode>(nodes._node);
@@ -455,6 +456,12 @@ namespace Microsoft.CodeAnalysis
         public static implicit operator SyntaxList<SyntaxNode>(SyntaxList<TNode> nodes)
         {
             return new SyntaxList<SyntaxNode>(nodes.Node);
+        }
+
+        public SyntaxList<TDerived> CastDown<TDerived>()
+            where TDerived : TNode
+        {
+            return new SyntaxList<TDerived>(_node);
         }
 
         /// <summary>

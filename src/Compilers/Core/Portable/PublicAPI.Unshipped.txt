@@ -20,6 +20,7 @@ Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation.Value.get -> Micro
 Microsoft.CodeAnalysis.Operations.ITypePatternOperation
 Microsoft.CodeAnalysis.Operations.ITypePatternOperation.MatchedType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.CastDown<TDerived>() -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TDerived>
+Microsoft.CodeAnalysis.SyntaxList<TNode>.CastDown<TDerived>() -> Microsoft.CodeAnalysis.SyntaxList<TDerived>
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitBinaryPattern(Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitNegatedPattern(Microsoft.CodeAnalysis.Operations.INegatedPatternOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitRelationalPattern(Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation operation) -> void

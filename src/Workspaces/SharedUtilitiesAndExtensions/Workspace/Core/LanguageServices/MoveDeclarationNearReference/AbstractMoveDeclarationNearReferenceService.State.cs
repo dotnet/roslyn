@@ -117,8 +117,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     return false;
                 }
 
-                InnermostBlockStatements = syntaxFacts.GetExecutableBlockStatements(InnermostBlock);
-                OutermostBlockStatements = syntaxFacts.GetExecutableBlockStatements(OutermostBlock);
+                InnermostBlockStatements = syntaxFacts.GetExecutableBlockStatements(InnermostBlock).CastDown<TStatementSyntax>();
+                OutermostBlockStatements = syntaxFacts.GetExecutableBlockStatements(OutermostBlock).CastDown<TStatementSyntax>();
 
                 var allAffectedStatements = new HashSet<TStatementSyntax>(referencingStatements.SelectMany(
                     expr => expr.GetAncestorsOrThis<TStatementSyntax>()));
