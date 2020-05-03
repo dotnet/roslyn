@@ -105,8 +105,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
         private readonly IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> _documentOptionsProviderFactories;
         private bool _documentOptionsProvidersInitialized = false;
-        private readonly Dictionary<ProjectId, CompilationOutputs> _projectCompilationOutputs = new Dictionary<ProjectId, CompilationOutputs>();
-        private readonly object _projectCompilationOutputsGuard = new object();
 
         private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
         private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
@@ -293,19 +291,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return null;
         }
 
-        [Obsolete("This is a compatibility shim for Live Unit Testing; please do not use it.")]
-        internal AbstractProject? GetHostProject(ProjectId projectId)
-        {
-            var project = CurrentSolution.GetProject(projectId);
-
-            if (project == null)
-            {
-                return null;
-            }
-
-            return new StubProject(ProjectTracker, project, GetHierarchy(projectId), project.OutputFilePath);
-        }
-
         // TODO: consider whether this should be going to the project system directly to get this path. This is only called on interactions from the
         // Solution Explorer in the SolutionExplorerShim, where if we just could more directly get to the rule set file it'd simplify this.
         internal override string? TryGetRuleSetPathForProject(ProjectId projectId)
@@ -321,21 +306,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return null;
                 }
             }
-        }
-
-        [Obsolete("This is a compatibility shim for Live Unit Testing; please do not use it.")]
-        private sealed class StubProject : AbstractProject
-        {
-            private readonly string? _outputPath;
-
-            public StubProject(VisualStudioProjectTracker projectTracker, CodeAnalysis.Project project, IVsHierarchy? hierarchy, string? outputPath)
-                : base(projectTracker, null, project.Name + "_Stub", null, hierarchy, project.Language, Guid.Empty, null, null, null, null)
-            {
-                _outputPath = outputPath;
-            }
-
-            protected override string? GetOutputFilePath()
-                => _outputPath;
         }
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
@@ -471,6 +441,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.AddAnalyzerConfigDocument:
                 case ApplyChangesKind.RemoveAnalyzerConfigDocument:
                 case ApplyChangesKind.ChangeAnalyzerConfigDocument:
+                case ApplyChangesKind.AddSolutionAnalyzerReference:
+                case ApplyChangesKind.RemoveSolutionAnalyzerReference:
                     return true;
 
                 default:
@@ -1492,7 +1464,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
-            => _projectReferenceInfoMap.GetOrAdd(projectId, _ => new ProjectReferenceInformation());
+        {
+            Debug.Assert(Monitor.IsEntered(_gate));
+
+            return _projectReferenceInfoMap.GetOrAdd(projectId, _ => new ProjectReferenceInformation());
+        }
 
         protected internal override void OnProjectRemoved(ProjectId projectId)
         {
@@ -1516,7 +1492,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _projectToGuidMap = _projectToGuidMap.Remove(projectId);
                 _projectToMaxSupportedLangVersionMap.Remove(projectId);
                 _projectToRuleSetFilePath.Remove(projectId);
-                _projectCompilationOutputs.Remove(projectId);
 
                 foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
                 {
@@ -1604,12 +1579,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
         private void ConvertMetadataReferencesToProjectReferences_NoLock(ProjectId projectId, string outputPath)
         {
+            Debug.Assert(Monitor.IsEntered(_gate));
+
             var modifiedSolution = this.CurrentSolution;
             using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsChanged);
 
             foreach (var projectIdToRetarget in this.CurrentSolution.ProjectIds)
             {
-                if (CanConvertMetadataReferenceToProjectReference(projectIdToRetarget, referencedProjectId: projectId))
+                if (CanConvertMetadataReferenceToProjectReference_NoLock(projectIdToRetarget, referencedProjectId: projectId))
                 {
                     // PERF: call GetProjectState instead of GetProject, otherwise creating a new project might force all
                     // Project instances to get created.
@@ -1640,8 +1617,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/31306",
             Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
-        private bool CanConvertMetadataReferenceToProjectReference(ProjectId projectIdWithMetadataReference, ProjectId referencedProjectId)
+        private bool CanConvertMetadataReferenceToProjectReference_NoLock(ProjectId projectIdWithMetadataReference, ProjectId referencedProjectId)
         {
+            Debug.Assert(Monitor.IsEntered(_gate));
+
             // PERF: call GetProjectState instead of GetProject, otherwise creating a new project might force all
             // Project instances to get created.
             var projectWithMetadataReference = CurrentSolution.GetProjectState(projectIdWithMetadataReference);
@@ -1678,6 +1657,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Constraint = "Update ConvertedProjectReferences in place to avoid duplicate list allocations.")]
         private void ConvertProjectReferencesToMetadataReferences_NoLock(ProjectId projectId, string outputPath)
         {
+            Debug.Assert(Monitor.IsEntered(_gate));
+
             var modifiedSolution = this.CurrentSolution;
             using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsChanged);
 
@@ -1718,51 +1699,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SetSolutionAndRaiseWorkspaceChanged_NoLock(modifiedSolution, projectIdsChanged);
         }
 
-        public ProjectReference? TryCreateConvertedProjectReference(ProjectId referencingProject, string path, MetadataReferenceProperties properties)
+        public ProjectReference? TryCreateConvertedProjectReference_NoLock(ProjectId referencingProject, string path, MetadataReferenceProperties properties)
         {
-            lock (_gate)
+            // Any conversion to or from project references must be done under the global workspace lock,
+            // since that needs to be coordinated with updating all projects simultaneously.
+            Debug.Assert(Monitor.IsEntered(_gate));
+
+            if (_projectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Count() == 1)
             {
-                if (_projectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Count() == 1)
+                var projectIdToReference = ids.First();
+
+                if (CanConvertMetadataReferenceToProjectReference_NoLock(referencingProject, projectIdToReference))
                 {
-                    var projectIdToReference = ids.First();
+                    var projectReference = new ProjectReference(
+                        projectIdToReference,
+                        aliases: properties.Aliases,
+                        embedInteropTypes: properties.EmbedInteropTypes);
 
-                    if (CanConvertMetadataReferenceToProjectReference(referencingProject, projectIdToReference))
-                    {
-                        var projectReference = new ProjectReference(
-                            projectIdToReference,
-                            aliases: properties.Aliases,
-                            embedInteropTypes: properties.EmbedInteropTypes);
+                    GetReferenceInfo_NoLock(referencingProject).ConvertedProjectReferences.Add((path, projectReference));
 
-                        GetReferenceInfo_NoLock(referencingProject).ConvertedProjectReferences.Add((path, projectReference));
-
-                        return projectReference;
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    return projectReference;
                 }
                 else
                 {
                     return null;
                 }
             }
+            else
+            {
+                return null;
+            }
         }
 
-        public ProjectReference? TryRemoveConvertedProjectReference(ProjectId referencingProject, string path, MetadataReferenceProperties properties)
+        public ProjectReference? TryRemoveConvertedProjectReference_NoLock(ProjectId referencingProject, string path, MetadataReferenceProperties properties)
         {
-            lock (_gate)
+            // Any conversion to or from project references must be done under the global workspace lock,
+            // since that needs to be coordinated with updating all projects simultaneously.
+            Debug.Assert(Monitor.IsEntered(_gate));
+
+            var projectReferenceInformation = GetReferenceInfo_NoLock(referencingProject);
+            foreach (var convertedProject in projectReferenceInformation.ConvertedProjectReferences)
             {
-                var projectReferenceInformation = GetReferenceInfo_NoLock(referencingProject);
-                foreach (var convertedProject in projectReferenceInformation.ConvertedProjectReferences)
+                if (convertedProject.path == path &&
+                    convertedProject.projectReference.EmbedInteropTypes == properties.EmbedInteropTypes &&
+                    convertedProject.projectReference.Aliases.SequenceEqual(properties.Aliases))
                 {
-                    if (convertedProject.path == path &&
-                        convertedProject.projectReference.EmbedInteropTypes == properties.EmbedInteropTypes &&
-                        convertedProject.projectReference.Aliases.SequenceEqual(properties.Aliases))
-                    {
-                        projectReferenceInformation.ConvertedProjectReferences.Remove(convertedProject);
-                        return convertedProject.projectReference;
-                    }
+                    projectReferenceInformation.ConvertedProjectReferences.Remove(convertedProject);
+                    return convertedProject.projectReference;
                 }
             }
 
@@ -1858,24 +1841,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 SetSolutionAndRaiseWorkspaceChanged_NoLock(newSolution, changedProjectIds);
-            }
-        }
-
-        internal void SetCompilationOutputs(ProjectId projectId, CompilationOutputs outputs)
-        {
-            Contract.ThrowIfNull(outputs);
-
-            lock (_projectCompilationOutputsGuard)
-            {
-                _projectCompilationOutputs[projectId] = outputs;
-            }
-        }
-
-        internal CompilationOutputs GetCompilationOutputs(ProjectId projectId)
-        {
-            lock (_projectCompilationOutputsGuard)
-            {
-                return _projectCompilationOutputs.TryGetValue(projectId, out var outputs) ? outputs : CompilationOutputFiles.None;
             }
         }
 

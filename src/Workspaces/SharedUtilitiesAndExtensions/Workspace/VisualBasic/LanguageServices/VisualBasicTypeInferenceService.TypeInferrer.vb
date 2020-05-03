@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -236,6 +235,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' called with argument at this position.  Note: if they're calling an extension
                         ' method then it will need one more argument in order for us to call it.
                         Dim symbols = info.GetBestOrAllSymbols()
+
+                        ' Special case If this Is an Then argument In Enum.HasFlag, infer the Enum type that we're invoking into,
+                        ' as otherwise we infer "Enum" which isn't useful
+                        If symbols.Any(AddressOf IsEnumHasFlag) Then
+                            Dim memberAccess = TryCast(invocation.Expression, MemberAccessExpressionSyntax)
+                            If memberAccess IsNot Nothing Then
+                                Dim typeInfo = SemanticModel.GetTypeInfo(memberAccess.Expression, CancellationToken)
+                                If typeInfo.Type IsNot Nothing AndAlso typeInfo.Type.IsEnumType() Then
+                                    Return CreateResult(typeInfo.Type)
+                                End If
+                            End If
+                        End If
+
                         If symbols.Any() Then
                             Return InferTypeInArgument(argumentOpt, index, symbols)
                         Else

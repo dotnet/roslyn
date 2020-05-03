@@ -553,8 +553,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             if (symbol != null)
             {
                 await AbstractFindUsagesService.FindSymbolReferencesAsync(
-                    threadingContext,
-                    context, symbol, project, cancellationToken).ConfigureAwait(false);
+                    threadingContext, context, symbol, project.Solution, cancellationToken).ConfigureAwait(false);
             }
         }
     }

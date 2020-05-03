@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -39,18 +38,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         End Function
 
         Public Overrides Function GetAdjustNewLinesOperationSlow(
-                previousToken As SyntaxToken, currentToken As SyntaxToken, options As AnalyzerConfigOptions, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
+                ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If IsCommaOfNewConditional(previousToken) Then
                 ' We want to force the expressions after the commas to be put on the 
                 ' next line.
                 Return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines)
             End If
 
-            Return nextOperation.Invoke()
+            Return nextOperation.Invoke(previousToken, currentToken)
         End Function
 
         Public Overrides Sub AddIndentBlockOperationsSlow(
-                list As List(Of IndentBlockOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextOperation As NextIndentBlockOperationAction)
+                list As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
 
             If node.HasAnnotation(UseConditionalExpressionCodeFixHelpers.SpecializedFormattingAnnotation) AndAlso
                TypeOf node Is TernaryConditionalExpressionSyntax Then

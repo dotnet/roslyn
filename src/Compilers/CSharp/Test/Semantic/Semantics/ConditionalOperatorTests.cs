@@ -686,8 +686,18 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, expectedOutput: "1");
+            var verifier = CompileAndVerify(
+                new string[] { source },
+                expectedOutput: "1",
+                symbolValidator: validator,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
             verifier.VerifyIL("Program.Main", expectedIL);
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Program");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
         [Fact]
@@ -1314,10 +1324,10 @@ System.Action
 
             var tree = compilation.SyntaxTrees.Single();
             var memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
-            var access = (ConditionalAccessExpressionSyntax)memberBinding.Parent;
+            var access = (ConditionalAccessExpressionSyntax?)memberBinding.Parent;
 
             Assert.Equal(".test", memberBinding.ToString());
-            Assert.Equal("receiver?.test", access.ToString());
+            Assert.Equal("receiver?.test", access!.ToString());
 
             var model = compilation.GetSemanticModel(tree);
 
@@ -1368,12 +1378,12 @@ Target
 
             var tree = compilation.SyntaxTrees.Single();
             var memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
-            var invocation = (InvocationExpressionSyntax)memberBinding.Parent;
-            var access = (ConditionalAccessExpressionSyntax)invocation.Parent;
+            var invocation = (InvocationExpressionSyntax?)memberBinding.Parent;
+            var access = (ConditionalAccessExpressionSyntax?)invocation!.Parent;
 
             Assert.Equal(".test", memberBinding.ToString());
             Assert.Equal(".test()", invocation.ToString());
-            Assert.Equal("receiver?.test()", access.ToString());
+            Assert.Equal("receiver?.test()", access!.ToString());
 
             var model = compilation.GetSemanticModel(tree);
 
@@ -1415,10 +1425,10 @@ class TestClass
 
             var tree = compilation.SyntaxTrees.Single();
             var memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
-            var access = (ConditionalAccessExpressionSyntax)memberBinding.Parent;
+            var access = (ConditionalAccessExpressionSyntax?)memberBinding.Parent;
 
             Assert.Equal(".test", memberBinding.ToString());
-            Assert.Equal("receiver?.test", access.ToString());
+            Assert.Equal("receiver?.test", access!.ToString());
 
             var model = compilation.GetSemanticModel(tree);
 

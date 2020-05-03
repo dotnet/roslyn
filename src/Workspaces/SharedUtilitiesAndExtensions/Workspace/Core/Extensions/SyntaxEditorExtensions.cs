@@ -197,18 +197,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //    single group keyed off the root of the tree. If more than one such node exists
             //    in the document, all will be verified.
             // 2. Cannot include ArgumentSyntax because it could affect generic argument inference.
-            return node.FirstAncestorOrSelf<SyntaxNode>(
-                n => syntaxFacts.IsExecutableStatement(n) ||
+            return node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>(
+                (n, syntaxFacts) => syntaxFacts.IsExecutableStatement(n) ||
                      syntaxFacts.IsParameter(n) ||
                      syntaxFacts.IsVariableDeclarator(n) ||
-                     n.Parent == null);
+                     n.Parent == null,
+                syntaxFacts);
         }
 
         private static SyntaxNode GetMethodBodySemanticBoundary(ISyntaxFactsService syntaxFacts, SyntaxNode node)
         {
-            return node.FirstAncestorOrSelf<SyntaxNode>(
-                n => syntaxFacts.IsMethodBody(n) ||
-                     n.Parent == null);
+            return node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>(
+                (n, syntaxFacts) => syntaxFacts.IsMethodBody(n) ||
+                     n.Parent == null,
+                syntaxFacts);
         }
     }
 }

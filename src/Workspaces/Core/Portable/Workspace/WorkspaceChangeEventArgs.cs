@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 
 namespace Microsoft.CodeAnalysis
@@ -21,25 +23,55 @@ namespace Microsoft.CodeAnalysis
         public WorkspaceChangeKind Kind { get; }
 
         /// <remarks>
-        /// If linked documents are being changed, there may be multiple events with the same
-        /// <see cref="OldSolution"/> and <see cref="NewSolution"/>.
+        /// If linked documents are being changed, there may be multiple events with the same <see cref="OldSolution"/>
+        /// and <see cref="NewSolution"/>.  Note that the workspace starts with its solution set to an empty solution.
+        /// <see cref="WorkspaceChangeKind.SolutionAdded"/> replaces the previous solution, which might be the empty
+        /// one.
         /// </remarks>
         public Solution OldSolution { get; }
 
         /// <remarks>
-        /// If linked documents are being changed, there may be multiple events with the same
-        /// <see cref="OldSolution"/> and <see cref="NewSolution"/>.
+        /// If linked documents are being changed, there may be multiple events with the same <see cref="OldSolution"/>
+        /// and <see cref="NewSolution"/>. Note <see cref="WorkspaceChangeKind.SolutionRemoved"/> replaces the previous
+        /// solution with the empty one.
         /// </remarks>
         public Solution NewSolution { get; }
 
-        public ProjectId ProjectId { get; }
-        public DocumentId DocumentId { get; }
+        /// <summary>
+        /// The id of the affected <see cref="Project"/>.  Can be <see langword="null"/> if this is an change unrelated
+        /// to a project (for example <see cref="WorkspaceChangeKind.SolutionReloaded"/>.  Should be non-<see
+        /// langword="null"/> for:
+        /// <list type="bullet">
+        /// <item><see cref="WorkspaceChangeKind.ProjectAdded"/></item>
+        /// <item><see cref="WorkspaceChangeKind.ProjectChanged"/></item>
+        /// <item><see cref="WorkspaceChangeKind.ProjectReloaded"/></item>
+        /// <item><see cref="WorkspaceChangeKind.ProjectRemoved"/></item>
+        /// </list>
+        /// </summary>
+        public ProjectId? ProjectId { get; }
 
-        public WorkspaceChangeEventArgs(WorkspaceChangeKind kind, Solution oldSolution, Solution newSolution, ProjectId projectId = null, DocumentId documentId = null)
+        /// <summary>
+        /// The id of the affected <see cref="Document"/>.  Can be <see langword="null"/> if this is an change unrelated
+        /// to a document (for example <see cref="WorkspaceChangeKind.ProjectAdded"/>. Should be non-<see
+        /// langword="null"/> for:
+        /// <list type="bullet">
+        /// <item><see cref="WorkspaceChangeKind.DocumentAdded"/></item>
+        /// <item><see cref="WorkspaceChangeKind.DocumentChanged"/></item>
+        /// <item><see cref="WorkspaceChangeKind.DocumentInfoChanged"/></item>
+        /// <item><see cref="WorkspaceChangeKind.DocumentReloaded"/></item>
+        /// <item><see cref="WorkspaceChangeKind.DocumentRemoved"/></item>
+        /// </list>
+        /// </summary>
+        public DocumentId? DocumentId { get; }
+
+        public WorkspaceChangeEventArgs(WorkspaceChangeKind kind, Solution oldSolution, Solution newSolution, ProjectId? projectId = null, DocumentId? documentId = null)
         {
+            if (!kind.IsValid())
+                throw new ArgumentOutOfRangeException(nameof(kind));
+
             this.Kind = kind;
-            this.OldSolution = oldSolution;
-            this.NewSolution = newSolution;
+            this.OldSolution = oldSolution ?? throw new ArgumentNullException(nameof(oldSolution));
+            this.NewSolution = newSolution ?? throw new ArgumentNullException(nameof(newSolution));
             this.ProjectId = projectId;
             this.DocumentId = documentId;
         }

@@ -21,7 +21,7 @@ class c
 ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem("\A", inlineDescription:=WorkspacesResources.Regex_start_of_string_only_short)
+                Await state.AssertSelectedCompletionItem("\A", inlineDescription:=FeaturesResources.Regex_start_of_string_only_short)
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("new Regex(""\\A"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
@@ -66,7 +66,7 @@ class c
 
                 state.SendTypeChars("[")
 
-                Await state.AssertSelectedCompletionItem($"[  {WorkspacesResources.Regex_character_group}  ]")
+                Await state.AssertSelectedCompletionItem($"[  {FeaturesResources.Regex_character_group}  ]")
                 state.SendDownKey()
                 state.SendDownKey()
                 state.SendDownKey()
@@ -96,7 +96,7 @@ class c
                 state.SendTypeChars("\b")
 
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem("\b", description:=WorkspacesResources.Regex_backspace_character_long)
+                Await state.AssertSelectedCompletionItem("\b", description:=FeaturesResources.Regex_backspace_character_long)
             End Using
         End Function
 
@@ -117,7 +117,7 @@ class c
                 state.SendTypeChars("\b")
 
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem("\b", description:=WorkspacesResources.Regex_word_boundary_long)
+                Await state.AssertSelectedCompletionItem("\b", description:=FeaturesResources.Regex_word_boundary_long)
             End Using
         End Function
 

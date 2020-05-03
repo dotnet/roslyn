@@ -9,7 +9,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
+
+#if NETSTANDARD2_0
 using Roslyn.Utilities;
+#endif
 
 #pragma warning disable RS0005 // Do not use generic CodeAction.Create to create CodeAction
 

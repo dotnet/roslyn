@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ChangeSignatureCodeRefactoringProvider();
 
-        protected override string GetLanguage()
+        protected internal override string GetLanguage()
             => LanguageNames.CSharp;
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
@@ -188,7 +188,7 @@ class C
         MyDelegate d1 = null;
         d1 = (r) => { System.Console.WriteLine(""Test""); };
         d1 = r => { System.Console.WriteLine(""Test""); };
-        d1 =r=>{ System.Console.WriteLine(""Test""); };
+        d1 = r => { System.Console.WriteLine(""Test""); };
     }
 }";
             var updatedSignature = Array.Empty<int>();
@@ -202,7 +202,7 @@ class C
         MyDelegate d1 = null;
         d1 = () => { System.Console.WriteLine(""Test""); };
         d1 = () => { System.Console.WriteLine(""Test""); };
-        d1 =()=>{ System.Console.WriteLine(""Test""); };
+        d1 = () => { System.Console.WriteLine(""Test""); };
     }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);

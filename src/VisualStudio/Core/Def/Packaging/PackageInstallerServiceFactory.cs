@@ -181,8 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             OnSourceProviderSourcesChanged(this, EventArgs.Empty);
-            OnWorkspaceChanged(null, new WorkspaceChangeEventArgs(
-                WorkspaceChangeKind.SolutionAdded, null, null));
+            OnWorkspaceChanged(localSolutionChanged: true, localChangedProject: null);
         }
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)
@@ -348,8 +347,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             ThisCanBeCalledOnAnyThread();
 
-            var localSolutionChanged = false;
-            ProjectId localChangedProject = null;
+            var solutionChanged = false;
+            ProjectId chnagedProject = null;
             switch (e.Kind)
             {
                 default:
@@ -360,7 +359,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 case WorkspaceChangeKind.ProjectChanged:
                 case WorkspaceChangeKind.ProjectReloaded:
                 case WorkspaceChangeKind.ProjectRemoved:
-                    localChangedProject = e.ProjectId;
+                    chnagedProject = e.ProjectId;
                     break;
 
                 case WorkspaceChangeKind.SolutionAdded:
@@ -368,10 +367,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
                 case WorkspaceChangeKind.SolutionRemoved:
-                    localSolutionChanged = true;
+                    solutionChanged = true;
                     break;
             }
 
+            this.OnWorkspaceChanged(solutionChanged, chnagedProject);
+        }
+
+        private void OnWorkspaceChanged(bool localSolutionChanged, ProjectId localChangedProject)
+        {
             lock (_gate)
             {
                 // Augment the data that the foreground thread will process.

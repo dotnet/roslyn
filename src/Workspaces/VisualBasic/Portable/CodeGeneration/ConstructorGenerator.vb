@@ -55,11 +55,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 ConditionallyAddDocumentationCommentTo(declaration, constructor, options)))
         End Function
 
-        Private Function GenerateArgumentList(arguments As IList(Of SyntaxNode)) As ArgumentListSyntax
-            Return SyntaxFactory.ArgumentList(
-                arguments:=SyntaxFactory.SeparatedList(arguments.Select(AddressOf ArgumentGenerator.GenerateArgument)))
-        End Function
-
         Private Function GenerateStatements(constructor As IMethodSymbol) As SyntaxList(Of StatementSyntax)
             If CodeGenerationConstructorInfo.GetStatements(constructor).IsDefault AndAlso
                CodeGenerationConstructorInfo.GetBaseConstructorArgumentsOpt(constructor).IsDefault AndAlso

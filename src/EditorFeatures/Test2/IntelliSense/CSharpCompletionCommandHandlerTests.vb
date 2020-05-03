@@ -1625,6 +1625,62 @@ class C
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestImplicitObjectCreationExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[
+public class C
+{
+    public C(int Alice, int Bob) { }
+    public C(string ignored) { }
+
+    public void M()
+    {
+        C c = new($$
+    }
+}]]></Document>, languageVersion:=LanguageVersion.Preview, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("A")
+                Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("new(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestImplicitObjectCreationExpression_WithSpace(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[
+public class C
+{
+    public C(int Alice, int Bob) { }
+    public C(string ignored) { }
+
+    public void M()
+    {
+        C c = new$$
+    }
+}]]></Document>, languageVersion:=LanguageVersion.Preview, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars(" ")
+                Await state.AssertSelectedCompletionItem(displayText:="C", isHardSelected:=True)
+                state.SendTypeChars("(")
+                If showCompletionInArgumentLists Then
+                    Await state.AssertSignatureHelpSession()
+                Else
+                    Await state.AssertNoCompletionSession()
+                End If
+                state.SendTypeChars("A")
+                Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("new C(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestInvocationExpressionAfterComma(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[

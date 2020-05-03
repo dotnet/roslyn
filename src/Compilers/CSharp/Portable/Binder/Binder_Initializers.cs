@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct ProcessedFieldInitializers
         {
             internal ImmutableArray<BoundInitializer> BoundInitializers { get; set; }
-            internal BoundStatement LoweredInitializers { get; set; }
+            internal BoundStatement? LoweredInitializers { get; set; }
             internal bool HasErrors { get; set; }
             internal ImportChain? FirstImportChain { get; set; }
         }
 
         internal static void BindFieldInitializers(
             CSharpCompilation compilation,
-            SynthesizedInteractiveInitializerMethod scriptInitializerOpt,
+            SynthesizedInteractiveInitializerMethod? scriptInitializerOpt,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> fieldInitializers,
             DiagnosticBag diagnostics,
             ref ProcessedFieldInitializers processedInitializers)
@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagsForInstanceInitializers.Free();
         }
 
-        private static ImmutableArray<BoundInitializer> BindFieldInitializers(
+        internal static ImmutableArray<BoundInitializer> BindFieldInitializers(
             CSharpCompilation compilation,
-            SynthesizedInteractiveInitializerMethod scriptInitializerOpt,
+            SynthesizedInteractiveInitializerMethod? scriptInitializerOpt,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
             DiagnosticBag diagnostics,
             out ImportChain? firstImportChain)
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var boundInitializers = ArrayBuilder<BoundInitializer>.GetInstance();
-            if ((object)scriptInitializerOpt == null)
+            if (scriptInitializerOpt is null)
             {
                 BindRegularCSharpFieldInitializers(compilation, initializers, boundInitializers, diagnostics, out firstImportChain);
             }

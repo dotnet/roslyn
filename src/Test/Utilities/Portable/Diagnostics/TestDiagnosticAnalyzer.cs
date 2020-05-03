@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return ImmutableArray.CreateRange(Enum.GetValues(typeof(T)).Cast<T>());
         }
 
-        protected abstract void OnAbstractMember(string abstractMemberName, SyntaxNode node = null, ISymbol symbol = null, [CallerMemberName]string callerName = null);
-        protected virtual void OnOptions(AnalyzerOptions options, [CallerMemberName]string callerName = null) { }
+        protected abstract void OnAbstractMember(string abstractMemberName, SyntaxNode node = null, ISymbol symbol = null, [CallerMemberName] string callerName = null);
+        protected virtual void OnOptions(AnalyzerOptions options, [CallerMemberName] string callerName = null) { }
 
         #region Implementation
 

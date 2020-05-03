@@ -13,8 +13,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
-using Roslyn.Utilities;
 using Xunit;
+
+#if !CODE_STYLE
+using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private static CommonConversion Identity()
         {
-            return new CommonConversion(exists: true, isIdentity: true, isNumeric: false, isReference: false, methodSymbol: null, isImplicit: true);
+            return new CommonConversion(exists: true, isIdentity: true, isNumeric: false, isReference: false, methodSymbol: null, isImplicit: true, isNullable: false);
         }
     }
 

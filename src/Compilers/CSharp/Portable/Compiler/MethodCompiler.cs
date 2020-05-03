@@ -541,7 +541,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.Field:
                         {
-                            SourceMemberFieldSymbol fieldSymbol = member as SourceMemberFieldSymbol;
+                            var field = (FieldSymbol)member;
+                            var fieldSymbol = (field.TupleUnderlyingField ?? field) as SourceMemberFieldSymbol;
                             if ((object)fieldSymbol != null)
                             {
                                 if (fieldSymbol.IsConst)
@@ -1229,28 +1230,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
+                        if (!(methodSymbol is SynthesizedStaticConstructor cctor) || cctor.ShouldEmit(processedInitializers.BoundInitializers))
+                        {
+                            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
 
-                        var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
+                            var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
 
-                        var emittedBody = GenerateMethodBody(
-                            _moduleBeingBuiltOpt,
-                            methodSymbol,
-                            methodOrdinal,
-                            boundBody,
-                            lambdaDebugInfoBuilder.ToImmutable(),
-                            closureDebugInfoBuilder.ToImmutable(),
-                            stateMachineTypeOpt,
-                            lazyVariableSlotAllocator,
-                            diagsForCurrentMethod,
-                            _debugDocumentProvider,
-                            importChain,
-                            _emittingPdb,
-                            _emitTestCoverageData,
-                            dynamicAnalysisSpans,
-                            entryPointOpt: null);
+                            var emittedBody = GenerateMethodBody(
+                                _moduleBeingBuiltOpt,
+                                methodSymbol,
+                                methodOrdinal,
+                                boundBody,
+                                lambdaDebugInfoBuilder.ToImmutable(),
+                                closureDebugInfoBuilder.ToImmutable(),
+                                stateMachineTypeOpt,
+                                lazyVariableSlotAllocator,
+                                diagsForCurrentMethod,
+                                _debugDocumentProvider,
+                                importChain,
+                                _emittingPdb,
+                                _emitTestCoverageData,
+                                dynamicAnalysisSpans,
+                                entryPointOpt: null);
 
-                        _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                            _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                        }
                     }
 
                     _diagnostics.AddRange(diagsForCurrentMethod);

@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Occasionally, good or ambiguous results are referred to as "viable" results.
     ''' 
     ''' Multiple symbols can be represented in a single LookupResult. Multiple symbols are ONLY USED for overloadable
-    ''' entities, such an methods or properties, and represent all the symbols that overload resolution needs to consider.
+    ''' entities, such as methods or properties, and represent all the symbols that overload resolution needs to consider.
     ''' When ambiguous symbols are encountered, a single representative symbols is returned, with an attached AmbiguousSymbolDiagnostic
     ''' from which all the ambiguous symbols can be retrieved. This implies that Lookup operations that are restricted to namespaces
     ''' and/or types always create a LookupResult with 0 or 1 symbol.
@@ -530,7 +530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ' Merge two results, returning the best. If there are
-        ' multiple viable results, either produce an result with both symbols if they can overload each other,
+        ' multiple viable results, either produce a result with both symbols if they can overload each other,
         ' or use the current one..
         Public Sub MergeOverloadedOrPrioritizedExtensionMethods(other As SingleLookupResult)
             Debug.Assert(Not Me.IsAmbiguous AndAlso Not other.IsAmbiguous)
@@ -622,7 +622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' Merge two results, returning the best. If there are
-        ' multiple viable results, either produce an result with both symbols if they can overload each other,
+        ' multiple viable results, either produce a result with both symbols if they can overload each other,
         ' or produce an ambiguity error otherwise.
         Public Sub MergeMembersOfTheSameType(other As SingleLookupResult, imported As Boolean)
             Debug.Assert(Not Me.HasSymbol OrElse other.Symbol Is Nothing OrElse TypeSymbol.Equals(Me.Symbols(0).ContainingType, other.Symbol.ContainingType, TypeCompareKind.ConsiderEverything))

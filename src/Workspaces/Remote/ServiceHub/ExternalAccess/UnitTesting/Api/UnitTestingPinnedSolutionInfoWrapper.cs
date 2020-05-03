@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
     {
         /// <summary>
         /// Because PinnedSolutionInfo is internal, and it is directly passed into the callee in
-        /// <see cref="KeepAliveSession.TryInvokeAsync{T}(string, Solution, System.Collections.Generic.IReadOnlyList{object}, System.Threading.CancellationToken)"/>
+        /// <see cref="KeepAliveSession.RunRemoteAsync{T}(string, Solution, System.Collections.Generic.IReadOnlyList{object}, System.Threading.CancellationToken)"/>
         /// the type of <param name="underlyingObject"/> has to be object. Its runtime type is <see cref="JObject"/>.
         /// </summary>
         public UnitTestingPinnedSolutionInfoWrapper(object underlyingObject)
