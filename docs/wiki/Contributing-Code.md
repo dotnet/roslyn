@@ -73,7 +73,7 @@ For all of the C# guidelines which have analogs in Visual Basic, the team applie
 
 IDE features should generally be made for both C# and VB.  The exceptions are:
 1. If the feature has no appropriate VB analog. For example 'patterns' are C#-only, so specific features around patterns do not generally need equivalent VB work.
-2. The feature is prohibitively expensive to also do for VB.  In this case, ask the team if it's acceptable to not do a VB version and a decision can be made.  In general though, doing the equivalent VB side ends up only being around 5% more effort, so it should normally be done.
+2. The feature is prohibitively expensive to also do for VB.  In this case, ask the team if it's acceptable to not do a VB version and a decision can be made.  In general though, writing features to work for both C# and VB is usually only a little more expensive than just writing it to work on a single language (especially if the multi-language case is considered up front), so it should normally be done.
 
 When creating IDE features that work for both C# and VB attempt to share as much code as is reasonable.  There are numerous examples and existing components to make that possible.  If help is needed, reach out to the team for advice.
 
