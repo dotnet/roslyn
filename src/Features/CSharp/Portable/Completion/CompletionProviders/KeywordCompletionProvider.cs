@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new HiddenKeywordRecommender(),
                 new IfKeywordRecommender(),
                 new ImplicitKeywordRecommender(),
+                new InitKeywordRecommender(),
                 new InKeywordRecommender(),
                 new InterfaceKeywordRecommender(),
                 new InternalKeywordRecommender(),
