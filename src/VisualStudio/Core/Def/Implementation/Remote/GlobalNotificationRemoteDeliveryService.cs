@@ -73,73 +73,73 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private void OnGlobalOperationStarted(object sender, EventArgs e)
         {
-            async Task<GlobalNotificationState> sendNotification(Task<GlobalNotificationState> previousTask)
-            {
-                // Can only transition from NotStarted->Started.  If we hear about
-                // anything else, do nothing.
-                if (previousTask.Result != GlobalNotificationState.NotStarted)
-                {
-                    return previousTask.Result;
-                }
-
-                var client = await RemoteHostClient.TryGetClientAsync(_services, _cancellationToken).ConfigureAwait(false);
-                if (client == null)
-                {
-                    return previousTask.Result;
-                }
-
-                _ = await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.CodeAnalysisService,
-                    nameof(IRemoteGlobalNotificationDeliveryService.OnGlobalOperationStarted),
-                    solution: null,
-                    Array.Empty<object>(),
-                    callbackTarget: null,
-                    _cancellationToken).ConfigureAwait(false);
-
-                return GlobalNotificationState.Started;
-            }
-
             lock (_globalNotificationsGate)
             {
                 _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
-                    sendNotification, _cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
+                    SendStartNotificationAsync, _cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
             }
+        }
+
+        private async Task<GlobalNotificationState> SendStartNotificationAsync(Task<GlobalNotificationState> previousTask)
+        {
+            // Can only transition from NotStarted->Started.  If we hear about
+            // anything else, do nothing.
+            if (previousTask.Result != GlobalNotificationState.NotStarted)
+            {
+                return previousTask.Result;
+            }
+
+            var client = await RemoteHostClient.TryGetClientAsync(_services, _cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                return previousTask.Result;
+            }
+
+            _ = await client.TryRunRemoteAsync(
+                WellKnownServiceHubServices.CodeAnalysisService,
+                nameof(IRemoteGlobalNotificationDeliveryService.OnGlobalOperationStarted),
+                solution: null,
+                Array.Empty<object>(),
+                callbackTarget: null,
+                _cancellationToken).ConfigureAwait(false);
+
+            return GlobalNotificationState.Started;
         }
 
         private void OnGlobalOperationStopped(object sender, GlobalOperationEventArgs e)
         {
-            async Task<GlobalNotificationState> sendNotification(Task<GlobalNotificationState> previousTask)
-            {
-                // Can only transition from Started->NotStarted.  If we hear about
-                // anything else, do nothing.
-                if (previousTask.Result != GlobalNotificationState.Started)
-                {
-                    return previousTask.Result;
-                }
-
-                var client = await RemoteHostClient.TryGetClientAsync(_services, _cancellationToken).ConfigureAwait(false);
-                if (client == null)
-                {
-                    return previousTask.Result;
-                }
-
-                _ = await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.CodeAnalysisService,
-                    nameof(IRemoteGlobalNotificationDeliveryService.OnGlobalOperationStopped),
-                    solution: null,
-                    new object[] { e.Operations, e.Cancelled },
-                    callbackTarget: null,
-                    _cancellationToken).ConfigureAwait(false);
-
-                // Mark that we're stopped now.
-                return GlobalNotificationState.NotStarted;
-            }
-
             lock (_globalNotificationsGate)
             {
                 _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
-                    sendNotification, _cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
+                    previous => SendStoppedNotificationAsync(previous, e), _cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
             }
+        }
+
+        private async Task<GlobalNotificationState> SendStoppedNotificationAsync(Task<GlobalNotificationState> previousTask, GlobalOperationEventArgs e)
+        {
+            // Can only transition from Started->NotStarted.  If we hear about
+            // anything else, do nothing.
+            if (previousTask.Result != GlobalNotificationState.Started)
+            {
+                return previousTask.Result;
+            }
+
+            var client = await RemoteHostClient.TryGetClientAsync(_services, _cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                return previousTask.Result;
+            }
+
+            _ = await client.TryRunRemoteAsync(
+                WellKnownServiceHubServices.CodeAnalysisService,
+                nameof(IRemoteGlobalNotificationDeliveryService.OnGlobalOperationStopped),
+                solution: null,
+                new object[] { e.Operations, e.Cancelled },
+                callbackTarget: null,
+                _cancellationToken).ConfigureAwait(false);
+
+            // Mark that we're stopped now.
+            return GlobalNotificationState.NotStarted;
         }
     }
 }
