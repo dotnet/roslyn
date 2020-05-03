@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Runtime.InteropServices
@@ -173,12 +175,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CaptureVariable(symbol, node)
             End If
         End Sub
-
-        Protected Overrides Function UnreachableState() As DataFlowPass.LocalState
-            ' The iterator transformation causes some unreachable code to become
-            ' reachable from the code gen's point of view, so we analyze the unreachable code too.
-            Return Me.State
-        End Function
 
         Protected Overrides ReadOnly Property IgnoreOutSemantics As Boolean
             Get

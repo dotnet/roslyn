@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading.Tasks;
@@ -8,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using DocumentMap = MultiDictionary<Document, (SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>;
+    using DocumentMap = MultiDictionary<Document, (ISymbol symbol, IReferenceFinder finder)>;
 
     internal partial class FindReferencesSearchEngine
     {
@@ -26,12 +28,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // start cache for this semantic model
                 FindReferenceCache.Start(model);
 
-                foreach (var symbolAndFinder in documentQueue)
+                foreach (var (symbol, finder) in documentQueue)
                 {
-                    var symbol = symbolAndFinder.symbolAndProjectId;
-                    var finder = symbolAndFinder.finder;
-
-                    await ProcessDocumentAsync(document, symbol, finder).ConfigureAwait(false);
+                    await ProcessDocumentAsync(document, model, symbol, finder).ConfigureAwait(false);
                 }
             }
             finally
@@ -49,17 +48,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private async Task ProcessDocumentAsync(
             Document document,
-            SymbolAndProjectId symbolAndProjectId,
+            SemanticModel semanticModel,
+            ISymbol symbol,
             IReferenceFinder finder)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbolAndProjectId.Symbol, _cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbol, _cancellationToken))
             {
                 try
                 {
-                    var references = await finder.FindReferencesInDocumentAsync(symbolAndProjectId, document, _cancellationToken).ConfigureAwait(false);
-                    foreach (var location in references)
+                    var references = await finder.FindReferencesInDocumentAsync(
+                        symbol, document, semanticModel, _options, _cancellationToken).ConfigureAwait(false);
+                    foreach (var (_, location) in references)
                     {
-                        await HandleLocationAsync(symbolAndProjectId, location).ConfigureAwait(false);
+                        await HandleLocationAsync(symbol, location).ConfigureAwait(false);
                     }
                 }
                 finally

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -107,20 +109,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate;
 
+            public ITypeSymbol OriginalType => _variableSymbol.OriginalType;
+
             public ITypeSymbol GetVariableType(SemanticDocument document)
-            {
-                return document.SemanticModel.ResolveType(_variableSymbol.OriginalType);
-            }
+                => document.SemanticModel.ResolveType(_variableSymbol.OriginalType);
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SemanticDocument document)
-            {
-                return document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);
-            }
+                => document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)
-            {
-                return node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
-            }
+                => node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
 
             public static void SortVariables(Compilation compilation, List<VariableInfo> list)
             {

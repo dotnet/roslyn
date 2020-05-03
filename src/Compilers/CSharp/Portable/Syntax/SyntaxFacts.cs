@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -210,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        public static bool IsInNamespaceOrTypeContext(ExpressionSyntax node)
+        public static bool IsInNamespaceOrTypeContext(ExpressionSyntax? node)
         {
             if (node != null)
             {
@@ -246,10 +251,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsNamedArgumentName(SyntaxNode node)
         {
             // An argument name is an IdentifierName inside a NameColon, inside an Argument, inside an ArgumentList, inside an
-            // Invocation, ObjectCreation, ObjectInitializer, or ElementAccess.
+            // Invocation, ObjectCreation, ObjectInitializer, ElementAccess or Subpattern.
 
             if (!node.IsKind(IdentifierName))
-            { 
+            {
                 return false;
             }
 
@@ -260,6 +265,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var parent2 = parent1.Parent;
+            if (parent2.IsKind(SyntaxKind.Subpattern))
+            {
+                return true;
+            }
+
             if (parent2 == null || !(parent2.IsKind(Argument) || parent2.IsKind(AttributeArgument)))
             {
                 return false;
@@ -308,17 +318,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static bool IsFixedStatementExpression(SyntaxNode node)
         {
-            node = node.Parent;
+            var current = node.Parent;
             // Dig through parens because dev10 does (even though the spec doesn't say so)
             // Dig through casts because there's a special error code (CS0254) for such casts.
-            while (node != null && (node.IsKind(ParenthesizedExpression) || node.IsKind(CastExpression))) node = node.Parent;
-            if (node == null || !node.IsKind(EqualsValueClause)) return false;
-            node = node.Parent;
-            if (node == null || !node.IsKind(VariableDeclarator)) return false;
-            node = node.Parent;
-            if (node == null || !node.IsKind(VariableDeclaration)) return false;
-            node = node.Parent;
-            return node != null && node.IsKind(FixedStatement);
+            while (current != null && (current.IsKind(ParenthesizedExpression) || current.IsKind(CastExpression))) current = current.Parent;
+            if (current == null || !current.IsKind(EqualsValueClause)) return false;
+            current = current.Parent;
+            if (current == null || !current.IsKind(VariableDeclarator)) return false;
+            current = current.Parent;
+            if (current == null || !current.IsKind(VariableDeclaration)) return false;
+            current = current.Parent;
+            return current != null && current.IsKind(FixedStatement);
         }
 
         public static string GetText(Accessibility accessibility)
@@ -330,9 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Accessibility.Private:
                     return SyntaxFacts.GetText(PrivateKeyword);
                 case Accessibility.ProtectedAndInternal:
-                    // TODO: C# doesn't have a representation for this.
-                    // For now, use Reflector's representation.
-                    return SyntaxFacts.GetText(InternalKeyword) + " " + SyntaxFacts.GetText(ProtectedKeyword);
+                    return SyntaxFacts.GetText(PrivateKeyword) + " " + SyntaxFacts.GetText(ProtectedKeyword);
                 case Accessibility.Internal:
                     return SyntaxFacts.GetText(InternalKeyword);
                 case Accessibility.Protected:
@@ -378,6 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ExclusiveOrAssignmentExpression:
                 case LeftShiftAssignmentExpression:
                 case RightShiftAssignmentExpression:
+                case CoalesceAssignmentExpression:
                 case PostIncrementExpression:
                 case PostDecrementExpression:
                 case PreIncrementExpression:
@@ -395,11 +404,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case IdentifierName:
                     return syntax.IsMissing;
 
-                // TODO: The native implementation also disallows delegate
-                // creation expressions with the ERR_IllegalStatement error, 
-                // so that needs to go into the semantic analysis somewhere
-                // if we intend to carry it forward.
-
                 default:
                     return false;
             }
@@ -411,17 +415,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LambdaUtilities.IsLambdaBody(node);
         }
 
-        internal static bool IsVar(this Syntax.InternalSyntax.SyntaxToken node)
+        internal static bool IsIdentifierVar(this Syntax.InternalSyntax.SyntaxToken node)
         {
-            return node.Kind == SyntaxKind.IdentifierToken && node.ValueText == "var";
+            return node.ContextualKind == SyntaxKind.VarKeyword;
         }
 
-        internal static bool IsVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
+        internal static bool IsIdentifierVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
         {
-            return node.IsVar() || IsPredefinedType(node.Kind);
+            return node.IsIdentifierVar() || IsPredefinedType(node.Kind);
         }
 
-        internal static bool IsDeclarationExpressionType(SyntaxNode node, out DeclarationExpressionSyntax parent)
+        internal static bool IsDeclarationExpressionType(SyntaxNode node, [NotNullWhen(true)] out DeclarationExpressionSyntax? parent)
         {
             parent = node.Parent as DeclarationExpressionSyntax;
             return node == parent?.Type;
@@ -431,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given an initializer expression infer the name of anonymous property or tuple element.
         /// Returns null if unsuccessful
         /// </summary>
-        public static string TryGetInferredMemberName(this SyntaxNode syntax)
+        public static string? TryGetInferredMemberName(this SyntaxNode syntax)
         {
             SyntaxToken nameToken;
             switch (syntax.Kind())
@@ -465,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
 
-            return nameToken.ValueText;
+            return nameToken.RawKind != 0 ? nameToken.ValueText : null;
         }
 
         /// <summary>
@@ -478,7 +482,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static bool IsReservedTupleElementName(string elementName)
         {
-            return TupleTypeSymbol.IsElementNameReserved(elementName) != -1;
+            return NamedTypeSymbol.IsTupleElementNameReserved(elementName) != -1;
+        }
+
+        internal static bool HasAnyBody(this BaseMethodDeclarationSyntax declaration)
+        {
+            return (declaration.Body ?? (SyntaxNode?)declaration.ExpressionBody) != null;
         }
     }
 }

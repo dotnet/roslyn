@@ -1,12 +1,14 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(529629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529629")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharp_Indexer1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_Indexer1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -18,7 +20,7 @@ class C
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         var q = new C();
         var b = q[||][4];
@@ -27,12 +29,12 @@ class D
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(529629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529629")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestBasic_Indexer1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestBasic_Indexer1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -46,7 +48,7 @@ class C
 end class
 
 class D
-    sub Foo()
+    sub Goo()
         dim q = new C()
         dim b = q[||](4)
     end sub
@@ -54,18 +56,18 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(545577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545577")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestBasic_Indexer2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestBasic_Indexer2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
 Class A
-    Default ReadOnly Property {|Definition:$$Foo|}(ByVal x As Integer) As Integer
+    Default ReadOnly Property {|Definition:$$Goo|}(ByVal x As Integer) As Integer
         Get
         End Get
     End Property
@@ -77,12 +79,12 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(650779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650779")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestBasic_Indexer3() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestBasic_Indexer3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -97,7 +99,7 @@ Public Class C
         End Set
     End Property
 
-    Public Sub Foo(c As C)
+    Public Sub Goo(c As C)
         c = c.[|Item|](2)
         c[||](1) = c
         c.[|Item|](1) = c
@@ -107,12 +109,12 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(661362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/661362")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestBasic_Indexer4() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestBasic_Indexer4(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -139,7 +141,113 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_Indexer_Conditional(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class A
+{
+   private string[] arr = new T[100];
+
+   public string {|Definition:$$this|}[int i]
+   {
+      get { return arr[i]; }
+      set { arr[i] = value; }
+   }
+}
+class B
+{
+    private A a;
+    void M2()
+    {
+         var s = a?[||][0];
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestBasic_Indexer_Conditional(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Public Class C
+    Default Public Property {|Definition:$$Item|}(index As Integer) As C
+        Get
+            Return Nothing
+        End Get
+        Set(value As C)
+
+        End Set
+    End Property
+
+    Public Sub Goo(c As C)
+        c = c?.[|Item|](2)
+        c = c?[||](1)
+        c = c?.[|Item|](1)
+        c = c?[||](1)?.[|Item|](1)
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_Indexer_CRef(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class A
+{
+   private string[] arr = new T[100];
+   
+   /// &lt;see cref="[||]this[int]"/&gt;
+   public string {|Definition:$$this|}[int i]
+   {
+      get { return arr[i]; }
+      set { arr[i] = value; }
+   }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestBasic_Indexer_Cref(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+class C
+    ''' &lt;see cref="[|Item|]"/&gt;
+    public default readonly property {|Definition:$$Item|}(y as Integer) as Integer
+        get
+            return 0
+        end get
+    end property
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
         End Function
     End Class
 End Namespace

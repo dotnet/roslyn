@@ -1,4 +1,8 @@
-﻿using System.IO;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
@@ -48,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         Assert.True(result.Success);
                         result = comp.Emit(output, options: EmitOptions.Default.WithHighEntropyVirtualAddressSpace(true));
                         Assert.True(result.Success);
-                        result = comp.Emit(output, options: EmitOptions.Default.WithOutputNameOverride("foo"));
+                        result = comp.Emit(output, options: EmitOptions.Default.WithOutputNameOverride("goo"));
                         Assert.True(result.Success);
-                        result = comp.Emit(output, options: EmitOptions.Default.WithPdbFilePath("foo.pdb"));
+                        result = comp.Emit(output, options: EmitOptions.Default.WithPdbFilePath("goo.pdb"));
                         Assert.True(result.Success);
                     }
                 }
@@ -74,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             r.Diagnostics.Verify();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Pdb)]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void EmitToStreamWithNonZeroPosition()
         {
             var pdbStream = new MemoryStream();

@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.RuntimeMembers
@@ -42,6 +45,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ContainingMember As Symbol
             Get
                 Return If(_owner, MyBase.ContainingMember)
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return ImmutableArray(Of Symbol).Empty
             End Get
         End Property
     End Class

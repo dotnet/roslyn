@@ -1,12 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using System.Globalization;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -47,8 +50,7 @@ namespace Microsoft.CodeAnalysis
 
         private class SymbolKeyWriter : SymbolVisitor<object>, IDisposable
         {
-            private static readonly ObjectPool<SymbolKeyWriter> s_writerPool =
-                new ObjectPool<SymbolKeyWriter>(() => new SymbolKeyWriter());
+            private static readonly ObjectPool<SymbolKeyWriter> s_writerPool = SharedPools.Default<SymbolKeyWriter>();
 
             private readonly Action<ISymbol> _writeSymbolKey;
             private readonly Action<string> _writeString;
@@ -62,12 +64,12 @@ namespace Microsoft.CodeAnalysis
 
             public CancellationToken CancellationToken { get; private set; }
 
-            private List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
+            private readonly List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
 
             internal int _nestingCount;
             private int _nextId;
 
-            private SymbolKeyWriter()
+            public SymbolKeyWriter()
             {
                 _writeSymbolKey = WriteSymbolKey;
                 _writeString = WriteString;
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis
                 _symbolToId.Clear();
                 _stringBuilder.Clear();
                 _methodSymbolStack.Clear();
-                CancellationToken = default(CancellationToken);
+                CancellationToken = default;
                 _nestingCount = 0;
                 _nextId = 0;
 
@@ -98,9 +100,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private void Initialize(CancellationToken cancellationToken)
-            {
-                CancellationToken = cancellationToken;
-            }
+                => CancellationToken = cancellationToken;
 
             public string CreateKey()
             {
@@ -115,9 +115,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private void WriteType(SymbolKeyType type)
-            {
-                _stringBuilder.Append((char)type);
-            }
+                => _stringBuilder.Append((char)type);
 
             private void EndKey()
             {
@@ -127,20 +125,7 @@ namespace Microsoft.CodeAnalysis
 
             internal void WriteSymbolKey(ISymbol symbol)
             {
-                WriteSymbolKey(symbol, first: false);
-            }
-
-            internal void WriteFirstSymbolKey(ISymbol symbol)
-            {
-                WriteSymbolKey(symbol, first: true);
-            }
-
-            private void WriteSymbolKey(ISymbol symbol, bool first)
-            {
-                if (!first)
-                {
-                    WriteSpace();
-                }
+                WriteSpace();
 
                 if (symbol == null)
                 {
@@ -149,7 +134,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 int id;
-                var shouldWriteOrdinal = ShouldWriteTypeParameterOrdinal(symbol, out var methodIndex);
+                var shouldWriteOrdinal = ShouldWriteTypeParameterOrdinal(symbol, out _);
                 if (!shouldWriteOrdinal)
                 {
                     if (_symbolToId.TryGetValue(symbol, out id))
@@ -173,17 +158,17 @@ namespace Microsoft.CodeAnalysis
                     // Note: it is possible in some situations to hit the same symbol 
                     // multiple times.  For example, if you have:
                     //
-                    //      Foo<Z>(List<Z> list)
+                    //      Goo<Z>(List<Z> list)
                     //
                     // If we start with the symbol for "list" then we'll see the following
                     // chain of symbols hit:
                     //
                     //      List<Z>     
                     //          Z
-                    //              Foo<Z>(List<Z>)
+                    //              Goo<Z>(List<Z>)
                     //                  List<Z>
                     //
-                    // The recursion is prevented because when we hit 'Foo' we mark that
+                    // The recursion is prevented because when we hit 'Goo' we mark that
                     // we're writing out a signature.  And, in signature mode we only write
                     // out the ordinal for 'Z' without recursing.  However, even though
                     // we prevent the recursion, we still hit List<Z> twice.  After writing
@@ -210,20 +195,22 @@ namespace Microsoft.CodeAnalysis
             }
 
             private void WriteSpace()
-            {
-                _stringBuilder.Append(' ');
-            }
+                => _stringBuilder.Append(' ');
+
+            internal void WriteFormatVersion(int version)
+                => WriteIntegerRaw_DoNotCallDirectly(version);
 
             internal void WriteInteger(int value)
             {
                 WriteSpace();
-                _stringBuilder.Append(value);
+                WriteIntegerRaw_DoNotCallDirectly(value);
             }
 
+            private void WriteIntegerRaw_DoNotCallDirectly(int value)
+                => _stringBuilder.Append(value.ToString(CultureInfo.InvariantCulture));
+
             internal void WriteBoolean(bool value)
-            {
-                WriteInteger(value ? 1 : 0);
-            }
+                => WriteInteger(value ? 1 : 0);
 
             internal void WriteString(string value)
             {
@@ -268,6 +255,10 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            /// <summary>
+            /// Writes out the provided symbols to the key.  The array provided must not
+            /// be <c>default</c>.
+            /// </summary>
             internal void WriteSymbolKeyArray<TSymbol>(ImmutableArray<TSymbol> symbols)
                 where TSymbol : ISymbol
             {
@@ -275,39 +266,25 @@ namespace Microsoft.CodeAnalysis
             }
 
             internal void WriteParameterTypesArray(ImmutableArray<IParameterSymbol> symbols)
-            {
-                WriteArray(symbols, _writeParameterType);
-            }
+                => WriteArray(symbols, _writeParameterType);
 
             internal void WriteStringArray(ImmutableArray<string> strings)
-            {
-                WriteArray(strings, _writeString);
-            }
+                => WriteArray(strings, _writeString);
 
             internal void WriteBooleanArray(ImmutableArray<bool> array)
-            {
-                WriteArray(array, _writeBoolean);
-            }
+                => WriteArray(array, _writeBoolean);
 
             internal void WriteLocationArray(ImmutableArray<Location> array)
-            {
-                WriteArray(array, _writeLocation);
-            }
+                => WriteArray(array, _writeLocation);
 
             internal void WriteRefKindArray(ImmutableArray<IParameterSymbol> values)
-            {
-                WriteArray(values, _writeRefKind);
-            }
+                => WriteArray(values, _writeRefKind);
 
             private void WriteArray<T, U>(ImmutableArray<T> array, Action<U> writeValue)
                 where T : U
             {
                 WriteSpace();
-                if (array.IsDefault)
-                {
-                    WriteType(SymbolKeyType.Null);
-                    return;
-                }
+                Debug.Assert(!array.IsDefault);
 
                 StartKey();
                 WriteType(SymbolKeyType.Array);
@@ -427,8 +404,11 @@ namespace Microsoft.CodeAnalysis
                     WriteType(SymbolKeyType.ErrorType);
                     ErrorTypeSymbolKey.Create(namedTypeSymbol, this);
                 }
-                else if (namedTypeSymbol.IsTupleType)
+                else if (namedTypeSymbol.IsTupleType && namedTypeSymbol.TupleUnderlyingType is INamedTypeSymbol underlyingType && underlyingType != namedTypeSymbol)
                 {
+                    // A tuple is a named type with some added information
+                    // We only need to store this extra information if there is some
+                    // (ie. the current type differs from the underlying type, which has no element names)
                     WriteType(SymbolKeyType.TupleType);
                     TupleTypeSymbolKey.Create(namedTypeSymbol, this);
                 }
@@ -493,8 +473,8 @@ namespace Microsoft.CodeAnalysis
             {
                 // If it's a reference to a method type parameter, and we're currently writing
                 // out a signture, then only write out the ordinal of type parameter.  This 
-                // helps prevent recursion problems in cases like "Foo<T>(T t).
-                if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol, out int methodIndex))
+                // helps prevent recursion problems in cases like "Goo<T>(T t).
+                if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol, out var methodIndex))
                 {
                     WriteType(SymbolKeyType.TypeParameterOrdinal);
                     TypeParameterOrdinalSymbolKey.Create(typeParameterSymbol, methodIndex, this);
@@ -536,7 +516,7 @@ namespace Microsoft.CodeAnalysis
             public void PopMethod(IMethodSymbol method)
             {
                 Contract.ThrowIfTrue(_methodSymbolStack.Count == 0);
-                Contract.ThrowIfFalse(method.Equals(_methodSymbolStack.Last()));
+                Contract.ThrowIfFalse(method.Equals(_methodSymbolStack[_methodSymbolStack.Count - 1]));
                 _methodSymbolStack.RemoveAt(_methodSymbolStack.Count - 1);
             }
         }

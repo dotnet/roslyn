@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 
@@ -33,12 +37,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The method that declares the type parameter, or null.
         /// </summary>
-        IMethodSymbol DeclaringMethod { get; }
+        IMethodSymbol? DeclaringMethod { get; }
 
         /// <summary>
         /// The type that declares the type parameter, or null.
         /// </summary>
-        INamedTypeSymbol DeclaringType { get; }
+        INamedTypeSymbol? DeclaringType { get; }
 
         /// <summary>
         /// True if the reference type constraint (<c>class</c>) was specified for the type parameter.
@@ -46,9 +50,26 @@ namespace Microsoft.CodeAnalysis
         bool HasReferenceTypeConstraint { get; }
 
         /// <summary>
-        /// True if the value type constraint (<c>struct</c>)was specified for the type parameter.
+        /// If <see cref="HasReferenceTypeConstraint"/> is true, returns the top-level nullability of the
+        /// <c>class</c> constraint that was specified for the type parameter. If there was no <c>class</c>
+        /// constraint, this returns <see cref="NullableAnnotation.None"/>.
+        /// </summary>
+        NullableAnnotation ReferenceTypeConstraintNullableAnnotation { get; }
+
+        /// <summary>
+        /// True if the value type constraint (<c>struct</c>) was specified for the type parameter.
         /// </summary>
         bool HasValueTypeConstraint { get; }
+
+        /// <summary>
+        /// True if the value type constraint (<c>unmanaged</c>) was specified for the type parameter.
+        /// </summary>
+        bool HasUnmanagedTypeConstraint { get; }
+
+        /// <summary>
+        /// True if the notnull constraint (<c>notnull</c>) was specified for the type parameter.
+        /// </summary>
+        bool HasNotNullConstraint { get; }
 
         /// <summary>
         /// True if the parameterless constructor constraint (<c>new()</c>) was specified for the type parameter.
@@ -61,6 +82,12 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<ITypeSymbol> ConstraintTypes { get; }
 
         /// <summary>
+        /// The top-level nullabilities that were directly specified as constraints on the
+        /// constraint types.
+        /// </summary>
+        ImmutableArray<NullableAnnotation> ConstraintNullableAnnotations { get; }
+
+        /// <summary>
         /// Get the original definition of this type symbol. If this symbol is derived from another
         /// symbol by (say) type substitution, this gets the original symbol, as it was defined in
         /// source or metadata.
@@ -71,6 +98,6 @@ namespace Microsoft.CodeAnalysis
         /// If this is a type parameter of a reduced extension method, gets the type parameter definition that
         /// this type parameter was reduced from. Otherwise, returns Nothing.
         /// </summary>
-        ITypeParameterSymbol ReducedFrom { get; }
+        ITypeParameterSymbol? ReducedFrom { get; }
     }
 }

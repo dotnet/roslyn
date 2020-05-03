@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
-Imports Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
@@ -16,14 +17,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         End Property
 
         Friend Overrides Function CreateProvider() As AbstractSyntaxStructureProvider
-            Return New MetadataEnumMemberDeclarationStructureProvider()
+            Return New EnumMemberDeclarationStructureProvider()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 Enum E
-    $$Foo
+    $$Goo
     Bar
 End Enum
 "
@@ -36,7 +37,7 @@ End Enum
             Dim code = "
 Enum E
     {|hint:{|textspan:<Blah>
-    |}$$Foo|}
+    |}$$Goo|}
     Bar
 End Enum
 "
@@ -52,7 +53,7 @@ Enum E
     {|hint:{|textspan:' Summary:
     '     This is a summary.
     <Blah>
-    |}$$Foo|}
+    |}$$Goo|}
     Bar
 End Enum
 "

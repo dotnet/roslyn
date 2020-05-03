@@ -1,12 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -37,9 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangeClassNameWithNonMatchingMethod()
         {
-            var text = "class foo { void m() { } }";
+            var text = "class goo { void m() { } }";
             var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("foo", "bar");
+            var newTree = oldTree.WithReplaceFirst("goo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
@@ -53,11 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangeClassNameToNotMatchConstructor()
         {
-            var text = "class foo { foo() { } }";
+            var text = "class goo { goo() { } }";
             var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("foo", "bar");
+            var newTree = oldTree.WithReplaceFirst("goo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
-            Assert.NotEqual(0, newTree.GetCompilationUnitRoot().Errors().Length);
+            Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
@@ -89,10 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangeClassNameToMatchConstructor()
         {
-            var text = "class foo { bar() { } }";
+            var text = "class goo { bar() { } }";
             var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("foo", "bar");
-            Assert.NotEqual(0, oldTree.GetCompilationUnitRoot().Errors().Length);
+            var newTree = oldTree.WithReplaceFirst("goo", "bar");
+            Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
@@ -106,9 +105,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangeClassNameToNotMatchDestructor()
         {
-            var text = "class foo { ~foo() { } }";
+            var text = "class goo { ~goo() { } }";
             var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("foo", "bar");
+            var newTree = oldTree.WithReplaceFirst("goo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
@@ -122,9 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangeClassNameToMatchDestructor()
         {
-            var text = "class foo { ~bar() { } }";
+            var text = "class goo { ~bar() { } }";
             var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("foo", "bar");
+            var newTree = oldTree.WithReplaceFirst("goo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
@@ -140,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var interfaceKeyword = SyntaxFactory.ParseToken("interface"); // prime the memoizer
 
-            var text = "class foo { public void m() { } }";
+            var text = "class goo { public void m() { } }";
             var oldTree = this.Parse(text);
             var newTree = oldTree.WithReplaceFirst("class", "interface");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
@@ -158,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var interfaceKeyword = SyntaxFactory.ParseToken("struct"); // prime the memoizer
 
-            var text = "class foo { public void m() { } }";
+            var text = "class goo { public void m() { } }";
             var oldTree = this.Parse(text);
             var newTree = oldTree.WithReplaceFirst("class", "struct");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
@@ -174,9 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangeMethodName()
         {
-            var text = "class c { void foo(a x, b y) { } }";
+            var text = "class c { void goo(a x, b y) { } }";
             var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("foo", "bar");
+            var newTree = oldTree.WithReplaceFirst("goo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
@@ -193,12 +192,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestChangeIfCondition()
         {
             var text = @"
-#if FOO
-class foo { void M() { } }
+#if GOO
+class goo { void M() { } }
 #endif
 ";
-            var oldTree = this.Parse(text, "FOO", "BAR");
-            var newTree = oldTree.WithReplaceFirst("FOO", "BAR");
+            var oldTree = this.Parse(text, "GOO", "BAR");
+            var newTree = oldTree.WithReplaceFirst("GOO", "BAR");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
@@ -214,13 +213,13 @@ class foo { void M() { } }
         public void TestChangeDefine()
         {
             var text = @"
-#define FOO
-#if FOO||BAR
-class foo { void M() { } }
+#define GOO
+#if GOO||BAR
+class goo { void M() { } }
 #endif
 ";
             var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("FOO", "BAR");
+            var newTree = oldTree.WithReplaceFirst("GOO", "BAR");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
@@ -236,15 +235,15 @@ class foo { void M() { } }
         public void TestChangeDefineAndIfElse()
         {
             var text = @"
-#define FOO
-#if FOO
+#define GOO
+#if GOO
 class C { void M() { } }
 #else
 class C { void N() { } }
 #endif
 ";
             var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("FOO", "BAR");
+            var newTree = oldTree.WithReplaceFirst("GOO", "BAR");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
@@ -735,7 +734,7 @@ class Test {
         public void ErrorWithInvalidMethodName()
         {
             SourceText oldText = SourceText.From(@"public class MyClass {	
-	int -foo(");
+	int -goo(");
             char newCharacter = ')';
             SyntaxTree incrementalTree, parsedTree;
             CharByCharIncrementalParse(oldText, newCharacter, out incrementalTree, out parsedTree);
@@ -763,7 +762,7 @@ public class Test
             SourceText startingText = SourceText.From(@"
 public class Test
 {
-    void Foo() {} // Point
+    void Goo() {} // Point
 }");
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(startingText);
@@ -784,7 +783,7 @@ public class Test
             SourceText startingText = SourceText.From(@"
 public class Test
 {
-    void Foo() {} // Point
+    void Goo() {} // Point
 }");
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(startingText);
@@ -803,7 +802,7 @@ public class Test
             SourceText startingText = SourceText.From(@"
 public class Test
 {
-    void Foo() {} // Point
+    void Goo() {} // Point
 }");
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(startingText);
@@ -888,7 +887,7 @@ private class B{ private class MyClass
         [Fact]
         public void CommentOutEventKeyword()
         {
-            SourceText oldText = SourceText.From(@"interface IFoo
+            SourceText oldText = SourceText.From(@"interface IGoo
 {
 	event EventHandler E { add { } remove { } }
 }
@@ -912,7 +911,7 @@ class Test
         [Fact]
         public void CommentOutEventAccessor()
         {
-            SourceText oldText = SourceText.From(@"interface IFoo
+            SourceText oldText = SourceText.From(@"interface IGoo
 {
 	event EventHandler E { add { } remove { } }
 }
@@ -1005,7 +1004,7 @@ class A
         public void AddSemicolonInForLoop()
         {
             SourceText oldText = SourceText.From(@"public class MyClass {
-    void foo()
+    void goo()
     {
         for (int i = 0
     }
@@ -1437,7 +1436,7 @@ class Test
             SourceText oldText = SourceText.From(
 @"public static class Extensions
 {
-    public static this Foo(int i, this string str)");
+    public static this Goo(int i, this string str)");
 
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
@@ -1538,11 +1537,11 @@ namespace N");
         public void TrailingCommentFollowingAttributesInsideMethod()
         {
             SourceText oldText = SourceText.From(
-@"public class foo 
+@"public class goo 
 {
-  public static int Foo
+  public static int Goo
   {
-    [method:A][foo:A]/");
+    [method:A][goo:A]/");
 
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
@@ -1578,7 +1577,7 @@ namespace N");
         public void AssertForAttributeWithGenericType()
         {
             SourceText oldText = SourceText.From(
-@"[Foo<i");
+@"[Goo<i");
 
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
@@ -1672,7 +1671,7 @@ namespace N");
             SourceText oldText = SourceText.From(
 @"Test
 {
-    static int Foo()
+    static int Goo()
     {
         Dele f = delegate(params int[] a) { return 1;};
     }
@@ -1922,7 +1921,7 @@ namespace N");
             SourceText oldText = SourceText.From(
 @"class Test
 {
-    static int Foo()
+    static int Goo()
     {
 
         Dele f = delegate(params int[] a) { return 1;};
@@ -2274,7 +2273,7 @@ namespace N");
             SourceText oldText = SourceText.From(
 @"public static class Extensions
 {
-    public static int Foo2(this int x ) { set { var1 = value; } }
+    public static int Goo2(this int x ) { set { var1 = value; } }
 }");
 
             string txtToCmnt = @"(this int x )";
@@ -2381,7 +2380,7 @@ newText.ToString());
             startTree.GetDiagnostics().Verify();
 
             var newText = oldText.WithInsertAt(
-                oldText.Length, 
+                oldText.Length,
                 @"System.Console.WriteLine(false)
 ");
 
@@ -2461,7 +2460,7 @@ class Program
 
             var text2 = @"        Console.WriteLine(""\'\0\a\b\";
 
-            var comp = CSharpTestBase.CreateStandardCompilation(SyntaxFactory.ParseSyntaxTree(String.Empty));
+            var comp = CSharpTestBase.CreateCompilation(SyntaxFactory.ParseSyntaxTree(String.Empty));
 
             var oldTree = comp.SyntaxTrees.First();
             var oldIText = oldTree.GetText();
@@ -2686,7 +2685,7 @@ class D { }
         {
             var interfaceKeyword = SyntaxFactory.ParseToken("interface"); // prime the memoizer
 
-            var text = @"class foo { public void m() { string s = $""{1} world"" ; } }";
+            var text = @"class goo { public void m() { string s = $""{1} world"" ; } }";
             var oldTree = this.Parse6(text);
             var newTree = oldTree.WithReplaceFirst(@"world"" ", @"world""  ");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
@@ -2694,7 +2693,7 @@ class D { }
         }
 
         [Fact]
-        public void Foo()
+        public void Goo()
         {
             var oldText = SourceText.From(@"
 using System;
@@ -2754,6 +2753,349 @@ class G: Program
             WalkTreeAndVerify(newTree.GetCompilationUnitRoot(), SyntaxFactory.ParseSyntaxTree(newText).GetCompilationUnitRoot());
         }
 
+        [WorkItem(23272, "https://github.com/dotnet/roslyn/issues/23272")]
+        [Fact]
+        public void AddAccessibilityToNullableArray()
+        {
+            var source =
+@"class A { }
+class B
+{
+    A[]? F;
+}";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf(" A[]?"), 0);
+            var change = new TextChange(span, "p");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        [WorkItem(37663, "https://github.com/dotnet/roslyn/issues/37663")]
+        public void AssemblyAttributeBeforeNamespace()
+        {
+            var src = @"
+using System;
+using System.Linq;
+
+[assembly:]
+namespace N
+{ }";
+            var tree = SyntaxFactory.ParseSyntaxTree(src);
+            var text = tree.GetText();
+            var span = new TextSpan(src.IndexOf(":"), 1);
+            var change = new TextChange(span, "");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [WorkItem(37665, "https://github.com/dotnet/roslyn/issues/37665")]
+        [Fact]
+        public void AddBracketInUsingDirective()
+        {
+            var source =
+@"using System;
+namespace NS
+{
+    class A { }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf(";"), 0);
+            var change = new TextChange(span, "[");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [WorkItem(37665, "https://github.com/dotnet/roslyn/issues/37665")]
+        [Fact]
+        public void AddAttributeAfterUsingDirective()
+        {
+            var source =
+@"using System;
+namespace NS
+{
+    class A { }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf(";") + 1, 0);
+            var change = new TextChange(span, "[Obsolete]");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [WorkItem(37665, "https://github.com/dotnet/roslyn/issues/37665")]
+        [Fact]
+        public void AddTrailingModifierInUsingDirective()
+        {
+            var source =
+@"using System;
+namespace NS
+{
+    class A { }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf(";") + 1, 0);
+            var change = new TextChange(span, "public");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [WorkItem(37665, "https://github.com/dotnet/roslyn/issues/37665")]
+        [Fact]
+        public void AddTrailingModifierInUsingDirective_2()
+        {
+            var source =
+@"using System;publi
+namespace NS
+{
+    class A { }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = "publi";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, "c");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void Statement_EditAttributeList_01()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        [Attr]
+        void local1() { };
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = "Attr";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, "1, Attr2");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void Statement_EditAttributeList_02()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        [Attr1]
+        Method1();
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = @"Attr1";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, ", Attr2");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void Statement_AddAttributeList()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        [Attr1]
+        void local1() { };
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = @"[Attr1]";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, " [Attr2]");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void EditStatementWithAttributes_01()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        [Attr1]
+        void local1() { Method(); };
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = @"Method(";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, "Arg");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void EditStatementWithAttributes_02()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        [Attr1]
+        Method1();
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = @"Method";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 1);
+            var change = new TextChange(span, "2");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void EditGlobalStatementWithAttributes_01()
+        {
+            var source = @"
+[Attr]
+x.y();
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = @"x.y";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, ".z");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void EditGlobalStatementWithAttributes_02()
+        {
+            var source = @"
+[Attr]
+if (b) { }
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = @"if (b) { }";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, " if (c) { }");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void EditGlobalStatementWithAttributes_03()
+        {
+            var source = @"
+[Attr]
+if (b) { }
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = @"if (b) { }";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, " else (c) { }");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void EditNestedStatementWithAttributes_01()
+        {
+            var source = "{ [Goo]Goo(); [Goo]Goo(); [Goo]Goo(); }";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(start: 0, length: 1); // delete first character
+            var change = new TextChange(span, "");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void EditNestedStatementWithAttributes_02()
+        {
+            var source = "{ [Goo]Goo(); [Goo]Goo(); [Goo]Goo(); }";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(start: 0, length: 0);
+            var change = new TextChange(span, "{ ");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void EditNestedStatementWithAttributes_03()
+        {
+            var source = "class C { void M() { Goo[Goo] [Goo]if(Goo) { } } }";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = "Goo[Goo]";
+            var span = new TextSpan(start: source.IndexOf(substring), length: 3); // Goo[Goo] -> [Goo]
+            var change = new TextChange(span, "");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
         #endregion
 
         #region Helper functions
@@ -2799,7 +3141,7 @@ class G: Program
             Assert.Equal(pd.Count(), id.Count());
             for (int i = 0; i < id.Count(); i++)
             {
-                Assert.Equal(pd.ElementAt(i).Stringize(), id.ElementAt(i).Stringize());
+                Assert.Equal(pd.ElementAt(i).Inspect(), id.ElementAt(i).Inspect());
             }
 
             ParentChecker.CheckParents(parsedTree.GetCompilationUnitRoot(), parsedTree);

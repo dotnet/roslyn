@@ -1,30 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace BuildBoss
 {
     internal sealed class ProjectData
     {
-        internal ProjectKey Key { get; }
         internal string FilePath { get; }
-        internal XDocument Document { get; }
         internal ProjectUtil ProjectUtil { get; }
 
+        internal XDocument Document => ProjectUtil.Document;
+        internal ProjectKey Key => ProjectUtil.Key;
         internal string FileName => Path.GetFileName(FilePath);
         internal string Directory => Path.GetDirectoryName(FilePath);
         internal ProjectFileType ProjectFileType => ProjectEntryUtil.GetProjectFileType(FilePath);
 
+        internal bool IsTestProject => IsUnitTestProject || IsIntegrationTestProject;
+        internal bool IsUnitTestProject => Path.GetFileNameWithoutExtension(FilePath).EndsWith(".UnitTests");
+        internal bool IsIntegrationTestProject => Path.GetFileNameWithoutExtension(FilePath).EndsWith(".IntegrationTests");
+
         internal ProjectData(string filePath)
         {
-            Key = new ProjectKey(filePath);
-            FilePath = Key.FilePath;
-            Document = XDocument.Load(FilePath);
-            ProjectUtil = new ProjectUtil(Key, Document);
+            FilePath = filePath;
+            ProjectUtil = new ProjectUtil(FilePath);
         }
     }
 }

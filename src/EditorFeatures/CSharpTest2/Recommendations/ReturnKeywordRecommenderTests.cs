@@ -1,8 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -44,7 +45,42 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestIncompleteStatementAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestStatementAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$Attr]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestLocalFunctionAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$Attr] void local1() { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInLocalFunctionParameterAttributeList()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"void local1([$$Attr] int i) { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInLocalFunctionTypeParameterAttributeList()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"void local1<[$$Attr] T>() { }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -52,6 +88,19 @@ $$");
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAwait()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    async void M()
+    {
+        await $$
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -115,7 +164,7 @@ $$"));
         {
             await VerifyKeywordAsync(
 @"class C {
-    [Foo]
+    [Goo]
     [$$");
         }
 
@@ -124,7 +173,7 @@ $$"));
         {
             await VerifyKeywordAsync(
 @"class C {
-    void Foo() {
+    void Goo() {
     }
     [$$");
         }
@@ -134,7 +183,7 @@ $$"));
         {
             await VerifyKeywordAsync(
 @"class C {
-    int Foo {
+    int Goo {
         get;
     }
     [$$");
@@ -145,7 +194,7 @@ $$"));
         {
             await VerifyKeywordAsync(
 @"class C {
-    int Foo;
+    int Goo;
     [$$");
         }
 
@@ -154,7 +203,7 @@ $$"));
         {
             await VerifyKeywordAsync(
 @"class C {
-    event Action<int> Foo;
+    event Action<int> Goo;
     [$$");
         }
 
@@ -177,7 +226,7 @@ $$"));
         {
             await VerifyAbsenceAsync(
 @"class C {
-    void Foo([$$");
+    void Goo([$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -185,7 +234,7 @@ $$"));
         {
             await VerifyAbsenceAsync(
 @"class C {
-    int Foo { [$$");
+    int Goo { [$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -193,7 +242,7 @@ $$"));
         {
             await VerifyAbsenceAsync(
 @"class C {
-    event Action<int> Foo { [$$");
+    event Action<int> Goo { [$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -246,7 +295,7 @@ $$"));
         public async Task TestAfterElse()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"if (foo) {
+@"if (goo) {
 } else $$"));
         }
 
@@ -254,7 +303,7 @@ $$"));
         public async Task TestAfterElseClause()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"if (foo) {
+@"if (goo) {
 } else {
 }
 $$"));
@@ -273,7 +322,7 @@ $$"));
         public async Task TestAfterSwitch()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"switch (foo) {
+@"switch (goo) {
 }
 $$"));
         }

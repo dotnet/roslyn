@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
@@ -10,9 +12,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         None = 0,
 
         /// <summary>
-        /// The statement is in a leaf frame.
+        /// At least one of the threads whom this active statement belongs to is in a leaf frame.
         /// </summary>
-        LeafFrame = 1,
+        IsLeafFrame = 1,
 
         /// <summary>
         /// The statement is partially executed.
@@ -30,5 +32,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// The statement IL is not in user code.
         /// </summary>
         NonUserCode = 4,
+
+        /// <summary>
+        /// Indicates that the active statement instruction belongs to the latest version of the containing method.
+        /// If not set, the containing method was updated but the active statement was not remapped yet because the thread 
+        /// has not returned to that instruction yet and was not remapped to the new version.
+        /// </summary>
+        /// <remarks>
+        /// When the debugger asks the CLR for the active statement information it compares ICorDebugFunction.GetVersionNumber()
+        /// and ICorDebugFunction.GetCurrentVersionNumber() to determine the value of this flag.
+        /// </remarks>
+        MethodUpToDate = 8,
+
+        /// <summary>
+        /// At least one of the threads whom this active statement belongs to is in a non-leaf frame.
+        /// </summary>
+        IsNonLeafFrame = 16,
     }
 }

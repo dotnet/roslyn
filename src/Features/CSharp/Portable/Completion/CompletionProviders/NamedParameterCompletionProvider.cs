@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,10 +18,17 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using System;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class NamedParameterCompletionProvider : CommonCompletionProvider, IEqualityComparer<IParameterSymbol>
+    [ExportCompletionProvider(nameof(NamedParameterCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(AttributeNamedParameterCompletionProvider))]
+    [Shared]
+    internal partial class NamedParameterCompletionProvider : LSPCompletionProvider, IEqualityComparer<IParameterSymbol>
     {
         private const string ColonString = ":";
 
@@ -28,79 +37,95 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Default
             .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public NamedParameterCompletionProvider()
         {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
+
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var cancellationToken = context.CancellationToken;
-
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            if (syntaxTree.IsInNonUserCode(position, cancellationToken))
+            try
             {
-                return;
+                var document = context.Document;
+                var position = context.Position;
+                var cancellationToken = context.CancellationToken;
+
+                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                if (syntaxTree.IsInNonUserCode(position, cancellationToken))
+                {
+                    return;
+                }
+
+                var token = syntaxTree
+                    .FindTokenOnLeftOfPosition(position, cancellationToken)
+                    .GetPreviousTokenIfTouchingWord(position);
+
+                if (!token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.OpenBracketToken, SyntaxKind.CommaToken))
+                {
+                    return;
+                }
+
+                if (!(token.Parent is BaseArgumentListSyntax argumentList))
+                {
+                    return;
+                }
+
+                var semanticModel = await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(false);
+                var parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken);
+                if (parameterLists == null)
+                {
+                    return;
+                }
+
+                var existingNamedParameters = GetExistingNamedParameters(argumentList, position);
+                parameterLists = parameterLists.Where(pl => IsValid(pl, existingNamedParameters));
+
+                var unspecifiedParameters = parameterLists.SelectMany(pl => pl)
+                                                          .Where(p => !existingNamedParameters.Contains(p.Name))
+                                                          .Distinct(this);
+
+                if (!unspecifiedParameters.Any())
+                {
+                    return;
+                }
+
+                // Consider refining this logic to mandate completion with an argument name, if preceded by an out-of-position name
+                // See https://github.com/dotnet/roslyn/issues/20657
+                var languageVersion = ((CSharpParseOptions)document.Project.ParseOptions).LanguageVersion;
+                if (languageVersion < LanguageVersion.CSharp7_2 && token.IsMandatoryNamedParameterPosition())
+                {
+                    context.IsExclusive = true;
+                }
+
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                var workspace = document.Project.Solution.Workspace;
+
+                foreach (var parameter in unspecifiedParameters)
+                {
+                    // Note: the filter text does not include the ':'.  We want to ensure that if 
+                    // the user types the name exactly (up to the colon) that it is selected as an
+                    // exact match.
+                    var escapedName = parameter.Name.ToIdentifierToken().ToString();
+
+                    context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
+                        displayText: escapedName,
+                        displayTextSuffix: ColonString,
+                        symbols: ImmutableArray.Create(parameter),
+                        rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
+                        contextPosition: token.SpanStart,
+                        filterText: escapedName));
+                }
             }
-
-            var token = syntaxTree
-                .FindTokenOnLeftOfPosition(position, cancellationToken)
-                .GetPreviousTokenIfTouchingWord(position);
-
-            if (!token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.OpenBracketToken, SyntaxKind.CommaToken))
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                return;
-            }
-
-            var argumentList = token.Parent as BaseArgumentListSyntax;
-            if (argumentList == null)
-            {
-                return;
-            }
-
-            var semanticModel = await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(false);
-            var parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken);
-            if (parameterLists == null)
-            {
-                return;
-            }
-
-            var existingNamedParameters = GetExistingNamedParameters(argumentList, position);
-            parameterLists = parameterLists.Where(pl => IsValid(pl, existingNamedParameters));
-
-            var unspecifiedParameters = parameterLists.SelectMany(pl => pl)
-                                                      .Where(p => !existingNamedParameters.Contains(p.Name))
-                                                      .Distinct(this);
-
-            if (!unspecifiedParameters.Any())
-            {
-                return;
-            }
-
-            if (token.IsMandatoryNamedParameterPosition())
-            {
-                context.IsExclusive = true;
-            }
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            var workspace = document.Project.Solution.Workspace;
-
-            foreach (var parameter in unspecifiedParameters)
-            {
-                // Note: the filter text does not include the ':'.  We want to ensure that if 
-                // the user types the name exactly (up to the colon) that it is selected as an
-                // exact match.
-                var escapedName = parameter.Name.ToIdentifierToken().ToString();
-
-                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                    displayText: escapedName + ColonString,
-                    symbols: ImmutableArray.Create(parameter),
-                    rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
-                    contextPosition: token.SpanStart,
-                    filterText: escapedName));
+                // nop
             }
         }
 
@@ -133,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 case InvocationExpressionSyntax invocationExpression: return GetInvocationExpressionParameterLists(semanticModel, position, invocationExpression, cancellationToken);
                 case ConstructorInitializerSyntax constructorInitializer: return GetConstructorInitializerParameterLists(semanticModel, position, constructorInitializer, cancellationToken);
                 case ElementAccessExpressionSyntax elementAccessExpression: return GetElementAccessExpressionParameterLists(semanticModel, position, elementAccessExpression, cancellationToken);
-                case ObjectCreationExpressionSyntax objectCreationExpression: return GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken);
+                case BaseObjectCreationExpressionSyntax objectCreationExpression: return GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken);
                 default: return null;
             }
         }
@@ -141,12 +166,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private IEnumerable<ImmutableArray<IParameterSymbol>> GetObjectCreationExpressionParameterLists(
             SemanticModel semanticModel,
             int position,
-            ObjectCreationExpressionSyntax objectCreationExpression,
+            BaseObjectCreationExpressionSyntax objectCreationExpression,
             CancellationToken cancellationToken)
         {
-            var type = semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type as INamedTypeSymbol;
             var within = semanticModel.GetEnclosingNamedType(position, cancellationToken);
-            if (type != null && within != null && type.TypeKind != TypeKind.Delegate)
+            if (semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type is INamedTypeSymbol type && within != null && type.TypeKind != TypeKind.Delegate)
             {
                 return type.InstanceConstructors.Where(c => c.IsAccessibleWithin(within))
                                                 .Select(c => c.Parameters);
@@ -170,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
                 if (within != null)
                 {
-                    return indexers.Where(i => i.IsAccessibleWithin(within, throughTypeOpt: expressionType))
+                    return indexers.Where(i => i.IsAccessibleWithin(within, throughType: expressionType))
                                    .Select(i => i.Parameters);
                 }
             }
@@ -230,20 +254,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         bool IEqualityComparer<IParameterSymbol>.Equals(IParameterSymbol x, IParameterSymbol y)
-        {
-            return x.Name.Equals(y.Name);
-        }
+            => x.Name.Equals(y.Name);
 
         int IEqualityComparer<IParameterSymbol>.GetHashCode(IParameterSymbol obj)
-        {
-            return obj.Name.GetHashCode();
-        }
+            => obj.Name.GetHashCode();
 
         protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,
-                selectedItem.DisplayText.Substring(0, selectedItem.DisplayText.Length - ColonString.Length)));
+                // Insert extra colon if committing with '(' only: "method(parameter:(" is preferred to "method(parameter(".
+                // In all other cases, do not add extra colon. Note that colon is already added if committing with ':'.
+                ch == '(' ? selectedItem.GetEntireDisplayText() : selectedItem.DisplayText));
         }
     }
 }

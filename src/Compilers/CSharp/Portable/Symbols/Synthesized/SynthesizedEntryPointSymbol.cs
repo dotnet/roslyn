@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -26,32 +28,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = containingType.DeclaringCompilation;
             if (compilation.IsSubmission)
             {
-                var submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object));
+                var systemObject = Binder.GetSpecialType(compilation, SpecialType.System_Object, DummySyntax(), diagnostics);
+                var submissionArrayType = compilation.CreateArrayTypeSymbol(systemObject);
                 ReportUseSiteDiagnostics(submissionArrayType, diagnostics);
                 return new SubmissionEntryPoint(
                     containingType,
-                    initializerMethod.ReturnType,
+                    initializerMethod.ReturnTypeWithAnnotations,
                     submissionArrayType);
             }
             else
             {
-                var taskType = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
-#if DEBUG
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Debug.Assert(taskType.IsErrorType() || initializerMethod.ReturnType.IsDerivedFrom(taskType, TypeCompareKind.IgnoreDynamicAndTupleNames, useSiteDiagnostics: ref useSiteDiagnostics));
-#endif
-                ReportUseSiteDiagnostics(taskType, diagnostics);
-                var getAwaiterMethod = taskType.IsErrorType() ?
-                    null :
-                    GetRequiredMethod(taskType, WellKnownMemberNames.GetAwaiter, diagnostics);
-                var getResultMethod = ((object)getAwaiterMethod == null) ?
-                    null :
-                    GetRequiredMethod(getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, diagnostics);
-                return new ScriptEntryPoint(
-                    containingType,
-                    compilation.GetSpecialType(SpecialType.System_Void),
-                    getAwaiterMethod,
-                    getResultMethod);
+                var systemVoid = Binder.GetSpecialType(compilation, SpecialType.System_Void, DummySyntax(), diagnostics);
+                return new ScriptEntryPoint(containingType, TypeWithAnnotations.Create(systemVoid));
             }
         }
 
@@ -67,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal abstract BoundBlock CreateBody();
+        internal abstract BoundBlock CreateBody(DiagnosticBag diagnostics);
 
         public override Symbol ContainingSymbol
         {
@@ -122,14 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return RefKind.None; }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -137,9 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            get { return ImmutableArray<TypeSymbol>.Empty; }
+            get { return ImmutableArray<TypeWithAnnotations>.Empty; }
         }
 
         public override Symbol AssociatedSymbol
@@ -154,8 +137,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return ReturnType.IsVoidType(); }
         }
+
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override MethodKind MethodKind
         {
@@ -227,6 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<MethodSymbol>.Empty; }
         }
 
+        internal sealed override bool IsDeclaredReadOnly => false;
+
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
@@ -253,6 +244,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override DllImportData GetDllImportData()
         {
             return null;
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get { return ContainingType.AreLocalsZeroed; }
         }
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
@@ -295,16 +291,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static MethodSymbol GetRequiredMethod(TypeSymbol type, string methodName, DiagnosticBag diagnostics)
-        {
-            var method = type.GetMembers(methodName).SingleOrDefault() as MethodSymbol;
-            if ((object)method == null)
-            {
-                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, NoLocation.Singleton, type, methodName);
-            }
-            return method;
-        }
-
         private static BoundCall CreateParameterlessCall(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method)
         {
             return new BoundCall(
@@ -327,12 +313,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {
-            /// <summary> The user-defined asynchronous main method. </summary>
+            /// <summary> The syntax for the user-defined asynchronous main method. </summary>
             private readonly CSharpSyntaxNode _userMainReturnTypeSyntax;
 
             private readonly BoundExpression _getAwaiterGetResultCall;
 
             private readonly ImmutableArray<ParameterSymbol> _parameters;
+
+            /// <summary> The user-defined asynchronous main method. </summary>
+            internal readonly MethodSymbol UserMain;
 
             internal AsyncForwardEntryPoint(CSharpCompilation compilation, NamedTypeSymbol containingType, MethodSymbol userMain) :
                 base(containingType)
@@ -341,6 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // parameter checks for determining entrypoint validity.
                 Debug.Assert(userMain.ParameterCount == 0 || userMain.ParameterCount == 1);
 
+                UserMain = userMain;
                 _userMainReturnTypeSyntax = userMain.ExtractReturnTypeSyntax();
                 var binder = compilation.GetBinder(_userMainReturnTypeSyntax);
                 _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
@@ -366,21 +356,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // The diagnostics that would be produced here will already have been captured and returned.
                 var droppedBag = DiagnosticBag.GetInstance();
-                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _, out _, out _, out _getAwaiterGetResultCall, _userMainReturnTypeSyntax, droppedBag);
+                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _getAwaiterGetResultCall!, _userMainReturnTypeSyntax, droppedBag);
                 droppedBag.Free();
 
                 Debug.Assert(
-                    ReturnType.SpecialType == SpecialType.System_Void ||
+                    ReturnType.IsVoidType() ||
                     ReturnType.SpecialType == SpecialType.System_Int32);
+            }
+
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            {
+                base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+                AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.SynthesizeDebuggerStepThroughAttribute());
             }
 
             public override string Name => MainName;
 
             public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
 
-            public override TypeSymbol ReturnType => _getAwaiterGetResultCall.Type;
+            public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(_getAwaiterGetResultCall.Type);
 
-            internal override BoundBlock CreateBody()
+            internal override BoundBlock CreateBody(DiagnosticBag diagnostics)
             {
                 var syntax = _userMainReturnTypeSyntax;
 
@@ -426,18 +423,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class ScriptEntryPoint : SynthesizedEntryPointSymbol
         {
-            private readonly MethodSymbol _getAwaiterMethod;
-            private readonly MethodSymbol _getResultMethod;
-            private readonly TypeSymbol _returnType;
+            private readonly TypeWithAnnotations _returnType;
 
-            internal ScriptEntryPoint(NamedTypeSymbol containingType, TypeSymbol returnType, MethodSymbol getAwaiterMethod, MethodSymbol getResultMethod) :
+            internal ScriptEntryPoint(NamedTypeSymbol containingType, TypeWithAnnotations returnType) :
                 base(containingType)
             {
                 Debug.Assert(containingType.IsScriptClass);
-                Debug.Assert(returnType.SpecialType == SpecialType.System_Void);
-
-                _getAwaiterMethod = getAwaiterMethod;
-                _getResultMethod = getResultMethod;
+                Debug.Assert(returnType.IsVoidType());
                 _returnType = returnType;
             }
 
@@ -445,20 +437,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
 
-            public override TypeSymbol ReturnType => _returnType;
+            public override TypeWithAnnotations ReturnTypeWithAnnotations => _returnType;
 
             // private static void <Main>()
             // {
             //     var script = new Script();
             //     script.<Initialize>().GetAwaiter().GetResult();
             // }
-            internal override BoundBlock CreateBody()
+            internal override BoundBlock CreateBody(DiagnosticBag diagnostics)
             {
-                // CreateBody should only be called if no errors.
-                Debug.Assert((object)_getAwaiterMethod != null);
-                Debug.Assert((object)_getResultMethod != null);
-
                 var syntax = DummySyntax();
+                var compilation = _containingType.DeclaringCompilation;
+
+                // Creates a new top-level binder that just contains the global imports for the compilation.
+                // The imports are required if a consumer of the scripting API is using a Task implementation 
+                // that uses extension methods.
+                var binder = new InContainerBinder(
+                    container: null,
+                    next: new BuckStopsHereBinder(compilation),
+                    imports: compilation.GlobalImports);
+                binder = new InContainerBinder(compilation.GlobalNamespace, binder);
 
                 var ctor = _containingType.GetScriptConstructor();
                 Debug.Assert(ctor.ParameterCount == 0);
@@ -468,10 +466,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var scriptLocal = new BoundLocal(
                     syntax,
-                    new SynthesizedLocal(this, _containingType, SynthesizedLocalKind.LoweringTemp),
+                    new SynthesizedLocal(this, TypeWithAnnotations.Create(_containingType), SynthesizedLocalKind.LoweringTemp),
                     null,
                     _containingType)
                 { WasCompilerGenerated = true };
+
+                Debug.Assert(!initializer.ReturnType.IsDynamic());
+                var initializeCall = CreateParameterlessCall(syntax, scriptLocal, initializer);
+                BoundExpression getAwaiterGetResultCall;
+                if (!binder.GetAwaitableExpressionInfo(initializeCall, out getAwaiterGetResultCall, syntax, diagnostics))
+                {
+                    return new BoundBlock(
+                        syntax: syntax,
+                        locals: ImmutableArray<LocalSymbol>.Empty,
+                        statements: ImmutableArray<BoundStatement>.Empty,
+                        hasErrors: true);
+                }
 
                 return new BoundBlock(syntax,
                     ImmutableArray.Create<LocalSymbol>(scriptLocal.LocalSymbol),
@@ -491,19 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             { WasCompilerGenerated = true })
                         { WasCompilerGenerated = true },
                         // script.<Initialize>().GetAwaiter().GetResult();
-                        new BoundExpressionStatement(
-                            syntax,
-                            CreateParameterlessCall(
-                                syntax,
-                                CreateParameterlessCall(
-                                    syntax,
-                                    CreateParameterlessCall(
-                                        syntax,
-                                        scriptLocal,
-                                        initializer),
-                                    _getAwaiterMethod),
-                                _getResultMethod))
-                        { WasCompilerGenerated = true },
+                        new BoundExpressionStatement(syntax, getAwaiterGetResultCall) { WasCompilerGenerated = true },
                         // return;
                         new BoundReturnStatement(
                             syntax,
@@ -517,14 +515,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class SubmissionEntryPoint : SynthesizedEntryPointSymbol
         {
             private readonly ImmutableArray<ParameterSymbol> _parameters;
-            private readonly TypeSymbol _returnType;
+            private readonly TypeWithAnnotations _returnType;
 
-            internal SubmissionEntryPoint(NamedTypeSymbol containingType, TypeSymbol returnType, TypeSymbol submissionArrayType) :
+            internal SubmissionEntryPoint(NamedTypeSymbol containingType, TypeWithAnnotations returnType, TypeSymbol submissionArrayType) :
                 base(containingType)
             {
                 Debug.Assert(containingType.IsSubmissionClass);
-                Debug.Assert(returnType.SpecialType != SpecialType.System_Void);
-                _parameters = ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, submissionArrayType, 0, RefKind.None, "submissionArray"));
+                Debug.Assert(!returnType.IsVoidType());
+                _parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(this,
+                    TypeWithAnnotations.Create(submissionArrayType), 0, RefKind.None, "submissionArray"));
+
                 _returnType = returnType;
             }
 
@@ -538,14 +538,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return _parameters; }
             }
 
-            public override TypeSymbol ReturnType => _returnType;
+            public override TypeWithAnnotations ReturnTypeWithAnnotations => _returnType;
 
             // private static T <Factory>(object[] submissionArray) 
             // {
             //     var submission = new Submission#N(submissionArray);
             //     return submission.<Initialize>();
             // }
-            internal override BoundBlock CreateBody()
+            internal override BoundBlock CreateBody(DiagnosticBag diagnostics)
             {
                 var syntax = DummySyntax();
 
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var submissionArrayParameter = new BoundParameter(syntax, _parameters[0]) { WasCompilerGenerated = true };
                 var submissionLocal = new BoundLocal(
                     syntax,
-                    new SynthesizedLocal(this, _containingType, SynthesizedLocalKind.LoweringTemp),
+                    new SynthesizedLocal(this, TypeWithAnnotations.Create(_containingType), SynthesizedLocalKind.LoweringTemp),
                     null,
                     _containingType)
                 { WasCompilerGenerated = true };
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax,
                     submissionLocal,
                     initializer);
-                Debug.Assert(initializeResult.Type == _returnType);
+                Debug.Assert(TypeSymbol.Equals(initializeResult.Type, _returnType.Type, TypeCompareKind.ConsiderEverything2));
                 var returnStatement = new BoundReturnStatement(
                     syntax,
                     RefKind.None,

@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable enable
+
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -10,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationEventSymbol : CodeGenerationSymbol, IEventSymbol
     {
         public ITypeSymbol Type { get; }
+        public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
 
         public ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations { get; }
 
@@ -23,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol type,
-            IEventSymbol explicitInterfaceSymbolOpt,
+            ImmutableArray<IEventSymbol> explicitInterfaceImplementations,
             string name,
             IMethodSymbol addMethod,
             IMethodSymbol removeMethod,
@@ -31,9 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             : base(containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
-            this.ExplicitInterfaceImplementations = explicitInterfaceSymbolOpt == null
-                ? ImmutableArray.Create<IEventSymbol>()
-                : ImmutableArray.Create(explicitInterfaceSymbolOpt);
+            this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
             this.AddMethod = addMethod;
             this.RemoveMethod = removeMethod;
             this.RaiseMethod = raiseMethod;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             return new CodeGenerationEventSymbol(
                 this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
-                this.Modifiers, this.Type, this.ExplicitInterfaceImplementations.FirstOrDefault(),
+                this.Modifiers, this.Type, this.ExplicitInterfaceImplementations,
                 this.Name, this.AddMethod, this.RemoveMethod, this.RaiseMethod);
         }
 
@@ -52,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override void Accept(SymbolVisitor visitor)
             => visitor.VisitEvent(this);
 
+        [return: MaybeNull]
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitEvent(this);
 
@@ -59,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsWindowsRuntimeEvent => false;
 
-        public IEventSymbol OverriddenEvent => null;
+        public IEventSymbol? OverriddenEvent => null;
 
         public ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray.Create<CustomModifier>();
     }

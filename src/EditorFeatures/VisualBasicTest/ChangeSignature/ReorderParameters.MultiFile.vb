@@ -1,7 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
@@ -14,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
                                 <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
                                     <Document FilePath="VBDocument">
 Public Class Test
-    Public Sub $$Foo(x as Integer, y as Integer)
+    Public Sub $$Goo(x as Integer, y as Integer)
     End Sub
 End Class</Document>
                                 </Project>
@@ -25,17 +28,17 @@ class C
 {
     void M()
     {
-        new Test().Foo(1, 2);
+        new Test().Goo(1, 2);
     }
 }</Document>
                                 </Project>
                             </Workspace>
 
-            Dim permutation = {1, 0}
+            Dim permutation = {New AddedParameterOrExistingIndex(1), New AddedParameterOrExistingIndex(0)}
 
             Dim expectedVBCode = <Text><![CDATA[
 Public Class Test
-    Public Sub Foo(y as Integer, x as Integer)
+    Public Sub Goo(y as Integer, x as Integer)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -44,13 +47,12 @@ class C
 {
     void M()
     {
-        new Test().Foo(2, 1);
+        new Test().Goo(2, 1);
     }
 }]]></Text>.NormalizedValue()
 
             Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
-                testState.TestChangeSignatureOptionsService.IsCancelled = False
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
                 Dim result = testState.ChangeSignature()
 
@@ -68,7 +70,7 @@ class C
                                 <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
                                     <Document FilePath="VBDocument">
 Public Class Test
-    Public Sub Foo(x as Integer, y as Integer)
+    Public Sub Goo(x as Integer, y as Integer)
     End Sub
 End Class</Document>
                                 </Project>
@@ -79,17 +81,17 @@ class C
 {
     void M()
     {
-        new Test().Foo$$(1, 2);
+        new Test().Goo$$(1, 2);
     }
 }</Document>
                                 </Project>
                             </Workspace>
 
-            Dim permutation = {1, 0}
+            Dim permutation = {New AddedParameterOrExistingIndex(1), New AddedParameterOrExistingIndex(0)}
 
             Dim expectedVBCode = <Text><![CDATA[
 Public Class Test
-    Public Sub Foo(y as Integer, x as Integer)
+    Public Sub Goo(y as Integer, x as Integer)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -98,13 +100,12 @@ class C
 {
     void M()
     {
-        new Test().Foo(2, 1);
+        new Test().Goo(2, 1);
     }
 }]]></Text>.NormalizedValue()
 
             Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
-                testState.TestChangeSignatureOptionsService.IsCancelled = False
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
                 Dim result = testState.ChangeSignature()
 

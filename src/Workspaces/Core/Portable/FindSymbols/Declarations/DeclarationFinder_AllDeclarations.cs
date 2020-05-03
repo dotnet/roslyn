@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal static partial class DeclarationFinder
     {
-        public static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
+        public static async Task<ImmutableArray<ISymbol>> FindAllDeclarationsWithNormalQueryAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -30,92 +33,82 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
             {
-                return ImmutableArray<SymbolAndProjectId>.Empty;
+                return ImmutableArray<ISymbol>.Empty;
             }
 
-            var (succeeded, results) = await TryFindAllDeclarationsWithNormalQueryInRemoteProcessAsync(
-                project, query, criteria, cancellationToken).ConfigureAwait(false);
-
-            if (succeeded)
+            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
             {
-                return results;
+                var solution = project.Solution;
+
+                var result = await client.TryRunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
+                    WellKnownServiceHubServices.CodeAnalysisService,
+                    nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
+                    solution,
+                    new object[] { project.Id, query.Name, query.Kind, criteria },
+                    callbackTarget: null,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (result.HasValue)
+                {
+                    return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             return await FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
                 project, query, criteria, cancellationToken).ConfigureAwait(false);
         }
 
-        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
+        internal static async Task<ImmutableArray<ISymbol>> FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var list = ArrayBuilder<ISymbol>.GetInstance();
 
-            var list = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-
-            // get declarations from the compilation's assembly
-            await AddCompilationDeclarationsWithNormalQueryAsync(
-                project, query, criteria, list, cancellationToken).ConfigureAwait(false);
-
-            // get declarations from directly referenced projects and metadata
-            foreach (var assembly in compilation.GetReferencedAssemblySymbols())
+            if (project.SupportsCompilation)
             {
-                var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
-                if (assemblyProject != null)
-                {
-                    await AddCompilationDeclarationsWithNormalQueryAsync(
-                        assemblyProject, query, criteria, list,
-                        compilation, assembly, cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    await AddMetadataDeclarationsWithNormalQueryAsync(
-                        project, assembly, compilation.GetMetadataReference(assembly) as PortableExecutableReference,
-                        query, criteria, list, cancellationToken).ConfigureAwait(false);
-                }
-            }
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            // Make certain all namespace symbols returned by API are from the compilation
-            // for the passed in project.
-            for (var i = 0; i < list.Count; i++)
-            {
-                var symbolAndProjectId = list[i];
-                if (symbolAndProjectId.Symbol is INamespaceSymbol ns)
+                // get declarations from the compilation's assembly
+                await AddCompilationDeclarationsWithNormalQueryAsync(
+                    project, query, criteria, list, cancellationToken).ConfigureAwait(false);
+
+                // get declarations from directly referenced projects and metadata
+                foreach (var assembly in compilation.GetReferencedAssemblySymbols())
                 {
-                    list[i] = new SymbolAndProjectId(
-                        compilation.GetCompilationNamespace(ns),
-                        project.Id);
+                    var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
+                    if (assemblyProject != null)
+                    {
+                        await AddCompilationDeclarationsWithNormalQueryAsync(
+                            assemblyProject, query, criteria, list,
+                            compilation, assembly, cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await AddMetadataDeclarationsWithNormalQueryAsync(
+                            project, assembly, compilation.GetMetadataReference(assembly) as PortableExecutableReference,
+                            query, criteria, list, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+
+                // Make certain all namespace symbols returned by API are from the compilation
+                // for the passed in project.
+                for (var i = 0; i < list.Count; i++)
+                {
+                    var symbol = list[i];
+                    if (symbol is INamespaceSymbol ns)
+                    {
+                        list[i] = compilation.GetCompilationNamespace(ns);
+                    }
                 }
             }
 
             return list.ToImmutableAndFree();
         }
 
-        private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindAllDeclarationsWithNormalQueryInRemoteProcessAsync(
-            Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<ISymbol>> RehydrateAsync(
+            Solution solution, IList<SerializableSymbolAndProjectId> array, CancellationToken cancellationToken)
         {
-            using (var session = await SymbolFinder.TryGetRemoteSessionAsync(
-                project.Solution, cancellationToken).ConfigureAwait(false))
-            {
-                if (session != null)
-                {
-                    var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
-                        nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
-                        project.Id, query.Name, query.Kind, criteria).ConfigureAwait(false);
-
-                    var rehydrated = await RehydrateAsync(
-                        project.Solution, result, cancellationToken).ConfigureAwait(false);
-
-                    return (true, rehydrated);
-                }
-            }
-
-            return (false, ImmutableArray<SymbolAndProjectId>.Empty);
-        }
-
-        private static async Task<ImmutableArray<SymbolAndProjectId>> RehydrateAsync(
-            Solution solution, SerializableSymbolAndProjectId[] array, CancellationToken cancellationToken)
-        {
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance(array.Length);
+            var result = ArrayBuilder<ISymbol>.GetInstance(array.Count);
 
             foreach (var dehydrated in array)
             {
@@ -123,7 +116,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var rehydrated = await dehydrated.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
                 if (rehydrated != null)
                 {
-                    result.Add(rehydrated.Value);
+                    result.Add(rehydrated);
                 }
             }
 

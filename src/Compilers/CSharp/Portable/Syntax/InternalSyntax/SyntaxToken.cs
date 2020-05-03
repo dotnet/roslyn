@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -66,6 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.flags |= NodeFlags.IsNotMissing;  //note: cleared by subclasses representing missing tokens
         }
 
+        internal override bool ShouldReuseInSerialization => base.ShouldReuseInSerialization &&
+                                                             FullWidth < Lexer.MaxCachedTokenSize;
+
         //====================
 
         public override bool IsToken => true;
@@ -131,8 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new MissingTokenWithTrivia(kind, leading, trailing);
         }
 
-        internal static readonly SyntaxKind FirstTokenWithWellKnownText = SyntaxKind.TildeToken;
-        internal static readonly SyntaxKind LastTokenWithWellKnownText = SyntaxKind.EndOfFileToken;
+        internal const SyntaxKind FirstTokenWithWellKnownText = SyntaxKind.TildeToken;
+        internal const SyntaxKind LastTokenWithWellKnownText = SyntaxKind.EndOfFileToken;
 
         // TODO: eliminate the blank space before the first interesting element?
         private static readonly ArrayElement<SyntaxToken>[] s_tokensWithNoTrivia = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];

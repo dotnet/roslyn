@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReorderParameters
 using System;
 class MyClass
 {
-    public void $$Foo(int x, string y)
+    public void $$Goo(int x, string y)
     {
     }
 }";
@@ -25,7 +27,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(string y, int x)
+    public void Goo(string y, int x)
     {
     }
 }";
@@ -40,7 +42,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, $$string y)
+    public void Goo(int x, $$string y)
     {
     }
 }";
@@ -49,7 +51,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(string y, int x)
+    public void Goo(string y, int x)
     {
     }
 }";
@@ -64,7 +66,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)$$
+    public void Goo(int x, string y)$$
     {
     }
 }";
@@ -73,7 +75,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(string y, int x)
+    public void Goo(string y, int x)
     {
     }
 }";
@@ -88,7 +90,7 @@ class MyClass
 using System;
 class MyClass
 {
-    $$public void Foo(int x, string y)
+    $$public void Goo(int x, string y)
     {
     }
 }";
@@ -97,7 +99,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(string y, int x)
+    public void Goo(string y, int x)
     {
     }
 }";
@@ -169,7 +171,7 @@ class C
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         $$
     }
@@ -179,7 +181,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(string y, int x)
+    public void Goo(string y, int x)
     {
         
     }
@@ -195,7 +197,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         $$Bar(x, y);
     }
@@ -209,7 +211,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar(y, x);
     }
@@ -229,7 +231,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         $$Bar(x, y);
     }
@@ -243,7 +245,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar(y, x);
     }
@@ -263,7 +265,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar($$Baz(x, y), y);
     }
@@ -282,7 +284,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar(Baz(y, x), y);
     }
@@ -307,7 +309,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar$$(Baz(x, y), y);
     }
@@ -326,7 +328,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar(y, Baz(x, y));
     }
@@ -351,7 +353,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar(Baz(x, y), $$y);
     }
@@ -370,7 +372,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar(y, Baz(x, y));
     }

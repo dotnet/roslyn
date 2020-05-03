@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Globalization;
@@ -14,14 +16,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         public static readonly string[] SynthesizedExternalSourceDiagnosticCustomTags = new string[] { SynthesizedExternalSourceDiagnosticTag };
 
         public static bool CanBeSuppressed(Diagnostic diagnostic)
+            => CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: true);
+
+        public static bool CanBeSuppressedWithAttribute(Diagnostic diagnostic)
         {
-            return CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: true);
+            if (IsCompilerDiagnostic(diagnostic))
+            {
+                return false;
+            }
+
+            // IDE0055 cannot be suppressed with an attribute because the formatter implementation only adheres to
+            // pragma-based source suppressions.
+            return diagnostic.Id != IDEDiagnosticIds.FormattingDiagnosticId;
         }
 
         public static bool CanBeUnsuppressed(Diagnostic diagnostic)
-        {
-            return CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: false);
-        }
+            => CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: false);
 
         private static bool CanBeSuppressedOrUnsuppressed(Diagnostic diagnostic, bool checkCanBeSuppressed)
         {
@@ -53,38 +63,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         public static bool IsNotConfigurableDiagnostic(DiagnosticData diagnostic)
-        {
-            return HasCustomTag(diagnostic.CustomTags, WellKnownDiagnosticTags.NotConfigurable);
-        }
+            => HasCustomTag(diagnostic.CustomTags, WellKnownDiagnosticTags.NotConfigurable);
 
         public static bool IsNotConfigurableDiagnostic(Diagnostic diagnostic)
-        {
-            return HasCustomTag(diagnostic.Descriptor.CustomTags, WellKnownDiagnosticTags.NotConfigurable);
-        }
+            => HasCustomTag(diagnostic.Descriptor.CustomTags, WellKnownDiagnosticTags.NotConfigurable);
 
         public static bool IsCompilerDiagnostic(DiagnosticData diagnostic)
-        {
-            return HasCustomTag(diagnostic.CustomTags, WellKnownDiagnosticTags.Compiler);
-        }
+            => HasCustomTag(diagnostic.CustomTags, WellKnownDiagnosticTags.Compiler);
 
         public static bool IsCompilerDiagnostic(Diagnostic diagnostic)
-        {
-            return HasCustomTag(diagnostic.Descriptor.CustomTags, WellKnownDiagnosticTags.Compiler);
-        }
+            => HasCustomTag(diagnostic.Descriptor.CustomTags, WellKnownDiagnosticTags.Compiler);
 
         public static bool IsSynthesizedExternalSourceDiagnostic(DiagnosticData diagnostic)
-        {
-            return HasCustomTag(diagnostic.CustomTags, SynthesizedExternalSourceDiagnosticTag);
-        }
+            => HasCustomTag(diagnostic.CustomTags, SynthesizedExternalSourceDiagnosticTag);
 
         public static bool IsSynthesizedExternalSourceDiagnostic(Diagnostic diagnostic)
-        {
-            return HasCustomTag(diagnostic.Descriptor.CustomTags, SynthesizedExternalSourceDiagnosticTag);
-        }
+            => HasCustomTag(diagnostic.Descriptor.CustomTags, SynthesizedExternalSourceDiagnosticTag);
 
         public static bool HasCustomTag(IEnumerable<string> customTags, string tagToFind)
-        {
-            return customTags != null && customTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, tagToFind) == 0);
-        }
+            => customTags != null && customTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, tagToFind) == 0);
     }
 }

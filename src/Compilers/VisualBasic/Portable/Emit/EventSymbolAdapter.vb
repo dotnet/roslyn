@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -8,23 +11,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Partial Class EventSymbol
         Implements Cci.IEventDefinition
 
-        Private ReadOnly Property IEventDefinitionAccessors As IEnumerable(Of Cci.IMethodReference) Implements Cci.IEventDefinition.Accessors
-            Get
-                CheckDefinitionInvariant()
-                Dim addMethod = Me.AddMethod
-                Debug.Assert(addMethod IsNot Nothing)
+        Private Iterator Function IEventDefinitionAccessors(context As EmitContext) As IEnumerable(Of Cci.IMethodReference) Implements Cci.IEventDefinition.GetAccessors
+            CheckDefinitionInvariant()
 
-                Dim removeMethod = Me.RemoveMethod
-                Debug.Assert(removeMethod IsNot Nothing)
+            Dim addMethod = Me.AddMethod
+            Debug.Assert(addMethod IsNot Nothing)
+            If addMethod.ShouldInclude(context) Then
+                Yield addMethod
+            End If
 
-                Dim raiseMethod = Me.RaiseMethod
-                If raiseMethod IsNot Nothing Then
-                    Return {addMethod, removeMethod, raiseMethod}
-                Else
-                    Return {addMethod, removeMethod}
-                End If
-            End Get
-        End Property
+            Dim removeMethod = Me.RemoveMethod
+            Debug.Assert(removeMethod IsNot Nothing)
+            If removeMethod.ShouldInclude(context) Then
+                Yield removeMethod
+            End If
+
+            Dim raiseMethod = Me.RaiseMethod
+            If raiseMethod IsNot Nothing AndAlso raiseMethod.ShouldInclude(context) Then
+                Yield raiseMethod
+            End If
+        End Function
 
         Private ReadOnly Property IEventDefinitionAdder As Cci.IMethodReference Implements Cci.IEventDefinition.Adder
             Get

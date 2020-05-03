@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -8,6 +10,7 @@ Imports System.Linq
 Imports System.Text
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -327,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function ReferenceAssignment(byRefLocal As LocalSymbol, lValue As BoundExpression) As BoundReferenceAssignment
-            Debug.Assert(byRefLocal.Type = lValue.Type)
+            Debug.Assert(TypeSymbol.Equals(byRefLocal.Type, lValue.Type, TypeCompareKind.ConsiderEverything))
             Debug.Assert(byRefLocal.IsByRef)
 
             Dim boundNode = New BoundReferenceAssignment(_syntax, Local(byRefLocal, isLValue:=True), lValue, isLValue:=True, type:=lValue.Type)

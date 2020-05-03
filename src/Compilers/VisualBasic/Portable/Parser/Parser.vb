@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the Scanner, which produces tokens from text 
@@ -6,6 +8,7 @@
 
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax
@@ -355,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' grab the part that doesn't contain the preceding and trailing trivia.
 
-            Dim builder = Collections.PooledStringBuilder.GetInstance()
+            Dim builder = PooledStringBuilder.GetInstance()
             Dim writer As New IO.StringWriter(builder)
 
             firstToken.WriteTo(writer)
@@ -376,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' grab the part that doesn't contain the preceding and trailing trivia.
 
-            Dim builder = Collections.PooledStringBuilder.GetInstance()
+            Dim builder = PooledStringBuilder.GetInstance()
             Dim writer As New IO.StringWriter(builder)
 
             firstToken.WriteTo(writer)
@@ -513,7 +516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Try
                 Return parseFunc()
 
-            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+            Catch ex As InsufficientExecutionStackException
                 Return CreateForInsufficientStack(restorePoint, defaultFunc())
             End Try
         End Function
@@ -2215,7 +2218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return result
         End Function
 
-        ' Parses the as-clause and initializer for both locals, fields an properties
+        ' Parses the as-clause and initializer for both locals, fields and properties
         ' Properties allow Attributes before the type and allow implicit line continuations before "FROM", otherwise, fields and
         ' properties allow the same syntax.
         Private Sub ParseFieldOrPropertyAsClauseAndInitializer(isProperty As Boolean, allowAsNewWith As Boolean, ByRef optionalAsClause As AsClauseSyntax, ByRef optionalInitializer As EqualsValueSyntax)
@@ -2251,10 +2254,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Else
                         typeName = ParseTypeName()
-
-                        If typeName.Kind = SyntaxKind.TupleType Then
-                            typeName = ReportSyntaxError(typeName, ERRID.ERR_NewWithTupleTypeSyntax)
-                        End If
 
                         If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
                             ' New <Type> ( <Arguments> )
@@ -4199,7 +4198,7 @@ checkNullable:
                 End If
             End If
 
-            ' ===== Parse the property's type (e.g. Property Foo(params) AS type )
+            ' ===== Parse the property's type (e.g. Property Goo(params) AS type )
 
             Dim asClause As AsClauseSyntax = Nothing
             Dim initializer As EqualsValueSyntax = Nothing
@@ -5582,7 +5581,7 @@ checkNullable:
                         typeName = ResyncAt(typeName, SyntaxKind.GreaterThanToken)
 
                     ElseIf CurrentToken.Kind = SyntaxKind.OpenParenToken Then
-                        arguments = ParseParenthesizedArguments()
+                        arguments = ParseParenthesizedArguments(attributeListParent:=True)
                     End If
 
                     Dim attribute As AttributeSyntax = SyntaxFactory.Attribute(optionalTarget, typeName, arguments)
@@ -6168,14 +6167,7 @@ checkNullable:
                 Return node
             End If
 
-            If feature = Feature.InterpolatedStrings Then
-                ' Bug: It is too late in the release cycle to update localized strings.  As a short term measure we will output 
-                ' an unlocalized string and fix this to be localized in the next release.
-                Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
-                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), "interpolated strings", requiredVersion)
-            Else
-                Return ReportFeatureUnavailable(feature, node, languageVersion)
-            End If
+            Return ReportFeatureUnavailable(feature, node, languageVersion)
         End Function
 
         Private Shared Function ReportFeatureUnavailable(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode, languageVersion As LanguageVersion) As TNode

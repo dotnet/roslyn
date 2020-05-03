@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -50,13 +53,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/23582",
+            Constraint = "Provide " + nameof(ArrayBuilder<Symbol>) + " capacity to reduce number of allocations.",
+            AllowGenericEnumeration = false)]
         public sealed override ImmutableArray<Symbol> GetMembers()
         {
             EnsureAllMembersLoaded();
 
-            var builder = ArrayBuilder<Symbol>.GetInstance();
-            builder.AddRange(GetMemberTypesPrivate());
-            builder.AddRange(GetMemberNamespacesPrivate());
+            var memberTypes = GetMemberTypesPrivate();
+            var builder = ArrayBuilder<Symbol>.GetInstance(memberTypes.Length + lazyNamespaces.Count);
+
+            builder.AddRange(memberTypes);
+            foreach (var pair in lazyNamespaces)
+            {
+                builder.Add(pair.Value);
+            }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -70,11 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return StaticCast<NamedTypeSymbol>.From(_lazyFlattenedTypes);
-        }
-
-        private IEnumerable<PENestedNamespaceSymbol> GetMemberNamespacesPrivate()
-        {
-            return lazyNamespaces.Values;
         }
 
         public sealed override ImmutableArray<Symbol> GetMembers(string name)
@@ -124,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
         {
-            return GetTypeMembers(name).WhereAsArray(type => type.Arity == arity);
+            return GetTypeMembers(name).WhereAsArray((type, arity) => type.Arity == arity, arity);
         }
 
         public sealed override ImmutableArray<Location> Locations

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// Declares a <see cref="IWorkspaceServiceFactory"/> implementation for inclusion in a MEF-based workspace.
         /// </summary>
         /// <param name="serviceType">The type that will be used to retrieve the service from a <see cref="HostWorkspaceServices"/>.</param>
-        /// <param name="layer">The layer that the service is specified for; <see cref="ServiceLayer.Default" />, etc.</param>
+        /// <param name="layer">The layer or workspace kind that the service is specified for; <see cref="ServiceLayer.Default" />, <see cref="WorkspaceKind.MiscellaneousFiles" />etc.</param>
         public ExportWorkspaceServiceFactoryAttribute(Type serviceType, string layer = ServiceLayer.Default)
             : base(typeof(IWorkspaceServiceFactory))
         {

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -18,16 +20,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMe
 "Imports System.Threading.Tasks
 
 Class C
-    Async Function [|Foo|]() As Task
+    Async Function [|Goo|]() As Task
     End Function
 End Class",
 "Imports System.Threading.Tasks
 
 Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -36,16 +37,15 @@ ignoreTrivia:=False)
 "Imports System.Threading.Tasks
 
 Class C
-    Async Function [|Foo|]() As Task(of String)
+    Async Function [|Goo|]() As Task(of String)
     End Function
 End Class",
 "Imports System.Threading.Tasks
 
 Class C
-    Function Foo() As String
+    Function Goo() As String
     End Function
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -54,16 +54,15 @@ ignoreTrivia:=False)
 "Imports System.Threading.Tasks
 
 Class C
-    Public Async Function [|Foo|]() As Task
+    Public Async Function [|Goo|]() As Task
     End Function
 End Class",
 "Imports System.Threading.Tasks
 
 Class C
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -72,16 +71,15 @@ ignoreTrivia:=False)
 "Imports System.Threading.Tasks
 
 Class C
-    Async Public Function [|Foo|]() As Task
+    Async Public Function [|Goo|]() As Task
     End Function
 End Class",
 "Imports System.Threading.Tasks
 
 Class C
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
 
@@ -92,16 +90,15 @@ ignoreTrivia:=False)
 "Imports System.Threading.Tasks
 
 Class C
-    Async Sub [|FooAsync|]()
+    Async Sub [|GooAsync|]()
     End Sub
 End Class",
 "Imports System.Threading.Tasks
 
 Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -110,24 +107,23 @@ ignoreTrivia:=False)
 "Imports System.Threading.Tasks
 
 Class C
-    Async Sub [|FooAsync|]()
+    Async Sub [|GooAsync|]()
     End Sub
 
     Sub Bar()
-        FooAsync()
+        GooAsync()
     End Sub
 End Class",
 "Imports System.Threading.Tasks
 
 Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Sub Bar()
-        Foo()
+        Goo()
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -137,7 +133,7 @@ ignoreTrivia:=False)
 Imports System.Threading.Tasks
 
 Class C
-    Sub Foo()
+    Sub Goo()
         dim f as Action(of Task) =
             Async [|Sub|]() Return
     End Sub
@@ -146,12 +142,11 @@ End Class",
 Imports System.Threading.Tasks
 
 Class C
-    Sub Foo()
+    Sub Goo()
         dim f as Action(of Task) =
             Sub() Return
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -161,7 +156,7 @@ ignoreTrivia:=False)
 Imports System.Threading.Tasks
 
 Class C
-    Sub Foo()
+    Sub Goo()
         dim f as Func(of Task) =
             Async [|Function|]() 1
     End Sub
@@ -170,12 +165,11 @@ End Class",
 Imports System.Threading.Tasks
 
 Class C
-    Sub Foo()
+    Sub Goo()
         dim f as Func(of Task) =
             Function() 1
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -185,7 +179,7 @@ ignoreTrivia:=False)
 Imports System.Threading.Tasks
 
 Class C
-    Sub Foo()
+    Sub Goo()
         dim f as Action(of Task) =
             Async [|Sub|]()
                 Return
@@ -196,14 +190,13 @@ End Class",
 Imports System.Threading.Tasks
 
 Class C
-    Sub Foo()
+    Sub Goo()
         dim f as Action(of Task) =
             Sub()
                 Return
             End Sub
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -213,7 +206,7 @@ ignoreTrivia:=False)
 Imports System.Threading.Tasks
 
 Class C
-    Sub Foo()
+    Sub Goo()
         dim f as Func(of Task) =
             Async [|Function|]()
                 Return 1
@@ -224,14 +217,13 @@ End Class",
 Imports System.Threading.Tasks
 
 Class C
-    Sub Foo()
+    Sub Goo()
         dim f as Func(of Task) =
             Function()
                 Return 1
             End Function
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -241,23 +233,23 @@ ignoreTrivia:=False)
 "Imports System.Threading.Tasks;
 
 Public Class Class1
-    Async Function [|FooAsync|]() As Task
+    Async Function [|GooAsync|]() As Task
     End Function
 
     Async Sub BarAsync()
-        Await FooAsync()
+        Await GooAsync()
     End Sub
 End Class",
 "Imports System.Threading.Tasks;
 
 Public Class Class1
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Async Sub BarAsync()
-        Foo()
+        Goo()
     End Sub
-End Class", ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -267,23 +259,23 @@ End Class", ignoreTrivia:=False)
 "Imports System.Threading.Tasks;
 
 Public Class Class1
-    Async Function [|FooAsync|]() As Task
+    Async Function [|GooAsync|]() As Task
     End Function
 
     Async Sub BarAsync()
-        Await FooAsync().ConfigureAwait(false)
+        Await GooAsync().ConfigureAwait(false)
     End Sub
 End Class",
 "Imports System.Threading.Tasks;
 
 Public Class Class1
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Async Sub BarAsync()
-        Foo()
+        Goo()
     End Sub
-End Class", ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -293,23 +285,23 @@ End Class", ignoreTrivia:=False)
 "Imports System.Threading.Tasks;
 
 Public Class Class1
-    Async Function [|FooAsync|]() As Task
+    Async Function [|GooAsync|]() As Task
     End Function
 
     Async Sub BarAsync()
-        Await Me.FooAsync()
+        Await Me.GooAsync()
     End Sub
 End Class",
 "Imports System.Threading.Tasks;
 
 Public Class Class1
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Async Sub BarAsync()
-        Me.Foo()
+        Me.Goo()
     End Sub
-End Class", ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -319,23 +311,23 @@ End Class", ignoreTrivia:=False)
 "Imports System.Threading.Tasks;
 
 Public Class Class1
-    Async Function [|FooAsync|]() As Task
+    Async Function [|GooAsync|]() As Task
     End Function
 
     Async Sub BarAsync()
-        Await Me.FooAsync().ConfigureAwait(false)
+        Await Me.GooAsync().ConfigureAwait(false)
     End Sub
 End Class",
 "Imports System.Threading.Tasks;
 
 Public Class Class1
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Async Sub BarAsync()
-        Me.Foo()
+        Me.Goo()
     End Sub
-End Class", ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -345,23 +337,23 @@ End Class", ignoreTrivia:=False)
 "Imports System.Threading.Tasks;
 
 Public Class Class1
-    Async Function [|FooAsync|](i As Integer) As Task(Of Integer)
+    Async Function [|GooAsync|](i As Integer) As Task(Of Integer)
     End Function
 
     Async Sub BarAsync()
-        Await FooAsync(Await FooAsync(0))
+        Await GooAsync(Await GooAsync(0))
     End Sub
 End Class",
 "Imports System.Threading.Tasks;
 
 Public Class Class1
-    Function Foo(i As Integer) As Integer
+    Function Goo(i As Integer) As Integer
     End Function
 
     Async Sub BarAsync()
-        Foo(Foo(0))
+        Goo(Goo(0))
     End Sub
-End Class", ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -371,23 +363,23 @@ End Class", ignoreTrivia:=False)
 "Imports System.Threading.Tasks;
 
 Public Class Class1
-    Async Function [|FooAsync|](i As Integer) As Task(Of Integer)
+    Async Function [|GooAsync|](i As Integer) As Task(Of Integer)
     End Function
 
     Async Sub BarAsync()
-        Await Me.FooAsync(Await Me.FooAsync(0).ConfigureAwait(false)).ConfigureAwait(false)
+        Await Me.GooAsync(Await Me.GooAsync(0).ConfigureAwait(false)).ConfigureAwait(false)
     End Sub
 End Class",
 "Imports System.Threading.Tasks;
 
 Public Class Class1
-    Function Foo(i As Integer) As Integer
+    Function Goo(i As Integer) As Integer
     End Function
 
     Async Sub BarAsync()
-        Me.Foo(Me.Foo(0))
+        Me.Goo(Me.Goo(0))
     End Sub
-End Class", ignoreTrivia:=False)
+End Class")
         End Function
     End Class
 End Namespace

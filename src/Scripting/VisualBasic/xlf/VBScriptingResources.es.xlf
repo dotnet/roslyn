@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="es" original="../VBScriptingResources.resx">
+    <body>
+      <trans-unit id="LogoLine1">
+        <source>Microsoft (R) Visual Basic Interactive Compiler version {0}</source>
+        <target state="translated">Versión {0} interactiva del compilador de Microsoft (R) Visual Basic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LogoLine2">
+        <source>Copyright (C) Microsoft Corporation. All rights reserved.</source>
+        <target state="translated">Copyright (C) Microsoft Corporation. Todos los derechos reservados.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InteractiveHelp">
+        <source>Usage: vbi [options] [script-file.vbx] [-- script-arguments]
+
+If script-file is specified executes the script, otherwise launches an interactive REPL (Read Eval Print Loop).
+
+Options:
+  /help                          Display this usage message (Short form: /?)
+  /version                       Display the version and exit
+  /reference:&lt;alias&gt;=&lt;file&gt;      Reference metadata from the specified assembly file using the given alias (Short form: /r)
+  /reference:&lt;file list&gt;         Reference metadata from the specified assembly files (Short form: /r)
+  /referencePath:&lt;path list&gt;     List of paths where to look for metadata references specified as unrooted paths. (Short form: /rp)
+  /using:&lt;namespace&gt;             Define global namespace using (Short form: /u)
+  /define:&lt;name&gt;=&lt;value&gt;,...     Declare global conditional compilation symbol(s) (Short form: /d)
+  @&lt;file&gt;                        Read response file for more options
+</source>
+        <target state="translated">Uso: vbi [options] [script-file.vbx] [-- script-arguments]
+
+Si se especifica script-file se ejecuta el script; de lo contrario, se inicia un bucle REPL (Read Eval Print Loop) interactivo.
+
+Opciones:
+  /help                          Muestra este mensaje de uso (Forma corta: /?)
+  /version                       Muestra la versión y cierra
+  /reference:&lt;alias&gt;=&lt;file&gt;      Hace referencia a los metadatos del archivo de ensamblado especificado utilizando el alias especificado (Forma corta: /r)
+  /reference:&lt;file list&gt;         Hace referencia a los metadatos del archivo de ensamblado especificado (Forma corta: /r)
+  /referencePath:&lt;path list&gt;     Lista de rutas de acceso donde buscar las referencias de metadatos especificadas como rutas de acceso no raíz. (Forma corta: /rp)
+  /using:&lt;namespace&gt;             Define el nombre de espacios global using (Forma corta: /u)
+  /define:&lt;name&gt;=&lt;value&gt;,...     Declara los símbolos de compilación condicional globales (Forma corta: /d)
+  @&lt;file&gt;                        Lee los archivos de respuesta para más opciones
+</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionEscapeWithoutQuote">
+        <source>Cannot escape non-printable characters in Visual Basic notation unless quotes are used.</source>
+        <target state="translated">No se pueden determinar como escape los caracteres no imprimibles en la notación de Visual Basic a menos que se usen comillas.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

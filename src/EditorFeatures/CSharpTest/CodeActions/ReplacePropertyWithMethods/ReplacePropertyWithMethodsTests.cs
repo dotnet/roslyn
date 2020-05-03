@@ -1,11 +1,14 @@
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -324,7 +327,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -357,7 +359,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -395,7 +396,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -438,7 +438,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -527,7 +526,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -570,7 +568,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -636,7 +633,7 @@ class D
     {
         return 1; // Comment
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -645,7 +642,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Foo
+    int [||]Goo
     {
         get
         {
@@ -660,7 +657,7 @@ class D
 }",
 @"class C
 {
-    private int GetFoo()
+    private int GetGoo()
     {
         int count;
         foreach (var x in y)
@@ -669,8 +666,7 @@ class D
         }
         return count;
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -688,7 +684,7 @@ ignoreTrivia: false);
         /* return 42 */
         return 42;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1005,7 +1001,7 @@ ignoreTrivia: false);
 
         SetProp(GetProp() + 1);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1041,7 +1037,7 @@ ignoreTrivia: false);
         /* Leading */
         SetProp(GetProp() + 1); /* Trailing */
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1077,7 +1073,7 @@ ignoreTrivia: false);
         /* Leading */
         SetProp(GetProp() + 1 /* Trailing */ );
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1153,17 +1149,17 @@ ignoreTrivia: false);
         public async Task TestWithConditionalBinding1()
         {
             await TestInRegularAndScriptAsync(
-@"public class Foo
+@"public class Goo
 {
     public bool [||]Any { get; } // Replace 'Any' with method
 
     public static void Bar()
     {
-        var foo = new Foo();
-        bool f = foo?.Any == true;
+        var goo = new Goo();
+        bool f = goo?.Any == true;
     }
 }",
-@"public class Foo
+@"public class Goo
 {
     private readonly bool any;
 
@@ -1174,8 +1170,8 @@ ignoreTrivia: false);
 
     public static void Bar()
     {
-        var foo = new Foo();
-        bool f = foo?.GetAny() == true;
+        var goo = new Goo();
+        bool f = goo?.GetAny() == true;
     }
 }");
         }
@@ -1198,7 +1194,7 @@ ignoreTrivia: false);
 @"class C
 {
     private int GetProp() => 0;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1225,7 +1221,7 @@ ignoreTrivia: false);
 {
     private int GetProp() => 0;
     private void SetProp(int value) => throw e;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1246,7 +1242,7 @@ ignoreTrivia: false);
 {
     private int GetProp() => 0;
     private void SetProp(int value) => throw e;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1261,7 +1257,7 @@ ignoreTrivia: false);
 @"class C
 {
     private int GetProp() => 0;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1278,7 +1274,7 @@ ignoreTrivia: false);
     private readonly int prop;
 
     private int GetProp() => prop;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1296,7 +1292,7 @@ ignoreTrivia: false);
 
     private int GetProp() => prop;
     private void SetProp(int value) => prop = value;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1322,7 +1318,7 @@ ignoreTrivia: false);
         A();
         return B();
     }
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
@@ -1352,7 +1348,7 @@ ignoreTrivia: false);
     ///     An value that provides access to the language service for the active configured project.
     /// </returns>
     object GetActiveProjectContext();
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
@@ -1382,7 +1378,7 @@ ignoreTrivia: false);
     ///     An value that provides access to the language service for the active configured project.
     /// </param>
     void SetActiveProjectContext(object value);
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
@@ -1420,7 +1416,7 @@ ignoreTrivia: false);
     ///     An value that provides access to the language service for the active configured project.
     /// </param>
     void SetActiveProjectContext(object value);
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
@@ -1456,7 +1452,7 @@ internal struct AStruct
 {
     /// <seealso cref=""ILanguageServiceHost.SetActiveProjectContext(object)""/>
     private int x;
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
@@ -1498,7 +1494,7 @@ internal struct AStruct
 {
     /// <seealso cref=""ILanguageServiceHost.GetActiveProjectContext()""/>
     private int x;
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
@@ -1528,7 +1524,7 @@ internal struct AStruct
 {
     /// <seealso cref=""ISomeInterface{T}.SetContext(ISomeInterface{T})""/>
     private int x;
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
@@ -1560,7 +1556,7 @@ internal struct AStruct
             return 1;
 #endif
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
@@ -1590,7 +1586,7 @@ internal struct AStruct
 #else
             return 1;
 #endif
-}", ignoreTrivia: false,
+}",
     options: PreferExpressionBodiedMethods);
         }
 
@@ -1616,7 +1612,7 @@ internal struct AStruct
 #else
         1;
 #endif
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
@@ -1641,11 +1637,213 @@ internal struct AStruct
 #else
         1;
 #endif
-}", ignoreTrivia: false,
+}",
     options: PreferExpressionBodiedMethods);
         }
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedMethods =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
+        [WorkItem(440371, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestExplicitInterfaceImplementation()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface IGoo
+{
+    int [||]Goo { get; set; }
+}
+
+class C : IGoo
+{
+    int IGoo.Goo
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+
+        set
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}",
+@"interface IGoo
+{
+    int GetGoo();
+    void SetGoo(int value);
+}
+
+class C : IGoo
+{
+    int IGoo.GetGoo()
+    {
+        throw new System.NotImplementedException();
+    }
+    void IGoo.SetGoo(int value)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestUnsafeExpressionBody()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe void* [||]Pointer => default;
+}",
+@"class C
+{
+    public unsafe void* GetPointer()
+    {
+        return default;
+    }
+}");
+        }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestUnsafeAutoProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe void* [||]Pointer { get; set; }
+}",
+@"class C
+{
+    private unsafe void* pointer;
+
+    public unsafe void* GetPointer()
+    {
+        return pointer;
+    }
+
+    public unsafe void SetPointer(void* value)
+    {
+        pointer = value;
+    }
+}");
+        }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestUnsafeSafeType()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe int [||]P
+    {
+        get => 0;
+        set {}
+    }
+}",
+@"class C
+{
+    public unsafe int GetP()
+    {
+        return 0;
+    }
+
+    public unsafe void SetP(int value)
+    { }
+}");
+        }
+
+        [WorkItem(22760, "https://github.com/dotnet/roslyn/issues/22760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task QualifyFieldAccessWhenNecessary1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public int [||]Value { get; }
+
+    public C(int value)
+    {
+        Value = value;
+    }
+}",
+@"class C
+{
+    private readonly int value;
+
+    public int GetValue()
+    {
+        return value;
+    }
+
+    public C(int value)
+    {
+        this.value = value;
+    }
+}");
+        }
+
+        [WorkItem(22760, "https://github.com/dotnet/roslyn/issues/22760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task QualifyFieldAccessWhenNecessary2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public int [||]Value { get; }
+
+    public C(int value)
+    {
+        this.Value = value;
+    }
+}",
+@"class C
+{
+    private readonly int value;
+
+    public int GetValue()
+    {
+        return value;
+    }
+
+    public C(int value)
+    {
+        this.value = value;
+    }
+}");
+        }
+
+        [WorkItem(22760, "https://github.com/dotnet/roslyn/issues/22760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task QualifyFieldAccessWhenNecessary3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public static int [||]Value { get; }
+
+    public static void Set(int value)
+    {
+        Value = value;
+    }
+}",
+@"class C
+{
+    private static readonly int value;
+
+    public static int GetValue()
+    {
+        return value;
+    }
+
+    public static void Set(int value)
+    {
+        C.value = value;
+    }
+}");
+        }
+
+        private OptionsCollection PreferExpressionBodiedMethods =>
+            new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement } };
     }
 }

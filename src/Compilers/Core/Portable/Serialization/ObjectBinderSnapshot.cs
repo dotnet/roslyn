@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,16 +8,16 @@ using System.Collections.Immutable;
 
 namespace Roslyn.Utilities
 {
-    internal struct ObjectBinderSnapshot
+    internal readonly struct ObjectBinderSnapshot
     {
         private readonly Dictionary<Type, int> _typeToIndex;
         private readonly ImmutableArray<Type> _types;
-        private readonly ImmutableArray<Func<ObjectReader, object>> _typeReaders;
+        private readonly ImmutableArray<Func<ObjectReader, IObjectWritable>> _typeReaders;
 
         public ObjectBinderSnapshot(
             Dictionary<Type, int> typeToIndex,
             List<Type> types,
-            List<Func<ObjectReader, object>> typeReaders)
+            List<Func<ObjectReader, IObjectWritable>> typeReaders)
         {
             _typeToIndex = new Dictionary<Type, int>(typeToIndex);
             _types = types.ToImmutableArray();
@@ -28,7 +30,7 @@ namespace Roslyn.Utilities
         public Type GetTypeFromId(int typeId)
             => _types[typeId];
 
-        public Func<ObjectReader, object> GetTypeReaderFromId(int typeId)
+        public Func<ObjectReader, IObjectWritable> GetTypeReaderFromId(int typeId)
             => _typeReaders[typeId];
     }
 }

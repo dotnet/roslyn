@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Globalization
 Imports System.Linq
 Imports Roslyn.Test.Utilities
 
@@ -61,12 +64,12 @@ Public Class VisualBasicParseOptionsTests
         AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
-                                                   {New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)})
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
+                                                   {New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123)})
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
-                                                   New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123))
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
+                                                   New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123))
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication, empty)
         AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "exe")}, symbols.AsEnumerable)
@@ -84,7 +87,22 @@ Public Class VisualBasicParseOptionsTests
             Max().
             ToDisplayString()
 
-        Assert.Equal(highest, PredefinedPreprocessorSymbols.CurrentVersionNumber.ToString())
+        Assert.Equal(highest, PredefinedPreprocessorSymbols.CurrentVersionNumber.ToString(CultureInfo.InvariantCulture))
+    End Sub
+
+    <Fact, WorkItem(21094, "https://github.com/dotnet/roslyn/issues/21094")>
+    Public Sub CurrentVersionNumberIsCultureIndependent()
+        Dim currentCulture = CultureInfo.CurrentCulture
+        Try
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture
+            Dim invariantCultureVersion = PredefinedPreprocessorSymbols.CurrentVersionNumber
+            ' cs-CZ uses decimal comma, which can cause issues
+            CultureInfo.CurrentCulture = New CultureInfo("cs-CZ", useUserOverride:=False)
+            Dim czechCultureVersion = PredefinedPreprocessorSymbols.CurrentVersionNumber
+            Assert.Equal(invariantCultureVersion, czechCultureVersion)
+        Finally
+            CultureInfo.CurrentCulture = currentCulture
+        End Try
     End Sub
 
     <Fact>
@@ -355,7 +373,7 @@ Public Class VisualBasicParseOptionsTests
     End Sub
 
     <Fact>
-    Public Sub BadPreProcessorSymbolsShouldProduceDiagnostics_WhiteSpacetring()
+    Public Sub BadPreProcessorSymbolsShouldProduceDiagnostics_WhiteSpaceString()
         Dim symbols = New Dictionary(Of String, Object)
         symbols.Add(" ", Nothing)
         Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(symbols)

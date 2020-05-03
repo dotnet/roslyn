@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -21,7 +23,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine(""foo"");
+        Console.WriteLine(""goo"");
         goto bar;
         Console.Write(""you won't see me"");
         bar: Console.WriteLine(""bar"");
@@ -29,7 +31,7 @@ public class Program
     }
 }
 ";
-            string expectedOutput = @"foo
+            string expectedOutput = @"goo
 bar
 ";
 
@@ -47,14 +49,14 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine(""foo"");
+        Console.WriteLine(""goo"");
         goto bar;
         Console.Write(""you won't see me"");
         bar: Console.WriteLine(""bar"");
     }
 }
 ";
-            string expectedOutput = @"foo
+            string expectedOutput = @"goo
 bar
 ";
 
@@ -817,7 +819,7 @@ L0: ;
 @"True
 False";
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Passes);
         }
 
         [Fact]
@@ -847,7 +849,7 @@ False";
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L1").WithLocation(6, 5));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void AcrossScriptDeclarations()
         {
             string source =
@@ -868,7 +870,7 @@ if (Q < 4) goto L;";
 3: F
 4: Q";
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]
@@ -951,7 +953,7 @@ default:
             string expectedOutput =
 @"3";
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Passes);
         }
 
         [Fact]
@@ -1011,7 +1013,7 @@ A: goto B;";
 @"#load ""a.csx""
 goto B;
 B: goto A;";
-            var resolver = TestSourceReferenceResolver.Create(KeyValuePair.Create("a.csx", sourceA));
+            var resolver = TestSourceReferenceResolver.Create(KeyValuePairUtil.Create("a.csx", sourceA));
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
             var compilation = CreateCompilationWithMscorlib45(sourceB, options: options, parseOptions: TestOptions.Script);
             compilation.GetDiagnostics().Verify(

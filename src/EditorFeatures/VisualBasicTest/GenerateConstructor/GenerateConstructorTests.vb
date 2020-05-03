@@ -1,10 +1,13 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructor
     Public Class GenerateConstructorTests
@@ -13,6 +16,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructo
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New GenerateConstructorCodeFixProvider())
         End Function
+
+        Private ReadOnly options As NamingStylesTestOptionSets = New NamingStylesTestOptionSets(LanguageNames.VisualBasic)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateIntoContainingType() As Task
@@ -26,11 +31,13 @@ End Class",
     Private v1 As Integer
     Private v2 As Integer
     Private v3 As Integer
+
     Public Sub New(v1 As Integer, v2 As Integer, v3 As Integer)
         Me.v1 = v1
         Me.v2 = v2
         Me.v3 = v3
     End Sub
+
     Sub Main()
         Dim f = New C(4, 5, 6)
     End Sub
@@ -56,6 +63,7 @@ End Class",
 End Class
 Friend Class B
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -106,6 +114,7 @@ End Class
 Class A
     Public Sub New()
     End Sub
+
     Sub New(x As Integer)
     End Sub
 End Class")
@@ -128,6 +137,7 @@ End Class",
 End Class
 Class A
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -153,8 +163,10 @@ End Class",
 End Class
 Class A
     Private v As Integer
+
     Public Sub New()
     End Sub
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -181,8 +193,10 @@ End Class",
 End Class
 Class A
     Private v As Integer
+
     Public Sub New()
     End Sub
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -207,9 +221,11 @@ Public Class A
 End Class",
 "Public Partial Class Test
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
+
     Public Sub S1()
     End Sub
 End Class
@@ -242,9 +258,11 @@ Public Class A
 End Class",
 "Public Partial Class Test
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
+
     Public Sub S1()
     End Sub
 End Class
@@ -273,6 +291,7 @@ Public Class A
 End Class",
 "Public Partial Class Test2
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -290,13 +309,13 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateIntoInaccessibleType() As Task
             Await TestMissingInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Private Class Bar
     End Class
 End Class
 Class A
     Sub Main()
-        Dim s = New Foo.Bar([|5|])
+        Dim s = New Goo.Bar([|5|])
     End Sub
 End Class")
         End Function
@@ -304,18 +323,19 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestOnNestedTypes() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Class Bar
     End Class
 End Class
 Class A
     Sub Main()
-        Dim s = New Foo.Bar([|5|])
+        Dim s = New Goo.Bar([|5|])
     End Sub
 End Class",
-"Class Foo
+"Class Goo
     Class Bar
         Private v As Integer
+
         Public Sub New(v As Integer)
             Me.v = v
         End Sub
@@ -323,7 +343,7 @@ End Class",
 End Class
 Class A
     Sub Main()
-        Dim s = New Foo.Bar(5)
+        Dim s = New Goo.Bar(5)
     End Sub
 End Class")
         End Function
@@ -351,9 +371,11 @@ End Class",
 "Public Partial Class Test
     Public Partial Class NestedTest
         Private v As Integer
+
         Public Sub New(v As Integer)
             Me.v = v
         End Sub
+
         Public Sub S1()
         End Sub
     End Class
@@ -382,6 +404,7 @@ End Class",
 "Class Outer(Of T)
     Public Class Inner
         Private v As Integer
+
         Public Sub New(v As Integer)
             Me.v = v
         End Sub
@@ -396,20 +419,21 @@ End Class")
 "Class Base(Of T, V)
 End Class
 Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Base(Of Integer, Integer)([|5|], 5)
     End Sub
 End Class",
 "Class Base(Of T, V)
     Private v1 As Integer
     Private v2 As Integer
+
     Public Sub New(v1 As Integer, v2 As Integer)
         Me.v1 = v1
         Me.v2 = v2
     End Sub
 End Class
 Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Base(Of Integer, Integer)(5, 5)
     End Sub
 End Class")
@@ -424,7 +448,7 @@ Class Derived(Of V)
     Inherits Base(Of Integer, V)
 End Class
 Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Base(Of Integer, Integer)(5, 5)
         Dim b = New Derived(Of Integer)([|5|])
     End Sub
@@ -433,13 +457,15 @@ End Class",
 End Class
 Class Derived(Of V)
     Inherits Base(Of Integer, V)
+
     Private v1 As Integer
+
     Public Sub New(v1 As Integer)
         Me.v1 = v1
     End Sub
 End Class
 Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Base(Of Integer, Integer)(5, 5)
         Dim b = New Derived(Of Integer)(5)
     End Sub
@@ -458,7 +484,7 @@ Class MoreDerived
     Inherits Derived(Of Double)
 End Class
 Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Base(Of Integer, Integer)(5, 5)
         Dim b = New Derived(Of Integer)(5)
         Dim c = New MoreDerived([|5.5|])
@@ -471,13 +497,15 @@ Class Derived(Of V)
 End Class
 Class MoreDerived
     Inherits Derived(Of Double)
+
     Private v As Double
+
     Public Sub New(v As Double)
         Me.v = v
     End Sub
 End Class
 Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Base(Of Integer, Integer)(5, 5)
         Dim b = New Derived(Of Integer)(5)
         Dim c = New MoreDerived(5.5)
@@ -489,22 +517,23 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestDateTypeForInference() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
 End Class
 Class A
     Sub Main()
-        Dim s = New Foo([|Date.Now|])
+        Dim s = New Goo([|Date.Now|])
     End Sub
 End Class",
-"Class Foo
+"Class Goo
     Private now As Date
+
     Public Sub New(now As Date)
         Me.now = now
     End Sub
 End Class
 Class A
     Sub Main()
-        Dim s = New Foo(Date.Now)
+        Dim s = New Goo(Date.Now)
     End Sub
 End Class")
         End Function
@@ -524,6 +553,7 @@ Class Derived
 End Class",
 "Class Base
     Private x As Integer
+
     Public Sub New(x As Integer)
         Me.x = x
     End Sub
@@ -556,7 +586,8 @@ Class Derived
 End Class",
 "MustInherit Class Base
     Private x As Integer
-    Public Sub New(x As Integer)
+
+    Protected Sub New(x As Integer)
         Me.x = x
     End Sub
 End Class
@@ -582,10 +613,10 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Dim c = New [|foo|]( 
+        Dim c = New [|goo|]( 
  End Sub
 End Module
-Class foo
+Class goo
 End Class")
         End Function
 
@@ -619,7 +650,7 @@ Class C
     Public v1 As Integer
     Private i As Char
 
-    Public Sub New(v1 As Integer) 
+    Public Sub New(v1 As Integer)
         Me.v1 = v1
     End Sub
 
@@ -647,6 +678,7 @@ End Class",
 End Module
 Friend Class C
     Private c As C
+
     Public Sub New(c As C)
         Me.c = c
     End Sub
@@ -672,6 +704,7 @@ End Class
 Friend Class Test
     Private x As Object
     Private y As Object
+
     Public Sub New(x As Object, y As Object)
         Me.x = x
         Me.y = y
@@ -699,6 +732,7 @@ End Class",
 End Class
 Class A
     Private [class] As Integer
+
     Public Sub New([class] As Integer)
         Me.class = [class]
     End Sub
@@ -723,6 +757,7 @@ End Class",
 End Class
 Class A
     Private p As Object
+
     Public Sub New(p As Object)
         Me.p = p
     End Sub
@@ -734,19 +769,20 @@ End Class")
         Public Async Function TestConflictWithTypeParameterName() As Task
             Await TestInRegularAndScriptAsync(
 "Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Bar(Of Integer)([|5|])
     End Sub
 End Class
 Class Bar(Of V)
 End Class",
 "Class Test
-    Sub Foo()
+    Sub Goo()
         Dim a = New Bar(Of Integer)(5)
     End Sub
 End Class
 Class Bar(Of V)
     Private v1 As Integer
+
     Public Sub New(v1 As Integer)
         Me.v1 = v1
     End Sub
@@ -766,9 +802,11 @@ End Class")
 End Class",
 "Class C
     ReadOnly x As Integer
+
     Public Sub New(x As Integer)
         Me.x = x
     End Sub
+
     Sub Test()
         Dim x As Integer = 1
         Dim obj As New C(x)
@@ -796,6 +834,7 @@ Class A
     Public Sub New(P As Integer)
         Me.P = P
     End Sub
+
     Public Property P As Integer
 End Class")
         End Function
@@ -820,15 +859,18 @@ End Class",
 End Class
 Class C
     Private u1 As Integer
+
     Public Sub New(u As Integer)
         u1 = u
     End Sub
+
     Public Sub u()
     End Sub
 End Class")
         End Function
 
         <WorkItem(542055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestDetectAssignmentToSharedFieldFromInstanceConstructor() As Task
             Await TestInRegularAndScriptAsync(
@@ -846,10 +888,12 @@ End Class",
     End Sub
 End Class
 Class A
-    Private P1 As Integer
+    Private p As Integer
+
     Public Sub New(P As Integer)
-        P1 = P
+        Me.p = P
     End Sub
+
     Shared Property P As Integer
 End Class")
         End Function
@@ -874,6 +918,7 @@ End Class
 Class B
     Private x As String
     Private x1 As Integer
+
     Public Sub New(x As Integer)
         x1 = x
     End Sub
@@ -903,6 +948,7 @@ End Class
 Class C
     Inherits B
     Private x As String
+
     Public Sub New(u As Integer)
         Me.u = u
     End Sub
@@ -923,9 +969,11 @@ End Class")
 End Class",
 "Class C
     Private v As Integer
+
     Sub New
         Me.New(1)
     End Sub
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -958,9 +1006,11 @@ End Class")
 End Class",
 "Class C
     Private v As Integer
+
     Sub New
         MyClass.New(1)
     End Sub
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -1002,6 +1052,7 @@ End Class",
 End Class
 Class B
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -1098,7 +1149,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "#ExternalSource (""Default.aspx"", 1) 
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x As New D([|5|])
     End Sub
 End Class
@@ -1107,12 +1158,13 @@ End Class
 #End ExternalSource",
 "#ExternalSource (""Default.aspx"", 1) 
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x As New D(5)
     End Sub
 End Class
 Class D
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -1125,7 +1177,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(
 <Text>#ExternalSource (""Default.aspx"", 1)
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x As New D([|5|])
     End Sub
 End Class
@@ -1163,9 +1215,11 @@ End Module
 Class C
     Private prop As String
     Private v As Integer
+
     Public Sub New(prop As String)
         Me.prop = prop
     End Sub
+
     Public Sub New(v As Integer, prop As String)
         Me.v = v
         Me.prop = prop
@@ -1191,8 +1245,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf),
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
@@ -1209,7 +1262,9 @@ End Class",
 "<AttributeUsage(AttributeTargets.Class)>
 Public Class MyAttribute
     Inherits System.Attribute
+
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -1233,9 +1288,11 @@ End Class",
 "<AttributeUsage(AttributeTargets.Class)>
 Public Class MyAttribute
     Inherits System.Attribute
+
     Private v1 As Boolean
     Private v2 As Integer
     Private v3 As String
+
     Public Sub New(v1 As Boolean, v2 As Integer, v3 As String)
         Me.v1 = v1
         Me.v2 = v2
@@ -1248,6 +1305,7 @@ End Class")
         End Function
 
         <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestAttributesWithNamedArguments() As Task
             Await TestInRegularAndScriptAsync(
@@ -1264,12 +1322,12 @@ Public Class MyAttribute
 
     Private v1 As Boolean
     Private v2 As Integer
-    Private Topic As String
+    Private topic As String
 
     Public Sub New(v1 As Boolean, v2 As Integer, Topic As String)
         Me.v1 = v1
         Me.v2 = v2
-        Me.Topic = Topic
+        Me.topic = Topic
     End Sub
 End Class
 <MyAttribute(true, 1, Topic:=""hello"")>
@@ -1297,9 +1355,11 @@ Public Class MyAttribute
     Inherits System.Attribute
     Private v As Integer
     Private v1 As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
+
     Public Sub New(v As Integer, v1 As Integer)
         Me.New(v)
         Me.v1 = v1
@@ -1329,6 +1389,7 @@ End Enum
 <AttributeUsage(AttributeTargets.Class)>
 Public Class MyAttribute
     Inherits System.Attribute
+
     Private v1 As Short()
     Private a1 As A
     Private v2 As Boolean
@@ -1340,6 +1401,7 @@ Public Class MyAttribute
     Private v8 As Double
     Private v9 As Single
     Private v10 As String
+
     Public Sub New(v1() As Short, a1 As A, v2 As Boolean, v3 As Integer, v4 As Char, v5 As Short, v6 As Integer, v7 As Long, v8 As Double, v9 As Single, v10 As String)
         Me.v1 = v1
         Me.a1 = a1
@@ -1355,8 +1417,7 @@ Public Class MyAttribute
     End Sub
 End Class
 <MyAttribute(New Short(1) {1, 2, 3}, A.A1, True, 1, ""Z""c, 5S, 1I, 5L, 6.0R, 2.1F, ""abc"")>
-Public Class D
-End Class")
+Public Class D End Class")
         End Function
 
         <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
@@ -1398,8 +1459,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf),
     Public Sub New(y As Integer)
         Me.y = y
     End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(897355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897355")>
@@ -1432,9 +1492,11 @@ Module Module1
     Class Classic
         Private int As Integer
         Private obj As Object
+
         Public Sub New(int As Integer)
             Me.int = int
         End Sub
+
         Public Sub New(obj As Object)
             Me.obj = obj
         End Sub
@@ -1446,18 +1508,19 @@ End Module")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateInInaccessibleType() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Private Class Bar
     End Class
 End Class
 Class A
     Sub Main()
-        Dim s = New [|Foo.Bar(5)|]
+        Dim s = New [|Goo.Bar(5)|]
     End Sub
 End Class",
-"Class Foo
+"Class Goo
     Private Class Bar
         Private v As Integer
+
         Public Sub New(v As Integer)
             Me.v = v
         End Sub
@@ -1465,7 +1528,7 @@ End Class",
 End Class
 Class A
     Sub Main()
-        Dim s = New Foo.Bar(5)
+        Dim s = New Goo.Bar(5)
     End Sub
 End Class")
         End Function
@@ -1490,12 +1553,14 @@ Class C
 "Imports System.Linq
 Class C
     Private v As Integer
+
     Sub New()
         Dim s As Action = Sub()
-                              Dim a = New C(0)Public Sub New(v As Integer) 
- Me.v = v
-                          End Sub
- End Class")
+                              Dim a = New C(0)Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+End Class
+")
             End Function
 
             <WorkItem(5920, "https://github.com/dotnet/roslyn/issues/5920")>
@@ -1515,17 +1580,18 @@ Class C
 Class C
     Private v As Integer
     Private v1 As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
     Sub New()
         Dim s As Action = Sub()
-                              Dim a = New C(0, 0) 
- Public Sub New(v As Integer, v1 As Integer)
+                              Dim a = New C(0, 0)Public Sub New(v As Integer, v1 As Integer)
         Me.New(v)
         Me.v1 = v1
     End Sub
-End Class")
+End Class
+")
             End Function
         End Class
 
@@ -1587,6 +1653,294 @@ Module P
         Dim c = New C(prop)
     End Sub
 End Module")
+        End Function
+
+        <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructor1() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class B
+    Public Sub New(a As Integer)
+        [|Me.New(a, 1)|]
+    End Sub
+End Class",
+"Public Class B
+    Private a As Integer
+    Private v As Integer
+
+    Public Sub New(a As Integer)
+        Me.New(a, 1)
+    End Sub
+
+    Public Sub New(a As Integer, v As Integer)
+        Me.a = a
+        Me.v = v
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructor2() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class B
+    Public Sub New(x As Integer)
+        Me.New(x, 0, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer, z As Integer)
+        [|Me.New(x, y)|]
+    End Sub
+End Class",
+"Public Class B
+    Private x As Integer
+    Private y As Integer
+
+    Public Sub New(x As Integer)
+        Me.New(x, 0, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer)
+        Me.x = x
+        Me.y = y
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer, z As Integer)
+        Me.New(x, y)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructor3() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class B
+    Public Sub New(x As Integer)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer, z As Integer)
+        [|Me.New(x, y)|]
+    End Sub
+End Class",
+"Public Class B
+    Private y As Integer
+
+    Public Sub New(x As Integer)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer)
+        Me.New(x)
+        Me.y = y
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer, z As Integer)
+        Me.New(x, y)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructor4() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class B
+    Public Sub New(x As Integer)
+        Me.New(x, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer)
+        [|Me.New(x, y, 0)|]
+    End Sub
+End Class",
+"Public Class B
+    Private x As Integer
+    Private y As Integer
+    Private v As Integer
+
+    Public Sub New(x As Integer)
+        Me.New(x, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer)
+        Me.New(x, y, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer, v As Integer)
+        Me.x = x
+        Me.y = y
+        Me.v = v
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructor5() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Public Sub New(a As Integer)
+    End Sub
+
+    Public Sub New(a As Integer, b As Integer)
+        Me.New(True, True)
+    End Sub
+
+    Public Sub New(a As Boolean, b As Boolean)
+        Me.New(1, 1)
+    End Sub
+
+    Public Sub New(a As Integer, b As Integer, c As Integer, e As Integer)
+        [|Me.New(a, b, c)|]
+    End Sub
+End Class",
+"Class C
+    Private b As Integer
+    Private c As Integer
+
+    Public Sub New(a As Integer)
+    End Sub
+
+    Public Sub New(a As Integer, b As Integer)
+        Me.New(True, True)
+    End Sub
+
+    Public Sub New(a As Boolean, b As Boolean)
+        Me.New(1, 1)
+    End Sub
+
+    Public Sub New(a As Integer, b As Integer, c As Integer)
+        Me.New(a)
+        Me.b = b
+        Me.c = c
+    End Sub
+
+    Public Sub New(a As Integer, b As Integer, c As Integer, e As Integer)
+        Me.New(a, b, c)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function CreateFieldDefaultNamingStyle() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C([|x|])
+    End Sub
+End Class",
+"Class C
+    Private x As Integer
+
+    Public Sub New(x As Integer)
+        Me.x = x
+    End Sub
+
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C(x)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function CreateFieldSpecifiedNamingStyle() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C([|x|])
+    End Sub
+End Class",
+"Class C
+    Private _x As Integer
+
+    Public Sub New(x As Integer)
+        _x = x
+    End Sub
+
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C(x)
+    End Sub
+End Class", options:=options.FieldNamesAreCamelCaseWithUnderscorePrefix)
+        End Function
+
+        <WorkItem(542055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestFieldWithNamingStyleAlreadyExists() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Sub Test()
+        Dim x = New A([|P|]:=5)
+    End Sub
+End Class
+Class A
+    Shared Property _p As Integer
+End Class",
+"Class Program
+    Sub Test()
+        Dim x = New A(P:=5)
+    End Sub
+End Class
+Class A
+    Private _p1 As Integer
+
+    Public Sub New(P As Integer)
+        _p1 = P
+    End Sub
+
+    Shared Property _p As Integer
+End Class", options:=options.FieldNamesAreCamelCaseWithUnderscorePrefix)
+        End Function
+
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestFieldAndPropertyNamingStyles() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C([|x|])
+    End Sub
+End Class",
+"Class C
+    Private _x As Integer
+
+    Public Sub New(p_x As Integer)
+        _x = p_x
+    End Sub
+
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C(x)
+    End Sub
+End Class", options:=options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.VisualBasic))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(23807, "https://github.com/dotnet/roslyn/issues/23807")>
+        Public Async Function TestAsNewClause() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Class Test
+    Private field As New Test([|1|])
+End Class
+",
+"
+Class Test
+    Private field As New Test(1)
+    Private v As Integer
+
+    Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+End Class
+")
         End Function
     End Class
 End Namespace

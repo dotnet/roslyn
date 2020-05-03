@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -7,6 +9,7 @@ Imports System.Collections.ObjectModel
 Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -269,8 +272,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' <summary>
         ''' Make sure we retarget methods when underlying namespace checks their viability.
         ''' </summary>
-        Friend Overrides Function AddExtensionMethodLookupSymbolsInfoViabilityCheck(method As MethodSymbol, options As LookupOptions, originalBinder As Binder) As Boolean
-            Return MyBase.AddExtensionMethodLookupSymbolsInfoViabilityCheck(RetargetingTranslator.Retarget(method), options, originalBinder)
+        Friend Overrides Function AddExtensionMethodLookupSymbolsInfoViabilityCheck(method As MethodSymbol, options As LookupOptions, nameSet As LookupSymbolsInfo, originalBinder As Binder) As Boolean
+            Return MyBase.AddExtensionMethodLookupSymbolsInfoViabilityCheck(RetargetingTranslator.Retarget(method), options, nameSet, originalBinder)
         End Function
 
         Friend Overrides Sub AddExtensionMethodLookupSymbolsInfo(nameSet As LookupSymbolsInfo,

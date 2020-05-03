@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Text;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Collections
+namespace Microsoft.CodeAnalysis.PooledObjects
 {
     /// <summary>
     /// The usage is:
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Collections
     ///        ... sb.ToString() ...
     ///        inst.Free();
     /// </summary>
-    internal class PooledStringBuilder
+    internal sealed partial class PooledStringBuilder
     {
         public readonly StringBuilder Builder = new StringBuilder();
         private readonly ObjectPool<PooledStringBuilder> _pool;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public string ToStringAndFree()
         {
-            string result = this.Builder.ToString();
+            var result = this.Builder.ToString();
             this.Free();
 
             return result;
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public string ToStringAndFree(int startIndex, int length)
         {
-            string result = this.Builder.ToString(startIndex, length);
+            var result = this.Builder.ToString(startIndex, length);
             this.Free();
 
             return result;

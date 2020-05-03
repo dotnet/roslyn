@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -8,6 +10,7 @@ Imports System.Threading
 Imports System.Xml
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -628,7 +631,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             If bindResult.IsDefaultOrEmpty Then
                                 If Me.ProduceXmlDiagnostics Then
-                                    ProcessErrorLocations(XmlLocation.Create(attribute, currentXmlFilePath), reference.ToFullString().TrimEnd(Nothing), useSiteDiagnostics, errorLocations, ERRID.WRN_XMLDocCrefAttributeNotFound1)
+                                    ProcessErrorLocations(XmlLocation.Create(attribute, currentXmlFilePath), reference.ToFullString().TrimEnd(), useSiteDiagnostics, errorLocations, ERRID.WRN_XMLDocCrefAttributeNotFound1)
                                 End If
                                 attribute.Value = "?:" + attribute.Value
 

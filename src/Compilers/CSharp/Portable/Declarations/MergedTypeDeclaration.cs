@@ -1,16 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     // An invariant of a merged type declaration is that all of its children are also merged
     // declarations.
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class MergedTypeDeclaration : MergedNamespaceOrTypeDeclaration
     {
         private readonly ImmutableArray<SingleTypeDeclaration> _declarations;
@@ -123,22 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool HasConstraints
-        {
-            get
-            {
-                foreach (var decl in this.Declarations)
-                {
-                    if (decl.HasConstraints)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        }
-
         public LexicalSortKey GetLexicalSortKey(CSharpCompilation compilation)
         {
             LexicalSortKey sortKey = new LexicalSortKey(Declarations[0].NameLocation, compilation);
@@ -226,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return StaticCast<Declaration>.From(this.Children);
         }
 
-        public IEnumerable<string> MemberNames
+        public ICollection<string> MemberNames
         {
             get
             {
@@ -238,6 +227,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return _lazyMemberNames;
             }
+        }
+
+        internal string GetDebuggerDisplay()
+        {
+            return $"{nameof(MergedTypeDeclaration)} {Name}";
         }
     }
 }

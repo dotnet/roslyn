@@ -1,6 +1,7 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -12,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New PartialTypeCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(PartialTypeCompletionProvider)
         End Function
 
         <WorkItem(578224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578224")>
@@ -183,7 +184,7 @@ Partial Structure $$</text>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestPartialClassesInSameNamespace() As Task
             Dim text = <text>Namespace N
-    Partial Class Foo
+    Partial Class Goo
 
     End Class
 End Namespace
@@ -193,13 +194,13 @@ Namespace N
 
 End Namespace</text>
 
-            Await VerifyItemExistsAsync(text.Value, "Foo")
+            Await VerifyItemExistsAsync(text.Value, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotPartialClassesAcrossDifferentNamespaces() As Task
             Dim text = <text>Namespace N
-    Partial Class Foo
+    Partial Class Goo
 
     End Class
 End Namespace

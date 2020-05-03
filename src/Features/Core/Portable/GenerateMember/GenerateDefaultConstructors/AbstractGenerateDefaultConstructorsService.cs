@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
         {
         }
 
-        protected abstract bool TryInitializeState(SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken, out INamedTypeSymbol classOrStructType);
+        protected abstract bool TryInitializeState(SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken, out INamedTypeSymbol classType);
 
         public async Task<ImmutableArray<CodeAction>> GenerateDefaultConstructorsAsync(
             Document document,
@@ -35,12 +38,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     {
                         foreach (var constructor in state.UnimplementedConstructors)
                         {
-                            result.Add(new GenerateDefaultConstructorCodeAction((TService)this, document, state, constructor));
+                            result.Add(new GenerateDefaultConstructorCodeAction(document, state, constructor));
                         }
 
                         if (state.UnimplementedConstructors.Length > 1)
                         {
-                            result.Add(new CodeActionAll((TService)this, document, state, state.UnimplementedConstructors));
+                            result.Add(new CodeActionAll(document, state, state.UnimplementedConstructors));
                         }
                     }
                 }

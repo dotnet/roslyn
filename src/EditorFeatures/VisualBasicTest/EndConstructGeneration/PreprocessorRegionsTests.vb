@@ -1,14 +1,17 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
+    <[UseExportProvider]>
     Public Class PreprocessorRegionTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub ApplyAfterHashRegion()
             VerifyStatementEndConstructApplied(
-                before:="#Region ""Foo""",
+                before:="#Region ""Goo""",
                 beforeCaret:={0, -1},
-                after:="#Region ""Foo""
+                after:="#Region ""Goo""
 
 #End Region",
                 afterCaret:={1, -1})
@@ -17,11 +20,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub ApplyAfterHashRegion1()
             VerifyStatementEndConstructApplied(
-                before:="#Region ""Foo""
+                before:="#Region ""Goo""
 #Region ""Bar""
 #End Region",
                 beforeCaret:={1, -1},
-                after:="#Region ""Foo""
+                after:="#Region ""Goo""
 #Region ""Bar""
 
 #End Region
@@ -39,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub DontApplyAfterHashRegionWhenEndRegionExists1()
             VerifyStatementEndConstructNotApplied(
-                text:="#Region ""Foo""
+                text:="#Region ""Goo""
 #End Region",
                 caret:={0, -1})
         End Sub
@@ -47,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub DontApplyAfterHashRegionWhenEndRegionExists2()
             VerifyStatementEndConstructNotApplied(
-                text:="#Region ""Foo""
+                text:="#Region ""Goo""
 #Region ""Bar""
 #End Region
 #End Region",
@@ -57,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub DontApplyAfterHashRegionWhenEndRegionExists3()
             VerifyStatementEndConstructNotApplied(
-                text:="#Region ""Foo""
+                text:="#Region ""Goo""
 #Region ""Bar""
 #End Region
 #End Region",

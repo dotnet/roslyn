@@ -1,18 +1,20 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
+Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComments
     Public Class XmlTagCompletionTests
         Inherits AbstractXmlTagCompletionTests
 
-        Friend Overrides Function CreateCommandHandler(undoHistory As ITextUndoHistoryRegistry) As ICommandHandler(Of TypeCharCommandArgs)
-            Return New XmlTagCompletionCommandHandler(undoHistory, TestWaitIndicator.Default)
+        Friend Overrides Function CreateCommandHandler(undoHistory As ITextUndoHistoryRegistry) As IChainedCommandHandler(Of TypeCharCommandArgs)
+            Return New XmlTagCompletionCommandHandler(undoHistory)
         End Function
 
         Protected Overrides Function CreateTestWorkspace(initialMarkup As String) As TestWorkspace
@@ -23,12 +25,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
         Public Sub TestSimpleTagCompletion()
 
             Dim text = <File><![CDATA[
-''' <foo$$
+''' <goo$$
 Class C 
 End Class]]></File>
 
             Dim expected = <File><![CDATA[
-''' <foo>$$</foo>
+''' <goo>$$</goo>
 Class C 
 End Class]]></File>
 
@@ -40,14 +42,14 @@ End Class]]></File>
 
             Dim text = <File><![CDATA[
 ''' <summary>
-''' <foo$$
+''' <goo$$
 ''' </summary>
 Class C 
 End Class]]></File>
 
             Dim expected = <File><![CDATA[
 ''' <summary>
-''' <foo>$$</foo>
+''' <goo>$$</goo>
 ''' </summary>
 Class C 
 End Class]]></File>
@@ -59,13 +61,13 @@ End Class]]></File>
         Public Sub TestCompleteBeforeIncompleteTag()
 
             Dim text = <File><![CDATA[
-''' <foo$$
+''' <goo$$
 ''' </summary>
 Class C 
 End Class]]></File>
 
             Dim expected = <File><![CDATA[
-''' <foo>$$</foo>
+''' <goo>$$</goo>
 ''' </summary>
 Class C 
 End Class]]></File>
@@ -93,12 +95,12 @@ End Class]]></File>
         Public Sub TestNotAlreadyCompleteTag()
 
             Dim text = <File><![CDATA[
-''' <foo$$</foo>
+''' <goo$$</goo>
 Class C 
 End Class]]></File>
 
             Dim expected = <File><![CDATA[
-''' <foo>$$</foo>
+''' <goo>$$</goo>
 Class C 
 End Class]]></File>
 
@@ -109,16 +111,16 @@ End Class]]></File>
         Public Sub TestNotAlreadyCompleteTag2()
 
             Dim text = <File><![CDATA[
-''' <foo$$
+''' <goo$$
 '''
-''' </foo>
+''' </goo>
 Class C 
 End Class]]></File>
 
             Dim expected = <File><![CDATA[
-''' <foo>$$
+''' <goo>$$
 '''
-''' </foo>
+''' </goo>
 Class C 
 End Class]]></File>
 
@@ -130,12 +132,12 @@ End Class]]></File>
 
             Dim text = <File><![CDATA[
 Class C
-    DIm z = <foo$$
+    DIm z = <goo$$
 End Class]]></File>
 
             Dim expected = <File><![CDATA[
 Class C
-    DIm z = <foo>$$
+    DIm z = <goo>$$
 End Class]]></File>
 
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)

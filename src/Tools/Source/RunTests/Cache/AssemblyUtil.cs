@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -26,7 +28,7 @@ namespace RunTests.Cache
         }
 
         /// <summary>
-        /// There are some DLLs whose abscence is expected and should not be considered an error.  These
+        /// There are some DLLs whose absence is expected and should not be considered an error.  These
         /// are assemblies which are either light up components or are a part of the VS reference graph
         /// which are never deployed for our tests.
         ///

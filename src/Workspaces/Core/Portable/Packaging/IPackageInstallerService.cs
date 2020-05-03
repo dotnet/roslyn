@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,17 +18,18 @@ namespace Microsoft.CodeAnalysis.Packaging
         bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName);
 
         bool TryInstallPackage(Workspace workspace, DocumentId documentId,
-            string source, string packageName, 
+            string source, string packageName,
             string versionOpt, bool includePrerelease,
             CancellationToken cancellationToken);
 
         ImmutableArray<string> GetInstalledVersions(string packageName);
 
         IEnumerable<Project> GetProjectsWithInstalledPackage(Solution solution, string packageName, string version);
-
+        bool CanShowManagePackagesDialog();
         void ShowManagePackagesDialog(string packageName);
 
-        ImmutableArray<PackageSource> PackageSources { get; }
+        ImmutableArray<PackageSource> GetPackageSources();
+
         event EventHandler PackageSourcesChanged;
     }
 

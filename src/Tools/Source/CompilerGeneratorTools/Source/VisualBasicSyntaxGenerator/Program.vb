@@ -1,24 +1,25 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.IO
-Imports System.Collections.Generic
 Imports System.Console
+Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
+Imports System.Text
 
 ''' <summary>
 ''' Contains the startup code, command line argument processing, and driving the execution of the tool.
 ''' </summary>
 Friend Module Program
+    Const exitWithErrors = 1,
+          exitWithoutErrors = 0
 
     Public Function Main(args As String()) As Integer
-
-        Const exitWithErrors = 1,
-              exitWithoutErrors = 0
-
         Try
             Dim outputKind As String = Nothing
             Dim paths As New List(Of String)()
+            Dim grammar = False
 
             For Each arg In args
                 Dim c = arg.ToLowerInvariant()
@@ -31,6 +32,8 @@ Friend Module Program
                 ElseIf c = "/?" Then
                     PrintUsage()
                     Return exitWithErrors
+                ElseIf c = "/grammar" Then
+                    grammar = True
                 Else
                     paths.Add(arg)
                 End If
@@ -50,23 +53,45 @@ Friend Module Program
                 Return exitWithErrors
             End If
 
-            Dim definition As ParseTree = Nothing
-            If Not TryReadDefinition(inputFile, definition) Then
-                Return exitWithErrors
-            End If
-
-            Dim checksum = GetChecksum(inputFile)
-            WriteOutput(inputFile, outputFile, definition, outputKind, checksum)
-
-            Return exitWithoutErrors
-
+            Return If(grammar,
+                GenerateGrammar(inputFile, outputFile),
+                GenerateSource(outputKind, inputFile, outputFile))
         Catch ex As Exception
             Console.Error.WriteLine("FATAL ERROR: {0}", ex.Message)
             Console.Error.WriteLine(ex.StackTrace)
 
             Return exitWithErrors
         End Try
+    End Function
 
+    Private Function GenerateGrammar(inputFile As String, outputFile As String) As Integer
+        Dim definition As ParseTree = Nothing
+        If Not TryReadDefinition(inputFile, definition) Then
+            Return exitWithErrors
+        End If
+
+        Dim outputPath = outputFile.Trim(""""c)
+        Dim prefix = Path.GetFileName(inputFile)
+        Dim mainFile = Path.Combine(outputPath, $"VisualBasic.Grammar.g4")
+        Dim text = New GrammarGenerator(definition).Run()
+
+        Using output As New StreamWriter(New FileStream(mainFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
+            output.Write(text)
+        End Using
+
+        Return exitWithoutErrors
+    End Function
+
+    Private Function GenerateSource(outputKind As String, inputFile As String, outputFile As String) As Integer
+        Dim definition As ParseTree = Nothing
+        If Not TryReadDefinition(inputFile, definition) Then
+            Return exitWithErrors
+        End If
+
+        Dim checksum = GetChecksum(inputFile)
+        WriteOutput(inputFile, outputFile, definition, outputKind, checksum)
+
+        Return exitWithoutErrors
     End Function
 
     Private Function GetChecksum(filePath As String) As String
@@ -78,10 +103,11 @@ Friend Module Program
     End Function
 
     Private Sub PrintUsage()
-        WriteLine("VBSyntaxGenerator.exe input output [/source] [/test]")
+        WriteLine("VBSyntaxGenerator.exe input output [/source] [/test] [/grammar]")
         WriteLine("  /source        Generates syntax model source code.")
         WriteLine("  /test          Generates syntax model unit tests.")
         WriteLine("  /gettext       Generates GetText method only.")
+        WriteLine("  /grammar       Generates grammar file only.")
     End Sub
 
     Public Function TryReadDefinition(inputFile As String, <Out> ByRef definition As ParseTree) As Boolean
@@ -97,7 +123,7 @@ Friend Module Program
     Public Sub WriteOutput(inputFile As String, outputFile As String, definition As ParseTree, outputKind As String, checksum As String)
         Select Case outputKind
             Case "/test"
-                Using output As New StreamWriter(New FileStream(outputFile, FileMode.Create, FileAccess.Write))
+                Using output As New StreamWriter(New FileStream(outputFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
 
                     WriteHeader(output, checksum)
                     output.WriteLine()
@@ -113,7 +139,7 @@ Friend Module Program
                 End Using
 
             Case "/gettext"
-                Using output As New StreamWriter(New FileStream(outputFile, FileMode.Create, FileAccess.Write))
+                Using output As New StreamWriter(New FileStream(outputFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
                     WriteHeader(output, checksum)
                     Dim syntaxFactsWriter As New SyntaxFactsWriter(definition)
                     syntaxFactsWriter.GenerateGetText(output)
@@ -132,7 +158,7 @@ Friend Module Program
         Dim internalFile = Path.Combine(outputPath, $"{prefix}.Internal.Generated.vb")
         Dim redNodeWriter As New RedNodeWriter(definition)
 
-        Using output As New StreamWriter(New FileStream(mainFile, FileMode.Create, FileAccess.Write))
+        Using output As New StreamWriter(New FileStream(mainFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
             WriteSyntaxHeader(output, checksum)
             redNodeWriter.WriteMainTreeAsCode(output)
 
@@ -143,13 +169,13 @@ Friend Module Program
             syntaxFactsWriter.GenerateFile(output)
         End Using
 
-        Using output As New StreamWriter(New FileStream(syntaxFile, FileMode.Create, FileAccess.Write))
+        Using output As New StreamWriter(New FileStream(syntaxFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
             WriteSyntaxHeader(output, checksum)
 
             redNodeWriter.WriteSyntaxTreeAsCode(output)
         End Using
 
-        Using output As New StreamWriter(New FileStream(internalFile, FileMode.Create, FileAccess.Write))
+        Using output As New StreamWriter(New FileStream(internalFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
             WriteSyntaxHeader(output, checksum)
 
             Dim greenNodeWriter As New GreenNodeWriter(definition)
@@ -163,7 +189,6 @@ Friend Module Program
 
     Private Sub WriteHeader(output As StreamWriter, checksum As String)
         output.WriteLine("' Definition of syntax model.")
-        output.WriteLine("' Generated by a tool from SHA256 content {0}", checksum)
         output.WriteLine("' DO NOT HAND EDIT")
     End Sub
 

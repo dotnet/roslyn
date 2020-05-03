@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -33,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateMethod
                 <Document>
                     public class CSClass
                     {
-                        public void Foo()
+                        public void Goo()
                         {
                             VBClass v;
                             v.$$Bar();
@@ -71,7 +73,7 @@ end class
                 <Document>
                     public class CSClass
                     {
-                        public void Foo()
+                        public void Goo()
                         {
                             VBClass.$$Bar();
                         }
@@ -108,7 +110,7 @@ end class
                 <Document>
                     public class CSClass
                     {
-                        public void Foo()
+                        public void Goo()
                         {
                             VBClass v;
                             int i;
@@ -150,7 +152,7 @@ end class
                 <Document>
                     public class CSClass : IVBInterface
                     {
-                        bool IVBInterface.$$Foo(string s)
+                        bool IVBInterface.$$Goo(string s)
                         {
                         }
                     }
@@ -168,7 +170,7 @@ end class
             Dim expected =
                 <text>
                     public interface IVBInterface
-                        Function Foo(s As String) As Boolean
+                        Function Goo(s As String) As Boolean
                     end interface
                 </text>.Value.Trim()
 
@@ -185,7 +187,7 @@ end class
                     using System;
                     public class CSClass
                     {
-                        void Foo()
+                        void Goo()
                         {
                             Bar(VBClass.$$Method)
                         }
@@ -226,7 +228,7 @@ end class
                 <Document>
                     public class CSClass
                     {
-                        public void Foo()
+                        public void Goo()
                         {
                             VBClass v;
                             v.$$Bar();
@@ -261,7 +263,7 @@ end class
                 <ProjectReference>CSAssembly1</ProjectReference>
                 <Document>
                     public class VBClass
-                        public sub Foo()
+                        public sub Goo()
                             dim v as CSClass
                             v.$$Bar()
                         end sub
@@ -301,7 +303,7 @@ end class
                 <Document>
                     public class CSClass
                     {
-                        public void Foo()
+                        public void Goo()
                         {
                             VBClass.Inner v;
                             v.$$Bar();
@@ -342,7 +344,7 @@ end class
                 <Document><![CDATA[
                     public class CSClass
                     {
-                        public void Foo()
+                        public void Goo()
                         {
                             VBClass<string>.Inner<int> v;
                             v.$$Bar();
@@ -382,7 +384,7 @@ end class
                 <ProjectReference>CSAssembly1</ProjectReference>
                 <Document>
                     public class VBClass
-                        public sub Foo()
+                        public sub Goo()
                             dim v as CSClass.Inner
                             v.$$Bar()
                         end sub
@@ -427,7 +429,7 @@ end class
                 <ProjectReference>CSAssembly1</ProjectReference>
                 <Document>
                     public class VBClass
-                        public sub Foo()
+                        public sub Goo()
                             dim v as CSClass(of Integer).Inner(of String)
                             v.$$Bar()
                         end sub
@@ -475,7 +477,7 @@ end class
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1($$foo())
+        list.AddRange1($$goo())
     End Sub
 End Module
                 </Document>
@@ -507,10 +509,10 @@ public struct MyStruct<T>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1(foo())
+        list.AddRange1(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of String)
+    Private Function goo() As MyStruct(Of String)
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -530,7 +532,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1($$foo())
+        list.AddRange1($$goo())
     End Sub
 End Module
                 </Document>
@@ -577,10 +579,10 @@ public class CCC : AAA, BBB
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1(foo())
+        list.AddRange1(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of CCC)
+    Private Function goo() As MyStruct(Of CCC)
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -600,7 +602,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1($$foo())
+        list.AddRange1($$goo())
     End Sub
 End Module
                 </Document>
@@ -647,10 +649,10 @@ public class CCC : AAA, BBB
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1(foo())
+        list.AddRange1(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of CCC)
+    Private Function goo() As MyStruct(Of CCC)
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -670,7 +672,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1($$foo())
+        list.AddRange1($$goo())
     End Sub
 End Module
                 </Document>
@@ -727,10 +729,10 @@ public class derived2 : interface3
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1(foo())
+        list.AddRange1(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of Object)
+    Private Function goo() As MyStruct(Of Object)
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -748,7 +750,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange($$foo())
+        list.AddRange($$goo())
     End Sub
 End Module
                 </Document>
@@ -815,10 +817,10 @@ public class outer
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange(foo())
+        list.AddRange(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of outer.inner.derived3)
+    Private Function goo() As MyStruct(Of outer.inner.derived3)
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -838,7 +840,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1($$foo())
+        list.AddRange1($$goo())
     End Sub
 End Module
                 </Document>
@@ -900,10 +902,10 @@ public class derived3 : derived1, interface3
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1(foo())
+        list.AddRange1(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of derived3)
+    Private Function goo() As MyStruct(Of derived3)
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -923,7 +925,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1($$foo())
+        list.AddRange1($$goo())
     End Sub
 End Module
                 </Document>
@@ -992,10 +994,10 @@ public class outer
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1(foo())
+        list.AddRange1(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of outer.inner.derived3)
+    Private Function goo() As MyStruct(Of outer.inner.derived3)
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -1014,7 +1016,7 @@ End Module]]>
                 <Document>Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1($$foo())
+        list.AddRange1($$goo())
     End Sub
 End Module</Document>
             </Project>
@@ -1065,10 +1067,10 @@ public class FinalType<T> : Base1<T>, inter1 where T : AAA
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1(foo())
+        list.AddRange1(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of FinalType(Of AAA))
+    Private Function goo() As MyStruct(Of FinalType(Of AAA))
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -1079,9 +1081,11 @@ End Module]]>
 
 #Region "Normal tests"
 
+#Disable Warning CA2243 ' Attribute string literals should parse correctly
         <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function PreferNormalFileOverAutoGeneratedFile_CSharp() As Task
+#Enable Warning CA2243 ' Attribute string literals should parse correctly
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1137,9 +1141,11 @@ partial class UserControl1
             Await TestAsync(input, fileNameToExpected:=expectedFileWithText)
         End Function
 
+#Disable Warning CA2243 ' Attribute string literals should parse correctly
         <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function IntoAutoGeneratedFileIfNoBetterLocationExists_CSharp() As Task
+#Enable Warning CA2243 ' Attribute string literals should parse correctly
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1181,9 +1187,11 @@ partial class UserControl1
             Await TestAsync(input, fileNameToExpected:=expectedFileWithText)
         End Function
 
+#Disable Warning CA2243 ' Attribute string literals should parse correctly
         <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function InAutoGeneratedFiles_CSharp() As Task
+#Enable Warning CA2243 ' Attribute string literals should parse correctly
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1224,9 +1232,11 @@ class Form1
             Await TestAsync(input, fileNameToExpected:=expectedFileWithText)
         End Function
 
+#Disable Warning CA2243 ' Attribute string literals should parse correctly
         <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function PreferNormalFileOverAutoGeneratedFile_Basic() As Task
+#Enable Warning CA2243 ' Attribute string literals should parse correctly
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1274,9 +1284,11 @@ End Class
             Await TestAsync(input, fileNameToExpected:=expectedFileWithText)
         End Function
 
+#Disable Warning CA2243 ' Attribute string literals should parse correctly
         <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function IntoAutoGeneratedFileIfNoBetterLocationExists_Basic() As Task
+#Enable Warning CA2243 ' Attribute string literals should parse correctly
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1312,9 +1324,11 @@ End Class
             Await TestAsync(input, fileNameToExpected:=expectedFileWithText)
         End Function
 
+#Disable Warning CA2243 ' Attribute string literals should parse correctly
         <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function InAutoGeneratedFiles_Basic() As Task
+#Enable Warning CA2243 ' Attribute string literals should parse correctly
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">

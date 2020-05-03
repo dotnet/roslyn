@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -8,10 +11,14 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceServiceFactory(typeof(IMetadataService), ServiceLayer.Default), Shared]
     internal sealed class MetadataServiceFactory : IWorkspaceServiceFactory
     {
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public MetadataServiceFactory()
         {
-            return new Service(workspaceServices.GetService<IDocumentationProviderService>());
         }
+
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+            => new Service(workspaceServices.GetService<IDocumentationProviderService>());
 
         private sealed class Service : IMetadataService
         {
@@ -24,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
-            {
-                return (PortableExecutableReference)_metadataCache.GetReference(resolvedPath, properties);
-            }
+                => (PortableExecutableReference)_metadataCache.GetReference(resolvedPath, properties);
         }
     }
 }

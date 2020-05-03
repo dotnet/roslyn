@@ -1,4 +1,6 @@
-﻿# Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿# Licensed to the .NET Foundation under one or more agreements.
+# The .NET Foundation licenses this file to you under the MIT license.
+# See the LICENSE file in the project root for more information.
 
 # This file contains command-line options that the VB
 # command line compiler (VBC) will process as part
@@ -30,7 +32,7 @@
 /r:System.Web.RegularExpressions.dll
 /r:System.Web.Services.dll
 /r:System.Windows.Forms.dll
-/r:System.XML.dll
+/r:System.Xml.dll
 
 /r:System.Workflow.Activities.dll
 /r:System.Workflow.ComponentModel.dll

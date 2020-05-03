@@ -1,9 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -80,8 +83,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestParen1()
         {
-            var code = @"public class C { void Foo$$() { } }";
-            var expected = @"public class C { void Foo([|)|] { } }";
+            var code = @"public class C { void Goo$$() { } }";
+            var expected = @"public class C { void Goo([|)|] { } }";
 
             await TestAsync(code, expected);
         }
@@ -89,8 +92,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestParen2()
         {
-            var code = @"public class C { void Foo($$) { } }";
-            var expected = @"public class C { void Foo([|)|] { } }";
+            var code = @"public class C { void Goo($$) { } }";
+            var expected = @"public class C { void Goo([|)|] { } }";
 
             await TestAsync(code, expected);
         }
@@ -98,8 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestParen3()
         {
-            var code = @"public class C { void Foo($$ ) { } }";
-            var expected = @"public class C { void Foo( [|)|] { } }";
+            var code = @"public class C { void Goo($$ ) { } }";
+            var expected = @"public class C { void Goo( [|)|] { } }";
 
             await TestAsync(code, expected);
         }
@@ -107,8 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestParen4()
         {
-            var code = @"public class C { void Foo( $$) { } }";
-            var expected = @"public class C { void Foo[|(|] ) { } }";
+            var code = @"public class C { void Goo( $$) { } }";
+            var expected = @"public class C { void Goo[|(|] ) { } }";
 
             await TestAsync(code, expected);
         }
@@ -116,8 +119,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestParen5()
         {
-            var code = @"public class C { void Foo( )$$ { } }";
-            var expected = @"public class C { void Foo[|(|] ) { } }";
+            var code = @"public class C { void Goo( )$$ { } }";
+            var expected = @"public class C { void Goo[|(|] ) { } }";
 
             await TestAsync(code, expected);
         }
@@ -125,8 +128,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestParen6()
         {
-            var code = @"public class C { void Foo()$$ { } }";
-            var expected = @"public class C { void Foo[|(|]) { } }";
+            var code = @"public class C { void Goo()$$ { } }";
+            var expected = @"public class C { void Goo[|(|]) { } }";
 
             await TestAsync(code, expected);
         }
@@ -188,8 +191,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestAngleBracket1()
         {
-            var code = @"public class C { Foo$$<int> f; }";
-            var expected = @"public class C { Foo<int[|>|] f; }";
+            var code = @"public class C { Goo$$<int> f; }";
+            var expected = @"public class C { Goo<int[|>|] f; }";
 
             await TestAsync(code, expected);
         }
@@ -197,8 +200,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestAngleBracket2()
         {
-            var code = @"public class C { Foo<$$int> f; }";
-            var expected = @"public class C { Foo<int[|>|] f; }";
+            var code = @"public class C { Goo<$$int> f; }";
+            var expected = @"public class C { Goo<int[|>|] f; }";
 
             await TestAsync(code, expected);
         }
@@ -206,8 +209,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestAngleBracket3()
         {
-            var code = @"public class C { Foo<int$$> f; }";
-            var expected = @"public class C { Foo[|<|]int> f; }";
+            var code = @"public class C { Goo<int$$> f; }";
+            var expected = @"public class C { Goo[|<|]int> f; }";
 
             await TestAsync(code, expected);
         }
@@ -215,8 +218,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestAngleBracket4()
         {
-            var code = @"public class C { Foo<int>$$ f; }";
-            var expected = @"public class C { Foo[|<|]int> f; }";
+            var code = @"public class C { Goo<int>$$ f; }";
+            var expected = @"public class C { Goo[|<|]int> f; }";
 
             await TestAsync(code, expected);
         }
@@ -296,8 +299,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestString1()
         {
-            var code = @"public class C { string s = $$""Foo""; }";
-            var expected = @"public class C { string s = ""Foo[|""|]; }";
+            var code = @"public class C { string s = $$""Goo""; }";
+            var expected = @"public class C { string s = ""Goo[|""|]; }";
 
             await TestAsync(code, expected);
         }
@@ -305,8 +308,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestString2()
         {
-            var code = @"public class C { string s = ""$$Foo""; }";
-            var expected = @"public class C { string s = ""Foo[|""|]; }";
+            var code = @"public class C { string s = ""$$Goo""; }";
+            var expected = @"public class C { string s = ""Goo[|""|]; }";
 
             await TestAsync(code, expected);
         }
@@ -314,8 +317,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestString3()
         {
-            var code = @"public class C { string s = ""Foo$$""; }";
-            var expected = @"public class C { string s = [|""|]Foo""; }";
+            var code = @"public class C { string s = ""Goo$$""; }";
+            var expected = @"public class C { string s = [|""|]Goo""; }";
 
             await TestAsync(code, expected);
         }
@@ -323,8 +326,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestString4()
         {
-            var code = @"public class C { string s = ""Foo""$$; }";
-            var expected = @"public class C { string s = [|""|]Foo""; }";
+            var code = @"public class C { string s = ""Goo""$$; }";
+            var expected = @"public class C { string s = [|""|]Goo""; }";
 
             await TestAsync(code, expected);
         }
@@ -332,8 +335,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestString5()
         {
-            var code = @"public class C { string s = ""Foo$$ ";
-            var expected = @"public class C { string s = ""Foo ";
+            var code = @"public class C { string s = ""Goo$$ ";
+            var expected = @"public class C { string s = ""Goo ";
 
             await TestAsync(code, expected);
         }
@@ -341,8 +344,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestVerbatimString1()
         {
-            var code = @"public class C { string s = $$@""Foo""; }";
-            var expected = @"public class C { string s = @""Foo[|""|]; }";
+            var code = @"public class C { string s = $$@""Goo""; }";
+            var expected = @"public class C { string s = @""Goo[|""|]; }";
 
             await TestAsync(code, expected);
         }
@@ -350,8 +353,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestVerbatimString2()
         {
-            var code = @"public class C { string s = @$$""Foo""; }";
-            var expected = @"public class C { string s = @""Foo[|""|]; }";
+            var code = @"public class C { string s = @$$""Goo""; }";
+            var expected = @"public class C { string s = @""Goo[|""|]; }";
 
             await TestAsync(code, expected);
         }
@@ -359,8 +362,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestVerbatimString3()
         {
-            var code = @"public class C { string s = @""$$Foo""; }";
-            var expected = @"public class C { string s = @""Foo[|""|]; }";
+            var code = @"public class C { string s = @""$$Goo""; }";
+            var expected = @"public class C { string s = @""Goo[|""|]; }";
 
             await TestAsync(code, expected);
         }
@@ -368,8 +371,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestVerbatimString4()
         {
-            var code = @"public class C { string s = @""Foo$$""; }";
-            var expected = @"public class C { string s = [|@""|]Foo""; }";
+            var code = @"public class C { string s = @""Goo$$""; }";
+            var expected = @"public class C { string s = [|@""|]Goo""; }";
 
             await TestAsync(code, expected);
         }
@@ -377,8 +380,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestVerbatimString5()
         {
-            var code = @"public class C { string s = @""Foo""$$; }";
-            var expected = @"public class C { string s = [|@""|]Foo""; }";
+            var code = @"public class C { string s = @""Goo""$$; }";
+            var expected = @"public class C { string s = [|@""|]Goo""; }";
 
             await TestAsync(code, expected);
         }

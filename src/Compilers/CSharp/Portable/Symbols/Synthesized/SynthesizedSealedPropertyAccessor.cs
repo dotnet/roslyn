@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -62,23 +64,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 Accessibility overriddenAccessibility = _overriddenAccessor.DeclaredAccessibility;
-
-                if (overriddenAccessibility == Accessibility.ProtectedOrInternal &&
-                    !this.ContainingAssembly.HasInternalAccessTo(_overriddenAccessor.ContainingAssembly))
+                switch (overriddenAccessibility)
                 {
-                    // NOTE: Dev10 actually reports ERR_CantChangeAccessOnOverride (CS0507) in this case,
-                    // but it's not clear why.  It seems like it would make more sense to just correct
-                    // the accessibility of the synthesized override, the same way a programmer would if
-                    // it existed in source.
+                    case Accessibility.ProtectedOrInternal:
+                        if (!this.ContainingAssembly.HasInternalAccessTo(_overriddenAccessor.ContainingAssembly))
+                        {
+                            // NOTE: Dev10 actually reports ERR_CantChangeAccessOnOverride (CS0507) in this case,
+                            // but it's not clear why.  It seems like it would make more sense to just correct
+                            // the accessibility of the synthesized override, the same way a programmer would if
+                            // it existed in source.
 
-                    return Accessibility.Protected;
+                            return Accessibility.Protected;
+                        }
+                        break;
+
+                    case Accessibility.ProtectedAndInternal:
+                        if (!this.ContainingAssembly.HasInternalAccessTo(_overriddenAccessor.ContainingAssembly))
+                        {
+                            // Of course this must trigger an error later, as you cannot override a private
+                            // protected member from another assembly.
+                            return Accessibility.Private;
+                        }
+                        break;
                 }
-                else
-                {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    Debug.Assert(AccessCheck.IsSymbolAccessible(_overriddenAccessor, this.ContainingType, ref useSiteDiagnostics));
-                    return overriddenAccessibility;
-                }
+
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                Debug.Assert(AccessCheck.IsSymbolAccessible(_overriddenAccessor, this.ContainingType, ref useSiteDiagnostics));
+                return overriddenAccessibility;
             }
         }
 
@@ -162,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get
             {
@@ -170,19 +182,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                return _overriddenAccessor.ReturnType;
+                return _overriddenAccessor.ReturnTypeWithAnnotations;
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
-                return ImmutableArray<TypeSymbol>.Empty;
+                return ImmutableArray<TypeWithAnnotations>.Empty;
             }
         }
 
@@ -215,14 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return _overriddenAccessor.ReturnTypeCustomModifiers;
-            }
-        }
-        
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get

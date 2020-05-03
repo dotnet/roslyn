@@ -1,32 +1,43 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
     /// Kinds of cases.
     /// </summary>
     public enum CaseKind
     {
+        /// <summary>
+        /// Represents unknown case kind.
+        /// </summary>
         None = 0x0,
 
         /// <summary>
-        /// Indicates case x in C# or Case x in VB.
+        /// Indicates an <see cref="ISingleValueCaseClauseOperation"/> in C# or VB.
         /// </summary>
         SingleValue = 0x1,
+
         /// <summary>
-        /// Indicates Case Is op x in VB.
+        /// Indicates an <see cref="IRelationalCaseClauseOperation"/> in VB.
         /// </summary>
         Relational = 0x2,
+
         /// <summary>
-        /// Indicates Case x To Y in VB.
+        /// Indicates an <see cref="IRangeCaseClauseOperation"/> in VB.
         /// </summary>
         Range = 0x3,
+
         /// <summary>
-        /// Indicates default in C# or Case Else in VB.
+        /// Indicates an <see cref="IDefaultCaseClauseOperation"/> in C# or VB.
         /// </summary>
-        Default = 0x4
+        Default = 0x4,
+
+        /// <summary>
+        /// Indicates an <see cref="IPatternCaseClauseOperation" /> in C#.
+        /// </summary>
+        Pattern = 0x5
     }
 }
 

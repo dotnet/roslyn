@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -29,6 +31,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <remarks></remarks>
         Public ReadOnly Current As BoundExpression
+
+        ''' <summary>
+        ''' Element type of the collection.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Public ReadOnly ElementType As TypeSymbol
 
         ''' <summary>
         ''' True is the enumerator needs or may need (in case of IEnumerator) to be disposed.
@@ -87,6 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="getEnumerator">A bound call to the GetEnumerator method.</param>
         ''' <param name="moveNext">A bound call to the MoveNext method.</param>
         ''' <param name="current">A bound access to the Current property.</param>
+        ''' <param name="elementType">An element type.</param>
         ''' <param name="needToDispose">if set to <c>true</c> the enumerator needs to be disposed.</param>
         ''' <param name="isOrInheritsFromOrImplementsIDisposable">if set to <c>true</c> the enumerator is or inherits from or implements IDisposable.</param>
         ''' <param name="disposeCondition">The condition whether to call dispose or not.</param>
@@ -99,6 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             getEnumerator As BoundExpression,
             moveNext As BoundExpression,
             current As BoundExpression,
+            elementType As TypeSymbol,
             needToDispose As Boolean,
             isOrInheritsFromOrImplementsIDisposable As Boolean,
             disposeCondition As BoundExpression,
@@ -111,6 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.GetEnumerator = getEnumerator
             Me.MoveNext = moveNext
             Me.Current = current
+            Me.ElementType = elementType
             Me.NeedToDispose = needToDispose
             Me.IsOrInheritsFromOrImplementsIDisposable = isOrInheritsFromOrImplementsIDisposable
             Me.DisposeCondition = disposeCondition

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -318,7 +320,7 @@ End Class
             Dim crossRefModule2 = TestReferences.SymbolsTests.netModule.CrossRefModule2
             Dim crossRefLib = TestReferences.SymbolsTests.netModule.CrossRefLib
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(compilationDef1, {crossRefLib}, TestOptions.ReleaseDll)
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(compilationDef1, {crossRefLib}, TestOptions.ReleaseDll)
 
             AssertNoErrors(compilation1)
 
@@ -344,7 +346,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(compilationDef2, {crossRefModule1, crossRefModule2}, TestOptions.ReleaseDll)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(compilationDef2, {crossRefModule1, crossRefModule2}, TestOptions.ReleaseDll)
 
             AssertNoErrors(compilation2)
 
@@ -356,7 +358,7 @@ End Class
             Assert.False(m4.BaseType.IsErrorType())
             Assert.False(m4.BaseType.BaseType.IsErrorType())
 
-            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(compilationDef2, {crossRefModule2}, TestOptions.ReleaseDll)
+            Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(compilationDef2, {crossRefModule2}, TestOptions.ReleaseDll)
 
             m3 = compilation3.GetTypeByMetadataName("M3")
             m4 = compilation3.GetTypeByMetadataName("M4")

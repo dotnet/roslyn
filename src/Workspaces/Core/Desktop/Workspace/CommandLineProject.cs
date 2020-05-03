@@ -1,16 +1,15 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -36,8 +35,10 @@ namespace Microsoft.CodeAnalysis
             var metadataService = tmpWorkspace.Services.GetRequiredService<IMetadataService>();
 
             // we only support file paths in /r command line arguments
+            var relativePathResolver =
+                new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
             var commandLineMetadataReferenceResolver = new WorkspaceMetadataFileReferenceResolver(
-                metadataService, new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory));
+                metadataService, relativePathResolver);
 
             var analyzerLoader = tmpWorkspace.Services.GetRequiredService<IAnalyzerService>().GetLoader();
             var xmlFileResolver = new XmlFileResolver(commandLineArguments.BaseDirectory);
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis
             // resolve all analyzer references.
             foreach (var path in commandLineArguments.AnalyzerReferences.Select(r => r.FilePath))
             {
-                analyzerLoader.AddDependencyLocation(path);
+                analyzerLoader.AddDependencyLocation(relativePathResolver.ResolvePath(path, baseFilePath: null));
             }
 
             var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences(analyzerLoader);
@@ -69,10 +70,9 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    using (var appConfigStream = new FileStream(commandLineArguments.AppConfigPath, FileMode.Open, FileAccess.Read))
-                    {
-                        assemblyIdentityComparer = DesktopAssemblyIdentityComparer.LoadFromXml(appConfigStream);
-                    }
+                    using var appConfigStream = new FileStream(commandLineArguments.AppConfigPath, FileMode.Open, FileAccess.Read);
+
+                    assemblyIdentityComparer = DesktopAssemblyIdentityComparer.LoadFromXml(appConfigStream);
                 }
                 catch (Exception e)
                 {

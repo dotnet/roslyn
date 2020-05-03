@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -21,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         Public Async Function TestInvocationForAddHandler() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         AddHandler $$
     End Sub
 End Class
@@ -41,8 +43,8 @@ End Class
         Public Async Function TestInvocationForAddHandlerAfterComma() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
-        AddHandler foo, $$
+    Sub Goo()
+        AddHandler goo, $$
     End Sub
 End Class
 ]]></a>.Value
@@ -63,7 +65,7 @@ End Class
         Public Async Function TestInvocationForRemoveHandler() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         RemoveHandler $$
     End Sub
 End Class
@@ -83,8 +85,8 @@ End Class
         Public Async Function TestInvocationForRemoveHandlerAfterComma() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
-        [|RemoveHandler foo, $$
+    Sub Goo()
+        [|RemoveHandler goo, $$
     |]End Sub
 End Class
 ]]></a>.Value

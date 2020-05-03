@@ -1,9 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -13,10 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             CompilationUnitSyntax compilationUnit,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit, spans, isMetadataAsSource);
 
             // extern aliases and usings are outlined in a single region
             var externsAndUsings = new List<SyntaxNode>();
@@ -25,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             externsAndUsings.Sort((node1, node2) => node1.SpanStart.CompareTo(node2.SpanStart));
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
-                externsAndUsings, autoCollapse: true, 
+                externsAndUsings, compressEmptyLines: false, autoCollapse: true,
                 type: BlockTypes.Imports, isCollapsible: true));
 
             if (compilationUnit.Usings.Count > 0 ||
@@ -35,11 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             {
                 CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit.EndOfFileToken.LeadingTrivia, spans);
             }
-        }
-
-        protected override bool SupportedInWorkspaceKind(string kind)
-        {
-            return true;
         }
     }
 }

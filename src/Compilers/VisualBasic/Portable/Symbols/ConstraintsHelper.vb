@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1104,7 +1107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End If
 
-            Debug.Assert(type.ConstructedFrom <> type)
+            Debug.Assert(Not TypeSymbol.Equals(type.ConstructedFrom, type, TypeCompareKind.ConsiderEverything))
             Return True
         End Function
 

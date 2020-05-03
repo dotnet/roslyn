@@ -1,16 +1,18 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class ActiveStatementTrackingServiceTests
-        Inherits RudeEditTestBase
+        Inherits EditingTestBase
 
         <Fact, WorkItem(846042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")>
         Public Sub MovedOutsideOfMethod1()
             Dim src1 = "
 Class C
     Shared Sub Main(args As String())
-        <AS:0>Foo(1)</AS:0>
+        <AS:0>Goo(1)</AS:0>
     End Sub
 End Class
 "
@@ -20,9 +22,9 @@ Class C
     Shared Sub Main(args As String())
     <AS:0>End Sub</AS:0>
 
-    Private Shared Sub Foo()
+    Private Shared Sub Goo()
         ' tracking span moves to another method as the user types around it
-        <TS:0>Foo(1)</TS:0>
+        <TS:0>Goo(1)</TS:0>
     End Sub
 End Class
 "
@@ -37,7 +39,7 @@ End Class
             Dim src1 = "
 Class C
     Shared Sub Main(args As String())
-        <AS:0>Foo(1)</AS:0>
+        <AS:0>Goo(1)</AS:0>
     End Sub
 End Class
 "
@@ -45,11 +47,11 @@ End Class
             Dim src2 = "
 Class C
     Shared Sub Main(args As String())
-        <AS:0>Foo(1)</AS:0>
+        <AS:0>Goo(1)</AS:0>
     End Sub
 
-    Private Shared Sub Foo()
-        <TS:0>Foo(2)</TS:0>
+    Private Shared Sub Goo()
+        <TS:0>Goo(2)</TS:0>
     End Sub
 End Class
 "
@@ -64,7 +66,7 @@ End Class
 Class C
     Shared Sub Main(args As String())
         Dim a = Sub() 
-                    <AS:0>Foo(1)</AS:0>
+                    <AS:0>Goo(1)</AS:0>
                 End Sub
     End Sub
 End Class
@@ -75,7 +77,7 @@ Class C
         Dim a = Sub() 
                 <AS:0>End Sub</AS:0>
 
-        <TS:0>Foo(1)</TS:0>
+        <TS:0>Goo(1)</TS:0>
     End Sub
 End Class
 "
@@ -90,11 +92,11 @@ End Class
 Class C
     Sub Main()
         Dim a = Sub() 
-            <AS:0>Foo(1)</AS:0> 
+            <AS:0>Goo(1)</AS:0> 
         End Sub
 
         Dim b = Sub() 
-            Foo(2)
+            Goo(2)
         End Sub
     End Sub
 End Class
@@ -103,11 +105,11 @@ End Class
 Class C
     Sub Main()
         Dim a = Sub() 
-            <AS:0>Foo(1)</AS:0> 
+            <AS:0>Goo(1)</AS:0> 
         End Sub
 
         Dim b = Sub() 
-            <TS:0>Foo(2)</TS:0>
+            <TS:0>Goo(2)</TS:0>
         End Sub
     End Sub
 End Class

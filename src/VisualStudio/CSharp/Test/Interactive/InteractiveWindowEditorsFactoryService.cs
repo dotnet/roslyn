@@ -1,11 +1,15 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 {
@@ -19,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
         private readonly IContentTypeRegistryService _contentTypeRegistry;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InteractiveWindowEditorsFactoryService(ITextBufferFactoryService textBufferFactoryService, ITextEditorFactoryService textEditorFactoryService, IContentTypeRegistryService contentTypeRegistry)
         {
             _textBufferFactoryService = textBufferFactoryService;
@@ -28,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 
         IWpfTextView IInteractiveWindowEditorFactoryService.CreateTextView(IInteractiveWindow window, ITextBuffer buffer, ITextViewRoleSet roles)
         {
-            WpfTestCase.RequireWpfFact($"Creates an IWpfTextView in {nameof(InteractiveWindowEditorsFactoryService)}");
+            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} in {nameof(InteractiveWindowEditorsFactoryService)}");
 
             var textView = _textEditorFactoryService.CreateTextView(buffer, roles);
             return _textEditorFactoryService.CreateTextViewHost(textView, false).TextView;
@@ -36,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 
         ITextBuffer IInteractiveWindowEditorFactoryService.CreateAndActivateBuffer(IInteractiveWindow window)
         {
-            IContentType contentType;
-            if (!window.Properties.TryGetProperty(typeof(IContentType), out contentType))
+            if (!window.Properties.TryGetProperty(typeof(IContentType), out IContentType contentType))
             {
                 contentType = _contentTypeRegistry.GetContentType(ContentType);
             }

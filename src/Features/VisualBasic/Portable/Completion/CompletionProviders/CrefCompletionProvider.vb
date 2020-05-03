@@ -1,17 +1,25 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(CrefCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(PartialTypeCompletionProvider))>
+    <[Shared]>
     Partial Friend Class CrefCompletionProvider
         Inherits AbstractCrefCompletionProvider
 
@@ -23,55 +31,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-        Private ReadOnly _testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode)
+        Private _testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode)
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Public Sub New(Optional testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode) = Nothing)
-            _testSpeculativeNodeCallbackOpt = testSpeculativeNodeCallbackOpt
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
         End Sub
 
         Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
-            Dim document = context.Document
-            Dim position = context.Position
-            Dim cancellationToken = context.CancellationToken
+            Try
+                Dim document = context.Document
+                Dim position = context.Position
+                Dim cancellationToken = context.CancellationToken
 
-            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-            Dim token = tree.GetTargetToken(position, cancellationToken)
+                Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+                Dim token = tree.GetTargetToken(position, cancellationToken)
 
-            If IsCrefTypeParameterContext(token) Then
-                Return
-            End If
+                If IsCrefTypeParameterContext(token) Then
+                    Return
+                End If
 
-            ' To get a Speculative SemanticModel (which is much faster), we need to 
-            ' walk up to the node the DocumentationTrivia is attached to.
-            Dim parentNode = token.Parent?.FirstAncestorOrSelf(Of DocumentationCommentTriviaSyntax)()?.ParentTrivia.Token.Parent
-            _testSpeculativeNodeCallbackOpt?.Invoke(parentNode)
-            If parentNode Is Nothing Then
-                Return
-            End If
+                ' To get a Speculative SemanticModel (which is much faster), we need to 
+                ' walk up to the node the DocumentationTrivia is attached to.
+                Dim parentNode = token.Parent?.FirstAncestorOrSelf(Of DocumentationCommentTriviaSyntax)()?.ParentTrivia.Token.Parent
+                _testSpeculativeNodeCallbackOpt?.Invoke(parentNode)
+                If parentNode Is Nothing Then
+                    Return
+                End If
 
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
-            Dim workspace = document.Project.Solution.Workspace
+                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
+                Dim workspace = document.Project.Solution.Workspace
 
-            Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
-            If Not symbols.Any() Then
-                Return
-            End If
+                Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
+                If Not symbols.Any() Then
+                    Return
+                End If
 
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+                Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
-            Dim items = CreateCompletionItems(workspace, semanticModel, symbols, position)
-            context.AddItems(items)
+                Dim items = CreateCompletionItems(workspace, semanticModel, symbols, position)
+                context.AddItems(items)
 
-            If IsFirstCrefParameterContext(token) Then
-                ' Include Of in case they're typing a type parameter
-                context.AddItem(CreateOfCompletionItem())
-            End If
+                If IsFirstCrefParameterContext(token) Then
+                    ' Include Of in case they're typing a type parameter
+                    context.AddItem(CreateOfCompletionItem())
+                End If
 
-            context.IsExclusive = True
+                context.IsExclusive = True
+            Catch e As Exception When FatalError.ReportWithoutCrashUnlessCanceled(e)
+                ' nop
+            End Try
         End Function
         Protected Overrides Async Function GetSymbolsAsync(document As Document, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of (SyntaxToken, SemanticModel, ImmutableArray(Of ISymbol)))
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
@@ -116,8 +131,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If token.Parent.IsKind(SyntaxKind.XmlString) AndAlso token.Parent.IsParentKind(SyntaxKind.XmlAttribute) Then
                 Dim xmlAttribute = DirectCast(token.Parent.Parent, XmlAttributeSyntax)
                 Dim xmlName = TryCast(xmlAttribute.Name, XmlNameSyntax)
+                Dim xmlValue = TryCast(xmlAttribute.Value, XmlStringSyntax)
 
-                If xmlName?.LocalName.ValueText = "cref" Then
+                If xmlName?.LocalName.ValueText = "cref" AndAlso xmlValue?.StartQuoteToken = token Then
                     Return True
                 End If
             End If
@@ -222,6 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText:=displayString,
+                displayTextSuffix:="",
                 insertionText:=Nothing,
                 symbols:=ImmutableArray.Create(symbol),
                 contextPosition:=position,
@@ -230,19 +247,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Function CreateOfCompletionItem() As CompletionItem
             Return CommonCompletionItem.Create(
-                "Of", CompletionItemRules.Default, Glyph.Keyword,
+                "Of", displayTextSuffix:="", CompletionItemRules.Default, Glyph.Keyword,
                 description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
         End Function
 
-        Private Shared s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)
-        Private Shared s_WithoutSpace As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, " "c)
+        Private Shared ReadOnly s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)
+        Private Shared ReadOnly s_WithoutSpace As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, " "c)
 
 #If False Then
         Private Shared s_defaultRules As CompletionItemRules =
             CompletionItemRules.Create(commitRules:=ImmutableArray.Create(
                 CommitRule.Create(CommitRuleKind.ExcludeKeysIfMatchEndOfTypedText, " ", "OF", isCaseSensitive:=False)))
 #Else
-        Private Shared s_defaultRules As CompletionItemRules = CompletionItemRules.Default
+        Private Shared ReadOnly s_defaultRules As CompletionItemRules = CompletionItemRules.Default
 #End If
 
         Private Function GetRules(displayText As String) As CompletionItemRules
@@ -260,5 +277,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return s_defaultRules.WithCommitCharacterRules(commitRules)
         End Function
+
+        Friend Function GetTestAccessor() As TestAccessor
+            Return New TestAccessor(Me)
+        End Function
+
+        Friend Structure TestAccessor
+            Private ReadOnly _crefCompletionProvider As CrefCompletionProvider
+
+            Public Sub New(crefCompletionProvider As CrefCompletionProvider)
+                _crefCompletionProvider = crefCompletionProvider
+            End Sub
+
+            Public Sub SetSpeculativeNodeCallback(value As Action(Of SyntaxNode))
+                _crefCompletionProvider._testSpeculativeNodeCallbackOpt = value
+            End Sub
+        End Structure
     End Class
 End Namespace

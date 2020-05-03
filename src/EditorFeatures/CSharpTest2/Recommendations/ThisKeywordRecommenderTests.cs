@@ -1,8 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -45,35 +47,35 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAngle()
         {
             await VerifyAbsenceAsync(
-@"interface IFoo<$$");
+@"interface IGoo<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInterfaceTypeVarianceNotAfterIn()
         {
             await VerifyAbsenceAsync(
-@"interface IFoo<in $$");
+@"interface IGoo<in $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInterfaceTypeVarianceNotAfterComma()
         {
             await VerifyAbsenceAsync(
-@"interface IFoo<Foo, $$");
+@"interface IGoo<Goo, $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInterfaceTypeVarianceNotAfterAttribute()
         {
             await VerifyAbsenceAsync(
-@"interface IFoo<[Foo]$$");
+@"interface IGoo<[Goo]$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -87,29 +89,29 @@ $$");
         public async Task TestDelegateTypeVarianceNotAfterComma()
         {
             await VerifyAbsenceAsync(
-@"delegate void D<Foo, $$");
+@"delegate void D<Goo, $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestDelegateTypeVarianceNotAfterAttribute()
         {
             await VerifyAbsenceAsync(
-@"delegate void D<[Foo]$$");
+@"delegate void D<[Goo]$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotThisBaseListAfterAngle()
         {
             await VerifyAbsenceAsync(
-@"interface IFoo : Bar<$$");
+@"interface IGoo : Bar<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInGenericMethod()
         {
             await VerifyAbsenceAsync(
-@"interface IFoo {
-    void Foo<$$");
+@"interface IGoo {
+    void Goo<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -117,7 +119,15 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    void Foo(ref $$");
+    void Goo(ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterIn()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    void Goo(in $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -125,7 +135,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    void Foo(this $$");
+    void Goo(this $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -133,7 +143,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    void Foo(out $$");
+    void Goo(out $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -141,7 +151,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    void Foo($$");
+    void Goo($$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -149,7 +159,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    void Foo(int i, $$");
+    void Goo(int i, $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -157,7 +167,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    void Foo(int i, [Foo]$$");
+    void Goo(int i, [Goo]$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -181,7 +191,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    public C(int i, [Foo]$$");
+    public C(int i, [Goo]$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -202,7 +212,7 @@ $$");
         public async Task TestNotAfterDelegateAttribute()
         {
             await VerifyAbsenceAsync(
-@"delegate void D(int i, [Foo]$$");
+@"delegate void D(int i, [Goo]$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -234,7 +244,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    int Foo($$");
+    int Goo($$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -242,7 +252,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    static int Foo($$");
+    static int Goo($$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -250,7 +260,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"static class C {
-    int Foo($$");
+    int Goo($$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -258,15 +268,445 @@ $$");
         {
             await VerifyKeywordAsync(
 @"static class C {
-    static int Foo($$");
+    static int Goo($$");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
+        public async Task TestInLocalFunction()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        void local()
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
+        public async Task TestInNestedLocalFunction()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        void local()
+        {
+            void nested()
+            {
+                $$
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
+        public async Task TestInLocalFunctionInStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    static int Method()
+    {
+        void local()
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
+        public async Task TestInNestedLocalFunctionInStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static int Method()
+    {
+        void local()
+        {
+            void nested()
+            {
+                $$
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(35644, "https://github.com/dotnet/roslyn/issues/35644")]
+        public async Task TestInStaticLocalFunction()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    int Method()
+    {
+        static void local()
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(35644, "https://github.com/dotnet/roslyn/issues/35644")]
+        public async Task TestInNestedInStaticLocalFunction()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    int Method()
+    {
+        static void local()
+        {
+            void nested()
+            {
+                $$
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethod()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        Action a = delegate
+        {
+            $$
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInNestedAnonymousMethod()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        Action a = delegate
+        {
+            Action b = delegate
+            {
+                $$
+            };
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static int Method()
+    {
+        Action a = delegate
+        {
+            $$
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInNestedAnonymousMethodInStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static int Method()
+    {
+        Action a = delegate
+        {
+            Action b = delegate
+            {
+                $$
+            };
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInLambdaExpression()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        Action a = () =>
+        {
+            $$
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInNestedLambdaExpression()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        Action a = () =>
+        {
+            Action b = () =>
+            {
+                $$
+            };
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInLambdaExpressionInStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static int Method()
+    {
+        Action a = () =>
+        {
+            $$
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInNestedLambdaExpressionInStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static int Method()
+    {
+        Action a = () =>
+        {
+            Action b = () =>
+            {
+                $$
+            };
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInNestedLambdaExpressionInAnonymousMethod()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        Action a = delegate
+        {
+            Action b = () =>
+            {
+                $$
+            };
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInNestedAnonymousInLambdaExpression()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    int Method()
+    {
+        Action a = () =>
+        {
+            Action b = delegate
+            {
+                $$
+            };
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInNestedAnonymousMethodInLambdaExpressionInStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static int Method()
+    {
+        Action a = () =>
+        {
+            Action b = delegate
+            {
+                $$
+            };
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInNestedLambdaExpressionInAnonymousMethodInStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static int Method()
+    {
+        Action a = delegate
+        {
+            Action b = () =>
+            {
+                $$
+            };
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInAProperty()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    Action A 
+    { 
+        get { return delegate { $$ } }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInAPropertyInitializer()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    Action B { get; } = delegate { $$ }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInAExpressionProperty()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    Action A => delegate { $$ }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInAFieldInitializer()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    Action A = delegate { $$ }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInAStaticProperty()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static Action A
+    {
+        get { return delegate { $$ } }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInAStaticPropertyInitializer()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static Action B { get; } = delegate { $$ }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInAStaticExpressionProperty()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static Action A => delegate { $$ }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        public async Task TestInAnonymousMethodInAStaticFieldInitializer()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    static Action A = delegate { $$ }
+}");
+        }
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAttribute()
         {
             await VerifyKeywordAsync(
 @"static class C {
-    static int Foo([Bar]$$");
+    static int Goo([Bar]$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -274,7 +714,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"static class C {
-    static int Foo(this int i, [Bar]$$");
+    static int Goo(this int i, [Bar]$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -282,7 +722,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"static class C {
-    static int Foo(this $$");
+    static int Goo(this $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -290,7 +730,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"static class C {
-    static int Foo(this int a, $$");
+    static int Goo(this int a, $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -423,7 +863,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    static void Foo() { int i = $$ }
+    static void Goo() { int i = $$ }
 }");
         }
 
@@ -433,7 +873,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    static int Foo { get { int i = $$ }
+    static int Goo { get { int i = $$ }
 }");
         }
 
@@ -443,7 +883,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-    int Foo { get { int i = $$ }
+    int Goo { get { int i = $$ }
 }");
         }
 
@@ -495,7 +935,7 @@ $$");
             await VerifyAbsenceAsync(
 @"class C
 {
-    Foo.$$
+    Goo.$$
 }");
         }
 
@@ -630,7 +1070,218 @@ class Program
     }
     void Helper(Program x) { }
 }
-", matchPriority: SymbolMatchPriority.Keyword);
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefKeyword_InClass()
+        {
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
+    public static void Extension(ref $$");
+
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
+    public static void Extension(ref $$ object obj, int x) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeyword_InClass()
+        {
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
+    public static void Extension(in $$");
+
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
+    public static void Extension(in $$ object obj, int x) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterOutKeyword_InClass()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(out $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(out $$ object obj, int x) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_AfterRefKeyword_InClass()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, ref $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, ref $$ object obj) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_AfterInKeyword_InClass()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, in $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, in $$ object obj) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_AfterOutKeyword_InClass()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, out $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, out $$ object obj) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefKeyword_OutsideClass()
+        {
+            await VerifyAbsenceAsync("public static void Extension(ref $$");
+
+            await VerifyAbsenceAsync("public static void Extension(ref $$ object obj, int x) { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeyword_OutsideClass()
+        {
+            await VerifyAbsenceAsync("public static void Extension(in $$");
+
+            await VerifyAbsenceAsync("public static void Extension(in $$ object obj, int x) { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterOutKeyword_OutsideClass()
+        {
+            await VerifyAbsenceAsync("public static void Extension(out $$");
+
+            await VerifyAbsenceAsync("public static void Extension(out $$ object obj, int x) { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefKeyword_NonStaticClass()
+        {
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(ref $$");
+
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(ref $$ object obj, int x) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeyword_NonStaticClass()
+        {
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(in $$");
+
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(in $$ object obj, int x) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterOutKeyword_NonStaticClass()
+        {
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(out $$");
+
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(out $$ object obj, int x) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefKeyword_NonStaticMethod()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(ref $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(ref $$ object obj, int x) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeyword_NonStaticMethod()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(in $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(in $$ object obj, int x) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterOutKeyword_NonStaticMethod()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(out $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(out $$ object obj, int x) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref int x = ref $$"));
         }
     }
 }

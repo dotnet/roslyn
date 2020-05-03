@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -10,7 +12,6 @@ Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.GenerateType
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Utilities
@@ -24,6 +25,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
         Inherits AbstractGenerateTypeService(Of VisualBasicGenerateTypeService, SimpleNameSyntax, ObjectCreationExpressionSyntax, ExpressionSyntax, TypeBlockSyntax, ArgumentSyntax)
 
         Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
         Protected Overrides ReadOnly Property DefaultFileExtension As String
             Get
@@ -182,31 +188,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                     generateTypeServiceStateOptions.IsMembersWithModule = True
                 End If
 
-                ' Case : Class Foo(of T as MyType)
+                ' Case : Class Goo(of T as MyType)
                 If nameOrMemberAccessExpression.GetAncestors(Of TypeConstraintSyntax).Any() Then
                     generateTypeServiceStateOptions.IsClassInterfaceTypes = True
                     Return True
                 End If
 
-                ' Case : Custom Event E As Foo
-                ' Case : Public Event F As Foo
+                ' Case : Custom Event E As Goo
+                ' Case : Public Event F As Goo
                 If nameOrMemberAccessExpression.GetAncestors(Of EventStatementSyntax)().Any() Then
-                    ' Case : Foo
+                    ' Case : Goo
                     ' Only Delegate
                     If simpleName.Parent IsNot Nothing AndAlso TypeOf simpleName.Parent IsNot QualifiedNameSyntax Then
                         generateTypeServiceStateOptions.IsDelegateOnly = True
                         Return True
                     End If
 
-                    ' Case : Something.Foo ...
+                    ' Case : Something.Goo ...
                     If TypeOf nameOrMemberAccessExpression Is QualifiedNameSyntax Then
 
-                        ' Case : NSOrSomething.GenType.Foo
+                        ' Case : NSOrSomething.GenType.Goo
                         If nextToken.IsKind(SyntaxKind.DotToken) Then
                             If nameOrMemberAccessExpression.Parent IsNot Nothing AndAlso TypeOf nameOrMemberAccessExpression.Parent Is QualifiedNameSyntax Then
                                 Return True
                             Else
-                                Contract.Fail("Cannot reach this point")
+                                throw ExceptionUtilities.Unreachable
                             End If
                         Else
                             ' Case : NSOrSomething.GenType
@@ -261,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 End If
             End If
 
-            ' New MyDelegate(AddressOf foo)
+            ' New MyDelegate(AddressOf goo)
             ' New NS.MyDelegate(Function(n) n)
             If TypeOf nameOrMemberAccessExpression.Parent Is ObjectCreationExpressionSyntax Then
                 Dim objectCreationExpressionOpt = DirectCast(nameOrMemberAccessExpression.Parent, ObjectCreationExpressionSyntax)
@@ -318,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                     If variableDeclarator.Initializer IsNot Nothing AndAlso variableDeclarator.Initializer.Value IsNot Nothing Then
                         Dim expression = variableDeclarator.Initializer.Value
                         If expression.IsKind(SyntaxKind.AddressOfExpression) Then
-                            ' ... = AddressOf Foo
+                            ' ... = AddressOf Goo
                             generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMemberGroupIfPresent(semanticModel, DirectCast(expression, UnaryExpressionSyntax).Operand, cancellationToken)
                         Else
                             If TypeOf expression Is LambdaExpressionSyntax Then
@@ -336,12 +342,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                         End If
                     End If
                 ElseIf TypeOf nameOrMemberAccessExpression.Parent Is CastExpressionSyntax Then
-                    ' Case: Dim s1 = DirectCast(AddressOf foo, Myy)
-                    '       Dim s2 = TryCast(AddressOf foo, Myy)
-                    '       Dim s3 = CType(AddressOf foo, Myy)
+                    ' Case: Dim s1 = DirectCast(AddressOf goo, Myy)
+                    '       Dim s2 = TryCast(AddressOf goo, Myy)
+                    '       Dim s3 = CType(AddressOf goo, Myy)
                     Dim expressionToBeCasted = DirectCast(nameOrMemberAccessExpression.Parent, CastExpressionSyntax).Expression
                     If expressionToBeCasted.IsKind(SyntaxKind.AddressOfExpression) Then
-                        ' ... = AddressOf Foo
+                        ' ... = AddressOf Goo
                         generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMemberGroupIfPresent(semanticModel, DirectCast(expressionToBeCasted, UnaryExpressionSyntax).Operand, cancellationToken)
                     End If
                 End If
@@ -356,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             End If
 
             Dim memberGroup = semanticModel.GetMemberGroup(expression, cancellationToken)
-            If memberGroup.Count <> 0 Then
+            If memberGroup.Length <> 0 Then
                 Return If(memberGroup.ElementAt(0).IsKind(SymbolKind.Method), DirectCast(memberGroup.ElementAt(0), IMethodSymbol), Nothing)
             End If
 
@@ -418,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return compilation.ClassifyConversion(sourceType, targetType).IsWidening
         End Function
 
-        Public Overrides Async Function GetOrGenerateEnclosingNamespaceSymbolAsync(namedTypeSymbol As INamedTypeSymbol, containers() As String, selectedDocument As Document, selectedDocumentRoot As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Tuple(Of INamespaceSymbol, INamespaceOrTypeSymbol, Location))
+        Public Overrides Async Function GetOrGenerateEnclosingNamespaceSymbolAsync(namedTypeSymbol As INamedTypeSymbol, containers() As String, selectedDocument As Document, selectedDocumentRoot As SyntaxNode, cancellationToken As CancellationToken) As Task(Of (INamespaceSymbol, INamespaceOrTypeSymbol, Location))
             Dim compilationUnit = DirectCast(selectedDocumentRoot, CompilationUnitSyntax)
             Dim semanticModel = Await selectedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
@@ -429,9 +435,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 If enclosingNamespace IsNot Nothing Then
                     Dim enclosingNamespaceSymbol = semanticModel.GetSymbolInfo(enclosingNamespace.Name)
                     If enclosingNamespaceSymbol.Symbol IsNot Nothing Then
-                        Return Tuple.Create(DirectCast(enclosingNamespaceSymbol.Symbol, INamespaceSymbol),
-                                            DirectCast(namedTypeSymbol, INamespaceOrTypeSymbol),
-                                            DirectCast(enclosingNamespace.Parent, NamespaceBlockSyntax).EndNamespaceStatement.GetLocation())
+                        Return (DirectCast(enclosingNamespaceSymbol.Symbol, INamespaceSymbol),
+                                namedTypeSymbol,
+                                DirectCast(enclosingNamespace.Parent, NamespaceBlockSyntax).EndNamespaceStatement.GetLocation())
                         Return Nothing
                     End If
                 End If
@@ -440,18 +446,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Dim globalNamespace = semanticModel.GetEnclosingNamespace(0, cancellationToken)
             Dim rootNamespaceOrType = namedTypeSymbol.GenerateRootNamespaceOrType(containers)
             Dim lastMember = compilationUnit.Members.LastOrDefault()
-            Dim afterThisLocation As Location = Nothing
 
             ' Add at the end
-            If lastMember Is Nothing Then
-                afterThisLocation = semanticModel.SyntaxTree.GetLocation(New TextSpan())
-            Else
-                afterThisLocation = semanticModel.SyntaxTree.GetLocation(New TextSpan(lastMember.Span.End, 0))
-            End If
+            Dim afterThisLocation = If(lastMember Is Nothing,
+                semanticModel.SyntaxTree.GetLocation(New TextSpan()),
+                semanticModel.SyntaxTree.GetLocation(New TextSpan(lastMember.Span.End, 0)))
 
-            Return Tuple.Create(globalNamespace,
-                                rootNamespaceOrType,
-                                afterThisLocation)
+            Return (globalNamespace, rootNamespaceOrType, afterThisLocation)
         End Function
 
         Private Function GetDeclaringNamespace(containers As List(Of String), indexDone As Integer, compilationUnit As CompilationUnitSyntax) As NamespaceStatementSyntax
@@ -692,17 +693,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
         Private Function GenerateProperty(propertyName As SimpleNameSyntax, typeSymbol As ITypeSymbol) As IPropertySymbol
             Return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                            attributes:=ImmutableArray(Of AttributeData).Empty,
-                            accessibility:=Accessibility.Public,
-                            modifiers:=New DeclarationModifiers(),
-                            explicitInterfaceSymbol:=Nothing,
-                            name:=propertyName.ToString,
-                            type:=typeSymbol,
-                            returnsByRef:=False,
-                            parameters:=Nothing,
-                            getMethod:=Nothing,
-                            setMethod:=Nothing,
-                            isIndexer:=False)
+                attributes:=ImmutableArray(Of AttributeData).Empty,
+                accessibility:=Accessibility.Public,
+                modifiers:=New DeclarationModifiers(),
+                explicitInterfaceImplementations:=Nothing,
+                name:=propertyName.ToString,
+                type:=typeSymbol,
+                refKind:=RefKind.None,
+                parameters:=Nothing,
+                getMethod:=Nothing,
+                setMethod:=Nothing,
+                isIndexer:=False)
         End Function
 
         Friend Overrides Function TryGenerateProperty(propertyName As SimpleNameSyntax,

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,7 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int count = 0;
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
             {
-                var compilation = CreateCompilation(new SyntaxTree[0], new[] { assembly.GetReference() });
+                var compilation = CreateEmptyCompilation(new SyntaxTree[0], new[] { assembly.GetReference() },
+                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
                 foreach (NamedTypeSymbol type in compilation.GlobalNamespace.GetMembers().Where(s => s.Kind == SymbolKind.NamedType))
                 {
                     var fields = type.GetMembers().Where(s => s.Kind == SymbolKind.Field);
@@ -54,7 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int count = 0;
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
             {
-                var compilation = CreateCompilation(new SyntaxTree[0], new[] { assembly.GetReference() });
+                var compilation = CreateEmptyCompilation(
+                    new SyntaxTree[0],
+                    new[] { assembly.GetReference() },
+                    options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
                 foreach (NamedTypeSymbol type in compilation.GlobalNamespace.GetMembers().Where(s => s.Kind == SymbolKind.NamedType))
                 {
@@ -274,7 +281,7 @@ class X
     X MaxValue_1;
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,16): error CS0591: Invalid value for argument to 'MarshalAs' attribute
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(UnmanagedType)(-1)").WithArguments("MarshalAs"),
                 // (9,16): error CS0591: Invalid value for argument to 'MarshalAs' attribute
@@ -331,6 +338,53 @@ public class X
         }
 
         [Fact]
+        [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
+        public void ComInterfacesInProperties()
+        {
+            var source = @"
+using System;
+using System.Runtime.InteropServices;
+
+public class X
+{
+    [field: MarshalAs(UnmanagedType.IDispatch, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = 0, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]
+    public byte IDispatch { get; set; }
+
+    [field: MarshalAs(UnmanagedType.Interface, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = 1, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]
+    public X Interface { get; set; }
+
+    [field: MarshalAs(UnmanagedType.IUnknown, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = 2, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]
+    public X[] IUnknown { get; set; }
+
+    [field: MarshalAs(UnmanagedType.IUnknown, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = 0x1FFFFFFF, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]
+    public int MaxValue { get; set; }
+
+    [field: MarshalAs(UnmanagedType.IUnknown, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = 0x123456, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]
+    public int _123456 { get; set; }
+
+    [field: MarshalAs(UnmanagedType.IUnknown, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = 0x1000, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]
+    public X _0x1000 { get; set; }
+
+    [field: MarshalAs(UnmanagedType.IDispatch)]
+    public int Default { get; set; }
+}
+";
+            var blobs = new Dictionary<string, byte[]>
+            {
+                { "<IDispatch>k__BackingField", new byte[] { 0x1a, 0x00 } },
+                { "<Interface>k__BackingField", new byte[] { 0x1c, 0x01 } },
+                { "<IUnknown>k__BackingField",  new byte[] { 0x19, 0x02 } },
+                { "<MaxValue>k__BackingField",  new byte[] { 0x19, 0xdf, 0xff, 0xff, 0xff } },
+                { "<_123456>k__BackingField",   new byte[] { 0x19, 0xc0, 0x12, 0x34, 0x56 } },
+                { "<_0x1000>k__BackingField",   new byte[] { 0x19, 0x90, 0x00 } },
+                { "<Default>k__BackingField",   new byte[] { 0x1a } },
+            };
+
+            var verifier = CompileAndVerifyFieldMarshal(source, blobs);
+            VerifyFieldMetadataDecoding(verifier, blobs);
+        }
+
+        [Fact]
         public void ComInterfaces_Errors()
         {
             var source = @"
@@ -353,7 +407,7 @@ class X
     int IUnknown_MaxValue_1;
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,81): error CS0599: Invalid value for argument to 'MarshalAs' attribute
                 Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "IidParameterIndex = -1").WithArguments("IidParameterIndex"),
                 // (11,81): error CS0599: Invalid value for argument to 'MarshalAs' attribute
@@ -466,7 +520,7 @@ class X
     [MarshalAs(UnmanagedType.LPArray, ArraySubType = (UnmanagedType)(-1))]                                                                                                                 int LPArray_e8;
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,79): error CS7045: Parameter not valid for the specified unmanaged type.
                 //     [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.ByValTStr, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]int LPArray_e0;
                 Diagnostic(ErrorCode.ERR_ParameterNotValidForType, "SafeArraySubType = VarEnum.VT_BSTR"),
@@ -590,7 +644,7 @@ public class X
     [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, SizeConst = 0x20000000)]                                                                                     int ByValArray_e4;
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,82): error CS7045: Parameter not valid for the specified unmanaged type.
                 //     [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]int ByValArray_e1;
                 Diagnostic(ErrorCode.ERR_ParameterNotValidForType, "SafeArraySubType = VarEnum.VT_BSTR"),
@@ -756,7 +810,7 @@ public class X
     [MarshalAs(UnmanagedType.SafeArray, SafeArrayUserDefinedSubType = typeof(int), SafeArraySubType = 0)]                                                                                       int SafeArray_e7;
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,41): error CS7045: Parameter not valid for the specified unmanaged type.
                 //     [MarshalAs(UnmanagedType.SafeArray, ArraySubType = UnmanagedType.ByValTStr, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]   int SafeArray_e1;
                 Diagnostic(ErrorCode.ERR_ParameterNotValidForType, "ArraySubType = UnmanagedType.ByValTStr"),
@@ -838,7 +892,7 @@ public class X
     [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1, SafeArraySubType = VarEnum.VT_BSTR)]                                                                                                     int ByValTStr_e7;
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,41): error CS7045: Parameter not valid for the specified unmanaged type.
                 //     [MarshalAs(UnmanagedType.ByValTStr, ArraySubType = UnmanagedType.ByValTStr, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]   int ByValTStr_e1;
                 Diagnostic(ErrorCode.ERR_ParameterNotValidForType, "ArraySubType = UnmanagedType.ByValTStr"),
@@ -966,7 +1020,7 @@ public class X
 ";
             // Dev10 encodes incomplete surrogates, we don't.
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,6): error CS7047: Attribute parameter 'MarshalType' or 'MarshalTypeRef' must be specified.
                 //     [MarshalAs(UnmanagedType.CustomMarshaler)]int CustomMarshaler_e0;
                 Diagnostic(ErrorCode.ERR_AttributeParameterRequired2, "MarshalAs").WithArguments("MarshalType", "MarshalTypeRef"),
@@ -1029,7 +1083,7 @@ class X
     
         [MarshalAs(UnmanagedType.CustomMarshaler, MarshalType = ""aaa\0bbb"", MarshalCookie = ""ccc\0ddd"" )]
         int CustomMarshaler13
-    ) 
+    )
     {
         throw null;
     }
@@ -1042,6 +1096,51 @@ class X
                 { "foo:LPArray0",          new byte[] { 0x2a, 0x50 } },
                 { "foo:SafeArray8",        new byte[] { 0x1d, 0x00 } },
                 { "foo:CustomMarshaler13", new byte[] { 0x2c, 0x00, 0x00, 0x07, 0x61, 0x61, 0x61, 0x00, 0x62, 0x62, 0x62, 0x07, 0x63, 0x63, 0x63, 0x00, 0x64, 0x64, 0x64 } },
+            };
+
+            var verifier = CompileAndVerifyFieldMarshal(source, blobs, isField: false);
+            VerifyParameterMetadataDecoding(verifier, blobs);
+        }
+
+        [Fact]
+        public void Parameters_LocalFunction()
+        {
+            var source = @"
+using System;
+using System.Runtime.InteropServices;
+
+class X
+{
+    void M()
+    {
+        [return: MarshalAs(UnmanagedType.LPStr)]
+        static X local(
+
+            [MarshalAs(UnmanagedType.IDispatch)]
+            ref int IDispatch,
+
+            [MarshalAs(UnmanagedType.LPArray)]
+            out int LPArray0,
+
+            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_EMPTY)]
+            int SafeArray8,
+
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalType = ""aaa\0bbb"", MarshalCookie = ""ccc\0ddd"" )]
+            int CustomMarshaler13
+        )
+        {
+            throw null;
+        }
+    }
+}
+";
+            var blobs = new Dictionary<string, byte[]>()
+            {
+                { "<M>g__local|0_0:",                  new byte[] { 0x14 } }, // return value
+                { "<M>g__local|0_0:IDispatch",         new byte[] { 0x1a } },
+                { "<M>g__local|0_0:LPArray0",          new byte[] { 0x2a, 0x50 } },
+                { "<M>g__local|0_0:SafeArray8",        new byte[] { 0x1d, 0x00 } },
+                { "<M>g__local|0_0:CustomMarshaler13", new byte[] { 0x2c, 0x00, 0x00, 0x07, 0x61, 0x61, 0x61, 0x00, 0x62, 0x62, 0x62, 0x07, 0x63, 0x63, 0x63, 0x00, 0x64, 0x64, 0x64 } },
             };
 
             var verifier = CompileAndVerifyFieldMarshal(source, blobs, isField: false);
@@ -1251,7 +1350,7 @@ class X
     public int field;
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,20): error CS7055: Unmanaged type 'ByValArray' is only valid for fields.
                 Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValArray").WithArguments("ByValArray"),
                 // (10,20): error CS7055: Unmanaged type 'ByValTStr' is only valid for fields.
@@ -1267,6 +1366,51 @@ class X
 
                 // (23,16): warning CS0649: Field 'X.field' is never assigned to, and will always have its default value 0
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("X.field", "0"));
+        }
+
+        [Fact]
+        public void Parameters_Errors_LocalFunction()
+        {
+            var source = @"
+#pragma warning disable 8321 // Unreferenced local function
+
+using System.Runtime.InteropServices;
+
+class X
+{
+    void M()
+    {
+        static void f1(
+            [MarshalAs(UnmanagedType.ByValArray)]
+            int ByValArray,
+
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
+            int ByValTStr
+        )
+        {
+        }
+
+        [return: MarshalAs(UnmanagedType.ByValArray)]
+        static int f2() { return 0; }
+
+        [return: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
+        static int f3() { return 0; }
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                    // (11,24): error CS7055: Unmanaged type 'ByValArray' is only valid for fields.
+                    //             [MarshalAs(UnmanagedType.ByValArray)]
+                    Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValArray").WithArguments("ByValArray").WithLocation(11, 24),
+                    // (14,24): error CS7055: Unmanaged type 'ByValTStr' is only valid for fields.
+                    //             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
+                    Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValTStr").WithArguments("ByValTStr").WithLocation(14, 24),
+                    // (20,28): error CS7055: Unmanaged type 'ByValArray' is only valid for fields.
+                    //         [return: MarshalAs(UnmanagedType.ByValArray)]
+                    Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValArray").WithArguments("ByValArray").WithLocation(20, 28),
+                    // (23,28): error CS7055: Unmanaged type 'ByValTStr' is only valid for fields.
+                    //         [return: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
+                    Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValTStr").WithArguments("ByValTStr").WithLocation(23, 28));
         }
 
         /// <summary>
@@ -1334,8 +1478,8 @@ class C
     }
 }
 ";
-            var comp1 = CreateStandardCompilation(text1, assemblyName: "OptionalMarshalAsLibrary");
-            var comp2 = CreateStandardCompilation(text2,
+            var comp1 = CreateCompilation(text1, assemblyName: "OptionalMarshalAsLibrary");
+            var comp2 = CreateCompilation(text2,
                 options: TestOptions.ReleaseExe,
                 references: new[] { comp1.EmitToImageReference() },  // it has to be real assembly, Comp2comp reference OK
                 assemblyName: "APP");

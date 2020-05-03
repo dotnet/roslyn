@@ -1,7 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -44,7 +46,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -65,7 +67,7 @@ $$");
         public async Task TestAfterExtern()
         {
             await VerifyKeywordAsync(
-@"extern alias Foo;
+@"extern alias Goo;
 $$");
         }
 
@@ -73,7 +75,7 @@ $$");
         public async Task TestAfterUsing()
         {
             await VerifyKeywordAsync(
-@"using Foo;
+@"using Goo;
 $$");
         }
 
@@ -97,7 +99,7 @@ $$");
         public async Task TestAfterDelegateDeclaration()
         {
             await VerifyKeywordAsync(
-@"delegate void Foo();
+@"delegate void Goo();
 $$");
         }
 
@@ -106,7 +108,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-  void Foo() {}
+  void Goo() {}
   $$");
         }
 
@@ -133,7 +135,7 @@ $$");
         {
             await VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"$$
-using Foo;");
+using Goo;");
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -141,14 +143,14 @@ using Foo;");
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$
-using Foo;");
+using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAssemblyAttribute()
         {
             await VerifyKeywordAsync(
-@"[assembly: foo]
+@"[assembly: goo]
 $$");
         }
 
@@ -156,7 +158,7 @@ $$");
         public async Task TestAfterRootAttribute()
         {
             await VerifyKeywordAsync(
-@"[foo]
+@"[goo]
 $$");
         }
 
@@ -165,7 +167,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-  [foo]
+  [goo]
   $$");
         }
 
@@ -181,7 +183,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInsideInterface()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"interface I {
    $$");
         }
@@ -196,9 +198,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPartial()
-        {
-            await VerifyAbsenceAsync(@"partial $$");
-        }
+            => await VerifyAbsenceAsync(@"partial $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAbstract()
@@ -209,45 +209,31 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterInternal()
-        {
-            await VerifyAbsenceAsync(@"internal $$");
-        }
+            => await VerifyAbsenceAsync(@"internal $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPublic()
-        {
-            await VerifyAbsenceAsync(@"public $$");
-        }
+            => await VerifyAbsenceAsync(@"public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterStaticPublic()
-        {
-            await VerifyAbsenceAsync(@"static public $$");
-        }
+            => await VerifyAbsenceAsync(@"static public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPublicStatic()
-        {
-            await VerifyAbsenceAsync(@"public static $$");
-        }
+            => await VerifyAbsenceAsync(@"public static $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterInvalidPublic()
-        {
-            await VerifyAbsenceAsync(@"virtual public $$");
-        }
+            => await VerifyAbsenceAsync(@"virtual public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPrivate()
-        {
-            await VerifyAbsenceAsync(@"private $$");
-        }
+            => await VerifyAbsenceAsync(@"private $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterProtected()
-        {
-            await VerifyAbsenceAsync(@"protected $$");
-        }
+            => await VerifyAbsenceAsync(@"protected $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterSealed()
@@ -272,21 +258,17 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterClass()
-        {
-            await VerifyAbsenceAsync(@"class $$");
-        }
+            => await VerifyAbsenceAsync(@"class $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterDelegate()
-        {
-            await VerifyAbsenceAsync(@"delegate $$");
-        }
+            => await VerifyAbsenceAsync(@"delegate $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotBetweenUsings()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"using Foo;
+@"using Goo;
 $$
 using Bar;"));
         }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -126,8 +128,7 @@ namespace RunTests.Cache
                 // For PR runs include extra data about the PR.  This enables us to track down bugs server 
                 // side when PRs are believed to hit test / cache issues.
                 var idStr = Environment.GetEnvironmentVariable("ghprbPullId");
-                int id;
-                if (idStr != null && int.TryParse(idStr, out id))
+                if (idStr != null && int.TryParse(idStr, out var id))
                 {
                     data.IsPullRequest = true;
                     data.PullRequestId = id;

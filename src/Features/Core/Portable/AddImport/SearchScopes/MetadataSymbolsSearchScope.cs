@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -6,9 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private class MetadataSymbolsSearchScope : SearchScope
         {
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private readonly PortableExecutableReference _metadataReference;
 
             public MetadataSymbolsSearchScope(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 Solution solution,
                 IAssemblySymbol assembly,
                 ProjectId assemblyProjectId,
@@ -38,11 +40,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return new MetadataSymbolReference(
                     provider,
                     searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol),
+                    _assemblyProjectId,
                     _metadataReference);
             }
 
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
-                string name, SymbolFilter filter, SearchQuery searchQuery)
+                SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
                 var info = await service.TryGetMetadataSymbolTreeInfoAsync(_solution, _metadataReference, CancellationToken).ConfigureAwait(false);
@@ -55,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     searchQuery, _assembly, _assemblyProjectId,
                     filter, CancellationToken).ConfigureAwait(false);
 
-                return declarations.SelectAsArray(d => d.Symbol);
+                return declarations;
             }
         }
     }

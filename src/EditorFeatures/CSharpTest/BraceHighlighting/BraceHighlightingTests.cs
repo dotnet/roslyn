@@ -1,9 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -27,27 +30,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestTouchingItems()
         {
-            await TestBraceHighlightingAsync("public class C $$[|{|]\r\n  public void Foo(){}\r\n[|}|] ");
-            await TestBraceHighlightingAsync("public class C {$$\r\n  public void Foo(){}\r\n} ");
-            await TestBraceHighlightingAsync("public class C {\r\n  public void Foo$$[|(|][|)|]{}\r\n} ");
-            await TestBraceHighlightingAsync("public class C {\r\n  public void Foo($$){}\r\n} ");
-            await TestBraceHighlightingAsync("public class C {\r\n  public void Foo[|(|][|)|]$$[|{|][|}|]\r\n} ");
-            await TestBraceHighlightingAsync("public class C {\r\n  public void Foo(){$$}\r\n} ");
-            await TestBraceHighlightingAsync("public class C {\r\n  public void Foo()[|{|][|}|]$$\r\n} ");
+            await TestBraceHighlightingAsync("public class C $$[|{|]\r\n  public void Goo(){}\r\n[|}|] ");
+            await TestBraceHighlightingAsync("public class C {$$\r\n  public void Goo(){}\r\n} ");
+            await TestBraceHighlightingAsync("public class C {\r\n  public void Goo$$[|(|][|)|]{}\r\n} ");
+            await TestBraceHighlightingAsync("public class C {\r\n  public void Goo($$){}\r\n} ");
+            await TestBraceHighlightingAsync("public class C {\r\n  public void Goo[|(|][|)|]$$[|{|][|}|]\r\n} ");
+            await TestBraceHighlightingAsync("public class C {\r\n  public void Goo(){$$}\r\n} ");
+            await TestBraceHighlightingAsync("public class C {\r\n  public void Goo()[|{|][|}|]$$\r\n} ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestAngles()
         {
-            await TestBraceHighlightingAsync("/// $$<summary>Foo</summary>");
-            await TestBraceHighlightingAsync("/// <$$summary>Foo</summary>");
-            await TestBraceHighlightingAsync("/// <summary$$>Foo</summary>");
-            await TestBraceHighlightingAsync("/// <summary>$$Foo</summary>");
-            await TestBraceHighlightingAsync("/// <summary>Foo$$</summary>");
-            await TestBraceHighlightingAsync("/// <summary>Foo<$$/summary>");
-            await TestBraceHighlightingAsync("/// <summary>Foo</$$summary>");
-            await TestBraceHighlightingAsync("/// <summary>Foo</summary$$>");
-            await TestBraceHighlightingAsync("/// <summary>Foo</summary>$$");
+            await TestBraceHighlightingAsync("/// $$<summary>Goo</summary>");
+            await TestBraceHighlightingAsync("/// <$$summary>Goo</summary>");
+            await TestBraceHighlightingAsync("/// <summary$$>Goo</summary>");
+            await TestBraceHighlightingAsync("/// <summary>$$Goo</summary>");
+            await TestBraceHighlightingAsync("/// <summary>Goo$$</summary>");
+            await TestBraceHighlightingAsync("/// <summary>Goo<$$/summary>");
+            await TestBraceHighlightingAsync("/// <summary>Goo</$$summary>");
+            await TestBraceHighlightingAsync("/// <summary>Goo</summary$$>");
+            await TestBraceHighlightingAsync("/// <summary>Goo</summary>$$");
 
             await TestBraceHighlightingAsync(
 @"public class C$$[|<|]T[|>|]
@@ -69,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             await TestBraceHighlightingAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         bool a = b $$< c;
         bool d = e > f;
@@ -78,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             await TestBraceHighlightingAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         bool a = b <$$ c;
         bool d = e > f;
@@ -87,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             await TestBraceHighlightingAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         bool a = b < c;
         bool d = e $$> f;
@@ -96,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             await TestBraceHighlightingAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         bool a = b < c;
         bool d = e >$$ f;
@@ -209,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         public async Task TestEOF()
         {
             await TestBraceHighlightingAsync("public class C [|{|]\r\n[|}|]$$");
-            await TestBraceHighlightingAsync("public class C [|{|]\r\n void Foo(){}[|}|]$$");
+            await TestBraceHighlightingAsync("public class C [|{|]\r\n void Goo(){}[|}|]$$");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
@@ -255,6 +258,192 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
 {
     var x = [|(|]new Dictionary<int, string>(), new List<int>()[|)$$|];
 }", TestOptions.Regular);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexGroupBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$[|(|]a[|)|]"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexGroupBracket2()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""[|(|]a[|)|]$$"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexUnclosedGroupBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$(a"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexCommentBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$[|(|]?#a[|)|]"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexCommentBracket2()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""[|(|]?#a[|)|]$$"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexUnclosedCommentBracket()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$(?#a"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexCharacterClassBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$[|<|]a[|>|]"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexCharacterClassBracket2()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""[|<|]a[|>|]$$"");
+    }
+}";
+            await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexUnclosedCharacterClassBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$<a"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexNegativeCharacterClassBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$[|<|]^a[|>|]"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexNegativeCharacterClassBracket2()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""[|<|]^a[|>|]$$"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
         }
     }
 }

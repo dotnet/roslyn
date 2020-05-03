@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -43,6 +45,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' For an inherits statement in a type
             InheritsStatement
+
+            ' For an implements statement in a type
+            ImplementsStatement
 
             ' For the full part of a method (type parameters in scope, but not parameter or locals)
             MethodFull

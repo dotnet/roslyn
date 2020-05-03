@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 
@@ -9,11 +11,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
         private class GenerateDefaultConstructorCodeAction : AbstractCodeAction
         {
             public GenerateDefaultConstructorCodeAction(
-                TService service,
                 Document document,
                 State state,
                 IMethodSymbol constructor)
-                : base(service, document, state, new[] { constructor }, GetDisplayText(state, constructor))
+                : base(document, state, new[] { constructor }, GetDisplayText(state, constructor))
             {
             }
 
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 var parameterString = string.Join(", ", parameters);
 
                 return string.Format(FeaturesResources.Generate_constructor_0_1,
-                    state.ClassOrStructType.Name, parameterString);
+                    state.ClassType.Name, parameterString);
             }
         }
     }

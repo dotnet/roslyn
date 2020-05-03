@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Text;
@@ -347,6 +349,51 @@ line: 21
         }
 
         [Fact]
+        public void TestCallerLineNumber_LocalFunctionAttribute()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+class Test
+{
+    public static void Main()
+    {
+        log(""something happened"");
+        // comment
+        log
+            // comment
+            (
+            // comment
+            ""something happened""
+            // comment
+            )
+            // comment
+            ;
+        // comment
+
+        static void log(
+            string message,
+            [CallerLineNumber] int lineNumber = -1)
+        {
+            Console.WriteLine(""message: "" + message);
+            Console.WriteLine(""line: "" + lineNumber);
+        }
+    }
+}";
+
+            var expected = @"
+message: something happened
+line: 9
+message: something happened
+line: 13
+";
+
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
+        [Fact]
         public void TestCallerLineNumberImplicitCall()
         {
             string source = @"
@@ -633,12 +680,12 @@ using System.Runtime.CompilerServices;
 
 partial class D
 {
-    partial void Foo([CallerLineNumber] int x = 2);
+    partial void Goo([CallerLineNumber] int x = 2);
 }
 
 partial class D
 {
-    partial void Foo([CallerLineNumber] int x)
+    partial void Goo([CallerLineNumber] int x)
     {
     }
 
@@ -660,12 +707,12 @@ using System.Runtime.CompilerServices;
 
 partial class D
 {
-    partial void Foo(int line, string member, string path);
+    partial void Goo(int line, string member, string path);
 }
 
 partial class D
 {
-    partial void Foo(
+    partial void Goo(
         [CallerLineNumber] int line,
         [CallerMemberName] string member,
         [CallerFilePath] string path) { }
@@ -878,12 +925,12 @@ using System.Runtime.CompilerServices;
 
 partial class D
 {
-    partial void Foo(string x = """");
+    partial void Goo(string x = """");
 }
 
 partial class D
 {
-    partial void Foo([CallerLineNumber] string x)
+    partial void Goo([CallerLineNumber] string x)
     {
     }
 
@@ -907,19 +954,19 @@ using System;
 
 partial class D
 {
-    partial void Foo(string x = """");
+    partial void Goo(string x = """");
 }
 
 partial class D
 {
-    partial void Foo([CallerMemberName] string x)
+    partial void Goo([CallerMemberName] string x)
     {
         Console.WriteLine(x);
     }
 
     public static void Main()
     {
-        new D().Foo();
+        new D().Goo();
     }
 }";
 
@@ -927,7 +974,7 @@ partial class D
 
             compilation.VerifyEmitDiagnostics(
                 // (12,23): warning CS4026: The CallerMemberNameAttribute applied to parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
-                //     partial void Foo([CallerMemberName] string x)
+                //     partial void Goo([CallerMemberName] string x)
                 Diagnostic(ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation, "CallerMemberName").WithArguments("x").WithLocation(12, 23));
 
             CompileAndVerify(compilation, expectedOutput: "");
@@ -943,19 +990,19 @@ using System;
 
 partial class D
 {
-    partial void Foo([CallerMemberName] string x = """");
+    partial void Goo([CallerMemberName] string x = """");
 }
 
 partial class D
 {
-    partial void Foo(string x)
+    partial void Goo(string x)
     {
         Console.WriteLine(x);
     }
 
     public static void Main()
     {
-        new D().Foo();
+        new D().Goo();
     }
 }";
 
@@ -1045,6 +1092,143 @@ name: LocalFunctionCaller
 ";
 
             var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
+        [Fact]
+        public void TestCallerMemberName_LocalFunctionAttribute_01()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+class D
+{
+    public void LocalFunctionCaller()
+    {
+        static int log([CallerMemberName] string callerName = """")
+        {
+            Console.WriteLine(""name: "" + callerName);
+            return 1;
+        }
+
+        log();
+    }
+}
+
+class Test
+{
+
+    public static void Main()
+    {
+        var d = new D();
+        d.LocalFunctionCaller();
+    }
+}";
+
+            var expected = @"
+name: LocalFunctionCaller
+";
+
+            var compilation = CreateCompilation(
+                source,
+                options: TestOptions.ReleaseExe,
+                parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
+        [Fact]
+        public void TestCallerMemberName_LocalFunctionAttribute_02()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+class D
+{
+    public void LocalFunctionCaller()
+    {
+        static void local1()
+        {
+            static void log([CallerMemberName] string callerName = """")
+            {
+                Console.WriteLine(""name: "" + callerName);
+            }
+
+            log();
+        }
+
+        local1();
+    }
+}
+
+class Test
+{
+
+    public static void Main()
+    {
+        var d = new D();
+        d.LocalFunctionCaller();
+    }
+}";
+
+            var expected = @"
+name: LocalFunctionCaller
+";
+
+            var compilation = CreateCompilation(
+                source,
+                options: TestOptions.ReleaseExe,
+                parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
+        [Fact]
+        public void TestCallerMemberName_LocalFunctionAttribute_03()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+class D
+{
+    public void LocalFunctionCaller()
+    {
+        new Action(() =>
+        {
+            static void local1()
+            {
+                static void log([CallerMemberName] string callerName = """")
+                {
+                    Console.WriteLine(""name: "" + callerName);
+                }
+
+                log();
+            }
+
+            local1();
+        }).Invoke();
+    }
+}
+
+class Test
+{
+
+    public static void Main()
+    {
+        var d = new D();
+        d.LocalFunctionCaller();
+    }
+}";
+
+            var expected = @"
+name: LocalFunctionCaller
+";
+
+            var compilation = CreateCompilation(
+                source,
+                options: TestOptions.ReleaseExe,
+                parseOptions: TestOptions.RegularPreview);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1297,10 +1481,10 @@ class A
 
     public static void Main()
     {
-        Action foo = new Action(() => { });
+        Action goo = new Action(() => { });
         var e = new E();
-        e.ThingHappened += foo;
-        e.ThingHappened -= foo;
+        e.ThingHappened += goo;
+        e.ThingHappened -= goo;
     }
 }";
 
@@ -1313,7 +1497,7 @@ name: ThingHappened
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestCallerMemberName_ConstructorDestructor()
         {
             string source = @"
@@ -1487,6 +1671,42 @@ partial class A
         }
 
         [Fact]
+        public void TestCallerFilePath_LocalFunctionAttribute()
+        {
+            string source1 = @"
+using System.Runtime.CompilerServices;
+using System;
+
+partial class A
+{
+    static int i;
+
+    public static void Main()
+    {
+        log();
+        log();
+
+        static void log([System.Runtime.CompilerServices.CallerFilePathAttribute] string filePath = """")
+        {
+            Console.WriteLine(""{0}: '{1}'"", ++i, filePath);
+        }
+    }
+}";
+
+            var compilation = CreateCompilation(
+                new[]
+                {
+                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreview, path: @"C:\filename", encoding: Encoding.UTF8)
+                },
+                options: TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default));
+
+            CompileAndVerify(compilation, expectedOutput: @"
+1: 'C:\filename'
+2: 'C:\filename'
+");
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void TestCallerFilePath2()
         {
             string source1 = @"
@@ -1538,10 +1758,15 @@ partial class A { static void Main5() { Log(); } }
                 new[] { SystemRef },
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: @"C:\A\B")));
 
-            CompileAndVerify(compilation, expectedOutput: @"
+            // On CoreClr the '*' is a legal path character
+            // https://github.com/dotnet/docs/issues/4483
+            var expectedStarPath = ExecutionConditionUtil.IsCoreClr
+                ? @"C:\A\B\*"
+                : "*";
+            CompileAndVerify(compilation, expectedOutput: $@"
 1: 'C:\filename'
 2: 'C:\A\B\a\c\d.cs'
-3: '*'
+3: '{expectedStarPath}'
 4: 'C:\abc'
 5: '     '
 ");
@@ -1652,9 +1877,9 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-public class Foo: Attribute
+public class Goo: Attribute
 {
-    public Foo([Foo] int y = 0) {}
+    public Goo([Goo] int y = 0) {}
 }
 
 class Test
@@ -1674,14 +1899,14 @@ class Test
         public void TestRecursiveAttributeMetadata()
         {
             var iLSource = @"
-.class public auto ansi beforefieldinit Foo
+.class public auto ansi beforefieldinit Goo
        extends [mscorlib]System.Attribute
 {
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor([opt] int32 y) cil managed
   {
     .param [1] = int32(0x00000000)
-    .custom instance void Foo::.ctor(int32) = ( 01 00 00 00 00 00 00 00 ) 
+    .custom instance void Goo::.ctor(int32) = ( 01 00 00 00 00 00 00 00 ) 
     // Code size       10 (0xa)
     .maxstack  8
     IL_0000:  ldarg.0
@@ -1690,9 +1915,9 @@ class Test
     IL_0007:  nop
     IL_0008:  nop
     IL_0009:  ret
-  } // end of method Foo::.ctor
+  } // end of method Goo::.ctor
 
-} // end of class Foo
+} // end of class Goo
 ";
 
             var source = @"
@@ -1701,7 +1926,7 @@ using System;
 
 class Driver {
 
-    [Foo]
+    [Goo]
     public static void AttrTarget() { }
 
     public static void Main() { }
@@ -1756,7 +1981,7 @@ class Driver
         public void TestDuplicateCallerInfoMetadata()
         {
             var iLSource = @"
-.class public auto ansi beforefieldinit Foo
+.class public auto ansi beforefieldinit Goo
        extends [mscorlib]System.Object
 {
   .method public hidebysig static int32  Log([opt] int32 callerName) cil managed
@@ -1781,7 +2006,7 @@ class Driver
 
     IL_001b:  ldloc.0
     IL_001c:  ret
-  } // end of method Foo::Log
+  } // end of method Goo::Log
 
   .method public hidebysig static int32  Log2([opt] string callerName) cil managed
   {
@@ -1804,7 +2029,7 @@ class Driver
 
     IL_0016:  ldloc.0
     IL_0017:  ret
-  } // end of method Foo::Log2
+  } // end of method Goo::Log2
 
   .method public hidebysig static int32  Log3([opt] string callerName) cil managed
   {
@@ -1827,7 +2052,7 @@ class Driver
 
     IL_0016:  ldloc.0
     IL_0017:  ret
-  } // end of method Foo::Log3
+  } // end of method Goo::Log3
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -1837,9 +2062,9 @@ class Driver
     IL_0000:  ldarg.0
     IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
     IL_0006:  ret
-  } // end of method Foo::.ctor
+  } // end of method Goo::.ctor
 
-} // end of class Foo
+} // end of class Goo
 ";
 
             var source = @"
@@ -1848,9 +2073,9 @@ using System;
 
 class Driver {
     public static void Main() {
-        Foo.Log();
-        Foo.Log2();
-        Foo.Log3();
+        Goo.Log();
+        Goo.Log2();
+        Goo.Log3();
     }
 }
 ";
@@ -2454,7 +2679,7 @@ C:\filename
 ";
 
             var compilation = CreateCompilationWithMscorlib45(
-                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
+                new[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular7, path: @"C:\filename", encoding: Encoding.UTF8) },
                 options: TestOptions.ReleaseExe);
 
             compilation.VerifyDiagnostics(
@@ -2524,7 +2749,7 @@ class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename") }).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular7, path: @"C:\filename") }).VerifyDiagnostics(
                 // C:\filename(7,38): error CS4018: CallerFilePathAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
                 //     static void M1([CallerLineNumber,CallerFilePath,CallerMemberName] int i = 0) { Console.WriteLine(); }
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithArguments("string", "int"),
@@ -2630,11 +2855,11 @@ class Program
 {
   static void Main()
   {
-   var x = Foo.F1;
-   var y = new Foo().F2;
+   var x = Goo.F1;
+   var y = new Goo().F2;
   }
 }
-public class Foo
+public class Goo
 {
   static object Test([CallerMemberName] string bar = null)
   {
@@ -2666,11 +2891,11 @@ class Program
 {
   static void Main()
   {
-   var x = Foo.F1;
-   var y = new Foo().F2;
+   var x = Goo.F1;
+   var y = new Goo().F2;
   }
 }
-public class Foo
+public class Goo
 {
   static object Test([CallerMemberName] string bar = null)
   {
@@ -2702,7 +2927,7 @@ class Program
 {
   static void Main()
   {
-   var y = ((I1)new Foo()).F2;
+   var y = ((I1)new Goo()).F2;
   }
 }
 
@@ -2711,7 +2936,7 @@ interface I1
   object F2 {get;}
 }
 
-public class Foo : I1
+public class Goo : I1
 {
   static object Test([CallerMemberName] string bar = null)
   {

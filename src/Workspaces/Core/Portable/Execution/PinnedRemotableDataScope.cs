@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
@@ -14,61 +19,58 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal sealed class PinnedRemotableDataScope : IDisposable
     {
+        private static int s_scopeId = 1;
+
         private readonly AssetStorages _storages;
         private readonly AssetStorages.Storage _storage;
         private bool _disposed;
 
-        public readonly Checksum SolutionChecksum;
+        public readonly PinnedSolutionInfo SolutionInfo;
 
-        public PinnedRemotableDataScope(
+        private PinnedRemotableDataScope(
+            AssetStorages storages,
+            AssetStorages.Storage storage,
+            PinnedSolutionInfo solutionInfo)
+        {
+            _storages = storages;
+            _storage = storage;
+            SolutionInfo = solutionInfo;
+        }
+
+        public Workspace Workspace => _storage.SolutionState.Workspace;
+        public Checksum SolutionChecksum => SolutionInfo.SolutionChecksum;
+
+        public static PinnedRemotableDataScope Create(
             AssetStorages storages,
             AssetStorages.Storage storage,
             Checksum solutionChecksum)
         {
             Contract.ThrowIfNull(solutionChecksum);
 
-            _storages = storages;
-            _storage = storage;
+            var solutionInfo = new PinnedSolutionInfo(
+                Interlocked.Increment(ref s_scopeId),
+                storage.SolutionState.BranchId == storage.SolutionState.Workspace.PrimaryBranchId,
+                storage.SolutionState.WorkspaceVersion,
+                solutionChecksum);
 
-            SolutionChecksum = solutionChecksum;
+            storages.RegisterSnapshot(solutionInfo.ScopeId, storage);
 
-            _storages.RegisterSnapshot(this, storage);
+            return new PinnedRemotableDataScope(storages, storage, solutionInfo);
         }
 
-        /// <summary>
-        /// This indicates whether this scope is for primary branch or not (not forked solution)
-        /// 
-        /// Features like OOP will use this flag to see whether caching information related to this solution
-        /// can benefit other requests or not
-        /// </summary>
-        public bool ForPrimaryBranch => _storage.SolutionState.BranchId == Workspace.PrimaryBranchId;
-
-        public Workspace Workspace => _storage.SolutionState.Workspace;
-
-        /// <summary>
-        /// Add asset that is not part of solution to be part of this snapshot.
-        /// 
-        /// TODO: currently, this asset must be something <see cref="Serializer"/> can understand
-        ///       this should be changed so that custom serializer can be discoverable by <see cref="RemotableData.Kind"/> 
-        /// </summary>
-        public void AddAdditionalAsset(CustomAsset asset, CancellationToken cancellationToken)
-        {
-            _storage.AddAdditionalAsset(asset, cancellationToken);
-        }
-
-        public RemotableData GetRemotableData(Checksum checksum, CancellationToken cancellationToken)
+        public async ValueTask<RemotableData?> GetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
             {
-                return _storages.GetRemotableData(this, checksum, cancellationToken);
+                return await _storages.GetRemotableDataAsync(SolutionInfo.ScopeId, checksum, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask<IReadOnlyDictionary<Checksum, RemotableData>> GetRemotableDataAsync(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {
-                return _storages.GetRemotableData(this, checksums, cancellationToken);
+                return await _storages.GetRemotableDataAsync(SolutionInfo.ScopeId, checksums, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Execution
             if (!_disposed)
             {
                 _disposed = true;
-                _storages.UnregisterSnapshot(this);
+                _storages.UnregisterSnapshot(SolutionInfo.ScopeId);
             }
 
             GC.SuppressFinalize(this);

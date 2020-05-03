@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,10 +10,13 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -197,12 +201,12 @@ class Program
         int i = 10;
         int i2 = i;
 
-        NewMethod(i);
+        i2 = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
-        int i2 = i;
+        return i;
     }
 }";
 
@@ -353,13 +357,14 @@ class Program
 {
     void Test(string[] args)
     {
-        NewMethod(args);
-    }
-
-    private static void NewMethod(string[] args)
-    {
         int i;
         string s;
+
+        NewMethod(args, out i, out s);
+    }
+
+    private static void NewMethod(string[] args, out int i, out string s)
+    {
         i = 10;
         s = args[0] + i.ToString();
     }
@@ -928,19 +933,21 @@ class Program
     {
         int i;
 
-        NewMethod(i);
+        i = NewMethod(i);
 
         i = 6;
         Console.WriteLine(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         int b = 10;
         if (b < 10)
         {
             i = 5;
         }
+
+        return i;
     }
 }";
 
@@ -1125,19 +1132,21 @@ class Program
     {
         int i = 1;
 
-        NewMethod(i);
+        i = NewMethod(i);
 
         i = 6;
         Console.WriteLine(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         int b = 10;
         if (b < 10)
         {
             i = 5;
         }
+
+        return i;
     }
 }";
 
@@ -1551,7 +1560,7 @@ class Program
         int unassigned;
         // extract
         // unassigned = ReturnVal(0);
-        NewMethod(unassigned);
+        unassigned = NewMethod(unassigned);
 
         // read 
         // int newVar = unassigned;
@@ -1560,9 +1569,10 @@ class Program
         // unassigned = 0;
     }
 
-    private static void NewMethod(int unassigned)
+    private static int NewMethod(int unassigned)
     {
         unassigned = unassigned + 10;
+        return unassigned;
     }
 }";
 
@@ -1613,19 +1623,20 @@ class Program
 
         int unassigned;
         // extract
-        NewMethod(unassigned);
+        unassigned = NewMethod(unassigned);
         // int newVar = unassigned;
 
         // write
         // unassigned = 0;
     }
 
-    private static void NewMethod(int unassigned)
+    private static int NewMethod(int unassigned)
     {
         // unassigned = ReturnVal(0);
         unassigned = unassigned + 10;
 
         // read 
+        return unassigned;
     }
 }";
 
@@ -1665,7 +1676,7 @@ class Program
         // b
         [|System.Console.WriteLine();|]
     }
-}", 
+}",
 @"class C
 {
     void M()
@@ -1919,11 +1930,11 @@ class Program
     static void Main()
     {
         int x = 1;
-        [|Foo(ref x);|]
+        [|Goo(ref x);|]
         Console.WriteLine(x);
     }
 
-    static void Foo(ref int x)
+    static void Goo(ref int x)
     {
         x = x + 1;
     }
@@ -1943,11 +1954,11 @@ class Program
 
     private static int NewMethod(int x)
     {
-        Foo(ref x);
+        Goo(ref x);
         return x;
     }
 
-    static void Foo(ref int x)
+    static void Goo(ref int x)
     {
         x = x + 1;
     }
@@ -2036,7 +2047,7 @@ using System.Collections.Generic;
 using System.Linq;
 class Program
 {
-    static void Foo(int GetX)
+    static void Goo(int GetX)
     {
         int x = [|1|];
     }
@@ -2046,7 +2057,7 @@ using System.Collections.Generic;
 using System.Linq;
 class Program
 {
-    static void Foo(int GetX)
+    static void Goo(int GetX)
     {
         int x = GetX1();
     }
@@ -2072,7 +2083,7 @@ class Class
         get { return ""1""; }
         set { name = value; }
     }
-    static void Foo(int i)
+    static void Goo(int i)
     {
         string str = [|Class.Names|];
     }
@@ -2086,7 +2097,7 @@ class Class
         get { return ""1""; }
         set { name = value; }
     }
-    static void Foo(int i)
+    static void Goo(int i)
     {
         string str = GetStr();
     }
@@ -2179,7 +2190,7 @@ class Program
     class D : A<T> { }
     class B { }
 
-    static D.B Foo()
+    static D.B Goo()
     {
         return null;
     }
@@ -2188,7 +2199,7 @@ class Program
     {
         static void Bar()
         {
-            D.B x = [|Foo()|];
+            D.B x = [|Goo()|];
         }
     }
 }";
@@ -2198,7 +2209,7 @@ class Program
     class D : A<T> { }
     class B { }
 
-    static D.B Foo()
+    static D.B Goo()
     {
         return null;
     }
@@ -2212,7 +2223,7 @@ class Program
 
         private static B GetX()
         {
-            return Foo();
+            return Goo();
         }
     }
 }";
@@ -2272,12 +2283,13 @@ class Program
 {
     void Method<T>(T t)
     {
-        NewMethod(t);
+        T a;
+        a = NewMethod(t);
     }
 
-    private static void NewMethod<T>(T t)
+    private static T NewMethod<T>(T t)
     {
-        T a = t;
+        return t;
     }
 }";
 
@@ -2303,13 +2315,13 @@ class Program
 {
     void Method<T>(T t)
     {
-        NewMethod(t);
-    }
-
-    private static void NewMethod<T>(T t)
-    {
         T a;
         T1 b;
+        NewMethod(t, out a, out b);
+    }
+
+    private static void NewMethod<T>(T t, out T a, out T1 b)
+    {
         a = t;
         b = default(T1);
     }
@@ -2337,13 +2349,13 @@ class Program
 {
     void Method<T, T1>(T t)
     {
-        NewMethod<T, T1>(t);
-    }
-
-    private static void NewMethod<T, T1>(T t)
-    {
         T1 a1;
         T a;
+        NewMethod(t, out a1, out a);
+    }
+
+    private static void NewMethod<T, T1>(T t, out T1 a1, out T a)
+    {
         a = t;
         a1 = default(T);
     }
@@ -2597,7 +2609,7 @@ class Program
 
     class C<T>
     {
-        static void Foo<T>(T a)
+        static void Goo<T>(T a)
         {
             T t = [|default(T)|];
         }
@@ -2611,7 +2623,7 @@ class Program
 
     class C<T>
     {
-        static void Foo<T>(T a)
+        static void Goo<T>(T a)
         {
             T t = GetT<T>();
         }
@@ -2636,7 +2648,7 @@ class Program
 
     class C<T>
     {
-        static void Foo()
+        static void Goo()
         {
             D.B x = [|new D.B()|];
         }
@@ -2927,7 +2939,7 @@ class Program
         public async Task MatrixCase_NoNoNoNoNoYesNoNo()
         {
             var code = @"using System;
-
+    
 class Program
 {
     void Test1()
@@ -2944,22 +2956,24 @@ class Program
 }";
 
             var expected = @"using System;
-
+    
 class Program
 {
     void Test1()
     {
         int i;
 
-        NewMethod(i);
+        i = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         if (int.Parse(""1"") > 0)
         {
             i = 10;
         }
+
+        return i;
     }
 }";
 
@@ -2994,15 +3008,17 @@ class Program
     {
         int i = 0;
 
-        NewMethod(i);
+        i = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         if (int.Parse(""1"") > 0)
         {
             i = 10;
         }
+
+        return i;
     }
 }";
 
@@ -3041,15 +3057,17 @@ class Program
 
         while (i > 10) ;
 
-        NewMethod(i);
+        i = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         if (int.Parse(""1"") > 0)
         {
             i = 10;
         }
+
+        return i;
     }
 }";
 
@@ -3088,15 +3106,17 @@ class Program
 
         while (i > 10) ;
 
-        NewMethod(i);
+        i = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         if (int.Parse(""1"") > 0)
         {
             i = 10;
         }
+
+        return i;
     }
 }";
 
@@ -3130,10 +3150,12 @@ class Program
 {
     void Test4_1()
     {
-        NewMethod();
+        int i;
+
+        i = NewMethod();
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
         int i;
         if (int.Parse(""1"") > 0)
@@ -3141,6 +3163,8 @@ class Program
             i = 10;
             Console.WriteLine(i);
         }
+
+        return i;
     }
 }";
 
@@ -3176,16 +3200,18 @@ class Program
     {
         int i = 10;
 
-        NewMethod(i);
+        i = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         if (int.Parse(""1"") > 0)
         {
             i = 10;
             Console.WriteLine(i);
         }
+
+        return i;
     }
 }";
 
@@ -3225,10 +3251,10 @@ class Program
 
         Console.WriteLine(i);
 
-        NewMethod();
+        i = NewMethod();
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
         int i;
         if (int.Parse(""1"") > 0)
@@ -3236,6 +3262,8 @@ class Program
             i = 10;
             Console.WriteLine(i);
         }
+
+        return i;
     }
 }";
 
@@ -3275,16 +3303,18 @@ class Program
 
         Console.WriteLine(i);
 
-        NewMethod(i);
+        i = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         if (int.Parse(""1"") > 0)
         {
             i = 10;
             Console.WriteLine(i);
         }
+
+        return i;
     }
 }";
 
@@ -3400,13 +3430,12 @@ class Program
 {
     void Test8()
     {
-        int i;
-        NewMethod();
+        int i = NewMethod();
 
         i = 2;
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
         int i;
 
@@ -3414,6 +3443,8 @@ class Program
         {
             i = 10;
         }
+
+        return i;
     }
 }";
 
@@ -3576,13 +3607,12 @@ class Program
 {
     void Test12()
     {
-        int i;
-        NewMethod();
+        int i = NewMethod();
 
         i = 10;
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
         int i;
 
@@ -3592,6 +3622,7 @@ class Program
         }
 
         Console.WriteLine(i);
+        return i;
     }
 }";
 
@@ -3621,12 +3652,14 @@ class Program
 {
     void Test13()
     {
-        NewMethod();
+        int i;
+
+        i = NewMethod();
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
-        int i = 10;
+        return 10;
     }
 }";
 
@@ -3660,14 +3693,14 @@ class Program
     {
         int i;
 
-        NewMethod();
+        i = NewMethod();
 
         i = 1;
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
-        int i = 10;
+        return 10;
     }
 }";
 
@@ -3703,12 +3736,12 @@ class Program
 
         Console.WriteLine(i);
 
-        NewMethod();
+        i = NewMethod();
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
-        int i = 10;
+        return 10;
     }
 }";
 
@@ -3744,16 +3777,109 @@ class Program
     {
         int i;
 
-        NewMethod();
+        i = NewMethod();
 
         i = 10;
 
         Console.WriteLine(i);
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
-        int i = 10;
+        return 10;
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        // dataflow in and out can be false for symbols in unreachable code
+        // boolean indicates 
+        // dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: false, readOutside: false, writtenOutside: true
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task MatrixCase_NoNoYesNoYesNoNoYes()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            enumerable.Select(e => """");
+            return enumerable;|]
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            return NewMethod(enumerable);
+        }
+
+        private static IEnumerable<object> NewMethod(IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            enumerable.Select(e => """");
+            return enumerable;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        // dataflow in and out can be false for symbols in unreachable code
+        // boolean indicates 
+        // dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: false, readOutside: true, writtenOutside: true
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task MatrixCase_NoNoYesNoYesNoYesYes()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            enumerable.Select(e => """");|]
+            return enumerable;
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            enumerable = NewMethod(enumerable);
+            return enumerable;
+        }
+
+        private static IEnumerable<object> NewMethod(IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            enumerable.Select(e => """");
+            return enumerable;
+        }
     }
 }";
 
@@ -3784,13 +3910,16 @@ class Program
 {
     void Test16_1()
     {
-        NewMethod();
+        int i;
+
+        i = NewMethod();
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
         int i = 10;
         Console.WriteLine(i);
+        return i;
     }
 }";
 
@@ -3823,13 +3952,14 @@ class Program
     {
         int i = 10;
 
-        NewMethod();
+        i = NewMethod();
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
         int i = 10;
         Console.WriteLine(i);
+        return i;
     }
 }";
 
@@ -3866,13 +3996,14 @@ class Program
 
         Console.WriteLine(i);
 
-        NewMethod();
+        i = NewMethod();
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
         int i = 10;
         Console.WriteLine(i);
+        return i;
     }
 }";
 
@@ -3909,13 +4040,14 @@ class Program
 
         Console.WriteLine(i);
 
-        NewMethod();
+        i = NewMethod();
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
         int i = 10;
         Console.WriteLine(i);
+        return i;
     }
 }";
 
@@ -3978,15 +4110,14 @@ class Program
 {
     void Test18()
     {
-        int i;
-        NewMethod();
+        int i = NewMethod();
 
         i = 10;
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
-        int i = 10;
+        return 10;
     }
 }";
 
@@ -5134,10 +5265,10 @@ class Program
     {
         int i;
 
-        NewMethod(i);
+        i = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         Console.WriteLine(i);
 
@@ -5145,6 +5276,8 @@ class Program
         {
             i = 10;
         }
+
+        return i;
     }
 }";
 
@@ -5181,10 +5314,10 @@ class Program
     {
         int i = 10;
 
-        NewMethod(i);
+        i = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         Console.WriteLine(i);
 
@@ -5192,6 +5325,8 @@ class Program
         {
             i = 10;
         }
+
+        return i;
     }
 }";
 
@@ -5232,10 +5367,10 @@ class Program
 
         Console.WriteLine(i);
 
-        NewMethod(i);
+        i = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         Console.WriteLine(i);
 
@@ -5243,6 +5378,8 @@ class Program
         {
             i = 10;
         }
+
+        return i;
     }
 }";
 
@@ -5283,10 +5420,10 @@ class Program
 
         Console.WriteLine(i);
 
-        NewMethod(i);
+        i = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         Console.WriteLine(i);
 
@@ -5294,6 +5431,8 @@ class Program
         {
             i = 10;
         }
+
+        return i;
     }
 }";
 
@@ -5327,14 +5466,15 @@ class Program
     {
         int i;
 
-        NewMethod(i);
+        i = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         Console.WriteLine(i);
 
         i = 10;
+        return i;
     }
 }";
 
@@ -5368,14 +5508,15 @@ class Program
     {
         int i = 10;
 
-        NewMethod(i);
+        i = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         Console.WriteLine(i);
 
         i = 10;
+        return i;
     }
 }";
 
@@ -5413,14 +5554,15 @@ class Program
 
         Console.WriteLine(i);
 
-        NewMethod(i);
+        i = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         Console.WriteLine(i);
 
         i = 10;
+        return i;
     }
 }";
 
@@ -5458,14 +5600,15 @@ class Program
 
         Console.WriteLine(i);
 
-        NewMethod(i);
+        i = NewMethod(i);
     }
 
-    private static void NewMethod(int i)
+    private static int NewMethod(int i)
     {
         Console.WriteLine(i);
 
         i = 10;
+        return i;
     }
 }";
 
@@ -6011,18 +6154,16 @@ class C3
     {
         int temp = 2;
 
-        Func fnc = (ref int arg, int arg2) => { arg = NewMethod(arg2); };
+        Func fnc = (ref int arg, int arg2) => { NewMethod(out arg, arg2, out temp); };
         temp = 4;
         fnc(ref temp, 2);
 
         System.Console.WriteLine(temp);
     }
 
-    private static int NewMethod(int arg2)
+    private static void NewMethod(out int arg, int arg2, out int temp)
     {
-        int arg, temp;
         temp = arg = arg2;
-        return arg;
     }
 }";
 
@@ -6066,13 +6207,13 @@ class C3
                 System.Console.WriteLine(i);
             };
         }
-        NewMethod();
+        i = NewMethod();
         query();
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
-        int i = 3;
+        return 3;
     }
 }";
 
@@ -6326,7 +6467,7 @@ class Program
 class Program
 {
     delegate R Del<in T, out R>(T arg);
-    public void Foo()
+    public void Goo()
     {
         Del<Exception, ArgumentException> d = (arg) => { return new ArgumentException(); };
         [|d(new ArgumentException());|]
@@ -6337,7 +6478,7 @@ class Program
 class Program
 {
     delegate R Del<in T, out R>(T arg);
-    public void Foo()
+    public void Goo()
     {
         Del<Exception, ArgumentException> d = (arg) => { return new ArgumentException(); };
         NewMethod(d);
@@ -6349,7 +6490,7 @@ class Program
     }
 }";
 
-            await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
+            await TestExtractMethodAsync(code, expected);
         }
 
         [WorkItem(540183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540183")]
@@ -6584,12 +6725,12 @@ enum Enum { }";
     void Main()
     {
         float @float = 1.2f;
-        NewMethod();
+        @float = NewMethod();
     }
 
-    private static void NewMethod()
+    private static float NewMethod()
     {
-        float @float = 1.44F;
+        return 1.44F;
     }
 }";
             await TestExtractMethodAsync(code, expected);
@@ -7553,14 +7694,14 @@ class Program
         {
             var code = @"struct S
 {
-    void Foo()
+    void Goo()
     {
         [|this = new S();|]
     }
 }";
             var expected = @"struct S
 {
-    void Foo()
+    void Goo()
     {
         NewMethod();
     }
@@ -7579,7 +7720,7 @@ class Program
         {
             var code = @"class T
 {
-    void Foo()
+    void Goo()
     {
         int x1 = 5;
         long x2 = [|x1|];
@@ -7587,7 +7728,7 @@ class Program
 }";
             var expected = @"class T
 {
-    void Foo()
+    void Goo()
     {
         int x1 = 5;
         long x2 = GetX2(x1);
@@ -7822,8 +7963,8 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task GenericWithErrorType()
         {
-            var code = @"using Foo.Utilities;
-class Foo<T>
+            var code = @"using Goo.Utilities;
+class Goo<T>
 {
 }
 
@@ -7831,23 +7972,23 @@ class Bar
 {
     void gibberish()
     {
-        Foo<[|Integer|]> x = null;
+        Goo<[|Integer|]> x = null;
         x.IsEmpty();
     }
 }
 
-namespace Foo.Utilities
+namespace Goo.Utilities
 {
-    internal static class FooExtensions
+    internal static class GooExtensions
     {
-        public static bool IsEmpty<T>(this Foo<T> source)
+        public static bool IsEmpty<T>(this Goo<T> source)
         {
             return false;
         }
     }
 }";
-            var expected = @"using Foo.Utilities;
-class Foo<T>
+            var expected = @"using Goo.Utilities;
+class Goo<T>
 {
 }
 
@@ -7855,21 +7996,21 @@ class Bar
 {
     void gibberish()
     {
-        Foo<Integer> x = NewMethod();
+        Goo<Integer> x = NewMethod();
         x.IsEmpty();
     }
 
-    private static Foo<Integer> NewMethod()
+    private static Goo<Integer> NewMethod()
     {
         return null;
     }
 }
 
-namespace Foo.Utilities
+namespace Goo.Utilities
 {
-    internal static class FooExtensions
+    internal static class GooExtensions
     {
-        public static bool IsEmpty<T>(this Foo<T> source)
+        public static bool IsEmpty<T>(this Goo<T> source)
         {
             return false;
         }
@@ -7889,7 +8030,7 @@ class C
 {
     int this[int x = 5, int y = 7] { get { return 0; } set { } }
 
-    void Foo()
+    void Goo()
     {
         var y = this[[|y|]: 1];
     }
@@ -7900,7 +8041,7 @@ class C
 {
     int this[int x = 5, int y = 7] { get { return 0; } set { } }
 
-    void Foo()
+    void Goo()
     {
         var y = GetY();
     }
@@ -8008,7 +8149,7 @@ using System.Collections.Generic;
  
 class A
 {
-    static void Foo<T, S>(T x) where T : IList<S>
+    static void Goo<T, S>(T x) where T : IList<S>
     {
         var y = [|x.Count|];
     }
@@ -8018,7 +8159,7 @@ using System.Collections.Generic;
  
 class A
 {
-    static void Foo<T, S>(T x) where T : IList<S>
+    static void Goo<T, S>(T x) where T : IList<S>
     {
         var y = GetY<T, S>(x);
     }
@@ -8505,14 +8646,14 @@ class Program
         {
             var code = @"using System;
 
-struct Foo
+struct Goo
 {
     static Action a = () => { Console.WriteLine(); [|}|];
 }";
 
             var expected = @"using System;
 
-struct Foo
+struct Goo
 {
     static Action a = GetA();
 
@@ -8700,7 +8841,7 @@ using System.Collections.Generic;
  
 class A
 {
-    static void Foo<T, S, U>(T x) where T : IList<S> where S : IList<U>
+    static void Goo<T, S, U>(T x) where T : IList<S> where S : IList<U>
     {
         var y = [|x.Count|];
     }
@@ -8710,7 +8851,7 @@ using System.Collections.Generic;
  
 class A
 {
-    static void Foo<T, S, U>(T x) where T : IList<S> where S : IList<U>
+    static void Goo<T, S, U>(T x) where T : IList<S> where S : IList<U>
     {
         var y = GetY<T, S>(x);
     }
@@ -8739,7 +8880,7 @@ interface I<T> where T : IComparable<T>
 
 class A
 {
-    static void Foo<T, S>(S x) where S : I<T> where T : IComparable<T>
+    static void Goo<T, S>(S x) where S : I<T> where T : IComparable<T>
     {
         var y = [|x.Count|];
     }
@@ -8755,7 +8896,7 @@ interface I<T> where T : IComparable<T>
 
 class A
 {
-    static void Foo<T, S>(S x) where S : I<T> where T : IComparable<T>
+    static void Goo<T, S>(S x) where S : I<T> where T : IComparable<T>
     {
         var y = GetY<T, S>(x);
     }
@@ -8787,7 +8928,7 @@ interface I<T> where T : class
 
 class A
 {
-    static void Foo<T, S>(S x) where S : I<T> where T : class
+    static void Goo<T, S>(S x) where S : I<T> where T : class
     {
         var y = [|x.Count|];
     }
@@ -8803,7 +8944,7 @@ interface I<T> where T : class
 
 class A
 {
-    static void Foo<T, S>(S x) where S : I<T> where T : class
+    static void Goo<T, S>(S x) where S : I<T> where T : class
     {
         var y = GetY<T, S>(x);
     }
@@ -8839,14 +8980,14 @@ interface I2<T1, T2> : I<T1> where T1 : class, IEnumerable<T2> where T2 : struct
 
 class A
 {
-    public virtual void Foo<T, S>(S x) where S : IList<I2<IEnumerable<T>, T>> where T : struct
+    public virtual void Goo<T, S>(S x) where S : IList<I2<IEnumerable<T>, T>> where T : struct
     {
     }
 }
 
 class B : A
 {
-    public override void Foo<T, S>(S x)
+    public override void Goo<T, S>(S x)
     {
         var y = [|x.Count|];
     }
@@ -8867,14 +9008,14 @@ interface I2<T1, T2> : I<T1> where T1 : class, IEnumerable<T2> where T2 : struct
 
 class A
 {
-    public virtual void Foo<T, S>(S x) where S : IList<I2<IEnumerable<T>, T>> where T : struct
+    public virtual void Goo<T, S>(S x) where S : IList<I2<IEnumerable<T>, T>> where T : struct
     {
     }
 }
 
 class B : A
 {
-    public override void Foo<T, S>(S x)
+    public override void Goo<T, S>(S x)
     {
         var y = GetY<T, S>(x);
     }
@@ -8953,7 +9094,7 @@ using System.Collections.Generic;
  
 class Program
 {
-    static void Foo<T>()
+    static void Goo<T>()
     {
         List<T> x = new List<T>();
         Action a = () => Console.WriteLine([|x.Count|]);
@@ -8964,7 +9105,7 @@ using System.Collections.Generic;
  
 class Program
 {
-    static void Foo<T>()
+    static void Goo<T>()
     {
         List<T> x = new List<T>();
         Action a = () => Console.WriteLine(GetCount(x));
@@ -9106,7 +9247,7 @@ Type GetDelegateType(Type delegateType)
     }
 }";
 
-            await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
+            await TestExtractMethodAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
@@ -9176,12 +9317,12 @@ unsafe class O
 {
     unsafe public O(int t)
     {
-        NewMethod();
+        t = NewMethod();
     }
 
-    private static void NewMethod()
+    private static int NewMethod()
     {
-        int t = 1;
+        return 1;
     }
 }";
 
@@ -9343,16 +9484,17 @@ class Program
     static void Main(string[] args)
     {
         const string a = null;
-        NewMethod(a);
+        a = NewMethod(a);
     }
 
-    private static void NewMethod(string a)
+    private static string NewMethod(string a)
     {
         a = null;
+        return a;
     }
 }";
 
-            await TestExtractMethodAsync(code, expected, allowMovingDeclaration: true);
+            await TestExtractMethodAsync(code, expected);
         }
 
         [WorkItem(542944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542944")]
@@ -9382,7 +9524,7 @@ class Program
     }
 }";
 
-            await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
+            await TestExtractMethodAsync(code, expected);
         }
 
         [WorkItem(544675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544675")]
@@ -9881,7 +10023,7 @@ class C
  
 class C
 {
-    public async void Foo()
+    public async void Goo()
     {
         [|var q = 1;
         var p = 2;
@@ -9977,7 +10119,7 @@ class Program
         Console.WriteLine(i);
     }
 }";
-            await ExpectExtractMethodToFailAsync(code, allowMovingDeclaration: false);
+            await ExpectExtractMethodToFailAsync(code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
@@ -10079,13 +10221,162 @@ namespace ClassLibrary9
             await TestExtractMethodAsync(code, expected, dontPutOutOrRefOnStruct: true);
         }
 
+        [Theory]
+        [InlineData("add", "remove")]
+        [InlineData("remove", "add")]
+        [WorkItem(17474, "https://github.com/dotnet/roslyn/issues/17474")]
+        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExtractMethodEventAccessorUnresolvedName(string testedAccessor, string untestedAccessor)
+        {
+            // This code intentionally omits a 'using System;'
+            var code =
+$@"namespace ClassLibrary9
+{{
+    public class Class
+    {{
+        public event EventHandler Event
+        {{
+            {testedAccessor} {{ [|throw new NotImplementedException();|] }}
+            {untestedAccessor} {{ throw new NotImplementedException(); }}
+        }}
+    }}
+}}";
+            var expected =
+$@"namespace ClassLibrary9
+{{
+    public class Class
+    {{
+        public event EventHandler Event
+        {{
+            {testedAccessor} {{ NewMethod(); }}
+            {untestedAccessor} {{ throw new NotImplementedException(); }}
+        }}
+
+        private static void NewMethod()
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+}}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(19958, "https://github.com/dotnet/roslyn/issues/19958")]
+        public async Task TestExtractMethodRefPassThrough()
+        {
+            var code =
+@"using System;
+
+namespace ClassLibrary9
+{
+    internal class ClassExtensions
+    {
+        public static int OtherMethod(ref int x) => x;
+
+        public static void Method(ref int x)
+            => Console.WriteLine(OtherMethod(ref [|x|]));
+    }
+}";
+            var expected =
+@"using System;
+
+namespace ClassLibrary9
+{
+    internal class ClassExtensions
+    {
+        public static int OtherMethod(ref int x) => x;
+
+        public static void Method(ref int x)
+            => Console.WriteLine(OtherMethod(ref $x$));
+
+        public static ref int NewMethod(ref int x)
+        {
+            return ref x;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected, temporaryFailing: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(19958, "https://github.com/dotnet/roslyn/issues/19958")]
+        public async Task TestExtractMethodRefPassThroughDuplicateVariable()
+        {
+            var code =
+@"using System;
+
+namespace ClassLibrary9
+{
+    internal interface IClass
+    {
+        bool InterfaceMethod(ref Guid x, out IOtherClass y);
+    }
+    internal interface IOtherClass
+    {
+        bool OtherInterfaceMethod();
+    }
+
+    internal static class ClassExtensions
+    {
+        public static void Method(this IClass instance, Guid guid)
+        {
+            var r = instance.InterfaceMethod(ref [|guid|], out IOtherClass guid);
+            if (!r)
+                return;
+
+            r = guid.OtherInterfaceMethod();
+            if (r)
+                throw null;
+        }
+    }
+}";
+            var expected =
+@"using System;
+
+namespace ClassLibrary9
+{
+    internal interface IClass
+    {
+        bool InterfaceMethod(ref Guid x, out IOtherClass y);
+    }
+    internal interface IOtherClass
+    {
+        bool OtherInterfaceMethod();
+    }
+
+    internal static class ClassExtensions
+    {
+        public static void Method(this IClass instance, Guid guid)
+        {
+            var r = instance.InterfaceMethod(ref NewMethod(ref guid), out IOtherClass guid);
+            if (!r)
+                return;
+
+            r = guid.OtherInterfaceMethod();
+            if (r)
+                throw null;
+        }
+
+        public static ref Guid NewMethod(ref Guid guid)
+        {
+            return ref guid;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected, temporaryFailing: true);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod_Argument1()
         {
             var service = new CSharpExtractMethodService();
             Assert.NotNull(await Record.ExceptionAsync(async () =>
             {
-                var tree = await service.ExtractMethodAsync(null, default(TextSpan), null, CancellationToken.None);
+                var tree = await service.ExtractMethodAsync(document: null, textSpan: default, localFunction: false, options: null, CancellationToken.None);
             }));
         }
 
@@ -10101,7 +10392,7 @@ namespace ClassLibrary9
 
             var service = new CSharpExtractMethodService() as IExtractMethodService;
 
-            await service.ExtractMethodAsync(document, default(TextSpan));
+            await service.ExtractMethodAsync(document, textSpan: default, localFunction: false);
         }
 
         [WpfFact]
@@ -10109,39 +10400,790 @@ namespace ClassLibrary9
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ExtractMethodCommandDisabledInSubmission()
         {
-            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
+            var exportProvider = ExportProviderCache
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
+                .CreateExportProvider();
 
-            using (var workspace = TestWorkspace.Create(XElement.Parse(@"
+            using var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         typeof(string).$$Name
                     </Submission>
                 </Workspace> "),
                 workspaceKind: WorkspaceKind.Interactive,
-                exportProvider: exportProvider))
+                exportProvider: exportProvider);
+            // Force initialization.
+            workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+
+            var textView = workspace.Documents.Single().GetTextView();
+
+            var handler = new ExtractMethodCommandHandler(
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ITextBufferUndoManagerProvider>(),
+                workspace.GetService<IInlineRenameService>());
+
+            var state = handler.GetCommandState(new ExtractMethodCommandArgs(textView, textView.TextBuffer));
+            Assert.True(state.IsUnspecified);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        public async Task ExtractMethodUnreferencedLocalFunction1()
+        {
+            var code = @"namespace ExtractMethodCrashRepro
+{
+    public static class SomeClass
+    {
+        private static void Repro( int arg )
+        {
+            [|int localValue = arg;|]
+
+            int LocalCapture() => arg;
+        }
+    }
+}";
+            var expected = @"namespace ExtractMethodCrashRepro
+{
+    public static class SomeClass
+    {
+        private static void Repro( int arg )
+        {
+            NewMethod(arg);
+
+            int LocalCapture() => arg;
+        }
+
+        private static void NewMethod(int arg)
+        {
+            int localValue = arg;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        public async Task ExtractMethodUnreferencedLocalFunction2()
+        {
+            var code = @"namespace ExtractMethodCrashRepro
+{
+    public static class SomeClass
+    {
+        private static void Repro( int arg )
+        {
+            int LocalCapture() => arg;
+
+            [|int localValue = arg;|]
+        }
+    }
+}";
+            var expected = @"namespace ExtractMethodCrashRepro
+{
+    public static class SomeClass
+    {
+        private static void Repro( int arg )
+        {
+            int LocalCapture() => arg;
+
+            NewMethod(arg);
+        }
+
+        private static void NewMethod(int arg)
+        {
+            int localValue = arg;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        public async Task ExtractMethodUnreferencedLocalFunction3()
+        {
+            var code = @"namespace ExtractMethodCrashRepro
+{
+    public static class SomeClass
+    {
+        private static void Repro( int arg )
+        {
+            [|arg = arg + 3;|]
+
+            int LocalCapture() => arg;
+        }
+    }
+}";
+            var expected = @"namespace ExtractMethodCrashRepro
+{
+    public static class SomeClass
+    {
+        private static void Repro( int arg )
+        {
+            arg = NewMethod(arg);
+
+            int LocalCapture() => arg;
+        }
+
+        private static int NewMethod(int arg)
+        {
+            arg = arg + 3;
+            return arg;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        public async Task ExtractMethodUnreferencedLocalFunction4()
+        {
+            var code = @"namespace ExtractMethodCrashRepro
+{
+    public static class SomeClass
+    {
+        private static void Repro( int arg )
+        {
+            int LocalCapture() => arg;
+
+            [|arg = arg + 3;|]
+        }
+    }
+}";
+            var expected = @"namespace ExtractMethodCrashRepro
+{
+    public static class SomeClass
+    {
+        private static void Repro( int arg )
+        {
+            int LocalCapture() => arg;
+
+            arg = NewMethod(arg);
+        }
+
+        private static int NewMethod(int arg)
+        {
+            arg = arg + 3;
+            return arg;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        public async Task ExtractMethodUnreferencedLocalFunction5()
+        {
+            var code = @"namespace ExtractMethodCrashRepro
+{
+    public static class SomeClass
+    {
+        private static void Repro( int arg )
+        {
+            [|arg = arg + 3;|]
+
+            arg = 1;
+
+            int LocalCapture() => arg;
+        }
+    }
+}";
+            var expected = @"namespace ExtractMethodCrashRepro
+{
+    public static class SomeClass
+    {
+        private static void Repro( int arg )
+        {
+            arg = NewMethod(arg);
+
+            arg = 1;
+
+            int LocalCapture() => arg;
+        }
+
+        private static int NewMethod(int arg)
+        {
+            arg = arg + 3;
+            return arg;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Theory]
+        [InlineData("LocalCapture();")]
+        [InlineData("System.Func<int> function = LocalCapture;")]
+        [InlineData("System.Func<int> function = () => LocalCapture();")]
+        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        public async Task ExtractMethodFlowsToLocalFunction1(string usageSyntax)
+        {
+            var code = $@"namespace ExtractMethodCrashRepro
+{{
+    public static class SomeClass
+    {{
+        private static void Repro( int arg )
+        {{
+            [|arg = arg + 3;|]
+
+            {usageSyntax}
+
+            int LocalCapture() => arg;
+        }}
+    }}
+}}";
+            var expected = $@"namespace ExtractMethodCrashRepro
+{{
+    public static class SomeClass
+    {{
+        private static void Repro( int arg )
+        {{
+            arg = NewMethod(arg);
+
+            {usageSyntax}
+
+            int LocalCapture() => arg;
+        }}
+
+        private static int NewMethod(int arg)
+        {{
+            arg = arg + 3;
+            return arg;
+        }}
+    }}
+}}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Theory]
+        [InlineData("LocalCapture();")]
+        [InlineData("System.Func<int> function = LocalCapture;")]
+        [InlineData("System.Func<int> function = () => LocalCapture();")]
+        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        public async Task ExtractMethodFlowsToLocalFunction2(string usageSyntax)
+        {
+            var code = $@"namespace ExtractMethodCrashRepro
+{{
+    public static class SomeClass
+    {{
+        private static void Repro( int arg )
+        {{
+            int LocalCapture() => arg;
+
+            [|arg = arg + 3;|]
+
+            {usageSyntax}
+        }}
+    }}
+}}";
+            var expected = $@"namespace ExtractMethodCrashRepro
+{{
+    public static class SomeClass
+    {{
+        private static void Repro( int arg )
+        {{
+            int LocalCapture() => arg;
+
+            arg = NewMethod(arg);
+
+            {usageSyntax}
+        }}
+
+        private static int NewMethod(int arg)
+        {{
+            arg = arg + 3;
+            return arg;
+        }}
+    }}
+}}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        /// <summary>
+        /// This test verifies that Extract Method works properly when the region to extract references a local
+        /// function, the local function uses an unassigned but wholly local variable.
+        /// </summary>
+        [Theory]
+        [InlineData("LocalCapture();")]
+        [InlineData("System.Func<int> function = LocalCapture;")]
+        [InlineData("System.Func<int> function = () => LocalCapture();")]
+        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        public async Task ExtractMethodFlowsToLocalFunctionWithUnassignedLocal(string usageSyntax)
+        {
+            var code = $@"namespace ExtractMethodCrashRepro
+{{
+    public static class SomeClass
+    {{
+        private static void Repro( int arg )
+        {{
+            int local;
+            int LocalCapture() => arg + local;
+
+            [|arg = arg + 3;|]
+
+            {usageSyntax}
+        }}
+    }}
+}}";
+            var expected = $@"namespace ExtractMethodCrashRepro
+{{
+    public static class SomeClass
+    {{
+        private static void Repro( int arg )
+        {{
+            int local;
+            int LocalCapture() => arg + local;
+
+            arg = NewMethod(arg);
+
+            {usageSyntax}
+        }}
+
+        private static int NewMethod(int arg)
+        {{
+            arg = arg + 3;
+            return arg;
+        }}
+    }}
+}}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(18347, "https://github.com/dotnet/roslyn/issues/18347")]
+        public async Task ExtractMethodDoesNotFlowToLocalFunction1()
+        {
+            var code = @"namespace ExtractMethodCrashRepro
+{
+    public static class SomeClass
+    {
+        private static void Repro( int arg )
+        {
+            [|arg = arg + 3;|]
+
+            arg = 1;
+
+            int LocalCapture() => arg;
+        }
+    }
+}";
+            var expected = @"namespace ExtractMethodCrashRepro
+{
+    public static class SomeClass
+    {
+        private static void Repro( int arg )
+        {
+            arg = NewMethod(arg);
+
+            arg = 1;
+
+            int LocalCapture() => arg;
+        }
+
+        private static int NewMethod(int arg)
+        {
+            arg = arg + 3;
+            return arg;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestUnreachableCodeModifiedInside()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();
+            return enumerable;|]
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            return NewMethod(ref enumerable);
+        }
+
+        private static IEnumerable<object> NewMethod(ref IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();
+            return enumerable;
+        }
+    }
+}";
+
+            // allowMovingDeclaration: false is default behavior on VS. 
+            // it doesn't affect result mostly but it does affect for symbols in unreachable code since
+            // data flow in and out for the symbol is always set to false
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestUnreachableCodeModifiedOutside()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            var i = enumerable.Any();|]
+            enumerable = null;
+            return enumerable;
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            NewMethod(enumerable);
+            enumerable = null;
+            return enumerable;
+        }
+
+        private static void NewMethod(IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            var i = enumerable.Any();
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestUnreachableCodeModifiedBoth()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();|]
+            enumerable = null;
+            return enumerable;
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            enumerable = NewMethod(enumerable);
+            enumerable = null;
+            return enumerable;
+        }
+
+        private static IEnumerable<object> NewMethod(IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();
+            return enumerable;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestLocalFunctionParameters()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        public void Bar(int value)
+        {
+            void Local(int value2)
             {
-                // Force initialization.
-                workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
-
-                var textView = workspace.Documents.Single().GetTextView();
-
-                var handler = new ExtractMethodCommandHandler(
-                    workspace.GetService<ITextBufferUndoManagerProvider>(),
-                    workspace.GetService<IEditorOperationsFactoryService>(),
-                    workspace.GetService<IInlineRenameService>(),
-                    workspace.GetService<Host.IWaitIndicator>());
-                var delegatedToNext = false;
-                Func<CommandState> nextHandler = () =>
-                {
-                    delegatedToNext = true;
-                    return CommandState.Unavailable;
-                };
-
-                var state = handler.GetCommandState(new Commands.ExtractMethodCommandArgs(textView, textView.TextBuffer), nextHandler);
-                Assert.True(delegatedToNext);
-                Assert.False(state.IsAvailable);
+                [|Bar(value, value2);|]
             }
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        public void Bar(int value)
+        {
+            void Local(int value2)
+            {
+                NewMethod(value, value2);
+            }
+        }
+
+        private void NewMethod(int value, int value2)
+        {
+            Bar(value, value2);
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestDataFlowInButNoReadInside()
+        {
+            var code = @"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp39
+{
+    class Program
+    {
+        void Method(out object test)
+        {
+            test = null;
+
+            var a = test != null;
+            [|if (a)
+            {
+                return;
+            }
+
+            if (A == a)
+            {
+                test = new object();
+            }|]
+        }
+    }
+}";
+
+            var expected = @"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp39
+{
+    class Program
+    {
+        void Method(out object test)
+        {
+            test = null;
+
+            var a = test != null;
+            NewMethod(ref test, a);
+        }
+
+        private static void NewMethod(ref object test, bool a)
+        {
+            if (a)
+            {
+                return;
+            }
+
+            if (A == a)
+            {
+                test = new object();
+            }
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task AllowBestEffortForUnknownVariableDataFlow()
+        {
+            var code = @"
+class Program
+{
+    void Method(out object test)
+    {
+        test = null;
+        var a = test != null;
+        [|if (a)
+        {
+            return;
+        }
+        if (A == a)
+        {
+            test = new object();
+        }|]
+    }
+}";
+            var expected = @"
+class Program
+{
+    void Method(out object test)
+    {
+        test = null;
+        var a = test != null;
+        NewMethod(ref test, a);
+    }
+
+    private static void NewMethod(ref object test, bool a)
+    {
+        if (a)
+        {
+            return;
+        }
+        if (A == a)
+        {
+            test = new object();
+        }
+    }
+}";
+            await TestExtractMethodAsync(code, expected, allowBestEffort: true);
+        }
+
+        [WorkItem(30750, "https://github.com/dotnet/roslyn/issues/30750")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInInterface()
+        {
+            var code = @"
+interface Program
+{
+    void Foo();
+
+    void Test()
+    {
+        [|Foo();|]
+    }
+}";
+            var expected = @"
+interface Program
+{
+    void Foo();
+
+    void Test()
+    {
+        NewMethod();
+    }
+
+    void NewMethod()
+    {
+        Foo();
+    }
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(33242, "https://github.com/dotnet/roslyn/issues/33242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInExpressionBodiedConstructors()
+        {
+            var code = @"
+class Foo
+{
+    private readonly string _bar;
+
+    private Foo(string bar) => _bar = [|bar|];
+}";
+            var expected = @"
+class Foo
+{
+    private readonly string _bar;
+
+    private Foo(string bar) => _bar = GetBar(bar);
+
+    private static string GetBar(string bar)
+    {
+        return bar;
+    }
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(33242, "https://github.com/dotnet/roslyn/issues/33242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInExpressionBodiedFinalizers()
+        {
+            var code = @"
+class Foo
+{
+    bool finalized;
+
+    ~Foo() => finalized = [|true|];
+}";
+            var expected = @"
+class Foo
+{
+    bool finalized;
+
+    ~Foo() => finalized = NewMethod();
+
+    private static bool NewMethod()
+    {
+        return true;
+    }
+}";
+            await TestExtractMethodAsync(code, expected);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -309,28 +311,28 @@ BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in m
 Imports System.Runtime.InteropServices
 
 Class C1
-    <DllImport("foo.dll", EntryPoint:="Short1")>
+    <DllImport("goo.dll", EntryPoint:="Short1")>
     Shared Sub {0}()  ' Name is fine, entrypoint is fine.
     End Sub
-    <DllImport("foo.dll", EntryPoint:="Short2")>
+    <DllImport("goo.dll", EntryPoint:="Short2")>
     Shared Sub {0}1() ' Name is too Long, entrypoint is fine.
     End Sub
 End Class
 
 Class C2
-    <DllImport("foo.dll", EntryPoint:="{0}")>
+    <DllImport("goo.dll", EntryPoint:="{0}")>
     Shared Sub Short1()   ' Name is fine, entrypoint is fine.
     End Sub
-    <DllImport("foo.dll", EntryPoint:="{0}1")>
+    <DllImport("goo.dll", EntryPoint:="{0}1")>
     Shared Sub Short2()   ' Name is fine, entrypoint is too Long.
     End Sub
 End Class
 
 Class C3
-    <DllImport("foo.dll")>
+    <DllImport("goo.dll")>
     Shared Sub {0}()  ' Name is fine, entrypoint is unspecified.
     End Sub
-    <DllImport("foo.dll")>
+    <DllImport("goo.dll")>
     Shared Sub {0}1() ' Name is too Long, entrypoint is unspecified.
     End Sub
 End Class
@@ -431,7 +433,7 @@ BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in m
 </errors>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Locals()
             Dim sourceTemplate = <![CDATA[
 Class C
@@ -444,7 +446,7 @@ End Class
 ]]>
 
             Dim source = Format(sourceTemplate, s_longLocalName)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, options:=TestOptions.DebugDll)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40({source}, {}, options:=TestOptions.DebugDll)
             Dim _longSquiggle_ As New String("~"c, s_longLocalName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
@@ -454,7 +456,7 @@ BC42373: Local name '<%= s_longLocalName %>1' is too long for PDB.  Consider sho
 </errors>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ConstantLocals()
             Dim sourceTemplate = <![CDATA[
 Class C
@@ -467,7 +469,7 @@ End Class
 ]]>
 
             Dim source = Format(sourceTemplate, s_longLocalName)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, options:=TestOptions.DebugDll)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40({source}, {}, options:=TestOptions.DebugDll)
             Dim _longSquiggle_ As New String("~"c, s_longLocalName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
@@ -546,7 +548,7 @@ BC37220: Name '<%= s_longSymbolName %>3' exceeds the maximum length allowed in m
         End Function
 
         Private Function CreateCompilationWithMscorlib(source As String) As VisualBasicCompilation
-            Return CompilationUtils.CreateCompilationWithMscorlib({source}, {}, TestOptions.ReleaseDll)
+            Return CompilationUtils.CreateCompilationWithMscorlib40({source}, {}, TestOptions.ReleaseDll)
         End Function
 
         Private Function CreateCompilationWithMscorlib45(source As String) As VisualBasicCompilation

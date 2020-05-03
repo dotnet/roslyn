@@ -168,9 +168,6 @@
   <data name="Visual_Basic_Pretty_List" xml:space="preserve">
     <value>Visual Basic Pretty List</value>
   </data>
-  <data name="Multiple_Types" xml:space="preserve">
-    <value>&lt;Multiple Types&gt;</value>
-  </data>
   <data name="not_supported" xml:space="preserve">
     <value>not supported</value>
   </data>
@@ -179,5 +176,8 @@
   </data>
   <data name="Line_commit" xml:space="preserve">
     <value>Line commit</value>
+  </data>
+  <data name="Implement_Abstract_Class_Or_Interface" xml:space="preserve">
+    <value>Implement Abstract Class Or Interface</value>
   </data>
 </root>

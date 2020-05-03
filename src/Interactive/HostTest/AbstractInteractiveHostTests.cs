@@ -1,4 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+extern alias InteractiveHost;
 
 using System;
 using System.Reflection;
@@ -10,8 +16,14 @@ using Microsoft.CodeAnalysis.Interactive;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
+    using System.IO;
+    using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+
     public abstract class AbstractInteractiveHostTests : CSharpTestBase
     {
+        internal static string GetInteractiveHostDirectory()
+            => Path.GetDirectoryName(typeof(StressTests).Assembly.Location);
+
         // Forces xUnit to load dependent assemblies before we launch InteractiveHost.exe process.
         private static readonly Type[] s_testDependencies = new[]
         {
@@ -21,15 +33,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         private static readonly FieldInfo s_ipcServerChannelListenerThread = typeof(IpcServerChannel).GetField("_listenerThread", BindingFlags.NonPublic | BindingFlags.Instance);
 
-        internal static string GetInteractiveHostPath()
+        internal static void DisposeInteractiveHostProcess(InteractiveHost host)
         {
-            return typeof(InteractiveHostEntryPoint).Assembly.Location;
-        }
-
-        internal static void DisposeInteractiveHostProcess(InteractiveHost process)
-        {
-            IpcServerChannel serverChannel = process._ServerChannel;
-            process.Dispose(joinThreads: true);
+            var serverChannel = host.Test_ServerChannel;
+            host.Dispose();
 
             var listenerThread = (Thread)s_ipcServerChannelListenerThread.GetValue(serverChannel);
             listenerThread.Join();

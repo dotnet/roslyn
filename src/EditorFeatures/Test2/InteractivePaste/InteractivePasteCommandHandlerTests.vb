@@ -1,14 +1,18 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Text
 Imports System.Windows
-Imports Microsoft.VisualStudio.InteractiveWindow
-Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
-Imports Microsoft.CodeAnalysis.Editor.Commands
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.VisualStudio.InteractiveWindow
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
+Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
+    <[UseExportProvider]>
     Public Class InteractivePasteCommandhandlerTests
         Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
         Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"
@@ -49,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 CopyToClipboard(clipboard, text, json, includeRepl:=True, isLineCopy:=False, isBoxCopy:=False)
 
-                handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), Sub() Throw New Exception("The operation should have been handled."))
+                Assert.True(handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), TestCommandExecutionContext.Create()))
 
                 Assert.Equal("a" & vbCrLf & "bc123", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
@@ -81,9 +85,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 ]"
                 Dim text = $"a{vbCrLf}bc123"
 
-                CopyToClipboard(clipboard, Text, json, includeRepl:=False, isLineCopy:=False, isBoxCopy:=False)
+                CopyToClipboard(clipboard, text, json, includeRepl:=False, isLineCopy:=False, isBoxCopy:=False)
 
-                handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), Sub() editorOperations.InsertText("p"))
+                If Not handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), TestCommandExecutionContext.Create()) Then
+                    editorOperations.InsertText("p")
+                End If
 
                 Assert.Equal("p", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
@@ -121,13 +127,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 CopyToClipboard(clipboard, text, json, includeRepl:=True, isLineCopy:=True, isBoxCopy:=False)
 
-                handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), Sub() Throw New Exception("The operation should have been handled."))
+                Assert.True(handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), TestCommandExecutionContext.Create()))
 
                 Assert.Equal("line1" & vbCrLf & "InsertedLine" & vbCrLf & "    line2", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
         End Sub
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24749")>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithInteractiveFormatAsBoxCopy()
             Using workspace = TestWorkspace.Create(
@@ -164,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 CopyToClipboard(clipboard, text, json, includeRepl:=True, isLineCopy:=False, isBoxCopy:=True)
 
-                handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), Sub() Throw New Exception("The operation should have been handled."))
+                Assert.True(handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), TestCommandExecutionContext.Create()))
 
                 Assert.Equal("lineBoxLine11" & vbCrLf & "    BoxLine2line2", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
@@ -209,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 CopyToClipboard(clipboard, text, json, includeRepl:=True, isLineCopy:=False, isBoxCopy:=True)
 
-                handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), Sub() Throw New Exception("The operation should have been handled."))
+                Assert.True(handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), TestCommandExecutionContext.Create()))
 
                 Assert.Equal("BoxLine1" & vbCrLf & "BoxLine2" & vbCrLf & "line1" & vbCrLf & "    line2", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using

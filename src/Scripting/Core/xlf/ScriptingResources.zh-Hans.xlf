@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../ScriptingResources.resx">
+    <body>
+      <trans-unit id="CannotSetLanguageSpecificOption">
+        <source>Cannot set {0} specific option {1} because the options were already configured for a different language.</source>
+        <target state="translated">无法设置 {0} 特定选项 {1}，因为已为其他语言配置了这些选项。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StackOverflowWhileEvaluating">
+        <source>!&lt;Stack overflow while evaluating object&gt;</source>
+        <target state="translated">!&lt;计算对象时堆栈溢出&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantAssignTo">
+        <source>Can't assign '{0}' to '{1}'.</source>
+        <target state="translated">无法将“{0}”分配给“{1}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExpectedAnAssemblyReference">
+        <source>Expected an assembly reference.</source>
+        <target state="translated">需要一个程序集引用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisplayNameOrPathCannotBe">
+        <source>Display name or path cannot be empty.</source>
+        <target state="translated">显示名称或路径不能为空。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AbsolutePathExpected">
+        <source>Absolute path expected</source>
+        <target state="translated">预期的绝对路径</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GlobalsNotAssignable">
+        <source>The globals of type '{0}' is not assignable to '{1}'</source>
+        <target state="translated">类型为“{0}”的全局数值不能赋值给“{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartingStateIncompatible">
+        <source>Starting state was incompatible with script.</source>
+        <target state="translated">正在启动状态与脚本不兼容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAssemblyName">
+        <source>Invalid assembly name</source>
+        <target state="translated">程序集名称无效</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCharactersInAssemblyName">
+        <source>Invalid characters in assemblyName</source>
+        <target state="translated">assemblyName 中的字符无效</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ScriptRequiresGlobalVariables">
+        <source>The script requires access to global variables but none were given</source>
+        <target state="translated">此脚本需要能够访问全局变量，但未给予任何全局变量</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GlobalVariablesWithoutGlobalType">
+        <source>Global variables passed to a script without a global type</source>
+        <target state="translated">传递到脚本的全局变量未设置全局类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PlusAdditionalError">
+        <source>+ additional {0} error</source>
+        <target state="translated">+ 其他一个 {0} 错误</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PlusAdditionalErrors">
+        <source>+ additional {0} errors</source>
+        <target state="translated">+ 其他几个 {0} 错误</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AtFileLine">
+        <source> at {0} : {1}</source>
+        <target state="translated"> 在 {0} : {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotSetReadOnlyVariable">
+        <source>Cannot set a read-only variable</source>
+        <target state="translated">无法设置只读变量</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotSetConstantVariable">
+        <source>Cannot set a constant variable</source>
+        <target state="translated">无法设置常量变量</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HelpPrompt">
+        <source>Type "#help" for more information.</source>
+        <target state="translated">键入“#help”，了解更多信息。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HelpText">
+        <source>Keyboard shortcuts:
+  Enter         If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.
+  Escape        Clear the current submission.
+  UpArrow       Replace the current submission with a previous submission.
+  DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
+  Ctrl-C        Exit the REPL.
+REPL commands:
+  #help         Display help on available commands and key bindings.
+Script directives:
+  #r            Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".
+  #load         Load specified script file and execute it, e.g. #load "myScript.csx".</source>
+        <target state="translated">键盘快捷方式:
+  Enter         如果显示当前提交完成，则对其进行求值。否则，插入新行。
+  Esc        清除当前提交。
+  向上键       将当前提交替换为前一个提交。
+  向下键     将当前提交替换为后一个提交(在之前已向后导航之后)。
+  Ctrl-C        退出 REPL。
+REPL 命令:
+  #help         显示有关可用命令和密钥绑定的帮助。
+脚本指令:
+  #r            添加对指定程序集及其所有依赖项的元数据引用，例如 #r "myLib.dll"。
+  #load         加载指定的脚本文件并执行，例如 #load "myScript.csx"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyAlreadyLoaded">
+        <source>Assembly '{0}, Version={1}' has already been loaded from '{2}'. A different assembly with the same name and version can't be loaded: '{3}'.</source>
+        <target state="translated">已从“{2}”加载程序集“{0}，版本={1}”。无法加载另一个具有相同名称和版本的程序集:“{3}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyAlreadyLoadedNotSigned">
+        <source>Assembly '{0}' has already been loaded from '{1}'. A different assembly with the same name can't be loaded unless it's signed: '{2}'.</source>
+        <target state="translated">已从“{1}”加载程序集“{0}”。无法加载另一个具有相同名称的程序集，除非向其签名:“{2}”。</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

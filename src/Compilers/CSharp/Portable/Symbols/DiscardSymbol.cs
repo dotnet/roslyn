@@ -1,24 +1,26 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class DiscardSymbol : Symbol, IDiscardSymbol
+    internal sealed class DiscardSymbol : Symbol
     {
-        private readonly TypeSymbol _type;
-
-        public DiscardSymbol(TypeSymbol type)
+        public DiscardSymbol(TypeWithAnnotations typeWithAnnotations)
         {
-            Debug.Assert((object)type != null);
-            _type = type;
+            Debug.Assert(typeWithAnnotations.Type is object);
+            TypeWithAnnotations = typeWithAnnotations;
         }
 
-        ITypeSymbol IDiscardSymbol.Type => _type;
-        public TypeSymbol Type => _type;
+        public TypeWithAnnotations TypeWithAnnotations { get; }
 
-        public override Symbol ContainingSymbol => null;
+        public override Symbol? ContainingSymbol => null;
         public override Accessibility DeclaredAccessibility => Accessibility.NotApplicable;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
         public override bool IsAbstract => false;
@@ -30,11 +32,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsVirtual => false;
         public override SymbolKind Kind => SymbolKind.Discard;
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
-        internal override ObsoleteAttributeData ObsoleteAttributeData => null;
+        internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument a) => visitor.VisitDiscard(this, a);
-        public override void Accept(SymbolVisitor visitor) => visitor.VisitDiscard(this);
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor) => visitor.VisitDiscard(this);
         public override void Accept(CSharpSymbolVisitor visitor) => visitor.VisitDiscard(this);
         public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => visitor.VisitDiscard(this);
+
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind) => obj is DiscardSymbol other && this.TypeWithAnnotations.Equals(other.TypeWithAnnotations, compareKind);
+        public override int GetHashCode() => this.TypeWithAnnotations.GetHashCode();
+
+        protected override ISymbol CreateISymbol()
+        {
+            return new PublicModel.DiscardSymbol(this);
+        }
     }
 }

@@ -1,7 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Roslyn.Utilities;
+#nullable enable
+
+using System;
 using System.Collections.Immutable;
+using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -18,13 +24,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ImmutableArray<AdditionalText> AdditionalFiles { get; }
 
         /// <summary>
+        /// A set of options keyed to <see cref="SyntaxTree"/> or <see cref="AdditionalText"/>.
+        /// </summary>
+        public AnalyzerConfigOptionsProvider AnalyzerConfigOptionsProvider { get; }
+
+        /// <summary>
+        /// Creates analyzer options to be passed to <see cref="DiagnosticAnalyzer"/>.
+        /// </summary>
+        /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
+        /// <param name="optionsProvider">A set of per-tree options that can be used by analyzers.</param>
+        public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles, AnalyzerConfigOptionsProvider optionsProvider)
+        {
+            if (optionsProvider is null)
+            {
+                throw new ArgumentNullException(nameof(optionsProvider));
+            }
+
+            AdditionalFiles = additionalFiles.NullToEmpty();
+            AnalyzerConfigOptionsProvider = optionsProvider;
+        }
+
+        /// <summary>
         /// Creates analyzer options to be passed to <see cref="DiagnosticAnalyzer"/>.
         /// </summary>
         /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
         public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles)
-        {
-            this.AdditionalFiles = additionalFiles.NullToEmpty();
-        }
+            : this(additionalFiles, CompilerAnalyzerConfigOptionsProvider.Empty)
+        { }
 
         /// <summary>
         /// Returns analyzer options with the given <paramref name="additionalFiles"/>.
@@ -39,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new AnalyzerOptions(additionalFiles);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj))
             {

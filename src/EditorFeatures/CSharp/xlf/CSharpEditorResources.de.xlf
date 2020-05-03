@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="de" original="../CSharpEditorResources.resx">
+    <body>
+      <trans-unit id="Chosen_version_0">
+        <source>Chosen version: '{0}'</source>
+        <target state="translated">Ausgewählte Version: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Complete_statement_on_semicolon">
+        <source>Complete statement on ;</source>
+        <target state="translated">Anweisung abschließen bei ";"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_by_name_0">
+        <source>Could not find by name: '{0}'</source>
+        <target state="translated">Der Name "{0}" wurde nicht gefunden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Decompilation_log">
+        <source>Decompilation log</source>
+        <target state="translated">Dekompilierungsprotokoll</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_interpolated_verbatim_string">
+        <source>Fix interpolated verbatim string</source>
+        <target state="translated">Interpolierte ausführliche Zeichenfolge korrigieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_0_assemblies_for_1">
+        <source>Found '{0}' assemblies for '{1}':</source>
+        <target state="translated">{0} Assemblys für "{1}" gefunden:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_exact_match_0">
+        <source>Found exact match: '{0}'</source>
+        <target state="translated">Exakte Übereinstimmung gefunden: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_higher_version_match_0">
+        <source>Found higher version match: '{0}'</source>
+        <target state="translated">Höhere Versionsübereinstimmung gefunden: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_single_assembly_0">
+        <source>Found single assembly: '{0}'</source>
+        <target state="translated">Einzelne Assembly gefunden: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Load_from_0">
+        <source>Load from: '{0}'</source>
+        <target state="translated">Laden von: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Module_not_found">
+        <source>Module not found!</source>
+        <target state="translated">Das Modul wurde nicht gefunden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Press_TAB_to_insert">
+        <source>     (Press TAB to insert)</source>
+        <target state="translated">     (Zum Einfügen TAB-TASTE drücken)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resolve_0">
+        <source>Resolve: '{0}'</source>
+        <target state="translated">Auflösen: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resolve_module_0_of_1">
+        <source>Resolve module: '{0}' of '{1}'</source>
+        <target state="translated">Modul auflösen: {0} von {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Smart_Indenting">
+        <source>Smart Indenting</source>
+        <target state="translated">Intelligenter Einzug</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_string">
+        <source>Split string</source>
+        <target state="translated">Zeichenfolge teilen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
+        <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
+        <target state="translated">WARNUNG: Versionskonflikt. Erwartet: "{0}", erhalten: "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_items_in_cache">
+        <source>'{0}' items in cache</source>
+        <target state="translated">{0} Elemente im Cache</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

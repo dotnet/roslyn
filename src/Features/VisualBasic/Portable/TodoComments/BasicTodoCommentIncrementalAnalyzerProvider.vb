@@ -1,21 +1,43 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.TodoComments
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
-    <ExportLanguageService(GetType(ITodoCommentService), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageServiceFactory(GetType(ITodoCommentService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicTodoCommentServiceFactory
+        Implements ILanguageServiceFactory
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
+
+        Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+            Return New VisualBasicTodoCommentService()
+        End Function
+
+    End Class
+
     Friend Class VisualBasicTodoCommentService
         Inherits AbstractTodoCommentService
 
-        Protected Overrides Sub AppendTodoComments(commentDescriptors As ImmutableArray(Of TodoCommentDescriptor), document As SyntacticDocument, trivia As SyntaxTrivia, todoList As List(Of TodoComment))
+        Protected Overrides Sub AppendTodoComments(
+                commentDescriptors As ImmutableArray(Of TodoCommentDescriptor),
+                document As SyntacticDocument,
+                trivia As SyntaxTrivia,
+                todoList As ArrayBuilder(Of TodoComment))
             If PreprocessorHasComment(trivia) Then
                 Dim commentTrivia = trivia.GetStructure().DescendantTrivia().First(Function(t) t.RawKind = SyntaxKind.CommentTrivia)
 
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, commentTrivia.ToFullString(), commentTrivia.FullSpan.Start, todoList)
+                AppendTodoCommentInfoFromSingleLine(commentDescriptors, commentTrivia.ToFullString(), commentTrivia.FullSpan.Start, todoList)
                 Return
             End If
 
@@ -39,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
             ' 3 for REM
             Dim index = GetFirstCharacterIndex(message)
             If index >= message.Length OrElse
-                   index > message.Length - 3 Then
+                       index > message.Length - 3 Then
                 Return index
             End If
 
@@ -91,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
 
         Protected Overrides Function PreprocessorHasComment(trivia As SyntaxTrivia) As Boolean
             Return SyntaxFacts.IsPreprocessorDirective(CType(trivia.RawKind, SyntaxKind)) AndAlso
-                       trivia.GetStructure().DescendantTrivia().Any(Function(t) t.RawKind = SyntaxKind.CommentTrivia)
+                           trivia.GetStructure().DescendantTrivia().Any(Function(t) t.RawKind = SyntaxKind.CommentTrivia)
         End Function
 
         ' TODO: remove this if SyntaxFacts.IsSingleQuote become public

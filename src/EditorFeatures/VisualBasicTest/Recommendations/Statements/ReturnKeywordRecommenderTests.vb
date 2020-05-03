@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class ReturnKeywordRecommenderTests
@@ -13,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
         Public Async Function ReturnInPropertyGetTest() As Task
             ' We can always exit a Sub/Function, so it should be there
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>
-ReadOnly Property Foo
+ReadOnly Property Goo
 Get
 |
 End Get
@@ -25,7 +27,7 @@ End Property
         Public Async Function ReturnInPropertySetTest() As Task
             ' We can always exit a Sub/Function, so it should be there
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>
-WriteOnly Property Foo
+WriteOnly Property Goo
 Set
 |
 End Set

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -8,9 +10,9 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         /// <summary>
         /// SearchScope used for searching *only* the source symbols contained within a project/compilation.
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> _projectToAssembly;
 
             public SourceSymbolsProjectSearchScope(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
                 Project project, bool ignoreCase, CancellationToken cancellationToken)
                 : base(provider, project, ignoreCase, cancellationToken)
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
-                string name, SymbolFilter filter, SearchQuery searchQuery)
+                SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _project.Solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
                 var info = await service.TryGetSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
@@ -46,10 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
 
                 var declarations = await info.FindAsync(
-                    searchQuery, lazyAssembly, _project.Id,
-                    filter, CancellationToken).ConfigureAwait(false);
+                    searchQuery, lazyAssembly, filter, CancellationToken).ConfigureAwait(false);
 
-                return declarations.SelectAsArray(d => d.Symbol);
+                return declarations;
             }
 
             private static AsyncLazy<IAssemblySymbol> CreateLazyAssembly(Project project)

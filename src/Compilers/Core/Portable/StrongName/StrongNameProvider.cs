@@ -1,6 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.IO;
+#nullable enable
+
+using System.Reflection.Metadata;
+using System.Security.Cryptography;
+using Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -13,14 +19,24 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        public abstract override bool Equals(object other);
         public abstract override int GetHashCode();
+        public override abstract bool Equals(object? other);
 
-        /// <exception cref="IOException"></exception>
-        internal abstract Stream CreateInputStream();
+        internal abstract StrongNameFileSystem FileSystem { get; }
 
-        internal abstract StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider);
+        /// <summary>
+        /// Signs the <paramref name="filePath"/> value using <paramref name="keys"/>.
+        /// </summary>
+        internal abstract void SignFile(StrongNameKeys keys, string filePath);
 
-        internal abstract void SignAssembly(StrongNameKeys keys, Stream inputStream, Stream outputStream);
+        /// <summary>
+        /// Signs the contents of <paramref name="peBlob"/> using <paramref name="peBuilder"/> and <paramref name="privateKey"/>.
+        /// </summary>
+        internal abstract void SignBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey);
+
+        /// <summary>
+        /// Create a <see cref="StrongNameKeys"/> for the provided information.
+        /// </summary>
+        internal abstract StrongNameKeys CreateKeys(string? keyFilePath, string? keyContainerName, bool hasCounterSignature, CommonMessageProvider messageProvider);
     }
 }

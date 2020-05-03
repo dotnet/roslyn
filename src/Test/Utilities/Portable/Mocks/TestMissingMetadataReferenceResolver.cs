@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -39,9 +41,8 @@ namespace Roslyn.Test.Utilities
         {
             ResolutionAttempts.Add(new ReferenceAndIdentity(definition, referenceIdentity));
 
-            MetadataReference reference;
             string nameAndVersion = referenceIdentity.Name + (referenceIdentity.Version != AssemblyIdentity.NullVersion ? $", {referenceIdentity.Version}" : "");
-            return _map.TryGetValue(nameAndVersion, out reference) ? (PortableExecutableReference)reference : null;
+            return _map.TryGetValue(nameAndVersion, out var reference) ? (PortableExecutableReference)reference : null;
         }
 
         public override bool ResolveMissingAssemblies => true;

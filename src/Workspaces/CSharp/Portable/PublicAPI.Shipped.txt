@@ -10,6 +10,7 @@ Microsoft.CodeAnalysis.CSharp.Formatting.LabelPositionOptions.OneLess = 1 -> Mic
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentBlock.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentBraces.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentSwitchCaseSection.get -> Microsoft.CodeAnalysis.Options.Option<bool>
+static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentSwitchSection.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.LabelPositioning.get -> Microsoft.CodeAnalysis.Options.Option<Microsoft.CodeAnalysis.CSharp.Formatting.LabelPositionOptions>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForCatch.get -> Microsoft.CodeAnalysis.Options.Option<bool>

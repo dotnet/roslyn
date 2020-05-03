@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -7,12 +11,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal class SyntaxListBuilder
     {
-        private ArrayElement<GreenNode>[] _nodes;
+        private ArrayElement<GreenNode?>[] _nodes;
         public int Count { get; private set; }
 
         public SyntaxListBuilder(int size)
         {
-            _nodes = new ArrayElement<GreenNode>[size];
+            _nodes = new ArrayElement<GreenNode?>[size];
         }
 
         public static SyntaxListBuilder Create()
@@ -25,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             this.Count = 0;
         }
 
-        public GreenNode this[int index]
+        public GreenNode? this[int index]
         {
             get
             {
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        public void Add(GreenNode item)
+        public void Add(GreenNode? item)
         {
             if (item == null) return;
 
@@ -147,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             for (int i = 0; i < Count; i++)
             {
-                if (_nodes[i].Value.RawKind == kind)
+                if (_nodes[i].Value!.RawKind == kind)
                 {
                     return true;
                 }
@@ -161,13 +165,13 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             var array = new GreenNode[this.Count];
             for (int i = 0; i < array.Length; i++)
             {
-                array[i] = _nodes[i];
+                array[i] = _nodes[i]!;
             }
 
             return array;
         }
 
-        internal GreenNode ToListNode()
+        internal GreenNode? ToListNode()
         {
             switch (this.Count)
             {
@@ -176,9 +180,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 case 1:
                     return _nodes[0];
                 case 2:
-                    return SyntaxList.List(_nodes[0], _nodes[1]);
+                    return SyntaxList.List(_nodes[0]!, _nodes[1]!);
                 case 3:
-                    return SyntaxList.List(_nodes[0], _nodes[1], _nodes[2]);
+                    return SyntaxList.List(_nodes[0]!, _nodes[1]!, _nodes[2]!);
                 default:
                     var tmp = new ArrayElement<GreenNode>[this.Count];
                     Array.Copy(_nodes, tmp, this.Count);

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -34,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal new CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, DiagnosticBag diagnostics)
         {
             Debug.Assert(false, "Don't call this overload.");
+            diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
             return base.GetAttribute(node, boundAttributeType, diagnostics);
         }
 
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (objectCreation.Initializer == null)
                         {
                             var unusedDiagnostics = DiagnosticBag.GetInstance();
-                            var type = typeBinder.BindType(objectCreation.Type, unusedDiagnostics);
+                            var type = typeBinder.BindType(objectCreation.Type, unusedDiagnostics).Type;
                             unusedDiagnostics.Free();
 
                             var kind = TypedConstant.GetTypedConstantKind(type, typeBinder.Compilation);

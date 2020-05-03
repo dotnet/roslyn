@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -12,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             MyBase.New(underlyingEvent, adder, remover, caller)
         End Sub
 
-        Protected Overrides Function GetCustomAttributesToEmit(compilationSatte As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
-            Return UnderlyingEvent.GetCustomAttributesToEmit(compilationSatte)
+        Protected Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
+            Return UnderlyingEvent.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
         End Function
 
         Protected Overrides ReadOnly Property IsRuntimeSpecial As Boolean
@@ -63,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                     Dim sourceInterface As NamedTypeSymbol = Nothing
 
                     If attrData.CommonConstructorArguments.Length = 2 Then
-                        sourceInterface = TryCast(attrData.CommonConstructorArguments(0).Value, NamedTypeSymbol)
+                        sourceInterface = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, NamedTypeSymbol)
                         If sourceInterface IsNot Nothing Then
                             foundMatch = EmbedMatchingInterfaceMethods(sourceInterface, syntaxNodeOpt, diagnostics)
 

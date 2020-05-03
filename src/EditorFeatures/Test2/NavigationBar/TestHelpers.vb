@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -29,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim actualItems = Await service.GetItemsAsync(document, Nothing)
                 actualItems.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 
-                AssertEqual(expectedItems, actualItems, document.Project.LanguageServices.GetService(Of ISyntaxFactsService)().IsCaseSensitive)
+                AssertEqual(expectedItems, actualItems, document.GetLanguageService(Of ISyntaxFactsService)().IsCaseSensitive)
             End Using
         End Function
 
@@ -44,9 +46,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim model As New NavigationBarModel(items, VersionStamp.Create(), service)
-                Dim selectedItems = NavigationBarController.ComputeSelectedTypeAndMember(model, New SnapshotPoint(hostDocument.TextBuffer.CurrentSnapshot, hostDocument.CursorPosition.Value), Nothing)
+                Dim selectedItems = NavigationBarController.ComputeSelectedTypeAndMember(model, New SnapshotPoint(hostDocument.GetTextBuffer().CurrentSnapshot, hostDocument.CursorPosition.Value), Nothing)
 
-                Dim isCaseSensitive = document.Project.LanguageServices.GetService(Of ISyntaxFactsService)().IsCaseSensitive
+                Dim isCaseSensitive = document.GetLanguageService(Of ISyntaxFactsService)().IsCaseSensitive
 
                 AssertEqual(leftItem, selectedItems.TypeItem, isCaseSensitive)
                 Assert.Equal(leftItemGrayed, selectedItems.ShowTypeItemGrayed)
@@ -55,7 +57,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End Using
         End Function
 
-        Public Async Function AssertGeneratedResultIsAsync(workspaceElement As XElement, leftItemToSelectText As String, rightItemToSelectText As String, expectedText As XElement) As Tasks.Task
+        Public Function AssertGeneratedResultIsAsync(workspaceElement As XElement, leftItemToSelectText As String, rightItemToSelectText As String, expectedText As XElement) As Tasks.Task
+            Dim selectRightItem As Func(Of IList(Of NavigationBarItem), NavigationBarItem)
+            selectRightItem = Function(items) items.Single(Function(i) i.Text = rightItemToSelectText)
+            Return AssertGeneratedResultIsAsync(workspaceElement, leftItemToSelectText, selectRightItem, expectedText)
+        End Function
+
+        Public Async Function AssertGeneratedResultIsAsync(workspaceElement As XElement, leftItemToSelectText As String, selectRightItem As Func(Of IList(Of NavigationBarItem), NavigationBarItem), expectedText As XElement) As Tasks.Task
             Using workspace = TestWorkspace.Create(workspaceElement)
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
@@ -66,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
-                Dim rightItem = leftItem.ChildItems.Single(Function(i) i.Text = rightItemToSelectText)
+                Dim rightItem = selectRightItem(leftItem.ChildItems)
 
                 Dim contextLocation = (Await document.GetSyntaxTreeAsync()).GetLocation(New TextSpan(0, 0))
                 Dim generateCodeItem = DirectCast(rightItem, AbstractGenerateCodeItem)

@@ -1,29 +1,29 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    [ExportWorkspaceService(typeof(ITemporaryStorageService)), Shared]
     internal sealed class TrivialTemporaryStorageService : ITemporaryStorageService
     {
-        public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default(CancellationToken))
+        public static readonly TrivialTemporaryStorageService Instance = new TrivialTemporaryStorageService();
+
+        private TrivialTemporaryStorageService()
         {
-            return new StreamStorage();
         }
 
-        public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return new TextStorage();
-        }
+        public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default)
+            => new StreamStorage();
+
+        public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default)
+            => new TextStorage();
 
         private sealed class StreamStorage : ITemporaryStreamStorage
         {
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
                 _stream = null;
             }
 
-            public Stream ReadStream(CancellationToken cancellationToken = default(CancellationToken))
+            public Stream ReadStream(CancellationToken cancellationToken = default)
             {
                 if (_stream == null)
                 {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
                 return _stream;
             }
 
-            public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default(CancellationToken))
+            public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
             {
                 if (_stream == null)
                 {
@@ -57,14 +57,14 @@ namespace Microsoft.CodeAnalysis
                 return Task.FromResult((Stream)_stream);
             }
 
-            public void WriteStream(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+            public void WriteStream(Stream stream, CancellationToken cancellationToken = default)
             {
                 var newStream = new MemoryStream();
                 stream.CopyTo(newStream);
                 _stream = newStream;
             }
 
-            public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+            public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
             {
                 var newStream = new MemoryStream();
                 await stream.CopyToAsync(newStream).ConfigureAwait(false);
@@ -77,21 +77,15 @@ namespace Microsoft.CodeAnalysis
             private SourceText _sourceText;
 
             public void Dispose()
-            {
-                _sourceText = null;
-            }
+                => _sourceText = null;
 
-            public SourceText ReadText(CancellationToken cancellationToken = default(CancellationToken))
-            {
-                return _sourceText;
-            }
+            public SourceText ReadText(CancellationToken cancellationToken = default)
+                => _sourceText;
 
-            public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default(CancellationToken))
-            {
-                return Task.FromResult(ReadText(cancellationToken));
-            }
+            public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult(ReadText(cancellationToken));
 
-            public void WriteText(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
+            public void WriteText(SourceText text, CancellationToken cancellationToken = default)
             {
                 // This is a trivial implementation, indeed. Note, however, that we retain a strong
                 // reference to the source text, which defeats the intent of RecoverableTextAndVersion, but
@@ -99,10 +93,10 @@ namespace Microsoft.CodeAnalysis
                 _sourceText = text;
             }
 
-            public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
+            public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)
             {
                 WriteText(text, cancellationToken);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
     }

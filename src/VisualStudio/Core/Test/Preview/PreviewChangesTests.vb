@@ -1,9 +1,12 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Preview
@@ -11,9 +14,10 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
+    <[UseExportProvider]>
     Public Class PreviewChangesTests
 
-        Private _exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
+        Private _exportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(GetType(StubVsEditorAdaptersFactoryService)))
 
         <WpfFact>
@@ -21,11 +25,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
             Using workspace = TestWorkspace.CreateCSharp(<text>
 Class C
 {
-    void Foo()
+    void Goo()
     {
         $$
     }
-}</text>.Value, exportProvider:=_exportProvider)
+}</text>.Value, exportProvider:=_exportProviderFactory.CreateExportProvider())
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -43,6 +47,7 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     forkedDocument.Project.Solution,
                     workspace.CurrentSolution,
@@ -64,7 +69,7 @@ Class C
                         <Document FilePath="test1.cs">
 Class C
 {
-    void Foo()
+    void Goo()
     {
         $$
     }
@@ -74,7 +79,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=_exportProvider)
+            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=_exportProviderFactory.CreateExportProvider())
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -103,6 +108,7 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     newSolution,
                     workspace.CurrentSolution,
@@ -121,11 +127,11 @@ Class C
             Using workspace = TestWorkspace.CreateCSharp(<text>
 Class C
 {
-    void Foo()
+    void Goo()
     {
         $$
     }
-}</text>.Value, exportProvider:=_exportProvider)
+}</text>.Value, exportProvider:=_exportProviderFactory.CreateExportProvider())
                 Dim expectedItems = New List(Of String) From {"topLevelItemName", "*test1.cs", "**insertion!"}
 
                 Dim documentId = workspace.Documents.First().Id
@@ -138,12 +144,13 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     forkedDocument.Project.Solution,
                     workspace.CurrentSolution,
                     componentModel)
 
-                WpfTestCase.RequireWpfFact("Test explicitly creates an IWpfTextView")
+                WpfTestRunner.RequireWpfFact($"Test explicitly creates an {NameOf(IWpfTextView)}")
                 Dim textEditorFactory = componentModel.GetService(Of ITextEditorFactoryService)
                 Using disposableView As DisposableTextView = textEditorFactory.CreateDisposableTextView()
                     previewEngine.SetTextView(disposableView.TextView)
@@ -170,7 +177,7 @@ Class C
                         <Document FilePath="test1.cs">
 Class C
 {
-    void Foo()
+    void Goo()
     {
         $$
     }
@@ -181,7 +188,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=_exportProvider)
+            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=_exportProviderFactory.CreateExportProvider())
                 Dim docId = workspace.Documents.First().Id
                 Dim document = workspace.CurrentSolution.GetDocument(docId)
 
@@ -204,12 +211,13 @@ Class C
                 newSolution = newSolution.AddDocument(addedDocumentId2, "test5.cs", "// This file will be unchecked and not added!")
 
                 Dim previewEngine = New PreviewEngine(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     newSolution,
                     workspace.CurrentSolution,
                     componentModel)
 
-                WpfTestCase.RequireWpfFact("Test explicitly creates an IWpfTextView")
+                WpfTestRunner.RequireWpfFact($"Test explicitly creates an {NameOf(IWpfTextView)}")
                 Dim textEditorFactory = componentModel.GetService(Of ITextEditorFactoryService)
                 Using disposableView As DisposableTextView = textEditorFactory.CreateDisposableTextView()
                     previewEngine.SetTextView(disposableView.TextView)
@@ -264,7 +272,7 @@ End Class
                                    </Project>
                                </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, , exportProvider:=_exportProvider)
+            Using workspace = TestWorkspace.Create(workspaceXml, , exportProvider:=_exportProviderFactory.CreateExportProvider())
                 Dim documentId1 = workspace.Documents.Where(Function(d) d.Project.Name = "VBProj1").Single().Id
                 Dim document1 = workspace.CurrentSolution.GetDocument(documentId1)
 
@@ -284,6 +292,7 @@ End Class
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     updatedSolution,
                     workspace.CurrentSolution,

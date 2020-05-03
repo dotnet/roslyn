@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -42,6 +44,8 @@ StackTrace:
                     return;
                 }
 
+                // Stop computing any initial tags if we've been asked for them.
+                _initialComputationCancellationTokenSource.Cancel();
                 _disposed = true;
                 this.Disposed(this, EventArgs.Empty);
                 GC.SuppressFinalize(this);
@@ -78,18 +82,14 @@ StackTrace:
             }
 
             internal void TestOnly_Dispose()
-            {
-                Dispose();
-            }
+                => Dispose();
 
 #if DEBUG
             private Thread _thread;
             private string _stackTrace;
 
             private void DebugRecordInitialStackTrace()
-            {
-                _stackTrace = new StackTrace().ToString();
-            }
+                => _stackTrace = new StackTrace().ToString();
 
             private void DebugRecordCurrentThread()
             {
@@ -102,9 +102,7 @@ StackTrace:
             }
 
             private void DebugVerifyThread()
-            {
-                Contract.ThrowIfFalse(Thread.CurrentThread == _thread);
-            }
+                => Contract.ThrowIfFalse(Thread.CurrentThread == _thread);
 #else
             private void DebugRecordInitialStackTrace()
             {

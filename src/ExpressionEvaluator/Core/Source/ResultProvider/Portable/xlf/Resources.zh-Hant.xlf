@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../Resources.resx">
+    <body>
+      <trans-unit id="DynamicView">
+        <source>Dynamic View</source>
+        <target state="translated">動態檢視</target>
+        <note>IDynamicMetaObjectProvider and System.__ComObject expansion</note>
+      </trans-unit>
+      <trans-unit id="DynamicViewNotDynamic">
+        <source>Only COM or Dynamic objects can have Dynamic View</source>
+        <target state="translated">只有 COM 或 Dynamic 物件可以有動態檢視</target>
+        <note>Cannot use "dynamic" format specifier on a non-dynamic type</note>
+      </trans-unit>
+      <trans-unit id="DynamicViewValueWarning">
+        <source>Expanding the Dynamic View will get the dynamic members for the object</source>
+        <target state="translated">展開動態檢視會取得物件的動態成員</target>
+        <note>Warning reported in Dynamic View value</note>
+      </trans-unit>
+      <trans-unit id="ErrorName">
+        <source>Error</source>
+        <target state="translated">錯誤</target>
+        <note>Error result name</note>
+      </trans-unit>
+      <trans-unit id="ExceptionThrown">
+        <source>'{0}' threw an exception of type '{1}'</source>
+        <target state="translated">'{0}' 擲回 '{1}' 類型的例外狀況</target>
+        <note>Threw an exception while evaluating a value.</note>
+      </trans-unit>
+      <trans-unit id="HostValueNotFound">
+        <source>Cannot provide the value: host value not found</source>
+        <target state="translated">無法提供值: 找不到主機值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidPointerDereference">
+        <source>Cannot dereference '{0}'. The pointer is not valid.</source>
+        <target state="translated">無法取值 '{0}'。指標無效。</target>
+        <note>Invalid pointer dereference</note>
+      </trans-unit>
+      <trans-unit id="NativeView">
+        <source>Native View</source>
+        <target state="translated">原生檢視</target>
+        <note>Native COM object expansion</note>
+      </trans-unit>
+      <trans-unit id="NativeViewNotNativeDebugging">
+        <source>To inspect the native object, enable native code debugging.</source>
+        <target state="translated">若要檢查原生物件，請啟用機器碼偵錯。</target>
+        <note>Display value of Native View node when native debugging is not enabled</note>
+      </trans-unit>
+      <trans-unit id="NonPublicMembers">
+        <source>Non-Public members</source>
+        <target state="translated">非公用成員</target>
+        <note>Non-public type members</note>
+      </trans-unit>
+      <trans-unit id="RawView">
+        <source>Raw View</source>
+        <target state="translated">未經處理的檢視</target>
+        <note>DebuggerTypeProxy "Raw View"</note>
+      </trans-unit>
+      <trans-unit id="ResultsView">
+        <source>Results View</source>
+        <target state="translated">結果檢視</target>
+        <note>IEnumerable results expansion</note>
+      </trans-unit>
+      <trans-unit id="ResultsViewNoSystemCore">
+        <source>Results View requires System.Core.dll to be referenced</source>
+        <target state="translated">結果檢視必須參考 System.Core.dll</target>
+        <note>"results" format specifier requires System.Core.dll</note>
+      </trans-unit>
+      <trans-unit id="ResultsViewNotEnumerable">
+        <source>Only Enumerable types can have Results View</source>
+        <target state="translated">只有可列舉類型才能有結果檢視</target>
+        <note>Cannot use "results" format specifier on non-enumerable type</note>
+      </trans-unit>
+      <trans-unit id="ResultsViewValueWarning">
+        <source>Expanding the Results View will enumerate the IEnumerable</source>
+        <target state="translated">展開結果檢視時將會列舉 IEnumerable</target>
+        <note>Warning reported in Results View value</note>
+      </trans-unit>
+      <trans-unit id="SharedMembers">
+        <source>Shared members</source>
+        <target state="translated">共用的成員</target>
+        <note>Shared type members (VB only)</note>
+      </trans-unit>
+      <trans-unit id="StaticMembers">
+        <source>Static members</source>
+        <target state="translated">靜態成員</target>
+        <note>Static type members (C# only)</note>
+      </trans-unit>
+      <trans-unit id="TypeVariablesName">
+        <source>Type variables</source>
+        <target state="translated">類型變數</target>
+        <note>Type variables result name</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

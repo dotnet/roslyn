@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -17,24 +19,16 @@ namespace Roslyn.Test.Utilities
             _threadId = Thread.CurrentThread.ManagedThreadId;
             _threadCulture = CultureInfo.CurrentCulture;
 
-#if DNX
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-#else
-            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-#endif
-		}
+        }
 
-		public void Dispose()
+        public void Dispose()
         {
             Debug.Assert(_threadId == Thread.CurrentThread.ManagedThreadId);
 
             if (_threadId == Thread.CurrentThread.ManagedThreadId)
             {
-#if DNX
                 CultureInfo.CurrentCulture = _threadCulture;
-#else
-                Thread.CurrentThread.CurrentCulture = _threadCulture;
-#endif
             }
         }
     }

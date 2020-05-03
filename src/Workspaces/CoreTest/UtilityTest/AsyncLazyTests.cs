@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -28,23 +30,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void SynchronousContinuationsDoNotRunWithinGetValueCallForCompletedTask()
-        {
-            SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.RanToCompletion);
-        }
+            => SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.RanToCompletion);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void SynchronousContinuationsDoNotRunWithinGetValueCallForCancelledTask()
-        {
-            SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.Canceled);
-        }
+            => SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.Canceled);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void SynchronousContinuationsDoNotRunWithinGetValueCallForFaultedTask()
-        {
-            SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.Faulted);
-        }
+            => SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.Faulted);
 
         private void SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus expectedTaskStatus)
         {
@@ -129,16 +125,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void GetValueThrowsCorrectExceptionDuringCancellation()
-        {
-            GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: false);
-        }
+            => GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: false);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void GetValueThrowsCorrectExceptionDuringCancellationWithSynchronousComputation()
-        {
-            GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: true);
-        }
+            => GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: true);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]

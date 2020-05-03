@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -469,8 +472,8 @@ public abstract class C
         [Fact]
         public void ExprStmtWithMethodCall()
         {
-            var s0 = CreateSubmission("int Foo() { return 2;}");
-            var s1 = CreateSubmission("(4 + 5) * Foo()", previous: s0);
+            var s0 = CreateSubmission("int Goo() { return 2;}");
+            var s1 = CreateSubmission("(4 + 5) * Goo()", previous: s0);
 
             s0.VerifyEmitDiagnostics();
             s1.VerifyEmitDiagnostics();
@@ -480,7 +483,7 @@ public abstract class C
         /// The script entry point should complete synchronously.
         /// </summary>
         [WorkItem(4495, "https://github.com/dotnet/roslyn/issues/4495")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ScriptEntryPoint()
         {
             var source =
@@ -491,13 +494,12 @@ public abstract class C
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: @"complete");
             var methodData = verifier.TestData.GetMethodData("<Initialize>");
-            Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<object>", ((MethodSymbol)methodData.Method).ReturnType.ToDisplayString());
             methodData.VerifyIL(
 @"{
-  // Code size       60 (0x3c)
+  // Code size       57 (0x39)
   .maxstack  2
-  .locals init (<<Initialize>>d__0 V_0,
-                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> V_1)
+  .locals init (<<Initialize>>d__0 V_0)
   IL_0000:  newobj     ""<<Initialize>>d__0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -510,35 +512,34 @@ public abstract class C
   IL_0019:  ldc.i4.m1
   IL_001a:  stfld      ""int <<Initialize>>d__0.<>1__state""
   IL_001f:  ldloc.0
-  IL_0020:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
-  IL_0025:  stloc.1
-  IL_0026:  ldloca.s   V_1
-  IL_0028:  ldloca.s   V_0
-  IL_002a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<<<Initialize>>d__0>(ref <<Initialize>>d__0)""
-  IL_002f:  nop
-  IL_0030:  ldloc.0
-  IL_0031:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
-  IL_0036:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
-  IL_003b:  ret
+  IL_0020:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<<<Initialize>>d__0>(ref <<Initialize>>d__0)""
+  IL_002c:  nop
+  IL_002d:  ldloc.0
+  IL_002e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0033:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
+  IL_0038:  ret
 }");
             methodData = verifier.TestData.GetMethodData("<Main>");
-            Assert.True(methodData.Method.ReturnsVoid);
+            Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
             methodData.VerifyIL(
 @"{
-  // Code size       24 (0x18)
+  // Code size       25 (0x19)
   .maxstack  1
-  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
+  .locals init (System.Runtime.CompilerServices.TaskAwaiter<object> V_0)
   IL_0000:  newobj     "".ctor()""
   IL_0005:  callvirt   ""System.Threading.Tasks.Task<object> <Initialize>()""
-  IL_000a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+  IL_000a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<object> System.Threading.Tasks.Task<object>.GetAwaiter()""
   IL_000f:  stloc.0
   IL_0010:  ldloca.s   V_0
-  IL_0012:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-  IL_0017:  ret
+  IL_0012:  call       ""object System.Runtime.CompilerServices.TaskAwaiter<object>.GetResult()""
+  IL_0017:  pop
+  IL_0018:  ret
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void SubmissionEntryPoint()
         {
             var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
@@ -551,15 +552,14 @@ public abstract class C
                 "s0.dll",
                 SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script),
                 references);
-            var verifier = CompileAndVerify(s0, verify: false);
+            var verifier = CompileAndVerify(s0, verify: Verification.Fails);
             var methodData = verifier.TestData.GetMethodData("<Initialize>");
-            Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<object>", ((MethodSymbol)methodData.Method).ReturnType.ToDisplayString());
             methodData.VerifyIL(
 @"{
-  // Code size       60 (0x3c)
+  // Code size       57 (0x39)
   .maxstack  2
-  .locals init (<<Initialize>>d__0 V_0,
-                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> V_1)
+  .locals init (<<Initialize>>d__0 V_0)
   IL_0000:  newobj     ""<<Initialize>>d__0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -572,19 +572,17 @@ public abstract class C
   IL_0019:  ldc.i4.m1
   IL_001a:  stfld      ""int <<Initialize>>d__0.<>1__state""
   IL_001f:  ldloc.0
-  IL_0020:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
-  IL_0025:  stloc.1
-  IL_0026:  ldloca.s   V_1
-  IL_0028:  ldloca.s   V_0
-  IL_002a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<<<Initialize>>d__0>(ref <<Initialize>>d__0)""
-  IL_002f:  nop
-  IL_0030:  ldloc.0
-  IL_0031:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
-  IL_0036:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
-  IL_003b:  ret
+  IL_0020:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<<<Initialize>>d__0>(ref <<Initialize>>d__0)""
+  IL_002c:  nop
+  IL_002d:  ldloc.0
+  IL_002e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0033:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
+  IL_0038:  ret
 }");
             methodData = verifier.TestData.GetMethodData("<Factory>");
-            Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<object>", ((MethodSymbol)methodData.Method).ReturnType.ToDisplayString());
             methodData.VerifyIL(
 @"{
   // Code size       12 (0xc)
@@ -599,12 +597,59 @@ public abstract class C
         [Fact]
         public void ScriptEntryPoint_MissingMethods()
         {
-            var source =
-@"System.Console.WriteLine(1);";
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var source = "System.Console.WriteLine(1);";
+            var compilation = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            compilation.VerifyEmitDiagnostics(
+                // error CS1061: 'Task<object>' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'Task<object>' could be found (are you missing a using directive or an assembly reference?)
+                //
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "").WithArguments("System.Threading.Tasks.Task<object>", "GetAwaiter").WithLocation(1, 1),
+                // (1,1): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1' is not defined or imported
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "System.Console.WriteLine(1);").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1").WithLocation(1, 1),
+                // (1,1): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Create'
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Console.WriteLine(1);").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1", "Create").WithLocation(1, 1),
+                // (1,1): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Task'
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Console.WriteLine(1);").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1", "Task").WithLocation(1, 1),
+                // (1,1): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext'
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Console.WriteLine(1);").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "MoveNext").WithLocation(1, 1),
+                // (1,1): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine'
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Console.WriteLine(1);").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void ExplicitImplementation()
+        {
+            string test = @"
+interface I1
+{
+    void M();
+}
+
+void I1.M() {}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
+
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+
             compilation.VerifyDiagnostics(
-                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1));
+                // (7,6): error CS0540: 'I1.M()': containing type does not implement interface 'I1'
+                // void I1.M() {}
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.M()", "I1").WithLocation(7, 6)
+                );
+
+            var s = CreateSubmission(test);
+
+            s.VerifyDiagnostics(
+                // (7,9): error CS0541: 'M()': explicit interface declaration can only be declared in a class, struct or interface
+                // void I1.M() {}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("M()").WithLocation(7, 9)
+                );
         }
     }
 }

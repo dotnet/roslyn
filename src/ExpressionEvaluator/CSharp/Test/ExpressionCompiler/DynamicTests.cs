@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
@@ -38,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -47,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetDynamicAttributeIfAny(method));
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, method.ReturnType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x01);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -88,8 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetDynamicAttributeIfAny(method));
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, ((ArrayTypeSymbol)method.ReturnType).ElementType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
@@ -120,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -129,9 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetDynamicAttributeIfAny(method));
-                Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments.Single().TypeKind);
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
+                Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments().Single().TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
 @"{
@@ -161,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -170,8 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetDynamicAttributeIfAny(method));
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, method.ReturnType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x01);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
@@ -201,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -210,8 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetDynamicAttributeIfAny(method));
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, ((ArrayTypeSymbol)method.ReturnType).ElementType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
@@ -246,7 +249,7 @@ class Generic<T>
 {
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -255,9 +258,9 @@ class Generic<T>
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetDynamicAttributeIfAny(method));
-                Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments.Single().TypeKind);
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
+                Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments().Single().TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
 {
@@ -296,7 +299,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
@@ -365,7 +368,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
@@ -432,7 +435,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
@@ -531,7 +534,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
@@ -599,7 +602,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M");
@@ -641,7 +644,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -650,8 +653,8 @@ class Generic<T>
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetDynamicAttributeIfAny(method));
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, method.ReturnType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x01);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
@@ -680,7 +683,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -689,8 +692,8 @@ class Generic<T>
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetDynamicAttributeIfAny(method));
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, ((ArrayTypeSymbol)method.ReturnType).ElementType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
@@ -719,7 +722,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -728,9 +731,9 @@ class Generic<T>
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetDynamicAttributeIfAny(method));
-                Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments.Single().TypeKind);
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
+                Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments().Single().TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
 @"{
@@ -743,8 +746,8 @@ class Generic<T>
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
-        [Fact]
         public void ComplexDynamicType()
         {
             var source =
@@ -767,7 +770,7 @@ public class Outer<T, U>
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -776,8 +779,8 @@ public class Outer<T, U>
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetDynamicAttributeIfAny(method));
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 VerifyCustomTypeInfo(locals[0], "d", 0x04, 0x03);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
 @"{
@@ -826,7 +829,7 @@ public class Outer<T, U>
   IL_0019:  ldc.i4.3
   IL_001a:  newarr     ""byte""
   IL_001f:  dup
-  IL_0020:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.A4E591DA7617172655FE45FC3878ECC8CC0D44B3""
+  IL_0020:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.D7FC9689723FC6A41ADF105022720FF986ABA464083E7F71C6B921F8164E8878""
   IL_0025:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_002a:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
   IL_002f:  ldstr      ""dd""
@@ -839,7 +842,7 @@ public class Outer<T, U>
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void DynamicAliases()
         {
             var source =
@@ -854,7 +857,7 @@ public class Outer<T, U>
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(
@@ -886,7 +889,7 @@ public class Outer<T, U>
                     typeName: out typeName,
                     testData: testData);
                 diagnostics.Free();
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
 
                 VerifyCustomTypeInfo(locals[0], "d1", 0x01);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d1", expectedILOpt:
@@ -933,7 +936,7 @@ public class Outer<T, U>
         dynamic d = 1;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -942,8 +945,8 @@ public class Outer<T, U>
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.Methods.Single().Value.Method;
-                Assert.Null(GetDynamicAttributeIfAny(method));
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: false);
                 VerifyCustomTypeInfo(locals[0], "d", null);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
 @"{
@@ -970,7 +973,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -980,7 +983,7 @@ class C
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, 0x01);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(TypeKind.Dynamic, methodData.Method.ReturnType.TypeKind);
+                Assert.Equal(TypeKind.Dynamic, ((MethodSymbol)methodData.Method).ReturnType.TypeKind);
                 methodData.VerifyIL(@"
 {
   // Code size       77 (0x4d)
@@ -1038,7 +1041,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateCompilationWithCSharp(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1255,19 +1258,19 @@ class C
 {
     static dynamic x;
 
-    static void Foo(dynamic y)
+    static void Goo(dynamic y)
     {
-        System.Action a = () => Foo(x);
+        System.Action a = () => Goo(x);
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
-                var context = CreateMethodContext(runtime, "C.Foo");
+                var context = CreateMethodContext(runtime, "C.Goo");
                 var testData = new CompilationTestData();
                 string error;
-                var result = context.CompileAssignment("a", "() => Foo(x)", out error, testData);
+                var result = context.CompileAssignment("a", "() => Goo(x)", out error, testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, null);
                 testData.GetMethodData("<>x.<>c.<<>m0>b__0_0").VerifyIL(@"
@@ -1277,7 +1280,7 @@ class C
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0046
   IL_0007:  ldc.i4     0x100
-  IL_000c:  ldstr      ""Foo""
+  IL_000c:  ldstr      ""Goo""
   IL_0011:  ldnull
   IL_0012:  ldtoken    ""C""
   IL_0017:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1308,9 +1311,9 @@ class C
   IL_0069:  ret
 }");
 
-                context = CreateMethodContext(runtime, "C.<>c.<Foo>b__1_0");
+                context = CreateMethodContext(runtime, "C.<>c.<Goo>b__1_0");
                 testData = new CompilationTestData();
-                result = context.CompileExpression("Foo(x)", out error, testData);
+                result = context.CompileExpression("Goo(x)", out error, testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, 0x01);
                 var methodData = testData.GetMethodData("<>x.<>m0");
@@ -1321,7 +1324,7 @@ class C
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0042
   IL_0007:  ldc.i4.0
-  IL_0008:  ldstr      ""Foo""
+  IL_0008:  ldstr      ""Goo""
   IL_000d:  ldnull
   IL_000e:  ldtoken    ""C""
   IL_0013:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1367,19 +1370,19 @@ class C
         System.Func<dynamic> a = () => x + y;
     }
 
-    static void Foo(int x)
+    static void Goo(int x)
     {
         M(x);
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 var testData = new CompilationTestData();
                 string error;
-                var result = context.CompileExpression("Foo(x)", out error, testData);
+                var result = context.CompileExpression("Goo(x)", out error, testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, 0x01);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -1391,7 +1394,7 @@ class C
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0042
   IL_0007:  ldc.i4.0
-  IL_0008:  ldstr      ""Foo""
+  IL_0008:  ldstr      ""Goo""
   IL_000d:  ldnull
   IL_000e:  ldtoken    ""C""
   IL_0013:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1423,7 +1426,7 @@ class C
   IL_0066:  ret
 }");
                 testData = new CompilationTestData();
-                result = context.CompileExpression("Foo(y)", out error, testData);
+                result = context.CompileExpression("Goo(y)", out error, testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, 0x01);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -1435,7 +1438,7 @@ class C
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0042
   IL_0007:  ldc.i4.0
-  IL_0008:  ldstr      ""Foo""
+  IL_0008:  ldstr      ""Goo""
   IL_000d:  ldnull
   IL_000e:  ldtoken    ""C""
   IL_0013:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""

@@ -1,7 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
@@ -355,7 +358,7 @@ End Class
             Dim code =
     <Code>
 Enum E
-    $$Foo
+    $$Goo
 End Enum
 </Code>
 
@@ -372,12 +375,12 @@ End Enum
             Dim code =
 <Code>
 Class C
-    ' Foo
+    ' Goo
     Dim $$i As Integer
 End Class
 </Code>
 
-            Dim result = " Foo"
+            Dim result = " Goo"
 
             TestComment(code, result)
         End Sub
@@ -391,7 +394,7 @@ End Class
             Dim code =
 <Code>
 Enum E
-    $$Foo
+    $$Goo
 End Enum
 </Code>
 
@@ -495,7 +498,7 @@ End Enum
             Dim code =
     <Code>
 Enum E
-    $$Foo
+    $$Goo
 End Enum
 </Code>
             TestIsConstant(code, True)
@@ -847,7 +850,7 @@ End Class
 Imports System
 
 Class C
-    Dim $$foo As Integer
+    Dim $$goo As Integer
 End Class
 </Code>
 
@@ -857,7 +860,7 @@ Imports System
 
 Class C
     <Serializable()>
-    Dim foo As Integer
+    Dim goo As Integer
 End Class
 ]]></Code>
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
@@ -872,7 +875,7 @@ Imports System
 
 Class C
     <Serializable>
-    Dim $$foo As Integer
+    Dim $$goo As Integer
 End Class
 ]]></Code>
 
@@ -883,7 +886,7 @@ Imports System
 Class C
     <Serializable>
     <CLSCompliant(True)>
-    Dim foo As Integer
+    Dim goo As Integer
 End Class
 ]]></Code>
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
@@ -898,7 +901,7 @@ Imports System
 
 Class C
     ''' &lt;summary&gt;&lt;/summary&gt;
-    Dim $$foo As Integer
+    Dim $$goo As Integer
 End Class
 ]]></Code>
 
@@ -909,7 +912,7 @@ Imports System
 Class C
     ''' &lt;summary&gt;&lt;/summary&gt;
     <CLSCompliant(True)>
-    Dim foo As Integer
+    Dim goo As Integer
 End Class
 ]]></Code>
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True"})
@@ -924,14 +927,14 @@ End Class
             Dim code =
 <Code>
 Enum E
-    $$Foo
+    $$Goo
 End Enum
 </Code>
 
             Dim expected =
 <Code>
 Enum E
-    Foo
+    Goo
 End Enum
 </Code>
 
@@ -943,14 +946,14 @@ End Enum
             Dim code =
 <Code>
 Enum E
-    $$Foo
+    $$Goo
 End Enum
 </Code>
 
             Dim expected =
 <Code>
 Enum E
-    Foo
+    Goo
 End Enum
 </Code>
 
@@ -962,14 +965,14 @@ End Enum
             Dim code =
 <Code>
 Enum E
-    $$Foo
+    $$Goo
 End Enum
 </Code>
 
             Dim expected =
 <Code>
 Enum E
-    Foo
+    Goo
 End Enum
 </Code>
 
@@ -1077,7 +1080,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     Dim x As Integer
 
@@ -1092,7 +1095,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     Dim x As Integer
 
@@ -1112,7 +1115,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     Dim x As Integer
 
@@ -1127,7 +1130,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     Dim x As Integer
 
@@ -1147,7 +1150,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     Dim x As Integer
 
@@ -1162,7 +1165,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     Dim x As Integer
 
@@ -1182,7 +1185,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     Dim $$x As Integer
 
@@ -1195,7 +1198,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     Public x As Integer
 
@@ -1213,7 +1216,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     Public $$x As Integer
 
@@ -1226,7 +1229,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     Dim x As Integer
 
@@ -1244,7 +1247,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     Public $$x As Integer
 
@@ -1257,7 +1260,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     Protected Friend x As Integer
 
@@ -1275,7 +1278,7 @@ End Class
 <Code><![CDATA[
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     <Bar>
     Public $$x As Integer
@@ -1289,7 +1292,7 @@ End Class
 <Code><![CDATA[
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     <Bar>
     Protected Friend x As Integer
@@ -1308,7 +1311,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     ' Comment comment comment
     Public $$x As Integer
@@ -1322,7 +1325,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     ' Comment comment comment
     Protected Friend x As Integer
@@ -1341,7 +1344,7 @@ End Class
 <Code><![CDATA[
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     ''' <summary>
     ''' Comment comment comment
@@ -1357,7 +1360,7 @@ End Class
 <Code><![CDATA[
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     ''' <summary>
     ''' Comment comment comment
@@ -1427,14 +1430,14 @@ End Class
             Dim code =
 <Code>
 Enum
-    $$Foo
+    $$Goo
 End Enum
 </Code>
 
             Dim expected =
 <Code>
 Enum
-    Foo
+    Goo
 End Enum
 </Code>
 
@@ -1446,14 +1449,14 @@ End Enum
             Dim code =
 <Code>
 Enum
-    $$Foo
+    $$Goo
 End Enum
 </Code>
 
             Dim expected =
 <Code>
 Enum
-    Foo
+    Goo
 End Enum
 </Code>
 
@@ -1465,14 +1468,14 @@ End Enum
             Dim code =
 <Code>
 Enum
-    $$Foo
+    $$Goo
 End Enum
 </Code>
 
             Dim expected =
 <Code>
 Enum
-    Foo
+    Goo
 End Enum
 </Code>
 
@@ -1718,14 +1721,14 @@ End Class
             Dim code =
 <Code>
 Enum E
-    $$Foo
+    $$Goo
 End Enum
 </Code>
 
             Dim expected =
 <Code>
 Enum E
-    Foo = 42
+    Goo = 42
 End Enum
 </Code>
 
@@ -1737,14 +1740,14 @@ End Enum
             Dim code =
 <Code>
 Enum E
-    $$Foo = 0
+    $$Goo = 0
 End Enum
 </Code>
 
             Dim expected =
 <Code>
 Enum E
-    Foo = 42
+    Goo = 42
 End Enum
 </Code>
 
@@ -1756,14 +1759,14 @@ End Enum
             Dim code =
 <Code>
 Enum E
-    $$Foo = 0
+    $$Goo = 0
 End Enum
 </Code>
 
             Dim expected =
 <Code>
 Enum E
-    Foo
+    Goo
 End Enum
 </Code>
 
@@ -1874,14 +1877,14 @@ End Module
             Dim code =
 <Code>
 Enum E
-    $$Foo
+    $$Goo
 End Enum
 </Code>
 
             Dim expected =
 <Code>
 Enum E
-    Foo
+    Goo
 End Enum
 </Code>
 
@@ -1893,14 +1896,14 @@ End Enum
             Dim code =
 <Code>
 Enum E
-    $$Foo
+    $$Goo
 End Enum
 </Code>
 
             Dim expected =
 <Code>
 Enum E
-    Foo
+    Goo
 End Enum
 </Code>
 
@@ -2011,14 +2014,14 @@ End Module
             Dim code =
 <Code>
 Enum E
-    $$Foo
+    $$Goo
 End Enum
 </Code>
 
             Dim expected =
 <Code>
 Enum E
-    Foo
+    Goo
 End Enum
 </Code>
 
@@ -2034,7 +2037,7 @@ End Enum
             Dim code =
 <Code>
 Class C
-    Dim $$Foo As Integer
+    Dim $$Goo As Integer
 End Class
 </Code>
 
@@ -2054,9 +2057,9 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
-    Dim $$Foo As Integer
+    Dim $$Goo As Integer
 
 #End Region
 
@@ -2067,7 +2070,7 @@ End Class
 <Code>
 Class C
 
-#Region "Foo"
+#Region "Goo"
 
     Dim Bar As Integer
 

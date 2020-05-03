@@ -1,19 +1,24 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 {
+    [UseExportProvider]
     public class EncapsulateFieldCommandHandlerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -24,7 +29,7 @@ class C
 {
     private int f$$ield;
 
-    private void foo()
+    private void goo()
     {
         field = 3;
     }
@@ -47,16 +52,14 @@ class C
         }
     }
 
-    private void foo()
+    private void goo()
     {
         Field = 3;
     }
 }";
 
-            using (var state = EncapsulateFieldTestState.Create(text))
-            {
-                state.AssertEncapsulateAs(expected);
-            }
+            using var state = EncapsulateFieldTestState.Create(text);
+            state.AssertEncapsulateAs(expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -67,7 +70,7 @@ class C
 {
     protected int fi$$eld;
 
-    private void foo()
+    private void goo()
     {
         field = 3;
     }
@@ -90,16 +93,14 @@ class C
         }
     }
 
-    private void foo()
+    private void goo()
     {
         Field = 3;
     }
 }";
 
-            using (var state = EncapsulateFieldTestState.Create(text))
-            {
-                state.AssertEncapsulateAs(expected);
-            }
+            using var state = EncapsulateFieldTestState.Create(text);
+            state.AssertEncapsulateAs(expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -110,16 +111,14 @@ class$$ C
 {
     private int field;
 
-    private void foo()
+    private void goo()
     {
         field = 3;
     }
 }";
 
-            using (var state = EncapsulateFieldTestState.Create(text))
-            {
-                state.AssertError();
-            }
+            using var state = EncapsulateFieldTestState.Create(text);
+            state.AssertError();
         }
 
         [WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")]
@@ -179,10 +178,8 @@ class Program
 }
 ";
 
-            using (var state = EncapsulateFieldTestState.Create(text))
-            {
-                state.AssertEncapsulateAs(expected);
-            }
+            using var state = EncapsulateFieldTestState.Create(text);
+            state.AssertEncapsulateAs(expected);
         }
 
         [WpfFact]
@@ -190,38 +187,34 @@ class Program
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void EncapsulateFieldCommandDisabledInSubmission()
         {
-            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
+            var exportProvider = ExportProviderCache
+                .GetOrCreateExportProviderFactory(
+                    TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
+                .CreateExportProvider();
 
-            using (var workspace = TestWorkspace.Create(XElement.Parse(@"
+            using var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C
                         {
-                            object $$foo;
+                            object $$goo;
                         }
                     </Submission>
                 </Workspace> "),
                 workspaceKind: WorkspaceKind.Interactive,
-                exportProvider: exportProvider))
-            {
-                // Force initialization.
-                workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+                exportProvider: exportProvider);
+            // Force initialization.
+            workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 
-                var textView = workspace.Documents.Single().GetTextView();
+            var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new EncapsulateFieldCommandHandler(workspace.GetService<Host.IWaitIndicator>(), workspace.GetService<ITextBufferUndoManagerProvider>());
-                var delegatedToNext = false;
-                Func<CommandState> nextHandler = () =>
-                {
-                    delegatedToNext = true;
-                    return CommandState.Unavailable;
-                };
+            var handler = new EncapsulateFieldCommandHandler(
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ITextBufferUndoManagerProvider>(),
+                workspace.GetService<IAsynchronousOperationListenerProvider>());
 
-                var state = handler.GetCommandState(new Commands.EncapsulateFieldCommandArgs(textView, textView.TextBuffer), nextHandler);
-                Assert.True(delegatedToNext);
-                Assert.False(state.IsAvailable);
-            }
+            var state = handler.GetCommandState(new EncapsulateFieldCommandArgs(textView, textView.TextBuffer));
+            Assert.True(state.IsUnspecified);
         }
     }
 }

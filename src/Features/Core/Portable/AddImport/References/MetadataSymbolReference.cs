@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -6,22 +8,26 @@ using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Tags;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private partial class MetadataSymbolReference : SymbolReference
         {
+            private readonly ProjectId _referenceProjectId;
             private readonly PortableExecutableReference _reference;
 
             public MetadataSymbolReference(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 SymbolResult<INamespaceOrTypeSymbol> symbolResult,
+                ProjectId referenceProjectId,
                 PortableExecutableReference reference)
                 : base(provider, symbolResult)
             {
+                _referenceProjectId = referenceProjectId;
                 _reference = reference;
             }
 
@@ -45,14 +51,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         hasExistingImport);
             }
 
-            protected override Solution GetUpdatedSolution(Document newDocument)
-                => newDocument.Project.AddMetadataReference(_reference).Solution;
+            protected override AddImportFixData GetFixData(
+                Document document, ImmutableArray<TextChange> textChanges, string description,
+                ImmutableArray<string> tags, CodeActionPriority priority)
+            {
+                return AddImportFixData.CreateForMetadataSymbol(
+                    textChanges, description, tags, priority,
+                    _referenceProjectId, _reference.FilePath);
+            }
 
             // Adding metadata references should be considered lower pri than anything else.
             protected override CodeActionPriority GetPriority(Document document)
                 => CodeActionPriority.Low;
 
-            protected override ImmutableArray<string> GetTags(Document document) 
+            protected override ImmutableArray<string> GetTags(Document document)
                 => WellKnownTagArrays.AddReference;
 
             public override bool Equals(object obj)

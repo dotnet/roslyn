@@ -1,15 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.PooledObjects
 {
     internal partial class ArrayBuilder<T>
     {
         /// <summary>
         /// struct enumerator used in foreach.
         /// </summary>
-        internal struct Enumerator : IEnumerator<T>
+        internal struct Enumerator
         {
             private readonly ArrayBuilder<T> _builder;
             private int _index;
@@ -32,23 +32,6 @@ namespace Microsoft.CodeAnalysis
             {
                 _index++;
                 return _index < _builder.Count;
-            }
-
-            public void Dispose()
-            {
-            }
-
-            object System.Collections.IEnumerator.Current
-            {
-                get
-                {
-                    return this.Current;
-                }
-            }
-
-            public void Reset()
-            {
-                _index = -1;
             }
         }
     }

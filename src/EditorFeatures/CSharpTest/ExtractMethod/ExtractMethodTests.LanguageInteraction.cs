@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 {
     public partial class ExtractMethodTests
     {
+        [UseExportProvider]
         public class LanguageInteraction : ExtractMethodBase
         {
             #region Generics
@@ -83,7 +87,7 @@ class Program
     }
 }";
 
-                await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
@@ -166,7 +170,7 @@ class Program
     }
 }";
 
-                await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528198")]
@@ -197,10 +201,10 @@ class Program
     static void Main(string[] args)
     {
         int i = 2;
-        C<int> c = GetC(i);
+        C<int> c = GetC(ref i);
     }
 
-    private static C<int> GetC(int i)
+    private static C<int> GetC(ref int i)
     {
         return new C<int>(ref i);
     }
@@ -244,12 +248,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        C<int> c = GetC();
+        int i;
+        C<int> c = GetC(out i);
     }
 
-    private static C<int> GetC()
+    private static C<int> GetC(out int i)
     {
-        int i;
         return new C<int>(out i);
     }
 
@@ -327,7 +331,7 @@ class Test11<T>
         return i++;
     }
 }";
-                await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
@@ -344,10 +348,10 @@ class Test11<T>
 {
     int method(int i)
     {
-        return NewMethod(i);
+        return NewMethod(ref i);
     }
 
-    private static int NewMethod(int i)
+    private static int NewMethod(ref int i)
     {
         return i++;
     }
@@ -369,10 +373,10 @@ class Test11<T>
 {
     int method(int i)
     {
-        return NewMethod(i);
+        return NewMethod(ref i);
     }
 
-    private static int NewMethod(int i)
+    private static int NewMethod(ref int i)
     {
         return ++i;
     }
@@ -394,10 +398,10 @@ class Test11<T>
 {
     int method(int i)
     {
-        return NewMethod(i);
+        return NewMethod(ref i);
     }
 
-    private static int NewMethod(int i)
+    private static int NewMethod(ref int i)
     {
         return i--;
     }
@@ -419,10 +423,10 @@ class Test11<T>
 {
     int method(int i)
     {
-        return NewMethod(i);
+        return NewMethod(ref i);
     }
 
-    private static int NewMethod(int i)
+    private static int NewMethod(ref int i)
     {
         return --i;
     }
@@ -973,12 +977,12 @@ class Program
         var p1 = new { Price = 45 };
         var p2 = new { Price = 50 };
 
-        NewMethod(p2);
+        p1 = NewMethod(p2);
     }
 
-    private static void NewMethod(object p2)
+    private static object NewMethod(object p2)
     {
-        object p1 = p2;
+        return p2;
     }
 }";
 
@@ -1278,8 +1282,8 @@ unsafe class C
 
 class X
 {
-    static void Foo(Func<X, byte> x, string y) { Console.WriteLine(1); }
-    static void Foo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
+    static void Goo(Func<X, byte> x, string y) { Console.WriteLine(1); }
+    static void Goo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
 
     const int Value = 1000;
 
@@ -1287,7 +1291,7 @@ class X
     {
         unchecked
         {
-            [|Foo(X => (byte)X.Value, null);|] // Extract method
+            [|Goo(X => (byte)X.Value, null);|] // Extract method
         }
     }
 }";
@@ -1295,8 +1299,8 @@ class X
 
 class X
 {
-    static void Foo(Func<X, byte> x, string y) { Console.WriteLine(1); }
-    static void Foo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
+    static void Goo(Func<X, byte> x, string y) { Console.WriteLine(1); }
+    static void Goo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
 
     const int Value = 1000;
 
@@ -1312,7 +1316,7 @@ class X
     {
         unchecked
         {
-            Foo(X => (byte)X.Value, null);
+            Goo(X => (byte)X.Value, null);
         }
     }
 }";
@@ -1327,8 +1331,8 @@ class X
 
 class X
 {
-    static void Foo(Func<X, byte> x, string y) { Console.WriteLine(1); }
-    static void Foo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
+    static void Goo(Func<X, byte> x, string y) { Console.WriteLine(1); }
+    static void Goo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
 
     const int Value = 1000;
 
@@ -1336,7 +1340,7 @@ class X
     {
         unchecked
         [|{
-            Foo(X => (byte)X.Value, null); // Extract method
+            Goo(X => (byte)X.Value, null); // Extract method
         }|]
     }
 }";
@@ -1344,8 +1348,8 @@ class X
 
 class X
 {
-    static void Foo(Func<X, byte> x, string y) { Console.WriteLine(1); }
-    static void Foo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
+    static void Goo(Func<X, byte> x, string y) { Console.WriteLine(1); }
+    static void Goo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
 
     const int Value = 1000;
 
@@ -1358,7 +1362,7 @@ class X
     {
         unchecked
         {
-            Foo(X => (byte)X.Value, null); // Extract method
+            Goo(X => (byte)X.Value, null); // Extract method
         }
     }
 }";
@@ -1373,8 +1377,8 @@ class X
 
 class X
 {
-    static void Foo(Func<X, byte> x, string y) { Console.WriteLine(1); }
-    static void Foo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
+    static void Goo(Func<X, byte> x, string y) { Console.WriteLine(1); }
+    static void Goo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
 
     const int Value = 1000;
 
@@ -1383,7 +1387,7 @@ class X
         unchecked
         {
             [|{
-                Foo(X => (byte)X.Value, null); // Extract method
+                Goo(X => (byte)X.Value, null); // Extract method
             }|]
         }
     }
@@ -1392,8 +1396,8 @@ class X
 
 class X
 {
-    static void Foo(Func<X, byte> x, string y) { Console.WriteLine(1); }
-    static void Foo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
+    static void Goo(Func<X, byte> x, string y) { Console.WriteLine(1); }
+    static void Goo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
 
     const int Value = 1000;
 
@@ -1409,7 +1413,7 @@ class X
     {
         unchecked
         {
-            Foo(X => (byte)X.Value, null); // Extract method
+            Goo(X => (byte)X.Value, null); // Extract method
         }
     }
 }";
@@ -1424,22 +1428,22 @@ class X
 
 class X
 {
-    static int Foo(Func<X, byte> x, string y) { return 1; } // This Foo is invoked before refactoring
-    static int Foo(Func<int?, byte> x, object y) { return 2; }
+    static int Goo(Func<X, byte> x, string y) { return 1; } // This Goo is invoked before refactoring
+    static int Goo(Func<int?, byte> x, object y) { return 2; }
 
     const int Value = 1000;
 
     static void Main()
     {
-        var s = unchecked(1 + [|Foo(X => (byte)X.Value, null)|]);
+        var s = unchecked(1 + [|Goo(X => (byte)X.Value, null)|]);
     }
 }";
                 var expected = @"using System;
 
 class X
 {
-    static int Foo(Func<X, byte> x, string y) { return 1; } // This Foo is invoked before refactoring
-    static int Foo(Func<int?, byte> x, object y) { return 2; }
+    static int Goo(Func<X, byte> x, string y) { return 1; } // This Goo is invoked before refactoring
+    static int Goo(Func<int?, byte> x, object y) { return 2; }
 
     const int Value = 1000;
 
@@ -1450,7 +1454,7 @@ class X
 
     private static int NewMethod()
     {
-        return unchecked(Foo(X => (byte)X.Value, null));
+        return unchecked(Goo(X => (byte)X.Value, null));
     }
 }";
                 await TestExtractMethodAsync(code, expected);
@@ -1964,6 +1968,41 @@ namespace ConsoleApp1
             foreach ()
                 Console.WriteLine(2);
         }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(22150, "https://github.com/dotnet/roslyn/issues/22150")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethod_LocalVariableCrossingLocalFunction()
+        {
+            var code = @"using System;
+
+class C
+{
+    public void Test()
+    {
+        int x = 0;
+        [|void Local() { }
+        Console.WriteLine(x);|]
+    }
+}";
+            var expected = @"using System;
+
+class C
+{
+    public void Test()
+    {
+        int x = 0;
+        NewMethod(x);
+    }
+
+    private static void NewMethod(int x)
+    {
+        void Local() { }
+        Console.WriteLine(x);
     }
 }";
 

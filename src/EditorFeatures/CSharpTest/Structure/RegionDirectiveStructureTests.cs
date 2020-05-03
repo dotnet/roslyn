@@ -1,9 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         public async Task BrokenRegion()
         {
             const string code = @"
-$$#region Foo";
+$$#region Goo";
 
             await VerifyNoBlockSpansAsync(code);
         }
@@ -26,11 +29,11 @@ $$#region Foo";
         public async Task SimpleRegion()
         {
             const string code = @"
-{|span:$$#region Foo
+{|span:$$#region Goo
 #endregion|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "Foo", autoCollapse: false, isDefaultCollapsed: true));
+                Region("span", "Goo", autoCollapse: false, isDefaultCollapsed: true));
         }
 
         [WorkItem(539361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539361")]

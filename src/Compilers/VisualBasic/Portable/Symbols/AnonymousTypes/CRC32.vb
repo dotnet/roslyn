@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
 
@@ -11,11 +13,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Module CRC32
 
         Public Function ComputeCRC32(names() As String) As UInt32
-            Debug.Assert(names.Count > 0)
+            Debug.Assert(names.Length > 0)
             Dim crc32 As UInt32 = &HFFFFFFFF
 
             For Each name In names
-                crc32 = Crc32Update(crc32, s_encoding.GetBytes(name.ToLowerInvariant()))
+                crc32 = Crc32Update(crc32, s_encoding.GetBytes(CaseInsensitiveComparison.ToLower(name)))
             Next
 
             Return crc32

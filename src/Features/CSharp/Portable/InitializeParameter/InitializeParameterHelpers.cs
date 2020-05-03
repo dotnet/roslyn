@@ -1,56 +1,87 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Operations;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
     internal static class InitializeParameterHelpers
     {
-        public static SyntaxNode GetBody(BaseMethodDeclarationSyntax containingMember)
-            => containingMember.Body ?? (SyntaxNode)containingMember.ExpressionBody;
+        public static bool IsFunctionDeclaration(SyntaxNode node)
+            => node is BaseMethodDeclarationSyntax
+            || node is LocalFunctionStatementSyntax
+            || node is AnonymousFunctionExpressionSyntax;
+
+        public static SyntaxNode GetBody(SyntaxNode functionDeclaration)
+        {
+            switch (functionDeclaration)
+            {
+                case BaseMethodDeclarationSyntax methodDeclaration:
+                    return (SyntaxNode)methodDeclaration.Body ?? methodDeclaration.ExpressionBody;
+                case LocalFunctionStatementSyntax localFunction:
+                    return (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody;
+                case AnonymousFunctionExpressionSyntax anonymousFunction:
+                    return anonymousFunction.Body;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(functionDeclaration);
+            }
+        }
+
+        private static SyntaxToken? TryGetSemicolonToken(SyntaxNode functionDeclaration)
+        {
+            switch (functionDeclaration)
+            {
+                case BaseMethodDeclarationSyntax methodDeclaration:
+                    return methodDeclaration.SemicolonToken;
+                case LocalFunctionStatementSyntax localFunction:
+                    return localFunction.SemicolonToken;
+                case AnonymousFunctionExpressionSyntax _:
+                    return null;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(functionDeclaration);
+            }
+        }
 
         public static bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => compilation.ClassifyConversion(source: source, destination: destination).IsImplicit;
 
-        public static SyntaxNode GetLastStatement(IBlockStatement blockStatement)
-            => blockStatement.Syntax is BlockSyntax block
+        public static SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt)
+            => blockStatementOpt?.Syntax is BlockSyntax block
                 ? block.Statements.LastOrDefault()
-                : blockStatement.Syntax;
+                : blockStatementOpt?.Syntax;
 
         public static void InsertStatement(
             SyntaxEditor editor,
-            SyntaxNode body,
+            SyntaxNode functionDeclaration,
+            bool returnsVoid,
             SyntaxNode statementToAddAfterOpt,
             StatementSyntax statement)
         {
-            var generator = editor.Generator;
+            var body = GetBody(functionDeclaration);
 
-            if (body is ArrowExpressionClauseSyntax arrowExpression)
+            if (IsExpressionBody(body))
             {
-                // If this is a => method, then we'll have to convert the method to have a block
-                // body.  Add the new statement as the first/last statement of the new block 
-                // depending if we were asked to go after something or not.
-                var methodBase = (BaseMethodDeclarationSyntax)body.Parent;
+                var semicolonToken = TryGetSemicolonToken(functionDeclaration) ?? SyntaxFactory.Token(SyntaxKind.SemicolonToken);
 
-                if (statementToAddAfterOpt == null)
+                if (!TryConvertExpressionBodyToStatement(body, semicolonToken, !returnsVoid, out var convertedStatement))
                 {
-                    editor.SetStatements(methodBase,
-                        ImmutableArray.Create(
-                            statement,
-                            generator.ExpressionStatement(arrowExpression.Expression)));
+                    return;
                 }
-                else
-                {
-                    editor.SetStatements(methodBase,
-                        ImmutableArray.Create(
-                            generator.ExpressionStatement(arrowExpression.Expression),
-                            statement));
-                }
+
+                // Add the new statement as the first/last statement of the new block 
+                // depending if we were asked to go after something or not.
+                editor.SetStatements(functionDeclaration, statementToAddAfterOpt == null
+                    ? ImmutableArray.Create(statement, convertedStatement)
+                    : ImmutableArray.Create(convertedStatement, statement));
             }
             else if (body is BlockSyntax block)
             {
@@ -72,12 +103,48 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     // Otherwise, we have no statements in this block.  Add the new statement
                     // as the single statement the block will have.
                     Debug.Assert(block.Statements.Count == 0);
-                    editor.ReplaceNode(block, block.AddStatements(statement));
+                    editor.ReplaceNode(block, (currentBlock, _) => ((BlockSyntax)currentBlock).AddStatements(statement));
+                }
+
+                // If the block was on a single line before, the format it so that the formatting
+                // engine will update it to go over multiple lines. Otherwise, we can end up in
+                // the strange state where the { and } tokens stay where they were originally,
+                // which will look very strange like:
+                //
+                //          a => {
+                //              if (...) {
+                //              } };
+                if (CSharpSyntaxFacts.Instance.IsOnSingleLine(block, fullSpan: false))
+                {
+                    editor.ReplaceNode(
+                        block,
+                        (currentBlock, _) => currentBlock.WithAdditionalAnnotations(Formatter.Annotation));
                 }
             }
             else
             {
-                throw new InvalidOperationException();
+                editor.SetStatements(functionDeclaration, ImmutableArray.Create(statement));
+            }
+        }
+
+        // either from an expression lambda or expression bodied member
+        public static bool IsExpressionBody(SyntaxNode body)
+            => body is ExpressionSyntax || body is ArrowExpressionClauseSyntax;
+
+        public static bool TryConvertExpressionBodyToStatement(SyntaxNode body, SyntaxToken semicolonToken, bool createReturnStatementForExpression, out StatementSyntax statement)
+        {
+            Debug.Assert(IsExpressionBody(body));
+
+            switch (body)
+            {
+                case ArrowExpressionClauseSyntax arrowClause:
+                    // If this is a => method, then we'll have to convert the method to have a block body.
+                    return arrowClause.TryConvertToStatement(semicolonToken, createReturnStatementForExpression, out statement);
+                case ExpressionSyntax expression:
+                    // must be an expression lambda
+                    return expression.TryConvertToStatement(semicolonToken, createReturnStatementForExpression, out statement);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(body);
             }
         }
     }

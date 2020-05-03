@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class MyBaseKeywordRecommenderTests
@@ -47,25 +49,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MyBaseAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(|</MethodBody>, "MyBase")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "MyBase")
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MyBaseAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar, |</MethodBody>, "MyBase")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, "MyBase")
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MyBaseAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar + |</MethodBody>, "MyBase")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, "MyBase")
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MyBaseAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(Not |</MethodBody>, "MyBase")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, "MyBase")
         End Function
 
         <Fact>
@@ -154,8 +156,8 @@ Loop Until |</MethodBody>, "MyBase")
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MyBaseNotInModuleTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Module Foo
-Sub Foo()
+Module Goo
+Sub Goo()
 |
 End Sub()
 End Module</File>, "MyBase")
@@ -165,8 +167,8 @@ End Module</File>, "MyBase")
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MyBaseInStructureTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Module Foo
-Sub Foo()
+Module Goo
+Sub Goo()
 |
 End Sub()
 End Module</File>, "MyBase")

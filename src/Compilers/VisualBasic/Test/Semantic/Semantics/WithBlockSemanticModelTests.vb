@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -14,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub WithAliasedStaticField()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports Alias1 = ClassWithField
@@ -50,7 +52,7 @@ End Module
 
         <Fact>
         Public Sub WithDeclaresAnonymousLocalSymbolAndTypeInfo()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Module WithDeclaresAnonymousLocalSymbolAndTypeInfo
@@ -77,7 +79,7 @@ End Module
 
         <Fact(), WorkItem(544083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544083")>
         Public Sub WithSpeculativeSymbolInfo()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C1
@@ -219,7 +221,7 @@ End Module
 
         <Fact, WorkItem(2662, "https://github.com/dotnet/roslyn/issues/2662")>
         Public Sub Issue2662()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -279,7 +281,7 @@ End Module
         <Fact>
         <WorkItem(187910, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=187910&_a=edit")>
         Public Sub Bug187910()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class ClassWithField
@@ -295,7 +297,7 @@ End Class
     </file>
 </compilation>)
 
-            Dim compilationB = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilationB = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="b.vb">
 Class WithAliasedStaticField1
@@ -328,7 +330,7 @@ End Class
         <Fact>
         <WorkItem(10929, "https://github.com/dotnet/roslyn/issues/10929")>
         Public Sub WithTargetAsArgument_01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class Base
@@ -373,7 +375,7 @@ End Module
         <Fact>
         <WorkItem(10929, "https://github.com/dotnet/roslyn/issues/10929")>
         Public Sub WithTargetAsArgument_02()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class Base
@@ -419,7 +421,7 @@ End Module
         <Fact>
         <WorkItem(10929, "https://github.com/dotnet/roslyn/issues/10929")>
         Public Sub WithTargetAsArgument_03()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class Base
@@ -476,7 +478,7 @@ End Module
         <Fact>
         <WorkItem(10929, "https://github.com/dotnet/roslyn/issues/10929")>
         Public Sub WithTargetAsArgument_04()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class Base

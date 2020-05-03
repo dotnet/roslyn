@@ -1,11 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
-using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.Next.UnitTests.Mocks;
+using Microsoft.CodeAnalysis.Remote.Shared;
+using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
@@ -15,18 +20,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestCreation()
         {
-            var sessionId = 0;
-
             var storage = new AssetStorage();
-            var source = new TestAssetSource(storage, sessionId);
+            var source = new SimpleAssetSource(new Dictionary<Checksum, object>());
+            storage.Initialize(source);
 
-            var stored = storage.TryGetAssetSource(sessionId);
+            var stored = storage.GetAssetSource();
             Assert.Equal(source, stored);
-
-            storage.UnregisterAssetSource(sessionId);
-
-            var none = storage.TryGetAssetSource(sessionId);
-            Assert.Null(none);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -34,21 +33,20 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var storage = new AssetStorage();
 
-            var checksum = new Checksum(Guid.NewGuid().ToByteArray());
+            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();
 
             Assert.True(storage.TryAddAsset(checksum, data));
 
-            object stored;
-            Assert.True(storage.TryGetAsset(checksum, out stored));
+            Assert.True(storage.TryGetAsset(checksum, out object _));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestCleanup()
         {
-            var storage = new AssetStorage(cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2));
+            var storage = new AssetStorage(cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2), gcAfter: TimeSpan.FromMilliseconds(5));
 
-            var checksum = new Checksum(Guid.NewGuid().ToByteArray());
+            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();
 
             Assert.True(storage.TryAddAsset(checksum, data));
@@ -57,8 +55,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 await Task.Delay(10);
 
-                object stored;
-                if (!storage.TryGetAsset(checksum, out stored))
+                if (!storage.TryGetAsset(checksum, out object _))
                 {
                     // asset is deleted
                     return;

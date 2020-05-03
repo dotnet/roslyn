@@ -52,7 +52,8 @@
 | **LANGUAGE**
 | `/define:`*symbol_list* | Declare global conditional compilation symbol(s). *symbol_list* is *name*`=`*value*`,`...  (Short form: `/d`)
 | `/imports:`*import_list* | Declare global Imports for namespaces in referenced metadata files. *import_list* is *namespace*`,`...
-| `/langversion:`*number* | Specify language version: `9`&#124;`9.0`&#124;`10`&#124;`10.0`&#124;`11`&#124;`11.0`&#124;`12`&#124;`12.0`&#124;`13`&#124;`13.0`&#124;`14`&#124;`14.0`&#124;`15`&#124;`15.0`&#124;`15.3`. The default is `15` and the latest is `15.3`.
+| `/langversion:?` | Display the allowed values for language version
+| `/langversion`:*string* | Specify language version such as `default` (latest major version), or `latest` (latest version, including minor versions)
 | `/optionexplicit`{`+`&#124;`-`} | Require explicit declaration of variables.
 | `/optioninfer`{`+`&#124;`-`} | Allow type inference of variables.
 | `/rootnamespace`:*string* | Specifies the root Namespace for all top-level type declarations.

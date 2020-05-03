@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -326,10 +328,10 @@ End Class
 Option Strict ON
 Module M1
     Sub Main()
-        SyncLock Foo
+        SyncLock Goo
         End SyncLock
     End Sub
-    Function Foo() As I1
+    Function Goo() As I1
         Return Nothing
     End Function
 End Module
@@ -344,7 +346,7 @@ End Interface
   .maxstack  2
   .locals init (Object V_0,
   Boolean V_1)
-  IL_0000:  call       "Function M1.Foo() As I1"
+  IL_0000:  call       "Function M1.Goo() As I1"
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
@@ -519,7 +521,7 @@ End Class
 Class Program
     Public Shared Sub Main(args As String())
     End Sub
-    Public Sub foo(obj As Object)
+    Public Sub goo(obj As Object)
         SyncLock obj
             System.Threading.Monitor.Exit(obj)
         End SyncLock
@@ -528,7 +530,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source).VerifyIL("Program.foo", <![CDATA[
+            CompileAndVerify(source).VerifyIL("Program.goo", <![CDATA[
 {
   // Code size       42 (0x2a)
   .maxstack  2
@@ -569,7 +571,7 @@ End Class
 <compilation>
     <file name="a.vb">
 Class Program
-    Sub foo()
+    Sub goo()
         SyncLock Me
         End SyncLock
     End Sub
@@ -577,7 +579,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source).VerifyIL("Program.foo", <![CDATA[
+            CompileAndVerify(source).VerifyIL("Program.goo", <![CDATA[
 {
   // Code size       25 (0x19)
   .maxstack  2
@@ -613,7 +615,7 @@ End Class
 <compilation>
     <file name="a.vb">
 Class Program
-    Sub foo()
+    Sub goo()
         SyncLock "abc"
         End SyncLock
     End Sub
@@ -621,7 +623,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source).VerifyIL("Program.foo", <![CDATA[
+            CompileAndVerify(source).VerifyIL("Program.goo", <![CDATA[
 {
   // Code size       29 (0x1d)
   .maxstack  2
@@ -657,7 +659,7 @@ End Class
 <compilation>
     <file name="a.vb">
 Public Class Program
-    Public Sub foo()
+    Public Sub goo()
         Dim syncroot As Object = New Object
         SyncLock syncroot
             SyncLock syncroot.ToString()
@@ -668,7 +670,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source).VerifyIL("Program.foo", <![CDATA[
+            CompileAndVerify(source).VerifyIL("Program.goo", <![CDATA[
 {
   // Code size       71 (0x47)
   .maxstack  2
@@ -731,7 +733,7 @@ End Class
 <compilation>
     <file name="a.vb">
 Public Class Program
-    Public Sub foo()
+    Public Sub goo()
         Dim syncroot As Object = New Object
         SyncLock syncroot
             SyncLock syncroot
@@ -742,7 +744,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source).VerifyIL("Program.foo", <![CDATA[
+            CompileAndVerify(source).VerifyIL("Program.goo", <![CDATA[
 {
   // Code size       72 (0x48)
   .maxstack  2
@@ -1011,7 +1013,7 @@ Class C
         Dim p As New D()
         Dim t As System.Threading.Thread() = New System.Threading.Thread(19) {}
         For i As Integer = 0 To 19
-            t(i) = New System.Threading.Thread(AddressOf p.foo)
+            t(i) = New System.Threading.Thread(AddressOf p.goo)
             t(i).Start()
         Next
         For i As Integer = 0 To 19
@@ -1024,7 +1026,7 @@ End Class
 Class D
     Private syncroot As New Object()
     Public s As Integer
-    Public Sub foo()
+    Public Sub goo()
         SyncLock syncroot
             For i As Integer = 0 To 49999
                 s = s + 1
@@ -1050,7 +1052,7 @@ Class Test
         Dim p As New D()
         Dim t As System.Threading.Thread() = New System.Threading.Thread(9) {}
         For i As Integer = 0 To 4
-            t(i) = New System.Threading.Thread(AddressOf p.foo)
+            t(i) = New System.Threading.Thread(AddressOf p.goo)
             t(i).Start()
         Next
         For i As Integer = 0 To 4
@@ -1060,7 +1062,7 @@ Class Test
 End Class
 Class D
     Private syncroot As New Object()
-    Public Sub foo()
+    Public Sub goo()
         Try
             SyncLock syncroot
                 System.Console.Write("Lock")
@@ -1075,7 +1077,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source).VerifyIL("D.foo", <![CDATA[
+            CompileAndVerify(source).VerifyIL("D.goo", <![CDATA[
 {
   // Code size       72 (0x48)
   .maxstack  2
@@ -1226,13 +1228,13 @@ Module Module1
 
     Sub Main()
         SyncLock x
-            x.foo()
+            x.goo()
         End SyncLock
     End Sub
 End Module
 
 Class T1
-    Public Sub foo()
+    Public Sub goo()
     End Sub
 End Class
     </file>
@@ -1255,7 +1257,7 @@ End Class
   IL_0009:  ldloca.s   V_1
   IL_000b:  call       "Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)"
   IL_0010:  ldsfld     "Module1.x As T1"
-  IL_0015:  callvirt   "Sub T1.foo()"
+  IL_0015:  callvirt   "Sub T1.goo()"
   IL_001a:  leave.s    IL_0026
 }
   finally
@@ -1290,7 +1292,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter)
 
             CompileAndVerify(compilation, expectedOutput:="Inside SyncLock.")
@@ -1315,7 +1317,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2)
 
             CompileAndVerify(compilation, expectedOutput:="Inside SyncLock.")
@@ -1340,7 +1342,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2)
 
@@ -1370,7 +1372,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit)
 
             AssertTheseEmitDiagnostics(compilation, <expected>
@@ -1399,7 +1401,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit)
@@ -1433,7 +1435,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.MakeTypeMissing(WellKnownType.System_Threading_Monitor)
 
             AssertTheseEmitDiagnostics(compilation, <expected>

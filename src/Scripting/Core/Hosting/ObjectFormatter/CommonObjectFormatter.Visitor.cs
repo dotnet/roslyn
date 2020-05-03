@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -7,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Microsoft.Cci;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
@@ -369,8 +372,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                         rootHidden = browsable.State == DebuggerBrowsableState.RootHidden;
                     }
 
-                    FieldInfo field = member as FieldInfo;
-                    if (field != null)
+                    if (member is FieldInfo field)
                     {
                         if (!(includeNonPublic || ignoreVisibility || field.IsPublic || field.IsFamily || field.IsFamilyOrAssembly))
                         {
@@ -537,8 +539,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             private void FormatCollectionHeader(Builder result, ICollection collection)
             {
-                Array array = collection as Array;
-                if (array != null)
+                if (collection is Array array)
                 {
                     result.Append(_formatter.TypeNameFormatter.FormatArrayTypeName(array.GetType(), array, _typeNameOptions));
                     return;
@@ -708,14 +709,48 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             #region Scalars
 
+            private bool IsTuple(object obj)
+            {
+#if NETSTANDARD2_0
+                if (obj is null)
+                {
+                    return false;
+                }
+
+                var type = obj.GetType();
+                if (!type.IsGenericType)
+                {
+                    return false;
+                }
+
+                int backtick = type.FullName.IndexOf('`');
+                if (backtick < 0)
+                {
+                    return false;
+                }
+
+                var nonGenericName = type.FullName[0..backtick];
+                return nonGenericName == "System.ValueTuple" || nonGenericName == "System.Tuple";
+#else
+                return obj is ITuple;
+#endif
+            }
+
             private void ObjectToString(Builder result, object obj)
             {
                 try
                 {
                     string str = obj.ToString();
-                    result.Append('[');
-                    result.Append(str);
-                    result.Append(']');
+                    if (IsTuple(obj))
+                    {
+                        result.Append(str);
+                    }
+                    else
+                    {
+                        result.Append('[');
+                        result.Append(str);
+                        result.Append(']');
+                    }
                 }
                 catch (Exception e)
                 {
@@ -729,7 +764,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             /// <summary>
             /// Evaluate a format string with possible member references enclosed in braces. 
-            /// E.g. "foo = {GetFooString(),nq}, bar = {Bar}".
+            /// E.g. "goo = {GetGooString(),nq}, bar = {Bar}".
             /// </summary>
             /// <remarks>
             /// Although in theory any expression is allowed to be embedded in the string such behavior is in practice fundamentally broken.

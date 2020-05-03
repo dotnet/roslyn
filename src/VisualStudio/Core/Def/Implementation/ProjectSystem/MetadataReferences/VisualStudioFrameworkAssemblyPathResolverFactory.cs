@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Versioning;
@@ -17,28 +18,29 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     [ExportWorkspaceServiceFactory(typeof(IFrameworkAssemblyPathResolver), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudiorFrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
+    internal sealed class VisualStudioFrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
-        public VisualStudiorFrameworkAssemblyPathResolverFactory(SVsServiceProvider serviceProvider)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioFrameworkAssemblyPathResolverFactory(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
         {
+            _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new Service(workspaceServices.Workspace as VisualStudioWorkspace, _serviceProvider);
-        }
+            => new Service(_threadingContext, workspaceServices.Workspace as VisualStudioWorkspace, _serviceProvider);
 
         private sealed class Service : ForegroundThreadAffinitizedObject, IFrameworkAssemblyPathResolver
         {
             private readonly VisualStudioWorkspace _workspace;
             private readonly IServiceProvider _serviceProvider;
 
-            public Service(VisualStudioWorkspace workspace, IServiceProvider serviceProvider)
-                : base(assertIsForeground: false)
+            public Service(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IServiceProvider serviceProvider)
+                : base(threadingContext, assertIsForeground: false)
             {
                 _workspace = workspace;
                 _serviceProvider = serviceProvider;
@@ -116,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return null;
                 }
 
-                IVsHierarchy hierarchy = _workspace.GetHierarchy(projectId);
+                var hierarchy = _workspace.GetHierarchy(projectId);
                 if (hierarchy == null ||
                     !hierarchy.TryGetProperty((__VSHPROPID)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out string targetMoniker) ||
                     targetMoniker == null)
@@ -160,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 catch (InvalidOperationException)
                 {
                     // VsTargetFrameworkProvider throws InvalidOperationException in the 
-                    // some cases (like when targetting packs are missing).  In that case
+                    // some cases (like when targeting packs are missing).  In that case
                     // we can't resolve this path.
                     return null;
                 }

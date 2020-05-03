@@ -1,16 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class ProjectExtensions
+    internal static partial class ProjectExtensions
     {
         public static bool IsFromPrimaryBranch(this Project project)
-        {
-            return project.Solution.BranchId == project.Solution.Workspace.PrimaryBranchId;
-        }
+            => project.Solution.BranchId == project.Solution.Workspace.PrimaryBranchId;
 
         public static async Task<bool> IsForkedProjectWithSemanticChangesAsync(this Project project, CancellationToken cancellationToken)
         {
@@ -31,12 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return !semanticVersion.Equals(currentSemanticVersion);
         }
 
-        public static async Task<VersionStamp> GetVersionAsync(this Project project, CancellationToken cancellationToken)
-        {
-            var version = project.Version;
-            var latestVersion = await project.GetLatestDocumentVersionAsync(cancellationToken).ConfigureAwait(false);
-
-            return version.GetNewerVersion(latestVersion);
-        }
+        internal static Project WithSolutionOptions(this Project project, OptionSet options)
+            => project.Solution.WithOptions(options).GetProject(project.Id)!;
     }
 }

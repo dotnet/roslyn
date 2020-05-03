@@ -4,20 +4,19 @@
     x:Uid="CSharpOptionsFormattingOptionPageControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options;assembly=Microsoft.VisualStudio.LanguageServices.Implementation"
-    xmlns:formatting="clr-namespace:Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting"
-    xmlns:csvs="clr-namespace:Microsoft.VisualStudio.LanguageServices.CSharp"
+    xmlns:localOptions="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options"
+    xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.CSharp.Options"
     mc:Ignorable="d" d:DesignHeight="279" d:DesignWidth="514">
-    <ScrollViewer x:Uid="ScrollViewer_1" VerticalScrollBarVisibility="Auto">
-        <StackPanel x:Uid="StackPanel_1">
-            <GroupBox x:Uid="GroupBox_1" Header="General">
-                <StackPanel x:Uid="StackPanel_2">
-                    <CheckBox x:Name="FormatWhenTypingCheckBox" x:Uid="FormatWhenTypingCheckBox" 
-                              Checked="FormatWhenTypingCheckBox_Checked" 
-                              Unchecked="FormatWhenTypingCheckBox_Unchecked"/>
-                    <StackPanel Margin="15, 0, 0, 0">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <localOptions:CodeStyleNoticeTextBlock Margin="5 0 5 0" />
+            <GroupBox x:Uid="GroupBox_1" Header="{x:Static local:FormattingGeneralOptionPageStrings.General}" Margin="0 5 0 0 ">
+                <StackPanel>
+                    <CheckBox x:Name="FormatWhenTypingCheckBox" x:Uid="FormatWhenTypingCheckBox" />
+                    <StackPanel Margin="15, 0, 0, 0" IsEnabled="{Binding ElementName=FormatWhenTypingCheckBox, Path=IsChecked}">
                         <CheckBox x:Name="FormatOnSemicolonCheckBox" x:Uid="FormatOnSemicolonCheckBox" />
                         <CheckBox x:Name="FormatOnCloseBraceCheckBox" x:Uid="FormatOnCloseBraceCheckBox" />
                     </StackPanel>

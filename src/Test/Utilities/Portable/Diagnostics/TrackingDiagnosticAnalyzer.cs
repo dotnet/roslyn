@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         #region Analysis
 
         private static readonly Regex s_omittedSyntaxKindRegex =
-            new Regex(@"None|Trivia|Token|Keyword|List|Xml|Cref|Compilation|Namespace|Class|Struct|Enum|Interface|Delegate|Field|Property|Indexer|Event|Operator|Constructor|Access|Incomplete|Attribute|Filter|InterpolatedString|TupleType|TupleElement|TupleExpression.*");
+            new Regex(@"None|Trivia|Token|Keyword|List|Xml|Cref|Compilation|Namespace|Class|Struct|Enum|Interface|Delegate|Field|Property|Indexer|Event|Operator|Constructor|Access|Incomplete|Attribute|Filter|InterpolatedString");
 
         private bool FilterByAbstractName(Entry entry, string abstractMemberName)
         {
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void VerifyAnalyzeSymbolCalledForAllSymbolKinds()
         {
-            var expectedSymbolKinds = new[] 
+            var expectedSymbolKinds = new[]
             {
                 SymbolKind.Event, SymbolKind.Field, SymbolKind.Method, SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Parameter, SymbolKind.Property
             };
@@ -89,10 +91,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return !s_omittedSyntaxKindRegex.IsMatch(syntaxKind.ToString());
         }
 
-        public void VerifyAnalyzeNodeCalledForAllSyntaxKinds(HashSet<TLanguageKindEnum> syntaxKindsPatterns)
+        public void VerifyAnalyzeNodeCalledForAllSyntaxKinds(HashSet<TLanguageKindEnum> expectedMissingSyntaxKinds)
         {
             var expectedSyntaxKinds = AllSyntaxKinds.Where(IsAnalyzeNodeSupported);
-            var actualSyntaxKinds = _callLog.Where(a => FilterByAbstractName(a, "SyntaxNode")).Select(e => e.SyntaxKind).Concat(syntaxKindsPatterns).Distinct();
+            var actualSyntaxKinds = new HashSet<TLanguageKindEnum>(_callLog.Where(a => FilterByAbstractName(a, "SyntaxNode")).Select(e => e.SyntaxKind));
+            var savedSyntaxKindsPatterns = new HashSet<TLanguageKindEnum>(expectedMissingSyntaxKinds);
+            expectedMissingSyntaxKinds.IntersectWith(actualSyntaxKinds);
+            Assert.True(expectedMissingSyntaxKinds.Count == 0, "AllInOne test contains ignored SyntaxKinds: " + string.Join(", ", expectedMissingSyntaxKinds));
+            actualSyntaxKinds.UnionWith(savedSyntaxKindsPatterns);
             AssertIsSuperset(expectedSyntaxKinds, actualSyntaxKinds);
         }
 
@@ -106,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             const MethodKind InvalidMethodKind = (MethodKind)(-1);
             var expectedArguments = new[]
             {
-                new { SymbolKind = SymbolKind.Event,  MethodKind = InvalidMethodKind, ReturnsVoid = false }, // C# only
+                new { SymbolKind = SymbolKind.Event,  MethodKind = InvalidMethodKind, ReturnsVoid = false },
                 new { SymbolKind = SymbolKind.Field,  MethodKind = InvalidMethodKind, ReturnsVoid = false },
                 new { SymbolKind = SymbolKind.Method, MethodKind = MethodKind.Constructor, ReturnsVoid = true },
                 new { SymbolKind = SymbolKind.Method, MethodKind = MethodKind.Conversion, ReturnsVoid = false },
@@ -122,6 +128,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 new { SymbolKind = SymbolKind.Method, MethodKind = MethodKind.StaticConstructor, ReturnsVoid = true },
                 new { SymbolKind = SymbolKind.Method, MethodKind = MethodKind.UserDefinedOperator, ReturnsVoid = false },
                 new { SymbolKind = SymbolKind.Property, MethodKind = InvalidMethodKind, ReturnsVoid = false },
+                new { SymbolKind = SymbolKind.NamedType, MethodKind = InvalidMethodKind, ReturnsVoid = false },
+                new { SymbolKind = SymbolKind.Namespace, MethodKind = InvalidMethodKind, ReturnsVoid = false }
             }.AsEnumerable();
 
             if (symbolKindsWithNoCodeBlocks != null)

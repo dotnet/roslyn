@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -63,12 +67,12 @@ namespace Microsoft.CodeAnalysis
             this.ComputeChangeRecords();
             var reducedChanges = this.ReduceChanges(_changes);
 
-            return reducedChanges.Select(c => new TextChange(c.Range.Span, c.NewText)).ToList();
+            return reducedChanges.Select(c => new TextChange(c.Range.Span, c.NewText!)).ToList();
         }
 
-        internal static IList<TextSpan> GetPossiblyDifferentTextSpans(SyntaxTree before, SyntaxTree after)
+        internal static IList<TextSpan> GetPossiblyDifferentTextSpans(SyntaxTree? before, SyntaxTree? after)
         {
-            if (before == after)
+            if (object.ReferenceEquals(before, after))
             {
                 // They're the same, so nothing changed.
                 return SpecializedCollections.EmptyList<TextSpan>();
@@ -76,7 +80,7 @@ namespace Microsoft.CodeAnalysis
             else if (before == null)
             {
                 // The tree is completely new, everything has changed.
-                return new[] { new TextSpan(0, after.GetText().Length) };
+                return new[] { new TextSpan(0, after!.GetText().Length) };
             }
             else if (after == null)
             {
@@ -336,7 +340,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void FindBestMatch(Stack<SyntaxNodeOrToken> stack, SyntaxNodeOrToken node, out int index, out int similarity, int startIndex = 0)
+        private void FindBestMatch(Stack<SyntaxNodeOrToken> stack, in SyntaxNodeOrToken node, out int index, out int similarity, int startIndex = 0)
         {
             index = -1;
             similarity = -1;
@@ -419,7 +423,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private int GetSimilarity(SyntaxNodeOrToken node1, SyntaxNodeOrToken node2)
+        private int GetSimilarity(in SyntaxNodeOrToken node1, in SyntaxNodeOrToken node2)
         {
             // count the characters in the common/identical nodes
             int w = 0;
@@ -439,16 +443,19 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var tr in node1.GetLeadingTrivia())
                 {
+                    Debug.Assert(tr.UnderlyingNode is object);
                     _nodeSimilaritySet.Add(tr.UnderlyingNode);
                 }
 
                 foreach (var tr in node1.GetTrailingTrivia())
                 {
+                    Debug.Assert(tr.UnderlyingNode is object);
                     _nodeSimilaritySet.Add(tr.UnderlyingNode);
                 }
 
                 foreach (var tr in node2.GetLeadingTrivia())
                 {
+                    Debug.Assert(tr.UnderlyingNode is object);
                     if (_nodeSimilaritySet.Contains(tr.UnderlyingNode))
                     {
                         w += tr.FullSpan.Length;
@@ -457,6 +464,7 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var tr in node2.GetTrailingTrivia())
                 {
+                    Debug.Assert(tr.UnderlyingNode is object);
                     if (_nodeSimilaritySet.Contains(tr.UnderlyingNode))
                     {
                         w += tr.FullSpan.Length;
@@ -467,6 +475,7 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var n1 in node1.ChildNodesAndTokens())
                 {
+                    Debug.Assert(n1.UnderlyingNode is object);
                     _nodeSimilaritySet.Add(n1.UnderlyingNode);
 
                     if (n1.IsToken)
@@ -477,6 +486,7 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var n2 in node2.ChildNodesAndTokens())
                 {
+                    Debug.Assert(n2.UnderlyingNode is object);
                     if (_nodeSimilaritySet.Contains(n2.UnderlyingNode))
                     {
                         w += n2.FullSpan.Length;
@@ -495,23 +505,23 @@ namespace Microsoft.CodeAnalysis
             return w;
         }
 
-        private static bool AreIdentical(SyntaxNodeOrToken node1, SyntaxNodeOrToken node2)
+        private static bool AreIdentical(in SyntaxNodeOrToken node1, in SyntaxNodeOrToken node2)
         {
             return node1.UnderlyingNode == node2.UnderlyingNode;
         }
 
-        private static bool AreSimilar(SyntaxNodeOrToken node1, SyntaxNodeOrToken node2)
+        private static bool AreSimilar(in SyntaxNodeOrToken node1, in SyntaxNodeOrToken node2)
         {
             return node1.RawKind == node2.RawKind;
         }
 
-        private struct ChangeRecord
+        private readonly struct ChangeRecord
         {
             public readonly TextChangeRange Range;
-            public readonly Stack<SyntaxNodeOrToken> OldNodes;
-            public readonly Stack<SyntaxNodeOrToken> NewNodes;
+            public readonly Queue<SyntaxNodeOrToken>? OldNodes;
+            public readonly Queue<SyntaxNodeOrToken>? NewNodes;
 
-            internal ChangeRecord(TextChangeRange range, Stack<SyntaxNodeOrToken> oldNodes, Stack<SyntaxNodeOrToken> newNodes)
+            internal ChangeRecord(TextChangeRange range, Queue<SyntaxNodeOrToken>? oldNodes, Queue<SyntaxNodeOrToken>? newNodes)
             {
                 this.Range = range;
                 this.OldNodes = oldNodes;
@@ -529,13 +539,27 @@ namespace Microsoft.CodeAnalysis
 
         private void RecordReplaceOldWithNew(int oldNodeCount, int newNodeCount)
         {
-            var oldSpan = GetSpan(_oldNodes, 0, oldNodeCount);
-            var removedNodes = CopyFirst(_oldNodes, oldNodeCount);
-            RemoveFirst(_oldNodes, oldNodeCount);
-            var newSpan = GetSpan(_newNodes, 0, newNodeCount);
-            var insertedNodes = CopyFirst(_newNodes, newNodeCount);
-            RemoveFirst(_newNodes, newNodeCount);
-            RecordChange(new ChangeRecord(new TextChangeRange(oldSpan, newSpan.Length), removedNodes, insertedNodes));
+            if (oldNodeCount == 1 && newNodeCount == 1)
+            {
+                // Avoid creating a Queue<T> which we immediately discard in the most common case for old/new counts
+                var removedNode = _oldNodes.Pop();
+                var oldSpan = removedNode.FullSpan;
+
+                var insertedNode = _newNodes.Pop();
+                var newSpan = insertedNode.FullSpan;
+
+                RecordChange(new TextChangeRange(oldSpan, newSpan.Length), removedNode, insertedNode);
+            }
+            else
+            {
+                var oldSpan = GetSpan(_oldNodes, 0, oldNodeCount);
+                var removedNodes = CopyFirst(_oldNodes, oldNodeCount);
+                RemoveFirst(_oldNodes, oldNodeCount);
+                var newSpan = GetSpan(_newNodes, 0, newNodeCount);
+                var insertedNodes = CopyFirst(_newNodes, newNodeCount);
+                RemoveFirst(_newNodes, newNodeCount);
+                RecordChange(new ChangeRecord(new TextChangeRange(oldSpan, newSpan.Length), removedNodes, insertedNodes));
+            }
         }
 
         private void RecordInsertNew(int newNodeCount)
@@ -568,6 +592,37 @@ namespace Microsoft.CodeAnalysis
             _changes.Add(change);
         }
 
+        private void RecordChange(TextChangeRange textChangeRange, in SyntaxNodeOrToken removedNode, SyntaxNodeOrToken insertedNode)
+        {
+            if (_changes.Count > 0)
+            {
+                var last = _changes[_changes.Count - 1];
+                if (last.Range.Span.End == textChangeRange.Span.Start)
+                {
+                    // merge changes...
+                    last.OldNodes?.Enqueue(removedNode);
+                    last.NewNodes?.Enqueue(insertedNode);
+                    _changes[_changes.Count - 1] = new ChangeRecord(
+                        new TextChangeRange(new TextSpan(last.Range.Span.Start, last.Range.Span.Length + textChangeRange.Span.Length), last.Range.NewLength + textChangeRange.NewLength),
+                        last.OldNodes ?? CreateQueue(removedNode),
+                        last.NewNodes ?? CreateQueue(insertedNode));
+                    return;
+                }
+
+                Debug.Assert(textChangeRange.Span.Start >= last.Range.Span.End);
+            }
+
+            _changes.Add(new ChangeRecord(textChangeRange, CreateQueue(removedNode), CreateQueue(insertedNode)));
+
+            // Local Functions
+            Queue<SyntaxNodeOrToken> CreateQueue(SyntaxNodeOrToken nodeOrToken)
+            {
+                var queue = new Queue<SyntaxNodeOrToken>();
+                queue.Enqueue(nodeOrToken);
+                return queue;
+            }
+        }
+
         private static TextSpan GetSpan(Stack<SyntaxNodeOrToken> stack, int first, int length)
         {
             int start = -1, end = -1, i = 0;
@@ -593,37 +648,73 @@ namespace Microsoft.CodeAnalysis
             return TextSpan.FromBounds(start, end);
         }
 
-        private static Stack<SyntaxNodeOrToken> Combine(Stack<SyntaxNodeOrToken> first, Stack<SyntaxNodeOrToken> next)
+        private static TextSpan GetSpan(Queue<SyntaxNodeOrToken> queue, int first, int length)
         {
-            if (first == null)
+            int start = -1, end = -1, i = 0;
+            foreach (var n in queue)
+            {
+                if (i == first)
+                {
+                    start = n.Position;
+                }
+
+                if (i == first + length - 1)
+                {
+                    end = n.EndPosition;
+                    break;
+                }
+
+                i++;
+            }
+
+            Debug.Assert(start >= 0);
+            Debug.Assert(end >= 0);
+
+            return TextSpan.FromBounds(start, end);
+        }
+
+        private static Queue<SyntaxNodeOrToken>? Combine(Queue<SyntaxNodeOrToken>? first, Queue<SyntaxNodeOrToken>? next)
+        {
+            if (first == null || first.Count == 0)
             {
                 return next;
             }
 
-            if (next == null)
+            if (next == null || next.Count == 0)
             {
                 return first;
             }
 
-            var nodes = ToArray(first, first.Count);
-            for (int i = 0; i < nodes.Length; i++)
+            foreach (var nodeOrToken in next)
             {
-                next.Push(nodes[i]);
+                first.Enqueue(nodeOrToken);
             }
 
-            return next;
+            return first;
         }
 
-        private static Stack<SyntaxNodeOrToken> CopyFirst(Stack<SyntaxNodeOrToken> stack, int n)
+        private static Queue<SyntaxNodeOrToken>? CopyFirst(Stack<SyntaxNodeOrToken> stack, int n)
         {
             if (n == 0)
             {
                 return null;
             }
 
-            var nodes = ToArray(stack, n);
-            var newStack = new Stack<SyntaxNodeOrToken>(nodes);
-            return newStack;
+            var queue = new Queue<SyntaxNodeOrToken>(n);
+
+            int remaining = n;
+            foreach (var node in stack)
+            {
+                if (remaining == 0)
+                {
+                    break;
+                }
+
+                queue.Enqueue(node);
+                remaining--;
+            }
+
+            return queue;
         }
 
         private static SyntaxNodeOrToken[] ToArray(Stack<SyntaxNodeOrToken> stack, int n)
@@ -651,12 +742,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private struct ChangeRangeWithText
+        private readonly struct ChangeRangeWithText
         {
             public readonly TextChangeRange Range;
-            public readonly string NewText;
+            public readonly string? NewText;
 
-            public ChangeRangeWithText(TextChangeRange range, string newText)
+            public ChangeRangeWithText(TextChangeRange range, string? newText)
             {
                 this.Range = range;
                 this.NewText = newText;
@@ -744,30 +835,30 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static string GetText(Stack<SyntaxNodeOrToken> stack)
+        private static string GetText(Queue<SyntaxNodeOrToken>? queue)
         {
-            if (stack == null || stack.Count == 0)
+            if (queue == null || queue.Count == 0)
             {
                 return string.Empty;
             }
 
-            var span = GetSpan(stack, 0, stack.Count);
+            var span = GetSpan(queue, 0, queue.Count);
             var builder = new StringBuilder(span.Length);
 
-            CopyText(stack, builder);
+            CopyText(queue, builder);
 
             return builder.ToString();
         }
 
-        private static void CopyText(Stack<SyntaxNodeOrToken> stack, StringBuilder builder)
+        private static void CopyText(Queue<SyntaxNodeOrToken>? queue, StringBuilder builder)
         {
             builder.Length = 0;
 
-            if (stack != null && stack.Count > 0)
+            if (queue != null && queue.Count > 0)
             {
                 var writer = new System.IO.StringWriter(builder);
 
-                foreach (var n in stack)
+                foreach (var n in queue)
                 {
                     n.WriteTo(writer);
                 }

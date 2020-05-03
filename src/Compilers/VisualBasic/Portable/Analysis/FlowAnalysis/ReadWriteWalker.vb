@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -19,7 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             ByRef writtenInside As IEnumerable(Of Symbol),
                                             ByRef readOutside As IEnumerable(Of Symbol),
                                             ByRef writtenOutside As IEnumerable(Of Symbol),
-                                            ByRef captured As IEnumerable(Of Symbol))
+                                            ByRef captured As IEnumerable(Of Symbol),
+                                            ByRef capturedInside As IEnumerable(Of Symbol),
+                                            ByRef capturedOutside As IEnumerable(Of Symbol))
 
             Dim walker = New ReadWriteWalker(info, region)
             Try
@@ -29,12 +33,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     readOutside = walker._readOutside
                     writtenOutside = walker._writtenOutside
                     captured = walker._captured
+                    capturedInside = walker._capturedInside
+                    capturedOutside = walker._capturedOutside
                 Else
                     readInside = Enumerable.Empty(Of Symbol)()
                     writtenInside = readInside
                     readOutside = readInside
                     writtenOutside = readInside
                     captured = readInside
+                    capturedInside = readInside
+                    capturedOutside = readInside
                 End If
             Finally
                 walker.Free()
@@ -46,6 +54,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _readOutside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
         Private ReadOnly _writtenOutside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
         Private ReadOnly _captured As HashSet(Of Symbol) = New HashSet(Of Symbol)()
+        Private ReadOnly _capturedInside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
+        Private ReadOnly _capturedOutside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
+
         Private _currentMethodOrLambda As Symbol
         Private _currentQueryLambda As BoundQueryLambda
 
@@ -83,18 +94,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        ' range variables are only returned in the captured set if inside the region
         Private Sub NoteCaptured(variable As Symbol)
-            If variable.Kind <> SymbolKind.RangeVariable Then
+            If _regionPlace = RegionPlace.Inside Then
+                _capturedInside.Add(variable)
                 _captured.Add(variable)
-            Else
-                Select Case Me._regionPlace
-                    Case RegionPlace.Before, RegionPlace.After
-                        ' range variables are only returned in the captured set if inside the region
-                    Case RegionPlace.Inside
-                        _captured.Add(variable)
-                    Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(Me._regionPlace)
-                End Select
+            ElseIf variable.Kind <> SymbolKind.RangeVariable Then
+                _capturedOutside.Add(variable)
+                _captured.Add(variable)
             End If
         End Sub
 

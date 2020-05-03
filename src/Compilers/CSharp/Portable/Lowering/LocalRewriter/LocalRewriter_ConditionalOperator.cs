@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -24,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rewrittenCondition.ConstantValue == null)
             {
-                return node.Update(rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
+                return node.Update(node.IsRef, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
             }
 
             return RewriteConditionalOperator(
@@ -33,7 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence,
                 rewrittenAlternative,
                 node.ConstantValueOpt,
-                node.Type);
+                node.Type,
+                node.IsRef);
         }
 
         private static BoundExpression RewriteConditionalOperator(
@@ -41,22 +46,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenCondition,
             BoundExpression rewrittenConsequence,
             BoundExpression rewrittenAlternative,
-            ConstantValue constantValueOpt,
-            TypeSymbol rewrittenType)
+            ConstantValue? constantValueOpt,
+            TypeSymbol rewrittenType,
+            bool isRef)
         {
-            ConstantValue conditionConstantValue = rewrittenCondition.ConstantValue;
+            ConstantValue? conditionConstantValue = rewrittenCondition.ConstantValue;
             if (conditionConstantValue == ConstantValue.True)
             {
-                return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenConsequence);
+                return rewrittenConsequence;
             }
             else if (conditionConstantValue == ConstantValue.False)
             {
-                return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenAlternative);
+                return rewrittenAlternative;
             }
             else
             {
                 return new BoundConditionalOperator(
                     syntax,
+                    isRef,
                     rewrittenCondition,
                     rewrittenConsequence,
                     rewrittenAlternative,

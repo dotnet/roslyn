@@ -1,112 +1,102 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    // TODO: Remove. This is only needed to support Solution Explorer Analyzer node population. 
+    // Analyzers should not be loaded in devenv process (see https://github.com/dotnet/roslyn/issues/43008).
     internal sealed class VisualStudioAnalyzer : IDisposable
     {
-        private readonly string _fullPath;
-        private readonly FileChangeTracker _tracker;
-        private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly ProjectId _projectId;
-        private readonly Workspace _workspace;
-        private readonly IAnalyzerAssemblyLoader _loader;
+        private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly string _language;
+        private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
 
-        private AnalyzerReference _analyzerReference;
-        private List<DiagnosticData> _analyzerLoadErrors;
+        // these 2 are mutable states that must be guarded under the _gate.
+        private readonly object _gate = new object();
+        private AnalyzerReference? _analyzerReference;
+        private ImmutableArray<DiagnosticData> _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
 
-        public event EventHandler UpdatedOnDisk;
-
-        public VisualStudioAnalyzer(string fullPath, IVsFileChangeEx fileChangeService, HostDiagnosticUpdateSource hostDiagnosticUpdateSource, ProjectId projectId, Workspace workspace, IAnalyzerAssemblyLoader loader, string language)
+        public VisualStudioAnalyzer(string fullPath, HostDiagnosticUpdateSource hostDiagnosticUpdateSource, ProjectId projectId, string language)
         {
-            _fullPath = fullPath;
-            _tracker = new FileChangeTracker(fileChangeService, fullPath);
-            _tracker.UpdatedOnDisk += OnUpdatedOnDisk;
-            _tracker.StartFileChangeListeningAsync();
-            _tracker.EnsureSubscription();
+            FullPath = fullPath;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _projectId = projectId;
-            _workspace = workspace;
-            _loader = loader;
             _language = language;
+
+            // Shadow copy analyzer files coming from packages to avoid locking the files in NuGet cache.
+            _analyzerAssemblyLoader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"));
         }
 
-        public string FullPath
-        {
-            get { return _fullPath; }
-        }
-
-        public bool HasLoadErrors
-        {
-            get { return _analyzerLoadErrors != null && _analyzerLoadErrors.Count > 0; }
-        }
+        public string FullPath { get; }
 
         public AnalyzerReference GetReference()
         {
-            if (_analyzerReference == null)
+            lock (_gate)
             {
-                if (File.Exists(_fullPath))
+                if (_analyzerReference == null)
                 {
-                    _analyzerReference = new AnalyzerFileReference(_fullPath, _loader);
-                    ((AnalyzerFileReference)_analyzerReference).AnalyzerLoadFailed += OnAnalyzerLoadError;
-                }
-                else
-                {
-                    _analyzerReference = new UnresolvedAnalyzerReference(_fullPath);
-                }
-            }
+                    // TODO: ensure the file watcher is subscribed
+                    // (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/661546)
 
-            return _analyzerReference;
+                    var analyzerFileReference = new AnalyzerFileReference(FullPath, _analyzerAssemblyLoader);
+                    analyzerFileReference.AnalyzerLoadFailed += OnAnalyzerLoadError;
+                    _analyzerReference = analyzerFileReference;
+                }
+
+                return _analyzerReference;
+            }
         }
 
         private void OnAnalyzerLoadError(object sender, AnalyzerLoadFailureEventArgs e)
         {
-            var data = AnalyzerHelper.CreateAnalyzerLoadFailureDiagnostic(_workspace, _projectId, _language, _fullPath, e);
+            var data = AnalyzerHelper.CreateAnalyzerLoadFailureDiagnostic(e, FullPath, _projectId, _language);
 
-            _analyzerLoadErrors = _analyzerLoadErrors ?? new List<DiagnosticData>();
-            _analyzerLoadErrors.Add(data);
-
-            _hostDiagnosticUpdateSource.UpdateDiagnosticsForProject(_projectId, this, _analyzerLoadErrors);
+            lock (_gate)
+            {
+                _analyzerLoadErrors = _analyzerLoadErrors.Add(data);
+                _hostDiagnosticUpdateSource.UpdateDiagnosticsForProject(_projectId, this, _analyzerLoadErrors);
+            }
         }
 
         public void Dispose()
         {
-            Reset();
+            ResetReferenceAndErrors(out var reference, out var loadErrors);
 
-            _tracker.Dispose();
-            _tracker.UpdatedOnDisk -= OnUpdatedOnDisk;
-        }
-
-        public void Reset()
-        {
-            var analyzerFileReference = _analyzerReference as AnalyzerFileReference;
-            if (analyzerFileReference != null)
+            if (reference is AnalyzerFileReference fileReference)
             {
-                analyzerFileReference.AnalyzerLoadFailed -= OnAnalyzerLoadError;
+                fileReference.AnalyzerLoadFailed -= OnAnalyzerLoadError;
 
-                if (_analyzerLoadErrors != null && _analyzerLoadErrors.Count > 0)
+                if (!loadErrors.IsEmpty)
                 {
                     _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(_projectId, this);
                 }
 
-                _hostDiagnosticUpdateSource.ClearAnalyzerReferenceDiagnostics(analyzerFileReference, _language, _projectId);
+                _hostDiagnosticUpdateSource.ClearAnalyzerReferenceDiagnostics(fileReference, _language, _projectId);
             }
-
-            _analyzerLoadErrors = null;
-            _analyzerReference = null;
         }
 
-        private void OnUpdatedOnDisk(object sender, EventArgs e)
+        private void ResetReferenceAndErrors(out AnalyzerReference? reference, out ImmutableArray<DiagnosticData> loadErrors)
         {
-            UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
+            lock (_gate)
+            {
+                loadErrors = _analyzerLoadErrors;
+                reference = _analyzerReference;
+
+                _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
+                _analyzerReference = null;
+            }
         }
     }
 }

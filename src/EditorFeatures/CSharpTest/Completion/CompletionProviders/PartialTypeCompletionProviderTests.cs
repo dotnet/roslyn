@@ -1,10 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
@@ -15,10 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new PartialTypeCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(PartialTypeCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRecommendTypesWithoutPartial()
@@ -172,7 +172,7 @@ partial struct $$";
             var text = @"
 namespace N
 {
-    partial class Foo { }
+    partial class Goo { }
 }
 
 namespace N
@@ -180,7 +180,7 @@ namespace N
     partial class $$
 }";
 
-            await VerifyItemExistsAsync(text, "Foo");
+            await VerifyItemExistsAsync(text, "Goo");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -189,7 +189,7 @@ namespace N
             var text = @"
 namespace N
 {
-    partial class Foo { }
+    partial class Goo { }
 }
 
 partial class $$";

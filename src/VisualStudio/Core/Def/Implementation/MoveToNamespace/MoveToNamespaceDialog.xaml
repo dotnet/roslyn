@@ -1,0 +1,91 @@
+﻿<vs:DialogWindow x:Uid="MoveToNamespaceDialog"
+             x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace.MoveToNamespaceDialog"
+             x:ClassModifier="internal"
+             x:Name="dialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d"
+             MinWidth="400" MinHeight="166"
+             Width="400" Height="166"
+             Title="{Binding ElementName=dialog, Path=MoveToNamespaceDialogTitle}"
+             ResizeMode="CanResizeWithGrip"
+             ShowInTaskbar="False"
+             HasDialogFrame="True"
+             WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <Thickness x:Key="verticalLabelMargin">0, 0, 0, 5</Thickness>
+        <Thickness x:Key="messageMargin">0, 9, 0, 0</Thickness>
+        <Thickness x:Key="submitButtonSpacingMargin">6, 0, 0, 0</Thickness>
+        <system:Double x:Key="buttonWidth">75</system:Double>
+        <system:Double x:Key="buttonHeight">23</system:Double>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+
+    <Grid Margin="8, 0, 8, 12" x:Name="Root">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="25" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Vertical" Grid.Row="0">
+            <Label x:Uid="NamespaceLabel" 
+                       x:Name="NamespaceLabel"
+                       Margin="{StaticResource verticalLabelMargin}"
+                       Content="{Binding ElementName=dialog, Path=NamespaceLabelText}"
+                       Target="{Binding ElementName=NamespaceTextBox}" />
+            <ComboBox x:Uid="NamespaceBox"
+                          Name="NamespaceBox"
+                          IsEditable="True"
+                          IsReadOnly="False"
+                          AutomationProperties.LabeledBy="{Binding ElementName=NamespaceLabel}"
+                          Text="{Binding NamespaceName, Mode=TwoWay, ValidatesOnDataErrors=True}"
+                          ItemsSource="{Binding AvailableNamespaces, Mode=OneTime}"
+                          BorderThickness="0" 
+                          MaxDropDownHeight="200" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1">
+            <StackPanel Orientation="Horizontal"  
+                        Visibility="{Binding ShowMessage, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        Margin="{StaticResource messageMargin}">
+                <imaging:CrispImage Name="MessageIcon"
+                                    Moniker="{Binding Icon}" 
+                                    Height="16"
+                                    Width="16"
+                                    VerticalAlignment="Top" />
+
+                <vs:LiveTextBlock x:Name="MessageText"
+                           Text="{Binding Message}"
+                           Margin="7, 0, 0, 0" />
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2"
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Bottom"
+                    Orientation="Horizontal">
+            <Button x:Uid="OKButton" 
+                    Name="OKButton"
+                    Content="{Binding ElementName=dialog, Path=OK}" 
+                    Click="OK_Click" 
+                    IsDefault="True"
+                    MinWidth="{StaticResource ResourceKey=buttonWidth}"
+                    MinHeight="{StaticResource ResourceKey=buttonHeight}" 
+                    IsEnabled="{Binding CanSubmit}" />
+            <Button x:Uid="CancelButton" 
+                    Name="CancelButton"
+                    Content="{Binding ElementName=dialog, Path=Cancel}"
+                    Margin="{StaticResource submitButtonSpacingMargin}"
+                    Click="Cancel_Click"
+                    IsCancel="True"
+                    MinWidth="{StaticResource ResourceKey=buttonWidth}"
+                    MinHeight="{StaticResource ResourceKey=buttonHeight}" />
+        </StackPanel>
+    </Grid>
+</vs:DialogWindow>

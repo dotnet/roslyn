@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
@@ -17,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Dim code = "
 Class C
     Dim x = {|span:$$<?xml version=""1.0""?>
-            <foo>
-            </foo>|}
+            <goo>
+            </goo>|}
 End Class
 "
 
@@ -30,36 +32,36 @@ End Class
         Public Async Function TestXmlDocument2() As Task
             Dim code = "
 Class C
-    Dim x = {|span:$$<?xml version=""1.0""?><foo>
-            </foo>|}
+    Dim x = {|span:$$<?xml version=""1.0""?><goo>
+            </goo>|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "<?xml version=""1.0""?><foo> ...", autoCollapse:=False))
+                Region("span", "<?xml version=""1.0""?><goo> ...", autoCollapse:=False))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestXmlLiteral() As Task
             Dim code = "
 Class C
-    Dim x = {|span:$$<foo>
-            </foo>|}
+    Dim x = {|span:$$<goo>
+            </goo>|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "<foo> ...", autoCollapse:=False))
+                Region("span", "<goo> ...", autoCollapse:=False))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestNestedXmlLiteral() As Task
             Dim code = "
 Class C
-    Dim x = <foo>
+    Dim x = <goo>
                 {|span:$$<bar>
                 </bar>|}
-            </foo>
+            </goo>
 End Class
 "
 
@@ -71,26 +73,26 @@ End Class
         Public Async Function TestXmlProcessingInstruction() As Task
             Dim code = "
 Class C
-    Dim x = {|span:$$<?foo
+    Dim x = {|span:$$<?goo
               bar=""baz""?>|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "<?foo ...", autoCollapse:=False))
+                Region("span", "<?goo ...", autoCollapse:=False))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestXmlComment() As Task
             Dim code = "
 Class C
-    Dim x = {|span:$$<!-- Foo
+    Dim x = {|span:$$<!-- Goo
             Bar -->|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "<!-- Foo ...", autoCollapse:=False))
+                Region("span", "<!-- Goo ...", autoCollapse:=False))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
@@ -98,7 +100,7 @@ End Class
             Dim code = "
 Class C
     Dim x = {|span:$$<![CDATA[
-            Foo]]>|}
+            Goo]]>|}
 End Class
 "
 
@@ -110,11 +112,11 @@ End Class
         Public Async Function TestXmlEmbeddedExpression() As Task
             Dim code = "
 Class C
-    Dim x = <foo>
+    Dim x = <goo>
                 {|span:$$<%=
                     From c in ""abc""
                 %>|}
-            </foo>
+            </goo>
 End Class
 "
 
@@ -126,7 +128,7 @@ End Class
         Public Async Function TestDocumentationCommentIsNotOutlined() As Task
             Dim code = "
 ''' $$<summary>
-''' Foo
+''' Goo
 ''' </summary>
 Class C
 End Class

@@ -1,9 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -13,11 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             NamespaceDeclarationSyntax namespaceDeclaration,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
             // add leading comments
-            CSharpStructureHelpers.CollectCommentBlockSpans(namespaceDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(namespaceDeclaration, spans, isMetadataAsSource);
 
             if (!namespaceDeclaration.OpenBraceToken.IsMissing &&
                 !namespaceDeclaration.CloseBraceToken.IsMissing)
@@ -25,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                     namespaceDeclaration,
                     namespaceDeclaration.Name.GetLastToken(includeZeroWidth: true),
+                    compressEmptyLines: false,
                     autoCollapse: false,
                     type: BlockTypes.Namespace,
                     isCollapsible: true));
@@ -38,11 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // add any leading comments before the extern aliases and usings
             if (externsAndUsings.Count > 0)
             {
-                CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), spans);
+                CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), spans, isMetadataAsSource);
             }
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
-                externsAndUsings, autoCollapse: true, 
+                externsAndUsings, compressEmptyLines: false, autoCollapse: true,
                 type: BlockTypes.Imports, isCollapsible: true));
 
             // finally, add any leading comments before the end of the namespace block
@@ -51,11 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 CSharpStructureHelpers.CollectCommentBlockSpans(
                     namespaceDeclaration.CloseBraceToken.LeadingTrivia, spans);
             }
-        }
-
-        protected override bool SupportedInWorkspaceKind(string kind)
-        {
-            return true;
         }
     }
 }

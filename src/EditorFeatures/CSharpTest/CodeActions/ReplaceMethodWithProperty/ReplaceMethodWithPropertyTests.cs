@@ -1,14 +1,14 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]Foo()
+    int [||]Goo()
     {
     }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -68,11 +68,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetFoo() => 0;
+    int [||]GetGoo() => 0;
 }",
 @"class C
 {
-    int Foo { get { return 0; } }
+    int Goo
+    {
+        get
+        {
+            return 0;
+        }
+    }
 }");
         }
 
@@ -82,11 +88,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetFoo();
+    int [||]GetGoo();
 }",
 @"class C
 {
-    int Foo { get; }
+    int Goo { get; }
 }");
         }
 
@@ -96,13 +102,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    public static int [||]GetFoo()
+    public static int [||]GetGoo()
     {
     }
 }",
 @"class C
 {
-    public static int Foo
+    public static int Goo
     {
         get
         {
@@ -118,14 +124,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C
 {
     [A]
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 }",
 @"class C
 {
     [A]
-    int Foo
+    int Goo
     {
         get
         {
@@ -140,22 +146,76 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    // Foo
-    int [||]GetFoo()
+    // Goo
+    int [||]GetGoo()
     {
     }
 }",
 @"class C
 {
-    // Foo
-    int Foo
+    // Goo
+    int Goo
     {
         get
         {
         }
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestMethodWithTrailingTrivia()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+    int [||]GetP();
+    bool M()
+    {
+        return GetP() == 0;
+    }
 }",
-ignoreTrivia: false);
+@"class C
+{
+    int P { get; }
+
+    bool M()
+    {
+        return P == 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestDelegateWithTrailingTrivia()
+        {
+            await TestWithAllCodeStyleOff(
+@"delegate int Mdelegate();
+class C
+{
+    int [||]GetP() => 0;
+
+    void M()
+    {
+        Mdelegate del = new Mdelegate(GetP );
+    }
+}",
+@"delegate int Mdelegate();
+class C
+{
+    int P
+    {
+        get
+        {
+            return 0;
+        }
+    }
+
+    void M()
+    {
+        Mdelegate del = new Mdelegate({|Conflict:P|} );
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -164,7 +224,7 @@ ignoreTrivia: false);
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
         int count;
         foreach (var x in y)
@@ -176,7 +236,7 @@ ignoreTrivia: false);
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -188,18 +248,18 @@ ignoreTrivia: false);
             return count;
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        public async Task TestIfDefMethod()
+        public async Task TestIfDefMethod1()
         {
             await TestWithAllCodeStyleOff(
 @"class C
 {
 #if true
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 #endif
@@ -207,7 +267,7 @@ ignoreTrivia: false);
 @"class C
 {
 #if true
-    int Foo
+    int Goo
     {
         get
         {
@@ -217,26 +277,164 @@ ignoreTrivia: false);
 }");
         }
 
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestIfDefMethod2()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+#if true
+    int [||]GetGoo()
+    {
+    }
+
+    void SetGoo(int val)
+    {
+    }
+#endif
+}",
+@"class C
+{
+#if true
+    int Goo
+    {
+        get
+        {
+        }
+    }
+
+    void SetGoo(int val)
+    {
+    }
+#endif
+}");
+        }
+
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestIfDefMethod3()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+#if true
+    int [||]GetGoo()
+    {
+    }
+
+    void SetGoo(int val)
+    {
+    }
+#endif
+}",
+@"class C
+{
+#if true
+    int Goo
+    {
+        get
+        {
+        }
+
+        set
+        {
+        }
+    }
+#endif
+}", index: 1);
+        }
+
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestIfDefMethod4()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+#if true
+    void SetGoo(int val)
+    {
+    }
+
+    int [||]GetGoo()
+    {
+    }
+#endif
+}",
+@"class C
+{
+#if true
+    void SetGoo(int val)
+    {
+    }
+
+    int Goo
+    {
+        get
+        {
+        }
+    }
+#endif
+}");
+        }
+
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestIfDefMethod5()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+#if true
+    void SetGoo(int val)
+    {
+    }
+
+    int [||]GetGoo()
+    {
+    }
+#endif
+}",
+@"class C
+{
+
+#if true
+
+    int Goo
+    {
+        get
+        {
+        }
+
+        set
+        {
+        }
+    }
+#endif
+}", index: 1);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithTrivia_2()
         {
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    // Foo
-    int [||]GetFoo()
+    // Goo
+    int [||]GetGoo()
     {
     }
-    // SetFoo
-    void SetFoo(int i)
+    // SetGoo
+    void SetGoo(int i)
     {
     }
 }",
 @"class C
 {
-    // Foo
-    // SetFoo
-    int Foo
+    // Goo
+    // SetGoo
+    int Goo
     {
         get
         {
@@ -247,8 +445,7 @@ ignoreTrivia: false);
         }
     }
 }",
-index: 1,
-ignoreTrivia: false);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -257,13 +454,13 @@ ignoreTrivia: false);
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]I.GetFoo()
+    int [||]I.GetGoo()
     {
     }
 }",
 @"class C
 {
-    int I.Foo
+    int I.Goo
     {
         get
         {
@@ -278,23 +475,23 @@ ignoreTrivia: false);
             await TestWithAllCodeStyleOff(
 @"interface I
 {
-    int GetFoo();
+    int GetGoo();
 }
 
 class C : I
 {
-    int [||]I.GetFoo()
+    int [||]I.GetGoo()
     {
     }
 }",
 @"interface I
 {
-    int Foo { get; }
+    int Goo { get; }
 }
 
 class C : I
 {
-    int I.Foo
+    int I.Goo
     {
         get
         {
@@ -309,23 +506,23 @@ class C : I
             await TestWithAllCodeStyleOff(
 @"interface I
 {
-    int [||]GetFoo();
+    int [||]GetGoo();
 }
 
 class C : I
 {
-    int I.GetFoo()
+    int I.GetGoo()
     {
     }
 }",
 @"interface I
 {
-    int Foo { get; }
+    int Goo { get; }
 }
 
 class C : I
 {
-    int I.Foo
+    int I.Goo
     {
         get
         {
@@ -341,7 +538,7 @@ class C : I
 @"class C
 {
     [At[||]tr]
-    int GetFoo()
+    int GetGoo()
     {
     }
 }");
@@ -353,7 +550,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    int GetFoo()
+    int GetGoo()
     {
 [||]
     }
@@ -366,7 +563,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void [||]GetFoo()
+    void [||]GetGoo()
     {
     }
 }");
@@ -378,7 +575,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    async Task [||]GetFoo()
+    async Task [||]GetGoo()
     {
     }
 }");
@@ -390,7 +587,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo<T>()
+    int [||]GetGoo<T>()
     {
     }
 }");
@@ -402,7 +599,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"static class C
 {
-    int [||]GetFoo(this int i)
+    int [||]GetGoo(this int i)
     {
     }
 }");
@@ -414,7 +611,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo(int i)
+    int [||]GetGoo(int i)
     {
     }
 }");
@@ -426,7 +623,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo(int i = 0)
+    int [||]GetGoo(int i = 0)
     {
     }
 }");
@@ -439,7 +636,7 @@ class C : I
 @"class C
 {
     [At[||]tr]
-    int GetFoo()
+    int GetGoo()
     {
     }
 }");
@@ -451,7 +648,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    int GetFoo()
+    int GetGoo()
     {
 [||]
     }
@@ -464,18 +661,18 @@ class C : I
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 
     void Bar()
     {
-        var x = GetFoo();
+        var x = GetGoo();
     }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -484,7 +681,7 @@ class C : I
 
     void Bar()
     {
-        var x = Foo;
+        var x = Goo;
     }
 }");
         }
@@ -495,18 +692,18 @@ class C : I
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 
     void Bar()
     {
-        var x = GetFoo();
+        var x = GetGoo();
     }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -515,7 +712,7 @@ class C : I
 
     void Bar()
     {
-        var x = Foo;
+        var x = Goo;
     }
 }");
         }
@@ -526,18 +723,18 @@ class C : I
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 
     void Bar()
     {
-        var x = this.GetFoo();
+        var x = this.GetGoo();
     }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -546,7 +743,7 @@ class C : I
 
     void Bar()
     {
-        var x = this.Foo;
+        var x = this.Goo;
     }
 }");
         }
@@ -557,19 +754,19 @@ class C : I
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 
     void Bar()
     {
         C x;
-        var v = x?.GetFoo();
+        var v = x?.GetGoo();
     }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -579,7 +776,7 @@ class C : I
     void Bar()
     {
         C x;
-        var v = x?.Foo;
+        var v = x?.Goo;
     }
 }");
         }
@@ -590,18 +787,18 @@ class C : I
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
-        return GetFoo();
+        return GetGoo();
     }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
-            return Foo;
+            return Goo;
         }
     }
 }");
@@ -613,20 +810,20 @@ class C : I
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    public virtual int [||]GetFoo()
+    public virtual int [||]GetGoo()
     {
     }
 }
 
 class D : C
 {
-    public override int GetFoo()
+    public override int GetGoo()
     {
     }
 }",
 @"class C
 {
-    public virtual int Foo
+    public virtual int Goo
     {
         get
         {
@@ -636,7 +833,7 @@ class D : C
 
 class D : C
 {
-    public override int Foo
+    public override int Goo
     {
         get
         {
@@ -653,20 +850,20 @@ class D : C
 
 class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 
     void Bar()
     {
-        Action<int> i = GetFoo;
+        Action<int> i = GetGoo;
     }
 }",
 @"using System;
 
 class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -675,7 +872,7 @@ class C
 
     void Bar()
     {
-        Action<int> i = {|Conflict:Foo|};
+        Action<int> i = {|Conflict:Goo|};
     }
 }");
         }
@@ -727,11 +924,11 @@ class C
 
 class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 
-    void SetFoo(int i)
+    void SetGoo(int i)
     {
     }
 }",
@@ -739,7 +936,7 @@ class C
 
 class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -761,24 +958,24 @@ index: 1);
 
 class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 
-    void SetFoo(int i)
+    void SetGoo(int i)
     {
     }
 
     void Bar()
     {
-        Action<int> i = SetFoo;
+        Action<int> i = SetGoo;
     }
 }",
 @"using System;
 
 class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -791,7 +988,7 @@ class C
 
     void Bar()
     {
-        Action<int> i = {|Conflict:Foo|};
+        Action<int> i = {|Conflict:Goo|};
     }
 }",
 index: 1);
@@ -805,11 +1002,11 @@ index: 1);
 
 class C
 {
-    public int [||]GetFoo()
+    public int [||]GetGoo()
     {
     }
 
-    private void SetFoo(int i)
+    private void SetGoo(int i)
     {
     }
 }",
@@ -817,7 +1014,7 @@ class C
 
 class C
 {
-    public int Foo
+    public int Goo
     {
         get
         {
@@ -839,14 +1036,14 @@ index: 1);
 
 class C
 {
-    int [||]GetFoo() => 0;
-    void SetFoo(int i) => Bar();
+    int [||]GetGoo() => 0;
+    void SetGoo(int i) => Bar();
 }",
 @"using System;
 
 class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -870,24 +1067,24 @@ index: 1);
 
 class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 
-    void SetFoo(int i)
+    void SetGoo(int i)
     {
     }
 
     void Bar()
     {
-        SetFoo(GetFoo() + 1);
+        SetGoo(GetGoo() + 1);
     }
 }",
 @"using System;
 
 class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -900,7 +1097,7 @@ class C
 
     void Bar()
     {
-        Foo = Foo + 1;
+        Goo = Goo + 1;
     }
 }",
 index: 1);
@@ -914,11 +1111,11 @@ index: 1);
 
 class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 
-    void SetFoo(int i)
+    void SetGoo(int i)
     {
         v = i;
     }
@@ -927,7 +1124,7 @@ class C
 
 class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -950,11 +1147,11 @@ index: 1);
 
 class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 
-    void SetFoo(int value)
+    void SetGoo(int value)
     {
         v = value;
     }
@@ -963,7 +1160,7 @@ class C
 
 class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -986,20 +1183,20 @@ index: 1);
 
 class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 
-    void SetFoo(int i)
+    void SetGoo(int i)
     {
-        SetFoo(i - 1);
+        SetGoo(i - 1);
     }
 }",
 @"using System;
 
 class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -1007,7 +1204,7 @@ class C
 
         set
         {
-            Foo = value - 1;
+            Goo = value - 1;
         }
     }
 }",
@@ -1020,20 +1217,20 @@ index: 1);
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    protected virtual int [||]GetFoo()
+    protected virtual int [||]GetGoo()
     {
     }
 }
 
 class D : C
 {
-    protected override int GetFoo()
+    protected override int GetGoo()
     {
     }
 }",
 @"class C
 {
-    protected virtual int Foo
+    protected virtual int Goo
     {
         get
         {
@@ -1043,7 +1240,7 @@ class D : C
 
 class D : C
 {
-    protected override int Foo
+    protected override int Goo
     {
         get
         {
@@ -1059,21 +1256,21 @@ index: 0);
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    protected virtual int [||]GetFoo()
+    protected virtual int [||]GetGoo()
     {
     }
 }
 
 class D : C
 {
-    protected override int GetFoo()
+    protected override int GetGoo()
     {
-        base.GetFoo();
+        base.GetGoo();
     }
 }",
 @"class C
 {
-    protected virtual int Foo
+    protected virtual int Goo
     {
         get
         {
@@ -1083,11 +1280,11 @@ class D : C
 
 class D : C
 {
-    protected override int Foo
+    protected override int Goo
     {
         get
         {
-            base.Foo;
+            base.Goo;
         }
     }
 }",
@@ -1100,23 +1297,23 @@ index: 0);
             await TestWithAllCodeStyleOff(
 @"interface I
 {
-    int [||]GetFoo();
+    int [||]GetGoo();
 }
 
 class C : I
 {
-    public int GetFoo()
+    public int GetGoo()
     {
     }
 }",
 @"interface I
 {
-    int Foo { get; }
+    int Goo { get; }
 }
 
 class C : I
 {
-    public int Foo
+    public int Goo
     {
         get
         {
@@ -1132,20 +1329,20 @@ index: 0);
             await TestWithAllCodeStyleOff(
 @"partial class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
     }
 }
 
 partial class C
 {
-    void SetFoo(int i)
+    void SetGoo(int i)
     {
     }
 }",
 @"partial class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -1171,11 +1368,11 @@ index: 1);
 
 class C
 {
-    int [||]getFoo()
+    int [||]getGoo()
     {
     }
 
-    void setFoo(int i)
+    void setGoo(int i)
     {
     }
 }",
@@ -1183,7 +1380,7 @@ class C
 
 class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -1203,13 +1400,13 @@ index: 1);
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    (int, string) [||]GetFoo()
+    (int, string) [||]GetGoo()
     {
     }
 }",
 @"class C
 {
-    (int, string) Foo
+    (int, string) Goo
     {
         get
         {
@@ -1226,11 +1423,11 @@ index: 1);
 
 class C
 {
-    (int, string) [||]getFoo()
+    (int, string) [||]getGoo()
     {
     }
 
-    void setFoo((int, string) i)
+    void setGoo((int, string) i)
     {
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
@@ -1238,7 +1435,7 @@ class C
 
 class C
 {
-    (int, string) Foo
+    (int, string) Goo
     {
         get
         {
@@ -1260,11 +1457,11 @@ index: 1);
 
 class C
 {
-    (int a, string b) [||]getFoo()
+    (int a, string b) [||]getGoo()
     {
     }
 
-    void setFoo((int a, string b) i)
+    void setGoo((int a, string b) i)
     {
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
@@ -1272,7 +1469,7 @@ class C
 
 class C
 {
-    (int a, string b) Foo
+    (int a, string b) Goo
     {
         get
         {
@@ -1290,22 +1487,20 @@ index: 1);
         public async Task TupleWithDifferentNames_GetAndSet()
         {
             // Cannot refactor tuples with different names together
-            await Assert.ThrowsAsync<Xunit.Sdk.InRangeException>(() =>
-                TestWithAllCodeStyleOff(
+            await TestActionCountAsync(
 @"using System;
 
 class C
 {
-    (int a, string b) [||]getFoo()
+    (int a, string b) [||]getGoo()
     {
     }
 
-    void setFoo((int c, string d) i)
+    void setGoo((int c, string d) i)
     {
     }
 }",
-@"",
-index: 1));
+count: 1, new TestParameters(options: AllCodeStyleOff));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1314,42 +1509,41 @@ index: 1));
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    // Foo
-    int [||]GetFoo()
+    // Goo
+    int [||]GetGoo()
     {
     }
-    // SetFoo
-    void SetFoo(out int i)
+    // SetGoo
+    void SetGoo(out int i)
     {
     }
 
     void Test()
     {
-        SetFoo(out int i);
+        SetGoo(out int i);
     }
 }",
 @"class C
 {
-    // Foo
-    int Foo
+    // Goo
+    int Goo
     {
         get
         {
         }
     }
 
-    // SetFoo
-    void SetFoo(out int i)
+    // SetGoo
+    void SetGoo(out int i)
     {
     }
 
     void Test()
     {
-        SetFoo(out int i);
+        SetGoo(out int i);
     }
 }",
-index: 0,
-ignoreTrivia: false);
+index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1358,25 +1552,25 @@ ignoreTrivia: false);
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    // Foo
-    int [||]GetFoo()
+    // Goo
+    int [||]GetGoo()
     {
     }
-    // SetFoo
-    void SetFoo(int i)
+    // SetGoo
+    void SetGoo(int i)
     {
     }
 
     void Test()
     {
-        SetFoo(out int i);
+        SetGoo(out int i);
     }
 }",
 @"class C
 {
-    // Foo
-    // SetFoo
-    int Foo
+    // Goo
+    // SetGoo
+    int Goo
     {
         get
         {
@@ -1389,11 +1583,10 @@ ignoreTrivia: false);
 
     void Test()
     {
-        {|Conflict:Foo|}(out int i);
+        {|Conflict:Goo|}(out int i);
     }
 }",
-index: 1,
-ignoreTrivia: false);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1402,19 +1595,19 @@ ignoreTrivia: false);
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    // Foo
-    int GetFoo()
+    // Goo
+    int GetGoo()
     {
     }
 
-    // SetFoo
-    void [||]SetFoo(out int i)
+    // SetGoo
+    void [||]SetGoo(out int i)
     {
     }
 
     void Test()
     {
-        SetFoo(out int i);
+        SetGoo(out int i);
     }
 }");
         }
@@ -1425,19 +1618,19 @@ ignoreTrivia: false);
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    // Foo
-    int [||]GetFoo(out int i)
+    // Goo
+    int [||]GetGoo(out int i)
     {
     }
 
-    // SetFoo
-    void SetFoo(out int i, int j)
+    // SetGoo
+    void SetGoo(out int i, int j)
     {
     }
 
     void Test()
     {
-        var y = GetFoo(out int i);
+        var y = GetGoo(out int i);
     }
 }");
         }
@@ -1447,26 +1640,26 @@ ignoreTrivia: false);
         public async Task TestUpdateChainedGet1()
         {
             await TestWithAllCodeStyleOff(
-@"public class Foo
+@"public class Goo
 {
-    public Foo()
+    public Goo()
     {
-        Foo value = GetValue().GetValue();
+        Goo value = GetValue().GetValue();
     }
 
-    public Foo [||]GetValue()
+    public Goo [||]GetValue()
     {
         return this;
     }
 }",
-@"public class Foo
+@"public class Goo
 {
-    public Foo()
+    public Goo()
     {
-        Foo value = Value.Value;
+        Goo value = Value.Value;
     }
 
-    public Foo Value
+    public Goo Value
     {
         get
         {
@@ -1483,17 +1676,14 @@ ignoreTrivia: false);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
         return 1;
     }
 }",
 @"class C
 {
-    int Foo
-    {
-        get => 1;
-    }
+    int Goo { get => 1; }
 }", options: PreferExpressionBodiedAccessors);
         }
 
@@ -1504,14 +1694,14 @@ ignoreTrivia: false);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
         return 1;
     }
 }",
 @"class C
 {
-    int Foo => 1;
+    int Goo => 1;
 }", options: PreferExpressionBodiedProperties);
         }
 
@@ -1522,14 +1712,14 @@ ignoreTrivia: false);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
         return 1;
     }
 }",
 @"class C
 {
-    int Foo => 1;
+    int Goo => 1;
 }", options: PreferExpressionBodiedAccessorsAndProperties);
         }
 
@@ -1540,24 +1730,20 @@ ignoreTrivia: false);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
         return 1;
     }
 
-    void SetFoo(int i)
+    void SetGoo(int i)
     {
         _i = i;
     }
 }",
 @"class C
 {
-    int Foo
-    {
-        get => 1;
-        set => _i = value;
-    }
-}", 
+    int Goo { get => 1; set => _i = value; }
+}",
 index: 1,
 options: PreferExpressionBodiedAccessors);
         }
@@ -1569,24 +1755,31 @@ options: PreferExpressionBodiedAccessors);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
         return 1;
     }
 
-    void SetFoo(int i)
+    void SetGoo(int i)
     {
         _i = i;
     }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
-        get { return 1; }
-        set { _i = value; }
+        get
+        {
+            return 1;
+        }
+
+        set
+        {
+            _i = value;
+        }
     }
-}", 
+}",
 index: 1,
 options: PreferExpressionBodiedProperties);
         }
@@ -1598,23 +1791,19 @@ options: PreferExpressionBodiedProperties);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo()
+    int [||]GetGoo()
     {
         return 1;
     }
 
-    void SetFoo(int i)
+    void SetGoo(int i)
     {
         _i = i;
     }
 }",
 @"class C
 {
-    int Foo
-    {
-        get => 1;
-        set => _i = value;
-    }
+    int Goo { get => 1; set => _i = value; }
 }",
 index: 1,
 options: PreferExpressionBodiedAccessorsAndProperties);
@@ -1627,11 +1816,11 @@ options: PreferExpressionBodiedAccessorsAndProperties);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo() => 0;
+    int [||]GetGoo() => 0;
 }",
 @"class C
 {
-    int Foo => 0;
+    int Goo => 0;
 }", options: PreferExpressionBodiedProperties);
         }
 
@@ -1642,11 +1831,11 @@ options: PreferExpressionBodiedAccessorsAndProperties);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo() => 0;
+    int [||]GetGoo() => 0;
 }",
 @"class C
 {
-    int Foo { get => 0; }
+    int Goo { get => 0; }
 }", options: PreferExpressionBodiedAccessors);
         }
 
@@ -1657,11 +1846,11 @@ options: PreferExpressionBodiedAccessorsAndProperties);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo() => throw e;
+    int [||]GetGoo() => throw e;
 }",
 @"class C
 {
-    int Foo { get => throw e; }
+    int Goo { get => throw e; }
 }", options: PreferExpressionBodiedAccessors);
         }
 
@@ -1672,11 +1861,11 @@ options: PreferExpressionBodiedAccessorsAndProperties);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo() { throw e; }
+    int [||]GetGoo() { throw e; }
 }",
 @"class C
 {
-    int Foo => throw e;
+    int Goo => throw e;
 }", options: PreferExpressionBodiedProperties);
         }
 
@@ -1686,12 +1875,12 @@ options: PreferExpressionBodiedAccessorsAndProperties);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo() { throw e; }
+    int [||]GetGoo() { throw e; }
 }",
 @"class C
 {
-    int Foo => throw e;
-}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+    int Goo => throw e;
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1700,50 +1889,513 @@ options: PreferExpressionBodiedAccessorsAndProperties);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetFoo() { throw e +
+    int [||]GetGoo() { throw e +
         e; }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
-            throw e + 
-                e;
+            throw e +
+   e;
         }
     }
-}", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement)));
+}", options: new OptionsCollection(GetLanguage())
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement },
+        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement },
+    });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestExplicitInterfaceImplementation()
+        {
+            await TestWithAllCodeStyleOff(
+@"interface IGoo
+{
+    int [||]GetGoo();
+}
+
+class C : IGoo
+{
+    int IGoo.GetGoo()
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+@"interface IGoo
+{
+    int Goo { get; }
+}
+
+class C : IGoo
+{
+    int IGoo.Goo
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}");
+        }
+
+        [WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestSystemObjectMetadataOverride()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    public override string [||]ToString()
+    {
+    }
+}");
+        }
+
+        [WorkItem(443523, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestMetadataOverride()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C : System.Type
+{
+    public override int [||]GetArrayRank()
+    {
+    }
+}",
+@"class C : System.Type
+{
+    public override int {|Warning:ArrayRank|}
+    {
+        get
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task IgnoreIfTopLevelNullableIsDifferent_GetterNullable()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    private string? name;
+
+    public void SetName(string name)
+    {
+        this.name = name;
+    }
+
+    public string? [||]GetName()
+    {
+        return this.name;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    private string? name;
+
+    public void SetName(string name)
+    {
+        this.name = name;
+    }
+
+    public string? Name => this.name;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task IgnoreIfTopLevelNullableIsDifferent_SetterNullable()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    private string? name;
+
+    public void SetName(string? name)
+    {
+        this.name = name;
+    }
+
+    public string [||]GetName()
+    {
+        return this.name ?? """";
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    private string? name;
+
+    public void SetName(string? name)
+    {
+        this.name = name;
+    }
+
+    public string Name => this.name ?? """";
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task IgnoreIfNestedNullableIsDifferent_GetterNullable()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public void SetNames(IEnumerable<string> names)
+    {
+        this.names = names;
+    }
+
+    public IEnumerable<string?> [||]GetNames()
+    {
+        return this.names;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public void SetNames(IEnumerable<string> names)
+    {
+        this.names = names;
+    }
+
+    public IEnumerable<string?> Names => this.names;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task IgnoreIfNestedNullableIsDifferent_SetterNullable()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+using System.Linq;
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public void SetNames(IEnumerable<string?> names)
+    {
+        this.names = names;
+    }
+
+    public IEnumerable<string> [||]GetNames()
+    {
+        return this.names.Where(n => n is object);
+    }
+}",
+@"
+#nullable enable
+
+using System.Linq;
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public void SetNames(IEnumerable<string?> names)
+    {
+        this.names = names;
+    }
+
+    public IEnumerable<string> Names => this.names.Where(n => n is object);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task NullabilityOfFieldDifferentThanProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    private string name;
+    
+    public string? [||]GetName()
+    {
+        return name;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    private string name;
+
+    public string? Name => name;
+}");
+        }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUnsafeGetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe int [||]GetP()
+    {
+        return 0;
+    }
+
+    public void SetP(int value)
+    { }
+}",
+@"class C
+{
+    public unsafe int P
+    {
+        get => 0;
+        set
+        { }
+    }
+}", index: 1);
+        }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUnsafeSetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public int [||]GetP()
+    {
+        return 0;
+    }
+
+    public unsafe void SetP(int value)
+    { }
+}",
+@"class C
+{
+    public unsafe int P
+    {
+        get => 0;
+        set
+        { }
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestAtStartOfMethod()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+    [||]int GetGoo()
+    {
+    }
+}",
+@"class C
+{
+    int Goo
+    {
+        get
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestBeforeStartOfMethod_OnSameLine()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+[||]    int GetGoo()
+    {
+    }
+}",
+@"class C
+{
+    int Goo
+    {
+        get
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestBeforeStartOfMethod_OnPreviousLine()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+    [||]
+    int GetGoo()
+    {
+    }
+}",
+@"class C
+{
+
+    int Goo
+    {
+        get
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestBeforeStartOfMethod_NotMultipleLinesPrior()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    [||]
+
+    int GetGoo()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestBeforeStartOfMethod_NotBeforeAttributes()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    [||][A]
+    int GetGoo()
+    {
+    }
+}",
+@"class C
+{
+    [A]
+    int Goo
+    {
+        get
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestBeforeStartOfMethod_NotBeforeComments()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    [||] /// <summary/>
+    int GetGoo()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestBeforeStartOfMethod_NotInComment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    /// [||]<summary/>
+    int GetGoo()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")]
+        public async Task TestSameNameMemberAsProperty()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    int Goo;
+    [||]int GetGoo()
+    {
+    }
+}",
+@"class C
+{
+    int Goo;
+    int Goo1
+    {
+        get
+        {
+        }
+    }
+}");
         }
 
         private async Task TestWithAllCodeStyleOff(
-            string initialMarkup, string expectedMarkup, 
-            ParseOptions parseOptions = null, int index = 0, 
-            bool ignoreTrivia = true)
+            string initialMarkup, string expectedMarkup,
+            ParseOptions parseOptions = null, int index = 0)
         {
             await TestAsync(
                 initialMarkup, expectedMarkup, parseOptions,
                 index: index,
-                ignoreTrivia: ignoreTrivia,
                 options: AllCodeStyleOff);
         }
 
-        private IDictionary<OptionKey, object> AllCodeStyleOff =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
+        private OptionsCollection AllCodeStyleOff
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            };
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedAccessors =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
-                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
+        private OptionsCollection PreferExpressionBodiedAccessors
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            };
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedProperties =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
+        private OptionsCollection PreferExpressionBodiedProperties
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
+            };
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedAccessorsAndProperties =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
-                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
+        private OptionsCollection PreferExpressionBodiedAccessorsAndProperties
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
+            };
     }
 }

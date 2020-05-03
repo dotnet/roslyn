@@ -1,6 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +25,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [ExportLanguageService(typeof(IHelpContextService), LanguageNames.CSharp), Shared]
     internal class CSharpHelpContextService : AbstractHelpContextService
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public CSharpHelpContextService()
+        {
+        }
+
         public override string Language
         {
             get
@@ -37,9 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         }
 
         private static string Keyword(string text)
-        {
-            return text + "_CSharpKeyword";
-        }
+            => text + "_CSharpKeyword";
 
         public override async Task<string> GetHelpTermAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
@@ -79,8 +88,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 // just find the first "word" that intersects with our position
                 var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                int start = span.Start;
-                int end = span.Start;
+                var start = span.Start;
+                var end = span.Start;
 
                 while (start > 0 && syntaxFacts.IsIdentifierPartCharacter(text[start - 1]))
                 {
@@ -106,11 +115,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            if (TryGetTextForContextualKeyword(token, document, syntaxFacts, out var text) ||
-               TryGetTextForKeyword(token, document, syntaxFacts, out text) ||
-               TryGetTextForPreProcessor(token, document, syntaxFacts, out text) ||
-               TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text) ||
-               TryGetTextForOperator(token, document, out text))
+            if (TryGetTextForContextualKeyword(token, out var text) ||
+                TryGetTextForKeyword(token, syntaxFacts, out text) ||
+                TryGetTextForPreProcessor(token, syntaxFacts, out text) ||
+                TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text) ||
+                TryGetTextForOperator(token, document, out text))
             {
                 return text;
             }
@@ -138,8 +147,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                 if (symbol == null)
                 {
-                    var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
-                    var overloads = semanticModel.GetMemberGroup(bindableParent);
+                    var bindableParent = document.GetLanguageService<ISyntaxFactsService>().TryGetBindableParent(token);
+                    var overloads = bindableParent != null ? semanticModel.GetMemberGroup(bindableParent) : ImmutableArray<ISymbol>.Empty;
                     symbol = overloads.FirstOrDefault();
                 }
             }
@@ -158,7 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
 
             // Just use syntaxfacts for operators
-            if (symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator)
+            if (symbol is IMethodSymbol method && method.MethodKind == MethodKind.BuiltinOperator)
             {
                 text = null;
                 return false;
@@ -217,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return false;
         }
 
-        private bool TryGetTextForPreProcessor(SyntaxToken token, Document document, ISyntaxFactsService syntaxFacts, out string text)
+        private bool TryGetTextForPreProcessor(SyntaxToken token, ISyntaxFactsService syntaxFacts, out string text)
         {
             if (syntaxFacts.IsPreprocessorKeyword(token))
             {
@@ -235,8 +244,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return false;
         }
 
-        private bool TryGetTextForContextualKeyword(SyntaxToken token, Document document, ISyntaxFactsService syntaxFacts, out string text)
+        private bool TryGetTextForContextualKeyword(SyntaxToken token, out string text)
         {
+            if (token.Text == "nameof")
+            {
+                text = Keyword("nameof");
+                return true;
+            }
+
             if (token.IsContextualKeyword())
             {
                 switch (token.Kind())
@@ -273,7 +288,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return false;
         }
 
-        private bool TryGetTextForKeyword(SyntaxToken token, Document document, ISyntaxFactsService syntaxFacts, out string text)
+        private bool TryGetTextForKeyword(SyntaxToken token, ISyntaxFactsService syntaxFacts, out string text)
         {
             if (token.Kind() == SyntaxKind.InKeyword)
             {
@@ -317,8 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
             var displayString = symbol.ToDisplayString(TypeFormat);
 
-            var type = symbol as ITypeSymbol;
-            if (type != null && type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            if (symbol is ITypeSymbol type && type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
             {
                 return "System.Nullable`1";
             }

@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -62,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract bool IsBeforeFieldInit { get; }
             protected abstract bool IsComImport { get; }
             protected abstract bool IsInterface { get; }
+            protected abstract bool IsDelegate { get; }
             protected abstract bool IsSerializable { get; }
             protected abstract bool IsSpecialName { get; }
             protected abstract bool IsWindowsRuntimeImport { get; }
@@ -70,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract System.Runtime.InteropServices.CharSet StringFormat { get; }
             protected abstract TAttributeData CreateTypeIdentifierAttribute(bool hasGuid, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
             protected abstract void EmbedDefaultMembers(string defaultMember, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
-            protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit(TModuleCompilationState compilationState);
+            protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit(TPEModuleBuilder moduleBuilder);
             protected abstract void ReportMissingAttribute(AttributeDescription description, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
 
             private bool IsTargetAttribute(TAttributeData attrData, AttributeDescription description)
@@ -78,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return TypeManager.IsTargetAttribute(UnderlyingNamedType, attrData, description);
             }
 
-            private ImmutableArray<TAttributeData> GetAttributes(TModuleCompilationState compilationState, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+            private ImmutableArray<TAttributeData> GetAttributes(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
             {
                 var builder = ArrayBuilder<TAttributeData>.GetInstance();
 
@@ -95,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 // The constructors might be missing (for example, in metadata case) and doing lookup
                 // will ensure that we report appropriate errors.
 
-                foreach (var attrData in GetCustomAttributesToEmit(compilationState))
+                foreach (var attrData in GetCustomAttributesToEmit(moduleBuilder))
                 {
                     if (IsTargetAttribute(attrData, AttributeDescription.GuidAttribute))
                     {
@@ -156,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                                 builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
 
                                 // Embed members matching default member name.
-                                string defaultMember = attrData.CommonConstructorArguments[0].Value as string;
+                                string defaultMember = attrData.CommonConstructorArguments[0].ValueInternal as string;
                                 if (defaultMember != null)
                                 {
                                     EmbedDefaultMembers(defaultMember, syntaxNodeOpt, diagnostics);
@@ -355,6 +360,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
+            bool Cci.ITypeDefinition.IsDelegate
+            {
+                get
+                {
+                    return IsDelegate;
+                }
+            }
+
             bool Cci.ITypeDefinition.IsRuntimeSpecial
             {
                 get
@@ -518,7 +531,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 if (_lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var attributes = GetAttributes((TModuleCompilationState)context.Module.CommonModuleCompilationState, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
+                    var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
 
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
                     {
@@ -684,7 +697,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             /// </remarks>
             public override string ToString()
             {
-                return ((ISymbol)UnderlyingNamedType).ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+                return ((ISymbolInternal)UnderlyingNamedType).GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
             }
         }
     }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +12,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
@@ -16,6 +21,8 @@ namespace Roslyn.Utilities
     using System.Threading.Tasks;
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
+#elif CODE_STYLE
+    using Resources = CodeStyleResources;
 #else
     using Resources = WorkspacesResources;
 #endif
@@ -68,16 +75,18 @@ namespace Roslyn.Utilities
         /// Creates a new instance of a <see cref="ObjectWriter"/>.
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public ObjectWriter(
             Stream stream,
-            CancellationToken cancellationToken = default(CancellationToken))
+            bool leaveOpen = false,
+            CancellationToken cancellationToken = default)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
-            _writer = new BinaryWriter(stream, Encoding.UTF8);
+            _writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen);
             _objectReferenceMap = new WriterReferenceMap(valueEquality: false);
             _stringReferenceMap = new WriterReferenceMap(valueEquality: true);
             _cancellationToken = cancellationToken;
@@ -97,6 +106,7 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
+            _writer.Dispose();
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
             _recursionDepth = 0;
@@ -116,9 +126,31 @@ namespace Roslyn.Utilities
         public void WriteUInt32(uint value) => _writer.Write(value);
         public void WriteUInt64(ulong value) => _writer.Write(value);
         public void WriteUInt16(ushort value) => _writer.Write(value);
-        public void WriteString(string value) => WriteStringValue(value);
+        public void WriteString(string? value) => WriteStringValue(value);
 
-        public void WriteValue(object value)
+        /// <summary>
+        /// Used so we can easily grab the low/high 64bits of a guid for serialization.
+        /// </summary>
+        [StructLayout(LayoutKind.Explicit)]
+        internal struct GuidAccessor
+        {
+            [FieldOffset(0)]
+            public Guid Guid;
+
+            [FieldOffset(0)]
+            public long Low64;
+            [FieldOffset(8)]
+            public long High64;
+        }
+
+        public void WriteGuid(Guid guid)
+        {
+            var accessor = new GuidAccessor { Guid = guid };
+            WriteInt64(accessor.Low64);
+            WriteInt64(accessor.High64);
+        }
+
+        public void WriteValue(object? value)
         {
             Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
 
@@ -141,7 +173,7 @@ namespace Roslyn.Utilities
             if (typeInfo.IsPrimitive)
             {
                 // Note: int, double, bool, char, have been chosen to go first as they're they
-                // common values of literals in code, and so would be hte likely hits if we do
+                // common values of literals in code, and so would be the likely hits if we do
                 // have a primitive type we're serializing out.
                 if (value.GetType() == typeof(int))
                 {
@@ -232,11 +264,60 @@ namespace Roslyn.Utilities
             }
             else
             {
-                WriteObject(instance: value, instanceAsWritableOpt: null);
+                WriteObject(instance: value, instanceAsWritable: null);
             }
         }
 
-        public void WriteValue(IObjectWritable value)
+        /// <summary>
+        /// Write an array of bytes. The array data is provided as a
+        /// <see cref="ReadOnlySpan{T}">ReadOnlySpan</see>&lt;<see cref="byte"/>&gt;, and deserialized to a byte array.
+        /// </summary>
+        /// <param name="span">The array data.</param>
+        public void WriteValue(ReadOnlySpan<byte> span)
+        {
+            int length = span.Length;
+            switch (length)
+            {
+                case 0:
+                    _writer.Write((byte)EncodingKind.Array_0);
+                    break;
+                case 1:
+                    _writer.Write((byte)EncodingKind.Array_1);
+                    break;
+                case 2:
+                    _writer.Write((byte)EncodingKind.Array_2);
+                    break;
+                case 3:
+                    _writer.Write((byte)EncodingKind.Array_3);
+                    break;
+                default:
+                    _writer.Write((byte)EncodingKind.Array);
+                    WriteCompressedUInt((uint)length);
+                    break;
+            }
+
+            var elementType = typeof(byte);
+            Debug.Assert(s_typeMap[elementType] == EncodingKind.UInt8);
+
+            WritePrimitiveType(elementType, EncodingKind.UInt8);
+
+#if NETCOREAPP
+            _writer.Write(span);
+#else
+            // BinaryWriter in .NET Framework does not support ReadOnlySpan<byte>, so we use a temporary buffer to write
+            // arrays of data. The buffer is chosen to be no larger than 8K, which avoids allocations in the large
+            // object heap.
+            var buffer = new byte[Math.Min(length, 8192)];
+            for (int offset = 0; offset < length; offset += buffer.Length)
+            {
+                var segmentLength = Math.Min(buffer.Length, length - offset);
+                span.Slice(offset, segmentLength).CopyTo(buffer.AsSpan());
+                _writer.Write(buffer, 0, segmentLength);
+            }
+#endif
+        }
+
+        public void WriteValue(IObjectWritable? value)
         {
             if (value == null)
             {
@@ -244,7 +325,7 @@ namespace Roslyn.Utilities
                 return;
             }
 
-            WriteObject(instance: value, instanceAsWritableOpt: value);
+            WriteObject(instance: value, instanceAsWritable: value);
         }
 
         private void WriteEncodedInt32(int v)
@@ -338,10 +419,14 @@ namespace Roslyn.Utilities
             public bool TryGetReferenceId(object value, out int referenceId)
                 => _valueToIdMap.TryGetValue(value, out referenceId);
 
-            public void Add(object value)
+            public void Add(object value, bool isReusable)
             {
                 var id = _nextId++;
-                _valueToIdMap.Add(value, id);
+
+                if (isReusable)
+                {
+                    _valueToIdMap.Add(value, id);
+                }
             }
         }
 
@@ -379,7 +464,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private unsafe void WriteStringValue(string value)
+        private unsafe void WriteStringValue(string? value)
         {
             if (value == null)
             {
@@ -387,8 +472,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                int id;
-                if (_stringReferenceMap.TryGetReferenceId(value, out id))
+                if (_stringReferenceMap.TryGetReferenceId(value, out int id))
                 {
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
@@ -409,7 +493,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    _stringReferenceMap.Add(value);
+                    _stringReferenceMap.Add(value, isReusable: true);
 
                     if (value.IsValidUnicodeString())
                     {
@@ -461,7 +545,7 @@ namespace Roslyn.Utilities
                     break;
             }
 
-            var elementType = array.GetType().GetElementType();
+            var elementType = array.GetType().GetElementType()!;
 
             if (s_typeMap.TryGetValue(elementType, out var elementKind))
             {
@@ -483,11 +567,20 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        () => WriteArrayValues(array),
+                        a => WriteArrayValues((Array)a!),
+                        array,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
-                    task.Wait();
+
+                    // We must not proceed until the additional task completes. After returning from a write, the underlying
+                    // stream providing access to raw memory will be closed; if this occurs before the separate thread
+                    // completes its write then an access violation can occur attempting to write to unmapped memory.
+                    //
+                    // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
+                    // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
+                    // so the wait can complete.
+                    task.GetAwaiter().GetResult();
                 }
                 else
                 {
@@ -694,10 +787,10 @@ namespace Roslyn.Utilities
             this.WriteInt32(_binderSnapshot.GetTypeId(type));
         }
 
-        private void WriteObject(object instance, IObjectWritable instanceAsWritableOpt)
+        private void WriteObject(object instance, IObjectWritable? instanceAsWritable)
         {
-            Debug.Assert(instance != null);
-            Debug.Assert(instanceAsWritableOpt == null || instance == instanceAsWritableOpt);
+            RoslynDebug.Assert(instance != null);
+            RoslynDebug.Assert(instanceAsWritable == null || instance == instanceAsWritable);
 
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -723,7 +816,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                var writable = instanceAsWritableOpt;
+                var writable = instanceAsWritable;
                 if (writable == null)
                 {
                     writable = instance as IObjectWritable;
@@ -742,12 +835,20 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        obj => WriteObjectWorker((IObjectWritable)obj),
+                        obj => WriteObjectWorker((IObjectWritable)obj!),
                         writable,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
-                    task.Wait(_cancellationToken);
+
+                    // We must not proceed until the additional task completes. After returning from a write, the underlying
+                    // stream providing access to raw memory will be closed; if this occurs before the separate thread
+                    // completes its write then an access violation can occur attempting to write to unmapped memory.
+                    //
+                    // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
+                    // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
+                    // so the wait can complete.
+                    task.GetAwaiter().GetResult();
                 }
                 else
                 {
@@ -761,9 +862,9 @@ namespace Roslyn.Utilities
 
         private void WriteObjectWorker(IObjectWritable writable)
         {
-            // emit object header up front
-            _objectReferenceMap.Add(writable);
+            _objectReferenceMap.Add(writable, writable.ShouldReuseInSerialization);
 
+            // emit object header up front
             _writer.Write((byte)EncodingKind.Object);
 
             // Directly write out the type-id for this object.  i.e. no need to write out the 'Type'
@@ -783,7 +884,7 @@ namespace Roslyn.Utilities
         }
 
         // we have s_typeMap and s_reversedTypeMap since there is no bidirectional map in compiler
-        // Note: s_typeMap is effectively immutable.  However, for maxiumum perf we use mutable types because
+        // Note: s_typeMap is effectively immutable.  However, for maximum perf we use mutable types because
         // they are used in hotspots.
         internal static readonly Dictionary<Type, EncodingKind> s_typeMap;
 
@@ -825,22 +926,22 @@ namespace Roslyn.Utilities
         /// <summary>
         /// byte marker mask for encoding compressed uint 
         /// </summary>
-        internal static readonly byte ByteMarkerMask = 3 << 6;
+        internal const byte ByteMarkerMask = 3 << 6;
 
         /// <summary>
         /// byte marker bits for uint encoded in 1 byte.
         /// </summary>
-        internal static readonly byte Byte1Marker = 0;
+        internal const byte Byte1Marker = 0;
 
         /// <summary>
         /// byte marker bits for uint encoded in 2 bytes.
         /// </summary>
-        internal static readonly byte Byte2Marker = 1 << 6;
+        internal const byte Byte2Marker = 1 << 6;
 
         /// <summary>
         /// byte marker bits for uint encoded in 4 bytes.
         /// </summary>
-        internal static readonly byte Byte4Marker = 2 << 6;
+        internal const byte Byte4Marker = 2 << 6;
 
         internal enum EncodingKind : byte
         {

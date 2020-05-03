@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -12,9 +14,12 @@ using System.Runtime.CompilerServices;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(IAttachedCollectionSourceProvider))]
     [Name(nameof(CpsDiagnosticItemProvider))]
     [Order]
@@ -28,9 +33,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private Workspace _workspace;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CpsDiagnosticItemProvider(
-            [Import(typeof(AnalyzersCommandHandler))]IAnalyzersCommandHandler commandHandler,
-            [Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider)
+            [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
             _commandHandler = commandHandler;
             _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
@@ -45,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 if (NestedHierarchyHasProjectTreeCapability(item, "AnalyzerDependency"))
                 {
-                    var projectRootItem = FindProjectRootItem(item, out string targetFrameworkMoniker);
+                    var projectRootItem = FindProjectRootItem(item, out var targetFrameworkMoniker);
                     if (projectRootItem != null)
                     {
                         return CreateCollectionSourceCore(projectRootItem, item, targetFrameworkMoniker);
@@ -92,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             var projectTreeCapabilities = GetProjectTreeCapabilities(hierarchy, itemId);
 
-            bool isTargetNode = false;
+            var isTargetNode = false;
             string potentialTFM = null;
             foreach (var capability in projectTreeCapabilities)
             {
@@ -124,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 var hierarchy = projectRootItem.HierarchyIdentity.NestedHierarchy;
                 var itemId = projectRootItem.HierarchyIdentity.NestedItemID;
-                if (hierarchy.GetCanonicalName(itemId, out string projectCanonicalName) == VSConstants.S_OK)
+                if (hierarchy.GetCanonicalName(itemId, out var projectCanonicalName) == VSConstants.S_OK)
                 {
                     return new CpsDiagnosticItemSource(workspace, projectCanonicalName, projectId, item, _commandHandler, analyzerService);
                 }

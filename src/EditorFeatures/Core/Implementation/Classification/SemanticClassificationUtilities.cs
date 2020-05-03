@@ -1,13 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -21,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public static async Task ProduceTagsAsync(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
-            IEditorClassificationService classificationService,
+            IClassificationService classificationService,
             ClassificationTypeMap typeMap)
         {
             var document = spanToTag.Document;
@@ -30,20 +34,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return;
             }
 
-            if (await TryClassifyContainingMemberSpan(context, spanToTag, classificationService, typeMap).ConfigureAwait(false))
+            var classified = await TryClassifyContainingMemberSpanAsync(
+                    context, spanToTag, classificationService, typeMap).ConfigureAwait(false);
+            if (classified)
             {
                 return;
             }
 
             // We weren't able to use our specialized codepaths for semantic classifying. 
             // Fall back to classifying the full span that was asked for.
-            await ClassifySpansAsync(context, spanToTag, classificationService, typeMap).ConfigureAwait(false);
+            await ClassifySpansAsync(
+                context, spanToTag, classificationService, typeMap).ConfigureAwait(false);
         }
 
-        private static async Task<bool> TryClassifyContainingMemberSpan(
+        private static async Task<bool> TryClassifyContainingMemberSpanAsync(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
-            IEditorClassificationService classificationService,
+            IClassificationService classificationService,
             ClassificationTypeMap typeMap)
         {
             var range = context.TextChangeRange;
@@ -73,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
-            var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var service = document.GetLanguageService<ISyntaxFactsService>();
 
             // perf optimization. Check whether all edits since the last update has happened within
             // a member. If it did, it will find the member that contains the changes and only refresh
@@ -102,13 +109,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 new SnapshotSpan(spanToTag.SnapshotSpan.Snapshot, subSpan));
 
             // re-classify only the member we're inside.
-            await ClassifySpansAsync(context, subSpanToTag, classificationService, typeMap).ConfigureAwait(false);
+            await ClassifySpansAsync(
+                context, subSpanToTag, classificationService, typeMap).ConfigureAwait(false);
             return true;
         }
 
         private static async Task ClassifySpansAsync(
-            TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
-            IEditorClassificationService classificationService, ClassificationTypeMap typeMap)
+            TaggerContext<IClassificationTag> context,
+            DocumentSnapshotSpan spanToTag,
+            IClassificationService classificationService,
+            ClassificationTypeMap typeMap)
         {
             try
             {

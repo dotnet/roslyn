@@ -1,7 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -44,7 +46,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -123,14 +125,14 @@ $$");
         public async Task TestNotAfterClassBaseList()
         {
             await VerifyAbsenceAsync(
-@"class C : IFoo $$");
+@"class C : IGoo $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterGenericClassBaseList()
         {
             await VerifyKeywordAsync(
-@"class C<T> : IFoo $$");
+@"class C<T> : IGoo $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -256,7 +258,7 @@ $$");
         public async Task TestNotAfterWhereTypeConstraint()
         {
             await VerifyAbsenceAsync(
-@"public class Foo<T> : System.Object where $$
+@"public class Goo<T> : System.Object where $$
 {
 }");
         }
@@ -265,7 +267,7 @@ $$");
         public async Task TestNotAfterWhereWhere()
         {
             await VerifyAbsenceAsync(
-@"public class Foo<T> : System.Object where where $$
+@"public class Goo<T> : System.Object where where $$
 {
 }");
         }
@@ -274,7 +276,7 @@ $$");
         public async Task TestNotAfterWhereWhereWhere()
         {
             await VerifyAbsenceAsync(
-@"public class Foo<T> : System.Object where where where $$
+@"public class Goo<T> : System.Object where where where $$
 {
 }");
         }
@@ -284,7 +286,7 @@ $$");
         public async Task TestNoWhereAfterDot()
         {
             await VerifyAbsenceAsync(
-@"public class Foo<where> : System.$$
+@"public class Goo<where> : System.$$
 {
 }");
         }

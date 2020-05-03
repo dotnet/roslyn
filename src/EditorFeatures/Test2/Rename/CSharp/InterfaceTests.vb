@@ -1,6 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
+    <[UseExportProvider]>
     Public Class InterfaceTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -9,54 +12,54 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
         End Sub
 
         <WorkItem(546205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546205")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameExplicitlyImplementedInterfaceMemberFromDefinition()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExplicitlyImplementedInterfaceMemberFromDefinition(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
 interface I
 {
-    void [|$$Foo|]();
+    void [|$$Goo|]();
 }
  
 class C : I
 {
-    void I.[|Foo|]() { }
+    void I.[|Goo|]() { }
 }
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="BarBaz")
+                    </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
         <WorkItem(546205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546205")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameExplicitlyImplementedInterfaceMemberFromImplementation()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExplicitlyImplementedInterfaceMemberFromImplementation(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
 interface I
 {
-    void [|Foo|]();
+    void [|Goo|]();
 }
  
 class C : I
 {
-    void I.[|$$Foo|]() { }
+    void I.[|$$Goo|]() { }
 }
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="BarBaz")
+                    </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
         <WorkItem(546205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546205")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameExplicitlyImplementedInterfaceMemberWithInterfaceInNamespace()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExplicitlyImplementedInterfaceMemberWithInterfaceInNamespace(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -65,23 +68,23 @@ namespace N
 {
     interface I
     {
-        void [|Foo|]();
+        void [|Goo|]();
     }
 }
  
 class C : N.I
 {
-    void N.I.[|$$Foo|]() { }
+    void N.I.[|$$Goo|]() { }
 }
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="BarBaz")
+                    </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInterfaceForExplicitlyImplementedInterfaceMemberWithInterfaceInNamespace()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInterfaceForExplicitlyImplementedInterfaceMemberWithInterfaceInNamespace(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -90,17 +93,17 @@ namespace N
 {
     interface [|I|]
     {
-        void Foo();
+        void Goo();
     }
 }
  
 class C : N.[|I|]
 {
-    void N.[|$$I|].Foo() { }
+    void N.[|$$I|].Goo() { }
 }
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="BarBaz")
+                    </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub

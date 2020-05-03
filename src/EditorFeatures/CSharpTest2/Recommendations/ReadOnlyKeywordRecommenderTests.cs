@@ -1,7 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -44,7 +46,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -55,57 +57,55 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInCompilationUnit()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"$$");
-        }
+        public async Task TestInCompilationUnit()
+            => await VerifyKeywordAsync(SourceCodeKind.Regular, @"$$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterExtern()
+        public async Task TestAfterExtern()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"extern alias Foo;
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"extern alias Goo;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterExtern_Interactive()
         {
-            await VerifyKeywordAsync(SourceCodeKind.Script, @"extern alias Foo;
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"extern alias Goo;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterUsing()
+        public async Task TestAfterUsing()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"using Foo;
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"using Goo;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterUsing_Interactive()
         {
-            await VerifyKeywordAsync(SourceCodeKind.Script, @"using Foo;
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"using Goo;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNamespace()
+        public async Task TestAfterNamespace()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"namespace N {}
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"namespace N {}
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterTypeDeclaration()
+        public async Task TestAfterTypeDeclaration()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"class C {}
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"class C {}
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterDelegateDeclaration()
+        public async Task TestAfterDelegateDeclaration()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"delegate void Foo();
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"delegate void Goo();
 $$");
         }
 
@@ -114,7 +114,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-  void Foo() {}
+  void Goo() {}
   $$");
         }
 
@@ -141,7 +141,7 @@ $$");
         {
             await VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"$$
-using Foo;");
+using Goo;");
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -149,27 +149,27 @@ using Foo;");
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$
-using Foo;");
+using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAssemblyAttribute()
+        public async Task TestAfterAssemblyAttribute()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"[assembly: foo]
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"[assembly: goo]
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAssemblyAttribute_Interactive()
         {
-            await VerifyKeywordAsync(SourceCodeKind.Script, @"[assembly: foo]
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"[assembly: goo]
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterRootAttribute()
+        public async Task TestAfterRootAttribute()
         {
-            await VerifyAbsenceAsync(@"[foo]
+            await VerifyKeywordAsync(@"[goo]
 $$");
         }
 
@@ -178,7 +178,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-  [foo]
+  [goo]
   $$");
         }
 
@@ -191,9 +191,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInsideInterface()
+        public async Task TestInsideInterface()
         {
-            await VerifyAbsenceAsync(@"interface I {
+            await VerifyKeywordAsync(@"interface I {
    $$");
         }
 
@@ -213,28 +213,20 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterPartial()
-        {
-            await VerifyAbsenceAsync(@"partial $$");
-        }
+        public async Task TestAfterPartial()
+            => await VerifyKeywordAsync(@"partial $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAbstract()
-        {
-            await VerifyAbsenceAsync(@"abstract $$");
-        }
+        public async Task TestAfterAbstract()
+            => await VerifyKeywordAsync(@"abstract $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterInternal()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"internal $$");
-        }
+        public async Task TestAfterInternal()
+            => await VerifyKeywordAsync(SourceCodeKind.Regular, @"internal $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterInternal_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script, @"internal $$");
-        }
+            => await VerifyKeywordAsync(SourceCodeKind.Script, @"internal $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedInternal()
@@ -245,16 +237,12 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterPublic()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"public $$");
-        }
+        public async Task TestAfterPublic()
+            => await VerifyKeywordAsync(SourceCodeKind.Regular, @"public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPublic_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script, @"public $$");
-        }
+            => await VerifyKeywordAsync(SourceCodeKind.Script, @"public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedPublic()
@@ -265,9 +253,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterPrivate()
+        public async Task TestAfterPrivate()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
 @"private $$");
         }
 
@@ -287,9 +275,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterProtected()
+        public async Task TestAfterProtected()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"protected $$");
         }
 
@@ -302,30 +290,24 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterSealed()
-        {
-            await VerifyAbsenceAsync(@"sealed $$");
-        }
+        public async Task TestAfterSealed()
+            => await VerifyKeywordAsync(@"sealed $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedSealed()
+        public async Task TestAfterNestedSealed()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"class C {
     sealed $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStatic()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"static $$");
-        }
+        public async Task TestAfterStatic()
+            => await VerifyKeywordAsync(SourceCodeKind.Regular, @"static $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterStatic_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script, @"static $$");
-        }
+            => await VerifyKeywordAsync(SourceCodeKind.Script, @"static $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedStatic()
@@ -336,16 +318,12 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStaticPublic()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"static public $$");
-        }
+        public async Task TestAfterStaticPublic()
+            => await VerifyKeywordAsync(SourceCodeKind.Regular, @"static public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterStaticPublic_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script, @"static public $$");
-        }
+            => await VerifyKeywordAsync(SourceCodeKind.Script, @"static public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedStaticPublic()
@@ -357,9 +335,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterDelegate()
-        {
-            await VerifyAbsenceAsync(@"delegate $$");
-        }
+            => await VerifyAbsenceAsync(@"delegate $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterEvent()
@@ -378,9 +354,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterReadOnly()
+        public async Task TestAfterReadOnly()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"class C {
     readonly $$");
         }
@@ -394,11 +370,24 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNew()
-        {
-            await VerifyAbsenceAsync(
-@"new $$");
-        }
+        public async Task TestAfterRef()
+            => await VerifyKeywordAsync(SourceCodeKind.Regular, @"ref $$");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRefStruct()
+            => await VerifyKeywordAsync(SourceCodeKind.Regular, @"ref $$ struct { }");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRefStructBeforeRef()
+            => await VerifyKeywordAsync(SourceCodeKind.Regular, @"$$ ref struct { }");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNew()
+            => await VerifyKeywordAsync(SourceCodeKind.Regular, @"new $$");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNewInClass()
+            => await VerifyKeywordAsync(SourceCodeKind.Regular, @"class C { new $$ }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedNew()
@@ -413,8 +402,191 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-   void Foo() {
+   void Goo() {
      $$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyNotAsParameterModifierInMethods()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    public static void Test(ref $$ p) { }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyNotAsParameterModifierInSecondParameter()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    public static void Test(int p1, ref $$ p2) { }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyNotAsParameterModifierInDelegates()
+        {
+            await VerifyAbsenceAsync(@"
+public delegate int Delegate(ref $$ int p);");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyNotAsParameterModifierInLocalFunctions()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    public static void Test()
+    {
+        void localFunc(ref $$ int p) { }
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyNotAsParameterModifierInLambdaExpressions()
+        {
+            await VerifyAbsenceAsync(@"
+public delegate int Delegate(ref int p);
+
+class Program
+{
+    public static void Test()
+    {
+        // This is bad. We can't put 'ref $ int p' like in the other tests here because in this scenario:
+        // 'Delegate lambda = (ref r int p) => p;' (partially written 'readonly' keyword),
+        // the syntax tree is completely broken and there is no lambda expression at all here.
+        // 'ref' starts a new local declaration and therefore we do offer 'readonly'.
+        // Fixing that would have to involve either changing the parser or doing some really nasty hacks.
+        // Delegate lambda = (ref $$ int p) => p;
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyNotAsParameterModifierInAnonymousMethods()
+        {
+            await VerifyAbsenceAsync(@"
+public delegate int Delegate(ref int p);
+
+class Program
+{
+    public static void Test()
+    {
+        Delegate anonymousDelegate = delegate (ref $$ int p) { return p; };
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyAsModifierInMethodReturnTypes()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public ref $$ int Test()
+    {
+        return ref x;
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyAsModifierInGlobalMemberDeclaration()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"
+public ref $$ ");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyAsModifierInDelegateReturnType()
+        {
+            await VerifyKeywordAsync(@"
+public delegate ref $$ int Delegate();
+
+class Program
+{
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyAsModifierInMemberDeclaration()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public ref $$ int Test { get; set; }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
+        public async Task TestRefReadonlyInStatementContext()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    void M()
+    {
+        ref $$
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyInLocalDeclaration()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    void M()
+    {
+        ref $$ int local;
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyInLocalFunction()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    void M()
+    {
+        ref $$ int Function();
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyNotInRefExpression()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    void M()
+    {
+        ref int x = ref $$
+    }
+}");
         }
     }
 }

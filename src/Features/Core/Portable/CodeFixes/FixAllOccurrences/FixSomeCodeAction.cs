@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static readonly HashSet<string> s_predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
 
         internal readonly FixAllState FixAllState;
-        private readonly bool _showPreviewChangesDialog;
+        private bool _showPreviewChangesDialog;
 
         internal FixSomeCodeAction(
             FixAllState fixAllState, bool showPreviewChangesDialog)
@@ -26,9 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-        {
-            return await ComputeOperationsAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
-        }
+            => await ComputeOperationsAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
 
         internal override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
             return service.GetFixAllOperationsAsync(
-                FixAllState.CreateFixAllContext(progressTracker, cancellationToken),
+                new FixAllContext(FixAllState, progressTracker, cancellationToken),
                 _showPreviewChangesDialog);
         }
 
-        internal async override Task<Solution> GetChangedSolutionAsync(
+        internal override async Task<Solution> GetChangedSolutionAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
             return await service.GetFixAllChangedSolutionAsync(
-                FixAllState.CreateFixAllContext(progressTracker, cancellationToken)).ConfigureAwait(false);
+                new FixAllContext(FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
         }
 
         private static bool IsInternalCodeFixProvider(CodeFixProvider fixer)
@@ -83,6 +83,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return names;
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly FixSomeCodeAction _fixSomeCodeAction;
+
+            internal TestAccessor(FixSomeCodeAction fixSomeCodeAction)
+                => _fixSomeCodeAction = fixSomeCodeAction;
+
+            /// <summary>
+            /// Gets a reference to <see cref="_showPreviewChangesDialog"/>, which can be read or written by test code.
+            /// </summary>
+            public ref bool ShowPreviewChangesDialog
+                => ref _fixSomeCodeAction._showPreviewChangesDialog;
         }
     }
 }

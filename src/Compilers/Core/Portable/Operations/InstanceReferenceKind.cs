@@ -1,20 +1,27 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
+    /// <summary>
+    /// Kind of reference for an <see cref="IInstanceReferenceOperation"/>.
+    /// </summary>
     public enum InstanceReferenceKind
     {
-        None = 0x0,
-        /// <summary>Indicates an implicit this or Me expression.</summary>
-        Implicit = 0x1,
-        /// <summary>Indicates an explicit this or Me expression.</summary>
-        Explicit = 0x2,
-        /// <summary>Indicates an explicit base or MyBase expression.</summary>
-        BaseClass = 0x3,
-        /// <summary>Indicates an explicit MyClass expression.</summary>
-        ThisClass = 0x4
+        /// <summary>
+        /// Reference to an instance of the containing type. Used for <code>this</code> and <code>base</code> in C# code, and <code>Me</code>,
+        /// <code>MyClass</code>, <code>MyBase</code> in VB code.
+        /// </summary>
+        ContainingTypeInstance,
+        /// <summary>
+        /// Reference to the object being initialized in C# or VB object or collection initializer,
+        /// anonymous type creation initializer, or to the object being referred to in a VB With statement.
+        /// </summary>
+        ImplicitReceiver,
+        /// <summary>
+        /// Reference to the value being matching in a property subpattern.
+        /// </summary>
+        PatternInput,
     }
 }
-

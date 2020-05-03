@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -11,15 +13,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class AttributeSemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0, Optional ignoreAccessibility As Boolean = False)
-            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition, ignoreAccessibility)
+        Private Sub New(root As VisualBasicSyntaxNode,
+                        binder As Binder,
+                        Optional containingSemanticModelOpt As SyntaxTreeSemanticModel = Nothing,
+                        Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing,
+                        Optional speculatedPosition As Integer = 0, Optional ignoreAccessibility As Boolean = False)
+            MyBase.New(root, binder, containingSemanticModelOpt, parentSemanticModelOpt, speculatedPosition, ignoreAccessibility)
         End Sub
 
         ''' <summary>
         ''' Creates an AttributeSemanticModel that allows asking semantic questions about an attribute node.
         ''' </summary>
-        Friend Shared Function Create(binder As AttributeBinder, Optional ignoreAccessibility As Boolean = False) As AttributeSemanticModel
-            Return New AttributeSemanticModel(binder.Root, binder, ignoreAccessibility:=ignoreAccessibility)
+        Friend Shared Function Create(containingSemanticModel As SyntaxTreeSemanticModel, binder As AttributeBinder, Optional ignoreAccessibility As Boolean = False) As AttributeSemanticModel
+            Debug.Assert(containingSemanticModel IsNot Nothing)
+            Return New AttributeSemanticModel(binder.Root, binder, containingSemanticModel, ignoreAccessibility:=ignoreAccessibility)
         End Function
 
         ''' <summary>
@@ -31,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(binder IsNot Nothing)
             Debug.Assert(binder.IsSemanticModelBinder)
 
-            Return New AttributeSemanticModel(root, binder, parentSemanticModel, position)
+            Return New AttributeSemanticModel(root, binder, parentSemanticModelOpt:=parentSemanticModel, speculatedPosition:=position)
         End Function
 
         Friend Overrides Function Bind(binder As Binder, node As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode

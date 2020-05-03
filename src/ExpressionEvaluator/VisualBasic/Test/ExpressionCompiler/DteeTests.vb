@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -39,7 +41,7 @@ Class AppDomain
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source})
+            Dim comp = CreateCompilationWithMscorlib40({source})
             Dim [global] = comp.GlobalNamespace
             Dim m1 = [global].GetMember(Of NamedTypeSymbol)("HostProc").GetMember(Of MethodSymbol)("BreakForDebugger")
             Dim m2 = [global].GetMember(Of NamedTypeSymbol)("AppDomain").GetMember(Of MethodSymbol)("ExecuteAssembly")
@@ -62,7 +64,7 @@ Namespace N
     End Class
 End Namespace
 "
-            Dim comp = CreateCompilationWithMscorlib({source})
+            Dim comp = CreateCompilationWithMscorlib40({source})
             Dim [namespace] = comp.GlobalNamespace.GetMember(Of NamespaceSymbol)("N")
             Dim m1 = [namespace].GetMember(Of NamedTypeSymbol)("HostProc").GetMember(Of MethodSymbol)("BreakForDebugger")
             Dim m2 = [namespace].GetMember(Of NamedTypeSymbol)("AppDomain").GetMember(Of MethodSymbol)("ExecuteAssembly")
@@ -97,7 +99,7 @@ Namespace N2
     End Class
 End Namespace
 "
-            Dim comp = CreateCompilationWithMscorlib({source})
+            Dim comp = CreateCompilationWithMscorlib40({source})
             Dim [global] = comp.GlobalNamespace
 
             Dim [namespace] = [global].GetMember(Of NamespaceSymbol)("N1")
@@ -115,7 +117,7 @@ End Namespace
 
         <Fact>
         Public Sub DteeEntryPointImportsIgnored()
-            Dim comp = CreateCompilationWithMscorlib({s_dteeEntryPointSource}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({s_dteeEntryPointSource}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
 
             WithRuntimeInstance(comp, {MscorlibRef},
                 Sub(runtime)
@@ -154,8 +156,8 @@ Class C2
     End Sub
 End Class
 "
-            Dim module1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll.WithRootNamespace("root1")).ToModuleInstance()
-            Dim module2 = CreateCompilationWithMscorlib({source2}, options:=TestOptions.DebugDll.WithRootNamespace("root2")).ToModuleInstance()
+            Dim module1 = CreateCompilationWithMscorlib40({source1}, options:=TestOptions.DebugDll.WithRootNamespace("root1")).ToModuleInstance()
+            Dim module2 = CreateCompilationWithMscorlib40({source2}, options:=TestOptions.DebugDll.WithRootNamespace("root2")).ToModuleInstance()
 
             Dim runtimeInstance = CreateRuntimeInstance({module1, module2, MscorlibRef.ToModuleInstance()})
 
@@ -202,8 +204,8 @@ Namespace N7
     End Class
 End Namespace
 "
-            Dim module1 = CreateCompilationWithMscorlib({source1}, {MsvbRef}, options:=TestOptions.DebugDll).ToModuleInstance()
-            Dim module2 = CreateCompilationWithMscorlib({source2}, {MsvbRef}, options:=TestOptions.DebugDll).ToModuleInstance()
+            Dim module1 = CreateCompilationWithMscorlib40({source1}, {MsvbRef}, options:=TestOptions.DebugDll).ToModuleInstance()
+            Dim module2 = CreateCompilationWithMscorlib40({source2}, {MsvbRef}, options:=TestOptions.DebugDll).ToModuleInstance()
 
             Dim runtimeInstance = CreateRuntimeInstance({module1, module2, MscorlibRef.ToModuleInstance(), MsvbRef.ToModuleInstance()})
 
@@ -213,7 +215,7 @@ End Namespace
 
         <Fact>
         Public Sub ImportStrings_NoMethods()
-            Dim comp = CreateCompilationWithMscorlib({""}, {MsvbRef}, options:=TestOptions.DebugDll.WithRootNamespace("root"), assemblyName:=GetUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({""}, {MsvbRef}, options:=TestOptions.DebugDll.WithRootNamespace("root"), assemblyName:=GetUniqueName())
             WithRuntimeInstance(comp, {MscorlibRef, MsvbRef},
                 Sub(runtime)
                     ' Since there are no methods in the assembly, there is no import custom debug info, so we
@@ -238,10 +240,10 @@ Namespace N2
     End Module
 End Namespace
 "
-            Dim comp1 = CreateCompilationWithMscorlib({source1}, {MsvbRef}, options:=TestOptions.ReleaseDll)
+            Dim comp1 = CreateCompilationWithMscorlib40({source1}, {MsvbRef}, options:=TestOptions.ReleaseDll)
             Dim module1 = comp1.ToModuleInstance(debugFormat:=Nothing)
 
-            Dim comp2 = CreateCompilationWithMscorlib({source2}, {MsvbRef}, options:=TestOptions.DebugDll)
+            Dim comp2 = CreateCompilationWithMscorlib40({source2}, {MsvbRef}, options:=TestOptions.DebugDll)
             Dim module2 = comp2.ToModuleInstance()
 
             Dim runtimeInstance = CreateRuntimeInstance({
@@ -365,13 +367,13 @@ Namespace N3
 End Namespace
 "
 
-            Dim dteeComp = CreateCompilationWithMscorlib({s_dteeEntryPointSource}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
+            Dim dteeComp = CreateCompilationWithMscorlib40({s_dteeEntryPointSource}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
             Dim dteeModuleInstance = dteeComp.ToModuleInstance()
 
-            Dim comp1 = CreateCompilationWithMscorlib({source1}, {MsvbRef}, options:=TestOptions.DebugDll.WithRootNamespace("root"), assemblyName:=GetUniqueName())
+            Dim comp1 = CreateCompilationWithMscorlib40({source1}, {MsvbRef}, options:=TestOptions.DebugDll.WithRootNamespace("root"), assemblyName:=GetUniqueName())
             Dim compModuleInstance1 = comp1.ToModuleInstance()
 
-            Dim comp2 = CreateCompilationWithMscorlib({source2}, {MsvbRef}, options:=TestOptions.DebugDll.WithRootNamespace("root"), assemblyName:=GetUniqueName())
+            Dim comp2 = CreateCompilationWithMscorlib40({source2}, {MsvbRef}, options:=TestOptions.DebugDll.WithRootNamespace("root"), assemblyName:=GetUniqueName())
             Dim compModuleInstance2 = comp2.ToModuleInstance()
 
             Dim runtimeInstance = CreateRuntimeInstance({

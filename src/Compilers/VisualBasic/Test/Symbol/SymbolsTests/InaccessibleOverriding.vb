@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 
@@ -15,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' In order for Class3.f to override Class1.f (which it can because Class2.f is not
             ' accessible to Class3, since there is no IVT Proj2->Proj3), a explicit override must
             ' be emitted to metadata. 
-            Dim proj1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim proj1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="Proj1">
                     <file name="Class1.vb">
                         <![CDATA[
@@ -34,7 +36,7 @@ End Class
                 </compilation>)
             Dim proj1ref = New VisualBasicCompilationReference(proj1)
 
-            Dim proj2 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim proj2 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
                 <compilation name="Proj2">
                     <file name="Class2.vb">
                         <![CDATA[
@@ -73,7 +75,7 @@ Public Module Module1
 End Module
 ]]>
                     </file>
-                </compilation>, additionalRefs:={proj1ref, proj2ref}, expectedOutput:="Class3.f")
+                </compilation>, references:={proj1ref, proj2ref}, expectedOutput:="Class3.f")
 
             proj3.VerifyDiagnostics()   ' no errors.
         End Sub
@@ -84,7 +86,7 @@ End Module
             ' In order for Class3.p to override Class1.p (which it can because Class2.p is not
             ' accessible to Class3, since there is no IVT Proj2->Proj3), a explicit override must
             ' be emitted to metadata. 
-            Dim proj1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim proj1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="Proj1">
                     <file name="Class1.vb">
                         <![CDATA[
@@ -103,7 +105,7 @@ End Class
                 </compilation>, OutputKind.DynamicallyLinkedLibrary)
             Dim proj1ref = New VisualBasicCompilationReference(proj1)
 
-            Dim proj2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim proj2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 <compilation name="Proj2">
                     <file name="Class2.vb">
                         <![CDATA[
@@ -117,7 +119,7 @@ Public Class Class2
 End Class
 ]]>
                     </file>
-                </compilation>, additionalRefs:={proj1ref})
+                </compilation>, references:={proj1ref})
             Dim proj2ref = New VisualBasicCompilationReference(proj2)
 
             Dim proj3 = CompileAndVerify(
@@ -144,7 +146,7 @@ Public Module Module1
 End Module
 ]]>
                     </file>
-                </compilation>, additionalRefs:={proj1ref, proj2ref}, expectedOutput:="Class3.P")
+                </compilation>, references:={proj1ref, proj2ref}, expectedOutput:="Class3.P")
 
             proj3.VerifyDiagnostics()   ' no errors.
         End Sub
@@ -152,7 +154,7 @@ End Module
         <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub OverrideWithInterveningFriendOverride()
-            Dim proj1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim proj1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="Proj1">
                     <file name="Class1.vb">
                         <![CDATA[
@@ -171,7 +173,7 @@ End Class
                 </compilation>)
             Dim proj1ref = New VisualBasicCompilationReference(proj1)
 
-            Dim proj2 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim proj2 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
                 <compilation name="Proj2">
                     <file name="Class2.vb">
                         <![CDATA[
@@ -188,7 +190,7 @@ End Class
                 </compilation>, {proj1ref})
             Dim proj2ref = New VisualBasicCompilationReference(proj2)
 
-            Dim proj3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim proj3 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 <compilation name="Proj3">
                     <file name="Class3.vb">
                         <![CDATA[
@@ -210,7 +212,7 @@ Public Module Module1
 End Module
 ]]>
                     </file>
-                </compilation>, additionalRefs:={proj1ref, proj2ref})
+                </compilation>, references:={proj1ref, proj2ref})
 
             CompilationUtils.AssertTheseDiagnostics(proj3,
 <expected>
@@ -223,7 +225,7 @@ BC30981: 'Friend Overrides Sub f()' in class 'Class3' cannot override 'Friend Ov
         <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub OverridePropertyWithInterveningFriendOverride()
-            Dim proj1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim proj1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="Proj1">
                     <file name="Class1.vb">
                         <![CDATA[
@@ -244,7 +246,7 @@ End Class
                 </compilation>, OutputKind.DynamicallyLinkedLibrary)
             Dim proj1ref = New VisualBasicCompilationReference(proj1)
 
-            Dim proj2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim proj2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 <compilation name="Proj2">
                     <file name="Class2.vb">
                         <![CDATA[
@@ -260,10 +262,10 @@ Public Class Class2
 End Class
 ]]>
                     </file>
-                </compilation>, additionalRefs:={proj1ref})
+                </compilation>, references:={proj1ref})
             Dim proj2ref = New VisualBasicCompilationReference(proj2)
 
-            Dim proj3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim proj3 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 <compilation name="Proj3">
                     <file name="Class3.vb">
                         <![CDATA[
@@ -287,7 +289,7 @@ Public Module Module1
 End Module
 ]]>
                     </file>
-                </compilation>, additionalRefs:={proj1ref, proj2ref})
+                </compilation>, references:={proj1ref, proj2ref})
 
             CompilationUtils.AssertTheseDiagnostics(proj3,
 <expected>
@@ -421,7 +423,7 @@ Public Module Module1
 End Module
 ]]>
                             </file>
-                        </compilation>, additionalRefs:={proj1Ref, proj2Ref}, expectedOutput:="Class3.f")
+                        </compilation>, references:={proj1Ref, proj2Ref}, expectedOutput:="Class3.f")
 
                     proj3.VerifyDiagnostics()   ' no errors.
 
@@ -523,7 +525,7 @@ End Module
                 Using proj1ILFile = IlasmUtilities.CreateTempAssembly(proj1ILText, prependDefaultHeader:=False)
                     Dim proj1Ref = MetadataReference.CreateFromImage(ReadFromFile(proj1ILFile.Path))
 
-                    Dim proj3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                    Dim proj3 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                         <compilation name="P3">
                             <file name="Class3.vb">
                                 <![CDATA[
@@ -545,7 +547,7 @@ Public Module Module1
 End Module
 ]]>
                             </file>
-                        </compilation>, additionalRefs:={proj1Ref, proj2Ref})
+                        </compilation>, references:={proj1Ref, proj2Ref})
 
                     CompilationUtils.AssertTheseDiagnostics(proj3,
         <expected>
@@ -604,12 +606,12 @@ BC30981: 'Friend Overrides Sub f()' in class 'Class3' cannot override 'Friend Ov
     IL_0006:  ret
   } // end of method Cls1::.ctor
 
-  .method private instance void  foo() cil managed
+  .method private instance void  goo() cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
     IL_0000:  ret
-  } // end of method Cls1::foo
+  } // end of method Cls1::goo
 
 } // end of class Cls1
 ]]>
@@ -619,20 +621,20 @@ BC30981: 'Friend Overrides Sub f()' in class 'Class3' cannot override 'Friend Ov
 
             Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
                 Dim ilRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
-                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
                     <compilation name="CannotOverrideInAccessibleMemberInMetadata">
                         <file name="a.vb">
                         Class Cls2
                             Inherits Cls1
-                            Private Overrides Sub foo()
+                            Private Overrides Sub goo()
                             End Sub
                         End Class
                     </file>
                     </compilation>, references:={ilRef})
 
                 Dim expectedErrors1 = <errors>
-BC30284: sub 'foo' cannot be declared 'Overrides' because it does not override a sub in a base class.
-                            Private Overrides Sub foo()
+BC30284: sub 'goo' cannot be declared 'Overrides' because it does not override a sub in a base class.
+                            Private Overrides Sub goo()
                                                   ~~~
                  </errors>
 
@@ -660,7 +662,7 @@ BC30284: sub 'foo' cannot be declared 'Overrides' because it does not override a
        extends [mscorlib]System.Object
 {
   .method family hidebysig newslot virtual 
-          instance int32  foo() cil managed
+          instance int32  goo() cil managed
   {
     // Code size       7 (0x7)
     .maxstack  1
@@ -672,10 +674,10 @@ BC30284: sub 'foo' cannot be declared 'Overrides' because it does not override a
 
     IL_0005:  ldloc.0
     IL_0006:  ret
-  } // end of method CaseMembers::foo
+  } // end of method CaseMembers::goo
 
   .method assembly hidebysig instance int32 
-          Foo() cil managed
+          Goo() cil managed
   {
     // Code size       7 (0x7)
     .maxstack  1
@@ -687,7 +689,7 @@ BC30284: sub 'foo' cannot be declared 'Overrides' because it does not override a
 
     IL_0005:  ldloc.0
     IL_0006:  ret
-  } // end of method CaseMembers::Foo
+  } // end of method CaseMembers::Goo
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -705,18 +707,18 @@ BC30284: sub 'foo' cannot be declared 'Overrides' because it does not override a
 
             Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
                 Dim ilRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
-                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                     <compilation name="Bug14346">
                         <file name="a.vb">
 Option Strict On
 Imports System
 Module m1
     class Car : Inherits CaseMembers
-        protected overrides function foo() as integer
-            return MyBase.foo()
+        protected overrides function goo() as integer
+            return MyBase.goo()
         end function
         public function bar() as integer
-            return foo()
+            return goo()
         end function
     end class
     sub Main()
@@ -726,7 +728,7 @@ Module m1
     end sub
 End Module
                     </file>
-                    </compilation>, additionalRefs:={ilRef})
+                    </compilation>, references:={ilRef})
 
                 CompilationUtils.AssertNoDiagnostics(compilation1)
             End Using

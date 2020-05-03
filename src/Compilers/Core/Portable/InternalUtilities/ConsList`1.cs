@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Roslyn.Utilities
@@ -15,17 +20,19 @@ namespace Roslyn.Utilities
     {
         public static readonly ConsList<T> Empty = new ConsList<T>();
 
+        [AllowNull, MaybeNull]
         private readonly T _head;
-        private readonly ConsList<T> _tail;
+        private readonly ConsList<T>? _tail;
 
         internal struct Enumerator : IEnumerator<T>
         {
+            [AllowNull, MaybeNull]
             private T _current;
             private ConsList<T> _tail;
 
             internal Enumerator(ConsList<T> list)
             {
-                _current = default(T);
+                _current = default;
                 _tail = list;
             }
 
@@ -34,7 +41,9 @@ namespace Roslyn.Utilities
                 get
                 {
                     Debug.Assert(_tail != null);
-                    return _current;
+
+                    // This never returns null after a proper call to `MoveNext` returned true.
+                    return _current!;
                 }
             }
 
@@ -45,12 +54,14 @@ namespace Roslyn.Utilities
 
                 if (newTail != null)
                 {
-                    _current = currentTail._head;
+                    // Suppress false positive CS8717 reported for MaybeNull assignment to AllowNull
+                    // https://github.com/dotnet/roslyn/issues/38926
+                    _current = currentTail._head!;
                     _tail = newTail;
                     return true;
                 }
 
-                _current = default(T);
+                _current = default;
                 return false;
             }
 
@@ -58,7 +69,7 @@ namespace Roslyn.Utilities
             {
             }
 
-            object IEnumerator.Current
+            object? IEnumerator.Current
             {
                 get
                 {
@@ -74,7 +85,7 @@ namespace Roslyn.Utilities
 
         private ConsList()
         {
-            _head = default(T);
+            _head = default;
             _tail = null;
         }
 
@@ -92,7 +103,7 @@ namespace Roslyn.Utilities
             get
             {
                 Debug.Assert(this != Empty);
-                return _head;
+                return _head!;
             }
         }
 
@@ -102,6 +113,7 @@ namespace Roslyn.Utilities
             get
             {
                 Debug.Assert(this != Empty);
+                RoslynDebug.Assert(_tail is object);
                 return _tail;
             }
         }
@@ -142,7 +154,7 @@ namespace Roslyn.Utilities
                     result.Append(", ");
                 }
 
-                result.Append(list._head);
+                result.Append(list.Head);
                 any = true;
             }
 

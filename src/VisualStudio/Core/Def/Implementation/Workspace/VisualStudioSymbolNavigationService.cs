@@ -1,16 +1,23 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -40,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public VisualStudioSymbolNavigationService(
             SVsServiceProvider serviceProvider,
             VisualStudio14StructureTaggerProvider outliningTaggerProvider)
+            : base(outliningTaggerProvider.ThreadingContext)
         {
             _serviceProvider = serviceProvider;
             _outliningTaggerProvider = outliningTaggerProvider;
@@ -58,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            options = options ?? project.Solution.Workspace.Options;
+            options ??= project.Solution.Workspace.Options;
             symbol = symbol.OriginalDefinition;
 
             // Prefer visible source locations if possible.
@@ -72,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 if (targetDocument != null)
                 {
                     var editorWorkspace = targetDocument.Project.Solution.Workspace;
-                    var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
+                    var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
                     return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
                 }
             }
@@ -111,7 +119,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // Generate new source or retrieve existing source for the symbol in question
-            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, cancellationToken).WaitAndGetResult(cancellationToken);
+            var allowDecompilation = false;
+
+            // Check whether decompilation is supported for the project. We currently only support this for C# projects.
+            if (project.LanguageServices.GetService<IDecompiledSourceService>() != null)
+            {
+                var eulaService = project.Solution.Workspace.Services.GetRequiredService<IDecompilerEulaService>();
+                allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources) && !symbol.IsFromSource();
+                if (allowDecompilation && !ThreadingContext.JoinableTaskFactory.Run(() => eulaService.IsAcceptedAsync(cancellationToken)))
+                {
+                    var notificationService = project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
+                    allowDecompilation = notificationService.ConfirmMessageBox(ServicesVSResources.Decompiler_Legal_Notice_Message, ServicesVSResources.Decompiler_Legal_Notice_Title, NotificationSeverity.Warning);
+                    if (allowDecompilation)
+                    {
+                        ThreadingContext.JoinableTaskFactory.Run(() => eulaService.MarkAcceptedAsync(cancellationToken));
+                    }
+                }
+            }
+
+            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var vsRunningDocumentTable4 = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>();
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
@@ -121,7 +147,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
 
-            var vsTextBuffer = (IVsTextBuffer)vsRunningDocumentTable4.GetDocumentData(documentCookie);
+            // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
+            // which saves us JIT time in this method.
+            var vsTextBuffer = (IVsTextBuffer)(object)vsRunningDocumentTable4.GetDocumentData(documentCookie);
             var textBuffer = _editorAdaptersFactory.GetDataBuffer(vsTextBuffer);
 
             if (!fileAlreadyOpen)
@@ -137,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (openedDocument != null)
             {
                 var editorWorkspace = openedDocument.Project.Solution.Workspace;
-                var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
+                var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
 
                 return navigationService.TryNavigateToSpan(
                     workspace: editorWorkspace,
@@ -149,10 +177,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return true;
         }
 
-        public bool TrySymbolNavigationNotify(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-        {
-            return TryNotifyForSpecificSymbol(symbol, solution, cancellationToken);
-        }
+        public bool TrySymbolNavigationNotify(ISymbol symbol, Project project, CancellationToken cancellationToken)
+            => TryNotifyForSpecificSymbol(symbol, project.Solution, cancellationToken);
 
         private bool TryNotifyForSpecificSymbol(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken)
@@ -163,13 +189,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);
 
             if (!TryGetNavigationAPIRequiredArguments(
-                    definitionItem, rqName, solution, cancellationToken,
+                    definitionItem, rqName, cancellationToken,
                     out var hierarchy, out var itemID, out var navigationNotify))
             {
                 return false;
             }
 
-            int returnCode = navigationNotify.OnBeforeNavigateToSymbol(
+            var returnCode = navigationNotify.OnBeforeNavigateToSymbol(
                 hierarchy,
                 itemID,
                 rqName,
@@ -180,7 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool WouldNavigateToSymbol(
             DefinitionItem definitionItem, Solution solution, CancellationToken cancellationToken,
-            out string filePath, out int lineNumber, out int charOffset)
+            [NotNullWhen(true)] out string? filePath, out int lineNumber, out int charOffset)
         {
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName1);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey2, out var rqName2);
@@ -199,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool WouldNotifyToSpecificSymbol(
             DefinitionItem definitionItem, string rqName, Solution solution, CancellationToken cancellationToken,
-            out string filePath, out int lineNumber, out int charOffset)
+            [NotNullWhen(true)] out string? filePath, out int lineNumber, out int charOffset)
         {
             AssertIsForeground();
 
@@ -213,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             if (!TryGetNavigationAPIRequiredArguments(
-                    definitionItem, rqName, solution, cancellationToken,
+                    definitionItem, rqName, cancellationToken,
                     out var hierarchy, out var itemID, out var navigationNotify))
             {
                 return false;
@@ -221,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var navigateToTextSpan = new Microsoft.VisualStudio.TextManager.Interop.TextSpan[1];
 
-            int queryNavigateStatusCode = navigationNotify.QueryNavigateToSymbol(
+            var queryNavigateStatusCode = navigationNotify.QueryNavigateToSymbol(
                 hierarchy,
                 itemID,
                 rqName,
@@ -244,11 +270,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private bool TryGetNavigationAPIRequiredArguments(
             DefinitionItem definitionItem,
             string rqName,
-            Solution solution,
             CancellationToken cancellationToken,
-            out IVsHierarchy hierarchy,
+            [NotNullWhen(true)] out IVsHierarchy? hierarchy,
             out uint itemID,
-            out IVsSymbolicNavigationNotify navigationNotify)
+            [NotNullWhen(true)] out IVsSymbolicNavigationNotify? navigationNotify)
         {
             AssertIsForeground();
 
@@ -290,18 +315,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return true;
         }
 
-        private bool TryGetVsHierarchyAndItemId(Document document, out IVsHierarchy hierarchy, out uint itemID)
+        private bool TryGetVsHierarchyAndItemId(Document document, [NotNullWhen(true)] out IVsHierarchy? hierarchy, out uint itemID)
         {
             AssertIsForeground();
 
-            var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace != null)
+            if (document.Project.Solution.Workspace is VisualStudioWorkspace visualStudioWorkspace
+                && document.FilePath is object)
             {
-                var hostProject = visualStudioWorkspace.GetHostProject(document.Project.Id);
-                hierarchy = hostProject.Hierarchy;
-                itemID = hostProject.GetDocumentOrAdditionalDocument(document.Id).GetItemId();
-
-                return true;
+                hierarchy = visualStudioWorkspace.GetHierarchy(document.Project.Id);
+                if (hierarchy is object)
+                {
+                    itemID = hierarchy.TryGetItemId(document.FilePath);
+                    if (itemID != VSConstants.VSITEMID_NIL)
+                    {
+                        return true;
+                    }
+                }
             }
 
             hierarchy = null;
@@ -312,7 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private IVsRunningDocumentTable GetRunningDocumentTable()
         {
             var runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable>();
-            Debug.Assert(runningDocumentTable != null);
+            RoslynDebug.Assert(runningDocumentTable != null);
             return runningDocumentTable;
         }
     }

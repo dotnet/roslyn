@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -12,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : IVsContainedLanguageFactory
     {
-        private AbstractProject FindMatchingProject(IVsHierarchy hierarchy, uint itemid)
+        private VisualStudioProject FindMatchingProject(IVsHierarchy hierarchy, uint itemid)
         {
             // Here we must determine the project that this file's document is to be a part of.
             // Venus creates a separate Project for a .aspx or .ascx file, and so we must associate
@@ -23,13 +25,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // item-specific answer given to us from Venus rather than the project-level answer
             // given, which are going to be different. This was changed for Dev10 bug 839428.
             string projectName = null;
-            var webApplicationCtxSvc = this.SystemServiceProvider.GetService(typeof(SWebApplicationCtxSvc)) as IWebApplicationCtxSvc;
-            if (webApplicationCtxSvc != null)
+            if (this.SystemServiceProvider.GetService(typeof(SWebApplicationCtxSvc)) is IWebApplicationCtxSvc webApplicationCtxSvc)
             {
                 if (webApplicationCtxSvc.GetItemContext(hierarchy, itemid, out var webServiceProvider) >= 0)
                 {
                     var webFileCtxServiceGuid = typeof(IWebFileCtxService).GUID;
-                    IntPtr service = IntPtr.Zero;
+                    var service = IntPtr.Zero;
                     if (webServiceProvider.QueryService(ref webFileCtxServiceGuid, ref webFileCtxServiceGuid, out service) >= 0)
                     {
                         try
@@ -48,10 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
             }
 
-            if (projectName == null)
+            if (string.IsNullOrEmpty(projectName))
             {
-                var containedLanguageProjectNameProvider = hierarchy as IVsContainedLanguageProjectNameProvider;
-                if (containedLanguageProjectNameProvider != null)
+                if (hierarchy is IVsContainedLanguageProjectNameProvider containedLanguageProjectNameProvider)
                 {
                     containedLanguageProjectNameProvider.GetProjectName(itemid, out projectName);
                 }
@@ -62,10 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return null;
             }
 
-            return this.Workspace.DeferredState.ProjectTracker.ImmutableProjects
-                .Where(p => p.Hierarchy == hierarchy)
-                .Where(p => p.ProjectSystemName == projectName)
-                .SingleOrDefault();
+            return this.Workspace.GetProjectWithHierarchyAndName(hierarchy, projectName);
         }
 
         public int GetLanguage(IVsHierarchy hierarchy, uint itemid, IVsTextBufferCoordinator bufferCoordinator, out IVsContainedLanguage language)

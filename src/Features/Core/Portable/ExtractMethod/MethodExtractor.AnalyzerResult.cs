@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -26,26 +28,28 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 ITypeSymbol returnType,
                 bool awaitTaskReturn,
                 bool instanceMemberIsUsed,
+                bool shouldBeReadOnly,
                 bool endOfSelectionReachable,
                 OperationStatus status)
             {
                 var semanticModel = document.SemanticModel;
 
-                this.UseInstanceMember = instanceMemberIsUsed;
-                this.EndOfSelectionReachable = endOfSelectionReachable;
-                this.AwaitTaskReturn = awaitTaskReturn;
-                this.SemanticDocument = document;
+                UseInstanceMember = instanceMemberIsUsed;
+                ShouldBeReadOnly = shouldBeReadOnly;
+                EndOfSelectionReachable = endOfSelectionReachable;
+                AwaitTaskReturn = awaitTaskReturn;
+                SemanticDocument = document;
                 _typeParametersInDeclaration = typeParametersInDeclaration.Select(s => semanticModel.ResolveType(s)).ToList();
                 _typeParametersInConstraintList = typeParametersInConstraintList.Select(s => semanticModel.ResolveType(s)).ToList();
                 _variables = variables;
-                this.ReturnType = semanticModel.ResolveType(returnType);
+                ReturnType = semanticModel.ResolveType(returnType);
                 _variableToUseAsReturnValue = variableToUseAsReturnValue;
-                this.Status = status;
+                Status = status;
             }
 
             public AnalyzerResult With(SemanticDocument document)
             {
-                if (this.SemanticDocument == document)
+                if (SemanticDocument == document)
                 {
                     return this;
                 }
@@ -56,17 +60,23 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     _typeParametersInConstraintList,
                     _variables,
                     _variableToUseAsReturnValue,
-                    this.ReturnType,
-                    this.AwaitTaskReturn,
-                    this.UseInstanceMember,
-                    this.EndOfSelectionReachable,
-                    this.Status);
+                    ReturnType,
+                    AwaitTaskReturn,
+                    UseInstanceMember,
+                    ShouldBeReadOnly,
+                    EndOfSelectionReachable,
+                    Status);
             }
 
             /// <summary>
             /// used to determine whether static can be used
             /// </summary>
             public bool UseInstanceMember { get; }
+
+            /// <summary>
+            /// Indicates whether the extracted method should have a 'readonly' modifier.
+            /// </summary>
+            public bool ShouldBeReadOnly { get; }
 
             /// <summary>
             /// used to determine whether "return" statement needs to be inserted
@@ -130,7 +140,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    return this.ReturnType.SpecialType != SpecialType.System_Void && !this.AwaitTaskReturn;
+                    return ReturnType.SpecialType != SpecialType.System_Void && !AwaitTaskReturn;
                 }
             }
 
@@ -150,14 +160,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public IEnumerable<VariableInfo> GetVariablesToMoveIntoMethodDefinition(CancellationToken cancellationToken)
-            {
-                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
-            }
+                => _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
 
             public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSite(CancellationToken cancellationToken)
-            {
-                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut);
-            }
+                => _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut);
 
             public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSiteOrDelete(CancellationToken cancellationToken)
             {

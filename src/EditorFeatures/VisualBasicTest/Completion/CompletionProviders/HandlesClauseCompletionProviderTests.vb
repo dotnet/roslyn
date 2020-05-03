@@ -1,6 +1,7 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -12,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New HandlesClauseCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(HandlesClauseCompletionProvider)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -41,7 +42,7 @@ End Class
 Public Class Derived
     Inherits Base
 
-    Sub Foo() Handles Me.$$
+    Sub Goo() Handles Me.$$
 
 End Class</text>.Value
 
@@ -59,7 +60,7 @@ Public Class Derived
 End Class
 Public Class IndirectDerived
     Inherits Base
-    Sub Foo() Handles MyClass.$$
+    Sub Goo() Handles MyClass.$$
 
 End Class
 </text>.Value
@@ -111,7 +112,7 @@ End Class</text>.Value
 Public Class Handler
     WithEvents handlee as New Class1
 
-    Public Sub foo Handles $$
+    Public Sub goo Handles $$
 End Class</text>.Value
 
             Await VerifyItemExistsAsync(text, "handlee")
@@ -131,7 +132,7 @@ End Class</text>.Value
 Public Class Handler
     WithEvents handlee as New Class1
 
-    Public Sub foo Handles handlee.$$
+    Public Sub goo Handles handlee.$$
 End Class</text>.Value
 
             Await VerifyItemExistsAsync(text, "Ev_Event")
@@ -165,7 +166,7 @@ Public Class Derived
 End Class
 Class Test
     WithEvents obj As Derived
-    Sub foo() Handles obj.$$
+    Sub goo() Handles obj.$$
 End Class
 </text>.Value
 
@@ -184,7 +185,7 @@ End Class
 End Class
 Class derived
     Inherits container
-    Sub foo() Handles $$
+    Sub goo() Handles $$
 End Class
 </text>.Value
             Await VerifyItemExistsAsync(text, "obj")
@@ -199,7 +200,7 @@ End Class
 Public Class Derived
     Inherits Base
     Shadows Event B()
-    Sub foo() Handles Me.$$
+    Sub goo() Handles Me.$$
     End Sub
 End Class
 
@@ -222,7 +223,7 @@ End Class
 Public Class Handler
     WithEvents handlee as New Class1
 
-    Public Sub foo Handles '$$
+    Public Sub goo Handles '$$
 End Class</text>.Value
 
             Await VerifyNoItemsExistAsync(text)

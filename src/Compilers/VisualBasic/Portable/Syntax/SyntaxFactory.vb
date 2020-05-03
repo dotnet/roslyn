@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -515,14 +517,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a threadsafty element within an xml documentation comment.
+        ''' Creates a threadsafety element within an xml documentation comment.
         ''' </summary>
         Public Shared Function XmlThreadSafetyElement() As XmlEmptyElementSyntax
             Return XmlThreadSafetyElement(True, False)
         End Function
 
         ''' <summary>
-        ''' Creates a threadsafty element within an xml documentation comment.
+        ''' Creates a threadsafety element within an xml documentation comment.
         ''' </summary>
         ''' <param name="isStatic" static="sfd">Indicates whether static member of this type are safe for multi-threaded operations.</param>
         ''' <param name="isInstance">Indicates whether instance members of this type are safe for multi-threaded operations.</param>
@@ -555,7 +557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a syntax node for a priliminary element within a xml documentation comment.
+        ''' Creates a syntax node for a preliminary element within a xml documentation comment.
         ''' </summary>
         Public Shared Function XmlPreliminaryElement() As XmlEmptyElementSyntax
             Return XmlEmptyElement(DocumentationCommentXmlNames.PreliminaryElementName)
@@ -612,7 +614,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        ''' Creates the syntax representation of an xml value element (e.g. for xml documentation comments).
         ''' </summary>
         ''' <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         Public Shared Function XmlValueElement(ParamArray content As XmlNodeSyntax()) As XmlElementSyntax
@@ -620,7 +622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        ''' Creates the syntax representation of an xml value element (e.g. for xml documentation comments).
         ''' </summary>
         ''' <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         Public Shared Function XmlValueElement(content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
@@ -748,7 +750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 XmlAttribute(
                     XmlName(
                         Nothing,
-                        XmlTextLiteralToken(DocumentationCommentXmlNames.KeywordElementName, DocumentationCommentXmlNames.KeywordElementName)),
+                        XmlTextLiteralToken(DocumentationCommentXmlNames.LangwordAttributeName, DocumentationCommentXmlNames.LangwordAttributeName)),
                     XmlString(
                         Token(SyntaxKind.DoubleQuoteToken),
                         SyntaxTokenList.Create(XmlTextLiteralToken(keyword, keyword)),
@@ -1014,7 +1016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Determines if a submission contains an LINQ query not followed by an empty line.
+        ''' Determines if a submission contains a LINQ query not followed by an empty line.
         '''
         ''' Examples:
         ''' 1. <c>Dim x = 1</c> returns false since the statement is not a LINQ query

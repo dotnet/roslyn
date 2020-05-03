@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../ErrorString.resx">
+    <body>
+      <trans-unit id="Compiler_UnexpectedException">
+        <source>MSB3883: Unexpected exception: </source>
+        <target state="translated">MSB3883: 意外的异常: </target>
+        <note>{StrBegin="MSB3883: "}</note>
+      </trans-unit>
+      <trans-unit id="Csc_AssemblyAliasContainsIllegalCharacters">
+        <source>MSB3053: The assembly alias "{1}" on reference "{0}" contains illegal characters.</source>
+        <target state="translated">MSB3053: 引用“{0}”上的程序集别名“{1}”包含非法字符。</target>
+        <note>{StrBegin="MSB3053: "}</note>
+      </trans-unit>
+      <trans-unit id="Csc_InvalidParameter">
+        <source>MSB3051: The parameter to the compiler is invalid.  {0}</source>
+        <target state="translated">MSB3051:  编译器的参数无效。  {0}</target>
+        <note>{StrBegin="MSB3051: "}</note>
+      </trans-unit>
+      <trans-unit id="Csc_InvalidParameterWarning">
+        <source>MSB3052: The parameter to the compiler is invalid, '{0}{1}' will be ignored.</source>
+        <target state="translated">MSB3052: 编译器的参数无效，“{0}{1}”将被忽略。</target>
+        <note>{StrBegin="MSB3052: "}</note>
+      </trans-unit>
+      <trans-unit id="General_CannotConvertStringToBool">
+        <source>The string "{0}" cannot be converted to a boolean (true/false) value.</source>
+        <target state="translated">无法将字符串“{0}”转换为布尔值(true/false)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_CouldNotSetHostObjectParameter">
+        <source>MSB3081: A problem occurred while trying to set the "{0}" parameter for the IDE's in-process compiler. {1}</source>
+        <target state="translated">MSB3081: 尝试设置 IDE 的进程内编译器的“{0}”参数时出现问题。{1}</target>
+        <note>{StrBegin="MSB3081: "}</note>
+      </trans-unit>
+      <trans-unit id="General_DuplicateItemsNotSupported">
+        <source>MSB3105: The item "{0}" was specified more than once in the "{1}" parameter.  Duplicate items are not supported by the "{1}" parameter.</source>
+        <target state="translated">MSB3105: 在“{1}”参数中指定了项“{0}”多次。“{1}”参数不支持重复项。</target>
+        <note>{StrBegin="MSB3105: "}</note>
+      </trans-unit>
+      <trans-unit id="General_DuplicateItemsNotSupportedWithMetadata">
+        <source>MSB3083: The item "{0}" was specified more than once in the "{1}" parameter and both items had the same value "{2}" for the "{3}" metadata.  Duplicate items are not supported by the "{1}" parameter unless they have different values for the "{3}" metadata.</source>
+        <target state="translated">MSB3083: 在参数“{1}”中指定了项“{0}”多次，并且这两个项对于元数据“{3}”具有相同的值“{2}”。参数“{1}”不支持重复项，除非这些项具有不同的“{3}”元数据值。</target>
+        <note>{StrBegin="MSB3083: "}</note>
+      </trans-unit>
+      <trans-unit id="General_ExpectedFileMissing">
+        <source>Expected file "{0}" does not exist.</source>
+        <target state="translated">所需文件“{0}”不存在。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_SkippingCopy1">
+        <source>Reference assembly "{0}" already has latest information. Leaving it untouched.</source>
+        <target state="translated">引用程序集“{0}”已具有最新信息。请不要改动。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_SourceNotRef1">
+        <source>Could not extract the MVID from "{0}". Are you sure it is a reference assembly?</source>
+        <target state="translated">无法从“{0}”提取 MVID。是否确定它是引用程序集?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_BadSource3">
+        <source>Failed to check the content hash of the source ref assembly '{0}': {1}
+{2}</source>
+        <target state="translated">未能查看源引用程序集“{0}”的内容哈希: {1}
+{2}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_BadDestination1">
+        <source>Failed to check the content hash of the destination ref assembly '{0}'. It will be overwritten.</source>
+        <target state="translated">未能检查目标引用程序集“{0}”的内容哈希。将对其进行覆盖。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_ToolFileNotFound">
+        <source>MSB3082: Task failed because "{0}" was not found.</source>
+        <target state="translated">MSB3082: 由于找不到“{0}”，任务失败。</target>
+        <note>{StrBegin="MSB3082: "}</note>
+      </trans-unit>
+      <trans-unit id="General_IncorrectHostObject">
+        <source>MSB3087: An incompatible host object was passed into the "{0}" task.  The host object for this task must implement the "{1}" interface.</source>
+        <target state="translated">MSB3087: 向任务“{0}”传入了不兼容的宿主对象。此任务的宿主对象必须实现“{1}”接口。</target>
+        <note>{StrBegin="MSB3087: "}</note>
+      </trans-unit>
+      <trans-unit id="General_InvalidAttributeMetadata">
+        <source>Item "{0}" has attribute "{1}" with value "{2}" that could not be converted to "{3}".</source>
+        <target state="translated">项“{0}”具有值为“{2}”的特性“{1}”，该值未能转换为“{3}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_ParameterUnsupportedOnHostCompiler">
+        <source>The IDE's in-process compiler does not support the specified values for the "{0}" parameter.  Therefore, this task will fallback to using the command-line compiler.</source>
+        <target state="translated">IDE 的进程内编译器不支持为“{0}”参数指定的值。因此，此任务将退而使用命令行编译器。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_ReferenceDoesNotExist">
+        <source>MSB3104: The referenced assembly "{0}" was not found. If this assembly is produced by another one of your projects, please make sure to build that project before building this one.</source>
+        <target state="translated">MSB3104: 未找到引用的程序集“{0}”。如果此程序集是由你的另一个项目生成的，请确保在生成该项目之后再生成此程序集。</target>
+        <note>{StrBegin="MSB3104: "}</note>
+      </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">无法读取文件 "{0}": {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SharedCompilationFallback">
+        <source>Shared compilation failed; falling back to tool: {0}</source>
+        <target state="translated">共享编译失败; 回到工具: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UsingSharedCompilation">
+        <source>Using shared compilation with compiler from directory: {0}</source>
+        <target state="translated">对来自后列目录的编译器使用共享编译: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Vbc_EnumParameterHasInvalidValue">
+        <source>MSB3401: "{1}" is an invalid value for the "{0}" parameter.  The valid values are: {2}</source>
+        <target state="translated">MSB3401: “{1}”是无效的“{0}”参数值。有效值为: {2}</target>
+        <note>{StrBegin="MSB3401: "}</note>
+      </trans-unit>
+      <trans-unit id="Vbc_ParameterHasInvalidValue">
+        <source>"{1}" is an invalid value for the "{0}" parameter.</source>
+        <target state="translated">“{1}”是无效的“{0}”参数值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Vbc_RenamePDB">
+        <source>MSB3402: There was an error creating the pdb file "{0}". {1}</source>
+        <target state="translated">MSB3402: 创建 pdb 文件“{0}”时出现错误。{1}</target>
+        <note>{StrBegin="MSB3402: "}</note>
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="translated">{0} 包含重复项“{1}”和冲突元数据“{2}”:“{3}”和“{4}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="translated">要求“{0}”路径以斜杠或反斜杠结尾:“{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
+        <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
+        <target state="translated">当 {1} 为 true，{0} 项必须包括至少一个顶级(未嵌套)项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
+        <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
+        <target state="translated">未在 {1} 项中找到值 {0}，或者对应项不是顶级源根目录:“{2}”</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

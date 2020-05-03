@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
@@ -58,7 +60,7 @@ End Module
     </file>
 </compilation>
             Dim ref = MetadataReference.CreateFromImage(TestResources.General.Regress40025DLL.AsImmutableOrNull())
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(c1,
 <errors>
 BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the definition for event 'Public Event ee As PlayRecordCallback'. Add one to your project.

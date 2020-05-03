@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
@@ -8,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
         ''' Implements scenarios outlined in /Services/CSharp/Impl/Refactoring/ExtractMethod/ExtractMethodMatrix.xlsx
         ''' </summary>
         ''' <remarks></remarks>
+        <[UseExportProvider]>
         Public Class DataFlowPass
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -161,12 +164,12 @@ Class Program
         Dim i As Integer = 10
         Dim i2 As Integer = i
 
-        NewMethod(i)
+        i2 = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
-        Dim i2 As Integer = i
-    End Sub
+    Private Shared Function NewMethod(i As Integer) As Integer
+        Return i
+    End Function
 End Class</text>
 
                 Await TestExtractMethodAsync(code, expected)
@@ -290,12 +293,12 @@ Imports System.Linq
 
 Class Program
     Sub Test(args As String())
-        NewMethod(args)
-    End Sub
-
-    Private Shared Sub NewMethod(args() As String)
         Dim i As Integer
         Dim s As String
+        NewMethod(args, i, s)
+    End Sub
+
+    Private Shared Sub NewMethod(args() As String, ByRef i As Integer, ByRef s As String)
         i = 10
         s = args(0) + i.ToString()
     End Sub
@@ -768,17 +771,19 @@ Imports System.Linq
 Class Program
     Sub Test()
         Dim i As Integer
-        NewMethod(i)
+        i = NewMethod(i)
         i = 6
         Console.WriteLine(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         Dim b As Integer = 10
         If b &lt; 10
             i = 5
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -923,17 +928,19 @@ Imports System.Linq
 Class Program
     Sub Test()
         Dim i As Integer = 1
-        NewMethod(i)
+        i = NewMethod(i)
         i = 6
         Console.WriteLine(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         Dim b As Integer = 10
         If b &lt; 10
             i = 5
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -1211,21 +1218,22 @@ End Class</text>
 
 Class Program
     Shared Sub Main(args As String())
-        &apos; int v = 0;
-        &apos; while (true)
+        ' int v = 0;
+        ' while (true)
         Dim unassigned As Integer
-        &apos; {
-        &apos; NewMethod(v++);
-        NewMethod(unassigned)
+        ' {
+        ' NewMethod(v++);
+        unassigned = NewMethod(unassigned)
 
-        &apos; NewMethod(ReturnVal(v++));
+        ' NewMethod(ReturnVal(v++));
 
-        &apos; }
+        ' }
     End Sub
 
-    Private Shared Sub NewMethod(unassigned As Integer)
+    Private Shared Function NewMethod(unassigned As Integer) As Integer
         unassigned = unassigned + 10
-    End Sub
+        Return unassigned
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -1255,23 +1263,24 @@ End Class</text>
 
 Class Program
     Shared Sub Main(args As String())
-        &apos; int v = 0;
-        &apos; while (true)
+        ' int v = 0;
+        ' while (true)
 
         Dim unassigned As Integer
-        &apos; {
-        NewMethod(unassigned)
+        ' {
+        unassigned = NewMethod(unassigned)
 
-        &apos; }
+        ' }
 
     End Sub
 
-    Private Shared Sub NewMethod(unassigned As Integer)
-        &apos; NewMethod(v++);
+    Private Shared Function NewMethod(unassigned As Integer) As Integer
+        ' NewMethod(v++);
         unassigned = unassigned + 10
 
-        &apos; NewMethod(ReturnVal(v++));
-    End Sub
+        ' NewMethod(ReturnVal(v++));
+        Return unassigned
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -1470,11 +1479,11 @@ Imports System.Linq
 Class Program
     Shared Sub Main()
         Dim x As Integer = 1
-        [|Foo(x)|]
+        [|Goo(x)|]
         Console.WriteLine(x)
     End Sub
 
-    Shared Sub Foo(ByRef x As Integer)
+    Shared Sub Goo(ByRef x As Integer)
         x = x + 1
     End Sub
 End Class</text>
@@ -1490,11 +1499,11 @@ Class Program
     End Sub
 
     Private Shared Function NewMethod(x As Integer) As Integer
-        Foo(x)
+        Goo(x)
         Return x
     End Function
 
-    Shared Sub Foo(ByRef x As Integer)
+    Shared Sub Goo(ByRef x As Integer)
         x = x + 1
     End Sub
 End Class</text>
@@ -1571,7 +1580,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 
 Class Program
-    Shared Sub Foo(GetX As Integer)
+    Shared Sub Goo(GetX As Integer)
         Dim x As Integer = [|1|]
     End Sub
 End Class</text>
@@ -1580,7 +1589,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 
 Class Program
-    Shared Sub Foo(GetX As Integer)
+    Shared Sub Goo(GetX As Integer)
         Dim x As Integer = GetX1()
     End Sub
 
@@ -1605,7 +1614,7 @@ End Class</text>
         End Set
     End Property
 
-    Shared Sub Foo(i As Integer)
+    Shared Sub Goo(i As Integer)
         Dim str As String = [|[Class].Names|]
     End Sub
 End Class</text>
@@ -1621,7 +1630,7 @@ End Class</text>
         End Set
     End Property
 
-    Shared Sub Foo(i As Integer)
+    Shared Sub Goo(i As Integer)
         Dim str As String = GetStr()
     End Sub
 
@@ -1698,13 +1707,13 @@ End Class</text>
     Class B
     End Class
 
-    Shared Function Foo() As D.B
+    Shared Function Goo() As D.B
         Return Nothing
     End Function
 
     Class C(Of T2)
         Shared Sub Bar()
-            Dim x As D.B = [|Foo()|]
+            Dim x As D.B = [|Goo()|]
         End Sub
     End Class
 End Class</text>
@@ -1716,7 +1725,7 @@ End Class</text>
     Class B
     End Class
 
-    Shared Function Foo() As D.B
+    Shared Function Goo() As D.B
         Return Nothing
     End Function
 
@@ -1726,7 +1735,7 @@ End Class</text>
         End Sub
 
         Private Shared Function GetX() As B
-            Return Foo()
+            Return Goo()
         End Function
     End Class
 End Class</text>
@@ -1769,12 +1778,13 @@ End Class</text>
 End Class</text>
                 Dim expected = <text>Class GenericMethod
     Sub Method(Of T)(t1 As T)
-        NewMethod(t1)
+        Dim a As T
+        a = NewMethod(t1)
     End Sub
 
-    Private Shared Sub NewMethod(Of T)(t1 As T)
-        Dim a As T = t1
-    End Sub
+    Private Shared Function NewMethod(Of T)(t1 As T) As T
+        Return t1
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -1792,12 +1802,12 @@ End Class</text>
 End Class</text>
                 Dim expected = <text>Class GenericMethod(Of T1)
     Sub Method(Of T)(t1 As T)
-        NewMethod(t1)
-    End Sub
-
-    Private Shared Sub NewMethod(Of T)(t1 As T)
         Dim a As T
         Dim b As T1
+        NewMethod(t1, a, b)
+    End Sub
+
+    Private Shared Sub NewMethod(Of T)(t1 As T, ByRef a As T, ByRef b As T1)
         a = t1
         b = Nothing
     End Sub
@@ -1818,12 +1828,12 @@ End Class</text>
 End Class</text>
                 Dim expected = <text>Class GenericMethod
     Sub Method(Of T, T1)(t1 As T)
-        NewMethod(Of T, T1)(t1)
-    End Sub
-
-    Private Shared Sub NewMethod(Of T, T1)(t1 As T)
         Dim a1 As T1
         Dim a As T
+        NewMethod(t1, a1, a)
+    End Sub
+
+    Private Shared Sub NewMethod(Of T, T1)(t1 As T, ByRef a1 As T1, ByRef a As T)
         a = t1
         a1 = Nothing
     End Sub
@@ -2042,7 +2052,7 @@ End Class</text>
     End Class
 
     Class C(Of T)
-        Shared Sub Foo()
+        Shared Sub Goo()
             Dim x As D.B = [|New D.B()|]
         End Sub
     End Class
@@ -2350,14 +2360,16 @@ End Class</text>
 Class Program
     Sub Test1()
         Dim i As Integer
-        NewMethod(i)
+        i = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         If Integer.Parse(1) &gt; 0
             i = 10
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2379,14 +2391,16 @@ End Class</text>
 Class Program
     Sub Test2()
         Dim i As Integer = 0
-        NewMethod(i)
+        i = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         If Integer.Parse(1) &gt; 0
             i = 10
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2413,14 +2427,16 @@ Class Program
         While i &gt; 10
         End While
 
-        NewMethod(i)
+        i = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         If Integer.Parse(1) &gt; 0
             i = 10
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2444,17 +2460,19 @@ End Class</text>
 Class Program
     Sub Test4()
         Dim i As Integer = 10
-        While i &gt; 10
+        While i > 10
         End While
 
-        NewMethod(i)
+        i = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
-        If Integer.Parse(1) &gt; 0
+    Private Shared Function NewMethod(i As Integer) As Integer
+        If Integer.Parse(1) > 0
             i = 10
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2476,17 +2494,20 @@ End Class</text>
 
 Class Program
     Sub Test4_1()
-        NewMethod()
+        Dim i As Integer
+        i = NewMethod()
     End Sub
 
-    Private Shared Sub NewMethod()
+    Private Shared Function NewMethod() As Integer
         Dim i As Integer
 
-        If Integer.Parse(1) &gt; 0
+        If Integer.Parse(1) > 0
             i = 10
             Console.WriteLine(i)
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2509,15 +2530,17 @@ End Class</text>
 Class Program
     Sub Test4_2()
         Dim i As Integer = 10
-        NewMethod(i)
+        i = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
-        If Integer.Parse(1) &gt; 0
+    Private Shared Function NewMethod(i As Integer) As Integer
+        If Integer.Parse(1) > 0
             i = 10
             Console.WriteLine(i)
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2542,17 +2565,19 @@ Class Program
     Sub Test4_3()
         Dim i As Integer
         Console.WriteLine(i)
-        NewMethod()
+        i = NewMethod()
     End Sub
 
-    Private Shared Sub NewMethod()
+    Private Shared Function NewMethod() As Integer
         Dim i As Integer
 
-        If Integer.Parse(1) &gt; 0
+        If Integer.Parse(1) > 0
             i = 10
             Console.WriteLine(i)
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2577,15 +2602,17 @@ Class Program
     Sub Test4_4()
         Dim i As Integer = 10
         Console.WriteLine(i)
-        NewMethod(i)
+        i = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
-        If Integer.Parse(1) &gt; 0
+    Private Shared Function NewMethod(i As Integer) As Integer
+        If Integer.Parse(1) > 0
             i = 10
             Console.WriteLine(i)
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2661,17 +2688,18 @@ End Class</text>
 
 Class Program
     Sub Test8()
-        Dim i As Integer
-        NewMethod()
+        Dim i As Integer = NewMethod()
         i = 2
     End Sub
 
-    Private Shared Sub NewMethod()
+    Private Shared Function NewMethod() As Integer
         Dim i As Integer
         If Integer.Parse(1) &gt; 0
             i = 10
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2778,18 +2806,18 @@ End Class</text>
 
 Class Program
     Sub Test12()
-        Dim i As Integer
-        NewMethod()
+        Dim i As Integer = NewMethod()
         i = 10
     End Sub
 
-    Private Shared Sub NewMethod()
+    Private Shared Function NewMethod() As Integer
         Dim i As Integer
-        If Integer.Parse(1) &gt; 0
+        If Integer.Parse(1) > 0
             i = 10
         End If
         Console.WriteLine(i)
-    End Sub
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2808,12 +2836,13 @@ End Class</text>
 
 Class Program
     Sub Test13()
-        NewMethod()
+        Dim i As Integer
+        i = NewMethod()
     End Sub
 
-    Private Shared Sub NewMethod()
-        Dim i As Integer = 10
-    End Sub
+    Private Shared Function NewMethod() As Integer
+        Return 10
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2834,13 +2863,13 @@ End Class</text>
 Class Program
     Sub Test14()
         Dim i As Integer
-        NewMethod()
+        i = NewMethod()
         i = 1
     End Sub
 
-    Private Shared Sub NewMethod()
-        Dim i As Integer = 10
-    End Sub
+    Private Shared Function NewMethod() As Integer
+        Return 10
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2862,12 +2891,12 @@ Class Program
     Sub Test15()
         Dim i As Integer
         Console.WriteLine(i)
-        NewMethod()
+        i = NewMethod()
     End Sub
 
-    Private Shared Sub NewMethod()
-        Dim i As Integer = 10
-    End Sub
+    Private Shared Function NewMethod() As Integer
+        Return 10
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2889,14 +2918,14 @@ End Class</text>
 Class Program
     Sub Test16()
         Dim i As Integer
-        NewMethod()
+        i = NewMethod()
         i = 10
         Console.WriteLine(i)
     End Sub
 
-    Private Shared Sub NewMethod()
-        Dim i As Integer = 10
-    End Sub
+    Private Shared Function NewMethod() As Integer
+        Return 10
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2916,13 +2945,15 @@ End Class</text>
 
 Class Program
     Sub Test16_1()
-        NewMethod()
+        Dim i As Integer
+        i = NewMethod()
     End Sub
 
-    Private Shared Sub NewMethod()
+    Private Shared Function NewMethod() As Integer
         Dim i As Integer = 10
         Console.WriteLine(i)
-    End Sub
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2943,13 +2974,14 @@ End Class</text>
 Class Program
     Sub Test16_2()
         Dim i As Integer = 10
-        NewMethod()
+        i = NewMethod()
     End Sub
 
-    Private Shared Sub NewMethod()
+    Private Shared Function NewMethod() As Integer
         Dim i As Integer = 10
         Console.WriteLine(i)
-    End Sub
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -2972,13 +3004,14 @@ Class Program
     Sub Test16_3()
         Dim i As Integer
         Console.WriteLine(i)
-        NewMethod()
+        i = NewMethod()
     End Sub
 
-    Private Shared Sub NewMethod()
+    Private Shared Function NewMethod() As Integer
         Dim i As Integer = 10
         Console.WriteLine(i)
-    End Sub
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -3001,13 +3034,14 @@ Class Program
     Sub Test16_4()
         Dim i As Integer = 10
         Console.WriteLine(i)
-        NewMethod()
+        i = NewMethod()
     End Sub
 
-    Private Shared Sub NewMethod()
+    Private Shared Function NewMethod() As Integer
         Dim i As Integer = 10
         Console.WriteLine(i)
-    End Sub
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -3049,14 +3083,13 @@ End Class</text>
 
 Class Program
     Sub Test18()
-        Dim i As Integer
-        NewMethod()
+        Dim i As Integer = NewMethod()
         i = 10
     End Sub
 
-    Private Shared Sub NewMethod()
-        Dim i As Integer = 10
-    End Sub
+    Private Shared Function NewMethod() As Integer
+        Return 10
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -3824,15 +3857,17 @@ End Class</text>
 Class Program
     Sub Test41()
         Dim i As Integer
-        NewMethod(i)
+        i = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         Console.WriteLine(i)
-        If Integer.Parse(1) &gt; 0
+        If Integer.Parse(1) > 0
             i = 10
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -3855,15 +3890,17 @@ End Class</text>
 Class Program
     Sub Test42()
         Dim i As Integer = 10
-        NewMethod(i)
+        i = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         Console.WriteLine(i)
-        If Integer.Parse(1) &gt; 0
+        If Integer.Parse(1) > 0
             i = 10
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -3888,15 +3925,17 @@ Class Program
     Sub Test43()
         Dim i As Integer
         Console.WriteLine(i)
-        NewMethod(i)
+        i = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         Console.WriteLine(i)
-        If Integer.Parse(1) &gt; 0
+        If Integer.Parse(1) > 0
             i = 10
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -3921,15 +3960,17 @@ Class Program
     Sub Test44()
         Dim i As Integer = 10
         Console.WriteLine(i)
-        NewMethod(i)
+        i = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         Console.WriteLine(i)
-        If Integer.Parse(1) &gt; 0
+        If Integer.Parse(1) > 0
             i = 10
         End If
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -3950,13 +3991,14 @@ End Class</text>
 Class Program
     Sub Test45()
         Dim i As Integer
-        NewMethod(i)
+        i = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         Console.WriteLine(i)
         i = 10
-    End Sub
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -3977,13 +4019,14 @@ End Class</text>
 Class Program
     Sub Test46()
         Dim i As Integer = 10
-        NewMethod(i)
+        i = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         Console.WriteLine(i)
         i = 10
-    End Sub
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -4006,13 +4049,14 @@ Class Program
     Sub Test47()
         Dim i As Integer
         Console.WriteLine(i)
-        NewMethod(i)
+        i = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         Console.WriteLine(i)
         i = 10
-    End Sub
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -4036,13 +4080,14 @@ Class Program
     Sub Test48()
         Dim i As Integer = 10
         Console.WriteLine(i)
-        NewMethod(i)
+        i = NewMethod(i)
     End Sub
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         Console.WriteLine(i)
         i = 10
-    End Sub
+        Return i
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -4257,15 +4302,17 @@ End Class</text>
 Class Program
     Function Test() as Integer
         Test = 1
-        NewMethod(Test)
+        Test = NewMethod(Test)
         Return 1
     End Function
 
-    Private Shared Sub NewMethod(Test As Integer)
+    Private Shared Function NewMethod(Test As Integer) As Integer
         If Test > 10 Then
             Test = 2
         End If
-    End Sub
+
+        Return Test
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -4308,21 +4355,21 @@ End Class</text>
             Public Async Function TestImplicitFunctionLocal5() As Task
                 Dim code = <text>Module Module1
     Sub Main()
-        Console.WriteLine(Foo(2))
+        Console.WriteLine(Goo(2))
     End Sub
 
-    Function Foo%(ByVal j As Integer)
-        [|Foo = 3.87 * j|]
+    Function Goo%(ByVal j As Integer)
+        [|Goo = 3.87 * j|]
         Exit Function
     End Function
 End Module</text>
                 Dim expected = <text>Module Module1
     Sub Main()
-        Console.WriteLine(Foo(2))
+        Console.WriteLine(Goo(2))
     End Sub
 
-    Function Foo%(ByVal j As Integer)
-        Foo = NewMethod(j)
+    Function Goo%(ByVal j As Integer)
+        Goo = NewMethod(j)
         Exit Function
     End Function
 
@@ -4423,16 +4470,16 @@ End Module</text>
                 Dim code = <text>Module Module1
     Sub Main()
     End Sub
-    Public Function Foo(ByVal params&amp;)
-        Foo = [|params&amp;|]
+    Public Function Goo(ByVal params&amp;)
+        Goo = [|params&amp;|]
     End Function
 End Module</text>
 
                 Dim expected = <text>Module Module1
     Sub Main()
     End Sub
-    Public Function Foo(ByVal params&amp;)
-        Foo = GetParams(params)
+    Public Function Goo(ByVal params&amp;)
+        Goo = GetParams(params)
     End Function
 
     Private Function GetParams(params As Long) As Long
@@ -4499,18 +4546,18 @@ End Class</text>
 
 Class A
     Function Test1() As Integer
-        Dim j As Integer
-        Dim i As Integer = NewMethod()
+        Dim i As Integer = Nothing
+        Dim j As Integer = Nothing
+        NewMethod(i, j)
         j = i + 42
         Console.Write(j)
     End Function
 
-    Private Shared Function NewMethod() As Integer
-        Dim i as Integer = 10
-        Dim j as Integer = 0
+    Private Shared Sub NewMethod(ByRef i As Integer, ByRef j As Integer)
+        i = 10
+        j = 0
         Console.Write("hello vb!")
-        Return i
-    End Function
+    End Sub
 End Class</text>
 
                 Await TestExtractMethodAsync(code, expected)
@@ -4520,22 +4567,22 @@ End Class</text>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestBug6138() As Task
                 Dim code = <text>Class Test
-    Private _foo As Integer
-    Property Foo As Integer
+    Private _goo As Integer
+    Property Goo As Integer
         Get
-            Return _foo
+            Return _goo
         End Get
         Set(ByVal value As Integer)
-            [|_foo = value|]
+            [|_goo = value|]
         End Set
     End Property
 End Class </text>
 
                 Dim expected = <text>Class Test
-    Private _foo As Integer
-    Property Foo As Integer
+    Private _goo As Integer
+    Property Goo As Integer
         Get
-            Return _foo
+            Return _goo
         End Get
         Set(ByVal value As Integer)
             NewMethod(value)
@@ -4543,7 +4590,7 @@ End Class </text>
     End Property
 
     Private Sub NewMethod(value As Integer)
-        _foo = value
+        _goo = value
     End Sub
 End Class </text>
 
@@ -4573,7 +4620,7 @@ End Module</text>
     End Function
 End Module</text>
 
-                Await TestExtractMethodAsync(code, expected, allowMovingDeclaration:=False)
+                Await TestExtractMethodAsync(code, expected)
             End Function
 
             <WorkItem(540072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540072")>
@@ -4597,7 +4644,7 @@ End Module</text>
     End Function
 End Module</text>
 
-                Await TestExtractMethodAsync(code, expected, allowMovingDeclaration:=False)
+                Await TestExtractMethodAsync(code, expected)
             End Function
 
             <WorkItem(540072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540072")>
@@ -4621,7 +4668,7 @@ End Module</text>
     End Function
 End Module</text>
 
-                Await TestExtractMethodAsync(code, expected, allowMovingDeclaration:=False)
+                Await TestExtractMethodAsync(code, expected)
             End Function
 
             <WorkItem(540080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540080")>
@@ -4728,12 +4775,12 @@ End Module</text>
 Module Module1
     Delegate Function Del(ByVal v As String) As String
     Sub Main(args As String())
-        Dim r As Del = [|AddressOf Foo|]
+        Dim r As Del = [|AddressOf Goo|]
 
         Console.WriteLine(r.Invoke("test"))
     End Sub
 
-    Function Foo(ByVal value As String) As String
+    Function Goo(ByVal value As String) As String
         Return value
     End Function
 
@@ -4750,10 +4797,10 @@ Module Module1
     End Sub
 
     Private Function GetR() As Del
-        Return AddressOf Foo
+        Return AddressOf Goo
     End Function
 
-    Function Foo(ByVal value As String) As String
+    Function Goo(ByVal value As String) As String
         Return value
     End Function
 
@@ -4770,12 +4817,12 @@ End Module</text>
 Module Module1
     Delegate Function Del(ByVal v As String) As String
     Sub Main(args As String())
-        Dim r As Del = AddressOf [|Foo|]
+        Dim r As Del = AddressOf [|Goo|]
 
         Console.WriteLine(r.Invoke("test"))
     End Sub
 
-    Function Foo(ByVal value As String) As String
+    Function Goo(ByVal value As String) As String
         Return value
     End Function
 
@@ -4792,10 +4839,10 @@ Module Module1
     End Sub
 
     Private Function GetR() As Del
-        Return AddressOf Foo
+        Return AddressOf Goo
     End Function
 
-    Function Foo(ByVal value As String) As String
+    Function Goo(ByVal value As String) As String
         Return value
     End Function
 
@@ -5038,12 +5085,13 @@ End Module</text>
 
                 Dim expected = <text>Module Program
     Sub Main(args As String())
-        If True Then Dim i As Integer = 10 : NewMethod(i) Else Dim j As Integer = 45 : j = j + 10
+        If True Then Dim i As Integer = 10 : i = NewMethod(i) Else Dim j As Integer = 45 : j = j + 10
     End Sub
 
-    Private Sub NewMethod(i As Integer)
+    Private Function NewMethod(i As Integer) As Integer
         i = i + 10
-    End Sub
+        Return i
+    End Function
 End Module</text>
 
                 Await TestExtractMethodAsync(code, expected)
@@ -5079,7 +5127,7 @@ End Module</text>
     Sub Main(args As String())
     End Sub
     Sub UseThread()
-        Dim t As New System.Threading.Thread(AddressOf [|foo|])
+        Dim t As New System.Threading.Thread(AddressOf [|goo|])
     End Sub
 End Module</text>
 
@@ -5699,16 +5747,18 @@ Imports System
 Class Program
     Shared Sub Main()
         Dim myLock As Object
-        NewMethod(myLock)
+        myLock = NewMethod(myLock)
     End Sub
 
-    Private Shared Sub NewMethod(myLock As Object)
+    Private Shared Function NewMethod(myLock As Object) As Object
         SyncLock Sub()
                      myLock = New Object()
                      Exit Sub
                  End Sub
         End SyncLock
-    End Sub
+
+        Return myLock
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -5724,10 +5774,10 @@ Class Program
     Shared Sub Main()
         Dim myLock As Object
         [|SyncLock Function()
-                     myLock = New Object()
-                     Exit Function
-                     Return Nothing
-                 End Function
+                  myLock = New Object()
+                  Exit Function
+                  Return Nothing
+              End Function
         End SyncLock|]
     End Sub
 End Class</text>
@@ -5738,17 +5788,19 @@ Imports System
 Class Program
     Shared Sub Main()
         Dim myLock As Object
-        NewMethod(myLock)
+        myLock = NewMethod(myLock)
     End Sub
 
-    Private Shared Sub NewMethod(myLock As Object)
+    Private Shared Function NewMethod(myLock As Object) As Object
         SyncLock Function()
                      myLock = New Object()
                      Exit Function
                      Return Nothing
                  End Function
         End SyncLock
-    End Sub
+
+        Return myLock
+    End Function
 End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
@@ -5759,7 +5811,7 @@ End Class</text>
             Public Async Function ExtractMethodExitInLambda_3() As Task
                 Dim code = <text>Imports System
 Public Class Program
-    Shared Sub foo()
+    Shared Sub goo()
         Dim syncroot As Object = New Object
         SyncLock syncroot
             SyncLock Sub x

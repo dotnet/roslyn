@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.ObjectModel
 Imports System.Text
@@ -23,7 +25,7 @@ Public Class IPEndBlockStatements
         'Scenario1: At the end of file
         '===================================================================================================================
 
-        Dim code As String = "Public Sub Foo()" & vbCrLf &
+        Dim code As String = "Public Sub Goo()" & vbCrLf &
             "Dim i = 1" & vbCrLf
         Dim change As String = "End Function"
 
@@ -41,7 +43,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
+            "Public Sub Goo()" & vbCrLf &
             "Dim i = 1" & vbCrLf &
             "End Module" & vbCrLf &
             "End Namespace" & vbCrLf
@@ -62,7 +64,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
+            "Public Sub Goo()" & vbCrLf &
             "Dim i = Sub()" & vbCrLf &
             "End Sub" & vbCrLf &
             "End Module" & vbCrLf &
@@ -86,7 +88,7 @@ Public Class IPEndBlockStatements
         'Scenario1: At the end of file
         '===================================================================================================================
 
-        Dim code As String = "Public Sub Foo()" & vbCrLf &
+        Dim code As String = "Public Sub Goo()" & vbCrLf &
             "Dim i = 1" & vbCrLf &
             "End Function" & vbCrLf
         Dim change As String = "End Function"
@@ -106,7 +108,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
+            "Public Sub Goo()" & vbCrLf &
             "Dim i = 1" & vbCrLf &
             "End Function" & vbCrLf &
             "End Module" & vbCrLf &
@@ -128,7 +130,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
+            "Public Sub Goo()" & vbCrLf &
             "Dim i = Sub()" & vbCrLf &
             "End Function" & vbCrLf &
             "End Sub" & vbCrLf &
@@ -153,7 +155,7 @@ Public Class IPEndBlockStatements
         'Scenario1: At the end of file
         '===================================================================================================================
 
-        Dim code As String = "Public Function Foo()" & vbCrLf &
+        Dim code As String = "Public Function Goo()" & vbCrLf &
             "Dim i = 1" & vbCrLf
         Dim change As String = "End Sub"
 
@@ -172,7 +174,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "Dim i = 1" & vbCrLf &
             "End Module" & vbCrLf &
             "End Namespace" & vbCrLf
@@ -194,7 +196,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
+            "Public Sub Goo()" & vbCrLf &
             "Dim i = Function()" & vbCrLf &
             "End Sub" & vbCrLf &
             "End Module" & vbCrLf &
@@ -217,7 +219,7 @@ Public Class IPEndBlockStatements
         'Scenario1: At the end of file
         '===================================================================================================================
 
-        Dim code As String = "Public Function Foo()" & vbCrLf &
+        Dim code As String = "Public Function Goo()" & vbCrLf &
             "Dim i = 1" & vbCrLf &
             "End Sub" & vbCrLf
         Dim change As String = "End Sub"
@@ -240,7 +242,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "Dim i = 1" & vbCrLf &
             "End Sub" & vbCrLf &
             "End Module" & vbCrLf &
@@ -265,7 +267,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
+            "Public Sub Goo()" & vbCrLf &
             "Dim i = Function()" & vbCrLf &
             "End Sub" & vbCrLf &
             "End Sub" & vbCrLf &
@@ -291,7 +293,7 @@ Public Class IPEndBlockStatements
 
         Dim code As String = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "While True" & vbCrLf
         Dim change = "End If" & vbCrLf
 
@@ -312,7 +314,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "While True" & vbCrLf &
             "End Function" & vbCrLf &
             "End Module" & vbCrLf &
@@ -336,7 +338,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
+            "Public Sub Goo()" & vbCrLf &
             "If True Then" & vbCrLf &
             "End Sub" & vbCrLf &
             "End Module" & vbCrLf &
@@ -361,7 +363,7 @@ Public Class IPEndBlockStatements
 
         Dim code As String = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "While True" & vbCrLf &
             "End If" & vbCrLf
         Dim change = "End If" & vbCrLf
@@ -384,7 +386,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "While True" & vbCrLf &
             "End If" & vbCrLf &
             "End Sub" & vbCrLf &
@@ -410,7 +412,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
+            "Public Sub Goo()" & vbCrLf &
             "If True Then" & vbCrLf &
             "End If" & vbCrLf &
             "End Sub" & vbCrLf &
@@ -436,7 +438,7 @@ Public Class IPEndBlockStatements
 
         Dim code As String = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "Dim i = From el in {1,2} " & vbCrLf &
             "Select el " & vbCrLf
         Dim change = "End Select" & vbCrLf
@@ -459,7 +461,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "Dim i = From el in {1,2} " & vbCrLf &
             "Select el " & vbCrLf &
             "End Function" & vbCrLf &
@@ -486,7 +488,7 @@ Public Class IPEndBlockStatements
 
         Dim code As String = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "Dim i = From el in {1,2} " & vbCrLf &
             "Select el " & vbCrLf &
             "End Select" & vbCrLf
@@ -511,7 +513,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "Dim i = From el in {1,2} " & vbCrLf &
             "Select el " & vbCrLf &
             "End Select" & vbCrLf &
@@ -539,7 +541,7 @@ Public Class IPEndBlockStatements
 
         Dim code As String = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "With New Integer " & vbCrLf
         Dim change = "End Using" & vbCrLf
 
@@ -563,7 +565,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "With New Integer " & vbCrLf &
             "End Function" & vbCrLf &
             "End Module" & vbCrLf &
@@ -590,7 +592,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "With New Integer " & vbCrLf &
             "End With" & vbCrLf &
             "End Function" & vbCrLf &
@@ -617,7 +619,7 @@ Public Class IPEndBlockStatements
 
         Dim code As String = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "With New Integer " & vbCrLf
         Dim change = "End Using" & vbCrLf
 
@@ -640,7 +642,7 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         Dim code = "Namespace n1" & vbCrLf &
             "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
+            "Public Function Goo()" & vbCrLf &
             "Dim i = From el in {1,2} " & vbCrLf &
             "Select el " & vbCrLf &
             "End Select" & vbCrLf &

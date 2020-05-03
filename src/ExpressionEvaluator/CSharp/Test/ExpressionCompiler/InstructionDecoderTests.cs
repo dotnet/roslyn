@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -8,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -444,7 +447,7 @@ class C
             var runtime = CreateRuntimeInstance(compilation);
             var moduleInstances = runtime.Modules;
             var blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);
-            compilation = blocks.ToCompilation();
+            compilation = blocks.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies);
             var frame = (PEMethodSymbol)GetMethodOrTypeBySignature(compilation, methodName);
 
             // Once we have the method token, we want to look up the method (again)
@@ -452,7 +455,7 @@ class C
             // async/iterator "MoveNext" methods to the original source method.
             MethodSymbol method = compilation.GetSourceMethod(
                 ((PEModuleSymbol)frame.ContainingModule).Module.GetModuleVersionIdOrThrow(),
-                MetadataTokens.GetToken(frame.Handle));
+                frame.Handle);
             if (serializedTypeArgumentNames != null)
             {
                 Assert.NotEmpty(serializedTypeArgumentNames);

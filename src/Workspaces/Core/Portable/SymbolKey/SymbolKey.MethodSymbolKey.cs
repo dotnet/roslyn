@@ -1,10 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -25,12 +23,16 @@ namespace Microsoft.CodeAnalysis
                 var reducedFromResolution = reader.ReadSymbolKey();
                 var receiverTypeResolution = reader.ReadSymbolKey();
 
-                var q = from m in reducedFromResolution.GetAllSymbols().OfType<IMethodSymbol>()
-                        from t in receiverTypeResolution.GetAllSymbols().OfType<ITypeSymbol>()
-                        let r = m.ReduceExtensionMethod(t)
-                        select r;
+                using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
+                foreach (var reducedFrom in reducedFromResolution.OfType<IMethodSymbol>())
+                {
+                    foreach (var receiverType in receiverTypeResolution.OfType<ITypeSymbol>())
+                    {
+                        result.AddIfNotNull(reducedFrom.ReduceExtensionMethod(receiverType));
+                    }
+                }
 
-                return CreateSymbolInfo(q);
+                return CreateResolution(result);
             }
         }
     }
@@ -47,30 +49,34 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var constructedFromResolution = reader.ReadSymbolKey();
-                var typeArgumentResolutions = reader.ReadSymbolKeyArray();
+                var constructedFrom = reader.ReadSymbolKey();
+                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>();
 
-                Debug.Assert(!typeArgumentResolutions.IsDefault);
-                var typeArguments = typeArgumentResolutions.Select(
-                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
-
-                if (typeArguments.Any(s_typeIsNull))
+                if (constructedFrom.SymbolCount == 0 ||
+                    typeArguments.IsDefault)
                 {
-                    return default(SymbolKeyResolution);
+                    return default;
                 }
 
-                var result = constructedFromResolution.GetAllSymbols()
-                       .OfType<IMethodSymbol>()
-                       .Select(m => m.Construct(typeArguments));
+                var typeArgumentArray = typeArguments.Builder.ToArray();
 
-                return CreateSymbolInfo(result);
+                using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
+                foreach (var method in constructedFrom.OfType<IMethodSymbol>())
+                {
+                    if (method.TypeParameters.Length == typeArgumentArray.Length)
+                    {
+                        result.AddIfNotNull(method.Construct(typeArgumentArray));
+                    }
+                }
+
+                return CreateResolution(result);
             }
         }
     }
 
     internal partial struct SymbolKey
     {
-        private static class MethodSymbolKey 
+        private static class MethodSymbolKey
         {
             public static void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
             {
@@ -85,7 +91,7 @@ namespace Microsoft.CodeAnalysis
                 // Mark that we're writing out the signature of a method.  This way if we hit a 
                 // method type parameter in our parameter-list or return type, we won't recurse
                 // into it, but will instead only write out the type parameter ordinal.  This
-                // happens with cases like Foo<T>(T t);
+                // happens with cases like Goo<T>(T t);
                 visitor.PushMethod(symbol);
 
                 visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
@@ -107,14 +113,14 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var containingType = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
                 var isPartialMethodImplementationPart = reader.ReadBoolean();
-                var parameterRefKinds = reader.ReadRefKindArray();
+                using var parameterRefKinds = reader.ReadRefKindArray();
 
                 // For each method that we look at, we'll have to resolve the parameter list and
-                // return type in the context of that method.  i.e. if we have Foo<T>(IList<T> list)
-                // then we'll need to have marked that we're on the Foo<T> method so that we know 
+                // return type in the context of that method.  i.e. if we have Goo<T>(IList<T> list)
+                // then we'll need to have marked that we're on the Goo<T> method so that we know 
                 // 'T' in IList<T> resolves to.
                 //
                 // Because of this, we keep track of where we are in the reader.  Before resolving
@@ -122,20 +128,20 @@ namespace Microsoft.CodeAnalysis
                 // point.
                 var beforeParametersPosition = reader.Position;
 
-                var result = new List<IMethodSymbol>();
+                using var methods = GetMembersOfNamedType<IMethodSymbol>(containingType, metadataNameOpt: null);
+                using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
 
-                var namedTypes = containingSymbolResolution.GetAllSymbols().OfType<INamedTypeSymbol>();
-                foreach (var namedType in namedTypes)
+                foreach (var candidate in methods)
                 {
                     var method = Resolve(reader, metadataName, arity, isPartialMethodImplementationPart,
-                        parameterRefKinds, beforeParametersPosition, namedType);
+                        parameterRefKinds, beforeParametersPosition, candidate);
 
                     // Note: after finding the first method that matches we stop.  That's necessary
                     // as we cache results while searching.  We don't want to override these positive
                     // matches with a negative ones if we were to continue searching.
                     if (method != null)
                     {
-                        result.Add(method);
+                        result.AddIfNotNull(method);
                         break;
                     }
                 }
@@ -148,36 +154,24 @@ namespace Microsoft.CodeAnalysis
                     // Push an null-method to our stack so that any method-type-parameters
                     // can at least be read (if not resolved) properly.
                     reader.PushMethod(methodOpt: null);
-                    var parameterTypeResolutions = reader.ReadSymbolKeyArray();
-                    var returnType = GetFirstSymbol<ITypeSymbol>(reader.ReadSymbolKey());
+
+                    // read out the values.  We don't actually need to use them, but we have
+                    // to effectively read past them in the string.
+
+                    using (reader.ReadSymbolKeyArray<ITypeSymbol>())
+                    {
+                        _ = reader.ReadSymbolKey();
+                    }
+
                     reader.PopMethod(methodOpt: null);
                 }
 
-                return CreateSymbolInfo(result);
+                return CreateResolution(result);
             }
 
             private static IMethodSymbol Resolve(
                 SymbolKeyReader reader, string metadataName, int arity, bool isPartialMethodImplementationPart,
-                ImmutableArray<RefKind> parameterRefKinds, int beforeParametersPosition,
-                INamedTypeSymbol namedType)
-            {
-                foreach (var method in namedType.GetMembers().OfType<IMethodSymbol>())
-                {
-                    var result = Resolve(reader, metadataName, arity, isPartialMethodImplementationPart,
-                        parameterRefKinds, beforeParametersPosition, method);
-
-                    if (result != null)
-                    {
-                        return result; 
-                    }
-                }
-
-                return null;
-            }
-
-            private static IMethodSymbol Resolve(
-                SymbolKeyReader reader, string metadataName, int arity, bool isPartialMethodImplementationPart,
-                ImmutableArray<RefKind> parameterRefKinds, int beforeParametersPosition,
+                PooledArrayBuilder<RefKind> parameterRefKinds, int beforeParametersPosition,
                 IMethodSymbol method)
             {
                 if (method.Arity == arity &&
@@ -211,30 +205,23 @@ namespace Microsoft.CodeAnalysis
             }
 
             private static IMethodSymbol Resolve(
-                SymbolKeyReader reader, bool isPartialMethodImplementationPart,
-                IMethodSymbol method)
+                SymbolKeyReader reader, bool isPartialMethodImplementationPart, IMethodSymbol method)
             {
-                var originalParameterTypeResolutions = reader.ReadSymbolKeyArray();
-                var returnType = GetFirstSymbol<ITypeSymbol>(reader.ReadSymbolKey());
+                using var originalParameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
+                var returnType = (ITypeSymbol)reader.ReadSymbolKey().GetAnySymbol();
 
-                var originalParameterTypes = originalParameterTypeResolutions.Select(
-                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
-
-                if (!originalParameterTypes.Any(s_typeIsNull))
+                if (reader.ParameterTypesMatch(method.OriginalDefinition.Parameters, originalParameterTypes))
                 {
-                    if (reader.ParameterTypesMatch(method.OriginalDefinition.Parameters, originalParameterTypes))
+                    if (returnType == null ||
+                        reader.Comparer.Equals(returnType, method.ReturnType))
                     {
-                        if (returnType == null ||
-                            reader.Comparer.Equals(returnType, method.ReturnType))
+                        if (isPartialMethodImplementationPart)
                         {
-                            if (isPartialMethodImplementationPart)
-                            {
-                                method = method.PartialImplementationPart ?? method;
-                            }
-
-                            Debug.Assert(method != null);
-                            return method;
+                            method = method.PartialImplementationPart ?? method;
                         }
+
+                        Debug.Assert(method != null);
+                        return method;
                     }
                 }
 

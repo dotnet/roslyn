@@ -1,7 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -52,8 +56,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SymbolKind.Event:
                         CheckEventVarianceSafety((EventSymbol)member, diagnostics);
                         break;
+                    case SymbolKind.NamedType:
+                        CheckNestedTypeVarianceSafety((NamedTypeSymbol)member, diagnostics);
+                        break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Check for illegal nesting into a variant interface.
+        /// </summary>
+        private static void CheckNestedTypeVarianceSafety(NamedTypeSymbol member, DiagnosticBag diagnostics)
+        {
+            switch (member.TypeKind)
+            {
+                case TypeKind.Class:
+                case TypeKind.Struct:
+                case TypeKind.Enum:
+                    break;
+                case TypeKind.Interface:
+                case TypeKind.Delegate:
+                    return;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(member.TypeKind);
+            }
+
+            NamedTypeSymbol container = GetEnclosingVariantInterface(member);
+
+            if (container is object)
+            {
+                Debug.Assert(container.IsInterfaceType());
+                Debug.Assert(container.TypeParameters.Any(tp => tp.Variance != VarianceKind.None));
+                diagnostics.Add(ErrorCode.ERR_VarianceInterfaceNesting, member.Locations[0]);
+            }
+        }
+
+        internal static NamedTypeSymbol GetEnclosingVariantInterface(Symbol member)
+        {
+            for (var container = member.ContainingType; container is object; container = container.ContainingType)
+            {
+                if (!container.IsInterfaceType())
+                {
+                    Debug.Assert(!container.IsDelegateType());
+                    // The same validation will be performed for the container and 
+                    // there is no reason to duplicate the same errors, if any, on this type.
+                    break;
+                }
+
+                if (container.TypeParameters.Any(tp => tp.Variance != VarianceKind.None))
+                {
+                    // We are inside of a variant interface
+                    return container;
+                }
+
+                // This interface isn't variant, but its containing interface might be.
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -173,9 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (TypeParameterSymbol typeParameter in typeParameters)
             {
-                foreach (TypeSymbol constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                foreach (TypeWithAnnotations constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
                 {
-                    IsVarianceUnsafe(constraintType,
+                    IsVarianceUnsafe(constraintType.Type,
                         requireOutputSafety: false,
                         requireInputSafety: true,
                         context: context,
@@ -246,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return IsVarianceUnsafe(((ArrayTypeSymbol)type).ElementType, requireOutputSafety, requireInputSafety, context, locationProvider, locationArg, diagnostics);
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
-                    var namedType = (NamedTypeSymbol)type.TupleUnderlyingTypeOrSelf();
+                    var namedType = (NamedTypeSymbol)type;
                     // 3) (see IsVarianceUnsafe(NamedTypeSymbol))
                     return IsVarianceUnsafe(namedType, requireOutputSafety, requireInputSafety, context, locationProvider, locationArg, diagnostics);
                 default:
@@ -297,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 for (int i = 0; i < namedType.Arity; i++)
                 {
                     TypeParameterSymbol typeParam = namedType.TypeParameters[i];
-                    TypeSymbol typeArg = namedType.TypeArgumentsNoUseSiteDiagnostics[i];
+                    TypeSymbol typeArg = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type;
 
                     bool requireOut;
                     bool requireIn;

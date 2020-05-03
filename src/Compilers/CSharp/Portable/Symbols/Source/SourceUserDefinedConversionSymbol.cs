@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -23,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : WellKnownMemberNames.ExplicitConversionName;
 
             return new SourceUserDefinedConversionSymbol(
-                containingType, name, location, syntax, diagnostics,
-                syntax.Body == null && syntax.ExpressionBody != null);
+                containingType, name, location, syntax, diagnostics);
         }
 
         // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
@@ -35,18 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             ConversionOperatorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics,
-            bool isExpressionBodied) :
+            DiagnosticBag diagnostics) :
             base(
                 MethodKind.Conversion,
                 name,
                 containingType,
                 location,
-                syntax.GetReference(),
-                syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference(),
-                syntax.Modifiers,
-                diagnostics,
-                isExpressionBodied)
+                syntax,
+                diagnostics)
         {
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);

@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Versions
 {
@@ -36,41 +36,6 @@ namespace Microsoft.CodeAnalysis.Versions
 
             PersistedVersionStampLogger.LogPersistedDependentProjectVersionUsage(canReuse);
             return canReuse;
-        }
-
-        public static bool CanReusePersistedSemanticVersion(
-            this Project project, VersionStamp projectVersion, VersionStamp semanticVersion, VersionStamp persistedVersion)
-        {
-            var canReuse = CanReusePersistedSemanticVersionInternal(
-                project, projectVersion, semanticVersion, persistedVersion, (s, p, v) => s.GetInitialProjectVersionFromSemanticVersion(p, v));
-
-            PersistedVersionStampLogger.LogPersistedSemanticVersionUsage(canReuse);
-            return canReuse;
-        }
-
-        public static bool CanReusePersistedDependentSemanticVersion(
-            this Project project, VersionStamp dependentProjectVersion, VersionStamp dependentSemanticVersion, VersionStamp persistedVersion)
-        {
-            var canReuse = CanReusePersistedSemanticVersionInternal(
-                project, dependentProjectVersion, dependentSemanticVersion, persistedVersion, (s, p, v) => s.GetInitialDependentProjectVersionFromDependentSemanticVersion(p, v));
-
-            PersistedVersionStampLogger.LogPersistedDependentSemanticVersionUsage(canReuse);
-            return canReuse;
-        }
-
-        private static bool CanReusePersistedSemanticVersionInternal(
-            Project project,
-            VersionStamp projectVersion,
-            VersionStamp semanticVersion,
-            VersionStamp persistedVersion,
-            Func<ISemanticVersionTrackingService, Project, VersionStamp, VersionStamp> versionGetter)
-        {
-            // * NOTE * 
-            // Disabled semantic version tracking
-            // we need better version for it to reliably work.
-            //
-            // see tracking issue here : https://github.com/dotnet/roslyn/issues/2311
-            return VersionStamp.CanReusePersistedVersion(semanticVersion, persistedVersion);
         }
     }
 }

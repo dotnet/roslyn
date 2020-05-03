@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
-using Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
@@ -13,15 +14,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
     public class FieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<FieldDeclarationSyntax>
     {
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new MetadataFieldDeclarationStructureProvider();
+        internal override AbstractSyntaxStructureProvider CreateProvider() => new FieldDeclarationStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task NoCommentsOrAttributes()
         {
             const string code = @"
-class Foo
+class Goo
 {
-    public int $$foo
+    public int $$goo
 }";
 
             await VerifyNoBlockSpansAsync(code);
@@ -31,10 +32,10 @@ class Foo
         public async Task WithAttributes()
         {
             const string code = @"
-class Foo
+class Goo
 {
-    {|hint:{|textspan:[Foo]
-    |}public int $$foo|}
+    {|hint:{|textspan:[Goo]
+    |}public int $$goo|}
 }";
 
             await VerifyBlockSpansAsync(code,
@@ -45,12 +46,12 @@ class Foo
         public async Task WithCommentsAndAttributes()
         {
             const string code = @"
-class Foo
+class Goo
 {
     {|hint:{|textspan:// Summary:
     //     This is a summary.
-    [Foo]
-    |}int $$foo|}
+    [Goo]
+    |}int $$goo|}
 }";
 
             await VerifyBlockSpansAsync(code,
@@ -61,12 +62,12 @@ class Foo
         public async Task WithCommentsAttributesAndModifiers()
         {
             const string code = @"
-class Foo
+class Goo
 {
     {|hint:{|textspan:// Summary:
     //     This is a summary.
-    [Foo]
-    |}public int $$foo|}
+    [Goo]
+    |}public int $$goo|}
 }";
 
             await VerifyBlockSpansAsync(code,

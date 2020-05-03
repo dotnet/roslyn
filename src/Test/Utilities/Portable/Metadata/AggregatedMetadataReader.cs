@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -29,12 +31,11 @@ namespace Roslyn.Test.MetadataUtilities
 
         private TEntity GetValue<TEntity>(Handle handle, Func<MetadataReader, Handle, TEntity> getter)
         {
-            int generation;
-            var genHandle = _aggregator.GetGenerationHandle(handle, out generation);
+            var genHandle = _aggregator.GetGenerationHandle(handle, out var generation);
             return getter(Readers[generation], genHandle);
         }
 
-        public IEnumerable<AssemblyReference> GetAssemblyReferences() => 
+        public IEnumerable<AssemblyReference> GetAssemblyReferences() =>
             Readers.SelectMany(r => r.AssemblyReferences.Select(h => r.GetAssemblyReference(h)));
 
         public string GetString(StringHandle handle) => GetValue(handle, (r, h) => r.GetString((StringHandle)h));

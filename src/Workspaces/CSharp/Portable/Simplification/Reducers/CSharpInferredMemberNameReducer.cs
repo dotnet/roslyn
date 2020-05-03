@@ -1,11 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -21,45 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         public CSharpInferredMemberNameReducer() : base(s_pool)
         {
-        }
-
-        private static readonly Func<ArgumentSyntax, SemanticModel, OptionSet, CancellationToken, ArgumentSyntax> s_simplifyTupleName = SimplifyTupleName;
-
-        private static ArgumentSyntax SimplifyTupleName(ArgumentSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
-        {
-            // Tuple elements are arguments in a tuple expression
-            if (node.NameColon == null || !node.IsParentKind(SyntaxKind.TupleExpression))
-            {
-                return node;
-            }
-
-            var inferredName = node.Expression.TryGetInferredMemberName();
-
-            if (inferredName == null || inferredName != node.NameColon.Name.Identifier.ValueText)
-            {
-                return node;
-            }
-
-            return node.WithNameColon(null).WithTriviaFrom(node);
-        }
-
-        private static readonly Func<AnonymousObjectMemberDeclaratorSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyAnonymousTypeMemberName = SimplifyAnonymousTypeMemberName;
-
-        private static SyntaxNode SimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken canellationToken)
-        {
-            if (node.NameEquals == null)
-            {
-                return node;
-            }
-
-            var inferredName = node.Expression.TryGetInferredMemberName();
-
-            if (inferredName == null || inferredName != node.NameEquals.Name.Identifier.ValueText)
-            {
-                return node;
-            }
-
-            return node.WithNameEquals(null).WithTriviaFrom(node);
         }
     }
 }

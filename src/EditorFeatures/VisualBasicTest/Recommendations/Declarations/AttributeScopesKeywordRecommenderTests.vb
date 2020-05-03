@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
@@ -13,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AttributeScopesInFileAfterImportsTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
-Imports Foo
+Imports Goo
 &lt;|</File>, "Assembly", "Module")
         End Function
 
@@ -22,7 +24,7 @@ Imports Foo
         Public Async Function AttributeScopesInFileBeforeClassTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
 &lt;|
-Class Foo
+Class Goo
 End Class</File>, "Assembly", "Module")
         End Function
 
@@ -30,7 +32,7 @@ End Class</File>, "Assembly", "Module")
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AttributeScopesInFileInsideClassTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<File>
-Class Foo
+Class Goo
 &lt;|
 End Class</File>, {"Global"})
         End Function
@@ -47,7 +49,7 @@ End Class</File>, {"Global"})
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AttributeScopesAtEndOfFileTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
-Class foo
+Class goo
 End Class
 &lt;|
 </File>, "Assembly", "Module")
@@ -57,7 +59,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AttributeScopesAfterEolTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
-Class foo
+Class goo
 End Class
 &lt;
 |

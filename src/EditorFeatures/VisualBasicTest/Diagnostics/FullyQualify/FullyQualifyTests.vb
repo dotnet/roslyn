@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -117,7 +119,7 @@ End Class")
 End Namespace
 Class GenericClass(Of T)
 End Class
-Class Foo
+Class Goo
     Sub Method1()
         Dim q As GenericClass(Of [|SomeClass|])
     End Sub
@@ -128,7 +130,7 @@ End Class",
 End Namespace
 Class GenericClass(Of T)
 End Class
-Class Foo
+Class Goo
     Sub Method1()
         Dim q As GenericClass(Of SomeNamespace.SomeClass)
     End Sub
@@ -142,7 +144,7 @@ End Class")
     Class SomeClass
     End Class
 End Namespace
-Class Foo
+Class Goo
     Sub Method1(Of T As [|SomeClass|])
     End Sub
 End Class",
@@ -150,7 +152,7 @@ End Class",
     Class SomeClass
     End Class
 End Namespace
-Class Foo
+Class Goo
     Sub Method1(Of T As SomeNamespace.SomeClass)
     End Sub
 End Class")
@@ -163,7 +165,7 @@ End Class")
     Class SomeClass
     End Class
 End Namespace
-Class Foo
+Class Goo
     Sub Method1(Of T)
     End Sub
     Sub Method2()
@@ -174,7 +176,7 @@ End Class",
     Class SomeClass
     End Class
 End Namespace
-Class Foo
+Class Goo
     Sub Method1(Of T)
     End Sub
     Sub Method2()
@@ -187,7 +189,7 @@ End Class")
         Public Async Function TestAttributeApplication() As Task
             Await TestInRegularAndScriptAsync(
 "<[|Something|]()>
-Class Foo
+Class Goo
 End Class
 Namespace SomeNamespace
     Class SomethingAttribute
@@ -195,7 +197,7 @@ Namespace SomeNamespace
     End Class
 End Namespace",
 "<SomeNamespace.Something()>
-Class Foo
+Class Goo
 End Class
 Namespace SomeNamespace
     Class SomethingAttribute
@@ -210,7 +212,7 @@ End Namespace")
 "Imports System
 <Existing()>
 <[|Something|]()>
-Class Foo
+Class Goo
 End Class
 Class ExistingAttribute
     Inherits System.Attribute
@@ -223,7 +225,7 @@ End Namespace",
 "Imports System
 <Existing()>
 <SomeNamespace.Something()>
-Class Foo
+Class Goo
 End Class
 Class ExistingAttribute
     Inherits System.Attribute
@@ -240,7 +242,7 @@ End Namespace")
             Await TestInRegularAndScriptAsync(
 "<[|Something|]()>
 <Existing()>
-Class Foo
+Class Goo
 End Class
 Class ExistingAttribute
     Inherits System.Attribute
@@ -252,7 +254,7 @@ Namespace SomeNamespace
 End Namespace",
 "<SomeNamespace.Something()>
 <Existing()>
-Class Foo
+Class Goo
 End Class
 Class ExistingAttribute
     Inherits System.Attribute
@@ -331,7 +333,7 @@ End Namespace")
         Public Async Function TestFullyQualifyNotSuggestedForGenericTypeParametersOfClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
-    Sub Foo(Of [|SomeClass|])(x As SomeClass)
+    Sub Goo(Of [|SomeClass|])(x As SomeClass)
     End Sub
 End Class
 Namespace SomeNamespace
@@ -344,7 +346,7 @@ End Namespace")
         Public Async Function TestFullyQualifyNotSuggestedForGenericTypeParametersAsClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
-    Sub Foo(Of SomeClass)(x As [|SomeClass|])
+    Sub Goo(Of SomeClass)(x As [|SomeClass|])
     End Sub
 End Class
 Namespace SomeNamespace
@@ -357,7 +359,7 @@ End Namespace")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseSensitivityForNestedNamespace() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Sub bar()
         Dim q As [|innernamespace|].someClass
     End Sub
@@ -368,7 +370,7 @@ Namespace SomeNamespace
         End Class
     End Namespace
 End Namespace",
-"Class Foo
+"Class Goo
     Sub bar()
         Dim q As SomeNamespace.InnerNamespace.someClass
     End Sub
@@ -385,14 +387,14 @@ End Namespace")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseSensitivity1() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Dim x As [|someclass|]
 End Class
 Namespace SomeNamespace
     Class SomeClass
     End Class
 End Namespace",
-"Class Foo
+"Class Goo
     Dim x As SomeNamespace.SomeClass
 End Class
 Namespace SomeNamespace
@@ -404,11 +406,11 @@ End Namespace")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestTypeFromMultipleNamespaces1() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Function F() As [|IDictionary|]
     End Function
 End Class",
-"Class Foo
+"Class Goo
     Function F() As System.Collections.IDictionary
     End Function
 End Class")
@@ -417,11 +419,11 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestTypeFromMultipleNamespaces2() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Function F() As [|IDictionary|]
     End Function
 End Class",
-"Class Foo
+"Class Goo
     Function F() As System.Collections.Generic.IDictionary
     End Function
 End Class",
@@ -431,11 +433,11 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericWithNoArgs() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Function F() As [|List|]
     End Function
 End Class",
-"Class Foo
+"Class Goo
     Function F() As System.Collections.Generic.List
     End Function
 End Class")
@@ -444,11 +446,11 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericWithCorrectArgs() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Function F() As [|List(Of Integer)|]
     End Function
 End Class",
-"Class Foo
+"Class Goo
     Function F() As System.Collections.Generic.List(Of Integer)
     End Function
 End Class")
@@ -457,7 +459,7 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericWithWrongArgs() As Task
             Await TestMissingInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Function F() As [|List(Of Integer, String)|]
     End Function
 End Class")
@@ -466,12 +468,12 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericInLocalDeclaration() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Sub Test()
         Dim x As New [|List(Of Integer)|]
     End Sub
 End Class",
-"Class Foo
+"Class Goo
     Sub Test()
         Dim x As New System.Collections.Generic.List(Of Integer)
     End Sub
@@ -481,12 +483,12 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericItemType() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Sub Test()
         Dim x As New List(Of [|Int32|])
     End Sub
 End Class",
-"Class Foo
+"Class Goo
     Sub Test()
         Dim x As New List(Of System.Int32)
     End Sub
@@ -498,7 +500,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Imports System
 Namespace NS
-    Class Foo
+    Class Goo
         Sub Test()
             Dim x As New [|List(Of Integer)|]
         End Sub
@@ -506,7 +508,7 @@ Namespace NS
 End Namespace",
 "Imports System
 Namespace NS
-    Class Foo
+    Class Goo
         Sub Test()
             Dim x As New Collections.Generic.List(Of Integer)
         End Sub
@@ -623,7 +625,7 @@ End Namespace")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseInsensitivity() As Task
             Await TestInRegularAndScriptAsync(
-"Class FOo
+"Class GOo
     Sub bar()
         Dim q As [|innernamespace|].someClass
     End Sub
@@ -634,7 +636,7 @@ Namespace SomeNamespace
         End Class
     End Namespace
 End Namespace",
-"Class FOo
+"Class GOo
     Sub bar()
         Dim q As SomeNamespace.InnerNamespace.someClass
     End Sub
@@ -695,23 +697,23 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Dim x As [|foo|]
+        Dim x As [|goo|]
     End Sub
 End Module
 Namespace OUTER
     Namespace INNER
-        Friend Class FOO
+        Friend Class GOO
         End Class
     End Namespace
 End Namespace",
 "Module Program
     Sub Main(args As String())
-        Dim x As OUTER.INNER.FOO
+        Dim x As OUTER.INNER.GOO
     End Sub
 End Module
 Namespace OUTER
     Namespace INNER
-        Friend Class FOO
+        Friend Class GOO
         End Class
     End Namespace
 End Namespace")
@@ -776,8 +778,7 @@ End Module</Text>.Value.Replace(vbLf, vbCrLf),
     &lt;System.Obsolete&gt;
     Sub Main(args As String())
     End Sub
-End Module</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Module</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
@@ -798,8 +799,7 @@ Module Program
     Sub Main(args As String())
         Dim x As Generic.IEnumerable(Of Integer)
     End Sub
-End Module</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Module</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")>
@@ -841,8 +841,7 @@ End Namespace
 Namespace N2
     Class A
     End Class
-End Namespace</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Namespace</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider

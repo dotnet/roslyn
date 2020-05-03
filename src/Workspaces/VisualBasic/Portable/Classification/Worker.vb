@@ -1,19 +1,22 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
     Partial Friend Class Worker
-        Private ReadOnly _list As List(Of ClassifiedSpan)
+        Private ReadOnly _list As ArrayBuilder(Of ClassifiedSpan)
         Private ReadOnly _textSpan As TextSpan
         Private ReadOnly _docCommentClassifier As DocumentationCommentClassifier
         Private ReadOnly _xmlClassifier As XmlClassifier
         Private ReadOnly _cancellationToken As CancellationToken
 
-        Private Sub New(textSpan As TextSpan, list As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Private Sub New(textSpan As TextSpan, list As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
             _textSpan = textSpan
             _list = list
             _docCommentClassifier = New DocumentationCommentClassifier(Me)
@@ -22,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         End Sub
 
         Friend Shared Sub CollectClassifiedSpans(
-            tokens As IEnumerable(Of SyntaxToken), textSpan As TextSpan, list As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            tokens As IEnumerable(Of SyntaxToken), textSpan As TextSpan, list As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
             Dim worker = New Worker(textSpan, list, cancellationToken)
 
             For Each token In tokens
@@ -31,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         End Sub
 
         Friend Shared Sub CollectClassifiedSpans(
-            node As SyntaxNode, textSpan As TextSpan, list As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            node As SyntaxNode, textSpan As TextSpan, list As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
             Dim worker = New Worker(textSpan, list, cancellationToken)
             worker.ClassifyNode(node)
         End Sub
@@ -84,6 +87,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
                 If type IsNot Nothing Then
                     AddClassification(token.Span, type)
+
+                    ' Additionally classify static symbols
+                    If token.Kind() = SyntaxKind.IdentifierToken AndAlso
+                        ClassificationHelpers.IsStaticallyDeclared(token) Then
+
+                        AddClassification(span, ClassificationTypeNames.StaticSymbol)
+                    End If
                 End If
             End If
 
@@ -155,32 +165,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Else
                 AddClassification(trivia, ClassificationTypeNames.ExcludedCode)
             End If
-        End Sub
-
-
-        Private Sub ClassifyDisabledMergeCode(trivia As SyntaxTrivia, triviaText As String)
-            Dim equalsLineLength = 0
-            Dim length = triviaText.Length
-
-            While equalsLineLength < length
-                If SyntaxFacts.IsNewLine(triviaText(equalsLineLength)) Then
-                    Exit While
-                End If
-
-                equalsLineLength += 1
-            End While
-
-            AddClassification(New TextSpan(trivia.SpanStart, equalsLineLength), ClassificationTypeNames.Comment)
-
-            ' Now lex out all the tokens in the rest of the trivia text.
-            Dim tokens = SyntaxFactory.ParseTokens(
-                text:=triviaText,
-                offset:=equalsLineLength,
-                initialTokenPosition:=trivia.SpanStart + equalsLineLength)
-
-            For Each token In tokens
-                ClassifyToken(token)
-            Next
         End Sub
 
         Private Sub ClassifySkippedTokens(skippedTokens As SkippedTokensTriviaSyntax)

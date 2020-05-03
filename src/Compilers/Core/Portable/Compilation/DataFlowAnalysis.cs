@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 
@@ -33,6 +37,22 @@ namespace Microsoft.CodeAnalysis
         public abstract ImmutableArray<ISymbol> DataFlowsOut { get; }
 
         /// <summary>
+        /// <para>
+        /// The set of local variables which are definitely assigned a value when a region is
+        /// entered.
+        /// </para>
+        /// </summary>
+        public abstract ImmutableArray<ISymbol> DefinitelyAssignedOnEntry { get; }
+
+        /// <summary>
+        /// <para>
+        /// The set of local variables which are definitely assigned a value when a region is
+        /// exited.
+        /// </para>
+        /// </summary>
+        public abstract ImmutableArray<ISymbol> DefinitelyAssignedOnExit { get; }
+
+        /// <summary>
         /// The set of local variables for which a value is always assigned inside
         /// a region.
         /// </summary>
@@ -63,6 +83,16 @@ namespace Microsoft.CodeAnalysis
         /// functions within a region and therefore must be moved to a field of a frame class.
         /// </summary>
         public abstract ImmutableArray<ISymbol> Captured { get; }
+
+        /// <summary>
+        /// The set of variables that are captured inside a region.
+        /// </summary>
+        public abstract ImmutableArray<ISymbol> CapturedInside { get; }
+
+        /// <summary>
+        /// The set of variables that are captured outside a region.
+        /// </summary>
+        public abstract ImmutableArray<ISymbol> CapturedOutside { get; }
 
         /// <summary>
         /// The set of non-constant local variables and parameters that have had their

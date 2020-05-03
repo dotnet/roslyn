@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +17,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Lock for all data in this type.
         /// </summary>
-        private static object s_gate = new object();
+        private static readonly object s_gate = new object();
 
         /// <summary>
         /// Last created snapshot of our data.  We hand this out instead of exposing our raw
@@ -32,7 +34,7 @@ namespace Roslyn.Utilities
         /// </summary>
         private static readonly Dictionary<Type, int> s_typeToIndex = new Dictionary<Type, int>();
         private static readonly List<Type> s_types = new List<Type>();
-        private static readonly List<Func<ObjectReader, object>> s_typeReaders = new List<Func<ObjectReader, object>>();
+        private static readonly List<Func<ObjectReader, IObjectWritable>> s_typeReaders = new List<Func<ObjectReader, IObjectWritable>>();
 
         /// <summary>
         /// Gets an immutable copy of the state of this binder.  This copy does not need to be
@@ -51,7 +53,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static void RegisterTypeReader(Type type, Func<ObjectReader, object> typeReader)
+        public static void RegisterTypeReader(Type type, Func<ObjectReader, IObjectWritable> typeReader)
         {
             lock (s_gate)
             {

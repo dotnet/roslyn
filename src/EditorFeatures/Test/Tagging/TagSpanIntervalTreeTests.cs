@@ -1,16 +1,18 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.EditorUtilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
 {
+    [UseExportProvider]
     public class TagSpanIntervalTreeTests
     {
         private TagSpanIntervalTree<ITextMarkerTag> CreateTree(string text, params Span[] spans)
@@ -132,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
         [Fact]
         public void TestEmptySpanIntersects1()
         {
-            var tree = CreateTree("foo", new Span(0, 0));
+            var tree = CreateTree("goo", new Span(0, 0));
             var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(0, 0)));
             Assert.True(spans.Count == 1);
         }
@@ -140,15 +142,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
         [Fact]
         public void TestEmptySpanIntersects2()
         {
-            var tree = CreateTree("foo", new Span(0, 0));
-            var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(0, "foo".Length)));
+            var tree = CreateTree("goo", new Span(0, 0));
+            var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(0, "goo".Length)));
             Assert.True(spans.Count == 1);
         }
 
         [Fact]
         public void TestEmptySpanIntersects3()
         {
-            var tree = CreateTree("foo", new Span(1, 0));
+            var tree = CreateTree("goo", new Span(1, 0));
             var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(0, 1)));
             Assert.True(spans.Count == 1);
         }
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
         [Fact]
         public void TestEmptySpanIntersects4()
         {
-            var tree = CreateTree("foo", new Span(1, 0));
+            var tree = CreateTree("goo", new Span(1, 0));
             var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(1, 0)));
             Assert.True(spans.Count == 1);
         }
@@ -164,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
         [Fact]
         public void TestEmptySpanIntersects5()
         {
-            var tree = CreateTree("foo", new Span(1, 0));
+            var tree = CreateTree("goo", new Span(1, 0));
             var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(1, 1)));
             Assert.True(spans.Count == 1);
         }

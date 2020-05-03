@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Remoting;
@@ -8,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Nerdbank;
@@ -16,77 +22,103 @@ using StreamJsonRpc;
 
 namespace Roslyn.Test.Utilities.Remote
 {
-    internal sealed class InProcRemoteHostClient : RemoteHostClient
+    internal sealed class InProcRemoteHostClient : RemoteHostClient, IRemoteHostServiceCallback
     {
         private readonly InProcRemoteServices _inprocServices;
-        private readonly JsonRpc _rpc;
+        private readonly RemoteEndPoint _endPoint;
 
-        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup)
         {
             var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
-            var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
+            var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.RemoteHostService).ConfigureAwait(false);
 
-            var instance = new InProcRemoteHostClient(workspace, inprocServices, remoteHostStream);
+            var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
+            var instance = new InProcRemoteHostClient(current, workspace, inprocServices, remoteHostStream);
 
             // make sure connection is done right
-            var current = $"VS ({Process.GetCurrentProcess().Id})";
-            var telemetrySession = default(string);
-            var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, telemetrySession).ConfigureAwait(false);
+            string? telemetrySession = null;
+            var uiCultureLCIDE = 0;
+            var cultureLCID = 0;
+
+            var host = await instance._endPoint.InvokeAsync<string>(
+                nameof(IRemoteHostService.Connect),
+                new object?[] { current, uiCultureLCIDE, cultureLCID, telemetrySession },
+                CancellationToken.None).ConfigureAwait(false);
 
             // TODO: change this to non fatal watson and make VS to use inproc implementation
             Contract.ThrowIfFalse(host == current.ToString());
 
-            instance.Connected();
+            instance.Started();
 
             // return instance
             return instance;
         }
 
-        private InProcRemoteHostClient(Workspace workspace, InProcRemoteServices inprocServices, Stream stream) :
-            base(workspace)
+        private InProcRemoteHostClient(
+            string clientId,
+            Workspace workspace,
+            InProcRemoteServices inprocServices,
+            Stream stream)
+            : base(workspace)
         {
+            ClientId = clientId;
+
             _inprocServices = inprocServices;
 
-            _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: this);
-            _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
-
-            // handle disconnected situation
-            _rpc.Disconnected += OnRpcDisconnected;
-
-            _rpc.StartListening();
+            _endPoint = new RemoteEndPoint(stream, inprocServices.Logger, incomingCallTarget: this);
+            _endPoint.Disconnected += OnDisconnected;
+            _endPoint.StartListening();
         }
+
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public Task GetAssetsAsync(int scopeId, Checksum[] checksums, string pipeName, CancellationToken cancellationToken)
+            => RemoteEndPoint.WriteDataToNamedPipeAsync(
+                pipeName,
+                (scopeId, checksums),
+                (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(writer, RemotableDataService, data.scopeId, data.checksums, cancellationToken),
+                cancellationToken);
+
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+            => Task.FromResult(Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
 
-        protected override async Task<Session> TryCreateServiceSessionAsync(string serviceName, Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync, object callbackTarget, CancellationToken cancellationToken)
-        {
-            // get stream from service hub to communicate snapshot/asset related information
-            // this is the back channel the system uses to move data between VS and remote host
-            var snapshotStream = getSnapshotAsync.Value == null ? null : await _inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false);
+        public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
+            => _inprocServices.RegisterService(name, serviceCreator);
 
+        public Task<Stream> RequestServiceAsync(string serviceName)
+            => _inprocServices.RequestServiceAsync(serviceName);
+
+        public override string ClientId { get; }
+        public override bool IsRemoteHost64Bit => IntPtr.Size == 8;
+
+        protected override async Task<Connection?> TryCreateConnectionAsync(
+            string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+        {
             // get stream from service hub to communicate service specific information 
             // this is what consumer actually use to communicate information
-            var serviceStream = await _inprocServices.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
+            var serviceStream = await _inprocServices.RequestServiceAsync(serviceName).ConfigureAwait(false);
 
-            return await JsonRpcSession.CreateAsync(getSnapshotAsync, callbackTarget, serviceStream, snapshotStream, cancellationToken).ConfigureAwait(false);
+            return new JsonRpcConnection(Workspace, _inprocServices.Logger, callbackTarget, serviceStream);
         }
 
-        protected override void OnConnected()
-        {
-        }
-
-        protected override void OnDisconnected()
+        public override void Dispose()
         {
             // we are asked to disconnect. unsubscribe and dispose to disconnect
-            _rpc.Disconnected -= OnRpcDisconnected;
-            _rpc.Dispose();
+            _endPoint.Disconnected -= OnDisconnected;
+            _endPoint.Dispose();
+
+            base.Dispose();
         }
 
-        private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
-        {
-            Disconnected();
-        }
+        private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
+            => Dispose();
 
         public class ServiceProvider : IServiceProvider
         {
@@ -97,7 +129,7 @@ namespace Roslyn.Test.Utilities.Remote
             public ServiceProvider(bool runCacheCleanup)
             {
                 _storage = runCacheCleanup ?
-                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1)) :
+                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(5)) :
                     new AssetStorage();
             }
 
@@ -122,38 +154,34 @@ namespace Roslyn.Test.Utilities.Remote
         private class InProcRemoteServices
         {
             private readonly ServiceProvider _serviceProvider;
+            private readonly Dictionary<string, Func<Stream, IServiceProvider, ServiceBase>> _creatorMap;
 
             public InProcRemoteServices(bool runCacheCleanup)
             {
                 _serviceProvider = new ServiceProvider(runCacheCleanup);
+                _creatorMap = new Dictionary<string, Func<Stream, IServiceProvider, ServiceBase>>();
+
+                RegisterService(WellKnownServiceHubServices.RemoteHostService, (s, p) => new RemoteHostService(s, p));
+                RegisterService(WellKnownServiceHubServices.CodeAnalysisService, (s, p) => new CodeAnalysisService(s, p));
+                RegisterService(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, (s, p) => new RemoteSymbolSearchUpdateEngine(s, p));
+                RegisterService(WellKnownServiceHubServices.RemoteDesignerAttributeService, (s, p) => new RemoteDesignerAttributeService(s, p));
+                RegisterService(WellKnownServiceHubServices.RemoteProjectTelemetryService, (s, p) => new RemoteProjectTelemetryService(s, p));
+                RegisterService(WellKnownServiceHubServices.RemoteTodoCommentsService, (s, p) => new RemoteTodoCommentsService(s, p));
+                RegisterService(WellKnownServiceHubServices.LanguageServer, (s, p) => new LanguageServer(s, p));
             }
 
             public AssetStorage AssetStorage => _serviceProvider.AssetStorage;
+            public TraceSource Logger { get; } = new TraceSource("Default");
 
-            public Task<Stream> RequestServiceAsync(string serviceName, CancellationToken cancellationToken)
+            public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
+                => _creatorMap.Add(name, serviceCreator);
+
+            public Task<Stream> RequestServiceAsync(string serviceName)
             {
-                switch (serviceName)
+                if (_creatorMap.TryGetValue(serviceName, out var creator))
                 {
-                    case WellKnownRemoteHostServices.RemoteHostService:
-                        {
-                            var tuple = FullDuplexStream.CreateStreams();
-                            return Task.FromResult<Stream>(new WrappedStream(new RemoteHostService(tuple.Item1, _serviceProvider), tuple.Item2));
-                        }
-                    case WellKnownServiceHubServices.CodeAnalysisService:
-                        {
-                            var tuple = FullDuplexStream.CreateStreams();
-                            return Task.FromResult<Stream>(new WrappedStream(new CodeAnalysisService(tuple.Item1, _serviceProvider), tuple.Item2));
-                        }
-                    case WellKnownServiceHubServices.SnapshotService:
-                        {
-                            var tuple = FullDuplexStream.CreateStreams();
-                            return Task.FromResult<Stream>(new WrappedStream(new SnapshotService(tuple.Item1, _serviceProvider), tuple.Item2));
-                        }
-                    case WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine:
-                        {
-                            var tuple = FullDuplexStream.CreateStreams();
-                            return Task.FromResult<Stream>(new WrappedStream(new RemoteSymbolSearchUpdateEngine(tuple.Item1, _serviceProvider), tuple.Item2));
-                        }
+                    var tuple = FullDuplexStream.CreateStreams();
+                    return Task.FromResult<Stream>(new WrappedStream(creator(tuple.Item1, _serviceProvider), tuple.Item2));
                 }
 
                 throw ExceptionUtilities.UnexpectedValue(serviceName);
@@ -219,14 +247,10 @@ namespace Roslyn.Test.Utilities.Remote
                 public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => _stream.CopyToAsync(destination, bufferSize, cancellationToken);
 
                 public override object InitializeLifetimeService()
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public override ObjRef CreateObjRef(Type requestedType)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public override void Close()
                 {

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -13,7 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Enum
 
     Partial Friend Class BoundPropertyAccess
-        Public Sub New(syntax As SyntaxNode, propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, isWriteable As Boolean, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, isWriteable As Boolean, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression),
+                       Optional defaultArguments As BitVector = Nothing, Optional hasErrors As Boolean = False)
             Me.New(
                 syntax,
                 propertySymbol,
@@ -23,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 isLValue:=propertySymbol.ReturnsByRef,
                 receiverOpt:=receiverOpt,
                 arguments:=arguments,
+                defaultArguments:=defaultArguments,
                 type:=GetTypeFromAccessKind(propertySymbol, accessKind),
                 hasErrors:=hasErrors)
         End Sub
@@ -53,6 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 isLValue:=IsLValue,
                 receiverOpt:=ReceiverOpt,
                 arguments:=Arguments,
+                defaultArguments:=DefaultArguments,
                 type:=GetTypeFromAccessKind(Me.PropertySymbol, newAccessKind))
         End Function
 
@@ -62,7 +67,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(Me.ReceiverOpt Is Nothing OrElse Me.PropertyGroupOpt Is Nothing OrElse Me.PropertyGroupOpt.ReceiverOpt Is Nothing)
 
             Dim expectedType = GetTypeFromAccessKind(Me.PropertySymbol, Me.AccessKind)
-            Debug.Assert(Me.Type = expectedType)
+            Debug.Assert(TypeSymbol.Equals(Me.Type, expectedType, TypeCompareKind.ConsiderEverything))
+            Debug.Assert(DefaultArguments.IsNull OrElse Not Arguments.IsEmpty)
         End Sub
 #End If
 
@@ -81,6 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     isLValue:=False,
                     receiverOpt:=ReceiverOpt,
                     arguments:=Arguments,
+                    defaultArguments:=DefaultArguments,
                     type:=Type)
             End If
 

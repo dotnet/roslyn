@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void CompileAndCheckSymbolCount(string source, string symbolName, int expectedSymbolCount)
         {
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -102,18 +104,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             StringBuilder sb = new StringBuilder();
 
-            AppendEmptyClass(sb, "Foo", 50);
+            AppendEmptyClass(sb, "Goo", 50);
 
             // Unique symbol test
-            CompileAndCheckSymbolCount(sb.ToString(), "Foo", 1);
+            CompileAndCheckSymbolCount(sb.ToString(), "Goo", 1);
 
-            AppendEmptyClass(sb, "Foo", 100);
-            AppendEmptyClass(sb, "Foo", 150);
-            AppendEmptyClass(sb, "Foo", 200);
-            AppendEmptyClass(sb, "Foo", 250);
+            AppendEmptyClass(sb, "Goo", 100);
+            AppendEmptyClass(sb, "Goo", 150);
+            AppendEmptyClass(sb, "Goo", 200);
+            AppendEmptyClass(sb, "Goo", 250);
 
             // Multiple symbols test
-            CompileAndCheckSymbolCount(sb.ToString(), "Foo", 5);
+            CompileAndCheckSymbolCount(sb.ToString(), "Goo", 5);
         }
 
         [Fact]
@@ -121,16 +123,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             StringBuilder sb = new StringBuilder();
 
-            AppendEmptyClass(sb, "Foo", 1);
+            AppendEmptyClass(sb, "Goo", 1);
 
             // Unique symbol test
-            CompileAndCheckSymbolCount(sb.ToString(), "Foo", 1);
+            CompileAndCheckSymbolCount(sb.ToString(), "Goo", 1);
 
-            AppendEmptyClass(sb, "Foo", 2);
-            AppendEmptyClass(sb, "Foo", 3);
+            AppendEmptyClass(sb, "Goo", 2);
+            AppendEmptyClass(sb, "Goo", 3);
 
             // Multiple symbols test
-            CompileAndCheckSymbolCount(sb.ToString(), "Foo", 3);
+            CompileAndCheckSymbolCount(sb.ToString(), "Goo", 3);
         }
 
         [Fact]
@@ -141,10 +143,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 StringBuilder sb = new StringBuilder();
                 for (int j = 0; j < i; j++)
                 {
-                    AppendEmptyClass(sb, "Foo", j);
+                    AppendEmptyClass(sb, "Goo", j);
                 }
 
-                CompileAndCheckSymbolCount(sb.ToString(), "Foo", i);
+                CompileAndCheckSymbolCount(sb.ToString(), "Goo", i);
             }
         }
     }

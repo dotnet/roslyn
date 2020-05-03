@@ -1,14 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     Friend MustInherit Class AbstractTokensCodeCleanupProvider
@@ -35,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Protected MustInherit Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 
-            Protected ReadOnly _spans As SimpleIntervalTree(Of TextSpan)
+            Protected ReadOnly _spans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
             Protected ReadOnly _cancellationToken As CancellationToken
 
             ' a global state indicating whether the visitor is visiting structured trivia or not
@@ -46,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 MyBase.New(visitIntoStructuredTrivia:=True)
 
                 _cancellationToken = cancellationToken
-                _spans = New SimpleIntervalTree(Of TextSpan)(TextSpanIntervalIntrospector.Instance, spans)
+                _spans = New SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)(New TextSpanIntervalIntrospector(), spans)
                 _underStructuredTrivia = False
             End Sub
 

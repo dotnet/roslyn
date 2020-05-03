@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -51,32 +53,32 @@ public class App : C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(src1);
+            var comp1 = CreateCompilation(src1);
 
             // Compilation to Compilation
-            var comp2 = CreateStandardCompilation(src2, new MetadataReference[] { new CSharpCompilationReference(comp1) });
+            var comp2 = (Compilation)CreateCompilation(src2, new MetadataReference[] { new CSharpCompilationReference(comp1) });
 
             var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType).OrderBy(s => s.Name).ToList();
             Assert.Equal(5, originalSymbols.Count);
 
             // ---------------------------
             // Metadata symbols
-            var typesym = comp2.SourceModule.GlobalNamespace.GetTypeMembers("App").FirstOrDefault() as NamedTypeSymbol;
+            var typesym = comp2.SourceModule.GlobalNamespace.GetTypeMembers("App").FirstOrDefault() as INamedTypeSymbol;
 
             // 'D'
-            var member01 = (typesym.GetMembers("myEvent").Single() as EventSymbol).Type;
+            var member01 = (typesym.GetMembers("myEvent").Single() as IEventSymbol).Type;
 
             // 'I'
-            var member02 = (typesym.GetMembers("Prop").Single() as PropertySymbol).Type;
+            var member02 = (typesym.GetMembers("Prop").Single() as IPropertySymbol).Type;
 
             // 'C'
             var member03 = typesym.BaseType;
 
             // 'S'
-            var member04 = (typesym.GetMembers("M").Single() as MethodSymbol).Parameters[0].Type;
+            var member04 = (typesym.GetMembers("M").Single() as IMethodSymbol).Parameters[0].Type;
 
             // 'E'
-            var member05 = (typesym.GetMembers(WellKnownMemberNames.Indexer).Single() as PropertySymbol).Type;
+            var member05 = (typesym.GetMembers(WellKnownMemberNames.Indexer).Single() as IPropertySymbol).Type;
 
             ResolveAndVerifySymbol(member03, originalSymbols[0], comp1, SymbolKeyComparison.None);
             ResolveAndVerifySymbol(member01, originalSymbols[1], comp1, SymbolKeyComparison.None);
@@ -93,7 +95,7 @@ public class App : C
 
 namespace N1
 {
-    public interface IFoo
+    public interface IGoo
     {
         void M(int p1, int p2);
         void M(params short[] ary);
@@ -105,7 +107,7 @@ namespace N1
     public struct S
     {
         public event Action<S> PublicEvent { add { } remove { } }
-        public IFoo PublicField;
+        public IGoo PublicField;
         public string PublicProp { get; set; }
         public short this[sbyte p] { get { return p; } }
     }
@@ -123,21 +125,21 @@ public class App
 
         /*<bind0>*/obj.PublicEvent/*</bind0>*/ += EH;
 
-        var ifoo = /*<bind1>*/obj.PublicField/*</bind1>*/;
+        var igoo = /*<bind1>*/obj.PublicField/*</bind1>*/;
 
-        /*<bind3>*/ifoo.M(/*<bind2>*/obj.PublicProp/*</bind2>*/)/*</bind3>*/;
+        /*<bind3>*/igoo.M(/*<bind2>*/obj.PublicProp/*</bind2>*/)/*</bind3>*/;
 
-        /*<bind5>*/ifoo.M(obj[12], /*<bind4>*/obj[123]/*</bind4>*/)/*</bind5>*/;
+        /*<bind5>*/igoo.M(obj[12], /*<bind4>*/obj[123]/*</bind4>*/)/*</bind5>*/;
     }
 
     static void EH(AN.S s) { }
 }
 ";
 
-            var comp1 = CreateStandardCompilation(src1);
+            var comp1 = CreateCompilation(src1);
 
             // Compilation to Assembly
-            var comp2 = CreateStandardCompilation(src2, new MetadataReference[] { comp1.EmitToImageReference() });
+            var comp2 = CreateCompilation(src2, new MetadataReference[] { comp1.EmitToImageReference() });
 
             // ---------------------------
             // Source symbols
@@ -221,14 +223,14 @@ class Test
     }
 }
 ";
-            var comp20 = CreateCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            var comp20 = (Compilation)CreateEmptyCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
 
             // "Compilation 2 Assembly"
-            var comp40 = CreateStandardCompilation(src2, new MetadataReference[] { comp20.EmitToImageReference() });
+            var comp40 = (Compilation)CreateCompilation(src2, new MetadataReference[] { comp20.EmitToImageReference() });
 
             var typeA = comp20.SourceModule.GlobalNamespace.GetTypeMembers("A").Single();
-            var mem20_1 = typeA.GetMembers("GetFileInfo").Single() as MethodSymbol;
-            var mem20_2 = typeA.GetMembers("PrintInfo").Single() as MethodSymbol;
+            var mem20_1 = typeA.GetMembers("GetFileInfo").Single() as IMethodSymbol;
+            var mem20_2 = typeA.GetMembers("PrintInfo").Single() as IMethodSymbol;
 
             // FileInfo
             var mtsym20_1 = mem20_1.ReturnType;
@@ -242,16 +244,16 @@ class Test
 
             // ====================
             var typeTest = comp40.SourceModule.GlobalNamespace.GetTypeMembers("Test").FirstOrDefault();
-            var mem40 = typeTest.GetMembers("Main").Single() as MethodSymbol;
+            var mem40 = typeTest.GetMembers("Main").Single() as IMethodSymbol;
             var list = GetBlockSyntaxList(mem40);
-            var model = comp40.GetSemanticModel(comp40.SyntaxTrees[0]);
+            var model = comp40.GetSemanticModel(comp40.SyntaxTrees.First());
 
             foreach (var body in list)
             {
                 var df = model.AnalyzeDataFlow(body.Statements.First(), body.Statements.Last());
                 foreach (var local in df.VariablesDeclared)
                 {
-                    var localType = ((LocalSymbol)local).Type;
+                    var localType = ((ILocalSymbol)local).Type;
 
                     if (local.Name == "fi")
                     {
@@ -275,7 +277,7 @@ class Test
             var src1 = @"using System;
 namespace Mscorlib20
 {
-    public interface IFoo
+    public interface IGoo
     {
         // interface
         IDisposable Prop { get; set; }
@@ -283,7 +285,7 @@ namespace Mscorlib20
         Exception this[ArgumentException t] { get; }
     }
 
-    public class CFoo : IFoo
+    public class CGoo : IGoo
     {
         // enum
         public DayOfWeek PublicField;
@@ -303,15 +305,15 @@ class Test
 {
     public IDisposable M()
     {
-        var obj = new N20::CFoo();
-        N20.IFoo ifoo = obj;
+        var obj = new N20::CGoo();
+        N20.IGoo igoo = obj;
 
         /*<bind0>*/obj.PublicEventField/*</bind0>*/ += /*<bind1>*/MyEveHandler/*</bind1>*/;
-        var local = /*<bind2>*/ifoo[null]/*</bind2>*/;
+        var local = /*<bind2>*/igoo[null]/*</bind2>*/;
 
         if (/*<bind3>*/obj.PublicField /*</bind3>*/== DayOfWeek.Friday)
         {
-            return /*<bind4>*/(obj as N20.IFoo).Prop/*</bind4>*/;
+            return /*<bind4>*/(obj as N20.IGoo).Prop/*</bind4>*/;
         }
         return null;
     }
@@ -319,15 +321,15 @@ class Test
     public void MyEveHandler(object o) { }
 }
 ";
-            var comp20 = CreateCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            var comp20 = CreateEmptyCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
 
             // "Compilation ref Compilation"
-            var comp40 = CreateStandardCompilation(src2, new[] { new CSharpCompilationReference(comp20) });
+            var comp40 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp20) });
 
             var originals = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember | SymbolCategory.Parameter);
             var originalSymbols = originals.Where(s => !s.IsAccessor() && s.Kind != SymbolKind.Parameter).OrderBy(s => s.Name).ToList();
 
-            // IFoo.Prop, CFoo.Prop, Event, Field, IFoo.This, CFoo.This
+            // IGoo.Prop, CGoo.Prop, Event, Field, IGoo.This, CGoo.This
             Assert.Equal(6, originalSymbols.Count);
 
             // ====================
@@ -340,28 +342,28 @@ class Test
             ResolveAndVerifySymbol(list[0], originalSymbols[2], model, comp20);
 
             // delegate ParameterizedThreadStart
-            ResolveAndVerifyTypeSymbol(list[0], (originalSymbols[2] as EventSymbol).Type, model, comp20);
+            ResolveAndVerifyTypeSymbol(list[0], (originalSymbols[2] as IEventSymbol).Type, model, comp20);
 
             // MethodGroup
-            ResolveAndVerifyTypeSymbol(list[1], (originalSymbols[2] as EventSymbol).Type, model, comp20);
+            ResolveAndVerifyTypeSymbol(list[1], (originalSymbols[2] as IEventSymbol).Type, model, comp20);
 
             // Indexer
             ResolveAndVerifySymbol(list[2], originalSymbols[4], model, comp20);
 
             // class Exception
-            ResolveAndVerifyTypeSymbol(list[2], (originalSymbols[4] as PropertySymbol).Type, model, comp20);
+            ResolveAndVerifyTypeSymbol(list[2], (originalSymbols[4] as IPropertySymbol).Type, model, comp20);
 
             // PublicField
             ResolveAndVerifySymbol(list[3], originalSymbols[3], model, comp20);
 
             // enum DayOfWeek
-            ResolveAndVerifyTypeSymbol(list[3], (originalSymbols[3] as FieldSymbol).Type, model, comp20);
+            ResolveAndVerifyTypeSymbol(list[3], (originalSymbols[3] as IFieldSymbol).Type, model, comp20);
 
             // Prop
             ResolveAndVerifySymbol(list[4], originalSymbols[0], model, comp20);
 
             // interface IDisposable
-            ResolveAndVerifyTypeSymbol(list[4], (originalSymbols[0] as PropertySymbol).Type, model, comp20);
+            ResolveAndVerifyTypeSymbol(list[4], (originalSymbols[0] as IPropertySymbol).Type, model, comp20);
         }
 
         [Fact, WorkItem(546255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546255")]
@@ -370,7 +372,7 @@ class Test
             var src1 = @"using System;
 namespace Mscorlib20
 {
-    public interface IFoo
+    public interface IGoo
     {
         // interface
         IDisposable Prop { get; set; }
@@ -378,11 +380,11 @@ namespace Mscorlib20
         Exception this[ArgumentException t] { get; }
     }
 
-    public class CFoo : IFoo
+    public class CGoo : IGoo
     {
         // explicit
-        IDisposable IFoo.Prop { get; set; }
-        Exception IFoo.this[ArgumentException t] { get { return t; } }
+        IDisposable IGoo.Prop { get; set; }
+        Exception IGoo.this[ArgumentException t] { get { return t; } }
     }
 }
 ";
@@ -394,22 +396,22 @@ class Test
 {
     public IDisposable M()
     {
-        N20.IFoo ifoo = new N20::CFoo();
+        N20.IGoo igoo = new N20::CGoo();
 
-        var local = /*<bind0>*/ifoo[new ArgumentException()]/*</bind0>*/;
-        return /*<bind1>*/ifoo.Prop/*</bind1>*/;
+        var local = /*<bind0>*/igoo[new ArgumentException()]/*</bind0>*/;
+        return /*<bind1>*/igoo.Prop/*</bind1>*/;
     }
 }
 ";
-            var comp20 = CreateCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            var comp20 = CreateEmptyCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
 
             // "Compilation ref Compilation"
-            var comp40 = CreateStandardCompilation(src2, new[] { new CSharpCompilationReference(comp20) });
+            var comp40 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp20) });
 
             var originals = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember | SymbolCategory.Parameter);
             var originalSymbols = originals.Where(s => !s.IsAccessor() && s.Kind != SymbolKind.Parameter).OrderBy(s => s.Name).ToList();
 
-            // CFoo.Prop, CFoo.This, IFoo.Prop, IFoo.This
+            // CGoo.Prop, CGoo.This, IGoo.Prop, IGoo.This
             Assert.Equal(4, originalSymbols.Count);
 
             // ====================
@@ -422,13 +424,13 @@ class Test
             ResolveAndVerifySymbol(list[0], originalSymbols[3], model, comp20);
 
             // class Exception
-            ResolveAndVerifyTypeSymbol(list[0], (originalSymbols[3] as PropertySymbol).Type, model, comp20);
+            ResolveAndVerifyTypeSymbol(list[0], (originalSymbols[3] as IPropertySymbol).Type, model, comp20);
 
             // Prop
             ResolveAndVerifySymbol(list[1], originalSymbols[2], model, comp20);
 
             // interface IDisposable
-            ResolveAndVerifyTypeSymbol(list[1], (originalSymbols[2] as PropertySymbol).Type, model, comp20);
+            ResolveAndVerifyTypeSymbol(list[1], (originalSymbols[2] as IPropertySymbol).Type, model, comp20);
         }
 
         #endregion

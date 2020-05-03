@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
@@ -97,6 +99,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// In a file that has been included in the compilation via #load.
         /// </summary>
         InLoadedSyntaxTree = 1 << 28,
+
+        /// <summary>
+        /// This is a <see cref="ContextualAttributeBinder"/>, or has <see cref="ContextualAttributeBinder"/> as its parent.
+        /// </summary>
+        InContextualAttributeBinder = 1 << 29,
+
+        /// <summary>
+        /// Are we binding for the purpose of an Expression Evaluator
+        /// </summary>
+        InEEMethodBinder = 1 << 30,
 
         // Groups
 

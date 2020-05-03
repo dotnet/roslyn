@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<AssemblyIdentity, Assembly> _loadedAssembliesByIdentity = new Dictionary<AssemblyIdentity, Assembly>();
 
         // maps file name to a full path (lock _guard to read/write):
-        private readonly Dictionary<string, List<string>> _knownAssemblyPathsBySimpleName = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, HashSet<string>> _knownAssemblyPathsBySimpleName = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
 
         protected abstract Assembly LoadFromPathImpl(string fullPath);
 
@@ -34,12 +36,11 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths))
                 {
-                    _knownAssemblyPathsBySimpleName.Add(simpleName, new List<string>() { fullPath });
+                    paths = new HashSet<string>(PathUtilities.Comparer);
+                    _knownAssemblyPathsBySimpleName.Add(simpleName, paths);
                 }
-                else if (!paths.Contains(fullPath))
-                {
-                    paths.Add(fullPath);
-                }
+
+                paths.Add(fullPath);
             }
         }
 
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    identity = identity ?? GetOrAddAssemblyIdentity(fullPath);
+                    identity ??= GetOrAddAssemblyIdentity(fullPath);
                     if (identity != null && _loadedAssembliesByIdentity.TryGetValue(identity, out existingAssembly))
                     {
                         loadedAssembly = existingAssembly;

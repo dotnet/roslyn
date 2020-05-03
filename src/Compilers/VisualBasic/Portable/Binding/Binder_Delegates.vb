@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -133,6 +136,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' Insert an identity conversion if necessary.
                                 Debug.Assert(boundFirstArgument.Kind <> BoundKind.Conversion, "Associated wrong node with conversion?")
                                 boundFirstArgument = New BoundConversion(node, boundFirstArgument, ConversionKind.Identity, CheckOverflow, True, delegateType)
+                            ElseIf boundFirstArgument.Kind = BoundKind.Conversion Then
+                                Debug.Assert(Not boundFirstArgument.WasCompilerGenerated)
+                                Dim boundConversion = DirectCast(boundFirstArgument, BoundConversion)
+                                boundFirstArgument = boundConversion.Update(boundConversion.Operand,
+                                                                            boundConversion.ConversionKind,
+                                                                            boundConversion.Checked,
+                                                                            True, ' ExplicitCastInCode
+                                                                            boundConversion.ConstantValueOpt,
+                                                                            boundConversion.ExtendedInfoOpt,
+                                                                            boundConversion.Type)
                             End If
 
                             Return boundFirstArgument
@@ -309,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     methodConversions = methodConversions Or MethodConversionKind.Error_Unspecified
                 End If
 
-                addressOfExpression.Binder.ReportDiagnosticsIfObsolete(diagnostics, fromMethod, addressOfExpression.MethodGroup.Syntax)
+                addressOfExpression.Binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, fromMethod, addressOfExpression.MethodGroup.Syntax)
             End If
 
             Dim delegateConversions As ConversionKind = Conversions.DetermineDelegateRelaxationLevel(methodConversions)

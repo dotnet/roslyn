@@ -2,16 +2,7 @@
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
 * text=auto encoding=UTF-8
-
-# csc/vbc are shell scripts and should always have unix line endings
-# These shell scripts are included in the toolset packages. Normally, the shell
-# scripts in our repo are only run by cloning onto a Linux/Mac machine, and git
-# automatically chooses LF as the line ending.
-#
-# However, right now the toolset packages must be built on Windows, and so the
-# files must be hard-coded to be cloned with LF
-src/Compilers/CSharp/CscCore/csc text eol=lf
-src/Compilers/VisualBasic/VbcCore/vbc text eol=lf
+*.sh text eol=lf
 
 ###############################################################################
 # Set default behavior for command prompt diff.
@@ -72,3 +63,9 @@ src/Compilers/VisualBasic/VbcCore/vbc text eol=lf
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+# Generated files
+src/Compilers/CSharp/Portable/Generated/*                  linguist-generated=true
+src/Compilers/CSharp/Portable/CSharpResources.Designer.cs  linguist-generated=true
+src/Compilers/VisualBasic/Portable/Generated/*             linguist-generated=true
+src/Compilers/VisualBasic/Portable/VBResources.Designer.vb linguist-generated=true

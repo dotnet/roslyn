@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -11,9 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         where TTag : ITag
     {
         protected AsynchronousTaggerProvider(
+            IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
-                : base(asyncListener, notificationService)
+                : base(threadingContext, asyncListener, notificationService)
         {
         }
 
@@ -28,8 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         }
 
         ITagger<T> ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
-        {
-            return CreateTagger<T>(buffer);
-        }
+            => CreateTagger<T>(buffer);
     }
 }
