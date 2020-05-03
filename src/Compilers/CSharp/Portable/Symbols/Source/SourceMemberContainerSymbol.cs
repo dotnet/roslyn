@@ -2940,6 +2940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(paramList.SyntaxTree);
             var binder = binderFactory.GetBinder(paramList);
 
+            // PROTOTYPE: need to check base members as well
             var memberSignatures = s_duplicateMemberSignatureDictionary.Allocate();
             foreach (var member in members)
             {
@@ -2947,6 +2948,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var ctor = addCtor(paramList);
+            if (!this.IsStructType())
+            {
+                addCopyCtor();
+            }
+            addCloneMethod();
             addProperties(ctor.Parameters);
             var thisEquals = addThisEquals();
             addObjectEquals(thisEquals);
@@ -2971,6 +2977,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ctor;
             }
 
+            void addCopyCtor()
+            {
+                var ctor = new SynthesizedRecordCopyCtor(this, diagnostics);
+                if (!memberSignatures.ContainsKey(ctor))
+                {
+                    members.Add(ctor);
+                }
+            }
+
+            void addCloneMethod()
+            {
+                var clone = new SynthesizedRecordClone(this);
+                if (!memberSignatures.ContainsKey(clone))
+                {
+                    members.Add(clone);
+                }
+            }
+
             void addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
                 foreach (ParameterSymbol param in ctor.Parameters)
@@ -2980,6 +3004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         members.Add(property);
                         members.Add(property.GetMethod);
+                        members.Add(property.SetMethod);
                         members.Add(property.BackingField);
                     }
                 }

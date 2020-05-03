@@ -94,73 +94,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var cloneReturnType = cloneMethod?.ReturnType;
+            // PROTOTYPE: Handle dynamic
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(
+                syntax.Receiver,
+                // formatting
+            #pragma warning disable IDE0055
+                cloneReturnType ?? receiverType) { WasCompilerGenerated = true };
+            #pragma warning restore IDE0055
 
             var args = ArrayBuilder<(Symbol?, BoundExpression)>.GetInstance();
             // Bind with expression arguments
             foreach (var initializer in syntax.Initializers)
             {
-                var propName = initializer.NameEquals?.Name.Identifier.Text;
-                Symbol? member = null;
-                if (!(propName is null) && !(cloneReturnType is null))
+                var propSyntax = initializer.NameEquals?.Name;
+                var propName = propSyntax?.Identifier.Text;
+                BoundExpression? boundMember = null;
+                if (!(propName is null))
                 {
                     var location = initializer.NameEquals!.Name.Location;
-                    this.LookupMembersInType(
-                        lookupResult,
-                        cloneReturnType,
-                        propName,
-                        arity: 0,
-                        basesBeingResolved: null,
-                        options: LookupOptions.Default,
-                        originalBinder: this,
-                        diagnose: false,
-                        useSiteDiagnostics: ref useSiteDiagnostics);
-                    // PROTOTYPE: Should handle hiding/overriding and bind like regular accesses
-                    if (lookupResult.IsSingleViable &&
-                        lookupResult.SingleSymbolOrDefault is var sym)
-                    {
-                        switch (sym.Kind)
-                        {
-                            case SymbolKind.Property:
-                                member = sym;
-                                // PROTOTYPE: this should check for init-only, but that isn't a separate feature yet
-                                // It also will not work in metadata.
-                                if (!(sym is SynthesizedRecordPropertySymbol))
-                                {
-                                    goto default;
-                                }
-                                break;
+                    boundMember = BindInstanceMemberAccess(
+                        node: propSyntax,
+                        right: propSyntax,
+                        boundLeft: implicitReceiver,
+                        rightName: propName,
+                        rightArity: 0,
+                        typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
+                        typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
+                        invoked: false,
+                        indexed: false,
+                        diagnostics: diagnostics);
 
-                            default:
-                                hasErrors = true;
-                                diagnostics.Add(
-                                    ErrorCode.ERR_WithMemberIsNotRecordProperty,
-                                    location);
-                                break;
-                        }
-                    }
+                    hasErrors = boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
 
-                    if (!hasErrors && member is null)
-                    {
-                        hasErrors = true;
-                        Error(
-                            diagnostics,
-                            ErrorCode.ERR_NoSuchMemberOrExtension,
-                            location,
-                            cloneReturnType,
-                            propName);
-                    }
+                    boundMember = CheckValue(boundMember, BindValueKind.Assignable, diagnostics);
                 }
 
                 var expr = BindValue(initializer.Expression, diagnostics, BindValueKind.RValue);
-                if (!(member is null))
+                if (!(boundMember is null))
                 {
-                    expr = GenerateConversionForAssignment(
-                        member.GetTypeOrReturnType().Type,
-                        expr,
-                        diagnostics);
+                    var assignment = BindAssignment(initializer, boundMember, expr, isRef: false, diagnostics);
+                    expr = assignment.Right;
                 }
-                lookupResult.Clear();
-                args.Add((member, expr));
+                args.Add((boundMember?.ExpressionSymbol, expr));
             }
 
             lookupResult.Free();

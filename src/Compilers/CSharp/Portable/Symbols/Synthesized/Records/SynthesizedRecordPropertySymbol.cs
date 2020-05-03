@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ParameterSymbol _backingParameter;
         internal override SynthesizedBackingFieldSymbol BackingField { get; }
         public override MethodSymbol GetMethod { get; }
+        public override MethodSymbol SetMethod { get; }
         public override NamedTypeSymbol ContainingType { get; }
 
         public SynthesizedRecordPropertySymbol(
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isStatic: false,
                 hasInitializer: backingParameter.HasExplicitDefaultValue);
             GetMethod = new GetAccessorSymbol(this, name);
+            SetMethod = new InitAccessorSymbol(this, name);
         }
 
         internal override bool IsAutoProperty => true;
@@ -51,8 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
 
         public override bool IsIndexer => false;
-
-        public override MethodSymbol? SetMethod => null;
 
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations => ImmutableArray<PropertySymbol>.Empty;
 
@@ -205,6 +205,125 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 F.CurrentFunction = this;
                 F.CloseMethod(F.Block(F.Return(F.Field(F.This(), _property.BackingField))));
+            }
+        }
+
+        private sealed class InitAccessorSymbol : SynthesizedInstanceMethodSymbol
+        {
+            private readonly SynthesizedRecordPropertySymbol _property;
+
+            public override string Name { get; }
+
+            public InitAccessorSymbol(SynthesizedRecordPropertySymbol property, string paramName)
+            {
+                _property = property;
+                Name = SourcePropertyAccessorSymbol.GetAccessorName(
+                    paramName,
+                    getNotSet: false,
+                    isWinMdOutput: false /* PROTOTYPE */);
+            }
+
+            internal override bool IsInitOnly => true;
+
+            public override MethodKind MethodKind => MethodKind.PropertySet;
+
+            public override int Arity => 0;
+
+            public override bool IsExtensionMethod => false;
+
+            public override bool HidesBaseMethodsByName => false;
+
+            public override bool IsVararg => false;
+
+            public override bool ReturnsVoid => false;
+
+            public override bool IsAsync => false;
+
+            public override RefKind RefKind => RefKind.None;
+
+            public override TypeWithAnnotations ReturnTypeWithAnnotations => _property.TypeWithAnnotations;
+
+            public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+            public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => ImmutableArray<TypeWithAnnotations>.Empty;
+
+            public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
+
+            public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray.Create(SynthesizedParameterSymbol.Create(
+                this,
+                _property.TypeWithAnnotations,
+                ordinal: 0,
+                RefKind.None,
+                name: ParameterSymbol.ValueParameterName));
+
+            public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
+
+            public override ImmutableArray<CustomModifier> RefCustomModifiers => _property.RefCustomModifiers;
+
+            public override Symbol AssociatedSymbol => _property;
+
+            public override Symbol ContainingSymbol => _property.ContainingSymbol;
+
+            public override ImmutableArray<Location> Locations => _property.Locations;
+
+            public override Accessibility DeclaredAccessibility => _property.DeclaredAccessibility;
+
+            public override bool IsStatic => _property.IsStatic;
+
+            public override bool IsVirtual => _property.IsVirtual;
+
+            public override bool IsOverride => _property.IsOverride;
+
+            public override bool IsAbstract => _property.IsAbstract;
+
+            public override bool IsSealed => _property.IsSealed;
+
+            public override bool IsExtern => _property.IsExtern;
+
+            public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+            internal override bool HasSpecialName => _property.HasSpecialName;
+
+            internal override MethodImplAttributes ImplementationAttributes => MethodImplAttributes.Managed;
+
+            internal override bool HasDeclarativeSecurity => false;
+
+            internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => null;
+
+            internal override bool RequiresSecurityObject => false;
+
+            internal override CallingConvention CallingConvention => CallingConvention.HasThis;
+
+            internal override bool GenerateDebugInfo => false;
+
+            public override DllImportData? GetDllImportData() => null;
+
+            internal override ImmutableArray<string> GetAppliedConditionalSymbols()
+                => ImmutableArray<string>.Empty;
+
+            internal override IEnumerable<SecurityAttribute> GetSecurityInformation()
+                => Array.Empty<SecurityAttribute>();
+
+            internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
+
+            internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
+
+            internal override bool SynthesizesLoweredBoundBody => true;
+
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            {
+                // Method body:
+                //
+                // {
+                //      this.<>backingField = value;
+                // }
+
+                var F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+
+                F.CurrentFunction = this;
+                F.CloseMethod(F.Block(
+                    F.Assignment(F.Field(F.This(), _property.BackingField), F.Parameter(Parameters[0])),
+                    F.Return()));
             }
         }
     }

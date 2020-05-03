@@ -13,11 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class RecordTests : CompilingTestBase
     {
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
-            => CSharpTestBase.CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
+                parseOptions: TestOptions.RegularPreview);
 
         private CompilationVerifier CompileAndVerify(CSharpTestSource src, string? expectedOutput = null)
             => base.CompileAndVerify(
-                src,
+                new[] { src, IsExternalInitTypeDefinition },
                 expectedOutput: expectedOutput,
                 parseOptions: TestOptions.RegularPreview,
                 // init-only is unverifiable
@@ -465,21 +466,20 @@ data class C(int X)
         public void WithExpr2()
         {
             var src = @"
+using System;
 data class C(int X)
 {
     public static void Main()
     {
-        var c = new C(0);
-        c = c with { };
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        Console.WriteLine(c1.X);
+        Console.WriteLine(c2.X);
     }
 }";
-            var comp = CreateCompilation(src);
-            // PROTOTYPE: records don't auto-generate Clone at the moment
-            comp.VerifyDiagnostics(
-                // (7,13): error CS8803: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
-                //         c = c with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(7, 13)
-            );
+            var verifier = CompileAndVerify(src, expectedOutput: @"1
+11");
         }
 
         [Fact]
@@ -528,14 +528,14 @@ data class C(int X) : B
             var src = @"
 class B
 {
-    public int X { get; }
+    public int X { get; init; }
     public B Clone() => null;
 }
-data class C(int X) : B
+class C : B
 {
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         c = c with { };
     }
 }";
@@ -556,11 +556,12 @@ class B
     public int X { get; }
     public virtual B Clone() => null;
 }
-data class C(int X) : B
+class C : B
 {
+    public new int X { get; init; }
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         B b = c;
         b = b with { X = 0 };
         var b2 = c with { X = 0 };
@@ -569,12 +570,12 @@ data class C(int X) : B
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
+                // (14,22): error CS0200: Property or indexer 'B.X' cannot be assigned to -- it is read only
                 //         b = b with { X = 0 };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(13, 22),
-                // (14,27): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "X").WithArguments("B.X").WithLocation(14, 22),
+                // (15,27): error CS0200: Property or indexer 'B.X' cannot be assigned to -- it is read only
                 //         var b2 = c with { X = 0 };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(14, 27)
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "X").WithArguments("B.X").WithLocation(15, 27)
             );
         }
 
@@ -902,10 +903,7 @@ class C
             comp.VerifyDiagnostics(
                 // (5,25): warning CS0067: The event 'C.X' is never used
                 //     public event Action X;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "X").WithArguments("C.X").WithLocation(5, 25),
-                // (10,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
-                //         c = c with { X = null };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(10, 22)
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "X").WithArguments("C.X").WithLocation(5, 25)
             );
         }
 
@@ -928,9 +926,12 @@ data class C(int X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
+                // (12,22): error CS0572: 'X': cannot reference a type through an expression; try 'B.X' instead
                 //         b = b with { X = 0 };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(12, 22)
+                Diagnostic(ErrorCode.ERR_BadTypeReference, "X").WithArguments("X", "B.X").WithLocation(12, 22),
+                // (12,22): error CS0118: 'B.X' is a type but is used like a variable
+                //         b = b with { X = 0 };
+                Diagnostic(ErrorCode.ERR_BadSKknown, "X").WithArguments("B.X", "type", "variable").WithLocation(12, 22)
             );
         }
 
@@ -984,23 +985,24 @@ data class C(int X)
         public void WithExprNestedErrors()
         {
             var src = @"
-data class C(int X)
+class C
 {
+    public int X { get; init; }
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         c = c with { X = """"-3 };
     }
 }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (7,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "Clone".
+                // (8,13): error CS8808: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
                 //         c = c with { X = ""-3 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(7, 13),
-                // (7,26): error CS0019: Operator '-' cannot be applied to operands of type 'string' and 'int'
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(8, 13),
+                // (8,26): error CS0019: Operator '-' cannot be applied to operands of type 'string' and 'int'
                 //         c = c with { X = ""-3 };
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"""""-3").WithArguments("-", "string", "int").WithLocation(7, 26)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"""""-3").WithArguments("-", "string", "int").WithLocation(8, 26)
             );
         }
 
@@ -1027,27 +1029,27 @@ data class C(int X)
         }
 
         [Fact]
-        public void WithExprPropertyInaccessibleGet()
+        public void WithExprPropertyInaccessibleSet()
         {
             var src = @"
-data class C(int X)
+class C
 {
-    public int X { private get; set; }
+    public int X { get; private set; }
     public C Clone() => null;
 }
 class D
 {
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         c = c with { X = 0 };
     }
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
+                // (12,22): error CS0272: The property or indexer 'C.X' cannot be used in this context because the set accessor is inaccessible
                 //         c = c with { X = 0 };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(12, 22)
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "X").WithArguments("C.X").WithLocation(12, 22)
             );
         }
 
@@ -1269,22 +1271,22 @@ data class C(object X)
         public void WithExprStaticProperty()
         {
             var src = @"
-data class C(int X)
+class C
 {
     public static int X { get; }
     public C Clone() => null;
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         c = c with { };
         c = c with { X = 11 };
     }
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (10,22): error CS8808: All arguments to a `with` expression must be instance properties or fields.
+                // (10,22): error CS0176: Member 'C.X' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(10, 22)
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "X").WithArguments("C.X").WithLocation(10, 22)
             );
         }
 
@@ -1305,9 +1307,9 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (10,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
+                // (10,22): error CS1656: Cannot assign to 'X' because it is a 'method group'
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(10, 22)
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "X").WithArguments("X", "method group").WithLocation(10, 22)
             );
         }
 
@@ -1315,24 +1317,25 @@ class C
         public void WithExprStaticWithMethod()
         {
             var src = @"
-data class C(int X)
+class C
 {
+    public int X = 0;
     public static C Clone() => null;
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         c = c with { };
         c = c with { X = 11 };
     }
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (8,13): error CS8803: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
+                // (9,13): error CS8808: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
                 //         c = c with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(8, 13),
-                // (9,13): error CS8803: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(9, 13),
+                // (10,13): error CS8808: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(10, 13)
             );
         }
 
@@ -1344,24 +1347,28 @@ class B
 {
     public B Clone() => null;
 }
-data class C(int X) : B
+class C : B
 {
-    public static new C Clone() => null;
+    public int X = 0;
+    public static new C Clone() => null; // static
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         c = c with { };
         c = c with { X = 11 };
     }
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,13): error CS0266: Cannot implicitly convert type 'B' to 'C'. An explicit conversion exists (are you missing a cast?)
+                // (13,13): error CS0266: Cannot implicitly convert type 'B' to 'C'. An explicit conversion exists (are you missing a cast?)
                 //         c = c with { };
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c with { }").WithArguments("B", "C").WithLocation(12, 13),
-                // (13,22): error CS1061: 'B' does not contain a definition for 'X' and no accessible extension method 'X' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c with { }").WithArguments("B", "C").WithLocation(13, 13),
+                // (14,13): error CS0266: Cannot implicitly convert type 'B' to 'C'. An explicit conversion exists (are you missing a cast?)
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "X").WithArguments("B", "X").WithLocation(13, 22)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c with { X = 11 }").WithArguments("B", "C").WithLocation(14, 13),
+                // (14,22): error CS1061: 'B' does not contain a definition for 'X' and no accessible extension method 'X' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
+                //         c = c with { X = 11 };
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "X").WithArguments("B", "X").WithLocation(14, 22)
             );
         }
 
@@ -1372,7 +1379,7 @@ data class C(int X) : B
 class C
 {
     public C Clone() => null;
-    public int X { get; }
+    public int X { get; init; }
     public static void Main()
     {
         var c = new C();
@@ -1381,9 +1388,6 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (9,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
-                //         c = c with { X = "a" };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(9, 22),
                 // (9,26): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         c = c with { X = "a" };
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""a""").WithArguments("string", "int").WithLocation(9, 26)
@@ -1394,30 +1398,13 @@ class C
         public void WithExprCloneReturnDifferent()
         {
             var src = @"
-data class B(int X) { }
+class B
+{ 
+    public int X { get; init; }
+}
 class C : B
 {
-    public C(int x) : base(x) { }
-    public B Clone() => new B(0);
-    public static void Main()
-    {
-        var c = new C(0);
-        var b = c with { X = 0 };
-    }
-}";
-            var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void WithExprCloneReturnDifferent2()
-        {
-            var src = @"
-data class B(int X) { }
-class C : B
-{
-    public C() : base(0) {}
-    public B Clone() => new B(0);
+    public B Clone() => new B();
     public static void Main()
     {
         var c = new C();
