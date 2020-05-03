@@ -2522,6 +2522,9 @@ namespace System.Reflection
 {
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
 }
+.class public interface System.IComparable`1<T>
+{
+}
 .class public sealed System.IntPtr extends System.ValueType
 {
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
@@ -2529,6 +2532,8 @@ namespace System.Reflection
   .method public hidebysig static native int& modopt(native int) F2() cil managed { ldnull throw }
   .method public hidebysig static void F3(native int modopt(native int) i) cil managed { ret }
   .method public hidebysig static void F4(native int& modopt(native int) i) cil managed { ret }
+  .method public hidebysig instance class System.IComparable`1<native int modopt(native int)> F5() cil managed { ldnull throw }
+  .method public hidebysig instance void F6(native int modopt(class System.IComparable`1<native int>) i) cil managed { ret }
   .method public hidebysig instance native int modopt(native int) get_P() cil managed { ldnull throw }
   .method public hidebysig instance native int& modopt(native int) get_Q() cil managed { ldnull throw }
   .method public hidebysig instance void set_P(native int modopt(native int) i) cil managed { ret }
@@ -2549,6 +2554,8 @@ namespace System.Reflection
   .method public hidebysig static native uint& modopt(native uint) F2() cil managed { ldnull throw }
   .method public hidebysig static void F3(native uint modopt(native uint) i) cil managed { ret }
   .method public hidebysig static void F4(native uint& modopt(native uint) i) cil managed { ret }
+  .method public hidebysig instance class System.IComparable`1<native uint modopt(native uint)> F5() cil managed { ldnull throw }
+  .method public hidebysig instance void F6(native uint modopt(class System.IComparable`1<native uint>) i) cil managed { ret }
   .method public hidebysig instance native uint modopt(native uint) get_P() cil managed { ldnull throw }
   .method public hidebysig instance native uint& modopt(native uint) get_Q() cil managed { ldnull throw }
   .method public hidebysig instance void set_P(native uint modopt(native uint) i) cil managed { ret }
@@ -2568,23 +2575,27 @@ namespace System.Reflection
 {
     static void F1(nint i)
     {
-        var x1 = nint.F1();
-        var x2 = nint.F2();
+        _ = nint.F1();
+        _ = nint.F2();
         nint.F3(i);
         nint.F4(ref i);
-        var x3 = i.P;
-        var x4 = i.Q;
-        i.P = x3;
+        _ = i.F5();
+        i.F6(i);
+        _ = i.P;
+        _ = i.Q;
+        i.P = i;
     }
     static void F2(nuint u)
     {
-        var y1 = nuint.F1();
-        var y2 = nuint.F2();
+        _ = nuint.F1();
+        _ = nuint.F2();
         nuint.F3(u);
         nuint.F4(ref u);
-        var y3 = u.P;
-        var y4 = u.Q;
-        u.P = y3;
+        _ = u.F5();
+        u.F6(u);
+        _ = u.P;
+        _ = u.Q;
+        u.P = u;
     }
 }";
 
@@ -2606,6 +2617,7 @@ namespace System.Reflection
                 var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
                 var expectedMembers = new[]
                 {
+                    $"System.IComparable<{type} modopt({type})> {type}.F5()",
                     $"{type} modopt({type}) {type}.F1()",
                     $"{type} modopt({type}) {type}.P {{ get; set; }}",
                     $"{type} modopt({type}) {type}.P.get",
@@ -2615,6 +2627,7 @@ namespace System.Reflection
                     $"ref modopt({type}) {type} {type}.Q.get",
                     $"void {type}.F3({type} modopt({type}) i)",
                     $"void {type}.F4(ref modopt({type}) {type} i)",
+                    $"void {type}.F6({type} modopt(System.IComparable<{type}>) i)",
                     $"void {type}.P.set",
                 };
                 AssertEx.Equal(expectedMembers, actualMembers);
