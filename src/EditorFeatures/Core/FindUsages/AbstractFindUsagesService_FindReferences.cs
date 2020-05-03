@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var cancellationToken = context.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Find the symbol we want to search and the solution we want to search in.
+            // If this is a symbol from a metadata-as-source project, then map that symbol back to a symbol in the primary workspace.
             var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
             if (symbolAndProjectOpt == null)
