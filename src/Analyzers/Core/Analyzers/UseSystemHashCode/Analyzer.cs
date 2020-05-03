@@ -58,34 +58,23 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         /// Analyzes the containing <c>GetHashCode</c> method to determine which fields and
         /// properties were combined to form a hash code for this type.
         /// </summary>
-        public (bool accessesBase, ImmutableArray<ISymbol> members) GetHashedMembers(ISymbol owningSymbol, IOperation? operation)
+        public (bool accessesBase, ImmutableArray<ISymbol> members, ImmutableArray<IOperation> statements) GetHashedMembers(ISymbol owningSymbol, IOperation? operation)
         {
             if (!(operation is IBlockOperation blockOperation))
-            {
                 return default;
-            }
 
             // Owning symbol has to be an override of Object.GetHashCode.
             if (!(owningSymbol is IMethodSymbol { Name: nameof(GetHashCode) } method))
-            {
                 return default;
-            }
 
-            if (method.Locations.Length != 1 ||
-                method.DeclaringSyntaxReferences.Length != 1)
-            {
+            if (method.Locations.Length != 1 || method.DeclaringSyntaxReferences.Length != 1)
                 return default;
-            }
 
             if (!method.Locations[0].IsInSource)
-            {
                 return default;
-            }
 
             if (!OverridesSystemObject(method))
-            {
                 return default;
-            }
 
             // Unwind through nested blocks. This also handles if we're in an 'unchecked' block in C#
             while (blockOperation.Operations.Length == 1 &&
@@ -95,9 +84,12 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             }
 
             var statements = blockOperation.Operations.WhereAsArray(o => !o.IsImplicit);
-            return MatchAccumulatorPattern(method, statements) ??
-                   MatchTuplePattern(method, statements) ??
-                   default;
+            var (accessesBase, members) =
+                MatchAccumulatorPattern(method, statements) ??
+                MatchTuplePattern(method, statements) ??
+                default;
+
+            return (accessesBase, members, statements);
         }
 
         private (bool accessesBase, ImmutableArray<ISymbol> members)? MatchTuplePattern(

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
-            var functionDeclaration = selectedParameter.FirstAncestorOrSelf<SyntaxNode>(_isFunctionDeclarationFunc);
+            var functionDeclaration = selectedParameter.FirstAncestorOrSelf(_isFunctionDeclarationFunc);
             if (functionDeclaration is null)
             {
                 return;
