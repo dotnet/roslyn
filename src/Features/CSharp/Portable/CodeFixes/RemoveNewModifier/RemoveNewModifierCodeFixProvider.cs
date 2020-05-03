@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveNewModifier
                     newTrivia = newTrivia.AddRange(previousToken.TrailingTrivia);
                 newTrivia = newTrivia
                     .AddRange(newModifierTrivia)
-                    .AddRange(nextToken.LeadingTrivia)
-                    .CollapseSequentialWhitespaceTrivia();
+                    .AddRange(nextToken.LeadingTrivia);
+                newTrivia = CollapseSequentialWhitespaceTrivia(newTrivia);
 
                 if (isFirstTokenOnLine)
                 {
@@ -96,6 +96,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveNewModifier
 
         private static SyntaxToken GetNewModifier(SyntaxNode fromNode, CSharpSyntaxFacts syntaxFacts) =>
             syntaxFacts.GetModifierTokens(fromNode).FirstOrDefault(m => m.IsKind(SyntaxKind.NewKeyword));
+
+        private static SyntaxTriviaList CollapseSequentialWhitespaceTrivia(SyntaxTriviaList triviaList)
+        {
+            var result = new SyntaxTriviaList();
+            var previous = default(SyntaxTrivia);
+            foreach (var current in triviaList)
+            {
+                if (!(previous.IsWhitespace() && current.IsWhitespace()))
+                    result = result.Add(current);
+                previous = current;
+            }
+
+            return result;
+        }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {

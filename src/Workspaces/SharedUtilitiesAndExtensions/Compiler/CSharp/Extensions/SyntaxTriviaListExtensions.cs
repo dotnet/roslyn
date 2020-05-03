@@ -90,24 +90,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 yield return triviaList[start++];
             }
         }
-
-        /// <summary>
-        /// Returns modified <paramref name="triviaList"/> with removed multiple <see cref="SyntaxToken"/>
-        /// with kind <see cref="SyntaxKind.WhitespaceTrivia"/> arranged in a sequence 
-        /// preserving only the first one: [space1][space2][space3] -> [space1]. 
-        /// </summary>
-        public static SyntaxTriviaList CollapseSequentialWhitespaceTrivia(this SyntaxTriviaList triviaList)
-        {
-            var result = new SyntaxTriviaList();
-            var previous = default(SyntaxTrivia);
-            foreach (var current in triviaList)
-            {
-                if (!(previous.IsWhitespace() && current.IsWhitespace()))
-                    result = result.Add(current);
-                previous = current;
-            }
-
-            return result;
-        }
     }
 }
