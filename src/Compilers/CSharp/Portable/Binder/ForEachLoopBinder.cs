@@ -856,8 +856,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)builder.GetEnumeratorMethod != null);
 
-                builder.CollectionType = viaExtensionMethod && builder.GetEnumeratorMethod.Parameters is { IsDefaultOrEmpty: false } parameters
-                    ? parameters[0].Type
+                Debug.Assert(!(viaExtensionMethod && builder.GetEnumeratorMethod.Parameters.IsDefaultOrEmpty));
+
+                builder.CollectionType = viaExtensionMethod
+                    ? builder.GetEnumeratorMethod.Parameters[0].Type
                     : collectionExpr.Type;
 
                 if (SatisfiesForEachPattern(ref builder, isAsync, diagnostics))

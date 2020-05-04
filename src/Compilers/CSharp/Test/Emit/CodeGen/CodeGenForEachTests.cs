@@ -2627,7 +2627,63 @@ public static class Extensions
         }
 
         [Fact]
-        public void TestMoveNextPatternViaExtensions1()
+        public void TestGetEnumeratorPatternViaExtension_WhereTypeParameternotInferred1()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+public class C
+{
+    public static void Main()
+    {
+        foreach (var i in new object())
+        {
+            Console.Write(i);
+        }
+    }
+}
+public static class Extensions
+{
+    public static IEnumerator<T> GetEnumerator<T>(this object o) => throw null;
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (8,27): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                    //         foreach (var i in new object())
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new object()").WithArguments("object", "GetEnumerator").WithLocation(8, 27)
+                    );
+        }
+
+        [Fact]
+        public void TestGetEnumeratorPatternViaExtension_WhereTypeParameternotInferred2()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+public class C
+{
+    public static void Main()
+    {
+        foreach (var i in new object())
+        {
+            Console.Write(i);
+        }
+    }
+}
+public static class Extensions
+{
+    public static IEnumerator<T> GetEnumerator<T>(this object o, params T[] arr) => throw null;
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (8,27): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                    //         foreach (var i in new object())
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new object()").WithArguments("object", "GetEnumerator").WithLocation(8, 27)
+                    );
+        }
+
+        [Fact]
+        public void TestMoveNextPatternViaExtensions_OnExtensionGetEnumerator()
         {
             var source = @"
 using System;
@@ -2662,7 +2718,7 @@ public static class Extensions
         }
 
         [Fact]
-        public void TestMoveNextPatternViaExtensions2()
+        public void TestMoveNextPatternViaExtensions_OnInstanceGetEnumerator()
         {
             var source = @"
 using System;
@@ -2678,7 +2734,6 @@ public class C
     public sealed class Enumerator
     {
         public int Current { get; private set; }
-        
     }
 
     public C.Enumerator GetEnumerator() => new C.Enumerator();
@@ -2720,7 +2775,7 @@ public class C
     public sealed class Enumerator2
     {
         public int Current { get; private set; }
-        public bool MoveNext() => Current++ != 4;
+        public bool MoveNext() => throw null;
     }
 
     public C.Enumerator1 GetEnumerator() => new C.Enumerator1();
@@ -2728,7 +2783,7 @@ public class C
 
 public static class Extensions
 {
-    public static C.Enumerator2 GetEnumerator(this C self) => new C.Enumerator2();
+    public static C.Enumerator2 GetEnumerator(this C self) => throw null;
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview,
                      expectedOutput: "123");
@@ -2754,15 +2809,15 @@ public class C
     public sealed class Enumerator2
     {
         public int Current { get; private set; }
-        public bool MoveNext() => Current++ != 4;
+        public bool MoveNext() => throw null;
     }
 
-    public C.Enumerator1 GetEnumerator() => new C.Enumerator1();
+    public C.Enumerator1 GetEnumerator() => throw null;
 }
 
 public static class Extensions
 {
-    public static C.Enumerator2 GetEnumerator(this C self) => new C.Enumerator2();
+    public static C.Enumerator2 GetEnumerator(this C self) => throw null;
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
@@ -2807,7 +2862,7 @@ public class C : IEnumerable<int>
     public sealed class Enumerator2
     {
         public int Current { get; private set; }
-        public bool MoveNext() => Current++ != 4;
+        public bool MoveNext() => throw null;
     }
 
     IEnumerator<int> IEnumerable<int>.GetEnumerator() => new C.Enumerator1();
@@ -2816,7 +2871,7 @@ public class C : IEnumerable<int>
 
 public static class Extensions
 {
-    public static C.Enumerator2 GetEnumerator(this C self) => new C.Enumerator2();
+    public static C.Enumerator2 GetEnumerator(this C self) => throw null;
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview,
                      expectedOutput: "123");
@@ -2961,7 +3016,7 @@ public class C
 }
 public static class Extensions1
 {
-    public static C.Enumerator GetEnumerator(this C self, int _) => new C.Enumerator();
+    public static C.Enumerator GetEnumerator(this C self, int _) => throw null;
 }
 public static class Extensions2
 {
@@ -3050,7 +3105,7 @@ public static class Extensions2
         }
 
         [Fact]
-        public void TestGetEnumeratorPatternViaAmbiguousExtensionsWithMostSpecificReciever()
+        public void TestGetEnumeratorPatternViaAmbiguousExtensionsWithMostSpecificReceiver()
         {
             var source = @"
 using System;
@@ -3083,7 +3138,7 @@ public static class Extensions2
         }
 
         [Fact]
-        public void TestGetEnumeratorPatternViaAmbiguousExtensionsWithMostSpecificRecieverWhenMostSpecificRecieverDoesntImplementPattern()
+        public void TestGetEnumeratorPatternViaAmbiguousExtensionsWithMostSpecificReceiverWhenMostSpecificReceiverDoesntImplementPattern()
         {
             var source = @"
 using System;
@@ -3960,6 +4015,118 @@ namespace N
                 // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27));
+        }
+
+        [Fact]
+        public void TestGetEnumeratorPatternViaAccessiblePrivateExtension1()
+        {
+            var source = @"
+using System;
+
+public static class Program
+{
+    public static void Main()
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+
+    private static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (8,27): warning CS0279: 'C' does not implement the 'collection' pattern. 'Program.GetEnumerator(C)' is not an accessible instance or extension method.
+                    //         foreach (var i in new C())
+                    Diagnostic(ErrorCode.WRN_PatternInaccessibleOrNotInstance, "new C()").WithArguments("C", "collection", "Program.GetEnumerator(C)").WithLocation(8, 27),
+                    // (8,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                    //         foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(8, 27)
+                    );
+        }
+
+        [Fact]
+        public void TestGetEnumeratorPatternViaAccessiblePrivateExtension2()
+        {
+            var source = @"
+using System;
+
+public static class Program
+{
+    public static class Inner
+    {
+        public static void Main()
+        {
+            foreach (var i in new C())
+            {
+                Console.Write(i);
+            }
+        }
+    }
+
+    private static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (10,31): warning CS0279: 'C' does not implement the 'collection' pattern. 'Program.GetEnumerator(C)' is not an accessible instance or extension method.
+                    //             foreach (var i in new C())
+                    Diagnostic(ErrorCode.WRN_PatternInaccessibleOrNotInstance, "new C()").WithArguments("C", "collection", "Program.GetEnumerator(C)").WithLocation(10, 31),
+                    // (10,31): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                    //             foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(10, 31)
+                    );
+        }
+
+        [Fact]
+        public void TestGetEnumeratorPatternViaInaccessiblePrivateExtension()
+        {
+            var source = @"
+using System;
+public class C
+{
+    public static void Main()
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}
+public static class Extensions
+{
+    private static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                    //         foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27)
+                    );
         }
     }
 }

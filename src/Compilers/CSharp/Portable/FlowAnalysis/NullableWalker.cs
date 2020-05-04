@@ -7880,18 +7880,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Reinfer the return type of the node.Expression.GetEnumerator().Current property, so that if
                 // the collection changed nested generic types we pick up those changes.
                 reinferredGetEnumeratorMethod ??= (MethodSymbol)AsMemberOfType(convertedResult.Type, node.EnumeratorInfoOpt.GetEnumeratorMethod);
-                var enumeratorReturnType = reinferredGetEnumeratorMethod.ReturnTypeWithAnnotations;
+                var enumeratorReturnType = GetReturnTypeWithState(reinferredGetEnumeratorMethod);
 
-                if (enumeratorReturnType.ToTypeWithState().State != NullableFlowState.NotNull)
+                if (enumeratorReturnType.State != NullableFlowState.NotNull)
                 {
-                    if (!reportedDiagnostic && node.EnumeratorInfoOpt != null && !(node.Expression is BoundConversion { Operand: { IsSuppressed: true } }))
+                    if (!reportedDiagnostic && !(node.Expression is BoundConversion { Operand: { IsSuppressed: true } }))
                     {
                         ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, expr.Syntax.GetLocation());
                     }
                 }
 
                 var currentPropertyGetter = (MethodSymbol)AsMemberOfType(enumeratorReturnType.Type, node.EnumeratorInfoOpt.CurrentPropertyGetter);
-
 
                 currentPropertyGetterTypeWithState = ApplyUnconditionalAnnotations(
                     currentPropertyGetter.ReturnTypeWithAnnotations.ToTypeWithState(),

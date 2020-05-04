@@ -4295,6 +4295,59 @@ class C
         }
 
         [Fact]
+        public void GetAsyncEnumerator_WithMultipleValidCandidatesWithOptionalParameters()
+        {
+            string source = @"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public IEnumerator<int> GetAsyncEnumerator(int a = 0) => throw null;
+    public IEnumerator<int> GetAsyncEnumerator(bool a = true) => throw null;
+}";
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.VerifyDiagnostics(
+                    // (8,33): warning CS0278: 'C' does not implement the 'collection' pattern. 'C.GetAsyncEnumerator(int)' is ambiguous with 'C.GetAsyncEnumerator(bool)'.
+                    //         await foreach (var i in new C())
+                    Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "new C()").WithArguments("C", "collection", "C.GetAsyncEnumerator(int)", "C.GetAsyncEnumerator(bool)").WithLocation(8, 33),
+                    // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                    //         await foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
+                );
+        }
+
+        [Fact]
+        public void GetAsyncEnumerator_WithMultipleInvalidCandidates()
+        {
+            string source = @"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public IEnumerator<int> GetAsyncEnumerator(int a) => throw null;
+    public IEnumerator<int> GetAsyncEnumerator(bool a) => throw null;
+}";
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.VerifyDiagnostics(
+                    // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                    //         await foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
+                );
+        }
+
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal()
         {
@@ -4969,9 +5022,9 @@ public class C
 }
 public static class Extensions
 {
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public static async IAsyncEnumerator<int> GetAsyncEnumerator(this Range range)
     {
+        await Task.Yield();
         for(var i = range.Start.Value; i < range.End.Value; i++)
         {
             yield return i;
@@ -5005,9 +5058,9 @@ public struct C
 }
 public static class Extensions
 {
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public static async IAsyncEnumerator<T> GetAsyncEnumerator<T>(this (T first, T second, T third) self)
     {
+        await Task.Yield();
         yield return self.first;
         yield return self.second;
         yield return self.third;
@@ -5039,9 +5092,9 @@ public struct C
 }
 public static class Extensions
 {
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public static async IAsyncEnumerator<(T1, T2)> GetAsyncEnumerator<T1, T2>(this (IEnumerable<T1> first, IEnumerable<T2> second) self)
     {
+        await Task.Yield();
         foreach(var pair in self.first.Zip(self.second, (a,b) => (a,b)))
         {
             yield return pair;
@@ -5153,7 +5206,7 @@ public class C
     public sealed class Enumerator2
     {
         public int Current { get; private set; }
-        public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 4);
+        public Task<bool> MoveNextAsync() => throw null;
     }
 
     public C.Enumerator1 GetAsyncEnumerator() => new C.Enumerator1();
@@ -5161,7 +5214,7 @@ public class C
 
 public static class Extensions
 {
-    public static C.Enumerator2 GetAsyncEnumerator(this C self) => new C.Enumerator2();
+    public static C.Enumerator2 GetAsyncEnumerator(this C self) => throw null;
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
@@ -5189,15 +5242,15 @@ public class C
     public sealed class Enumerator2
     {
         public int Current { get; private set; }
-        public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 4);
+        public Task<bool> MoveNextAsync() => throw null;
     }
 
-    public C.Enumerator1 GetAsyncEnumerator() => new C.Enumerator1();
+    public C.Enumerator1 GetAsyncEnumerator() => throw null;
 }
 
 public static class Extensions
 {
-    public static C.Enumerator2 GetAsyncEnumerator(this C self) => new C.Enumerator2();
+    public static C.Enumerator2 GetAsyncEnumerator(this C self) => throw null;
 }";
             var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -5240,7 +5293,7 @@ public class C : IAsyncEnumerable<int>
     public sealed class Enumerator2
     {
         public int Current { get; private set; }
-        public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 4);
+        public Task<bool> MoveNextAsync() => throw null;
     }
 
     IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken cancellationToken) => new C.Enumerator1();
@@ -5248,7 +5301,7 @@ public class C : IAsyncEnumerable<int>
 
 public static class Extensions
 {
-    public static C.Enumerator2 GetAsyncEnumerator(this C self) => new C.Enumerator2();
+    public static C.Enumerator2 GetAsyncEnumerator(this C self) => throw null;
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
@@ -5398,7 +5451,7 @@ public class C
 }
 public static class Extensions1
 {
-    public static C.Enumerator GetAsyncEnumerator(this C self, int _) => new C.Enumerator();
+    public static C.Enumerator GetAsyncEnumerator(this C self, int _) => throw null;
 }
 public static class Extensions2
 {
@@ -5489,7 +5542,7 @@ public static class Extensions2
         }
 
         [Fact]
-        public void TestGetAsyncEnumeratorPatternViaAmbiguousExtensionsWithMostSpecificReciever()
+        public void TestGetAsyncEnumeratorPatternViaAmbiguousExtensionsWithMostSpecificReceiver()
         {
             var source = @"
 using System;
@@ -5523,7 +5576,7 @@ public static class Extensions2
         }
 
         [Fact]
-        public void TestGetAsyncEnumeratorPatternViaAmbiguousExtensionsWithMostSpecificRecieverWhenMostSpecificRecieverDoesntImplementPattern()
+        public void TestGetAsyncEnumeratorPatternViaAmbiguousExtensionsWithMostSpecificReceiverWhenMostSpecificReceiverDoesntImplementPattern()
         {
             var source = @"
 using System;
