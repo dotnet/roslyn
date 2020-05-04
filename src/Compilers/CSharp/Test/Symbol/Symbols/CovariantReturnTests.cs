@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -58,6 +57,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             }
             else if (member is EventSymbol eventSymbol && overriddenMember is EventSymbol overriddenEvent)
             {
+                var isCovariant = !eventSymbol.Type.Equals(overriddenEvent.Type, TypeCompareKind.AllIgnoreOptions);
+                if (eventSymbol.AddMethod is MethodSymbol addMethod && overriddenEvent.AddMethod is MethodSymbol overriddenAddMethod)
+                {
+                    Assert.Equal(!isCovariant, overriddenAddMethod.Equals(addMethod.GetOverriddenMember(), TypeCompareKind.AllIgnoreOptions));
+                }
+                if (eventSymbol.RemoveMethod is MethodSymbol removeMethod && overriddenEvent.RemoveMethod is MethodSymbol overriddenRemoveMethod)
+                {
+                    Assert.Equal(!isCovariant, overriddenRemoveMethod.Equals(removeMethod.GetOverriddenMember(), TypeCompareKind.AllIgnoreOptions));
+                }
             }
             else
             {
@@ -95,6 +103,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             }
         }
 
+        private CSharpCompilation CreateCompilationWithCovariantReturns(string source, MetadataReference[] references = null, TargetFramework targetFramework = TargetFramework.Standard)
+        {
+            return CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns, references: references, targetFramework: targetFramework);
+        }
+
+        private CSharpCompilation CreateCompilationWithoutCovariantReturns(string source, MetadataReference[] references = null, TargetFramework targetFramework = TargetFramework.Standard)
+        {
+            return CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns, references: references, targetFramework: targetFramework);
+        }
+
         private static CSharpCompilation MetadataView(CSharpCompilation comp, params MetadataReference[] references)
         {
             references = references.Append(comp.ToMetadataReference());
@@ -122,10 +140,10 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -158,13 +176,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -197,13 +215,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override U M<T, U>() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 23)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -236,13 +254,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override U M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 23)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -277,13 +295,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (9,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override T M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(9, 23)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -316,13 +334,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -355,13 +373,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override U M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 23)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -396,13 +414,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (9,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override T M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(9, 23)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -435,13 +453,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string this[int i] => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(8, 28)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -474,13 +492,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override U this[int i] => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(8, 23)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -515,13 +533,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (9,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override T this[int i] => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(9, 23)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -549,13 +567,13 @@ public class Derived : Base
     private void SuppressUnusedWarning() => E?.Invoke();
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (10,40): error CS1715: 'Derived.E': type must be 'Func<object>' to match overridden member 'Base.E'
                 //     public override event Func<string> E;
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "E").WithArguments("Derived.E", "Base.E", "System.Func<object>").WithLocation(10, 40)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (10,40): error CS1715: 'Derived.E': type must be 'Func<object>' to match overridden member 'Base.E'
                 //     public override event Func<string> E;
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "E").WithArguments("Derived.E", "Base.E", "System.Func<object>").WithLocation(10, 40)
@@ -590,13 +608,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (9,34): error CS1715: 'Derived.P': type must be 'Func<object>' to match overridden member 'Base.P'
                 //     public override Func<string> P { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "P").WithArguments("Derived.P", "Base.P", "System.Func<object>").WithLocation(9, 34)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (9,34): error CS1715: 'Derived.P': type must be 'Func<object>' to match overridden member 'Base.P'
                 //     public override Func<string> P { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "P").WithArguments("Derived.P", "Base.P", "System.Func<object>").WithLocation(9, 34)
@@ -636,13 +654,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns, references: new[] { baseMetadata }).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns, references: new[] { baseMetadata }).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp, baseMetadata));
@@ -678,13 +696,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns, references: new[] { baseMetadata }).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns, references: new[] { baseMetadata }).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp, baseMetadata));
@@ -720,13 +738,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns, references: new[] { baseMetadata }).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string this[int i] => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(4, 28)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns, references: new[] { baseMetadata }).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp, baseMetadata));
@@ -759,13 +777,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -798,13 +816,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,28): error CS0508: 'Derived.M()': return type must be 'string' to match overridden member 'Base.M()'
                 //     public override object M() => null;
                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M").WithArguments("Derived.M()", "Base.M()", "string").WithLocation(8, 28)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (8,28): error CS0508: 'Derived.M()': return type must be 'string' to match overridden member 'Base.M()'
                 //     public override object M() => null;
                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M").WithArguments("Derived.M()", "Base.M()", "string").WithLocation(8, 28)
@@ -855,7 +873,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (10,19): warning CS0114: 'Derived.M2' hides inherited member 'Base.M2'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public string M2 => null;    // A
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M2").WithArguments("Derived.M2", "Base.M2").WithLocation(10, 19),
@@ -867,7 +885,7 @@ public class Program
                 Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("Derived3.M2", "Derived.M2").WithLocation(20, 19)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (10,19): warning CS0114: 'Derived.M2' hides inherited member 'Base.M2'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public string M2 => null;    // A
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "M2").WithArguments("Derived.M2", "Base.M2").WithLocation(10, 19),
@@ -930,7 +948,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (10,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M1 => null; // A
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("covariant returns").WithLocation(10, 28),
@@ -948,7 +966,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M3").WithArguments("Derived2.M3", "Derived.M3", "string").WithLocation(18, 26)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (17,28): error CS1715: 'Derived2.M2': type must be 'string' to match overridden member 'Derived.M2'
                 //     public override object M2 => null; // 1
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M2").WithArguments("Derived2.M2", "Derived.M2", "string").WithLocation(17, 28),
@@ -1005,7 +1023,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (9,33): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override IIn<object> M1 => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("covariant returns").WithLocation(9, 33),
@@ -1014,7 +1032,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M2").WithArguments("covariant returns").WithLocation(10, 34)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -1054,7 +1072,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (9,33): error CS1715: 'Derived.M1': type must be 'IIn<object>' to match overridden member 'Base.M1'
                 //     public override IIn<string> M1 => null;
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M1").WithArguments("Derived.M1", "Base.M1", "IIn<object>").WithLocation(9, 33),
@@ -1063,7 +1081,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M2").WithArguments("Derived.M2", "Base.M2", "IOut<string>").WithLocation(10, 34)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (9,33): error CS1715: 'Derived.M1': type must be 'IIn<object>' to match overridden member 'Base.M1'
                 //     public override IIn<string> M1 => null;
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M1").WithArguments("Derived.M1", "Base.M1", "IIn<object>").WithLocation(9, 33),
@@ -1111,7 +1129,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (9,27): error CS1715: 'Derived.M1': type must be 'int' to match overridden member 'Base.M1'
                 //     public override short M1 => 1;
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M1").WithArguments("Derived.M1", "Base.M1", "int").WithLocation(9, 27),
@@ -1120,7 +1138,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M2").WithArguments("Derived.M2", "Base.M2", "A").WithLocation(10, 23)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (9,27): error CS1715: 'Derived.M1': type must be 'int' to match overridden member 'Base.M1'
                 //     public override short M1 => 1;
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M1").WithArguments("Derived.M1", "Base.M1", "int").WithLocation(9, 27),
@@ -1161,13 +1179,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -1210,7 +1228,7 @@ public class Program
 }
 ";
             // these are poor diagnostics; see https://github.com/dotnet/roslyn/issues/43719
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (9,17): error CS0539: 'Derived.M1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     string Base.M1 => null;   // 1
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("Derived.M1").WithLocation(9, 17),
@@ -1225,7 +1243,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("C.M2()").WithLocation(15, 17)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (9,17): error CS0539: 'Derived.M1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     string Base.M1 => null;   // 1
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("Derived.M1").WithLocation(9, 17),
@@ -1272,13 +1290,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string P { get; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 28)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -1317,7 +1335,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string P { get => string.Empty; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 28),
@@ -1326,7 +1344,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived2.P.set", "Derived.P").WithLocation(12, 53)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (12,53): error CS0546: 'Derived2.P.set': cannot override because 'Derived.P' does not have an overridable set accessor
                 //     public override string P { get => string.Empty; set { } }
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived2.P.set", "Derived.P").WithLocation(12, 53)
@@ -1370,7 +1388,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string P { get => string.Empty; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 28),
@@ -1379,7 +1397,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived2.P.set", "Derived.P").WithLocation(12, 32)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (12,32): error CS0546: 'Derived2.P.set': cannot override because 'Derived.P' does not have an overridable set accessor
                 //     public override string P { set { } }
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived2.P.set", "Derived.P").WithLocation(12, 32)
@@ -1422,7 +1440,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,40): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override System.IComparable P { get => string.Empty; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 40),
@@ -1431,7 +1449,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(12, 28)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -1468,13 +1486,13 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (9,28): error CS0462: The inherited members 'Base<T>.M(string)' and 'Base<T>.M(T)' have the same signature in type 'Derived', so they cannot be overridden
                 //     public override string M(string s) => null;
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Base<T>.M(string)", "Base<T>.M(T)", "Derived").WithLocation(9, 28)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (9,28): error CS0462: The inherited members 'Base<T>.M(string)' and 'Base<T>.M(T)' have the same signature in type 'Derived', so they cannot be overridden
                 //     public override string M(string s) => null;
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Base<T>.M(string)", "Base<T>.M(T)", "Derived").WithLocation(9, 28)
@@ -1515,7 +1533,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,49): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public abstract override System.IComparable M();
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 49),
@@ -1524,7 +1542,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(12, 28)
                 );
             verify(comp);
-            comp = CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(MetadataView(comp));
@@ -1554,7 +1572,7 @@ public abstract class Derived : Base
     public override string this[int i] => null;
 }
 ";
-            var csComp = CreateCompilation(source0, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
+            var csComp = CreateCompilationWithCovariantReturns(source0).VerifyDiagnostics(
                 );
             csComp.VerifyDiagnostics();
             var csRef = csComp.EmitToImageReference();
