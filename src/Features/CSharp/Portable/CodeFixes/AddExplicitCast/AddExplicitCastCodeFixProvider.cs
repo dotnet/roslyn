@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
 
-        protected override SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode,
-            ITypeSymbol conversionType)
+        protected override SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
         {
             // TODO:
             // the Simplifier doesn't remove the redundant cast from the expression
