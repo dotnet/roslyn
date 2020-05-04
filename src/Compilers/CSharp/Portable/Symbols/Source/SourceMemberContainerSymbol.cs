@@ -2921,24 +2921,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (paramList is null)
+            if (paramList is null && !_declModifiers.HasFlag(DeclarationModifiers.Data))
             {
-                if (_declModifiers.HasFlag(DeclarationModifiers.Data))
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, declaration.NameLocations[0]);
-                }
+                // Not a record
                 return;
             }
-
-            if (paramList.ParameterCount == 0 || !_declModifiers.HasFlag(DeclarationModifiers.Data))
-            {
-                // PROTOTYPE: The semantics of an empty parameter list have not been decided. Error
-                // for now
-                diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
-            }
-
-            BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(paramList.SyntaxTree);
-            var binder = binderFactory.GetBinder(paramList);
 
             // PROTOTYPE: need to check base members as well
             var memberSignatures = s_duplicateMemberSignatureDictionary.Allocate();
@@ -2947,13 +2934,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 memberSignatures.Add(member, member);
             }
 
-            var ctor = addCtor(paramList);
+            // Positional record
+            if (!(paramList is null))
+            {
+                // PROTOTYPE: The semantics of an empty parameter list have not been decided. Error
+                // for now
+                if (paramList.ParameterCount == 0 || !_declModifiers.HasFlag(DeclarationModifiers.Data))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
+                }
+
+                BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(paramList.SyntaxTree);
+                var binder = binderFactory.GetBinder(paramList);
+
+                var ctor = addCtor(binder, paramList);
+                addProperties(ctor.Parameters);
+            }
+
             if (!this.IsStructType())
             {
                 addCopyCtor();
             }
             addCloneMethod();
-            addProperties(ctor.Parameters);
+
             var thisEquals = addThisEquals();
             addObjectEquals(thisEquals);
             addHashCode();
@@ -2962,7 +2965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return;
 
-            SynthesizedRecordConstructor addCtor(ParameterListSyntax paramList)
+            SynthesizedRecordConstructor addCtor(Binder binder, ParameterListSyntax paramList)
             {
                 var ctor = new SynthesizedRecordConstructor(this, binder, paramList, diagnostics);
                 if (!memberSignatures.ContainsKey(ctor))
@@ -2997,7 +3000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
-                foreach (ParameterSymbol param in ctor.Parameters)
+                foreach (ParameterSymbol param in recordParameters)
                 {
                     var property = new SynthesizedRecordPropertySymbol(this, param);
                     if (!memberSignatures.ContainsKey(property))
@@ -3060,8 +3063,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (method.MethodKind)
                     {
                         case MethodKind.Constructor:
-                            hasInstanceConstructor = true;
-                            hasParameterlessInstanceConstructor = hasParameterlessInstanceConstructor || method.ParameterCount == 0;
+                            // Ignore the record copy constructor
+                            if (!(method is SynthesizedRecordCopyCtor))
+                            {
+                                hasInstanceConstructor = true;
+                                hasParameterlessInstanceConstructor = hasParameterlessInstanceConstructor || method.ParameterCount == 0;
+                            }
                             break;
 
                         case MethodKind.StaticConstructor:
