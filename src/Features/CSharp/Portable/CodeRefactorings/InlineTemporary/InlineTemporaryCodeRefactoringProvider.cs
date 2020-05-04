@@ -213,8 +213,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var originalInitializerSymbolInfo = semanticModel.GetSymbolInfo(variableDeclarator.Initializer.Value, cancellationToken);
 
             syntaxRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // Checks to see if inlining the temporary variable may change the code's meaning. This can only apply if the variable has two or more
+            // references. We later use this heuristic to determine whether or not to display a warning message to the user.
             var hasPossibleSideEffects = references.Count() > 1 &&
-                HasPossibleSideEffects(variableDeclarator.Initializer?.Value, syntaxRoot, references);
+                HasPossibleSideEffects(variableDeclarator.Initializer.Value, syntaxRoot, references);
 
             // Make each topmost parenting statement or Equals Clause Expressions semantically explicit.
             updatedDocument = await updatedDocument.ReplaceNodesAsync(topmostParentingExpressions, (o, n) =>
@@ -232,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 if (hasPossibleSideEffects)
                 {
                     node = node.WithAdditionalAnnotations(
-                        WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_variable_may_change_semantic_meaning));
+                        WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_variable_may_change_code_meaning));
                 }
 
                 return node;

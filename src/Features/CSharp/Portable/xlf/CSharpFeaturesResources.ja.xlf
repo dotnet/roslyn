@@ -187,9 +187,9 @@
         <target state="translated">警告: 一時メソッド呼び出しを条件付きメソッド呼び出しにインライン展開しています。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Warning_Inlining_temporary_variable_may_change_semantic_meaning">
-        <source>Warning: Inlining temporary variable may change semantic meaning.</source>
-        <target state="new">Warning: Inlining temporary variable may change semantic meaning.</target>
+      <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
+        <source>Warning: Inlining temporary variable may change code meaning.</source>
+        <target state="new">Warning: Inlining temporary variable may change code meaning.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
