@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyInterfaces.IsDefault)
             {
-                var interfaces = _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved).SelectAsArray((Func<NamedTypeSymbol, NativeIntegerTypeMap, NamedTypeSymbol>)((type, map) => map.SubstituteNamedType(type)), GetTypeMap());
+                var interfaces = _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved).SelectAsArray((type, map) => map.SubstituteNamedType(type), GetTypeMap());
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyInterfaces, interfaces);
             }
             return _lazyInterfaces;
@@ -304,9 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyParameters.IsDefault)
                 {
-                    var parameters = UnderlyingMethod.Parameters.SelectAsArray(
-                        (Func<ParameterSymbol, NativeIntegerMethodSymbol, ParameterSymbol>)((p, m) => (ParameterSymbol)new NativeIntegerParameterSymbol(m._container, m, p)),
-                        this);
+                    var parameters = UnderlyingMethod.Parameters.SelectAsArray((p, m) => (ParameterSymbol)new NativeIntegerParameterSymbol(m._container, m, p), this);
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, parameters);
                 }
                 return _lazyParameters;

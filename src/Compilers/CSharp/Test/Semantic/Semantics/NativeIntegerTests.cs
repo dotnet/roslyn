@@ -2131,6 +2131,7 @@ class Program
             }
         }
 
+        // ExplicitImplementations properties are empty on native integer types.
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -2479,6 +2480,7 @@ namespace System.Reflection
             }
         }
 
+        // Custom modifiers are copied to native integer types but not substituted.
         [Fact]
         public void CustomModifiers()
         {

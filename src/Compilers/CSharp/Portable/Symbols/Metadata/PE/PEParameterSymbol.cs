@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool filterOutParamArrayAttribute = (!_lazyIsParams.HasValue() || _lazyIsParams.Value());
 
                 ConstantValue defaultValue = this.ExplicitDefaultConstantValue;
-                var filterOutConstantAttributeDescription = default(AttributeDescription);
+                AttributeDescription filterOutConstantAttributeDescription = default(AttributeDescription);
 
                 if ((object)defaultValue != null)
                 {
