@@ -18,17 +18,20 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddExplicitCast), [Shared]>
-    Friend NotInheritable Class VisualBasicAddExplicitCastCodeFixProvider
-        Inherits AbstractAddExplicitCastCodeFixProvider(Of ExpressionSyntax, ArgumentListSyntax, AttributeSyntax)
+    Partial Friend NotInheritable Class VisualBasicAddExplicitCastCodeFixProvider
+        Inherits AbstractAddExplicitCastCodeFixProvider(Of ExpressionSyntax)
 
         Friend Const BC30512 As String = "BC30512" ' Option Strict On disallows implicit conversions from '{0}' to '{1}'.
         Friend Const BC42016 As String = "BC42016" ' Implicit conversions from '{0}' to '{1}'.
         Friend Const BC30518 As String = "BC30518" ' Overload resolution failed because no accessible 'sub1' can be called with these arguments.
         Friend Const BC30519 As String = "BC30519" ' Overload resolution failed because no accessible 'sub1' can be called without a narrowing conversion.
 
+        Private ReadOnly _fixer As ArgumentFixer
+
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
+            _fixer = New ArgumentFixer(Me)
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30512, BC42016, BC30518, BC30519)
@@ -63,10 +66,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                     Dim argument = spanNode.GetAncestors(Of ArgumentSyntax).FirstOrDefault()
                     If argument IsNot Nothing AndAlso argument.GetExpression.Equals(spanNode) Then
                         ' spanNode is an argument expression
-                        Dim argumentList = argument.GetAncestorOrThis(Of ArgumentListSyntax)
+                        Dim argumentList = DirectCast(argument.Parent, ArgumentListSyntax)
                         Dim invocationNode = argumentList.Parent
 
-                        mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(syntaxFacts, semanticModel,
+                        mutablePotentialConversionTypes.AddRange(_fixer.GetPotentialConversionTypes(syntaxFacts, semanticModel,
                             root, argument, argumentList, invocationNode, cancellationToken))
                     Else
                         ' spanNode is a right expression in assignment operation
@@ -95,28 +98,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
             Return semanticModel.ClassifyConversion(expression, type).ToCommonConversion()
         End Function
 
-        Protected Overrides Function GenerateNewArgument(
-                oldArgument As SyntaxNode, conversionType As ITypeSymbol) As SyntaxNode
-            Select Case oldArgument.Kind
-                Case SyntaxKind.SimpleArgument
-                    Dim simpleArgument = DirectCast(oldArgument, SimpleArgumentSyntax)
-                    Return simpleArgument.WithExpression(
-                        simpleArgument.GetExpression().Cast(conversionType, Nothing))
-                Case Else
-                    Return oldArgument
-            End Select
-        End Function
-
-        Protected Overrides Function GenerateNewArgumentList(
-                oldArgumentList As SyntaxNode, newArguments As List(Of SyntaxNode)) As SyntaxNode
-            Return If(TryCast(oldArgumentList, ArgumentListSyntax)?.WithArguments(
-                SyntaxFactory.SeparatedList(newArguments)), oldArgumentList)
-        End Function
-
-        Protected Overrides Function GetSpeculativeAttributeSymbolInfo(semanticModel As SemanticModel,
-                position As Integer, attribute As AttributeSyntax) As SymbolInfo
-            Return semanticModel.GetSpeculativeSymbolInfo(position, attribute)
-        End Function
+        'Protected Overrides Function GetSpeculativeAttributeSymbolInfo(semanticModel As SemanticModel,
+        '        position As Integer, attribute As AttributeSyntax) As SymbolInfo
+        '    Return semanticModel.GetSpeculativeSymbolInfo(position, attribute)
+        'End Function
 
         ''' <summary>
         ''' Find the first argument that need to be cast
@@ -194,7 +179,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                 End If
 
                 Dim conversionType As ITypeSymbol = Nothing
-                If CanArgumentTypesBeConvertedToParameterTypes(syntaxFacts, semanticModel, root, argumentList,
+                If _fixer.CanArgumentTypesBeConvertedToParameterTypes(
+                        syntaxFacts, semanticModel, root, argumentList,
                         candidateSymbol.Parameters, targetArgument, cancellationToken, conversionType) Then
                     mutablePotentialConversionTypes.Add((targetArgument.GetExpression(), conversionType))
                 End If

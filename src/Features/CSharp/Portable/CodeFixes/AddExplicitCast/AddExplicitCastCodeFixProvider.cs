@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddExplicitCast), Shared]
     internal sealed partial class CSharpAddExplicitCastCodeFixProvider
-        : AbstractAddExplicitCastCodeFixProvider<ExpressionSyntax, ArgumentListSyntax, AttributeSyntax>
+        : AbstractAddExplicitCastCodeFixProvider<ExpressionSyntax>
     {
         /// <summary>
         /// CS0266: Cannot implicitly convert from type 'x' to 'y'. An explicit conversion exists (are you missing a cast?)
@@ -37,10 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// </summary>
         private const string CS1503 = nameof(CS1503);
 
+        private readonly ArgumentFixer _argumentFixer;
+        private readonly AttributeArgumentFixer _attributeArgumentFixer;
+
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpAddExplicitCastCodeFixProvider()
         {
+            _argumentFixer = new ArgumentFixer(this);
+            _attributeArgumentFixer = new AttributeArgumentFixer(this);
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
@@ -88,16 +92,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     && argumentList.Parent is SyntaxNode invocationNode)
                 {
                     // invocationNode could be Invocation Expression, Object Creation, Base Constructor...)
-                    mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(syntaxFacts, semanticModel,
-                        root, targetArgument, argumentList, invocationNode, cancellationToken));
+                    mutablePotentialConversionTypes.AddRange(_argumentFixer.GetPotentialConversionTypes(
+                        syntaxFacts, semanticModel, root, targetArgument, argumentList, invocationNode, cancellationToken));
                 }
                 else if (spanNode.GetAncestorOrThis<AttributeArgumentSyntax>() is AttributeArgumentSyntax targetAttributeArgument
                     && targetAttributeArgument.Parent is AttributeArgumentListSyntax attributeArgumentList
-                    && attributeArgumentList.Parent is SyntaxNode attributeNode)
+                    && attributeArgumentList.Parent is AttributeSyntax attributeNode)
                 {
                     // attribute node
-                    mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(syntaxFacts, semanticModel,
-                        root, targetAttributeArgument, attributeArgumentList, attributeNode, cancellationToken));
+                    mutablePotentialConversionTypes.AddRange(_attributeArgumentFixer.GetPotentialConversionTypes(
+                        syntaxFacts, semanticModel, root, targetAttributeArgument, attributeArgumentList, attributeNode, cancellationToken));
                 }
             }
 
@@ -107,38 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return !potentialConversionTypes.IsEmpty;
         }
 
-        protected override SyntaxNode GenerateNewArgument(SyntaxNode oldArgument, ITypeSymbol conversionType)
-        {
-            if (oldArgument is ArgumentSyntax oldNormalArgument)
-            {
-                return oldNormalArgument.WithExpression(oldNormalArgument.Expression.Cast(conversionType));
-            }
-            else if (oldArgument is AttributeArgumentSyntax oldAttributeArgument)
-            {
-                return oldAttributeArgument.WithExpression(oldAttributeArgument.Expression.Cast(conversionType));
-            }
-            return oldArgument;
-        }
-
-        protected override SyntaxNode GenerateNewArgumentList(
-            SyntaxNode oldArgumentList, List<SyntaxNode> newArguments)
-        {
-            if (oldArgumentList is ArgumentListSyntax oldNormalArgumentList)
-            {
-                return oldNormalArgumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
-            }
-            else if (oldArgumentList is AttributeArgumentListSyntax oldAttributeArgumentList)
-            {
-                return oldAttributeArgumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
-            }
-            return oldArgumentList;
-        }
-
-        protected override CommonConversion ClassifyConversion(SemanticModel semanticModel, ExpressionSyntax expression,
-            ITypeSymbol type)
+        protected override CommonConversion ClassifyConversion(SemanticModel semanticModel, ExpressionSyntax expression, ITypeSymbol type)
             => semanticModel.ClassifyConversion(expression, type).ToCommonConversion();
 
-        protected override SymbolInfo GetSpeculativeAttributeSymbolInfo(SemanticModel semanticModel, int position, AttributeSyntax attribute)
-            => semanticModel.GetSpeculativeSymbolInfo(position, attribute);
+        //protected override SymbolInfo GetSpeculativeAttributeSymbolInfo(SemanticModel semanticModel, int position, AttributeSyntax attribute)
+        //    => semanticModel.GetSpeculativeSymbolInfo(position, attribute);
     }
 }
