@@ -43,12 +43,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var arg in withExpr.Arguments)
             {
                 RoslynDebug.AssertNotNull(arg.Member);
-                // PROTOTYPE: only works for source symbols
-                var prop = (SynthesizedRecordPropertySymbol)arg.Member;
-                stores.Add(F.AssignmentExpression(
-                    (BoundExpression)F.Field((BoundExpression)receiverLocal, (FieldSymbol)prop.BackingField),
-                    (BoundExpression)VisitExpression((BoundExpression)arg.Expression)
-                ));
+                var left = arg.Member switch
+                {
+                    PropertySymbol p => MakePropertyAccess(
+                        withExpr.Syntax,
+                        receiverLocal,
+                        p,
+                        receiverLocal.ResultKind,
+                        p.Type,
+                        isLeftOfAssignment: true),
+                    FieldSymbol f => MakeFieldAccess(
+                        withExpr.Syntax,
+                        receiverLocal,
+                        f,
+                        constantValueOpt: null,
+                        receiverLocal.ResultKind,
+                        f.Type),
+                    _ => throw ExceptionUtilities.UnexpectedValue(arg.Member.Kind)
+                };
+                stores.Add(MakeStaticAssignmentOperator(
+                    arg.Expression.Syntax,
+                    left,
+                    VisitExpression(arg.Expression),
+                    isRef: false,
+                    left.Type!,
+                    used: false));
             }
 
             return new BoundSequence(
