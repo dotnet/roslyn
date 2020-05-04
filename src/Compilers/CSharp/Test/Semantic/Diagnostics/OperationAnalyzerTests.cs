@@ -264,7 +264,7 @@ class C
 
         switch (x)
         {
-            case :
+            case : // A missing pattern is treated as a discard by syntax error recovery
                 break;
             case 1000:
                 break;
@@ -274,7 +274,8 @@ class C
 }
 ";
             CreateCompilationWithMscorlib45(source)
-            .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(40, 20),
+            .VerifyDiagnostics(
+                Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(40, 20),
                 Diagnostic(ErrorCode.ERR_ConstantExpected, ":").WithLocation(44, 18))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SwitchTestAnalyzer() }, null, null,
                 Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "y").WithLocation(16, 17),

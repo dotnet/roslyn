@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
         Public Sub New()
         End Sub
 
-        Private Shared ImportsStatementComparer As ImportsStatementComparer = New ImportsStatementComparer(New CaseInsensitiveTokenComparer())
+        Private Shared ReadOnly ImportsStatementComparer As ImportsStatementComparer = New ImportsStatementComparer(New CaseInsensitiveTokenComparer())
 
         Protected Overrides Function IsEquivalentImport(a As SyntaxNode, b As SyntaxNode) As Boolean
             Dim importsA = TryCast(a, ImportsStatementSyntax)

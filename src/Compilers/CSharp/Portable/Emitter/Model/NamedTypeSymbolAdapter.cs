@@ -669,6 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var method in this.GetMethodsToEmit())
             {
                 Debug.Assert((object)method != null);
+
                 if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || method.ShouldInclude(context))
                 {
                     yield return method;
@@ -702,22 +703,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (m.Kind == SymbolKind.Method)
                 {
                     var method = (MethodSymbol)m;
-
-                    if (method.IsPartialDefinition())
+                    if (method.ShouldEmit())
                     {
-                        // Don't emit partial methods without an implementation part.
-                        if ((object)method.PartialImplementationPart == null)
-                        {
-                            continue;
-                        }
+                        yield return method;
                     }
-                    // Don't emit the default value type constructor - the runtime handles that
-                    else if (method.IsDefaultValueTypeConstructor())
-                    {
-                        continue;
-                    }
-
-                    yield return method;
                 }
             }
         }

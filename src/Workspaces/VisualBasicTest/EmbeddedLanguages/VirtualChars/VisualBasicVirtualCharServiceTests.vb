@@ -33,12 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
             Assert.Equal(expected, actual)
         End Sub
 
-        Private Sub TestFailure(stringText As String)
-            Dim token = GetStringToken(stringText)
-            Dim virtualChars = VisualBasicVirtualCharService.Instance.TryConvertToVirtualChars(token)
-            Assert.True(virtualChars.IsDefault)
-        End Sub
-
         <Fact>
         Public Sub TestEmptyString()
             Test("""""", "")

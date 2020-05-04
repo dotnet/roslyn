@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
                 => _symbol.Construct(typeArguments);
 
-            public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
+            public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
                 => _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
 
             public DllImportData GetDllImportData()
