@@ -45,8 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // that can happen if error is staled build error or user used #line pragma in C#
                 // to point to some random file in error or more.
                 e.Handled = roslynSnapshot.TryNavigateTo(index, e.IsPreview);
-
-                e.Handled = false;
             }
         }
     }
