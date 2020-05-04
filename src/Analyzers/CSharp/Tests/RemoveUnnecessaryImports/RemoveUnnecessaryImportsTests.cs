@@ -1562,7 +1562,7 @@ public class QueryExpressionTest
                     // Test0.cs(10,37): error CS1031: Type expected
                     DiagnosticResult.CompilerError("CS1031").WithSpan(10, 37, 10, 39),
                     // Test0.cs(10,40): error CS0118: 'expr2' is a variable but is used like a type
-                    DiagnosticResult.CompilerError("CS0118").WithSpan(10, 40, 10, 45).WithArguments("expr2", "variable", "type"),
+                    DiagnosticResult.CompilerError("CS0118").WithSpan(10, 40, 10, 45).WithMessage(null),
                     // Test0.cs(10,40): error CS1026: ) expected
                     DiagnosticResult.CompilerError("CS1026").WithSpan(10, 40, 10, 45),
                     // Test0.cs(10,40): error CS1023: Embedded statement cannot be a declaration or labeled statement
