@@ -1605,7 +1605,77 @@ partial class Program
         }
 
         [Fact]
-        public void ProtectedAccessibility()
+        public void PrivateProtectedAccessibility_01()
+        {
+            const string text1 = @"
+using System;
+
+public partial class Base
+{
+    private protected static partial void M1();
+    private protected static partial void M1() { Console.Write(1); }
+}";
+
+            const string text2 = @"
+class Derived : Base
+{
+    static void Main()
+    {
+        M1();
+    }
+}";
+            var verifier = CompileAndVerify(
+                new[] { text1, text2 },
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+
+            var comp1 = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(
+                    text2,
+                    references: new[] { reference },
+                    parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+                comp2.VerifyDiagnostics(
+                    // (6,9): error CS0122: 'Base.M1()' is inaccessible due to its protection level
+                    //         M1();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("Base.M1()").WithLocation(6, 9));
+            }
+        }
+
+        [Fact]
+        public void PrivateProtectedAccessibility_02()
+        {
+            const string text1 = @"
+using System;
+
+partial class C
+{
+    private protected static partial void M1();
+    private protected static partial void M1() { Console.Write(1); }
+}";
+
+            const string text2 = @"
+class Program
+{
+    static void Main()
+    {
+        C.M1(); // 1
+    }
+}";
+            var comp = CreateCompilation(new[] { text1, text2 }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0122: 'C.M1()' is inaccessible due to its protection level
+                //         C.M1(); // 1
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("C.M1()").WithLocation(6, 11));
+        }
+
+        [Fact]
+        public void ProtectedAccessibility_01()
         {
             const string text1 = @"
 using System;
@@ -1632,7 +1702,34 @@ class Derived : Base
         }
 
         [Fact]
-        public void InternalAccessibility()
+        public void ProtectedAccessibility_02()
+        {
+            const string text1 = @"
+using System;
+
+partial class C
+{
+    protected static partial void M1();
+    protected static partial void M1() { Console.Write(1); }
+}";
+
+            const string text2 = @"
+class Program
+{
+    static void Main()
+    {
+        C.M1(); // 1
+    }
+}";
+            var comp = CreateCompilation(new[] { text1, text2 }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0122: 'C.M1()' is inaccessible due to its protection level
+                //         C.M1(); // 1
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("C.M1()").WithLocation(6, 11));
+        }
+
+        [Fact]
+        public void InternalAccessibility_01()
         {
             const string text1 = @"
 using System;
@@ -1659,6 +1756,128 @@ class Program
         }
 
         [Fact]
+        public void InternalAccessibility_02()
+        {
+            const string text1 = @"
+using System;
+
+internal partial class C
+{
+    internal static partial void M1();
+    internal static partial void M1() { Console.Write(1); }
+}";
+
+            const string text2 = @"
+class Program
+{
+    static void Main()
+    {
+        C.M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp1.VerifyDiagnostics();
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(
+                    text2,
+                    references: new[] { comp1.ToMetadataReference() },
+                    parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+                comp2.VerifyDiagnostics(
+                    // (6,9): error CS0122: 'C' is inaccessible due to its protection level
+                    //         C.M1(); // 1
+                    Diagnostic(ErrorCode.ERR_BadAccess, "C").WithArguments("C").WithLocation(6, 9));
+            }
+        }
+
+        [Fact]
+        public void ProtectedInternalAccessibility_01()
+        {
+            const string text1 = @"
+using System;
+
+public partial class C
+{
+    protected internal static partial void M1();
+    protected internal static partial void M1() { Console.Write(1); }
+}";
+
+            const string text2 = @"
+class Program
+{
+    static void Main()
+    {
+        C.M1();
+    }
+}";
+            var verifier = CompileAndVerify(
+                new[] { text1, text2 },
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+
+            var comp1 = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(
+                    text2,
+                    references: new[] { reference },
+                    parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+                comp2.VerifyDiagnostics(
+                    // (6,11): error CS0122: 'C.M1()' is inaccessible due to its protection level
+                    //         C.M1();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("C.M1()").WithLocation(6, 11));
+            }
+        }
+
+        [Fact]
+        public void ProtectedInternalAccessibility_02()
+        {
+            const string text1 = @"
+using System;
+
+public partial class Base
+{
+    protected internal static partial void M1();
+    protected internal static partial void M1() { Console.Write(1); }
+}";
+
+            const string text2 = @"
+class Derived : Base
+{
+    static void Main()
+    {
+        M1();
+    }
+}";
+            var verifier = CompileAndVerify(
+                new[] { text1, text2 },
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+
+            var comp1 = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var verifier = CompileAndVerify(
+                    text2,
+                    references: new[] { reference },
+                    parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                    expectedOutput: "1");
+                verifier.VerifyDiagnostics();
+            }
+        }
+
+        [Fact]
         public void PublicAccessibility()
         {
             const string text1 = @"
@@ -1678,8 +1897,13 @@ class Program
         C.M1();
     }
 }";
-            var comp1 = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            var verifier = CompileAndVerify(
+                new[] { text1, text2 },
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                expectedOutput: "1");
+            verifier.VerifyDiagnostics();
 
+            var comp1 = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             verify(comp1.ToMetadataReference());
             verify(comp1.EmitToImageReference());
 

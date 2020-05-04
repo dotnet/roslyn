@@ -20618,7 +20618,7 @@ partial class C {
     partial void M(out int i);
     partial void M(int i) {}  
 }").VerifyDiagnostics(
-                // (3,18): error CS9051: Partial method C.M(out int) must have an implementation part because it has 'out' parameters.
+                // (3,18): error CS8794: Partial method C.M(out int) must have an implementation part because it has 'out' parameters.
                 //     partial void M(out int i);
                 Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(3, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(int)'
@@ -20634,7 +20634,7 @@ partial class C {
     partial void M(out int i);
     partial void M(ref int i) {}
 }").VerifyDiagnostics(
-                // (3,18): error CS9051: Partial method C.M(out int) must have an implementation part because it has 'out' parameters.
+                // (3,18): error CS8794: Partial method C.M(out int) must have an implementation part because it has 'out' parameters.
                 //     partial void M(out int i);
                 Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(3, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(ref int)'
@@ -20650,7 +20650,7 @@ partial class C {
     partial void M(out int i);
     partial void M(in int i) {}  
 }").VerifyDiagnostics(
-                // (3,18): error CS9051: Partial method C.M(out int) must have an implementation part because it has 'out' parameters.
+                // (3,18): error CS8794: Partial method C.M(out int) must have an implementation part because it has 'out' parameters.
                 //     partial void M(out int i);
                 Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(3, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(in int)'
