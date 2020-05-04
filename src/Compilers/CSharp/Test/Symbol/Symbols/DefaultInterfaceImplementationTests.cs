@@ -9239,7 +9239,7 @@ public partial interface I1
                 // (21,25): error CS0111: Type 'I1' already defines a member called 'M9' with the same parameter types
                 //     static partial void M9();
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M9").WithArguments("M9", "I1").WithLocation(21, 25),
-                // (22,32): error CS8796: Partial method 'I1.M10()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (22,32): error CS8796: Partial method 'I1.M10()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     static extern partial void M10();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M10").WithArguments("I1.M10()").WithLocation(22, 32),
                 // (23,35): error CS8793: Partial method 'I1.M11()' must have an implementation part because it has accessibility modifiers.
@@ -9309,7 +9309,7 @@ public partial interface I1
                 // (22,32): error CS8701: Target runtime doesn't support default interface implementation.
                 //     static extern partial void M10();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M10").WithLocation(22, 32),
-                // (22,32): error CS8796: Partial method 'I1.M10()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (22,32): error CS8796: Partial method 'I1.M10()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     static extern partial void M10();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M10").WithArguments("I1.M10()").WithLocation(22, 32),
                 // (23,35): error CS8793: Partial method 'I1.M11()' must have an implementation part because it has accessibility modifiers.
@@ -9360,19 +9360,19 @@ interface I2
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
             compilation1.VerifyDiagnostics(
-                // (4,25): error CS8796: Partial method 'I1.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (4,25): error CS8796: Partial method 'I1.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     sealed partial void M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("I1.M1()").WithLocation(4, 25),
                 // (5,27): error CS0750: A partial method cannot have the 'abstract' modifier
                 //     abstract partial void M2();
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M2").WithLocation(5, 27),
-                // (6,26): error CS8796: Partial method 'I1.M3()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (6,26): error CS8796: Partial method 'I1.M3()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     virtual partial void M3();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M3").WithArguments("I1.M3()").WithLocation(6, 26),
                 // (10,21): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I2.M7();
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M7").WithLocation(10, 21),
-                // (15,25): error CS8796: Partial method 'I1.M4()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (15,25): error CS8796: Partial method 'I1.M4()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     sealed partial void M4() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M4").WithArguments("I1.M4()").WithLocation(15, 25),
                 // (15,25): error CS8798: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
@@ -9387,7 +9387,7 @@ interface I2
                 // (16,27): error CS0111: Type 'I1' already defines a member called 'M5' with the same parameter types
                 //     abstract partial void M5();
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M5").WithArguments("M5", "I1").WithLocation(16, 27),
-                // (17,26): error CS8796: Partial method 'I1.M6()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (17,26): error CS8796: Partial method 'I1.M6()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     virtual partial void M6() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M6").WithArguments("I1.M6()").WithLocation(17, 26),
                 // (17,26): error CS8798: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.

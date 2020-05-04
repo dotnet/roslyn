@@ -13531,22 +13531,22 @@ public partial class C : Base
                 // (29,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.PartJ()'
                 //     extern partial void PartJ();
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "PartJ").WithArguments("C.PartJ()").WithLocation(29, 25),
-                // (23,26): error CS8796: Partial method 'C.PartE()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (23,26): error CS8796: Partial method 'C.PartE()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     virtual partial void PartE();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartE").WithArguments("C.PartE()").WithLocation(23, 26),
                 // (24,27): error CS0750: A partial method cannot have the 'abstract' modifier
                 //     abstract partial void PartF();
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartF").WithLocation(24, 27),
-                // (25,27): error CS8796: Partial method 'C.PartG()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (25,27): error CS8796: Partial method 'C.PartG()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     override partial void PartG();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartG").WithArguments("C.PartG()").WithLocation(25, 27),
-                // (26,22): error CS8796: Partial method 'C.PartH()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (26,22): error CS8796: Partial method 'C.PartH()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     new partial void PartH();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartH").WithArguments("C.PartH()").WithLocation(26, 22),
-                // (27,34): error CS8796: Partial method 'C.PartI()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (27,34): error CS8796: Partial method 'C.PartI()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     sealed override partial void PartI();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartI").WithArguments("C.PartI()").WithLocation(27, 34),
-                // (29,25): error CS8796: Partial method 'C.PartJ()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', or 'new', or 'extern' modifier.
+                // (29,25): error CS8796: Partial method 'C.PartJ()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     extern partial void PartJ();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartJ").WithArguments("C.PartJ()").WithLocation(29, 25),
                 // (25,27): error CS0507: 'C.PartG()': cannot change access modifiers when overriding 'protected' inherited member 'Base.PartG()'
