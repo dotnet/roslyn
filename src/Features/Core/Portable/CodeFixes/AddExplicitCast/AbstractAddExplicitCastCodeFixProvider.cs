@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -41,27 +42,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// <summary>
         /// Given targetNode and conversionType, generate sub item name like "Cast to 'conversionType'"
         /// </summary>
-        protected abstract string GetSubItemName(CodeFixContext context, SemanticModel semanticModel,
+        protected abstract string GetSubItemName(
+            CodeFixContext context, SemanticModel semanticModel,
             SyntaxNode targetNode, ITypeSymbol conversionType);
 
-        protected abstract SyntaxNode ApplyFix(SyntaxNode currentRoot, TExpressionSyntax targetNode,
-            ITypeSymbol conversionType);
-
-        protected abstract CommonConversion ClassifyConversion(SemanticModel semanticModel, TExpressionSyntax expression,
-            ITypeSymbol type);
-
+        protected abstract SyntaxNode ApplyFix(SyntaxNode currentRoot, TExpressionSyntax targetNode, ITypeSymbol conversionType);
+        protected abstract CommonConversion ClassifyConversion(SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
         protected abstract SyntaxNode GenerateNewArgument(SyntaxNode oldArgument, ITypeSymbol conversionType);
-
-        protected abstract SyntaxNode GenerateNewArgumentList(
-            SyntaxNode oldArgumentList, List<SyntaxNode> newArguments);
-
-        protected abstract SymbolInfo GetSpeculativeAttributeSymbolInfo(SemanticModel semanticModel, int position,
-            TAttributeSyntax attribute);
+        protected abstract SyntaxNode GenerateNewArgumentList(SyntaxNode oldArgumentList, List<SyntaxNode> newArguments);
+        protected abstract SymbolInfo GetSpeculativeAttributeSymbolInfo(SemanticModel semanticModel, int position, TAttributeSyntax attribute);
 
         /// <summary>
         /// Output the current type information of the target node and the conversion type(s) that the target node is 
         /// going to be cast by.
-        /// Implicit downcast can appear on Variable Declaration, Return Statement, Function Invocation, Attrbute
+        /// Implicit downcast can appear on Variable Declaration, Return Statement, Function Invocation, Attribute
         /// <para/>
         /// For example:
         /// Base b; Derived d = [||]b;       
@@ -97,9 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 semanticModel, root, diagnostic.Id, spanNode, cancellationToken,
                 out var potentialConversionTypes);
             if (!hasSolution)
-            {
                 return;
-            }
 
             if (potentialConversionTypes.Length == 1)
             {
@@ -107,40 +99,41 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     FeaturesResources.Add_explicit_cast,
                     c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                     context.Diagnostics);
+                return;
             }
-            else
+
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
+
+            // MaximumConversionOptions: we show at most [MaximumConversionOptions] options for this code fixer
+            for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConversionTypes.Length); i++)
             {
-                var actions = ArrayBuilder<CodeAction>.GetInstance();
-
-                // MaximumConversionOptions: we show at most [MaximumConversionOptions] options for this code fixer
-                for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConversionTypes.Length); i++)
-                {
-                    var targetNode = potentialConversionTypes[i].node;
-                    var conversionType = potentialConversionTypes[i].type;
-                    actions.Add(new MyCodeAction(
-                        GetSubItemName(context, semanticModel, targetNode, conversionType),
-                        _ => ApplySingleConversionToDocumentAsync(document, ApplyFix(root, targetNode, conversionType))));
-                }
-
-                if (potentialConversionTypes.Length > MaximumConversionOptions)
-                {
-                    // If the number of potential conversion types is larger than options we could show, report telemetry
-                    Logger.Log(FunctionId.CodeFixes_AddExplicitCast,
-                        KeyValueLogMessage.Create(m =>
-                        {
-                            m["NumberOfCandidates"] = potentialConversionTypes.Length;
-                        }));
-                }
-
-                context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
-                    FeaturesResources.Add_explicit_cast,
-                    actions.ToImmutableAndFree(), isInlinable: false),
-                    context.Diagnostics);
+                var targetNode = potentialConversionTypes[i].node;
+                var conversionType = potentialConversionTypes[i].type;
+                actions.Add(new MyCodeAction(
+                    GetSubItemName(context, semanticModel, targetNode, conversionType),
+                    _ => Task.FromResult(document.WithSyntaxRoot(ApplyFix(root, targetNode, conversionType)))));
             }
+
+            ReportTelemetryIfNecessary(potentialConversionTypes);
+
+            context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
+                FeaturesResources.Add_explicit_cast,
+                actions.ToImmutable(), isInlinable: false),
+                context.Diagnostics);
         }
 
-        private static Task<Document> ApplySingleConversionToDocumentAsync(Document document, SyntaxNode currentRoot)
-            => Task.FromResult(document.WithSyntaxRoot(currentRoot));
+        private static void ReportTelemetryIfNecessary(ImmutableArray<(TExpressionSyntax node, ITypeSymbol type)> potentialConversionTypes)
+        {
+            if (potentialConversionTypes.Length > MaximumConversionOptions)
+            {
+                // If the number of potential conversion types is larger than options we could show, report telemetry
+                Logger.Log(FunctionId.CodeFixes_AddExplicitCast,
+                    KeyValueLogMessage.Create(m =>
+                    {
+                        m["NumberOfCandidates"] = potentialConversionTypes.Length;
+                    }));
+            }
+        }
 
         protected ImmutableArray<(TExpressionSyntax, ITypeSymbol)> FilterValidPotentialConversionTypes(
             ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,
@@ -164,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
                 validPotentialConversionTypes.Add(conversionTuple);
             }
+
             return validPotentialConversionTypes.Distinct().ToImmutableArray();
         }
 
@@ -232,8 +226,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     newArguments.Add(arguments[i]);
                     continue;
                 }
-                var parameterType = parameters[parameterIndex].Type;
 
+                var parameterType = parameters[parameterIndex].Type;
                 if (parameters[parameterIndex].IsParams
                     && parameterType is IArrayTypeSymbol paramsType
                     && ClassifyConversion(semanticModel, argumentExpression, paramsType.ElementType).Exists)
@@ -255,8 +249,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     // Direct conversion from a declaration expression to a type is unspecified, thus we classify the
                     // conversion from the type of declaration expression to the parameter type
                     // An example for this case:
-                    // void Foo(out int i) { i = 1; }
-                    // Foo([|out var i|]);
+                    // void Goo(out int i) { i = 1; }
+                    // Goo([|out var i|]);
                     // "var i" is a declaration expression
                     // 
                     // In addition, since this case is with keyword "out", the type of declaration expression and the
@@ -280,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// <param name="newArguments"> new arguments that are cast by corresponding parameter types</param>
         /// <param name="targetNode"> The node needs to be cast.</param>
         /// <returns>
-        /// Return true if the invocation expression with new arguments is applicatble.
+        /// Return true if the invocation expression with new arguments is applicable.
         /// Otherwise, return false
         /// </returns>
         protected bool IsInvocationExpressionWithNewArgumentsApplicable(
@@ -382,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 {
                     // All diagnostics have the same error code
                     if (TryGetTargetTypeInfo(document, semanticModel, currentRoot, diagnostics[0].Id, spanNode,
-                        cancellationToken, out var potentialConversionTypes)
+                            cancellationToken, out var potentialConversionTypes)
                         && potentialConversionTypes.Length == 1)
                     {
                         return ApplyFix(currentRoot, potentialConversionTypes[0].node, potentialConversionTypes[0].type);
