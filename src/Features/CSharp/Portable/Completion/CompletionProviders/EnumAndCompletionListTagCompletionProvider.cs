@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return null;
             }
 
-            var documentation = Shared.Utilities.DocumentationComment.FromXmlFragment(xmlText);
+            var documentation = CodeAnalysis.Shared.Utilities.DocumentationComment.FromXmlFragment(xmlText);
 
             var completionListType = documentation.CompletionListCref != null
                 ? DocumentationCommentId.GetSymbolsForDeclarationId(documentation.CompletionListCref, compilation).OfType<INamedTypeSymbol>().FirstOrDefault()
