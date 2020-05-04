@@ -42,13 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpAddExplicitCastCodeFixProvider()
+        public CSharpAddExplicitCastCodeFixProvider() : base(CSharpSyntaxFacts.Instance)
         {
             _argumentFixer = new ArgumentFixer(this);
             _attributeArgumentFixer = new AttributeArgumentFixer(this);
         }
 
-        protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
 
         protected override SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode,

@@ -30,9 +30,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// </summary>
         private const int MaximumConversionOptions = 3;
 
+        protected AbstractAddExplicitCastCodeFixProvider(ISyntaxFacts syntaxFacts)
+            => SyntaxFacts = syntaxFacts;
+
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
-        protected abstract ISyntaxFacts SyntaxFacts { get; }
+        protected ISyntaxFacts SyntaxFacts { get; }
         protected abstract SyntaxNode ApplyFix(SyntaxNode currentRoot, TExpressionSyntax targetNode, ITypeSymbol conversionType);
         protected abstract CommonConversion ClassifyConversion(SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
 
