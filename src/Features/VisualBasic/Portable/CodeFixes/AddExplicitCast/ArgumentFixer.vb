@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                 MyBase.New(provider)
             End Sub
 
+            Protected Overrides Function GetExpressionOfArgument(argument As ArgumentSyntax) As ExpressionSyntax
+                Return argument.GetArgumentExpression()
+            End Function
+
             Protected Overrides Function GenerateNewArgument(oldArgument As ArgumentSyntax, conversionType As ITypeSymbol) As ArgumentSyntax
                 Select Case oldArgument.Kind
                     Case SyntaxKind.SimpleArgument

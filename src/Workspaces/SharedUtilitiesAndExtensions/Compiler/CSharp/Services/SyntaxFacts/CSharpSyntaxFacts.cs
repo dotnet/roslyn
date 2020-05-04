@@ -570,17 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.IsKind(SyntaxKind.BaseList);
 
         public SyntaxNode GetExpressionOfArgument(SyntaxNode node)
-        {
-            if (node is ArgumentSyntax)
-            {
-                return ((ArgumentSyntax)node).Expression;
-            }
-            else
-            {
-                // node is AttributeArgumentSyntax
-                return ((AttributeArgumentSyntax)node).Expression;
-            }
-        }
+            => (node as ArgumentSyntax)?.Expression;
 
         public RefKind GetRefKindOfArgument(SyntaxNode node)
             => (node as ArgumentSyntax).GetRefKind();

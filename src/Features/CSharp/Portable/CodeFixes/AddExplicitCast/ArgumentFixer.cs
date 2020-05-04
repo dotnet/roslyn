@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             {
             }
 
+            protected override ExpressionSyntax GetExpressionOfArgument(ArgumentSyntax argument)
+                => argument.Expression;
+
             protected override ArgumentSyntax GenerateNewArgument(ArgumentSyntax oldArgument, ITypeSymbol conversionType)
                 => oldArgument.WithExpression(oldArgument.Expression.Cast(conversionType));
 

@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             protected Fixer(AbstractAddExplicitCastCodeFixProvider<TExpressionSyntax> provider)
                 => _provider = provider;
 
+            protected abstract TExpressionSyntax GetExpressionOfArgument(TArgumentSyntax argument);
             protected abstract TArgumentSyntax GenerateNewArgument(TArgumentSyntax oldArgument, ITypeSymbol conversionType);
             protected abstract TArgumentListSyntax GenerateNewArgumentList(TArgumentListSyntax oldArgumentList, ArrayBuilder<TArgumentSyntax> newArguments);
             protected abstract SeparatedSyntaxList<TArgumentSyntax> GetArgumentsOfArgumentList(TArgumentListSyntax argumentList);
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     if (CanArgumentTypesBeConvertedToParameterTypes(
                             semanticModel, root, argumentList, candidateSymbol.Parameters,
                             targetArgument, cancellationToken, out var targetArgumentConversionType)
-                        && _provider.SyntaxFacts.GetExpressionOfArgument(targetArgument) is TExpressionSyntax argumentExpression)
+                        && GetExpressionOfArgument(targetArgument) is TExpressionSyntax argumentExpression)
                     {
                         mutablePotentialConversionTypes.Add((argumentExpression, targetArgumentConversionType));
                     }
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     }
 
                     // The argument is either in order with parameters, or have a matched name with parameters.
-                    var argumentExpression = syntaxFacts.GetExpressionOfArgument(arguments[i]) as TExpressionSyntax;
+                    var argumentExpression = GetExpressionOfArgument(arguments[i]);
                     if (argumentExpression == null)
                     {
                         // argumentExpression is null when it is an omitted argument in VB .NET
