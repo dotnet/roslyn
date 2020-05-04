@@ -3307,7 +3307,7 @@ public static class Extensions
         [Fact]
         public void TestGetEnumeratorPatternViaRefExtensionOnNonAssignableVariable()
         {
-            // See https://github.com/dotnet/csharplang/blob/98043cdc889303d956d540d7ab3bc4f5044a9d3b/meetings/2018/LDM-2018-01-24.md#deconstruct-as-ref-extension-method
+            // See https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-01-24.md
             // I imagine same decision should apply here
             var source = @"
 using System;
@@ -3340,7 +3340,7 @@ public static class Extensions
         [Fact]
         public void TestGetEnumeratorPatternViaRefExtensionOnAssignableVariable()
         {
-            // See https://github.com/dotnet/csharplang/blob/98043cdc889303d956d540d7ab3bc4f5044a9d3b/meetings/2018/LDM-2018-01-24.md#deconstruct-as-ref-extension-method
+            // See https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-01-24.md
             // I imagine same decision should apply here
             var source = @"
 using System;

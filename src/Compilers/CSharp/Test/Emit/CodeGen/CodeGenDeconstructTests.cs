@@ -2462,7 +2462,7 @@ static class D
         [Fact]
         public void DeconstructRefExtensionMethod()
         {
-            // https://github.com/dotnet/csharplang/blob/98043cdc889303d956d540d7ab3bc4f5044a9d3b/meetings/2018/LDM-2018-01-24.md#deconstruct-as-ref-extension-method
+            // https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-01-24.md
             string source = @"
 struct C
 {
