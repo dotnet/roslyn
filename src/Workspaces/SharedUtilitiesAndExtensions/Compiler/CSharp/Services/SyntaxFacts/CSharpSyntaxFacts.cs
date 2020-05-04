@@ -153,9 +153,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation) &&
                objectCreation.Type == node;
 
-        public bool IsDeclarationExpression(SyntaxNode node)
-            => node is DeclarationExpressionSyntax;
-
         public bool IsAttributeName(SyntaxNode node)
             => SyntaxFacts.IsAttributeName(node);
 
@@ -1200,18 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public string GetNameForArgument(SyntaxNode argument)
-        {
-            if ((argument as ArgumentSyntax)?.NameColon != null)
-            {
-                return (argument as ArgumentSyntax).NameColon.Name.Identifier.ValueText;
-            }
-            else if ((argument as AttributeArgumentSyntax)?.NameEquals != null)
-            {
-                return (argument as AttributeArgumentSyntax).NameEquals.Name.Identifier.ValueText;
-            }
-
-            return string.Empty;
-        }
+            => (argument as ArgumentSyntax)?.NameColon?.Name.Identifier.ValueText ?? string.Empty;
 
         public bool IsLeftSideOfDot(SyntaxNode node)
             => (node as ExpressionSyntax).IsLeftSideOfDot();

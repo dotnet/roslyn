@@ -115,8 +115,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetObjectCreationInitializer(SyntaxNode node);
         SyntaxNode GetObjectCreationType(SyntaxNode node);
 
-        bool IsDeclarationExpression(SyntaxNode node);
-
         bool IsBinaryExpression(SyntaxNode node);
         bool IsIsExpression(SyntaxNode node);
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
