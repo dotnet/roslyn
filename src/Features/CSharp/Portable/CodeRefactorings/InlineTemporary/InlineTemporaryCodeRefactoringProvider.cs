@@ -184,7 +184,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             // Collect the identifier names for each reference.
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
             var symbolRefs = await SymbolFinder.FindReferencesAsync(local, updatedDocument.Project.Solution, cancellationToken).ConfigureAwait(false);
-            var references = symbolRefs.Single(r => Equals(r.Definition, local)).Locations;
+            var referencedSymbol = symbolRefs.SingleOrDefault(r => Equals(r.Definition, local));
+            var references = referencedSymbol == null ? SpecializedCollections.EmptyEnumerable<ReferenceLocation>() : referencedSymbol.Locations;
+
             var syntaxRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Collect the topmost parenting expression for each reference.
@@ -210,6 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var originalInitializerSymbolInfo = semanticModel.GetSymbolInfo(variableDeclarator.Initializer.Value, cancellationToken);
 
+            syntaxRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var hasPossibleSideEffects = references.Count() > 1 &&
+                HasPossibleSideEffects(variableDeclarator.Initializer?.Value, syntaxRoot, references);
+
             // Make each topmost parenting statement or Equals Clause Expressions semantically explicit.
             updatedDocument = await updatedDocument.ReplaceNodesAsync(topmostParentingExpressions, (o, n) =>
             {
@@ -221,6 +227,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                     node = node.WithAdditionalAnnotations(
                         WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_into_conditional_method_call));
                 }
+
+                // If the refactoring may potentially change the code's semantics, display a warning message to the user.
+                if (hasPossibleSideEffects)
+                {
+                    node = node.WithAdditionalAnnotations(
+                        WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_variable_may_change_semantic_meaning));
+                }
+
                 return node;
             }, cancellationToken).ConfigureAwait(false);
 
@@ -254,7 +268,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 if (updatedDocument == newDocument)
                 {
                     // No semantic conflicts, we can remove the definition.
-                    updatedDocument = await updatedDocument.ReplaceNodeAsync(newScope, RemoveDeclaratorFromScope(variableDeclarator, newScope), cancellationToken).ConfigureAwait(false);
+                    updatedDocument = await updatedDocument.ReplaceNodeAsync(
+                        newScope, RemoveDeclaratorFromScope(variableDeclarator, newScope), cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -264,6 +279,65 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             }
 
             return updatedDocument;
+        }
+
+        private static bool HasPossibleSideEffects(SyntaxNode expression, SyntaxNode syntaxRoot, IEnumerable<ReferenceLocation> references)
+        {
+            // Checks to see if inlining the temporary variable may change the code's semantics. 
+
+            if (expression == null || syntaxRoot == null)
+            {
+                return true;
+            }
+
+            // Semantics changes may occur if we have references that access properties or invoke methods (see below examples).
+            var propertyOrMethodAccess = false;
+            foreach (var reference in references)
+            {
+                var node = syntaxRoot.FindNode(reference.Location.SourceSpan);
+                if (node.IsParentKind(SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.InvocationExpression))
+                {
+                    propertyOrMethodAccess = true;
+                    break;
+                }
+            }
+
+            if (!propertyOrMethodAccess)
+            {
+                return false;
+            }
+
+            if (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesizedExpression))
+            {
+                expression = parenthesizedExpression.WalkDownParentheses();
+            }
+
+            // e.g.:
+            //     var [||]c = new C();
+            //     c.P = 1;
+            //     var x = c;
+            // After refactoring:
+            //     new C().P = 1;
+            //     var x = new C();
+            if (expression.IsKind(SyntaxKind.ObjectCreationExpression))
+            {
+                return true;
+            }
+
+            // e.g. - let method M return a new instance of an object containing property P:
+            //     var [||]c = M();
+            //     c.P = 0;
+            //     var x = c;
+            // After refactoring:
+            //     M().P = 0;
+            //     var x = M();
+            if (expression.IsKind(SyntaxKind.InvocationExpression))
+            {
+                return true;
+            }
+
+            // Assume if we reach here that the refactoring won't cause side effects.
+            return false;
         }
 
         private static async Task<VariableDeclaratorSyntax> FindDeclaratorAsync(Document document, CancellationToken cancellationToken)

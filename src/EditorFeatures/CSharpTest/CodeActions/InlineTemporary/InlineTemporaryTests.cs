@@ -4964,5 +4964,141 @@ static class Goo
     }
 }");
         }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = new C();
+        c.P = 1;
+        var c2 = c;
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:new C().P = 1|};
+        var c2 = new C();
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning_IgnoreParentheses()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = (new C());
+        c.P = 1;
+        var c2 = c;
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:(new C()).P = 1|};
+        var c2 = (new C());
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning_MethodInvocation()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = M2();
+        c.P = 1;
+        var c2 = c;
+    }
+
+    C M2()
+    {
+        return new C();
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:M2().P = 1|};
+        var c2 = M2();
+    }
+
+    C M2()
+    {
+        return new C();
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning_MethodInvocation2()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = new C();
+        c.M2();
+        var c2 = c;
+    }
+
+    void M2()
+    {
+        P = 1;
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:new C().M2()|};
+        var c2 = new C();
+    }
+
+    void M2()
+    {
+        P = 1;
+    }
+}");
+        }
     }
 }
