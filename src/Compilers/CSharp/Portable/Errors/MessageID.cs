@@ -192,16 +192,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureMemberNotNull = MessageBase + 12768,
         IDS_FeatureNativeInt = MessageBase + 12769,
         IDS_FeatureTargetTypedObjectCreation = MessageBase + 12770,
-<<<<<<< HEAD
-        IDS_FeatureModuleInitializers = MessageBase + 12771,
-=======
         IDS_FeatureTypePattern = MessageBase + 12771,
         IDS_FeatureParenthesizedPattern = MessageBase + 12772,
         IDS_FeatureOrPattern = MessageBase + 12773,
         IDS_FeatureAndPattern = MessageBase + 12774,
         IDS_FeatureNotPattern = MessageBase + 12775,
         IDS_FeatureRelationalPattern = MessageBase + 12776,
->>>>>>> upstream/master
+        IDS_FeatureModuleInitializers = MessageBase + 12777,
     }
 
     // Message IDs may refer to strings that need to be localized.
