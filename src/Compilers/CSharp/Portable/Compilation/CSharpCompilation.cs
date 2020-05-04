@@ -2832,8 +2832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
 
-                // PROTOTYPE(module-initializers): require deterministic order
-                foreach (var method in _moduleInitializerMethods)
+                foreach (var method in _moduleInitializerMethods.OrderBy(m => m, LexicalOrderSymbolComparer.Instance))
                 {
                     ilBuilder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
 

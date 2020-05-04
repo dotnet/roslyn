@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -136,6 +137,195 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 expectedOutput: @"
 C.M
 Program.Main");
+        }
+
+        [Fact]
+        public void MultipleInitializers_SingleFile()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C1
+{
+    [ModuleInitializer]
+    internal static void M1() => Console.Write(1);
+
+    internal class C2
+    {
+        [ModuleInitializer]
+        internal static void M2() => Console.Write(2);
+    }
+
+    [ModuleInitializer]
+    internal static void M3() => Console.Write(3);
+}
+
+class Program 
+{
+    static void Main() => Console.Write(4);
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+
+            CompileAndVerify(
+                source,
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                    var staticConstructor = (PEMethodSymbol)rootModuleType.GetMember(".cctor");
+
+                    Assert.NotNull(staticConstructor);
+                    Assert.Equal(MethodKind.StaticConstructor, staticConstructor.MethodKind);
+
+                    var expectedFlags =
+                        MethodAttributes.Private
+                        | MethodAttributes.Static
+                        | MethodAttributes.SpecialName
+                        | MethodAttributes.RTSpecialName
+                        | MethodAttributes.HideBySig;
+
+                    Assert.Equal(expectedFlags, staticConstructor.Flags);
+                },
+                expectedOutput: "1234");
+        }
+
+        [Fact]
+        public void MultipleInitializers_DifferentContainingTypeKinds()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C1
+{
+    [ModuleInitializer]
+    internal static void M1() => Console.Write(1);
+}
+
+struct S1
+{
+    [ModuleInitializer]
+    internal static void M2() => Console.Write(2);
+}
+
+interface I1
+{
+    [ModuleInitializer]
+    internal static void M3() => Console.Write(3);
+}
+
+class Program 
+{
+    static void Main() => Console.Write(4);
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+
+            CompileAndVerify(
+                source,
+                parseOptions: s_parseOptions,
+                targetFramework: TargetFramework.NetStandardLatest,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                    var staticConstructor = (PEMethodSymbol)rootModuleType.GetMember(".cctor");
+
+                    Assert.NotNull(staticConstructor);
+                    Assert.Equal(MethodKind.StaticConstructor, staticConstructor.MethodKind);
+
+                    var expectedFlags =
+                        MethodAttributes.Private
+                        | MethodAttributes.Static
+                        | MethodAttributes.SpecialName
+                        | MethodAttributes.RTSpecialName
+                        | MethodAttributes.HideBySig;
+
+                    Assert.Equal(expectedFlags, staticConstructor.Flags);
+                },
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234");
+        }
+
+        [Fact]
+        public void MultipleInitializers_MultipleFiles()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C1
+{
+    [ModuleInitializer]
+    internal static void M1() => Console.Write(1);
+    [ModuleInitializer]
+    internal static void M2() => Console.Write(2);
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            string source2 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C2
+{
+    internal class C3
+    {
+        [ModuleInitializer]
+        internal static void M3() => Console.Write(3);
+    }
+
+    [ModuleInitializer]
+    internal static void M4() => Console.Write(4);
+}
+
+class Program 
+{
+    static void Main() => Console.Write(6);
+}
+";
+
+            string source3 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C4
+{
+    // shouldn't be called
+    internal static void M() => Console.Write(0);
+
+    [ModuleInitializer]
+    internal static void M5() => Console.Write(5);
+}
+";
+
+            CompileAndVerify(
+                new[] { source1, source2, source3 },
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                    var staticConstructor = (PEMethodSymbol)rootModuleType.GetMember(".cctor");
+
+                    Assert.NotNull(staticConstructor);
+                    Assert.Equal(MethodKind.StaticConstructor, staticConstructor.MethodKind);
+
+                    var expectedFlags =
+                        MethodAttributes.Private
+                        | MethodAttributes.Static
+                        | MethodAttributes.SpecialName
+                        | MethodAttributes.RTSpecialName
+                        | MethodAttributes.HideBySig;
+
+                    Assert.Equal(expectedFlags, staticConstructor.Flags);
+                },
+                expectedOutput: "123456");
         }
     }
 }
