@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 => _provider = provider;
 
             protected abstract TArgumentSyntax GenerateNewArgument(TArgumentSyntax oldArgument, ITypeSymbol conversionType);
-            protected abstract TArgumentListSyntax GenerateNewArgumentList(TArgumentListSyntax oldArgumentList, List<TArgumentSyntax> newArguments);
+            protected abstract TArgumentListSyntax GenerateNewArgumentList(TArgumentListSyntax oldArgumentList, ArrayBuilder<TArgumentSyntax> newArguments);
             protected abstract SeparatedSyntaxList<TArgumentSyntax> GetArgumentsOfArgumentList(TArgumentListSyntax argumentList);
             protected abstract SymbolInfo GetSpeculativeSymbolInfo(SemanticModel semanticModel, TArgumentListSyntax newArgumentList);
 
@@ -129,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     return false;
 
                 var arguments = GetArgumentsOfArgumentList(argumentList);
-                var newArguments = new List<TArgumentSyntax>();
+                using var _ = ArrayBuilder<TArgumentSyntax>.GetInstance(out var newArguments);
 
                 for (var i = 0; i < arguments.Count; i++)
                 {
@@ -192,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
                 return targetArgumentConversionType != null
                     && IsInvocationExpressionWithNewArgumentsApplicable(
-                        semanticModel, root, argumentList, newArguments, targetArgument, cancellationToken);
+                        semanticModel, root, argumentList, newArguments, targetArgument);
             }
 
             /// <summary>
@@ -208,9 +207,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             private bool IsInvocationExpressionWithNewArgumentsApplicable(SemanticModel semanticModel,
                 SyntaxNode root,
                 TArgumentListSyntax oldArgumentList,
-                List<TArgumentSyntax> newArguments,
-                SyntaxNode targetNode,
-                CancellationToken cancellationToken)
+                ArrayBuilder<TArgumentSyntax> newArguments,
+                SyntaxNode targetNode)
             {
                 var newRoot = root.ReplaceNode(oldArgumentList, GenerateNewArgumentList(oldArgumentList, newArguments));
                 if (newRoot.FindNode(targetNode.Span).GetAncestorOrThis<TArgumentListSyntax>() is TArgumentListSyntax newArgumentList)
