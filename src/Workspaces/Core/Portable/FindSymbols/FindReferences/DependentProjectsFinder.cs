@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly struct DefinitionProject : IEquatable<DefinitionProject>
         {
             private readonly ProjectId? _sourceProjectId;
-            private readonly string _assemblyName;
+            private readonly string? _assemblyName;
 
             public DefinitionProject(ProjectId? sourceProjectId, string assemblyName)
             {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                    _assemblyName == other._assemblyName;
 
             public override int GetHashCode()
-                => Hash.Combine(_sourceProjectId, _assemblyName.GetHashCode());
+                => Hash.Combine(_sourceProjectId, _assemblyName?.GetHashCode() ?? 0);
         }
 
         private readonly struct DependentProject : IEquatable<DependentProject>
