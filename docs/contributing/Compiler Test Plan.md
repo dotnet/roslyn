@@ -347,6 +347,12 @@ __makeref( x )
 - Declaration Pattern
 - Constant Pattern
 - Recursive Pattern
+- Parenthesized Pattern
+- `and` Pattern
+- `or` Pattern
+- `not` Pattern
+- Relational Pattern
+- Type Pattern
 
 ## Metadata table numbers / token prefixes 
  

@@ -2536,13 +2536,13 @@ If the RegexOptions parameter of a regular expression pattern matching method in
   <data name="Regex_no" xml:space="preserve">
     <value>no</value>
   </data>
-  <data name="Regex_nonbacktracking_subexpression_long" xml:space="preserve">
-    <value>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+  <data name="Regex_atomic_group_long" xml:space="preserve">
+    <value>Atomic groups (known in some other regular expression engines as a nonbacktracking subexpression, an atomic subexpression, or a once-only subexpression) disable backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
 
 This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</value>
   </data>
-  <data name="Regex_nonbacktracking_subexpression_short" xml:space="preserve">
-    <value>nonbacktracking subexpression</value>
+  <data name="Regex_atomic_group_short" xml:space="preserve">
+    <value>atomic group</value>
   </data>
   <data name="Regex_noncapturing_group_long" xml:space="preserve">
     <value>This construct does not capture the substring that is matched by a subexpression:

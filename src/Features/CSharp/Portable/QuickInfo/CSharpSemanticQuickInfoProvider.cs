@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             }
 
             var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
-            var bindableParent = syntaxFacts.GetBindableParent(token);
-            var symbolInfo = semanticModel.GetSymbolInfo(bindableParent, cancellationToken);
+            var bindableParent = syntaxFacts.TryGetBindableParent(token);
+            var symbolInfo = bindableParent != null ? semanticModel.GetSymbolInfo(bindableParent, cancellationToken) : default;
 
             if (symbolInfo.Symbol == null || string.IsNullOrEmpty(symbolInfo.Symbol.Name))
             {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                     return default;
             }
 
-            var typeInfo = semanticModel.GetTypeInfo(bindableParent, cancellationToken);
+            var typeInfo = bindableParent != null ? semanticModel.GetTypeInfo(bindableParent, cancellationToken) : default;
 
             // Nullability is a reference type only feature, value types can use
             // something like "int?"  to be nullable but that ends up encasing as

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    abstract class AbstractCrefCompletionProvider : LSPCompletionProvider
+    internal abstract class AbstractCrefCompletionProvider : LSPCompletionProvider
     {
         protected const string HideAdvancedMembers = nameof(HideAdvancedMembers);
 

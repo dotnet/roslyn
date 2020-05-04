@@ -10,7 +10,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Roslyn.VisualStudio.IntegrationTests.CSharp
+namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicSignatureHelp : AbstractEditorTest

@@ -100,12 +100,14 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool ContainsAssemblyOrModule(ISymbol assemblyOrModule)
+            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol)
             {
-                Debug.Assert(assemblyOrModule.Kind == SymbolKind.Assembly || assemblyOrModule.Kind == SymbolKind.NetModule);
+                Debug.Assert(symbol.Kind == SymbolKind.Assembly ||
+                             symbol.Kind == SymbolKind.NetModule ||
+                             symbol.Kind == SymbolKind.DynamicType);
                 var state = this.ReadState();
-                var assemblyAndModuleSet = state.AssemblyAndModuleSet;
-                return assemblyAndModuleSet != null && assemblyAndModuleSet.TryGetValue(assemblyOrModule, out _);
+                var unrootedSymbolSet = state.UnrootedSymbolSet;
+                return unrootedSymbolSet != null && unrootedSymbolSet.TryGetValue(symbol, out _);
             }
 
             /// <summary>
@@ -197,7 +199,7 @@ namespace Microsoft.CodeAnalysis
                         inProgressCompilation,
                         generatorDriver: new TrackedGeneratorDriver(null),
                         hasSuccessfullyLoaded: false,
-                        State.GetAssemblyAndModuleSet(inProgressCompilation)));
+                        State.GetUnrootedSymbols(inProgressCompilation)));
             }
 
             /// <summary>
@@ -720,7 +722,7 @@ namespace Microsoft.CodeAnalysis
                             compilationWithoutGeneratedFiles,
                             generatorDriver,
                             hasSuccessfullyLoaded,
-                            State.GetAssemblyAndModuleSet(compilation)),
+                            State.GetUnrootedSymbols(compilation)),
                         solution.Services);
 
                     return new CompilationInfo(compilation, hasSuccessfullyLoaded);
