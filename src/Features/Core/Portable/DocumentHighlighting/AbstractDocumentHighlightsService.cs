@@ -73,12 +73,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 return ImmutableArray<DocumentHighlights>.Empty;
             }
 
-            symbol = await GetSymbolToSearchAsync(document, position, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
-            if (symbol == null)
-            {
-                return ImmutableArray<DocumentHighlights>.Empty;
-            }
-
             // Get unique tags for referenced symbols
             return await GetTagsForReferencedSymbolAsync(
                 symbol, document, documentsToSearch, cancellationToken).ConfigureAwait(false);
