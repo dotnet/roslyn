@@ -100,13 +100,13 @@ namespace Microsoft.CodeAnalysis
 
         public static AnalyzerConfigSet Create<TList>(TList analyzerConfigs, out ImmutableArray<AnalyzerUnsetKey> unsetGlobalKeys) where TList : IReadOnlyCollection<AnalyzerConfig>
         {
-            var mergedConfigs = GlobalAnalyzerConfigBuilder.FilterGlobalConfigs(analyzerConfigs, out unsetGlobalKeys);
-
-            var sortedAnalyzerConfigs = ArrayBuilder<AnalyzerConfig>.GetInstance(mergedConfigs.Length);
-            sortedAnalyzerConfigs.AddRange(mergedConfigs);
+            var sortedAnalyzerConfigs = ArrayBuilder<AnalyzerConfig>.GetInstance(analyzerConfigs.Count);
+            sortedAnalyzerConfigs.AddRange(analyzerConfigs);
             sortedAnalyzerConfigs.Sort(AnalyzerConfig.DirectoryLengthComparer);
 
-            return new AnalyzerConfigSet(sortedAnalyzerConfigs.ToImmutableAndFree());
+            var mergedConfigs = GlobalAnalyzerConfigBuilder.FilterGlobalConfigs(sortedAnalyzerConfigs.ToImmutableAndFree(), out unsetGlobalKeys);
+
+            return new AnalyzerConfigSet(mergedConfigs);
         }
 
         private AnalyzerConfigSet(ImmutableArray<AnalyzerConfig> analyzerConfigs)
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var globalConfig = globalAnalyzerConfigBuilder.Build(out unsetAnalyzerKeys);
-            filteredConfigs.Add(globalConfig);
+            filteredConfigs.Insert(0, globalConfig);
             return filteredConfigs.ToImmutableAndFree();
 
             bool containsGlobalConfigs()

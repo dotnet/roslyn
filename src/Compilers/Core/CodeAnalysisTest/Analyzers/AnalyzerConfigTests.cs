@@ -1870,6 +1870,104 @@ option1 = value1
                 options);
         }
 
+        [Fact]
+        public void GlobalConfigCanSetSeverity()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+dotnet_diagnostic.cs000.severity = none
+dotnet_diagnostic.cs001.severity = error
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress),
+                                                   ("cs001", ReportDiagnostic.Error)),
+                         options[0].TreeOptions);
+        }
+
+        [Fact]
+        public void GlobalConfigCanSetSeverityInSection()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+
+[c:/path/to/file.cs]
+dotnet_diagnostic.cs000.severity = error
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "c:/path/to/file.cs" },
+                configs);
+            configs.Free();
+
+
+            Assert.Equal(new[] {
+                SyntaxTree.EmptyDiagnosticOptions,
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error))
+            }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+
+        [Fact]
+        public void GlobalConfigCanSeverityInSectionOverridesGlobal()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+dotnet_diagnostic.cs000.severity = none
+
+[c:/path/to/file.cs]
+dotnet_diagnostic.cs000.severity = error
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "c:/path/to/file.cs" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
+                options[0].TreeOptions);
+        }
+
+
+        [Fact]
+        public void GlobalConfigSeverityIsOverridenByEditorConfig()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+dotnet_diagnostic.cs000.severity = error
+", "/.globalconfig"));
+
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = none
+", "/.editorconfig"));
+
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = warning
+", "/path/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/path/file.cs" },
+                configs);
+            configs.Free();
+
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Warn))
+            }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
         #endregion
     }
 }
