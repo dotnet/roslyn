@@ -880,13 +880,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the ref kind is mismatched
                             }
-                            else if (!IsValidOverrideReturnType(overridingProperty, overridingMemberType, overriddenMemberType, diagnostics))
+                            else if (overridingProperty.SetMethod is null ?
+                                !IsValidOverrideReturnType(overridingProperty, overridingMemberType, overriddenMemberType, diagnostics) :
+                                !overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                             {
                                 // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
                                 if (!isOrContainsErrorType(overridingMemberType.Type))
                                 {
-                                    diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.Type);
+                                    // If the type would be a valid covariant return, suggest using covariant return feature.
+                                    HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
+                                    if (overridingProperty.SetMethod is null &&
+                                        DeclaringCompilation.Conversions.HasIdentityOrImplicitReferenceConversion(overridingMemberType.Type, overriddenMemberType.Type, ref discardedUseSiteDiagnostics))
+                                    {
+                                        var diagnosticInfo = MessageID.IDS_FeatureCovariantReturnsForOverrides.GetFeatureAvailabilityDiagnosticInfo(this.DeclaringCompilation);
+                                        Debug.Assert(diagnosticInfo is { });
+                                        diagnostics.Add(diagnosticInfo, overridingMemberLocation);
+                                    }
+                                    else
+                                    {
+                                        // error CS1715: 'Derived.M': type must be 'object' to match overridden member 'Base.M'
+                                        diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.Type);
+                                        // PROTOTYPE(covariant-returns): when overriddenMemberType.Type is an inheritable reference type and the covariant return
+                                        // feature is enabled, and the platform supports it, and there is no setter, we can say it has to be 'object' **or a derived type**.
+                                        // That would probably be a new error code.
+                                    }
                                 }
+
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                             }
                             else
