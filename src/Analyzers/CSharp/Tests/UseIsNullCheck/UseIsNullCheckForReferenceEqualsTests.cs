@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestIdentifierName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -52,7 +52,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestBuiltInType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -78,7 +78,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestNamedType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -104,7 +104,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestReversed()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -130,7 +130,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestNegated_CSharp7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -150,7 +150,7 @@ class C
         if (s is object)
             return;
     }
-}", parseOptions: CSharp7);
+}", new TestParameters(parseOptions: CSharp7));
         }
 
 #if !CODE_STYLE
@@ -159,7 +159,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestNegated_CSharp9()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -179,7 +179,7 @@ class C
         if (s is not null)
             return;
     }
-}", parseOptions: CSharp9);
+}", new TestParameters(parseOptions: CSharp9));
         }
 
 #endif
@@ -203,7 +203,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestFixAll1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -231,7 +231,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestFixAll2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -260,7 +260,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestValueParameterTypeIsUnconstrainedGeneric()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -289,7 +289,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestValueParameterTypeIsUnconstrainedGenericNegated_CSharp7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -312,7 +312,7 @@ class C
         }
     }
 }
-", parseOptions: CSharp7);
+", new TestParameters(parseOptions: CSharp7));
         }
 
 #if !CODE_STYLE
@@ -320,7 +320,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestValueParameterTypeIsUnconstrainedGenericNegated_CSharp9()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -343,7 +343,7 @@ class C
         }
     }
 }
-", parseOptions: CSharp9);
+", new TestParameters(parseOptions: CSharp9));
         }
 
 #endif
@@ -352,7 +352,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestValueParameterTypeIsRefConstraintGeneric()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -382,7 +382,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestValueParameterTypeIsRefConstraintGenericNegated_CSharp7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -406,7 +406,7 @@ class C
         }
     }
 }
-", parseOptions: CSharp7);
+", new TestParameters(parseOptions: CSharp7));
         }
 
 #if !CODE_STYLE
@@ -414,7 +414,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestValueParameterTypeIsRefConstraintGenericNegated_CSharp9()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -438,7 +438,7 @@ class C
         }
     }
 }
-", parseOptions: CSharp9);
+", new TestParameters(parseOptions: CSharp9));
         }
 
 #endif
@@ -483,7 +483,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestFixAllNested1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
