@@ -153,6 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation) &&
                objectCreation.Type == node;
 
+        public bool IsDeclarationExpression(SyntaxNode node)
+            => node is DeclarationExpressionSyntax;
+
         public bool IsAttributeName(SyntaxNode node)
             => SyntaxFacts.IsAttributeName(node);
 
