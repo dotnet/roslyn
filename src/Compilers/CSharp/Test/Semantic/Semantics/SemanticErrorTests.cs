@@ -14388,9 +14388,9 @@ public class MyCollection
     }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (45,27): warning CS0279: 'MyCollection' does not implement the 'collection' pattern. 'MyCollection.GetEnumerator()' is not an accessible instance or extension method.
+                // (45,27): warning CS0279: 'MyCollection' does not implement the 'collection' pattern. 'MyCollection.GetEnumerator()' is not a public instance or extension method.
                 //         foreach (int i in col)   // CS1579
-                Diagnostic(ErrorCode.WRN_PatternInaccessibleOrNotInstance, "col").WithArguments("MyCollection", "collection", "MyCollection.GetEnumerator()"),
+                Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "col").WithArguments("MyCollection", "collection", "MyCollection.GetEnumerator()"),
                 // (45,27): error CS1579: foreach statement cannot operate on variables of type 'MyCollection' because 'MyCollection' does not contain a public definition for 'GetEnumerator'
                 //         foreach (int i in col)   // CS1579
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "col").WithArguments("MyCollection", "GetEnumerator"));
@@ -19470,8 +19470,8 @@ public class myTest : IEnumerable
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (18,27): warning CS0279: 'myTest' does not implement the 'collection' pattern. 'myTest.GetEnumerator()' is not an accessible instance or extension method.
-                Diagnostic(ErrorCode.WRN_PatternInaccessibleOrNotInstance, "new myTest()").WithArguments("myTest", "collection", "myTest.GetEnumerator()"));
+                // (18,27): warning CS0279: 'myTest' does not implement the 'collection' pattern. 'myTest.GetEnumerator()' is not a public instance or extension method.
+                Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "new myTest()").WithArguments("myTest", "collection", "myTest.GetEnumerator()"));
         }
 
         [Fact]

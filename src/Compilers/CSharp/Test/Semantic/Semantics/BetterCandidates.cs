@@ -221,9 +221,9 @@ class MyEnumerator : System.Collections.IEnumerator
 }
 ";
             CreateCompilationWithoutBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (6,27): warning CS0279: 'MyCollection' does not implement the 'collection' pattern. 'MyCollection.GetEnumerator()' is not an accessible instance or extension method.
+                // (6,27): warning CS0279: 'MyCollection' does not implement the 'collection' pattern. 'MyCollection.GetEnumerator()' is not a public instance or extension method.
                 //         foreach (var q in c) { }
-                Diagnostic(ErrorCode.WRN_PatternInaccessibleOrNotInstance, "c").WithArguments("MyCollection", "collection", "MyCollection.GetEnumerator()").WithLocation(6, 27)
+                Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "c").WithArguments("MyCollection", "collection", "MyCollection.GetEnumerator()").WithLocation(6, 27)
                 );
             var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "12");

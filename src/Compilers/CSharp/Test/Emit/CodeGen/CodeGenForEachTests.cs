@@ -3485,9 +3485,9 @@ public static class Extensions
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (7,27): warning CS0279: 'C' does not implement the 'collection' pattern. 'Extensions.GetEnumerator(C)' is not an accessible instance or extension method.
+                    // (7,27): warning CS0279: 'C' does not implement the 'collection' pattern. 'Extensions.GetEnumerator(C)' is not a public instance or extension method.
                     //         foreach (var i in new C())
-                    Diagnostic(ErrorCode.WRN_PatternInaccessibleOrNotInstance, "new C()").WithArguments("C", "collection", "Extensions.GetEnumerator(C)").WithLocation(7, 27),
+                    Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "new C()").WithArguments("C", "collection", "Extensions.GetEnumerator(C)").WithLocation(7, 27),
                     // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
                     //         foreach (var i in new C())
                     Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27)
@@ -4046,9 +4046,9 @@ public class C
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (8,27): warning CS0279: 'C' does not implement the 'collection' pattern. 'Program.GetEnumerator(C)' is not an accessible instance or extension method.
+                    // (8,27): warning CS0279: 'C' does not implement the 'collection' pattern. 'Program.GetEnumerator(C)' is not a public instance or extension method.
                     //         foreach (var i in new C())
-                    Diagnostic(ErrorCode.WRN_PatternInaccessibleOrNotInstance, "new C()").WithArguments("C", "collection", "Program.GetEnumerator(C)").WithLocation(8, 27),
+                    Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "new C()").WithArguments("C", "collection", "Program.GetEnumerator(C)").WithLocation(8, 27),
                     // (8,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
                     //         foreach (var i in new C())
                     Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(8, 27)
@@ -4087,9 +4087,9 @@ public class C
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (10,31): warning CS0279: 'C' does not implement the 'collection' pattern. 'Program.GetEnumerator(C)' is not an accessible instance or extension method.
+                    // (10,31): warning CS0279: 'C' does not implement the 'collection' pattern. 'Program.GetEnumerator(C)' is not a public instance or extension method.
                     //             foreach (var i in new C())
-                    Diagnostic(ErrorCode.WRN_PatternInaccessibleOrNotInstance, "new C()").WithArguments("C", "collection", "Program.GetEnumerator(C)").WithLocation(10, 31),
+                    Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "new C()").WithArguments("C", "collection", "Program.GetEnumerator(C)").WithLocation(10, 31),
                     // (10,31): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
                     //             foreach (var i in new C())
                     Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(10, 31)

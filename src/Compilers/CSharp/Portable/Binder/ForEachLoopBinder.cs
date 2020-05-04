@@ -1117,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (warningsOnly)
                     {
                         MessageID patternName = isAsync ? MessageID.IDS_FeatureAsyncStreams : MessageID.IDS_Collection;
-                        diagnostics.Add(ErrorCode.WRN_PatternInaccessibleOrNotInstance, _syntax.Expression.Location, patternType, patternName.Localize(), result);
+                        diagnostics.Add(ErrorCode.WRN_PatternNotPublicOrNotInstance, _syntax.Expression.Location, patternType, patternName.Localize(), result);
                     }
                     result = null;
                 }
