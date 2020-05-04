@@ -252,6 +252,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public TServiceInterface GetService<TServiceInterface>()
             => ExportProvider.GetExportedValue<TServiceInterface>();
 
+        public TServiceInterface GetService<TServiceInterface>(string contentType)
+        {
+            var values = ExportProvider.GetExports<TServiceInterface, ContentTypeMetadata>();
+            return values.Single(value => value.Metadata.ContentTypes.Contains(contentType)).Value;
+        }
+
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
             switch (feature)
