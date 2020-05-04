@@ -2469,7 +2469,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived"));
 
             var expect_1 =
     @"
@@ -2488,7 +2488,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived2"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived2"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
@@ -2533,7 +2533,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived"));
 
             var expect_1 =
     @"
@@ -2552,7 +2552,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived2"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived2"));
 
         }
 
@@ -2685,7 +2685,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived"));
 
             var expect_1 =
     @"
@@ -2707,7 +2707,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived2"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived2"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
@@ -2763,7 +2763,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "string"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "string"));
 
             var expect_1 =
 @"
@@ -2788,7 +2788,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived"));
 
             var expect_2 =
 @"
@@ -2813,7 +2813,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_2, index: 2,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived2"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived2"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]

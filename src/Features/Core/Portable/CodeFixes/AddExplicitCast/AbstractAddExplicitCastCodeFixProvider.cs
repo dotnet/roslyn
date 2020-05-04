@@ -33,14 +33,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         protected abstract ISyntaxFacts SyntaxFacts { get; }
-
-        /// <summary>
-        /// Given targetNode and conversionType, generate sub item name like "Cast to 'conversionType'"
-        /// </summary>
-        protected abstract string GetSubItemName(
-            CodeFixContext context, SemanticModel semanticModel,
-            SyntaxNode targetNode, ITypeSymbol conversionType);
-
         protected abstract SyntaxNode ApplyFix(SyntaxNode currentRoot, TExpressionSyntax targetNode, ITypeSymbol conversionType);
         protected abstract CommonConversion ClassifyConversion(SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
 
@@ -103,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 var targetNode = potentialConversionTypes[i].node;
                 var conversionType = potentialConversionTypes[i].type;
                 actions.Add(new MyCodeAction(
-                    GetSubItemName(context, semanticModel, targetNode, conversionType),
+                    GetSubItemName(semanticModel, targetNode.SpanStart, conversionType),
                     _ => Task.FromResult(document.WithSyntaxRoot(ApplyFix(root, targetNode, conversionType)))));
             }
 
@@ -113,6 +105,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 FeaturesResources.Add_explicit_cast,
                 actions.ToImmutable(), isInlinable: false),
                 context.Diagnostics);
+        }
+
+        private string GetSubItemName(SemanticModel semanticModel, int position, ITypeSymbol conversionType)
+        {
+            return string.Format(
+                FeaturesResources.Convert_type_to_0,
+                conversionType.ToMinimalDisplayString(semanticModel, position));
         }
 
         private static void ReportTelemetryIfNecessary(ImmutableArray<(TExpressionSyntax node, ITypeSymbol type)> potentialConversionTypes)

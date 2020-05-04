@@ -39,13 +39,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30512, BC42016, BC30518, BC30519)
 
-        Protected Overrides Function GetSubItemName(context As CodeFixContext, semanticModel As SemanticModel,
-                targetNode As SyntaxNode, conversionType As ITypeSymbol) As String
-            Return String.Format(
-                VBFeaturesResources.Cast_0_to_1, targetNode.GetText(),
-                conversionType.ToMinimalDisplayString(semanticModel, context.Span.Start))
-        End Function
-
         Protected Overrides Function ApplyFix(currentRoot As SyntaxNode, targetNode As ExpressionSyntax,
                 conversionType As ITypeSymbol) As SyntaxNode
             ' TODO:

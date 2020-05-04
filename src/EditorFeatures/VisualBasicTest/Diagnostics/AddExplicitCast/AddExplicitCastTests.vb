@@ -2675,10 +2675,10 @@ Class Program
     End Class
 End Class"
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived"), index:=0,
-                title:=String.Format(VBFeaturesResources.Cast_0_to_1, "b", "Derived"))
+                title:=String.Format(FeaturesResources.Convert_type_to_0, "Derived"))
 
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived2"), index:=1,
-                title:=String.Format(VBFeaturesResources.Cast_0_to_1, "b", "Derived2"))
+                title:=String.Format(FeaturesResources.Convert_type_to_0, "Derived2"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
@@ -2741,10 +2741,10 @@ Class Program
     End Class
 End Class"
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived"), index:=0,
-                title:=String.Format(VBFeaturesResources.Cast_0_to_1, "b", "Derived"))
+                title:=String.Format(FeaturesResources.Convert_type_to_0, "Derived"))
 
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived2"), index:=1,
-                title:=String.Format(VBFeaturesResources.Cast_0_to_1, "b", "Derived2"))
+                title:=String.Format(FeaturesResources.Convert_type_to_0, "Derived2"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
@@ -2936,13 +2936,13 @@ Class Program
 End Class"
 
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "String"), index:=0,
-                title:=String.Format(VBFeaturesResources.Cast_0_to_1, "b", "String"))
+                title:=String.Format(FeaturesResources.Convert_type_to_0, "String"))
 
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived"), index:=1,
-                title:=String.Format(VBFeaturesResources.Cast_0_to_1, "b", "Derived"))
+                title:=String.Format(FeaturesResources.Convert_type_to_0, "Derived"))
 
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived2"), index:=2,
-                title:=String.Format(VBFeaturesResources.Cast_0_to_1, "b", "Derived2"))
+                title:=String.Format(FeaturesResources.Convert_type_to_0, "Derived2"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>

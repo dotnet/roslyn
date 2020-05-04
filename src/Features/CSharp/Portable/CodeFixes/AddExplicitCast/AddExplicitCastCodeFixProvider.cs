@@ -51,14 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
 
-        protected override string GetSubItemName(CodeFixContext context, SemanticModel semanticModel,
-            SyntaxNode targetNode, ITypeSymbol conversionType)
-        {
-            return string.Format(
-                CSharpFeaturesResources.Convert_type_to_0,
-                conversionType.ToMinimalDisplayString(semanticModel, context.Span.Start));
-        }
-
         protected override SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode,
             ITypeSymbol conversionType)
         {
