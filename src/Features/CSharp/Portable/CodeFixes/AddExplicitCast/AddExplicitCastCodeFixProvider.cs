@@ -103,8 +103,5 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         protected override CommonConversion ClassifyConversion(SemanticModel semanticModel, ExpressionSyntax expression, ITypeSymbol type)
             => semanticModel.ClassifyConversion(expression, type).ToCommonConversion();
-
-        //protected override SymbolInfo GetSpeculativeAttributeSymbolInfo(SemanticModel semanticModel, int position, AttributeSyntax attribute)
-        //    => semanticModel.GetSpeculativeSymbolInfo(position, attribute);
     }
 }
