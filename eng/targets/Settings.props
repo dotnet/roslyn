@@ -17,7 +17,6 @@
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
     <RoslynPortableTargetFrameworks>netcoreapp3.1;net472</RoslynPortableTargetFrameworks>
-    <RoslynLibraryTargetFrameworks>netcoreapp3.1;netstandard2.0</RoslynLibraryTargetFrameworks>
     <RoslynCheckCodeStyle Condition="'$(ContinuousIntegrationBuild)' != 'true' or '$(RoslynEnforceCodeStyle)' == 'true'">true</RoslynCheckCodeStyle>
     <UseSharedCompilation>true</UseSharedCompilation>
 

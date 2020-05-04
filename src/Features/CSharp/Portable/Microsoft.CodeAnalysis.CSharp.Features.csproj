@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
-    <TargetFrameworks>$(RoslynLibraryTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <ApplyNgenOptimization>partial</ApplyNgenOptimization>
 
     <!-- NuGet -->
