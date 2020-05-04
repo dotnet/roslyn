@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static MetadataId GetMetadataIdNoThrow(PortableExecutableReference reference)
+        public static MetadataId GetMetadataIdNoThrow(PortableExecutableReference reference)
         {
             try
             {

@@ -27,9 +27,6 @@ namespace Microsoft.CodeAnalysis.Rename
             if (symbol == null)
                 throw new ArgumentNullException(nameof(symbol));
 
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
-
             if (string.IsNullOrEmpty(newName))
                 throw new ArgumentException(nameof(newName));
 
@@ -117,33 +114,34 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             Contract.ThrowIfNull(solution);
             Contract.ThrowIfNull(symbol);
-            Contract.ThrowIfNull(solution.GetOriginatingProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
             Contract.ThrowIfTrue(string.IsNullOrEmpty(newName));
 
             cancellationToken.ThrowIfCancellationRequested();
 
             using (Logger.LogBlock(FunctionId.Renamer_RenameSymbolAsync, cancellationToken))
             {
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
+                var project = solution.GetOriginatingProject(symbol);
+                if (project != null)
                 {
-                    var result = await client.TryRunRemoteAsync<SerializableConflictResolution>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
-                        nameof(IRemoteRenamer.RenameSymbolAsync),
-                        solution,
-                        new object[]
-                        {
-                            SerializableSymbolAndProjectId.Dehydrate(solution, symbol, cancellationToken),
-                            newName,
-                            SerializableRenameOptionSet.Dehydrate(optionSet),
-                            nonConflictSymbols?.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
-                        },
-                        callbackTarget: null,
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (result.HasValue)
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                    if (client != null)
                     {
-                        return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                        var result = await client.TryRunRemoteAsync<SerializableConflictResolution>(
+                            WellKnownServiceHubServices.CodeAnalysisService,
+                            nameof(IRemoteRenamer.RenameSymbolAsync),
+                            solution,
+                            new object[]
+                            {
+                                SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken),
+                                newName,
+                                SerializableRenameOptionSet.Dehydrate(optionSet),
+                                nonConflictSymbols?.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
+                            },
+                            callbackTarget: null,
+                            cancellationToken).ConfigureAwait(false);
+
+                        if (result.HasValue)
+                            return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -163,7 +161,6 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             Contract.ThrowIfNull(solution);
             Contract.ThrowIfNull(symbol);
-            Contract.ThrowIfNull(solution.GetOriginatingProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
             Contract.ThrowIfTrue(string.IsNullOrEmpty(newName));
 
             cancellationToken.ThrowIfCancellationRequested();

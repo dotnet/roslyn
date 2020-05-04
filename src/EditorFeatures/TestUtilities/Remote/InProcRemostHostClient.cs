@@ -31,7 +31,7 @@ namespace Roslyn.Test.Utilities.Remote
         {
             var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
-            var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService).ConfigureAwait(false);
+            var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.RemoteHostService).ConfigureAwait(false);
 
             var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
             var instance = new InProcRemoteHostClient(current, workspace, inprocServices, remoteHostStream);
@@ -98,7 +98,7 @@ namespace Roslyn.Test.Utilities.Remote
         public override string ClientId { get; }
         public override bool IsRemoteHost64Bit => IntPtr.Size == 8;
 
-        public override async Task<Connection?> TryCreateConnectionAsync(
+        protected override async Task<Connection?> TryCreateConnectionAsync(
             string serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate service specific information 
@@ -106,10 +106,6 @@ namespace Roslyn.Test.Utilities.Remote
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName).ConfigureAwait(false);
 
             return new JsonRpcConnection(Workspace, _inprocServices.Logger, callbackTarget, serviceStream);
-        }
-
-        protected override void OnStarted()
-        {
         }
 
         public override void Dispose()
@@ -165,7 +161,7 @@ namespace Roslyn.Test.Utilities.Remote
                 _serviceProvider = new ServiceProvider(runCacheCleanup);
                 _creatorMap = new Dictionary<string, Func<Stream, IServiceProvider, ServiceBase>>();
 
-                RegisterService(WellKnownRemoteHostServices.RemoteHostService, (s, p) => new RemoteHostService(s, p));
+                RegisterService(WellKnownServiceHubServices.RemoteHostService, (s, p) => new RemoteHostService(s, p));
                 RegisterService(WellKnownServiceHubServices.CodeAnalysisService, (s, p) => new CodeAnalysisService(s, p));
                 RegisterService(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, (s, p) => new RemoteSymbolSearchUpdateEngine(s, p));
                 RegisterService(WellKnownServiceHubServices.RemoteDesignerAttributeService, (s, p) => new RemoteDesignerAttributeService(s, p));
