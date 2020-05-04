@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsMemberAttributeContext(SyntaxKindSet.ClassInterfaceStructTypeDeclarations, cancellationToken) ||
-                (context.SyntaxTree.IsScript() && context.IsTypeAttributeContext(cancellationToken));
+                (context.SyntaxTree.IsScript() && context.IsTypeAttributeContext(cancellationToken)) ||
+                context.IsStatementAttributeContext();
         }
     }
 }

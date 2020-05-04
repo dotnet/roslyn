@@ -313,6 +313,44 @@ class C
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "_ro").WithLocation(15, 47));
         }
 
+        [Fact, WorkItem(42259, "https://github.com/dotnet/roslyn/issues/42259")]
+        public void RefReturnLocalFunction()
+        {
+            var source = @"
+#pragma warning disable CS8321
+class C {
+    static void M(){
+        ref int M1(in int i) => ref i;
+        ref int M2(in int i) { return ref i; }
+        ref readonly int M3(in int i) => ref i;
+        ref readonly int M4(in int i) { return ref i; }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,37): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                //         ref int M1(in int i) => ref i;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(5, 37),
+                // (6,43): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                //         ref int M2(in int i) { return ref i; }
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(6, 43)
+            );
+        }
+
+        [Fact, WorkItem(42259, "https://github.com/dotnet/roslyn/issues/42259")]
+        public void RefReadonlyReturnLocalFunction()
+        {
+            var source = @"
+#pragma warning disable CS8321
+class C {
+    ref int M(){
+        throw new System.Exception();
+        ref readonly int M1(in int i) => ref i;
+        ref readonly int M2(in int i) { return ref i; }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
         [Fact]
         public void ReadonlyFieldRefReassign()
         {

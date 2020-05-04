@@ -91,6 +91,7 @@ Invocation of methods annotated with the following attributes will also affect f
 - conditional post-conditions: `[MaybeNullWhen(bool)]` and `[NotNullWhen(bool)]`
 - `[DoesNotReturnIf(bool)]` (e.g. `[DoesNotReturnIf(false)]` for `Debug.Assert`) and `[DoesNotReturn]`
 - `[NotNullIfNotNull(string)]`
+ - member post-conditions: `[MemberNotNull(params string[])]` and `[MemberNotNullWhen(bool, params string[])]`
 See https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md
 
 The `Interlocked.CompareExchange` methods have special handling in flow analysis instead of being annotated due to the complexity of their nullability semantics. The affected overloads include:
@@ -117,6 +118,7 @@ In addition to checking the types in overrides/implementations are compatible wi
 - For `ref` parameters and return values, we check both.
 - We check that the post-condition contract `[NotNull]`/`[MaybeNull]` on input parameters is enforced by overriding/implementing members.
 - We check that overrides/implementations have the `[DoesNotReturn]` attribute if the overridden/implemented member has it.
+- We check that members used in `[MemberNotNull(...)]` or `[MemberNotNullWhen(...)]` are not null upon exit, by assuming they had maybe-null state on entry.
 
 ## `default`
 If `T` is a reference type, `default(T)` is `T?`.

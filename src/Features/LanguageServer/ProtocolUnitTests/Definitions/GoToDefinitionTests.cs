@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = {|caret:|}aString.Length;
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunGotoDefinitionAsync(solution, locations["caret"].Single());
+            var results = await RunGotoDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
             AssertLocationsEqual(locations["definition"], results);
         }
 
@@ -51,9 +51,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
     }
 }"
             };
-            var (solution, locations) = CreateTestSolution(markups);
 
-            var results = await RunGotoDefinitionAsync(solution, locations["caret"].Single());
+            using var workspace = CreateTestWorkspace(markups, out var locations);
+
+            var results = await RunGotoDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
             AssertLocationsEqual(locations["definition"], results);
         }
 
@@ -68,9 +69,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = aString.Length;
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunGotoDefinitionAsync(solution, locations["caret"].Single());
+            var results = await RunGotoDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
             Assert.Empty(results);
         }
 

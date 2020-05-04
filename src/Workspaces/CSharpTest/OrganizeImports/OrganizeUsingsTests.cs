@@ -37,9 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task EmptyFile()
-        {
-            await CheckAsync(string.Empty, string.Empty);
-        }
+            => await CheckAsync(string.Empty, string.Empty);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task SingleUsingStatement()

@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             _outputHelper = outputHelper
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameOverrideMemberFromDerivedClass()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameOverrideMemberFromDerivedClass(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
@@ -38,14 +38,14 @@ namespace ClassLibrary2
 }
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="A")
+                    </Workspace>, host:=host, renameTo:="A")
 
             End Using
         End Sub
 
         <WorkItem(25682, "https://github.com/dotnet/roslyn/issues/25682")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameOverrideMemberFromDerivedClassWhenMemberIsPrivate()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameOverrideMemberFromDerivedClassWhenMemberIsPrivate(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
@@ -71,13 +71,13 @@ namespace ClassLibrary2
 }
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="A")
+                    </Workspace>, host:=host, renameTo:="A")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameOverrideMemberFromDerivedClass_abstract_virtual()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameOverrideMemberFromDerivedClass_abstract_virtual(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
@@ -103,13 +103,13 @@ namespace ClassLibrary2
 }
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="A")
+                    </Workspace>, host:=host, renameTo:="A")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameOverrideMemberFromDerivedClass_abstract_override()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameOverrideMemberFromDerivedClass_abstract_override(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
@@ -135,7 +135,7 @@ namespace ClassLibrary2
 }
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="A")
+                    </Workspace>, host:=host, renameTo:="A")
 
             End Using
         End Sub

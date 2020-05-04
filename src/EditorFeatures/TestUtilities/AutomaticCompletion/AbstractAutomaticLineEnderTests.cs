@@ -65,13 +65,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
         }
 
         public T GetService<T>(TestWorkspace workspace)
-        {
-            return workspace.GetService<T>();
-        }
+            => workspace.GetService<T>();
 
         public T GetExportedValue<T>(TestWorkspace workspace)
-        {
-            return workspace.ExportProvider.GetExportedValue<T>();
-        }
+            => workspace.ExportProvider.GetExportedValue<T>();
     }
 }

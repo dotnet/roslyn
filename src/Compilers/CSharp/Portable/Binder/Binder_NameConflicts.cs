@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+#nullable enable
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowShadowingNames,
             DiagnosticBag diagnostics)
         {
-            PooledHashSet<string> tpNames = null;
+            PooledHashSet<string>? tpNames = null;
             if (!typeParameters.IsDefaultOrEmpty)
             {
                 tpNames = PooledHashSet<string>.GetInstance();
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            PooledHashSet<string> pNames = null;
+            PooledHashSet<string>? pNames = null;
             if (!parameters.IsDefaultOrEmpty)
             {
                 pNames = PooledHashSet<string>.GetInstance();
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Don't call this one directly - call one of the helpers.
         /// </remarks>
-        private bool ValidateNameConflictsInScope(Symbol symbol, Location location, string name, DiagnosticBag diagnostics)
+        private bool ValidateNameConflictsInScope(Symbol? symbol, Location location, string name, DiagnosticBag diagnostics)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool allowShadowing = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions);
 
-            for (Binder binder = this; binder != null; binder = binder.Next)
+            for (Binder? binder = this; binder != null; binder = binder.Next)
             {
                 // no local scopes enclose members
                 if (binder is InContainerBinder)

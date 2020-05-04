@@ -292,9 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private void ClassifyXmlText(XmlTextSyntax node)
-        {
-            ClassifyXmlTextTokens(node.TextTokens);
-        }
+            => ClassifyXmlTextTokens(node.TextTokens);
 
         private void ClassifyXmlComment(XmlCommentSyntax node)
         {

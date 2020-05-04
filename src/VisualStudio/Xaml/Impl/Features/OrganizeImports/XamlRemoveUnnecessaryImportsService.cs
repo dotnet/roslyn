@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.OrganizeImports
         private readonly IXamlRemoveUnnecessaryNamespacesService _removeService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlRemoveUnnecessaryImportsService(IXamlRemoveUnnecessaryNamespacesService removeService)
         {
             _removeService = removeService;

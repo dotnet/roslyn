@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
             }
 
             public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterSyntaxNodeAction<SyntaxKind>(AnalyzeNode, SyntaxKind.IdentifierName);
-            }
+                => context.RegisterSyntaxNodeAction<SyntaxKind>(AnalyzeNode, SyntaxKind.IdentifierName);
 
             private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
@@ -87,9 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
             }
 
             public override FixAllProvider GetFixAllProvider()
-            {
-                return WellKnownFixAllProviders.BatchFixer;
-            }
+                => WellKnownFixAllProviders.BatchFixer;
         }
 
         #region "Fix all occurrences tests"

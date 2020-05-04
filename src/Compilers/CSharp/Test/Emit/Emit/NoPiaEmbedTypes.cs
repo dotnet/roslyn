@@ -2056,10 +2056,10 @@ class UsePia
 
 
             DiagnosticDescription[] expected = {
-                // (10,27): error CS1729: 'ITest28' does not contain a constructor that takes 1 arguments
+                // (10,20): error CS1729: 'ITest28' does not contain a constructor that takes 1 arguments
                 //         return new ITest28(1);
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(1)").WithArguments("ITest28", "1")
-                                               };
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "ITest28").WithArguments("ITest28", "1").WithLocation(10, 20)
+            };
 
             var compilation = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });

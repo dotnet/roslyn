@@ -187,6 +187,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureSwitchExpression = MessageBase + 12763,
         IDS_FeatureAsyncUsing = MessageBase + 12764,
         IDS_FeatureLambdaDiscardParameters = MessageBase + 12765,
+        IDS_FeatureLocalFunctionAttributes = MessageBase + 12766,
+        IDS_FeatureExternLocalFunctions = MessageBase + 12767,
+        IDS_FeatureMemberNotNull = MessageBase + 12768,
+        IDS_FeatureNativeInt = MessageBase + 12769,
+        IDS_FeatureTargetTypedObjectCreation = MessageBase + 12770,
+        IDS_FeatureTypePattern = MessageBase + 12771,
+        IDS_FeatureParenthesizedPattern = MessageBase + 12772,
+        IDS_FeatureOrPattern = MessageBase + 12773,
+        IDS_FeatureAndPattern = MessageBase + 12774,
+        IDS_FeatureNotPattern = MessageBase + 12775,
+        IDS_FeatureRelationalPattern = MessageBase + 12776,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -293,8 +304,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
-                // Preview features.
+                // C# preview features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
+                case MessageID.IDS_FeatureLocalFunctionAttributes: // syntax check
+                case MessageID.IDS_FeatureExternLocalFunctions: // syntax check
+                case MessageID.IDS_FeatureTargetTypedObjectCreation: // syntax check
+                case MessageID.IDS_FeatureMemberNotNull:
+                case MessageID.IDS_FeatureAndPattern:
+                case MessageID.IDS_FeatureNotPattern:
+                case MessageID.IDS_FeatureOrPattern:
+                case MessageID.IDS_FeatureParenthesizedPattern:
+                case MessageID.IDS_FeatureTypePattern:
+                case MessageID.IDS_FeatureRelationalPattern:
+                case MessageID.IDS_FeatureNativeInt:
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.

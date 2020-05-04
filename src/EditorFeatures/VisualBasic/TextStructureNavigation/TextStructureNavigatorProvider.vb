@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
 Imports Microsoft.VisualStudio.Text
@@ -17,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
         Inherits AbstractTextStructureNavigatorProvider
 
         <ImportingConstructor()>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New(
             selectorService As ITextStructureNavigatorSelectorService,
             contentTypeService As IContentTypeRegistryService,

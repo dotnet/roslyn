@@ -962,6 +962,75 @@ class C
             Test(workspace)
         End Sub
 
+        <WorkItem(41870, "https://github.com/dotnet/roslyn/issues/41870")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToImplementedInterfaceMemberFromImpl1()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface IFoo1 { void [|Bar|](); }
+
+class Foo : IFoo1
+{
+    public void $$Bar()
+    {
+
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(41870, "https://github.com/dotnet/roslyn/issues/41870")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToImplementedInterfaceMemberFromImpl2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface IFoo1 { void [|Bar|](); }
+
+class Foo : IFoo1
+{
+    void IFoo1.$$Bar()
+    {
+
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(41870, "https://github.com/dotnet/roslyn/issues/41870")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToImplementedInterfaceMemberFromImpl3()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface IFoo1 { void [|Bar|](); }
+interface IFoo2 { void [|Bar|](); }
+
+class Foo : IFoo1, IFoo2
+{
+    public void $$Bar()
+    {
+
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
 #End Region
 
 #Region "CSharp TupleTests"

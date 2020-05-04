@@ -12,15 +12,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal abstract partial class AbstractAnonymousTypeDisplayService : IAnonymousTypeDisplayService
     {
         public abstract IEnumerable<SymbolDisplayPart> GetAnonymousTypeParts(
-            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position,
-            ISymbolDisplayService displayService);
+            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
 
         public AnonymousTypeDisplayInfo GetNormalAnonymousTypeDisplayInfo(
             ISymbol orderSymbol,
             IEnumerable<INamedTypeSymbol> directNormalAnonymousTypeReferences,
             SemanticModel semanticModel,
-            int position,
-            ISymbolDisplayService displayService)
+            int position)
         {
             if (!directNormalAnonymousTypeReferences.Any())
             {
@@ -49,11 +47,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 anonymousTypeParts.AddRange(Space());
                 anonymousTypeParts.Add(PlainText(FeaturesResources.is_));
                 anonymousTypeParts.AddRange(Space());
-                anonymousTypeParts.AddRange(GetAnonymousTypeParts(anonymousType, semanticModel, position, displayService));
+                anonymousTypeParts.AddRange(GetAnonymousTypeParts(anonymousType, semanticModel, position));
             }
 
             // Now, inline any delegate anonymous types we've got.
-            anonymousTypeParts = this.InlineDelegateAnonymousTypes(anonymousTypeParts, semanticModel, position, displayService);
+            anonymousTypeParts = this.InlineDelegateAnonymousTypes(anonymousTypeParts, semanticModel, position);
 
             // Finally, assign a name to all the anonymous types.
             var anonymousTypeToName = GenerateAnonymousTypeNames(transitiveNormalAnonymousTypeReferences);
@@ -150,19 +148,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         protected SymbolDisplayPart PlainText(string text)
-        {
-            return Part(SymbolDisplayPartKind.Text, text);
-        }
+            => Part(SymbolDisplayPartKind.Text, text);
 
         private SymbolDisplayPart Part(SymbolDisplayPartKind kind, string text)
-        {
-            return Part(kind, null, text);
-        }
+            => Part(kind, null, text);
 
         private SymbolDisplayPart Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
-        {
-            return new SymbolDisplayPart(kind, symbol, text);
-        }
+            => new SymbolDisplayPart(kind, symbol, text);
 
         protected IEnumerable<SymbolDisplayPart> Space(int count = 1)
         {
@@ -173,13 +165,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         protected SymbolDisplayPart Punctuation(string text)
-        {
-            return Part(SymbolDisplayPartKind.Punctuation, text);
-        }
+            => Part(SymbolDisplayPartKind.Punctuation, text);
 
         protected SymbolDisplayPart Keyword(string text)
-        {
-            return Part(SymbolDisplayPartKind.Keyword, text);
-        }
+            => Part(SymbolDisplayPartKind.Keyword, text);
     }
 }

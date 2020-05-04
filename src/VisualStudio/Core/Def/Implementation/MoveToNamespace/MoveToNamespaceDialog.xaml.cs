@@ -35,9 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+            => DialogResult = false;
 
         internal TestAccessor GetTestAccessor() => new TestAccessor(this);
 
@@ -53,9 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         {
             private readonly MoveToNamespaceDialog _dialog;
             public TestAccessor(MoveToNamespaceDialog dialog)
-            {
-                _dialog = dialog;
-            }
+                => _dialog = dialog;
 
             public Button OKButton => _dialog.OKButton;
             public Button CancelButton => _dialog.CancelButton;

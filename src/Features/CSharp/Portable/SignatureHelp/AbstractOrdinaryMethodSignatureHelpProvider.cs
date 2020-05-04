@@ -34,11 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
             var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
-            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
 
             return CreateItemImpl(
                 method, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 method.IsParams(),
                 c => method.OriginalDefinition.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
                 GetMethodGroupPreambleParts(method, semanticModel, position),

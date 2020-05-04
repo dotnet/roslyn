@@ -12,6 +12,13 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// This option can be passed to the <see cref="IDocumentNavigationService"/> APIs to request that a provisional (or preview) tab 
         /// be used for any document that needs to be opened, if one is available.
         /// </summary>
-        public static readonly Option<bool> PreferProvisionalTab = new Option<bool>(nameof(NavigationOptions), nameof(PreferProvisionalTab), defaultValue: false);
+        public static readonly Option2<bool> PreferProvisionalTab = new Option2<bool>(nameof(NavigationOptions), nameof(PreferProvisionalTab), defaultValue: false);
+
+        /// <summary>
+        /// This option can be passed to the <see cref="IDocumentNavigationService"/> APIs to request that if a provisional tab
+        /// <see cref="PreferProvisionalTab"/> is used the navigation should still activate the tab. Defaults to false to support
+        /// users not losing focus while navigating through lists such as find references.
+        /// </summary>
+        public static readonly Option2<bool> ActivateProvisionalTab = new Option2<bool>(nameof(NavigationOptions), nameof(ActivateProvisionalTab), defaultValue: false);
     }
 }

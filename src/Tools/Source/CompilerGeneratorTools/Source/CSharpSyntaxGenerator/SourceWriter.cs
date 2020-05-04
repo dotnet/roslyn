@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
-using static System.String;
 
 namespace CSharpSyntaxGenerator
 {
@@ -32,6 +31,7 @@ namespace CSharpSyntaxGenerator
             WriteLine();
             WriteLine("using System;");
             WriteLine("using System.Collections.Generic;");
+            WriteLine("using System.Diagnostics.CodeAnalysis;");
             WriteLine("using Microsoft.CodeAnalysis.Syntax.InternalSyntax;");
             WriteLine("using Roslyn.Utilities;");
             WriteLine();
@@ -68,6 +68,7 @@ namespace CSharpSyntaxGenerator
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
             OpenBlock();
             WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
+            WriteLine("using System.Diagnostics.CodeAnalysis;");
             this.WriteRedVisitors();
             this.WriteRedRewriter();
             this.WriteRedFactories();
@@ -1138,6 +1139,8 @@ namespace CSharpSyntaxGenerator
         private void WriteRedAcceptMethod(Node node, bool genericResult)
         {
             string genericArgs = genericResult ? "<TResult>" : "";
+            if (genericResult)
+                WriteLine("[return: MaybeNull]");
             WriteLine($"public override {(genericResult ? "TResult" : "void")} Accept{genericArgs}(CSharpSyntaxVisitor{genericArgs} visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
         }
 
@@ -1162,6 +1165,8 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                 nWritten++;
                 WriteComment($"<summary>Called when the visitor visits a {node.Name} node.</summary>");
+                if (genericResult)
+                    WriteLine("[return: MaybeNull]");
                 WriteLine($"public virtual {(genericResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
             CloseBlock();
@@ -1716,10 +1721,10 @@ namespace CSharpSyntaxGenerator
         private Field DetermineMinimalOptionalField(Node nd)
         {
             // first if there is a single list, then choose the list because it would not have been optional
-            int listCount = nd.Fields.Count(f => IsAnyNodeList(f.Type));
+            int listCount = nd.Fields.Count(f => IsAnyNodeList(f.Type) && !IsAttributeOrModifiersList(f));
             if (listCount == 1)
             {
-                return nd.Fields.First(f => IsAnyNodeList(f.Type));
+                return nd.Fields.First(f => IsAnyNodeList(f.Type) && !IsAttributeOrModifiersList(f));
             }
             else
             {
@@ -1734,6 +1739,11 @@ namespace CSharpSyntaxGenerator
                     return null;
                 }
             }
+        }
+
+        private static bool IsAttributeOrModifiersList(Field f)
+        {
+            return f.Name == "AttributeLists" || f.Name == "Modifiers";
         }
 
         private IEnumerable<Field> DetermineMinimalFactoryFields(Node nd)
@@ -1770,6 +1780,14 @@ namespace CSharpSyntaxGenerator
                 return; // no string-name overload necessary
 
             this.WriteLine();
+
+            var hasOptional = minimalFactoryfields.Any(f => !IsRequiredFactoryField(nd, f));
+            var hasAttributeOrModifiersList = nd.Fields.Any(f => IsAttributeOrModifiersList(f));
+
+            if (hasOptional && hasAttributeOrModifiersList)
+            {
+                WriteLine("#pragma warning disable RS0027");
+            }
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
@@ -1824,6 +1842,11 @@ namespace CSharpSyntaxGenerator
                 })));
 
             WriteLine(");");
+
+            if (hasOptional && hasAttributeOrModifiersList)
+            {
+                WriteLine("#pragma warning restore RS0027");
+            }
         }
 
         private bool CanAutoConvertFromString(Field field)

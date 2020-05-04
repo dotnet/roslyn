@@ -111,8 +111,7 @@ class C
 
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 workspaceXml,
-                New CompletionProvider() {New MockCompletionProvider()},
-                New List(Of Type) From {GetType(TestCSharpSnippetInfoService)},
+                New List(Of Type) From {GetType(CSharpMockCompletionProvider), GetType(TestCSharpSnippetInfoService)},
                 WorkspaceKind.Interactive)
 
                 Dim testSnippetInfoService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService(Of ISnippetInfoService)(), TestCSharpSnippetInfoService)
@@ -133,8 +132,7 @@ class C
         Private Function CreateCSharpSnippetExpansionNoteTestState(xElement As XElement, ParamArray snippetShortcuts As String()) As TestState
             Dim state = TestStateFactory.CreateCSharpTestState(
                 xElement,
-                New CompletionProvider() {New MockCompletionProvider()},
-                extraExportedTypes:=New List(Of Type) From {GetType(TestCSharpSnippetInfoService)})
+                extraExportedTypes:=New List(Of Type) From {GetType(CSharpMockCompletionProvider), GetType(TestCSharpSnippetInfoService)})
 
             Dim testSnippetInfoService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService(Of ISnippetInfoService)(), TestCSharpSnippetInfoService)
             testSnippetInfoService.SetSnippetShortcuts(snippetShortcuts)

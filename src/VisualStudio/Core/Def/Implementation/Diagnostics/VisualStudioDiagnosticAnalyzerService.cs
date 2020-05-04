@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
@@ -44,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private IServiceProvider? _serviceProvider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDiagnosticAnalyzerService(
             VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
@@ -91,13 +93,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy? hierarchy)
         {
+            var currentSolution = _workspace.CurrentSolution;
+            var infoCache = _diagnosticService.AnalyzerInfoCache;
+            var hostAnalyzers = currentSolution.State.Analyzers;
+
             if (hierarchy == null)
             {
-                return Transform(_diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference());
+                return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache));
             }
 
             // Analyzers are only supported for C# and VB currently.
-            var projectsWithHierarchy = _workspace.CurrentSolution.Projects
+            var projectsWithHierarchy = currentSolution.Projects
                 .Where(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
                 .Where(p => _workspace.GetHierarchy(p.Id) == hierarchy);
 
@@ -106,11 +112,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 var project = projectsWithHierarchy.FirstOrDefault();
                 if (project == null)
                 {
-                    return Transform(_diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference());
+                    return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache));
                 }
                 else
                 {
-                    return Transform(_diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project));
+                    return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache, project));
                 }
             }
             else
@@ -120,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 var descriptorsMap = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticDescriptor>>();
                 foreach (var project in projectsWithHierarchy)
                 {
-                    var descriptorsPerReference = _diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project);
+                    var descriptorsPerReference = hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache, project);
                     foreach (var (displayName, descriptors) in descriptorsPerReference)
                     {
                         if (descriptorsMap.TryGetValue(displayName, out var existingDescriptors))
@@ -159,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             if (visible)
             {
                 if (command.CommandID.ID == RunCodeAnalysisForSelectedProjectCommandId &&
-                    hierarchy.TryGetProject(out var project))
+                    hierarchy!.TryGetProject(out var project))
                 {
                     // Change to show the name of the project as part of the menu item display text.
                     command.Text = string.Format(ServicesVSResources.Run_Code_Analysis_on_0, project.Name);

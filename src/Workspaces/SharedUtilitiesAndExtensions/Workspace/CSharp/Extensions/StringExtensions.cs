@@ -3,11 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -58,8 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static IdentifierNameSyntax ToIdentifierName(this string identifier)
-        {
-            return SyntaxFactory.IdentifierName(identifier.ToIdentifierToken());
-        }
+            => SyntaxFactory.IdentifierName(identifier.ToIdentifierToken());
     }
 }

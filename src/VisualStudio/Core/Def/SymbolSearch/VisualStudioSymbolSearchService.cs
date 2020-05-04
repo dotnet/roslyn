@@ -35,7 +35,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedService, ISymbolSearchService
     {
         private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
-        private ISymbolSearchUpdateEngine _updateEngine;
+
+        // Note: A remote engine is disposable as it maintains a connection with ServiceHub,
+        // but we want to keep it alive until the VS is closed, so we don't dispose it.
+        private ISymbolSearchUpdateEngine _lazyUpdateEngine;
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IPackageInstallerService _installerService;
@@ -72,9 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         }
 
         private void OnPackageSourcesChanged(object sender, EventArgs e)
-        {
-            StartWorking();
-        }
+            => StartWorking();
 
         protected override void StartWorking()
         {
@@ -87,13 +88,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (_updateEngine == null)
-                {
-                    _updateEngine = await SymbolSearchUpdateEngineFactory.CreateEngineAsync(
-                        _workspace, _logService, _progressService, cancellationToken).ConfigureAwait(false);
-                }
-
-                return _updateEngine;
+                return _lazyUpdateEngine ??= await SymbolSearchUpdateEngineFactory.CreateEngineAsync(
+                    _workspace, _logService, _progressService, cancellationToken).ConfigureAwait(false);
             }
         }
 

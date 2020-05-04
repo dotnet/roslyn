@@ -37,9 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         private static readonly FileVersionInfo decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
 
         public CSharpDecompiledSourceService(HostLanguageServices provider)
-        {
-            this.provider = provider;
-        }
+            => this.provider = provider;
 
         public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {
@@ -81,14 +79,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             document = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
+            return await FormatDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
+        {
             var node = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Apply formatting rules
-            document = await Formatter.FormatAsync(
-                  document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                  options: null, Formatter.GetDefaultFormattingRules(document), cancellationToken).ConfigureAwait(false);
+            var formattedDoc = await Formatter.FormatAsync(
+                 document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
+                 options: null,
+                 CSharpDecompiledSourceFormattingRule.Instance.Concat(Formatter.GetDefaultFormattingRules(document)),
+                 cancellationToken).ConfigureAwait(false);
 
-            return document;
+            return formattedDoc;
         }
 
         private Document PerformDecompilation(Document document, string fullName, Compilation compilation, string assemblyLocation)

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
     }
 
-    internal class PackageWithAssemblyResult : PackageResult, IEquatable<PackageWithAssemblyResult>, IComparable<PackageWithAssemblyResult>
+    internal class PackageWithAssemblyResult : PackageResult, IEquatable<PackageWithAssemblyResult?>, IComparable<PackageWithAssemblyResult?>
     {
         public readonly string? Version;
 
@@ -102,16 +102,21 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public override int GetHashCode()
             => PackageName.GetHashCode();
 
-        public override bool Equals(object obj)
-            => Equals((PackageWithAssemblyResult)obj);
+        public override bool Equals(object? obj)
+            => Equals(obj as PackageWithAssemblyResult);
 
-        public bool Equals(PackageWithAssemblyResult other)
-            => PackageName.Equals(other.PackageName);
+        public bool Equals(PackageWithAssemblyResult? other)
+            => PackageName.Equals(other?.PackageName);
 
-        public int CompareTo(PackageWithAssemblyResult other)
-         => ComparerWithState.CompareTo(this, other, s_comparers);
+        public int CompareTo(PackageWithAssemblyResult? other)
+        {
+            if (other is null)
+                return 1;
 
-        private readonly static ImmutableArray<Func<PackageWithAssemblyResult, IComparable>> s_comparers =
+            return ComparerWithState.CompareTo(this, other, s_comparers);
+        }
+
+        private static readonly ImmutableArray<Func<PackageWithAssemblyResult, IComparable>> s_comparers =
             ImmutableArray.Create<Func<PackageWithAssemblyResult, IComparable>>(p => p.Rank, p => p.PackageName);
     }
 
@@ -136,6 +141,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     internal class DefaultSymbolSearchService : ISymbolSearchService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultSymbolSearchService()
         {
         }

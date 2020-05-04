@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         protected abstract FunctionId FunctionId { get; }
 
-        protected abstract Task FindAction(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context);
+        protected abstract Task FindActionAsync(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context);
 
         public AbstractGoToCommandHandler(
             IThreadingContext threadingContext,
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             // what to do with them.  If we get only a single result back, then we'll just go 
             // directly to it.  Otherwise, we'll present the results in the IStreamingFindUsagesPresenter.
             var context = new SimpleFindUsagesContext(cancellationToken);
-            FindAction(service, document, caretPosition, context).Wait(cancellationToken);
+            FindActionAsync(service, document, caretPosition, context).Wait(cancellationToken);
 
             // If FindAction reported a message, then just stop and show that 
             // message to the user.

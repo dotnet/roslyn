@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         public static readonly EmptyLogger Instance = new EmptyLogger();
 
         public bool IsEnabled(FunctionId functionId)
-        {
-            return false;
-        }
+            => false;
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {

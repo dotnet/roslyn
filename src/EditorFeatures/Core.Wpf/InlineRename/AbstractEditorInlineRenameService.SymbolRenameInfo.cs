@@ -9,15 +9,14 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -40,41 +39,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             /// <summary>
             /// Whether or not we shortened the trigger span (say because we were renaming an attribute,
-            /// and we didn't select the 'Attribute' portion of the name.
+            /// and we didn't select the 'Attribute' portion of the name).
             /// </summary>
-            private readonly bool _shortenedTriggerSpan;
             private readonly bool _isRenamingAttributePrefix;
 
             public bool CanRename { get; }
             public string LocalizedErrorMessage { get; }
             public TextSpan TriggerSpan { get; }
-            public SymbolAndProjectId RenameSymbolAndProjectId { get; }
             public bool HasOverloads { get; }
             public bool ForceRenameOverloads { get; }
 
-            public ISymbol RenameSymbol => RenameSymbolAndProjectId.Symbol;
+            /// <summary>
+            /// The locations of the potential rename candidates for the symbol.
+            /// </summary>
+            public ImmutableArray<DocumentSpan> DefinitionLocations { get; }
+
+            public ISymbol RenameSymbol { get; }
 
             public SymbolInlineRenameInfo(
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 Document document,
                 TextSpan triggerSpan,
-                SymbolAndProjectId renameSymbolAndProjectId,
+                ISymbol renameSymbol,
                 bool forceRenameOverloads,
+                ImmutableArray<DocumentSpan> definitionLocations,
                 CancellationToken cancellationToken)
             {
                 this.CanRename = true;
 
                 _refactorNotifyServices = refactorNotifyServices;
                 _document = document;
-                this.RenameSymbolAndProjectId = renameSymbolAndProjectId;
+                this.RenameSymbol = renameSymbol;
 
-                this.HasOverloads = RenameLocations.GetOverloadedSymbols(this.RenameSymbolAndProjectId).Any();
+                this.HasOverloads = RenameLocations.GetOverloadedSymbols(this.RenameSymbol).Any();
                 this.ForceRenameOverloads = forceRenameOverloads;
 
                 _isRenamingAttributePrefix = CanRenameAttributePrefix(document, triggerSpan, cancellationToken);
                 this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), cancellationToken);
 
-                _shortenedTriggerSpan = this.TriggerSpan != triggerSpan;
+                this.DefinitionLocations = definitionLocations;
             }
 
             private bool CanRenameAttributePrefix(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
@@ -90,8 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // of the attribute.  If it does, then we can rename just the attribute prefix (otherwise
                 // we need to rename the entire attribute).
                 var nameWithoutAttribute = GetWithoutAttributeSuffix(this.RenameSymbol.Name);
-                var triggerText = GetSpanText(document, triggerSpan, cancellationToken);
 
+                var triggerText = GetSpanText(document, triggerSpan, cancellationToken);
                 return triggerText.StartsWith(triggerText); // TODO: Always true? What was it supposed to do?
             }
 
@@ -161,7 +164,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             private static string GetSpanText(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
             {
-                var sourceText = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                // TO-DO: Add new 'triggerText' parameter to the callers of this method via IVT so that we can get the text asynchronously instead.
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1080161
+                var sourceText = document.GetTextSynchronously(cancellationToken);
                 var triggerText = sourceText.ToString(triggerSpan);
                 return triggerText;
             }
@@ -202,8 +207,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     {
                         // If this is the first call, then just start finding the initial set of rename
                         // locations.
-                        _underlyingFindRenameLocationsTask = RenameLocations.FindAsync(
-                            this.RenameSymbolAndProjectId, _document.Project.Solution, optionSet, cancellationToken);
+                        var solution = _document.Project.Solution;
+                        _underlyingFindRenameLocationsTask = Renamer.FindRenameLocationsAsync(
+                            solution, this.RenameSymbol, RenameOptionSet.From(solution, optionSet), cancellationToken);
                         renameTask = _underlyingFindRenameLocationsTask;
 
                         // null out the option set.  We don't need it anymore, and this will ensure
@@ -218,15 +224,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     }
                 }
 
-                return GetLocationSet(renameTask, optionSet, cancellationToken);
+                return GetLocationSetAsync(renameTask, optionSet, cancellationToken);
             }
 
-            private async Task<IInlineRenameLocationSet> GetLocationSet(Task<RenameLocations> renameTask, OptionSet optionSet, CancellationToken cancellationToken)
+            private async Task<IInlineRenameLocationSet> GetLocationSetAsync(Task<RenameLocations> renameTask, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var locationSet = await renameTask.ConfigureAwait(false);
                 if (optionSet != null)
                 {
-                    locationSet = await locationSet.FindWithUpdatedOptionsAsync(optionSet, cancellationToken).ConfigureAwait(false);
+                    locationSet = await locationSet.FindWithUpdatedOptionsAsync(
+                        RenameOptionSet.From(_document.Project.Solution, optionSet), cancellationToken).ConfigureAwait(false);
                 }
 
                 return new InlineRenameLocationSet(this, locationSet);

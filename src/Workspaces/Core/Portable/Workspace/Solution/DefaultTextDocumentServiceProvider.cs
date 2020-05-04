@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
                 return documentPropertiesService;
             }
 
-            return default;
+            return null;
         }
 
         private class DocumentOperationService : IDocumentOperationService

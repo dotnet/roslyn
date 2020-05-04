@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             MyBase.New(optionStore)
             InitializeComponent()
 
-            BindToOption(Show_completion_list_after_a_character_is_typed, CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
+            BindToOption(Show_completion_list_after_a_character_is_typed, CompletionOptions.TriggerOnTypingLetters2, LanguageNames.VisualBasic)
             Show_completion_list_after_a_character_is_deleted.IsChecked = Me.OptionStore.GetOption(
                 CompletionOptions.TriggerOnDeletion, LanguageNames.VisualBasic) <> False
 

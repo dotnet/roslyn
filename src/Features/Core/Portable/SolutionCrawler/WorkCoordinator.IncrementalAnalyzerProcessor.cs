@@ -222,19 +222,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 private IDisposable EnableCaching(ProjectId projectId)
-                {
-                    return _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
-                }
+                    => _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
 
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
-                {
-                    return _registration.Workspace.GetOpenDocumentIds();
-                }
+                    => _registration.Workspace.GetOpenDocumentIds();
 
                 private void ResetLogAggregator()
-                {
-                    _logAggregator = new LogAggregator();
-                }
+                    => _logAggregator = new LogAggregator();
 
                 private void ReportPendingWorkItemCount()
                 {
@@ -292,7 +286,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         await GetOrDefaultAsync(value, async (v, c) =>
                         {
                             await runnerAsync(local, v, c).ConfigureAwait(false);
-                            return default(object);
+                            return (object?)null;
                         }, cancellationToken).ConfigureAwait(false);
                     }
                 }
@@ -340,11 +334,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                     catch (OperationCanceledException)
                     {
-                        return default;
+                        return null;
                     }
                     catch (AggregateException e) when (CrashUnlessCanceled(e))
                     {
-                        return default;
+                        return null;
                     }
                     catch (Exception e) when (FatalError.Report(e))
                     {

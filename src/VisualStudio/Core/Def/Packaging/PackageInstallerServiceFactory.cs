@@ -181,8 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             OnSourceProviderSourcesChanged(this, EventArgs.Empty);
-            OnWorkspaceChanged(null, new WorkspaceChangeEventArgs(
-                WorkspaceChangeKind.SolutionAdded, null, null));
+            OnWorkspaceChanged(localSolutionChanged: true, localChangedProject: null);
         }
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)
@@ -275,9 +274,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private static string GetStatusBarText(string packageName, string installedVersion)
-        {
-            return installedVersion == null ? packageName : $"{packageName} - {installedVersion}";
-        }
+            => installedVersion == null ? packageName : $"{packageName} - {installedVersion}";
 
         private bool TryUninstallPackage(
             string packageName, EnvDTE.DTE dte, EnvDTE.Project dteProject)
@@ -350,8 +347,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             ThisCanBeCalledOnAnyThread();
 
-            var localSolutionChanged = false;
-            ProjectId localChangedProject = null;
+            var solutionChanged = false;
+            ProjectId chnagedProject = null;
             switch (e.Kind)
             {
                 default:
@@ -362,7 +359,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 case WorkspaceChangeKind.ProjectChanged:
                 case WorkspaceChangeKind.ProjectReloaded:
                 case WorkspaceChangeKind.ProjectRemoved:
-                    localChangedProject = e.ProjectId;
+                    chnagedProject = e.ProjectId;
                     break;
 
                 case WorkspaceChangeKind.SolutionAdded:
@@ -370,10 +367,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
                 case WorkspaceChangeKind.SolutionRemoved:
-                    localSolutionChanged = true;
+                    solutionChanged = true;
                     break;
             }
 
+            this.OnWorkspaceChanged(solutionChanged, chnagedProject);
+        }
+
+        private void OnWorkspaceChanged(bool localSolutionChanged, ProjectId localChangedProject)
+        {
             lock (_gate)
             {
                 // Augment the data that the foreground thread will process.
@@ -673,9 +675,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         public void ReportResult(IVsSearchTask pTask, IVsSearchItemResult pSearchItemResult)
-        {
-            pSearchItemResult.InvokeAction();
-        }
+            => pSearchItemResult.InvokeAction();
 
         public void ReportResults(IVsSearchTask pTask, uint dwResults, IVsSearchItemResult[] pSearchItemResults)
         {
@@ -684,18 +684,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private class SearchQuery : IVsSearchQuery
         {
             public SearchQuery(string packageName)
-            {
-                this.SearchString = packageName;
-            }
+                => this.SearchString = packageName;
 
             public string SearchString { get; }
 
             public uint ParseError => 0;
 
             public uint GetTokens(uint dwMaxTokens, IVsSearchToken[] rgpSearchTokens)
-            {
-                return 0;
-            }
+                => 0;
         }
     }
 }

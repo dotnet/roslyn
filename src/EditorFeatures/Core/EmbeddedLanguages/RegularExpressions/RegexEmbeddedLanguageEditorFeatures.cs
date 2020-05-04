@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
-    internal class RegexEmbeddedLanguageEditorFeatures : RegexEmbeddedLanguageFeatures, IEmbeddedLanguageEditorFeatures
+    internal class RegexEmbeddedLanguageEditorFeatures : RegexEmbeddedLanguage, IEmbeddedLanguageEditorFeatures
     {
         public IBraceMatcher BraceMatcher { get; }
 

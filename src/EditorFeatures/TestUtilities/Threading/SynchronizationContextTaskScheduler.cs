@@ -40,13 +40,9 @@ namespace Roslyn.Test.Utilities
         }
 
         protected override IEnumerable<Task> GetScheduledTasks()
-        {
-            return null;
-        }
+            => null;
 
         private void PostCallback(object obj)
-        {
-            TryExecuteTask((Task)obj);
-        }
+            => TryExecuteTask((Task)obj);
     }
 }

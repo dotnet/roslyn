@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -34,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private bool _done;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public HACK_ThemeColorFixer(
             IClassificationTypeRegistryService classificationTypeRegistryService,
             IClassificationFormatMapService classificationFormatMapService)
@@ -46,9 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         private void TextFormatMap_ClassificationFormatMappingChanged(object sender, EventArgs e)
-        {
-            VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
-        }
+            => VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
 
         public void RefreshThemeColors()
         {

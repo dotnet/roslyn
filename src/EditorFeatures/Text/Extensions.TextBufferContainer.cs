@@ -51,9 +51,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             private static TextBufferContainer CreateContainer(ITextBuffer editorBuffer)
-            {
-                return new TextBufferContainer(editorBuffer);
-            }
+                => new TextBufferContainer(editorBuffer);
 
             public ITextBuffer TryFindEditorTextBuffer()
                 => _weakEditorBuffer.GetTarget();

@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
         public static SolutionId CreateNewId(string debugName = null)
-        {
-            return CreateFromSerialized(Guid.NewGuid(), debugName);
-        }
+            => CreateFromSerialized(Guid.NewGuid(), debugName);
 
         public static SolutionId CreateFromSerialized(Guid id, string debugName = null)
         {
@@ -52,36 +50,26 @@ namespace Microsoft.CodeAnalysis
         internal string DebugName => _debugName;
 
         private string GetDebuggerDisplay()
-        {
-            return string.Format("({0}, #{1} - {2})", GetType().Name, this.Id, _debugName);
-        }
+            => string.Format("({0}, #{1} - {2})", GetType().Name, this.Id, _debugName);
 
         public override bool Equals(object obj)
-        {
-            return this.Equals(obj as SolutionId);
-        }
+            => this.Equals(obj as SolutionId);
 
         public bool Equals(SolutionId other)
         {
             return
-                !ReferenceEquals(other, null) &&
+                other is object &&
                 this.Id == other.Id;
         }
 
         public static bool operator ==(SolutionId left, SolutionId right)
-        {
-            return EqualityComparer<SolutionId>.Default.Equals(left, right);
-        }
+            => EqualityComparer<SolutionId>.Default.Equals(left, right);
 
         public static bool operator !=(SolutionId left, SolutionId right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         public override int GetHashCode()
-        {
-            return this.Id.GetHashCode();
-        }
+            => this.Id.GetHashCode();
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
 

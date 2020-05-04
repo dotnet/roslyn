@@ -488,7 +488,7 @@ class Z
 
     public int A { get; private set; }
     public string B { get; private set; }
-}", options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
+}", options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -815,7 +815,7 @@ class Z
         this._field = field;
     }
 }",
-options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
+options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
         [WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
@@ -839,7 +839,7 @@ options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSu
     public string Title { get; }
     public int Number { get; }
 }",
-options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
+options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
         [WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
@@ -852,7 +852,7 @@ options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSu
   [|public abstract string Title { get; }
     public int Number { get; }|]
 }",
-new TestParameters(options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement)));
+new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -1002,6 +1002,84 @@ chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true);
         }
 
+        [WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecksWithNullableReferenceType()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z
+{
+    int a;
+    string b;
+    string? c;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z
+{
+    int a;
+    string b;
+    string? c;
+
+    public Z(int a, string b, string? c{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b ?? throw new ArgumentNullException(nameof(b));
+        this.c = c;
+    }
+}",
+chosenSymbols: new string[] { "a", "b", "c" },
+optionsCallback: options => options[0].Value = true);
+        }
+
+        [WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecksWithNullableReferenceTypeForGenerics()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z<T> where T : class
+{
+    int a;
+    string b;
+    T? c;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z<T> where T : class
+{
+    int a;
+    string b;
+    T? c;
+
+    public Z(int a, string b, T c{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b ?? throw new ArgumentNullException(nameof(b));
+        this.c = c;
+    }
+}",
+chosenSymbols: new string[] { "a", "b", "c" },
+optionsCallback: options => options[0].Value = true);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestAddNullChecks2()
         {
@@ -1039,7 +1117,7 @@ class Z
 chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(options:
-    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -1074,7 +1152,7 @@ class Z
 chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(options:
-    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -1115,7 +1193,7 @@ chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
-    options: Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+    options: Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -1211,7 +1289,7 @@ class Z
 
     public int Prop { get; set; }
 }",
-options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
+options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
         [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
@@ -1354,10 +1432,19 @@ chosenSymbols: null);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestPartialFieldSelectionBeforeIdentifier()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"class Z
 {
     int [||]a;
+}",
+@"class Z
+{
+    int a;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
 }");
         }
 
@@ -1365,10 +1452,19 @@ chosenSymbols: null);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestPartialFieldSelectionAfterIdentifier()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"class Z
 {
     int a[||];
+}",
+@"class Z
+{
+    int a;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
 }");
         }
 
@@ -1441,12 +1537,32 @@ chosenSymbols: null);
 
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-        public async Task TestMultiplePartialFieldSelection3()
+        public async Task TestMultiplePartialFieldSelection3_1()
         {
             await TestInRegularAndScriptAsync(
 @"class Z
 {
     int [|a|] = 2, b = 3;
+}",
+@"class Z
+{
+    int a = 2, b = 3;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultiplePartialFieldSelection3_2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|a = 2, b|] = 3;
 }",
 @"class Z
 {

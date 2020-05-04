@@ -43,8 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
         public bool IsDefault => _underlyingObject == null;
 
         public void DisconnectHost()
-        {
-            _underlyingObject.SetHost(null);
-        }
+            => _underlyingObject.SetHost(null);
     }
 }

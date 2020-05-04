@@ -126,10 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Function DecodeType(type As TypeSymbol) As TypeSymbol
             Select Case type.Kind
                 Case SymbolKind.ErrorType
-
-                    If type.GetUseSiteErrorInfo() IsNot Nothing Then
-                        _foundUsableErrorType = True
-                    End If
+                    _foundUsableErrorType = True
                     Return type
 
                 Case SymbolKind.DynamicType,

@@ -78,8 +78,9 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
-        <target state="translated">顯示已關閉檔案的診斷;
+Use enhanced colors;
+Editor Color Scheme;</source>
+        <target state="needs-review-translation">顯示已關閉檔案的診斷;
 為規則運算式標示色彩; 
 醒目提示游標下的相關元件; 
 回報無效的規則運算式;
@@ -272,6 +273,7 @@ Insert space before and after binary operators;</source>
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
 Snippets behavior;
@@ -282,8 +284,9 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">變更完成清單設定;預先選取最近使用的成員; 完成清單;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="needs-review-translation">變更完成清單設定;預先選取最近使用的成員; 完成清單;
 在鍵入字元後顯示完成清單;
 在刪除字元後顯示完成清單;
 醒目提示完成清單項目的相符部分;

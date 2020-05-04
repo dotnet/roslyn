@@ -30,13 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpNullableAnnotationReducer(),
                 new CSharpCastReducer(),
                 new CSharpExtensionMethodReducer(),
-                new CSharpParenthesesReducer(),
+                new CSharpParenthesizedExpressionReducer(),
+                new CSharpParenthesizedPatternReducer(),
                 new CSharpEscapingReducer(),
                 new CSharpMiscellaneousReducer(),
                 new CSharpInferredMemberNameReducer(),
                 new CSharpDefaultExpressionReducer());
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpSimplificationService() : base(s_reducers)
         {
         }
@@ -165,14 +167,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         }
 
         protected override ImmutableArray<NodeOrTokenToReduce> GetNodesAndTokensToReduce(SyntaxNode root, Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans)
-        {
-            return NodesAndTokensToReduceComputer.Compute(root, isNodeOrTokenOutsideSimplifySpans);
-        }
+            => NodesAndTokensToReduceComputer.Compute(root, isNodeOrTokenOutsideSimplifySpans);
 
         protected override bool CanNodeBeSimplifiedWithoutSpeculation(SyntaxNode node)
-        {
-            return false;
-        }
+            => false;
 
         private const string s_CS8019_UnusedUsingDirective = "CS8019";
 

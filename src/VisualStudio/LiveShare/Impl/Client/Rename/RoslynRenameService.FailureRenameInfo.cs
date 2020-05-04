@@ -21,9 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Rename
         private class FailureInlineRenameInfo : IInlineRenameInfo
         {
             public FailureInlineRenameInfo(string localizedErrorMessage)
-            {
-                LocalizedErrorMessage = localizedErrorMessage;
-            }
+                => LocalizedErrorMessage = localizedErrorMessage;
 
             public bool CanRename => false;
             public bool HasOverloads => false;

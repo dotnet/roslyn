@@ -5,10 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Packaging;
@@ -29,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Add(builder, new TodoCommentDescriptorJsonConverter());
             Add(builder, new TodoCommentJsonConverter());
-            Add(builder, new DesignerAttributeResultJsonConverter());
 
             Add(builder, new PackageSourceJsonConverter());
             Add(builder, new PackageWithTypeResultJsonConverter());
@@ -100,39 +97,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WritePropertyName(nameof(TodoComment.Position));
                 writer.WriteValue(todoComment.Position);
-
-                writer.WriteEndObject();
-            }
-        }
-
-        private class DesignerAttributeResultJsonConverter : BaseJsonConverter<DesignerAttributeResult>
-        {
-            protected override DesignerAttributeResult ReadValue(JsonReader reader, JsonSerializer serializer)
-            {
-                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
-
-                var designerAttributeArgument = ReadProperty<string>(reader);
-                var containsErrors = ReadProperty<bool>(reader);
-                var applicable = ReadProperty<bool>(reader);
-
-                Contract.ThrowIfFalse(reader.Read());
-                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
-
-                return new DesignerAttributeResult(designerAttributeArgument, containsErrors, applicable);
-            }
-
-            protected override void WriteValue(JsonWriter writer, DesignerAttributeResult result, JsonSerializer serializer)
-            {
-                writer.WriteStartObject();
-
-                writer.WritePropertyName(nameof(DesignerAttributeResult.DesignerAttributeArgument));
-                writer.WriteValue(result.DesignerAttributeArgument);
-
-                writer.WritePropertyName(nameof(DesignerAttributeResult.ContainsErrors));
-                writer.WriteValue(result.ContainsErrors);
-
-                writer.WritePropertyName(nameof(DesignerAttributeResult.Applicable));
-                writer.WriteValue(result.Applicable);
 
                 writer.WriteEndObject();
             }

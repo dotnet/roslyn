@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collection: out collection);
             }
 
-            if (method.IsVoidReturningAsync())
+            if (method.IsAsyncReturningVoid())
             {
                 var builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder);
                 Debug.Assert((object)builderType != null);
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collection: out collection);
             }
 
-            if (method.IsTaskReturningAsync(F.Compilation))
+            if (method.IsAsyncReturningTask(F.Compilation))
             {
                 var returnType = (NamedTypeSymbol)method.ReturnType;
                 NamedTypeSymbol builderType;
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collection: out collection);
             }
 
-            if (method.IsGenericTaskReturningAsync(F.Compilation))
+            if (method.IsAsyncReturningGenericTask(F.Compilation))
             {
                 var returnType = (NamedTypeSymbol)method.ReturnType;
                 var resultType = returnType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type;

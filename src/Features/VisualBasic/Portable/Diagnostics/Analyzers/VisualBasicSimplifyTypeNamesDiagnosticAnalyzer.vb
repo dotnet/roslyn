@@ -39,8 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Dim cancellationToken = context.CancellationToken
 
             Dim syntaxTree = semanticModel.SyntaxTree
-            Dim options = context.Options
-            Dim optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult()
+            Dim optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken)
 
             Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, ignoredSpans:=Nothing, cancellationToken)
             simplifier.Visit(context.CodeBlock)
@@ -58,8 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Dim cancellationToken = context.CancellationToken
 
             Dim syntaxTree = semanticModel.SyntaxTree
-            Dim options = context.Options
-            Dim optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult()
+            Dim optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken)
             Dim root = syntaxTree.GetRoot(cancellationToken)
 
             Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, ignoredSpans:=codeBlockIntervalTree, cancellationToken)
@@ -106,10 +104,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             End If
 
             ' set proper diagnostic ids.
-            If replacementSyntax.HasAnnotations(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)) Then
+            If replacementSyntax.HasAnnotations(NameOf(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration)) Then
                 inDeclaration = True
                 diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId
-            ElseIf replacementSyntax.HasAnnotations(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)) Then
+            ElseIf replacementSyntax.HasAnnotations(NameOf(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)) Then
                 inDeclaration = False
                 diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId
             ElseIf expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then

@@ -64,28 +64,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             }
 
             public async Task<RenameTrackingSolutionSet> RenameSymbolAsync(CancellationToken cancellationToken)
-            {
-                return await _renameSymbolResultGetter.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            }
+                => await _renameSymbolResultGetter.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
             private async Task<RenameTrackingSolutionSet> RenameSymbolWorkerAsync(CancellationToken cancellationToken)
             {
                 var document = _snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 var newName = _snapshotSpan.GetText();
 
-                if (document == null)
-                {
-                    Contract.Fail("Invoked rename tracking smart tag but cannot find the document for the snapshot span.");
-                }
+                Contract.ThrowIfNull(document, "Invoked rename tracking smart tag but cannot find the document for the snapshot span.");
 
                 // Get copy of solution with the original name in the place of the renamed name
                 var solutionWithOriginalName = CreateSolutionWithOriginalName(document, cancellationToken);
 
                 var symbol = await TryGetSymbolAsync(solutionWithOriginalName, document.Id, cancellationToken).ConfigureAwait(false);
-                if (symbol == null)
-                {
-                    Contract.Fail("Invoked rename tracking smart tag but cannot find the symbol.");
-                }
+                Contract.ThrowIfNull(symbol, "Invoked rename tracking smart tag but cannot find the symbol.");
 
                 var optionSet = document.Project.Solution.Workspace.Options;
 

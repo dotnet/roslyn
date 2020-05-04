@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public sealed partial class AccessorDeclarationSyntax : CSharpSyntaxNode
     {
         public AccessorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, BlockSyntax body, SyntaxToken semicolonToken)
-            => Update(attributeLists, modifiers, keyword, body, default(ArrowExpressionClauseSyntax), semicolonToken);
+            => Update(attributeLists, modifiers, keyword, body, expressionBody: null, semicolonToken);
     }
 }
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new AccessorDeclarationSyntax instance.</summary>
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, BlockSyntax body)
         {
-            return SyntaxFactory.AccessorDeclaration(kind, default(SyntaxList<AttributeListSyntax>), default(SyntaxTokenList), SyntaxFactory.Token(GetAccessorDeclarationKeywordKind(kind)), body, default(ArrowExpressionClauseSyntax), default(SyntaxToken));
+            return SyntaxFactory.AccessorDeclaration(kind, default(SyntaxList<AttributeListSyntax>), default(SyntaxTokenList), SyntaxFactory.Token(GetAccessorDeclarationKeywordKind(kind)), body, expressionBody: null, default(SyntaxToken));
         }
     }
 }

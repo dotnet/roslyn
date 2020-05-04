@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var solution = invocationDocument.Project.Solution;
 
             var referencedSymbols = fixAllReferences
-                ? await FindMethodDeclarationReferences(invocationDocument, method, cancellationToken).ConfigureAwait(false)
+                ? await FindMethodDeclarationReferencesAsync(invocationDocument, method, cancellationToken).ConfigureAwait(false)
                 : method.GetAllMethodSymbolsOfPartialParts();
 
             var anySymbolReferencesNotInSource = referencedSymbols.Any(symbol => !symbol.IsFromSource());
@@ -138,18 +138,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return solution;
         }
 
-        private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferences(
+        private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferencesAsync(
             Document invocationDocument, IMethodSymbol method, CancellationToken cancellationToken)
         {
-            var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
+            var progress = new StreamingProgressCollector();
 
             await SymbolFinder.FindReferencesAsync(
-                symbolAndProjectId: SymbolAndProjectId.Create(method, invocationDocument.Project.Id),
-                solution: invocationDocument.Project.Solution,
-                documents: null,
-                progress: progress,
-                options: FindReferencesSearchOptions.Default,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                method, invocationDocument.Project.Solution, progress: progress,
+                documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
             var referencedSymbols = progress.GetReferencedSymbols();
             return referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition)
                                     .OfType<IMethodSymbol>()

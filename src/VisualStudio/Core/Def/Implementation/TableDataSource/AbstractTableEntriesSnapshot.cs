@@ -99,15 +99,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         public void Dispose()
-        {
-            StopTracking();
-        }
+            => StopTracking();
 
         internal TItem GetItem(int index)
         {
             if (index < 0 || _items.Length <= index)
             {
-                return default;
+                return null;
             }
 
             return _items[index];
@@ -201,9 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         protected static string GetFileName(string original, string mapped)
-        {
-            return mapped == null ? original : original == null ? mapped : Combine(original, mapped);
-        }
+            => mapped == null ? original : original == null ? mapped : Combine(original, mapped);
 
         private static string Combine(string path1, string path2)
         {
@@ -232,9 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         // we don't use these
         public object Identity(int index)
-        {
-            return null;
-        }
+            => null;
 
         public void StartCaching()
         {

@@ -590,9 +590,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private string GetCodeCleanerTypeName(ICodeCleanupProvider codeCleaner)
-        {
-            return codeCleaner.ToString();
-        }
+            => codeCleaner.ToString();
 
         private SyntaxNode InjectAnnotations(SyntaxNode node, Dictionary<SyntaxToken, List<SyntaxAnnotation>> map)
         {

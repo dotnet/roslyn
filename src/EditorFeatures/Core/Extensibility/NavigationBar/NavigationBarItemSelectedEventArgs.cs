@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.Editor
         public NavigationBarItem Item { get; }
 
         public NavigationBarItemSelectedEventArgs(NavigationBarItem item)
-        {
-            this.Item = item;
-        }
+            => this.Item = item;
     }
 }

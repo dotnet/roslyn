@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             int i = 1;
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var rangeToFormat = locations["format"].Single();
-            var documentText = await solution.GetDocumentFromURI(rangeToFormat.Uri).GetTextAsync();
+            var documentText = await workspace.CurrentSolution.GetDocumentFromURI(rangeToFormat.Uri).GetTextAsync();
 
-            var results = await RunFormatDocumentRangeAsync(solution, rangeToFormat);
+            var results = await RunFormatDocumentRangeAsync(workspace.CurrentSolution, rangeToFormat);
             var actualText = ApplyTextEdits(results, documentText);
             Assert.Equal(expected, actualText);
         }

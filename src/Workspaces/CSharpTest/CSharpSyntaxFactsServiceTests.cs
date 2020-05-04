@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -19,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             MarkupTestFile.GetPosition(markup, out var code, out int position);
             var tree = SyntaxFactory.ParseSyntaxTree(code);
             var token = tree.GetRoot().FindToken(position);
-            var service = CSharpSyntaxFactsService.Instance;
+            var service = CSharpSyntaxFacts.Instance;
 
             return service.IsQueryKeyword(token);
         }

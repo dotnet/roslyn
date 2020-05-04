@@ -15,9 +15,9 @@ The minimal required version of .NET Framework is 4.7.2.
 
 ## Developing with Visual Studio 2019
 
-1. [Visual Studio 2019 16.3](https://visualstudio.microsoft.com/downloads/)
+1. [Visual Studio 2019 16.5](https://visualstudio.microsoft.com/downloads/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
-    - Ensure Visual Studio is on Version "16.3" or greater
+    - Ensure Visual Studio is on Version "16.5" or greater
     - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
     - Restart Visual Studio
 1. [.NET Core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet-core/thank-you/sdk-3.1.100-windows-x64-installer)
@@ -62,6 +62,8 @@ the source from
 give it a try.
 
 ## Trying Your Changes in Visual Studio
+
+### Deploying with F5
 
 The Rosyln solution is designed to support easy debugging via F5.  Several of our
 projects produce VSIX which deploy into Visual Studio during build.  The F5 operation
@@ -111,6 +113,8 @@ default, a separate instance than the standard "Experimental Instance" used by
 other Visual Studio SDK projects. If you're familiar with the idea of Visual
 Studio hives, we deploy into the RoslynDev root suffix.
 
+### Deploying with VSIX
+
 If you want to try your extension in your day-to-day use of Visual Studio, you
 can find the extensions you built in your Binaries folder with the .vsix
 extension. You can double-click the extension to install it into your main
@@ -120,11 +124,30 @@ Updates to indicate you're running your experimental version. You can uninstall
 your version and go back to the originally installed version by choosing your
 version and clicking Uninstall.
 
+### Deploying with command-line
+
+You can build and deploy with the following command: 
+`.\Build.cmd -Configuration Release -deployExtensions -launch`.
+
+Then you can launch the `RoslynDev` hive with `devenv /rootSuffix RoslynDev`.
+
+### Referencing bootstrap compiler
+
 If you made changes to a Roslyn compiler and want to build any projects with it, you can either
 use the Visual Studio hive where your **CompilerExtension** is installed, or from
 command line, run msbuild with `/p:BootstrapBuildPath=YourBootstrapBuildPath`.
 `YourBootstrapBuildPath` could be any directory on your machine so long as it had
 csc and vbc inside it. You can check the cibuild.cmd and see how it is used.
+
+### Troubleshooting your setup
+
+To confirm what version of the compiler is being used, include `#error version` in your program
+and the compiler will produce a diagnostic including its own version as well as the language 
+version it is operating under.
+
+You can also attach a debugger to Visual Studio and check the loaded modules, looking at the folder
+where the various `CodeAnalysis` modules were loaded from (the `RoslynDev` should load them somewhere 
+under `AppData`, not from `Program File`).
 
 ## Contributing
 

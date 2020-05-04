@@ -7204,7 +7204,94 @@ class C
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.RangeVariableName);
+        }
 
+        [Fact]
+        public void NativeInt()
+        {
+            var source =
+@"using System;
+class A<T>
+{
+}
+class B
+{
+    static void F1(nint x, nuint y) { }
+    static void F2(nint x, IntPtr y) { }
+    static void F3(nint? x, UIntPtr? y) { }
+    static void F4(nint[] x, A<nuint> y) { }
+}";
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.RegularPreview);
+            var formatWithoutOptions = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+            var formatWithUnderlyingTypes = formatWithoutOptions.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
+
+            var method = comp.GetMember<MethodSymbol>("B.F1");
+            Verify(
+                method.ToDisplayParts(formatWithUnderlyingTypes),
+                "static void F1(IntPtr x, UIntPtr y)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+            Verify(
+                method.ToDisplayParts(formatWithoutOptions),
+                "static void F1(nint x, nuint y)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+            Verify(
+                method.ToDisplayParts(formatWithoutOptions.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)),
+                "static void F1(nint x, nuint y)");
+
+            method = comp.GetMember<MethodSymbol>("B.F2");
+            Verify(
+                method.ToDisplayParts(formatWithUnderlyingTypes),
+                "static void F2(IntPtr x, IntPtr y)");
+            Verify(
+                method.ToDisplayParts(formatWithoutOptions),
+                "static void F2(nint x, IntPtr y)");
+
+            method = comp.GetMember<MethodSymbol>("B.F3");
+            Verify(
+                method.ToDisplayParts(formatWithUnderlyingTypes),
+                "static void F3(IntPtr? x, UIntPtr? y)");
+            Verify(
+                method.ToDisplayParts(formatWithoutOptions),
+                "static void F3(nint? x, UIntPtr? y)");
+
+            method = comp.GetMember<MethodSymbol>("B.F4");
+            Verify(
+                method.ToDisplayParts(formatWithUnderlyingTypes),
+                "static void F4(IntPtr[] x, A<UIntPtr> y)");
+            Verify(
+                method.ToDisplayParts(formatWithoutOptions),
+                "static void F4(nint[] x, A<nuint> y)");
         }
     }
 }

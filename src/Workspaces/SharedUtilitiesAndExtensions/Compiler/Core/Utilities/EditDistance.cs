@@ -79,9 +79,7 @@ namespace Roslyn.Utilities
         }
 
         public static int GetEditDistance(char[] source, char[] target, int threshold = int.MaxValue)
-        {
-            return GetEditDistance(source.AsSpan(), target.AsSpan(), threshold);
-        }
+            => GetEditDistance(source.AsSpan(), target.AsSpan(), threshold);
 
         public int GetEditDistance(string target, int threshold = int.MaxValue)
         {
@@ -113,7 +111,7 @@ namespace Roslyn.Utilities
         // (i.e. with value <= 127).  This allows us to just use a simple array we can index into instead
         // of needing something more expensive like a dictionary.
         private const int LastSeenIndexLength = 128;
-        private static ThreadLocal<int[]> t_lastSeenIndexPool =
+        private static readonly ThreadLocal<int[]> t_lastSeenIndexPool =
             new ThreadLocal<int[]>(() => new int[LastSeenIndexLength]);
 
         private static int[,] GetMatrix(int width, int height)
@@ -574,9 +572,7 @@ namespace Roslyn.Utilities
         }
 
         private static int GetValue(Dictionary<char, int> da, char c)
-        {
-            return da.TryGetValue(c, out var value) ? value : 0;
-        }
+            => da.TryGetValue(c, out var value) ? value : 0;
 
         private static int Min(int v1, int v2, int v3, int v4)
         {
@@ -620,9 +616,7 @@ namespace Roslyn.Utilities
         private readonly Func<T> _allocate;
 
         public SimplePool(Func<T> allocate)
-        {
-            _allocate = allocate;
-        }
+            => _allocate = allocate;
 
         public T Allocate()
         {
@@ -653,7 +647,7 @@ namespace Roslyn.Utilities
         // Keep around a few arrays of size 256 that we can use for operations without
         // causing lots of garbage to be created.  If we do compare items larger than
         // that, then we will just allocate and release those arrays on demand.
-        private static SimplePool<T[]> s_pool = new SimplePool<T[]>(() => new T[MaxPooledArraySize]);
+        private static readonly SimplePool<T[]> s_pool = new SimplePool<T[]>(() => new T[MaxPooledArraySize]);
 
         public static T[] GetArray(int size)
         {

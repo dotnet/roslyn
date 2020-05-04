@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
-                    var project = solution.GetDocument(documentId);
+                    var document = solution.GetDocument(documentId);
                     var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                        project, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
+                        document, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
 
                     return Convert(result);
                 }

@@ -20,9 +20,6 @@
       Do not install this package manually, it will be added as a prerequisite by other packages that require it.
     </PackageDescription>
   </PropertyGroup>
-
-  <ItemGroup>
-  </ItemGroup>
   <ItemGroup>
     <None Include="Operations\OperationInterfaces.xml" />
   </ItemGroup>

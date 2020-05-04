@@ -19,11 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
-            Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
 
             Return CreateItem(
                 member, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 member.IsParams(),
                 Function(c) member.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
                 GetMemberGroupPreambleParts(member, semanticModel, position),

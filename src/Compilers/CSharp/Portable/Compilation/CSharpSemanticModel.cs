@@ -851,6 +851,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public TypeInfo GetTypeInfo(PatternSyntax pattern, CancellationToken cancellationToken = default(CancellationToken))
         {
+            while (pattern is ParenthesizedPatternSyntax pp)
+                pattern = pp.Pattern;
+
             CheckSyntaxNode(pattern);
             return GetTypeInfoWorker(pattern, cancellationToken);
         }
@@ -3970,7 +3973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return methods.WhereAsArray(m => !hiddenSymbols.Contains(m));
+            return methods.WhereAsArray((m, hiddenSymbols) => !hiddenSymbols.Contains(m), hiddenSymbols);
         }
 
         // Get the symbols and possible method group associated with a method group bound node, as
@@ -4014,7 +4017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // chose for M.
                         var call = (BoundCall)boundNodeForSyntacticParent;
                         InvocationExpressionSyntax invocation = call.Syntax as InvocationExpressionSyntax;
-                        if (invocation != null && invocation.Expression.SkipParens() == boundNode.Syntax.SkipParens() && (object)call.Method != null)
+                        if (invocation != null && invocation.Expression.SkipParens() == ((ExpressionSyntax)boundNode.Syntax).SkipParens() && (object)call.Method != null)
                         {
                             if (call.OriginalMethodsOpt.IsDefault)
                             {
@@ -4075,7 +4078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the bad expression has symbol(s) from this method group, it better indicates any problems.
                         ImmutableArray<Symbol> myMethodGroup = methodGroup;
 
-                        symbols = ((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray(sym => myMethodGroup.Contains(sym));
+                        symbols = ((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray((sym, myMethodGroup) => myMethodGroup.Contains(sym), myMethodGroup);
                         if (symbols.Any())
                         {
                             resultKind = ((BoundBadExpression)boundNodeForSyntacticParent).ResultKind;
@@ -4176,7 +4179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the bad expression has symbol(s) from this property group, it better indicates any problems.
                         ImmutableArray<Symbol> myPropertyGroup = propertyGroup;
 
-                        symbols = ((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray(sym => myPropertyGroup.Contains(sym));
+                        symbols = ((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray((sym, myPropertyGroup) => myPropertyGroup.Contains(sym), myPropertyGroup);
                         if (symbols.Any())
                         {
                             resultKind = ((BoundBadExpression)boundNodeForSyntacticParent).ResultKind;

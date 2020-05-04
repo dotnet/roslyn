@@ -1745,7 +1745,7 @@
   <Node Name="IIncrementOrDecrementOperation" Base="IOperation">
     <OperationKind>
       <Entry Name="Increment" Value="0x42" ExtraDescription="This is used as an increment operator"/>
-      <Entry Name="Decrement" Value="0x44" ExtraDescription="This is used as an decrement operator"/>
+      <Entry Name="Decrement" Value="0x44" ExtraDescription="This is used as a decrement operator"/>
     </OperationKind>
     <Comments>
       <summary>
@@ -2917,6 +2917,87 @@
     <Property Name="IsAsynchronous" Type="bool">
       <Comments>
         <summary>True if this is an asynchronous using declaration.</summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="INegatedPatternOperation" Base="IPatternOperation">
+    <Comments>
+      <summary>
+        Represents a negated pattern.
+        <para>
+          Current usage:
+          (1) C# negated pattern.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="NegatedPattern" Type="IPatternOperation">
+      <Comments>
+        <summary>The negated pattern.</summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="IBinaryPatternOperation" Base="IPatternOperation" ChildrenOrder="LeftPattern,RightPattern">
+    <Comments>
+      <summary>
+        Represents a binary ("and" or "or") pattern.
+        <para>
+          Current usage:
+          (1) C# "and" and "or" patterns.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="OperatorKind" Type="BinaryOperatorKind">
+      <Comments>
+        <summary>Kind of binary pattern; either <see cref="BinaryOperatorKind.And"/> or <see cref="BinaryOperatorKind.Or"/>.</summary>
+      </Comments>
+    </Property>
+    <Property Name="LeftPattern" Type="IPatternOperation">
+      <Comments>
+        <summary>The pattern on the left.</summary>
+      </Comments>
+    </Property>
+    <Property Name="RightPattern" Type="IPatternOperation">
+      <Comments>
+        <summary>The pattern on the right.</summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="ITypePatternOperation" Base="IPatternOperation">
+    <Comments>
+      <summary>
+        Represents a pattern comparing the input with a given type.
+        <para>
+          Current usage:
+          (1) C# type pattern.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="MatchedType" Type="ITypeSymbol">
+      <Comments>
+        <summary>
+          The type explicitly specified, or null if it was inferred (e.g. using <code>var</code> in C#).
+        </summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="IRelationalPatternOperation" Base="IPatternOperation">
+    <Comments>
+      <summary>
+        Represents a pattern comparing the input with a constant value using a relational operator.
+        <para>
+        Current usage:
+         (1) C# relational pattern.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="OperatorKind" Type="BinaryOperatorKind">
+      <Comments>
+        <summary>The kind of the relational operator.</summary>
+      </Comments>
+    </Property>
+    <Property Name="Value" Type="IOperation">
+      <Comments>
+        <summary>Constant value of the pattern operation.</summary>
       </Comments>
     </Property>
   </Node>

@@ -4,11 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -30,11 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return progressionLanguageService.GetTopLevelNodesFromDocument(root, cancellationToken);
         }
 
-        public static async Task<IEnumerable<ISymbol>> GetContainedSymbolsAsync(Document document, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<ISymbol>> GetContainedSymbolsAsync(Document document, CancellationToken cancellationToken)
         {
             var syntaxNodes = await GetContainedSyntaxNodesAsync(document, cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var symbols = new List<ISymbol>();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
             foreach (var syntaxNode in syntaxNodes)
             {
@@ -49,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
             }
 
-            return symbols;
+            return symbols.ToImmutable();
         }
 
         private static bool IsTopLevelSymbol(ISymbol symbol)
@@ -70,7 +73,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public static IEnumerable<ISymbol> GetContainedSymbols(ISymbol symbol)
         {
-
             if (symbol is INamedTypeSymbol namedType)
             {
                 foreach (var member in namedType.GetMembers())
@@ -79,7 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     {
                         continue;
                     }
-
 
                     if (member is IMethodSymbol method && method.AssociatedSymbol != null)
                     {

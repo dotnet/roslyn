@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// interfaceMember, or this type doesn't supply a member that successfully implements
         /// interfaceMember).
         /// </summary>
-        public static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementationsForInterfaceMemberAsync(
-            this SymbolAndProjectId<ITypeSymbol> typeSymbolAndProjectId,
-            SymbolAndProjectId interfaceMemberAndProjectId,
+        public static async Task<ImmutableArray<ISymbol>> FindImplementationsForInterfaceMemberAsync(
+            this ITypeSymbol typeSymbol,
+            ISymbol interfaceMember,
             Solution solution,
             CancellationToken cancellationToken)
         {
@@ -43,12 +43,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // If you're looking for the implementations of IGoo<X>.Goo then you want to find both
             // results in C.
 
-            var arrBuilder = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-            var interfaceMember = interfaceMemberAndProjectId.Symbol;
+            var arrBuilder = ArrayBuilder<ISymbol>.GetInstance();
 
             // TODO(cyrusn): Implement this using the actual code for
             // TypeSymbol.FindImplementationForInterfaceMember
-            var typeSymbol = typeSymbolAndProjectId.Symbol;
             if (typeSymbol == null || interfaceMember == null)
             {
                 return arrBuilder.ToImmutableAndFree();
@@ -102,8 +100,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // OriginalSymbolMatch allows types to be matched across different assemblies
             // if they are considered to be the same type, which provides a more accurate
             // implementations list for interfaces.
-            var typeSymbolProject = solution.GetProject(typeSymbolAndProjectId.ProjectId);
-            var interfaceMemberProject = solution.GetProject(interfaceMemberAndProjectId.ProjectId);
+            var typeSymbolProject = solution.GetOriginatingProject(typeSymbol);
+            var interfaceMemberProject = solution.GetOriginatingProject(interfaceMember);
 
             var typeSymbolCompilation = await GetCompilationOrNullAsync(typeSymbolProject, cancellationToken).ConfigureAwait(false);
             var interfaceMemberCompilation = await GetCompilationOrNullAsync(interfaceMemberProject, cancellationToken).ConfigureAwait(false);
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // Now we need to walk the base type chain, but we start at the first type that actually
                 // has the interface directly in its interface hierarchy.
                 var seenTypeDeclaringInterface = false;
-                for (ITypeSymbol? currentType = typeSymbol; currentType != null; currentType = currentType.BaseType)
+                for (var currentType = typeSymbol; currentType != null; currentType = currentType.BaseType)
                 {
                     seenTypeDeclaringInterface = seenTypeDeclaringInterface ||
                                                  currentType.GetOriginalInterfacesAndTheirBaseInterfaces().Contains(interfaceType.OriginalDefinition);
@@ -139,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                         if (result != null)
                         {
-                            arrBuilder.Add(typeSymbolAndProjectId.WithSymbol(result));
+                            arrBuilder.Add(result);
                             break;
                         }
                     }
@@ -155,20 +153,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
 
-        public static ISymbol? FindImplementations(
-            this ITypeSymbol typeSymbol,
-            ISymbol constructedInterfaceMember,
-            Workspace workspace)
-        {
-            switch (constructedInterfaceMember)
+        public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, Workspace workspace)
+            => constructedInterfaceMember switch
             {
-                case IEventSymbol eventSymbol: return typeSymbol.FindImplementations(eventSymbol, workspace);
-                case IMethodSymbol methodSymbol: return typeSymbol.FindImplementations(methodSymbol, workspace);
-                case IPropertySymbol propertySymbol: return typeSymbol.FindImplementations(propertySymbol, workspace);
-            }
-
-            return null;
-        }
+                IEventSymbol eventSymbol => typeSymbol.FindImplementations(eventSymbol, workspace),
+                IMethodSymbol methodSymbol => typeSymbol.FindImplementations(methodSymbol, workspace),
+                IPropertySymbol propertySymbol => typeSymbol.FindImplementations(propertySymbol, workspace),
+                _ => null,
+            };
 
         private static ISymbol? FindImplementations<TSymbol>(
             this ITypeSymbol typeSymbol,
@@ -234,17 +226,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Compilation compilation)
         {
             return type?.Accept(new AnonymousTypeRemover(compilation));
-        }
-
-        [return: NotNullIfNotNull(parameterName: "type")]
-        public static ITypeSymbol? ReplaceTypeParametersBasedOnTypeConstraints(
-            this ITypeSymbol? type,
-            Compilation compilation,
-            IEnumerable<ITypeParameterSymbol> availableTypeParameters,
-            Solution solution,
-            CancellationToken cancellationToken)
-        {
-            return type?.Accept(new ReplaceTypeParameterBasedOnTypeConstraintVisitor(compilation, availableTypeParameters.Select(t => t.Name).ToSet(), solution, cancellationToken));
         }
 
         [return: NotNullIfNotNull(parameterName: "type")]

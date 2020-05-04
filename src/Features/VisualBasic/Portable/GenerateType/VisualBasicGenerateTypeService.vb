@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.GenerateType
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Utilities
@@ -28,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
         Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                             If nameOrMemberAccessExpression.Parent IsNot Nothing AndAlso TypeOf nameOrMemberAccessExpression.Parent Is QualifiedNameSyntax Then
                                 Return True
                             Else
-                                Contract.Fail("Cannot reach this point")
+                                throw ExceptionUtilities.Unreachable
                             End If
                         Else
                             ' Case : NSOrSomething.GenType
@@ -424,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return compilation.ClassifyConversion(sourceType, targetType).IsWidening
         End Function
 
-        Public Overrides Async Function GetOrGenerateEnclosingNamespaceSymbolAsync(namedTypeSymbol As INamedTypeSymbol, containers() As String, selectedDocument As Document, selectedDocumentRoot As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Tuple(Of INamespaceSymbol, INamespaceOrTypeSymbol, Location))
+        Public Overrides Async Function GetOrGenerateEnclosingNamespaceSymbolAsync(namedTypeSymbol As INamedTypeSymbol, containers() As String, selectedDocument As Document, selectedDocumentRoot As SyntaxNode, cancellationToken As CancellationToken) As Task(Of (INamespaceSymbol, INamespaceOrTypeSymbol, Location))
             Dim compilationUnit = DirectCast(selectedDocumentRoot, CompilationUnitSyntax)
             Dim semanticModel = Await selectedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
@@ -435,9 +435,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 If enclosingNamespace IsNot Nothing Then
                     Dim enclosingNamespaceSymbol = semanticModel.GetSymbolInfo(enclosingNamespace.Name)
                     If enclosingNamespaceSymbol.Symbol IsNot Nothing Then
-                        Return Tuple.Create(DirectCast(enclosingNamespaceSymbol.Symbol, INamespaceSymbol),
-                                            DirectCast(namedTypeSymbol, INamespaceOrTypeSymbol),
-                                            DirectCast(enclosingNamespace.Parent, NamespaceBlockSyntax).EndNamespaceStatement.GetLocation())
+                        Return (DirectCast(enclosingNamespaceSymbol.Symbol, INamespaceSymbol),
+                                namedTypeSymbol,
+                                DirectCast(enclosingNamespace.Parent, NamespaceBlockSyntax).EndNamespaceStatement.GetLocation())
                         Return Nothing
                     End If
                 End If
@@ -446,18 +446,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Dim globalNamespace = semanticModel.GetEnclosingNamespace(0, cancellationToken)
             Dim rootNamespaceOrType = namedTypeSymbol.GenerateRootNamespaceOrType(containers)
             Dim lastMember = compilationUnit.Members.LastOrDefault()
-            Dim afterThisLocation As Location = Nothing
 
             ' Add at the end
-            If lastMember Is Nothing Then
-                afterThisLocation = semanticModel.SyntaxTree.GetLocation(New TextSpan())
-            Else
-                afterThisLocation = semanticModel.SyntaxTree.GetLocation(New TextSpan(lastMember.Span.End, 0))
-            End If
+            Dim afterThisLocation = If(lastMember Is Nothing,
+                semanticModel.SyntaxTree.GetLocation(New TextSpan()),
+                semanticModel.SyntaxTree.GetLocation(New TextSpan(lastMember.Span.End, 0)))
 
-            Return Tuple.Create(globalNamespace,
-                                rootNamespaceOrType,
-                                afterThisLocation)
+            Return (globalNamespace, rootNamespaceOrType, afterThisLocation)
         End Function
 
         Private Function GetDeclaringNamespace(containers As List(Of String), indexDone As Integer, compilationUnit As CompilationUnitSyntax) As NamespaceStatementSyntax

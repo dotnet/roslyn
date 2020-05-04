@@ -5,12 +5,6 @@
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-#If CODE_STYLE Then
-Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-#Else
-Imports Microsoft.CodeAnalysis.Options
-#End If
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend Class AdjustSpaceFormattingRule
         Inherits BaseFormattingRule
@@ -19,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextFunc As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextFunc As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             ' * <end of file token>
             If currentToken.Kind = SyntaxKind.EndOfFileToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
@@ -362,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
-            Return nextFunc.Invoke()
+            Return nextFunc.Invoke(previousToken, currentToken)
         End Function
 
         Private Function PrecedingTriviaContainsLineBreak(previousToken As SyntaxToken) As Boolean

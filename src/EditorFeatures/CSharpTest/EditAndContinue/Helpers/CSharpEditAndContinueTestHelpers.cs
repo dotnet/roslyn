@@ -30,16 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
         private static readonly CSharpEditAndContinueAnalyzer s_analyzer = new CSharpEditAndContinueAnalyzer();
 
         public CSharpEditAndContinueTestHelpers(TargetFramework targetFramework)
-        {
-            _fxReferences = TargetFrameworkUtil.GetReferences(targetFramework);
-        }
+            => _fxReferences = TargetFrameworkUtil.GetReferences(targetFramework);
 
         public override AbstractEditAndContinueAnalyzer Analyzer => s_analyzer;
 
         public override Compilation CreateLibraryCompilation(string name, IEnumerable<SyntaxTree> trees)
-        {
-            return CSharpCompilation.Create("New", trees, _fxReferences, TestOptions.UnsafeReleaseDll);
-        }
+            => CSharpCompilation.Create("New", trees, _fxReferences, TestOptions.UnsafeReleaseDll);
 
         public override SyntaxTree ParseText(string source)
             => SyntaxFactory.ParseSyntaxTree(source, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));

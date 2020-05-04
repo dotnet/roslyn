@@ -88,9 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
             }
 
             internal void IncrementReferenceCount()
-            {
-                this._taggerReferenceCount++;
-            }
+                => this._taggerReferenceCount++;
 
             internal void DecrementReferenceCountAndDisposeIfNecessary()
             {
@@ -111,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                 workspace.DocumentActiveContextChanged += this.OnDocumentActiveContextChanged;
                 this._workspace = workspace;
 
-                EnqueueProcessSnapshotAsync();
+                EnqueueProcessSnapshot();
             }
 
             public void DisconnectFromWorkspace()
@@ -127,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                 }
             }
 
-            private void EnqueueProcessSnapshotAsync(DocumentId updatedDocumentId = null)
+            private void EnqueueProcessSnapshot(DocumentId updatedDocumentId = null)
             {
                 var workspace = this._workspace;
                 if (workspace == null)
@@ -154,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                     return;
                 }
 
-                _workQueue.EnqueueBackgroundTask(c => this.EnqueueProcessSnapshotWorkerAsync(documentId, c), GetType() + "." + nameof(EnqueueProcessSnapshotAsync) + ".1", CancellationToken.None);
+                _workQueue.EnqueueBackgroundTask(c => this.EnqueueProcessSnapshotWorkerAsync(documentId, c), GetType() + "." + nameof(EnqueueProcessSnapshot) + ".1", CancellationToken.None);
             }
 
             private async Task EnqueueProcessSnapshotWorkerAsync(DocumentId documentId, CancellationToken cancellationToken)
@@ -217,14 +215,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                 var workspace = this._workspace;
                 if (workspace != null && workspace == args.Solution.Workspace)
                 {
-                    EnqueueProcessSnapshotAsync(args.NewActiveContextDocumentId);
+                    EnqueueProcessSnapshot(args.NewActiveContextDocumentId);
                 }
             }
 
             private void OnDocumentOpened(object sender, DocumentEventArgs args)
-            {
-                EnqueueProcessSnapshotAsync(args.Document.Id);
-            }
+                => EnqueueProcessSnapshot(args.Document.Id);
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
             {
@@ -244,13 +240,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                             var documentId = workspace.GetDocumentIdInCurrentContext(this._textBuffer.AsTextContainer());
                             if (documentId?.ProjectId == args.ProjectId)
                             {
-                                EnqueueProcessSnapshotAsync();
+                                EnqueueProcessSnapshot();
                             }
                             break;
                         }
                     case WorkspaceChangeKind.DocumentChanged:
                         {
-                            EnqueueProcessSnapshotAsync(args.DocumentId);
+                            EnqueueProcessSnapshot(args.DocumentId);
                             break;
                         }
                 }

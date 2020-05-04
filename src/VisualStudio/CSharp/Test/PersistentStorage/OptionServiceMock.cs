@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -35,7 +36,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             return (T)_optionsByOption[option];
         }
 
+        public T GetOption<T>(Option2<T> option)
+        {
+            return (T)_optionsByOption[option];
+        }
+
         public T GetOption<T>(PerLanguageOption<T> option, string languageName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T GetOption<T>(PerLanguageOption2<T> option, string languageName)
         {
             throw new NotImplementedException();
         }
@@ -51,6 +62,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         public IEnumerable<IOption> GetRegisteredOptions()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool TryMapEditorConfigKeyToOption(string key, string language, [NotNullWhen(true)] out IEditorConfigStorageLocation2 storageLocation, out OptionKey optionKey)
         {
             throw new NotImplementedException();
         }

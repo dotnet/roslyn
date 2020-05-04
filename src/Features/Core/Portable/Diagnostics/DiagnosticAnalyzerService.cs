@@ -8,10 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -23,58 +25,50 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
-        public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
+        private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
 
-        private readonly AbstractHostDiagnosticUpdateSource? _hostDiagnosticUpdateSource;
+        private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
+
+        // use eventMap and taskQueue to serialize events
+        private readonly EventMap _eventMap;
+        private readonly TaskQueue _eventQueue;
+
+        public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
 
         public IAsynchronousOperationListener Listener { get; }
 
+        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map;
+        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
+
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            PrimaryWorkspace primaryWorkspace,
-            [Import(AllowDefault = true)]IHostDiagnosticAnalyzerPackageProvider? diagnosticAnalyzerProviderService = null,
-            [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource = null)
-            : this(new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => GetHostDiagnosticAnalyzerPackage(diagnosticAnalyzerProviderService), isThreadSafe: true),
-                   diagnosticAnalyzerProviderService?.GetAnalyzerAssemblyLoader(),
-                   hostDiagnosticUpdateSource,
-                   primaryWorkspace,
-                   registrationService, listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
-        {
-            // diagnosticAnalyzerProviderService and hostDiagnosticUpdateSource can only be null in test harness. Otherwise, it should never be null.
-        }
-
-        // protected for testing purposes.
-        protected DiagnosticAnalyzerService(
-            Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> workspaceAnalyzerPackages,
-            IAnalyzerAssemblyLoader? hostAnalyzerAssemblyLoader,
-            AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource,
-            PrimaryWorkspace primaryWorkspace,
-            IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListener? listener = null)
-            : this(new DiagnosticAnalyzerInfoCache(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource, primaryWorkspace),
-                   hostDiagnosticUpdateSource,
-                   registrationService,
-                   listener)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : this(registrationService,
+                   listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
         {
         }
 
         // protected for testing purposes.
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         protected DiagnosticAnalyzerService(
-            DiagnosticAnalyzerInfoCache analyzerInfoCache,
-            AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource,
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListener? listener = null)
-            : this(registrationService)
+            IAsynchronousOperationListener? listener)
         {
-            AnalyzerInfoCache = analyzerInfoCache;
-            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
             Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
-        }
 
-        private static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackage(IHostDiagnosticAnalyzerPackageProvider? diagnosticAnalyzerProviderService)
-            => diagnosticAnalyzerProviderService?.GetHostDiagnosticAnalyzerPackages() ?? ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty;
+            _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
+            _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
+            _eventMap = new EventMap();
+
+            // use diagnostic event task scheduler so that we never flood async events queue with million of events.
+            // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
+            _eventQueue = new TaskQueue(Listener, s_eventScheduler);
+
+            registrationService.Register(this);
+        }
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
         {
@@ -155,7 +149,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var index = 0;
                     foreach (var project in solution.Projects)
                     {
-                        var localProject = project;
                         tasks[index++] = Task.Run(
                             () => analyzer.ForceAnalyzeProjectAsync(project, cancellationToken));
                     }

@@ -102,8 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isCatchFilterContext,
             bool isDestructorTypeContext,
             bool isPossibleTupleContext,
-            bool isPatternContext,
+            bool isStartPatternContext,
+            bool isAfterPatternContext,
             bool isRightSideOfNumericType,
+            bool isInArgumentList,
             CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
@@ -111,7 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
                    isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
                    isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext,
-                   isPatternContext, isRightSideOfNumericType, cancellationToken)
+                   isStartPatternContext, isAfterPatternContext, isRightSideOfNumericType, isInArgumentList,
+                   cancellationToken)
         {
             this.ContainingTypeDeclaration = containingTypeDeclaration;
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
@@ -147,9 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return CreateContextWorker(workspace, semanticModel, position, cancellationToken);
-        }
+            => CreateContextWorker(workspace, semanticModel, position, cancellationToken);
 
         private static CSharpSyntaxContext CreateContextWorker(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
@@ -208,6 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // If the second dot was typed, we just insert two dots.
             var isRightSideOfNumericType = leftToken.IsNumericTypeContext(semanticModel, cancellationToken);
 
+            var isArgumentListToken = targetToken.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier);
+
             return new CSharpSyntaxContext(
                 workspace: workspace,
                 semanticModel: semanticModel,
@@ -258,8 +261,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isCatchFilterContext: syntaxTree.IsCatchFilterContext(position, leftToken),
                 isDestructorTypeContext: isDestructorTypeContext,
                 isPossibleTupleContext: syntaxTree.IsPossibleTupleContext(leftToken, position),
-                isPatternContext: syntaxTree.IsPatternContext(leftToken, position),
+                isStartPatternContext: syntaxTree.IsAtStartOfPattern(leftToken, position),
+                isAfterPatternContext: syntaxTree.IsAtEndOfPattern(leftToken, position),
                 isRightSideOfNumericType: isRightSideOfNumericType,
+                isInArgumentList: isArgumentListToken,
                 cancellationToken: cancellationToken);
         }
 
@@ -270,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return CreateContextWorker(workspace: null, semanticModel: semanticModel, position: position, cancellationToken: cancellationToken);
         }
 
-        private new static bool IsWithinAsyncMethod()
+        private static new bool IsWithinAsyncMethod()
         {
             // TODO: Implement this if any C# completion code needs to know if it is in an async 
             // method or not.
@@ -324,6 +329,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public bool IsStatementAttributeContext()
+        {
+            var token = TargetToken;
+
+            if (token.Kind() == SyntaxKind.OpenBracketToken &&
+                token.Parent.Kind() == SyntaxKind.AttributeList &&
+                token.Parent.Parent is StatementSyntax)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public bool IsMemberDeclarationContext(
             ISet<SyntaxKind> validModifiers = null,
             ISet<SyntaxKind> validTypeDeclarations = null,
@@ -352,9 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         internal override ITypeInferenceService GetTypeInferenceServiceWithoutWorkspace()
-        {
-            return new CSharpTypeInferenceService();
-        }
+            => new CSharpTypeInferenceService();
 
         /// <summary>
         /// Is this a possible position for an await statement (`await using` or `await foreach`)?

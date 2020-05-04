@@ -741,9 +741,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var id = variableBySlot[i];
                 int slot = id.ContainingSlot;
-                state.Assigned[i] = (slot > 0) &&
+
+                bool assign = (slot > 0) &&
                     state.Assigned[slot] &&
                     variableBySlot[slot].Symbol.GetTypeOrReturnType().TypeKind == TypeKind.Struct;
+
+                if (state.NormalizeToBottom && slot == 0)
+                {
+                    // NormalizeToBottom means new variables are assumed to be assigned (bottom state)
+                    assign = true;
+                }
+
+                state.Assigned[i] = assign;
             }
         }
 
@@ -1255,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void SetSlotAssigned(int slot, ref LocalState state)
+        protected void SetSlotAssigned(int slot, ref LocalState state)
         {
             if (slot < 0) return;
             VariableIdentifier id = variableBySlot[slot];
@@ -1403,14 +1412,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetConditionalState(this.State, whenFail);
         }
 
-        private void AssignPatternVariables(BoundPattern pattern)
+        /// <summary>
+        /// Find the pattern variables of the pattern, and make them definitely assigned if <paramref name="definitely"/>.
+        /// That would be false under "not" and "or" patterns.
+        /// </summary>
+        private void AssignPatternVariables(BoundPattern pattern, bool definitely = true)
         {
             switch (pattern.Kind)
             {
                 case BoundKind.DeclarationPattern:
                     {
                         var pat = (BoundDeclarationPattern)pattern;
-                        Assign(pat, value: null, isRef: false, read: false);
+                        if (definitely)
+                            Assign(pat, value: null, isRef: false, read: false);
                         break;
                     }
                 case BoundKind.DiscardPattern:
@@ -1428,17 +1442,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             foreach (var subpat in pat.Deconstruction)
                             {
-                                AssignPatternVariables(subpat.Pattern);
+                                AssignPatternVariables(subpat.Pattern, definitely);
                             }
                         }
                         if (!pat.Properties.IsDefaultOrEmpty)
                         {
                             foreach (BoundSubpattern sub in pat.Properties)
                             {
-                                AssignPatternVariables(sub.Pattern);
+                                AssignPatternVariables(sub.Pattern, definitely);
                             }
                         }
-                        Assign(pat, null, false, false);
+                        if (definitely)
+                            Assign(pat, null, false, false);
                         break;
                     }
                 case BoundKind.ITuplePattern:
@@ -1446,8 +1461,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var pat = (BoundITuplePattern)pattern;
                         foreach (var subpat in pat.Subpatterns)
                         {
-                            AssignPatternVariables(subpat.Pattern);
+                            AssignPatternVariables(subpat.Pattern, definitely);
                         }
+                        break;
+                    }
+                case BoundKind.TypePattern:
+                    break;
+                case BoundKind.RelationalPattern:
+                    {
+                        var pat = (BoundRelationalPattern)pattern;
+                        this.VisitRvalue(pat.Value);
+                        break;
+                    }
+                case BoundKind.NegatedPattern:
+                    {
+                        var pat = (BoundNegatedPattern)pattern;
+                        AssignPatternVariables(pat.Negated, definitely: false);
+                        break;
+                    }
+                case BoundKind.BinaryPattern:
+                    {
+                        var pat = (BoundBinaryPattern)pattern;
+                        bool def = definitely && !pat.Disjunction;
+                        AssignPatternVariables(pat.Left, def);
+                        AssignPatternVariables(pat.Right, def);
                         break;
                     }
                 default:
@@ -2069,6 +2106,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assign(node.LeftOperand, node.RightOperand);
         }
 
+        protected override void AdjustStateForNullCoalescingAssignmentNonNullCase(BoundNullCoalescingAssignmentOperator node)
+        {
+            // For the purposes of definite assignment in try/finally, we need to treat the left as having been assigned
+            // in the left-side state. If LeftOperand was not definitely assigned before this call, we will have already
+            // reported an error for use before assignment.
+            Assign(node.LeftOperand, node.LeftOperand);
+        }
+
         #endregion Visitors
 
         protected override string Dump(LocalState state)
@@ -2157,16 +2202,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #if REFERENCE_STATE
-        internal class LocalState : ILocalState
+        internal class LocalState : ILocalDataFlowState
 #else
-        internal struct LocalState : ILocalState
+        internal struct LocalState : ILocalDataFlowState
 #endif
         {
             internal BitVector Assigned;
 
-            internal LocalState(BitVector assigned)
+            public bool NormalizeToBottom { get; }
+
+            internal LocalState(BitVector assigned, bool normalizeToBottom = false)
             {
                 this.Assigned = assigned;
+                NormalizeToBottom = normalizeToBottom;
                 Debug.Assert(!assigned.IsNull);
             }
 

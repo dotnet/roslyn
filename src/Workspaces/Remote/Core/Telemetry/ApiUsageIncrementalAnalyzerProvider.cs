@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -22,14 +24,13 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
     internal sealed class ApiUsageIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ApiUsageIncrementalAnalyzerProvider()
         {
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-        {
-            return new Analyzer();
-        }
+            => new Analyzer();
 
         private sealed class Analyzer : IIncrementalAnalyzer
         {
@@ -41,12 +42,14 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
 
             private readonly HashSet<ProjectId> _reported = new HashSet<ProjectId>();
 
-            public void RemoveProject(ProjectId projectId)
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
                 lock (_reported)
                 {
                     _reported.Remove(projectId);
                 }
+
+                return Task.CompletedTask;
             }
 
             public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -127,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
 
                         try
                         {
-                            RoslynServices.SessionOpt?.PostEvent(telemetryEvent);
+                            RoslynServices.TelemetrySession?.PostEvent(telemetryEvent);
                         }
                         catch
                         {
@@ -193,43 +196,28 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                return false;
-            }
+                => false;
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
-            public void RemoveDocument(DocumentId documentId)
-            {
-            }
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+                => Task.CompletedTask;
         }
     }
 }

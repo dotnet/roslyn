@@ -260,9 +260,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
 
         private bool IsType(Symbol symbol)
-        {
-            return symbol.Type.IsType();
-        }
+            => symbol.Type.IsType();
 
         private void GetFullName(ArrayBuilder<string> nameParts, Path8 path)
         {

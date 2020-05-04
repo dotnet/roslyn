@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (context.ContainingTypeDeclaration != null)
             {
                 return
-                    IsConstructorInitializerContext(position, context) ||
+                    IsConstructorInitializerContext(context) ||
                     IsInstanceExpressionOrStatement(context);
             }
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsConstructorInitializerContext(int position, CSharpSyntaxContext context)
+        private bool IsConstructorInitializerContext(CSharpSyntaxContext context)
         {
             // cases:
             //   Goo() : |

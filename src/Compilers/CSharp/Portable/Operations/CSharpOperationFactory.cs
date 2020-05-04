@@ -258,6 +258,14 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundRecursivePatternOperation((BoundITuplePattern)boundNode);
                 case BoundKind.DiscardPattern:
                     return CreateBoundDiscardPatternOperation((BoundDiscardPattern)boundNode);
+                case BoundKind.BinaryPattern:
+                    return CreateBoundBinaryPatternOperation((BoundBinaryPattern)boundNode);
+                case BoundKind.NegatedPattern:
+                    return CreateBoundNegatedPatternOperation((BoundNegatedPattern)boundNode);
+                case BoundKind.RelationalPattern:
+                    return CreateBoundRelationalPatternOperation((BoundRelationalPattern)boundNode);
+                case BoundKind.TypePattern:
+                    return CreateBoundTypePatternOperation((BoundTypePattern)boundNode);
                 case BoundKind.SwitchStatement:
                     return CreateBoundSwitchStatementOperation((BoundSwitchStatement)boundNode);
                 case BoundKind.SwitchLabel:
@@ -650,7 +658,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 case BoundObjectOrCollectionValuePlaceholder implicitReceiver:
                     return CreateBoundDynamicMemberAccessOperation(implicitReceiver, typeArgumentsOpt: ImmutableArray<TypeSymbol>.Empty, memberName: "Add",
-                                                                   implicitReceiver.Syntax, type: null, value: default, isImplicit: true);
+                                                                   implicitReceiver.Syntax, type: null, value: null, isImplicit: true);
 
                 case BoundMethodGroup methodGroup:
                     return CreateBoundDynamicMemberAccessOperation(methodGroup.ReceiverOpt, TypeMap.AsTypeSymbols(methodGroup.TypeArgumentsOpt), methodGroup.Name,
@@ -677,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (indexer)
             {
                 case BoundDynamicIndexerAccess boundDynamicIndexerAccess:
-                    return Create(boundDynamicIndexerAccess.ReceiverOpt);
+                    return Create(boundDynamicIndexerAccess.Receiver);
 
                 case BoundObjectInitializerMember boundObjectInitializerMember:
                     return CreateImplicitReceiver(boundObjectInitializerMember.Syntax, boundObjectInitializerMember.ReceiverType);
@@ -1552,7 +1560,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else
             {
-                info = default;
+                info = null;
             }
 
             return info;
@@ -1892,6 +1900,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyConstantPatternOperation(inputType.GetPublicSymbol(), this, value, _semanticModel, syntax, isImplicit);
         }
 
+        private IOperation CreateBoundRelationalPatternOperation(BoundRelationalPattern boundRelationalPattern)
+        {
+            BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundRelationalPattern.Relation);
+            BoundNode value = boundRelationalPattern.Value;
+            SyntaxNode syntax = boundRelationalPattern.Syntax;
+            bool isImplicit = boundRelationalPattern.WasCompilerGenerated;
+            TypeSymbol inputType = boundRelationalPattern.InputType;
+            return new CSharpLazyRelationalPatternOperation(inputType.GetPublicSymbol(), this, operatorKind, value, _semanticModel, syntax, isImplicit);
+        }
+
         private IDeclarationPatternOperation CreateBoundDeclarationPatternOperation(BoundDeclarationPattern boundDeclarationPattern)
         {
             ISymbol variable = boundDeclarationPattern.Variable.GetPublicSymbol();
@@ -1916,6 +1934,28 @@ namespace Microsoft.CodeAnalysis.Operations
         private IRecursivePatternOperation CreateBoundRecursivePatternOperation(BoundITuplePattern boundITuplePattern)
         {
             return new CSharpLazyITuplePatternOperation(this, boundITuplePattern, _semanticModel);
+        }
+
+        private IOperation CreateBoundTypePatternOperation(BoundTypePattern boundTypePattern)
+        {
+            return new TypePatternOperation(
+                matchedType: boundTypePattern.ConvertedType.GetPublicSymbol(),
+                inputType: boundTypePattern.InputType.GetPublicSymbol(),
+                semanticModel: _semanticModel,
+                syntax: boundTypePattern.Syntax,
+                type: null, // this is not an expression
+                constantValue: default(Optional<object>),
+                isImplicit: boundTypePattern.WasCompilerGenerated);
+        }
+
+        private IOperation CreateBoundNegatedPatternOperation(BoundNegatedPattern boundNegatedPattern)
+        {
+            return new CSharpLazyNegatedPatternOperation(this, boundNegatedPattern, _semanticModel);
+        }
+
+        private IOperation CreateBoundBinaryPatternOperation(BoundBinaryPattern boundBinaryPattern)
+        {
+            return new CSharpLazyBinaryPatternOperation(this, boundBinaryPattern, _semanticModel);
         }
 
         private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)

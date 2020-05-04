@@ -25,8 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         /// to call the _CanCallOnBackground variant. We hope to audit _CanCallOnBackground periodically, and so rather than
         /// having to understand that each of those uses are ObjectBrowser and thus get a special pass.</remarks>
         public static T WaitAndGetResult_ObjectBrowser<T>(this Task<T> task, CancellationToken cancellationToken)
-        {
-            return task.WaitAndGetResult_CanCallOnBackground(cancellationToken);
-        }
+            => task.WaitAndGetResult_CanCallOnBackground(cancellationToken);
     }
 }

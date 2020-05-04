@@ -9,9 +9,6 @@
     <PackageId>Microsoft.CodeAnalysis.VisualBasic.CodeStyle.NewNameSinceWeReferenceTheAnalyzersAndNuGetCannotFigureItOut</PackageId>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\VisualBasic\Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.vb" Link="Formatting\SyntaxTokenExtensions_SharedWithCodeStyle.vb" />
-    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\VisualBasic\Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.vb" Link="Formatting\SyntaxTreeExtensions_SharedWithCodeStyle.vb" />
-    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\VisualBasic\Extensions\SyntaxTriviaExtensions.vb" Link="Formatting\SyntaxTriviaExtensions.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\DefaultOperationProvider.vb" Link="Formatting\DefaultOperationProvider.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\AggregatedFormattingResult.vb" Link="Formatting\Engine\AggregatedFormattingResult.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\FormattingResult.vb" Link="Formatting\Engine\FormattingResult.vb" />
@@ -59,7 +56,6 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <!-- Below import is temporarily commented out to reduce the size of the refactoring PR. It will be uncommented in a follow-up PR. -->
-  <!--<Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\VisualBasic\VisualBasicCompilerExtensions.projitems" Label="Shared" />-->
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\VisualBasic\VisualBasicCompilerExtensions.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\VisualBasic\Analyzers\VisualBasicAnalyzers.projitems" Label="Shared" />
 </Project>

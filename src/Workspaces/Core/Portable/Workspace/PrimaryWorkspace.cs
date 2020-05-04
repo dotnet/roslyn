@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -16,6 +17,7 @@ namespace Microsoft.CodeAnalysis
         private Workspace _primaryWorkspace;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PrimaryWorkspace()
         {
         }

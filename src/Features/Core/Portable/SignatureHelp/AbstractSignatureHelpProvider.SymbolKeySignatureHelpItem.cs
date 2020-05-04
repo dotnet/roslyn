@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             public override bool Equals(object obj)
-            {
-                return Equals(obj as SymbolKeySignatureHelpItem);
-            }
+                => Equals(obj as SymbolKeySignatureHelpItem);
 
             public bool Equals(SymbolKeySignatureHelpItem obj)
             {

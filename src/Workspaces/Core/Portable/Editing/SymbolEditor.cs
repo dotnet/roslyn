@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public async Task<IReadOnlyList<SyntaxNode>> GetCurrentDeclarationsAsync(ISymbol symbol, CancellationToken cancellationToken = default)
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
-            return this.GetDeclarations(currentSymbol).ToImmutableReadOnlyListOrEmpty();
+            return this.GetDeclarations(currentSymbol).ToBoxedImmutableArray();
         }
 
         /// <summary>

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -12,12 +13,24 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
     [ExportLanguageServiceFactory(typeof(IClassificationService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspClassificationServiceFactory : RoslynClassificationServiceFactory
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpLspClassificationServiceFactory()
+        {
+        }
+
         protected override string LiveShareContentType => StringConstants.CSharpLspLanguageName;
     }
 
     [ExportLanguageServiceFactory(typeof(IClassificationService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspClassificationServiceFactory : RoslynClassificationServiceFactory
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VBLspClassificationServiceFactory()
+        {
+        }
+
         protected override string LiveShareContentType => StringConstants.VBLspLanguageName;
     }
 
@@ -25,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
     internal class CSharpLspEditorClassificationFactoryService : RoslynSyntaxClassificationServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpLspEditorClassificationFactoryService(CSharpLspClientServiceFactory csharpLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace,
             ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
             : base(csharpLspClientServiceFactory, remoteLanguageServiceWorkspace, classificationTypeMap, threadingContext)
@@ -36,6 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
     internal class VBLspEditorClassificationFactoryService : RoslynSyntaxClassificationServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VBLspEditorClassificationFactoryService(VisualBasicLspClientServiceFactory vbLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace,
             ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
             : base(vbLspClientServiceFactory, remoteLanguageServiceWorkspace, classificationTypeMap, threadingContext)

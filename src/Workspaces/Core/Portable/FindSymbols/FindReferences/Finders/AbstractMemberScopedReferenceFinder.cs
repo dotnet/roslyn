@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         where TSymbol : ISymbol
     {
         protected sealed override bool CanFind(TSymbol symbol)
-        {
-            return true;
-        }
+            => true;
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             TSymbol symbol,

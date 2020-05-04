@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         protected abstract T CreateCounter();
 
         public static int GetNextId()
-        {
-            return Interlocked.Increment(ref s_globalId);
-        }
+            => Interlocked.Increment(ref s_globalId);
 
         public static StatisticResult GetStatistics(List<int> values)
         {
@@ -58,19 +56,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         public bool IsEmpty => _map.IsEmpty;
 
         public IEnumerator<KeyValuePair<object, T>> GetEnumerator()
-        {
-            return _map.GetEnumerator();
-        }
+            => _map.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
+            => this.GetEnumerator();
 
         protected T GetCounter(object key)
-        {
-            return _map.GetOrAdd(key, _ => CreateCounter());
-        }
+            => _map.GetOrAdd(key, _ => CreateCounter());
 
         protected bool TryGetCounter(object key, out T counter)
         {

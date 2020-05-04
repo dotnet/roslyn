@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private DirectiveTriviaSyntax ParseLineDirective(SyntaxToken hash, SyntaxToken id, bool isActive)
         {
             SyntaxToken line;
-            SyntaxToken file = default(SyntaxToken);
+            SyntaxToken file = null;
             bool sawLineButNotFile = false;
             switch (this.CurrentToken.Kind)
             {

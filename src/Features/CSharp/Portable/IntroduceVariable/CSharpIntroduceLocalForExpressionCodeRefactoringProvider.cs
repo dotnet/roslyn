@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.IntroduceVariable;
@@ -18,6 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             ExpressionStatementSyntax,
             LocalDeclarationStatementSyntax>
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public CSharpIntroduceLocalForExpressionCodeRefactoringProvider()
+        {
+        }
+
         protected override bool IsValid(ExpressionStatementSyntax expressionStatement, TextSpan span)
         {
             // Expression is likely too simple to want to offer to generate a local for.

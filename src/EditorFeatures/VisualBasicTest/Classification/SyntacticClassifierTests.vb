@@ -5,17 +5,15 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SyntacticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Protected Overrides Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions) As Task(Of ImmutableArray(Of ClassifiedSpan))
-            Using Workspace = TestWorkspace.CreateVisualBasic(code)
-                Dim document = Workspace.CurrentSolution.Projects.First().Documents.First()
-
+        Protected Overrides Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions, outOfProcess As Boolean) As Task(Of ImmutableArray(Of ClassifiedSpan))
+            Using workspace = CreateWorkspace(code, outOfProcess)
+                Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Return GetSyntacticClassificationsAsync(document, span)
             End Using
         End Function

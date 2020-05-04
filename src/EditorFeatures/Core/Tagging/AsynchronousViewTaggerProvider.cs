@@ -49,8 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         }
 
         ITagger<T> IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
-        {
-            return CreateTagger<T>(textView, buffer);
-        }
+            => CreateTagger<T>(textView, buffer);
     }
 }

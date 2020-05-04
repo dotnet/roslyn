@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         private readonly ImmutableArray<Lazy<IBraceMatcher, LanguageMetadata>> _braceMatchers;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public BraceMatchingService(
             [ImportMany] IEnumerable<Lazy<IBraceMatcher, LanguageMetadata>> braceMatchers)
         {

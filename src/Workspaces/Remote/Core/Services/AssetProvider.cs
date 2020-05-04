@@ -6,12 +6,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -29,11 +31,6 @@ namespace Microsoft.CodeAnalysis.Remote
             _scopeId = scopeId;
             _assetStorage = assetStorage;
             _serializerService = serializerService;
-        }
-
-        public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
-        {
-            return _assetStorage.GetGlobalAssetsOfType<T>(cancellationToken);
         }
 
         public override async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
@@ -118,38 +115,32 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {
-                var values = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+                var assets = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
 
-                foreach (var tuple in values)
+                foreach (var (checksum, value) in assets)
                 {
-                    _assetStorage.TryAddAsset(tuple.Item1, tuple.Item2);
+                    _assetStorage.TryAddAsset(checksum, value);
                 }
             }
         }
 
         private async Task<object> RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-            pooledObject.Object.Add(checksum);
+            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
+            checksums.Add(checksum);
 
-            var tuple = await RequestAssetsAsync(pooledObject.Object, cancellationToken).ConfigureAwait(false);
-            return tuple[0].Item2;
+            var assets = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+            return assets.Single().value;
         }
 
-        private async Task<IList<(Checksum, object)>> RequestAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<(Checksum checksum, object value)>> RequestAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
         {
             if (checksums.Count == 0)
             {
-                return SpecializedCollections.EmptyList<ValueTuple<Checksum, object>>();
+                return ImmutableArray<(Checksum, object)>.Empty;
             }
 
-            var source = _assetStorage.AssetSource;
-            cancellationToken.ThrowIfCancellationRequested();
-
-            Contract.ThrowIfNull(source);
-
-            // ask one of asset source for data
-            return await source.RequestAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
+            return await _assetStorage.GetAssetSource().GetAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
         }
     }
 }

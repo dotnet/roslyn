@@ -34,46 +34,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         public DiagnosticTaggerWrapper(
             TestWorkspace workspace,
-            Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null,
+            IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null,
+            IDiagnosticUpdateSource updateSource = null,
             bool createTaggerProvider = true)
-            : this(workspace, analyzerMap, updateSource: null, createTaggerProvider: createTaggerProvider)
-        {
-        }
-
-        public DiagnosticTaggerWrapper(
-            TestWorkspace workspace,
-            IDiagnosticUpdateSource updateSource,
-            bool createTaggerProvider = true)
-            : this(workspace, null, updateSource, createTaggerProvider)
-        {
-        }
-
-        private static DiagnosticAnalyzerService CreateDiagnosticAnalyzerService(
-            Dictionary<string, DiagnosticAnalyzer[]> analyzerMap, IAsynchronousOperationListener listener)
-        {
-            return analyzerMap == null || analyzerMap.Count == 0
-                ? new MyDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap(), listener: listener)
-                : new MyDiagnosticAnalyzerService(analyzerMap.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray()), listener: listener);
-        }
-
-        private DiagnosticTaggerWrapper(
-            TestWorkspace workspace,
-            Dictionary<string, DiagnosticAnalyzer[]> analyzerMap,
-            IDiagnosticUpdateSource updateSource,
-            bool createTaggerProvider)
         {
             _threadingContext = workspace.GetService<IThreadingContext>();
             _listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
 
-            if (analyzerMap != null || updateSource == null)
-            {
-                AnalyzerService = CreateDiagnosticAnalyzerService(analyzerMap, _listenerProvider.GetListener(FeatureAttribute.DiagnosticService));
-            }
-
             if (updateSource == null)
             {
-                updateSource = AnalyzerService;
+                updateSource = AnalyzerService = new MyDiagnosticAnalyzerService(_listenerProvider.GetListener(FeatureAttribute.DiagnosticService));
             }
+
+            var analyzerReference = new TestAnalyzerReferenceByLanguage(analyzerMap ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             _workspace = workspace;
 
@@ -85,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             if (createTaggerProvider)
             {
-                var taggerProvider = this.TaggerProvider;
+                _ = TaggerProvider;
             }
 
             if (AnalyzerService != null)
@@ -127,9 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         public void Dispose()
-        {
-            _registrationService.Unregister(_workspace);
-        }
+            => _registrationService.Unregister(_workspace);
 
         public async Task WaitForTags()
         {
@@ -138,19 +110,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 _solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(_workspace, _incrementalAnalyzers);
             }
 
-            await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask();
-            await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateExpeditedWaitTask();
+            await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
+            await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).ExpeditedWaitAsync();
         }
 
         private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService
         {
-            internal MyDiagnosticAnalyzerService(
-                ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap,
-                IAsynchronousOperationListener listener)
-                : base(new DiagnosticAnalyzerInfoCache(ImmutableArray.Create<AnalyzerReference>(new TestAnalyzerReferenceByLanguage(analyzersMap))),
-                      hostDiagnosticUpdateSource: null,
-                      registrationService: new MockDiagnosticUpdateSourceRegistrationService(),
-                      listener: listener)
+            internal MyDiagnosticAnalyzerService(IAsynchronousOperationListener listener)
+                : base(new MockDiagnosticUpdateSourceRegistrationService(), listener)
             {
             }
         }

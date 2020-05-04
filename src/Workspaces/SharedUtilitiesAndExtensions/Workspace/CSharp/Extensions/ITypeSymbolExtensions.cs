@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static async Task<ISymbol?> FindApplicableAlias(this ITypeSymbol type, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public static async Task<ISymbol?> FindApplicableAliasAsync(this ITypeSymbol type, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             try
             {

@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -204,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     Imports System
                     Imports I = System.Int32
                     Module Program
-                        Public Dim x = 5
+                        Public Dim x As Integer = 5
                         Function Goo() As Integer
                         End Function
                         Sub Main(args As String())
@@ -305,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -358,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -409,7 +409,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -469,7 +469,7 @@ class D : C
 }]]>
               </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -524,7 +524,7 @@ End Class
 ]]>
               </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -557,7 +557,7 @@ End Namespace
               <text>
 Namespace X
     Module Program
-        Public Dim t = A.getInt()
+        Public Dim t as Integer = A.getInt()
         Sub Main(args As String())
         End Sub
     End Module
@@ -570,7 +570,7 @@ Namespace X
 End Namespace
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -606,7 +606,7 @@ End Namespace
 Namespace Y
     Namespace X
         Module Program
-            Public Dim t = A.getInt()
+            Public Dim t as Integer = A.getInt()
             Sub Main(args As String())
             End Function
         End Module
@@ -620,7 +620,7 @@ Namespace Y
 End Namespace
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function

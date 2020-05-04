@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.References
 
             foreach (var location in locations)
             {
-                var documentSpan = await _remoteLanguageServiceWorkspace.GetDocumentSpanFromLocation(location, context.CancellationToken).ConfigureAwait(false);
+                var documentSpan = await _remoteLanguageServiceWorkspace.GetDocumentSpanFromLocationAsync(location, context.CancellationToken).ConfigureAwait(false);
                 if (documentSpan == null)
                 {
                     continue;

@@ -64,9 +64,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAlias()
-        {
-            await VerifyAbsenceAsync(@"extern alias $$");
-        }
+            => await VerifyAbsenceAsync(@"extern alias $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterExtern_InNamespace()

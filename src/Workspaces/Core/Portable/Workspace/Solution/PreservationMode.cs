@@ -20,4 +20,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         PreserveIdentity = 1
     }
+
+    internal static class PreservationModeExtensions
+    {
+        public static bool IsValid(this PreservationMode mode)
+            => mode >= PreservationMode.PreserveValue && mode <= PreservationMode.PreserveIdentity;
+    }
 }

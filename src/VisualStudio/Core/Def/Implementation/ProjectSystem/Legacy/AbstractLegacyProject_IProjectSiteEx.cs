@@ -15,9 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         private readonly Stack<VisualStudioProject.BatchScope> _batchScopes = new Stack<VisualStudioProject.BatchScope>();
 
         public void StartBatch()
-        {
-            _batchScopes.Push(VisualStudioProject.CreateBatchScope());
-        }
+            => _batchScopes.Push(VisualStudioProject.CreateBatchScope());
 
         public void EndBatch()
         {

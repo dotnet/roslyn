@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.ChangeSignature;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
@@ -19,21 +20,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public static IUnifiedArgumentSyntax Create(ArgumentSyntax argument)
-        {
-            return new UnifiedArgumentSyntax(argument);
-        }
+            => new UnifiedArgumentSyntax(argument);
 
         public static IUnifiedArgumentSyntax Create(AttributeArgumentSyntax argument)
-        {
-            return new UnifiedArgumentSyntax(argument);
-        }
+            => new UnifiedArgumentSyntax(argument);
 
         public SyntaxNode NameColon
         {
             get
             {
-                return _argument.IsKind(SyntaxKind.Argument)
-                    ? ((ArgumentSyntax)_argument).NameColon
+                return _argument.IsKind(SyntaxKind.Argument, out ArgumentSyntax argument)
+                    ? argument.NameColon
                     : ((AttributeArgumentSyntax)_argument).NameColon;
             }
         }
@@ -42,34 +39,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             Debug.Assert(nameColonSyntax is NameColonSyntax);
 
-            return _argument.IsKind(SyntaxKind.Argument)
-                ? Create(((ArgumentSyntax)_argument).WithNameColon((NameColonSyntax)nameColonSyntax))
+            return _argument.IsKind(SyntaxKind.Argument, out ArgumentSyntax argument)
+                ? Create(argument.WithNameColon((NameColonSyntax)nameColonSyntax))
                 : Create(((AttributeArgumentSyntax)_argument).WithNameColon((NameColonSyntax)nameColonSyntax));
         }
 
         public string GetName()
-        {
-            return NameColon == null ? string.Empty : ((NameColonSyntax)NameColon).Name.Identifier.ToString();
-        }
+            => NameColon == null ? string.Empty : ((NameColonSyntax)NameColon).Name.Identifier.ToString();
 
         public IUnifiedArgumentSyntax WithName(string name)
         {
-            return _argument.IsKind(SyntaxKind.Argument)
-                    ? Create(((ArgumentSyntax)_argument).WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName(name))))
+            return _argument.IsKind(SyntaxKind.Argument, out ArgumentSyntax argument)
+                    ? Create(argument.WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName(name))))
                     : Create(((AttributeArgumentSyntax)_argument).WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName(name))));
         }
 
         public IUnifiedArgumentSyntax WithAdditionalAnnotations(SyntaxAnnotation annotation)
-        {
-            return new UnifiedArgumentSyntax(_argument.WithAdditionalAnnotations(annotation));
-        }
+            => new UnifiedArgumentSyntax(_argument.WithAdditionalAnnotations(annotation));
 
         public SyntaxNode Expression
         {
             get
             {
-                return _argument.IsKind(SyntaxKind.Argument)
-                    ? ((ArgumentSyntax)_argument).Expression
+                return _argument.IsKind(SyntaxKind.Argument, out ArgumentSyntax argument)
+                    ? argument.Expression
                     : ((AttributeArgumentSyntax)_argument).Expression;
             }
         }
@@ -91,8 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public static explicit operator SyntaxNode(UnifiedArgumentSyntax unified)
-        {
-            return unified._argument;
-        }
+            => unified._argument;
     }
 }

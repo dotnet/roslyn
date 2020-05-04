@@ -42,7 +42,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Dim provider = New SemanticClassificationViewTaggerProvider(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     workspace.GetService(Of IForegroundNotificationService),
-                    workspace.GetService(Of ISemanticChangeNotificationService),
                     workspace.GetService(Of ClassificationTypeMap),
                     listenerProvider)
 
@@ -57,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 End Using
 
                 Using DirectCast(tagger, IDisposable)
-                    Await listenerProvider.GetWaiter(FeatureAttribute.Classification).CreateExpeditedWaitTask()
+                    Await listenerProvider.GetWaiter(FeatureAttribute.Classification).ExpeditedWaitAsync()
 
                     ' Note: we don't actually care what results we get back.  We're just
                     ' verifying that we don't crash because the SemanticViewTagger ends up
@@ -121,6 +120,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Implements IClassificationService
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 

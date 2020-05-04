@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
@@ -70,16 +71,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             root = AddImportHelpers.MoveTrivia(
-                VisualBasicSyntaxFactsService.Instance, root, root.Imports, [imports])
+                VisualBasicSyntaxFacts.Instance, root, root.Imports, [imports])
 
             Return root.WithImports(
                 [imports].Select(Function(u) u.WithAdditionalAnnotations(annotations)).ToSyntaxList())
         End Function
-
-        Private Function IsDocCommentOrElastic(t As SyntaxTrivia) As Boolean
-            Return t.Kind() = SyntaxKind.DocumentationCommentTrivia OrElse t.IsElastic()
-        End Function
-
 
         Private Function AddImportsStatements(root As CompilationUnitSyntax, importsStatements As IList(Of ImportsStatementSyntax)) As List(Of ImportsStatementSyntax)
             ' We need to try and not place the using inside of a directive if possible.

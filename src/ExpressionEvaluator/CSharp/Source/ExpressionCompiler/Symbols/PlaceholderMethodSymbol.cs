@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             get
             {
-                return this.RefCustomModifiers.As<Cci.ICustomModifier>();
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(this.RefCustomModifiers);
             }
         }
 

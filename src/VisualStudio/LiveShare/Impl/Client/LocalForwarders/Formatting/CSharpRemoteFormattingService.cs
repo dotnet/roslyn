@@ -6,15 +6,20 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Formatting;
 using System.Composition;
+using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarders
 {
     [ExportLanguageServiceFactory(typeof(IFormattingService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspFormattingServiceFactory : ILanguageServiceFactory
     {
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpLspFormattingServiceFactory()
         {
-            return languageServices.GetOriginalLanguageService<IFormattingService>();
         }
+
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+            => languageServices.GetOriginalLanguageService<IFormattingService>();
     }
 }

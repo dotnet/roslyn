@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public string New;
 
         public override string ToString()
-        {
-            return "{ \"" + Old.Replace("\"", "\\\"") + "\", \"" + New.Replace("\"", "\\\"") + "\" }";
-        }
+            => "{ \"" + Old.Replace("\"", "\\\"") + "\", \"" + New.Replace("\"", "\\\"") + "\" }";
     }
 
     public class MatchingPairs : IEnumerable<MatchingPair>
@@ -25,33 +23,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public readonly List<MatchingPair> Pairs;
 
         public MatchingPairs()
-        {
-            Pairs = new List<MatchingPair>();
-        }
+            => Pairs = new List<MatchingPair>();
 
         public MatchingPairs(IEnumerable<MatchingPair> pairs)
-        {
-            Pairs = pairs.ToList();
-        }
+            => Pairs = pairs.ToList();
 
         public void Add(string old, string @new)
-        {
-            Pairs.Add(new MatchingPair { Old = old, New = @new });
-        }
+            => Pairs.Add(new MatchingPair { Old = old, New = @new });
 
         public IEnumerator GetEnumerator()
-        {
-            return Pairs.GetEnumerator();
-        }
+            => Pairs.GetEnumerator();
 
         IEnumerator<MatchingPair> IEnumerable<MatchingPair>.GetEnumerator()
-        {
-            return Pairs.GetEnumerator();
-        }
+            => Pairs.GetEnumerator();
 
         public void AssertEqual(MatchingPairs actual)
-        {
-            AssertEx.Equal(this, actual, itemSeparator: ",\r\n");
-        }
+            => AssertEx.Equal(this, actual, itemSeparator: ",\r\n");
     }
 }

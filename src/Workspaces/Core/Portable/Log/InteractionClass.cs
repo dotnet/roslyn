@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         private readonly InteractionClass _interactionClass;
 
         public PerfGoalAttribute(InteractionClass interactionClass)
-        {
-            _interactionClass = interactionClass;
-        }
+            => _interactionClass = interactionClass;
 
         public InteractionClass InteractionClass => _interactionClass;
     }

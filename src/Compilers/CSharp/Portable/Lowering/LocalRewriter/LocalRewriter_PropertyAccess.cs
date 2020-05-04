@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -25,16 +27,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakePropertyAccess(
             SyntaxNode syntax,
-            BoundExpression rewrittenReceiverOpt,
+            BoundExpression? rewrittenReceiverOpt,
             PropertySymbol propertySymbol,
             LookupResultKind resultKind,
             TypeSymbol type,
             bool isLeftOfAssignment,
-            BoundPropertyAccess oldNodeOpt = null)
+            BoundPropertyAccess? oldNodeOpt = null)
         {
             // check for System.Array.[Length|LongLength] on a single dimensional array,
             // we have a special node for such cases.
-            if (rewrittenReceiverOpt != null && rewrittenReceiverOpt.Type.IsArray() && !isLeftOfAssignment)
+            if (rewrittenReceiverOpt is { Type: { TypeKind: TypeKind.Array } } && !isLeftOfAssignment)
             {
                 var asArrayType = (ArrayTypeSymbol)rewrittenReceiverOpt.Type;
                 if (asArrayType.IsSZArray)
@@ -65,18 +67,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression MakePropertyGetAccess(SyntaxNode syntax, BoundExpression rewrittenReceiver, PropertySymbol property, BoundPropertyAccess oldNodeOpt)
+        private BoundExpression MakePropertyGetAccess(SyntaxNode syntax, BoundExpression? rewrittenReceiver, PropertySymbol property, BoundPropertyAccess? oldNodeOpt)
         {
             return MakePropertyGetAccess(syntax, rewrittenReceiver, property, ImmutableArray<BoundExpression>.Empty, null, oldNodeOpt);
         }
 
         private BoundExpression MakePropertyGetAccess(
             SyntaxNode syntax,
-            BoundExpression rewrittenReceiver,
+            BoundExpression? rewrittenReceiver,
             PropertySymbol property,
             ImmutableArray<BoundExpression> rewrittenArguments,
-            MethodSymbol getMethodOpt = null,
-            BoundPropertyAccess oldNodeOpt = null)
+            MethodSymbol? getMethodOpt = null,
+            BoundPropertyAccess? oldNodeOpt = null)
         {
             if (_inExpressionLambda && rewrittenArguments.IsEmpty)
             {
@@ -88,9 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var getMethod = getMethodOpt ?? property.GetOwnOrInheritedGetMethod();
 
-                Debug.Assert((object)getMethod != null);
+                Debug.Assert(getMethod is { });
                 Debug.Assert(getMethod.ParameterCount == rewrittenArguments.Length);
-                Debug.Assert(((object)getMethodOpt == null) || ReferenceEquals(getMethod, getMethodOpt));
+                Debug.Assert(getMethodOpt is null || ReferenceEquals(getMethod, getMethodOpt));
 
                 return BoundCall.Synthesized(
                     syntax,

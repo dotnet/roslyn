@@ -20,16 +20,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         }
 
         public static string GetLanguageServerProviderServiceName(string lspServiceName)
-        {
-            return LanguageServerProviderServiceName + "-" + lspServiceName;
-        }
+            => LanguageServerProviderServiceName + "-" + lspServiceName;
 
         public static string GetContentTypesName(string[] contentTypes) => string.Join("-", contentTypes.OrderBy(c => c).ToArray());
 
         public static bool IsContentTypeRemote(string contentType)
-        {
-            return contentType.EndsWith("-remote");
-        }
+            => contentType.EndsWith("-remote");
 
         public static bool HasVisualStudioLspCapability(this ClientCapabilities clientCapabilities)
         {

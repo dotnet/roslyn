@@ -9,6 +9,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
+using System;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
@@ -21,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         : AbstractPreviewTaggerProvider<PreviewWarningTag>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PreviewWarningTaggerProvider()
             : base(PredefinedPreviewTaggerKeys.WarningSpansKey, PreviewWarningTag.Instance)
         {

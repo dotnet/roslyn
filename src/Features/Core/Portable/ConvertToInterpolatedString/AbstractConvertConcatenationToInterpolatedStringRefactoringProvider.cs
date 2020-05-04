@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
-            var startToken = CreateInterpolatedStringStartToken(isVerbatimStringLiteral)
+            var startToken = generator.CreateInterpolatedStringStartToken(isVerbatimStringLiteral)
                                 .WithLeadingTrivia(pieces.First().GetLeadingTrivia());
-            var endToken = CreateInterpolatedStringEndToken()
+            var endToken = generator.CreateInterpolatedStringEndToken()
                                 .WithTrailingTrivia(pieces.Last().GetTrailingTrivia());
 
             var content = new List<SyntaxNode>(pieces.Count);
@@ -175,8 +175,6 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         }
 
         protected abstract string GetTextWithoutQuotes(string text, bool isVerbatimStringLiteral, bool isCharacterLiteral);
-        protected abstract SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatimStringLiteral);
-        protected abstract SyntaxToken CreateInterpolatedStringEndToken();
 
         private void CollectPiecesDown(
             ISyntaxFactsService syntaxFacts,

@@ -94,6 +94,11 @@
         <target state="translated">不可使用模組複本建立組件中繼資料。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="new">Only a single {0} can be registered per generator.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">分析器 '{0}' 在其 'SupportedDiagnostics' 中包含一個 null 描述項。</target>

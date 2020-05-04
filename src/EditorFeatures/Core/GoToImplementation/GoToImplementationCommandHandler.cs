@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
         protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToImplementation;
 
-        protected override Task FindAction(IFindUsagesService service, Document document, int caretPosition, IFindUsagesContext context)
+        protected override Task FindActionAsync(IFindUsagesService service, Document document, int caretPosition, IFindUsagesContext context)
             => service.FindImplementationsAsync(document, caretPosition, context);
     }
 }

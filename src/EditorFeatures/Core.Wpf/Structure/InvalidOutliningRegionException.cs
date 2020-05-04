@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         }
 
         private static string GetExceptionMessage(BlockStructureService service, ITextSnapshot snapshot, Span snapshotSpan, Span regionSpan)
-        {
-            return $"OutliningService({service.GetType()}) produced an invalid region.  ITextSnapshot span is {snapshotSpan}. OutliningSpan is {regionSpan}.";
-        }
+            => $"OutliningService({service.GetType()}) produced an invalid region.  ITextSnapshot span is {snapshotSpan}. OutliningSpan is {regionSpan}.";
     }
 }

@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
@@ -23,29 +25,47 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class ClassificationsHandler : AbstractClassificationsHandler
     {
         protected override async Task AddClassificationsAsync(IClassificationService classificationService, Document document, TextSpan textSpan, List<ClassifiedSpan> spans, CancellationToken cancellationToken)
-        {
-            await classificationService.AddSemanticClassificationsAsync(document, textSpan, spans, cancellationToken).ConfigureAwait(false);
-        }
+            => await classificationService.AddSemanticClassificationsAsync(document, textSpan, spans, cancellationToken).ConfigureAwait(false);
     }
 
     [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, RoslynMethods.ClassificationsName)]
     [Obsolete("Used for backwards compatibility with old liveshare clients.")]
     internal class RoslynClassificationsHandler : ClassificationsHandler
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RoslynClassificationsHandler()
+        {
+        }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, RoslynMethods.ClassificationsName)]
     internal class CSharpClassificationsHandler : ClassificationsHandler
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpClassificationsHandler()
+        {
+        }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, RoslynMethods.ClassificationsName)]
     internal class VisualBasicClassificationsHandler : ClassificationsHandler
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualBasicClassificationsHandler()
+        {
+        }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, RoslynMethods.ClassificationsName)]
     internal class TypeScriptClassificationsHandler : ClassificationsHandler
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TypeScriptClassificationsHandler()
+        {
+        }
     }
 }

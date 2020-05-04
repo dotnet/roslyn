@@ -13,24 +13,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             public static readonly SymbolVisitor<Accessibility> Instance = new MinimalAccessibilityVisitor();
 
             public override Accessibility DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override Accessibility VisitAlias(IAliasSymbol symbol)
-            {
-                return symbol.Target.Accept(this);
-            }
+                => symbol.Target.Accept(this);
 
             public override Accessibility VisitArrayType(IArrayTypeSymbol symbol)
-            {
-                return symbol.ElementType.Accept(this);
-            }
+                => symbol.ElementType.Accept(this);
 
             public override Accessibility VisitDynamicType(IDynamicTypeSymbol symbol)
-            {
-                return Accessibility.Public;
-            }
+                => Accessibility.Public;
 
             public override Accessibility VisitNamedType(INamedTypeSymbol symbol)
             {
@@ -50,9 +42,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public override Accessibility VisitPointerType(IPointerTypeSymbol symbol)
-            {
-                return symbol.PointedAtType.Accept(this);
-            }
+                => symbol.PointedAtType.Accept(this);
 
             public override Accessibility VisitTypeParameter(ITypeParameterSymbol symbol)
             {

@@ -8,7 +8,9 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -25,10 +27,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LanguageServerProtocol([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
-        {
-            _requestHandlers = CreateMethodToHandlerMap(requestHandlers);
-        }
+            => _requestHandlers = CreateMethodToHandlerMap(requestHandlers);
 
         private static ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> CreateMethodToHandlerMap(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
         {
@@ -46,10 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             Contract.ThrowIfNull(solution);
             Contract.ThrowIfNull(request);
-            if (string.IsNullOrEmpty(methodName))
-            {
-                Contract.Fail("Invalid method name");
-            }
+            Contract.ThrowIfTrue(string.IsNullOrEmpty(methodName), "Invalid method name");
 
             var handler = (IRequestHandler<RequestType, ResponseType>)_requestHandlers[methodName]?.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
@@ -224,6 +222,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <returns>the location(s) of a given symbol.</returns>
         public Task<object> GoToDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             => ExecuteRequestAsync<LSP.TextDocumentPositionParams, object>(LSP.Methods.TextDocumentDefinitionName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers a rename request by returning the workspace edit for a given symbol.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_rename
+        /// </summary>
+        /// <param name="solution">the solution containing the request.</param>
+        /// <param name="request">the document position of the symbol to rename.</param>
+        /// <param name="clientCapabilities">the client capabilities for the request.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the workspace edits to rename the given symbol</returns>
+        public Task<WorkspaceEdit> RenameAsync(Solution solution, LSP.RenameParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.RenameParams, WorkspaceEdit>(LSP.Methods.TextDocumentRenameName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a goto type definition request by returning the location of a given type definition.

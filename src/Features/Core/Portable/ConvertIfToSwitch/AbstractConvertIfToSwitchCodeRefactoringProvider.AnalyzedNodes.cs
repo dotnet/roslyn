@@ -70,9 +70,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 public readonly TIsExpressionSyntax IsExpressionSyntax;
 
                 public Type(TIsExpressionSyntax expression)
-                {
-                    IsExpressionSyntax = expression;
-                }
+                    => IsExpressionSyntax = expression;
             }
 
             /// <summary>
@@ -83,9 +81,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 public readonly TPatternSyntax PatternSyntax;
 
                 public Source(TPatternSyntax patternSyntax)
-                {
-                    PatternSyntax = patternSyntax;
-                }
+                    => PatternSyntax = patternSyntax;
             }
 
             /// <summary>
@@ -96,9 +92,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 public readonly TExpressionSyntax ExpressionSyntax;
 
                 public Constant(TExpressionSyntax expression)
-                {
-                    ExpressionSyntax = expression;
-                }
+                    => ExpressionSyntax = expression;
             }
 
             /// <summary>
@@ -128,6 +122,21 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 {
                     LowerBound = lowerBound;
                     HigherBound = higherBound;
+                }
+            }
+
+            /// <summary>
+            /// Represents an and-pattern, constructed from two other patterns.
+            /// </summary>
+            internal sealed class And : AnalyzedPattern
+            {
+                public readonly AnalyzedPattern LeftPattern;
+                public readonly AnalyzedPattern RightPattern;
+
+                public And(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern)
+                {
+                    LeftPattern = leftPattern;
+                    RightPattern = rightPattern;
                 }
             }
         }

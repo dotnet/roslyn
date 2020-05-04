@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
     {
         private sealed class CSharpAnalyzer : Analyzer
         {
-            public CSharpAnalyzer(ISyntaxFactsService syntaxFacts, Feature features)
+            public CSharpAnalyzer(ISyntaxFacts syntaxFacts, Feature features)
                 : base(syntaxFacts, features)
             {
             }

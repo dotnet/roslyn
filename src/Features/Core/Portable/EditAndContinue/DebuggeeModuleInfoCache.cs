@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var newInfo = provider(mvid);
             if (newInfo == null)
             {
-                return default;
+                return null;
             }
 
             lock (cache)

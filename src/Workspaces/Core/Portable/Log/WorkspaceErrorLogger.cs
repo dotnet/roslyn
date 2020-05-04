@@ -13,19 +13,16 @@ namespace Microsoft.CodeAnalysis.ErrorLogger
     internal class WorkspaceErrorLogger : IErrorLoggerService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public WorkspaceErrorLogger()
         {
         }
 
         public void LogException(object source, Exception exception)
-        {
-            Logger.GetLogger()?.Log(FunctionId.Extension_Exception, LogMessage.Create(source.GetType().Name + " : " + ToLogFormat(exception)));
-        }
+            => Logger.GetLogger()?.Log(FunctionId.Extension_Exception, LogMessage.Create(source.GetType().Name + " : " + ToLogFormat(exception)));
 
         private static string ToLogFormat(Exception exception)
-        {
-            return exception.Message + Environment.NewLine + exception.StackTrace;
-        }
+            => exception.Message + Environment.NewLine + exception.StackTrace;
     }
 }
 

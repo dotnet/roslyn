@@ -14,7 +14,7 @@ namespace Roslyn.Utilities
     {
         private static partial class Singleton
         {
-            internal sealed class List<T> : IList<T>, IReadOnlyCollection<T>
+            internal sealed class List<T> : IReadOnlyList<T>, IList<T>, IReadOnlyCollection<T>
             {
                 private readonly T _loneValue;
 
