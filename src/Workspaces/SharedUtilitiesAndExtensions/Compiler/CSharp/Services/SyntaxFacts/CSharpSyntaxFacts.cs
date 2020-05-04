@@ -1291,17 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => GetArgumentsOfArgumentList((objectCreationExpression as ObjectCreationExpressionSyntax)?.ArgumentList);
 
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
-        {
-            if (argumentList is BaseArgumentListSyntax)
-            {
-                return (argumentList as BaseArgumentListSyntax).Arguments;
-            }
-            else if (argumentList is AttributeArgumentListSyntax)
-            {
-                return (argumentList as AttributeArgumentListSyntax).Arguments;
-            }
-            return default;
-        }
+            => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default;
 
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();
