@@ -221,6 +221,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     paramName,
                     getNotSet: false,
                     isWinMdOutput: false /* PROTOTYPE */);
+
+                var comp = property.DeclaringCompilation;
+                var type = TypeWithAnnotations.Create(comp.GetSpecialType(SpecialType.System_Void));
+                var initOnlyType = comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsExternalInit);
+                var modifiers = ImmutableArray.Create<CustomModifier>(CSharpCustomModifier.CreateRequired(initOnlyType));
+
+                ReturnTypeWithAnnotations = type.WithModifiers(modifiers);
             }
 
             internal override bool IsInitOnly => true;
@@ -235,13 +242,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool IsVararg => false;
 
-            public override bool ReturnsVoid => false;
+            public override bool ReturnsVoid => true;
 
             public override bool IsAsync => false;
 
             public override RefKind RefKind => RefKind.None;
 
-            public override TypeWithAnnotations ReturnTypeWithAnnotations => _property.TypeWithAnnotations;
+            public override TypeWithAnnotations ReturnTypeWithAnnotations { get; }
 
             public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 

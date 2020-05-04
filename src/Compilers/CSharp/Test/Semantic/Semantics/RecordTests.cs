@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -16,11 +17,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
                 parseOptions: TestOptions.RegularPreview);
 
-        private CompilationVerifier CompileAndVerify(CSharpTestSource src, string? expectedOutput = null)
+        private CompilationVerifier CompileAndVerify(
+            CSharpTestSource src,
+            string? expectedOutput = null,
+            IEnumerable<MetadataReference>? references = null)
             => base.CompileAndVerify(
                 new[] { src, IsExternalInitTypeDefinition },
                 expectedOutput: expectedOutput,
                 parseOptions: TestOptions.RegularPreview,
+                references: references,
                 // init-only is unverifiable
                 verify: Verification.Skipped);
 
@@ -676,7 +681,7 @@ data class C(int X)
   IL_0011:  callvirt   ""C C.Clone()""
   IL_0016:  dup
   IL_0017:  ldc.i4.5
-  IL_0018:  stfld      ""int C.<X>k__BackingField""
+  IL_0018:  callvirt   ""void C.X.init""
   IL_001d:  callvirt   ""int C.X.get""
   IL_0022:  call       ""void System.Console.WriteLine(int)""
   IL_0027:  ret
@@ -714,7 +719,7 @@ data class C(int X, int Y)
   IL_000d:  callvirt   ""C C.Clone()""
   IL_0012:  dup
   IL_0013:  ldc.i4.5
-  IL_0014:  stfld      ""int C.<X>k__BackingField""
+  IL_0014:  callvirt   ""void C.X.init""
   IL_0019:  call       ""void System.Console.WriteLine(object)""
   IL_001e:  ret
 }");
@@ -754,13 +759,13 @@ data class C(int X, int Y)
   IL_000d:  callvirt   ""C C.Clone()""
   IL_0012:  dup
   IL_0013:  ldc.i4.5
-  IL_0014:  stfld      ""int C.<X>k__BackingField""
+  IL_0014:  callvirt   ""void C.X.init""
   IL_0019:  dup
   IL_001a:  call       ""void System.Console.WriteLine(object)""
   IL_001f:  callvirt   ""C C.Clone()""
   IL_0024:  dup
   IL_0025:  ldc.i4.2
-  IL_0026:  stfld      ""int C.<Y>k__BackingField""
+  IL_0026:  callvirt   ""void C.Y.init""
   IL_002b:  call       ""void System.Console.WriteLine(object)""
   IL_0030:  ret
 }");
@@ -1089,11 +1094,11 @@ X");
   IL_000d:  dup
   IL_000e:  ldstr      ""Y""
   IL_0013:  call       ""int C.W(string)""
-  IL_0018:  stfld      ""int C.<Y>k__BackingField""
+  IL_0018:  callvirt   ""void C.Y.init""
   IL_001d:  dup
   IL_001e:  ldstr      ""X""
   IL_0023:  call       ""int C.W(string)""
-  IL_0028:  stfld      ""int C.<X>k__BackingField""
+  IL_0028:  callvirt   ""void C.X.init""
   IL_002d:  pop
   IL_002e:  ret
 }");
@@ -1125,7 +1130,7 @@ data class C(long X)
   IL_000c:  dup
   IL_000d:  ldc.i4.s   11
   IL_000f:  conv.i8
-  IL_0010:  stfld      ""long C.<X>k__BackingField""
+  IL_0010:  callvirt   ""void C.X.init""
   IL_0015:  callvirt   ""long C.X.get""
   IL_001a:  call       ""void System.Console.WriteLine(long)""
   IL_001f:  ret
@@ -1178,7 +1183,7 @@ conversion
   IL_0015:  dup
   IL_0016:  ldloc.0
   IL_0017:  call       ""long S.op_Implicit(S)""
-  IL_001c:  stfld      ""long C.<X>k__BackingField""
+  IL_001c:  callvirt   ""void C.X.init""
   IL_0021:  callvirt   ""long C.X.get""
   IL_0026:  call       ""void System.Console.WriteLine(long)""
   IL_002b:  ret
@@ -1265,6 +1270,61 @@ data class C(object X)
     }
 }";
             var verifier = CompileAndVerify(src, expectedOutput: "abc");
+        }
+
+        [Fact]
+        public void WithExprConversions6()
+        {
+            var src = @"
+using System;
+struct S
+{
+    private int _i;
+    public S(int i)
+    {
+        _i = i;
+    }
+    public static implicit operator int(S s)
+    {
+        Console.WriteLine(""conversion"");
+        return s._i;
+    }
+}
+class C
+{
+    private readonly long _x;
+    public long X { get => _x; init { Console.WriteLine(""set""); _x = value; } }
+    public C Clone() => new C();
+    public static void Main()
+    {
+        var c = new C();
+        var s = new S(11);
+        Console.WriteLine((c with { X = s }).X);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+conversion
+set
+11");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  3
+  .locals init (S V_0) //s
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  ldc.i4.s   11
+  IL_0009:  call       ""S..ctor(int)""
+  IL_000e:  callvirt   ""C C.Clone()""
+  IL_0013:  dup
+  IL_0014:  ldloc.0
+  IL_0015:  call       ""int S.op_Implicit(S)""
+  IL_001a:  conv.i8
+  IL_001b:  callvirt   ""void C.X.init""
+  IL_0020:  callvirt   ""long C.X.get""
+  IL_0025:  call       ""void System.Console.WriteLine(long)""
+  IL_002a:  ret
+}");
         }
 
         [Fact]
@@ -1413,6 +1473,102 @@ class C : B
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExprNotRecord()
+        {
+            var src = @"
+using System;
+class C
+{
+    public int X { get; set; }
+    public string Y { get; init; }
+    public long Z;
+    public event Action E;
+    
+    public C Clone() => new C {
+            X = this.X,
+            Y = this.Y,
+            Z = this.Z,
+            E = this.E,
+    };
+
+    public static void Main()
+    {
+        var c = new C() { X = 1, Y = ""2"", Z = 3, E = () => { } };
+        var c2 = c with {};
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c2.X);
+        Console.WriteLine(c2.Y);
+        Console.WriteLine(c2.Z);
+        Console.WriteLine(ReferenceEquals(c.E, c2.E));
+        var c3 = c with { Y = ""3"", X = 2 };
+        Console.WriteLine(c.Y);
+        Console.WriteLine(c3.Y);
+        Console.WriteLine(c.X);
+        Console.WriteLine(c3.X);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+False
+1
+2
+3
+True
+2
+3
+1
+2");
+        }
+
+        [Fact]
+        public void WithExprNotRecord2()
+        {
+            var comp1 = CreateCompilation(@"
+public class C
+{
+    public int X { get; set; }
+    public string Y { get; init; }
+    public long Z;
+    
+    public C Clone() => new C {
+            X = this.X,
+            Y = this.Y,
+            Z = this.Z,
+    };
+}");
+            comp1.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(@"
+class D
+{
+    public C M(C c) => c with
+    {
+        X = 5,
+        Y = ""a"",
+        Z = 2,
+    };
+}", references: new[] { comp1.EmitToImageReference() });
+
+            verifier.VerifyIL("D.M", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  3
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""C C.Clone()""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.5
+  IL_0008:  callvirt   ""void C.X.set""
+  IL_000d:  dup
+  IL_000e:  ldstr      ""a""
+  IL_0013:  callvirt   ""void C.Y.init""
+  IL_0018:  dup
+  IL_0019:  ldc.i4.2
+  IL_001a:  conv.i8
+  IL_001b:  stfld      ""long C.Z""
+  IL_0020:  ret
+}");
         }
     }
 }
