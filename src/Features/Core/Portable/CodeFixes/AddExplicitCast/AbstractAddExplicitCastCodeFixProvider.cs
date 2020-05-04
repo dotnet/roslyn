@@ -5,9 +5,7 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
+
         /// <summary>
         /// Given targetNode and conversionType, generate sub item name like "Cast to 'conversionType'"
         /// </summary>
@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
         protected abstract SyntaxNode ApplyFix(SyntaxNode currentRoot, TExpressionSyntax targetNode, ITypeSymbol conversionType);
         protected abstract CommonConversion ClassifyConversion(SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
-        // protected abstract SymbolInfo GetSpeculativeAttributeSymbolInfo(SemanticModel semanticModel, int position, TAttributeSyntax attribute);
 
         /// <summary>
         /// Output the current type information of the target node and the conversion type(s) that the target node is 
@@ -62,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// True, if there is at least one potential conversion pair, and they are assigned to "potentialConversionTypes"
         /// False, if there is no potential conversion pair.
         /// </returns>
-        protected abstract bool TryGetTargetTypeInfo(Document document, SemanticModel semanticModel, SyntaxNode root,
+        protected abstract bool TryGetTargetTypeInfo(
+            Document document, SemanticModel semanticModel, SyntaxNode root,
             string diagnosticId, TExpressionSyntax spanNode, CancellationToken cancellationToken,
             out ImmutableArray<(TExpressionSyntax node, ITypeSymbol type)> potentialConversionTypes);
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         }
 
         protected ImmutableArray<(TExpressionSyntax, ITypeSymbol)> FilterValidPotentialConversionTypes(
-            ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,
+            SemanticModel semanticModel,
             ArrayBuilder<(TExpressionSyntax node, ITypeSymbol type)> mutablePotentialConversionTypes)
         {
             using var _ = ArrayBuilder<(TExpressionSyntax, ITypeSymbol)>.GetInstance(out var validPotentialConversionTypes);
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 // For cases like object creation expression. for example:
                 // Derived d = [||]new Base();
                 // It is always invalid except the target node has explicit conversion operator or is numeric.
-                if (syntaxFacts.IsObjectCreationExpression(targetNode)
+                if (SyntaxFacts.IsObjectCreationExpression(targetNode)
                     && !ClassifyConversion(semanticModel, targetNode, targetNodeConversionType).IsUserDefined)
                 {
                     continue;

@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -42,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             /// Return all the available cast pairs, format is (target argument expression, potential conversion type)
             /// </returns>
             public ImmutableArray<(TExpressionSyntax, ITypeSymbol)> GetPotentialConversionTypes(
-                ISyntaxFactsService syntaxFacts,
                 SemanticModel semanticModel,
                 SyntaxNode root,
                 TArgumentSyntax targetArgument,
@@ -66,10 +64,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 using var __ = ArrayBuilder<(TExpressionSyntax, ITypeSymbol)>.GetInstance(out var mutablePotentialConversionTypes);
                 foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())
                 {
-                    if (CanArgumentTypesBeConvertedToParameterTypes(syntaxFacts,
-                            semanticModel, root, argumentList, candidateSymbol.Parameters, targetArgument,
-                            cancellationToken, out var targetArgumentConversionType)
-                        && syntaxFacts.GetExpressionOfArgument(targetArgument) is TExpressionSyntax argumentExpression)
+                    if (CanArgumentTypesBeConvertedToParameterTypes(
+                            semanticModel, root, argumentList, candidateSymbol.Parameters,
+                            targetArgument, cancellationToken, out var targetArgumentConversionType)
+                        && _provider.SyntaxFacts.GetExpressionOfArgument(targetArgument) is TExpressionSyntax argumentExpression)
                     {
                         mutablePotentialConversionTypes.Add((argumentExpression, targetArgumentConversionType));
                     }
@@ -112,7 +110,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             /// False, otherwise.
             /// </returns>
             public bool CanArgumentTypesBeConvertedToParameterTypes(
-                ISyntaxFactsService syntaxFacts,
                 SemanticModel semanticModel,
                 SyntaxNode root,
                 TArgumentListSyntax argumentList,
@@ -126,6 +123,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 // No conversion happens under this case
                 if (parameters.Length == 0)
                     return false;
+
+                var syntaxFacts = _provider.SyntaxFacts;
 
                 var arguments = GetArgumentsOfArgumentList(argumentList);
                 using var _ = ArrayBuilder<TArgumentSyntax>.GetInstance(out var newArguments);

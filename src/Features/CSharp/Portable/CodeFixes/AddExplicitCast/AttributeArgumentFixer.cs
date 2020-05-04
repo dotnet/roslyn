@@ -4,11 +4,11 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 {
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             protected override AttributeArgumentSyntax GenerateNewArgument(AttributeArgumentSyntax oldArgument, ITypeSymbol conversionType)
                 => oldArgument.WithExpression(oldArgument.Expression.Cast(conversionType));
 
-            protected override AttributeArgumentListSyntax GenerateNewArgumentList(AttributeArgumentListSyntax oldArgumentList, List<AttributeArgumentSyntax> newArguments)
+            protected override AttributeArgumentListSyntax GenerateNewArgumentList(AttributeArgumentListSyntax oldArgumentList, ArrayBuilder<AttributeArgumentSyntax> newArguments)
                 => oldArgumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
 
             protected override SeparatedSyntaxList<AttributeArgumentSyntax> GetArgumentsOfArgumentList(AttributeArgumentListSyntax argumentList)

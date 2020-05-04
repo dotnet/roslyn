@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
@@ -24,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                 End Select
             End Function
 
-            Protected Overrides Function GenerateNewArgumentList(oldArgumentList As ArgumentListSyntax, newArguments As List(Of ArgumentSyntax)) As ArgumentListSyntax
+            Protected Overrides Function GenerateNewArgumentList(oldArgumentList As ArgumentListSyntax, newArguments As ArrayBuilder(Of ArgumentSyntax)) As ArgumentListSyntax
                 Return oldArgumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments))
             End Function
 

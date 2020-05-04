@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             _attributeArgumentFixer = new AttributeArgumentFixer(this);
         }
 
+        protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
 
         protected override string GetSubItemName(CodeFixContext context, SemanticModel semanticModel,
@@ -74,7 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         {
             potentialConversionTypes = ImmutableArray<(ExpressionSyntax, ITypeSymbol)>.Empty;
             using var _ = ArrayBuilder<(ExpressionSyntax, ITypeSymbol)>.GetInstance(out var mutablePotentialConversionTypes);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             if (diagnosticId == CS0266)
             {
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 {
                     // invocationNode could be Invocation Expression, Object Creation, Base Constructor...)
                     mutablePotentialConversionTypes.AddRange(_argumentFixer.GetPotentialConversionTypes(
-                        syntaxFacts, semanticModel, root, targetArgument, argumentList, invocationNode, cancellationToken));
+                        semanticModel, root, targetArgument, argumentList, invocationNode, cancellationToken));
                 }
                 else if (spanNode.GetAncestorOrThis<AttributeArgumentSyntax>() is AttributeArgumentSyntax targetAttributeArgument
                     && targetAttributeArgument.Parent is AttributeArgumentListSyntax attributeArgumentList
@@ -101,13 +102,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 {
                     // attribute node
                     mutablePotentialConversionTypes.AddRange(_attributeArgumentFixer.GetPotentialConversionTypes(
-                        syntaxFacts, semanticModel, root, targetAttributeArgument, attributeArgumentList, attributeNode, cancellationToken));
+                        semanticModel, root, targetAttributeArgument, attributeArgumentList, attributeNode, cancellationToken));
                 }
             }
 
             // clear up duplicate types
-            potentialConversionTypes = FilterValidPotentialConversionTypes(syntaxFacts, semanticModel,
-                mutablePotentialConversionTypes);
+            potentialConversionTypes = FilterValidPotentialConversionTypes(semanticModel, mutablePotentialConversionTypes);
             return !potentialConversionTypes.IsEmpty;
         }
 
