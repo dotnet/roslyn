@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Linq
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
@@ -200,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Assert.NotNull(document)
 
                     Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, cursorPosition)
-                    Dim result = SpecializedCollections.EmptyEnumerable(Of ReferencedSymbol)()
+                    Dim result = ImmutableArray(Of ReferencedSymbol).Empty
                     If symbol IsNot Nothing Then
 
                         Dim scope = If(searchSingleFileOnly, ImmutableHashSet.Create(Of Document)(document), Nothing)
