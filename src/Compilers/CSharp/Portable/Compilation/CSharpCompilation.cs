@@ -2811,7 +2811,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
-                GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag);
+                if (!hasDeclarationErrors && !CommonCompiler.HasUnsuppressableErrors(methodBodyDiagnosticBag))
+                {
+                    GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag);
+                }
 
                 bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
 
