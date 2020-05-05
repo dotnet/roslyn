@@ -548,12 +548,12 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 }
             }
 
-            return potentialTypeParameters.Where(allReferencedTypeParameters.Contains).ToImmutableArray();
+            return potentialTypeParameters.WhereAsArray(allReferencedTypeParameters.Contains);
         }
 
-        private List<ITypeParameterSymbol> GetPotentialTypeParameters(INamedTypeSymbol type)
+        private ImmutableArray<ITypeParameterSymbol> GetPotentialTypeParameters(INamedTypeSymbol type)
         {
-            var typeParameters = new List<ITypeParameterSymbol>();
+            using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var typeParameters);
 
             var typesToVisit = new Stack<INamedTypeSymbol>();
 
@@ -569,12 +569,12 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 typeParameters.AddRange(typesToVisit.Pop().TypeParameters);
             }
 
-            return typeParameters;
+            return typeParameters.ToImmutable();
         }
 
-        private IList<ITypeParameterSymbol> GetDirectlyReferencedTypeParameters(IEnumerable<ITypeParameterSymbol> potentialTypeParameters, IEnumerable<ISymbol> includedMembers)
+        private ImmutableArray<ITypeParameterSymbol> GetDirectlyReferencedTypeParameters(IEnumerable<ITypeParameterSymbol> potentialTypeParameters, IEnumerable<ISymbol> includedMembers)
         {
-            var directlyReferencedTypeParameters = new List<ITypeParameterSymbol>();
+            using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var directlyReferencedTypeParameters);
             foreach (var typeParameter in potentialTypeParameters)
             {
                 if (includedMembers.Any(m => DoesMemberReferenceTypeParameter(m, typeParameter, new HashSet<ITypeSymbol>())))
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 }
             }
 
-            return directlyReferencedTypeParameters;
+            return directlyReferencedTypeParameters.ToImmutable();
         }
 
         private bool DoesMemberReferenceTypeParameter(ISymbol member, ITypeParameterSymbol typeParameter, HashSet<ITypeSymbol> checkedTypes)
