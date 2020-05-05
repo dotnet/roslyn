@@ -287,11 +287,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             // Checks to see if inlining the temporary variable may change the code's semantics. 
             // This is not meant to be an exhaustive check; it's more like a heuristic for obvious cases we know may cause side effects.
 
-            if (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesizedExpression))
-            {
-                expression = parenthesizedExpression.WalkDownParentheses();
-            }
-
             var descendantNodesAndSelf = expression.DescendantNodesAndSelf();
 
             // Object creation:
