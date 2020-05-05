@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             // Now walk down the concatenation collecting all the pieces that we are
             // concatenating.
-            var pieces = new List<SyntaxNode>();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var pieces);
             CollectPiecesDown(syntaxFacts, pieces, top, semanticModel, cancellationToken);
 
             var stringLiterals = pieces
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         }
 
         protected SyntaxNode CreateInterpolatedString(
-            Document document, bool isVerbatimStringLiteral, List<SyntaxNode> pieces)
+            Document document, bool isVerbatimStringLiteral, ArrayBuilder<SyntaxNode> pieces)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
         private void CollectPiecesDown(
             ISyntaxFactsService syntaxFacts,
-            List<SyntaxNode> pieces,
+            ArrayBuilder<SyntaxNode> pieces,
             SyntaxNode node,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
