@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             VerifyMembers(underlyingType, nativeIntegerType, signed);
 
-            verifyInterfaces(underlyingType, underlyingType.Interfaces, nativeIntegerType, nativeIntegerType.Interfaces);
+            VerifyInterfaces(underlyingType, underlyingType.Interfaces, nativeIntegerType, nativeIntegerType.Interfaces);
 
             Assert.NotSame(underlyingType, nativeIntegerType);
             Assert.Same(underlyingType, nativeIntegerType.NativeIntegerUnderlyingType);
@@ -219,29 +219,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.False(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.ConsiderEverything));
             Assert.True(underlyingType.Equals(nativeIntegerType, TypeCompareKind.IgnoreNativeIntegers));
             Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
+        }
 
-            static void verifyInterfaces(INamedTypeSymbol underlyingType, ImmutableArray<INamedTypeSymbol> underlyingInterfaces, INamedTypeSymbol nativeIntegerType, ImmutableArray<INamedTypeSymbol> nativeIntegerInterfaces)
+        private static void VerifyInterfaces(INamedTypeSymbol underlyingType, ImmutableArray<INamedTypeSymbol> underlyingInterfaces, INamedTypeSymbol nativeIntegerType, ImmutableArray<INamedTypeSymbol> nativeIntegerInterfaces)
+        {
+            Assert.Equal(underlyingInterfaces.Length, nativeIntegerInterfaces.Length);
+
+            for (int i = 0; i < underlyingInterfaces.Length; i++)
             {
-                Assert.Equal(underlyingInterfaces.Length, nativeIntegerInterfaces.Length);
+                verifyInterface(underlyingInterfaces[i], nativeIntegerInterfaces[i]);
+            }
 
-                for (int i = 0; i < underlyingInterfaces.Length; i++)
+            void verifyInterface(INamedTypeSymbol underlyingInterface, INamedTypeSymbol nativeIntegerInterface)
+            {
+                Assert.True(underlyingInterface.Equals(nativeIntegerInterface, TypeCompareKind.IgnoreNativeIntegers));
+
+                for (int i = 0; i < underlyingInterface.TypeArguments.Length; i++)
                 {
-                    verifyInterface(underlyingInterfaces[i], nativeIntegerInterfaces[i]);
-                }
-
-                void verifyInterface(INamedTypeSymbol underlyingInterface, INamedTypeSymbol nativeIntegerInterface)
-                {
-                    Assert.True(underlyingInterface.Equals(nativeIntegerInterface, TypeCompareKind.IgnoreNativeIntegers));
-
-                    for (int i = 0; i < underlyingInterface.TypeArguments.Length; i++)
-                    {
-                        var underlyingTypeArgument = underlyingInterface.TypeArguments[i];
-                        var nativeIntegerTypeArgument = nativeIntegerInterface.TypeArguments[i];
-                        if (underlyingTypeArgument.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
-                        {
-                            Assert.True(nativeIntegerTypeArgument.IsNativeIntegerType);
-                        }
-                    }
+                    var underlyingTypeArgument = underlyingInterface.TypeArguments[i];
+                    var nativeIntegerTypeArgument = nativeIntegerInterface.TypeArguments[i];
+                    Assert.Equal(underlyingTypeArgument.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions), nativeIntegerTypeArgument.Equals(nativeIntegerType, TypeCompareKind.AllIgnoreOptions));
                 }
             }
         }
@@ -308,8 +305,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             VerifyMembers(underlyingType, nativeIntegerType, signed);
 
-            verifyInterfaces(underlyingType, underlyingType.InterfacesNoUseSiteDiagnostics(), nativeIntegerType, nativeIntegerType.InterfacesNoUseSiteDiagnostics());
-            verifyInterfaces(underlyingType, underlyingType.GetDeclaredInterfaces(null), nativeIntegerType, nativeIntegerType.GetDeclaredInterfaces(null));
+            VerifyInterfaces(underlyingType, underlyingType.InterfacesNoUseSiteDiagnostics(), nativeIntegerType, nativeIntegerType.InterfacesNoUseSiteDiagnostics());
+            VerifyInterfaces(underlyingType, underlyingType.GetDeclaredInterfaces(null), nativeIntegerType, nativeIntegerType.GetDeclaredInterfaces(null));
 
             Assert.Null(underlyingType.NativeIntegerUnderlyingType);
             Assert.Same(nativeIntegerType, underlyingType.AsNativeInteger());
@@ -331,29 +328,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.True(nativeIntegerType.Equals(underlyingType, TypeCompareKind.IgnoreNativeIntegers));
                 Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
             }
+        }
 
-            static void verifyInterfaces(NamedTypeSymbol underlyingType, ImmutableArray<NamedTypeSymbol> underlyingInterfaces, NamedTypeSymbol nativeIntegerType, ImmutableArray<NamedTypeSymbol> nativeIntegerInterfaces)
+        private static void VerifyInterfaces(NamedTypeSymbol underlyingType, ImmutableArray<NamedTypeSymbol> underlyingInterfaces, NamedTypeSymbol nativeIntegerType, ImmutableArray<NamedTypeSymbol> nativeIntegerInterfaces)
+        {
+            Assert.Equal(underlyingInterfaces.Length, nativeIntegerInterfaces.Length);
+
+            for (int i = 0; i < underlyingInterfaces.Length; i++)
             {
-                Assert.Equal(underlyingInterfaces.Length, nativeIntegerInterfaces.Length);
+                verifyInterface(underlyingInterfaces[i], nativeIntegerInterfaces[i]);
+            }
 
-                for (int i = 0; i < underlyingInterfaces.Length; i++)
+            void verifyInterface(NamedTypeSymbol underlyingInterface, NamedTypeSymbol nativeIntegerInterface)
+            {
+                Assert.True(underlyingInterface.Equals(nativeIntegerInterface, TypeCompareKind.IgnoreNativeIntegers));
+
+                for (int i = 0; i < underlyingInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length; i++)
                 {
-                    verifyInterface(underlyingInterfaces[i], nativeIntegerInterfaces[i]);
-                }
-
-                void verifyInterface(NamedTypeSymbol underlyingInterface, NamedTypeSymbol nativeIntegerInterface)
-                {
-                    Assert.True(underlyingInterface.Equals(nativeIntegerInterface, TypeCompareKind.IgnoreNativeIntegers));
-
-                    for (int i = 0; i < underlyingInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length; i++)
-                    {
-                        var underlyingTypeArgument = underlyingInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type;
-                        var nativeIntegerTypeArgument = nativeIntegerInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type;
-                        if (underlyingTypeArgument.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
-                        {
-                            Assert.True(nativeIntegerTypeArgument.IsNativeIntegerType);
-                        }
-                    }
+                    var underlyingTypeArgument = underlyingInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type;
+                    var nativeIntegerTypeArgument = nativeIntegerInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type;
+                    Assert.Equal(underlyingTypeArgument.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions), nativeIntegerTypeArgument.Equals(nativeIntegerType, TypeCompareKind.AllIgnoreOptions));
                 }
             }
         }
@@ -613,29 +607,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             return string.CompareOrdinal(normalizeDisplayString(x), normalizeDisplayString(y));
 
             static string normalizeDisplayString(string s) => s.Replace("System.IntPtr", "nint").Replace("System.UIntPtr", "nuint");
-        }
-
-        private sealed class SymbolComparer : IEqualityComparer<Symbol>
-        {
-            internal static readonly SymbolComparer ConsiderEverything = new SymbolComparer(TypeCompareKind.ConsiderEverything);
-            internal static readonly SymbolComparer IgnoreNativeIntegers = new SymbolComparer(TypeCompareKind.IgnoreNativeIntegers);
-
-            private readonly TypeCompareKind _compareKind;
-
-            private SymbolComparer(TypeCompareKind compareKind)
-            {
-                _compareKind = compareKind;
-            }
-
-            bool IEqualityComparer<Symbol>.Equals(Symbol x, Symbol y)
-            {
-                return x.Equals(y, _compareKind);
-            }
-
-            int IEqualityComparer<Symbol>.GetHashCode(Symbol obj)
-            {
-                return obj.GetHashCode();
-            }
         }
 
         [Fact]
@@ -1460,11 +1431,15 @@ namespace System
 
             static void verifyInterfaces(CSharpCompilation comp, NamedTypeSymbol type, SpecialType specialType, bool includesIEquatable)
             {
+                var underlyingType = type.NativeIntegerUnderlyingType;
+
                 Assert.True(type.IsNativeIntegerType);
-                Assert.Equal(specialType, type.NativeIntegerUnderlyingType.SpecialType);
+                Assert.Equal(specialType, underlyingType.SpecialType);
 
                 var interfaces = type.InterfacesNoUseSiteDiagnostics(null);
                 Assert.Equal(interfaces, type.GetDeclaredInterfaces(null));
+                VerifyInterfaces(underlyingType, underlyingType.InterfacesNoUseSiteDiagnostics(null), type, interfaces);
+
                 Assert.Equal(1, interfaces.Length);
 
                 if (includesIEquatable)
