@@ -212,12 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var originalInitializerSymbolInfo = semanticModel.GetSymbolInfo(variableDeclarator.Initializer.Value, cancellationToken);
 
-            syntaxRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
             // Checks to see if inlining the temporary variable may change the code's meaning. This can only apply if the variable has two or more
             // references. We later use this heuristic to determine whether or not to display a warning message to the user.
-            var hasPossibleSideEffects = references.Count() > 1 &&
-                HasPossibleSideEffects(variableDeclarator.Initializer.Value, syntaxRoot, references);
+            var mayContainSideEffects = references.Count() > 1 &&
+                MayContainSideEffects(variableDeclarator.Initializer.Value);
 
             // Make each topmost parenting statement or Equals Clause Expressions semantically explicit.
             updatedDocument = await updatedDocument.ReplaceNodesAsync(topmostParentingExpressions, (o, n) =>
@@ -232,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 }
 
                 // If the refactoring may potentially change the code's semantics, display a warning message to the user.
-                if (hasPossibleSideEffects)
+                if (mayContainSideEffects)
                 {
                     node = node.WithAdditionalAnnotations(
                         WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_variable_may_change_code_meaning));
@@ -284,36 +282,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             return updatedDocument;
         }
 
-        private static bool HasPossibleSideEffects(SyntaxNode expression, SyntaxNode syntaxRoot, IEnumerable<ReferenceLocation> references)
+        private static bool MayContainSideEffects(SyntaxNode expression)
         {
             // Checks to see if inlining the temporary variable may change the code's semantics. 
 
-            if (expression == null || syntaxRoot == null)
+            if (expression == null)
             {
                 return true;
-            }
-
-            // Semantics changes may occur if we have references that access properties or invoke methods (see below examples).
-            var propertyOrMethodAccess = false;
-            foreach (var reference in references)
-            {
-                var node = syntaxRoot.FindNode(reference.Location.SourceSpan);
-                if (node.IsParentKind(SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.InvocationExpression))
-                {
-                    propertyOrMethodAccess = true;
-                    break;
-                }
-            }
-
-            if (!propertyOrMethodAccess)
-            {
-                return false;
             }
 
             if (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesizedExpression))
             {
                 expression = parenthesizedExpression.WalkDownParentheses();
             }
+
+            var descendantNodesAndSelf = expression.DescendantNodesAndSelf();
 
             // e.g.:
             //     var [||]c = new C();
@@ -322,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             // After refactoring:
             //     new C().P = 1;
             //     var x = new C();
-            if (expression.IsKind(SyntaxKind.ObjectCreationExpression))
+            if (descendantNodesAndSelf.Any(n => n.IsKind(SyntaxKind.ObjectCreationExpression)))
             {
                 return true;
             }
@@ -334,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             // After refactoring:
             //     M().P = 0;
             //     var x = M();
-            if (expression.IsKind(SyntaxKind.InvocationExpression))
+            if (descendantNodesAndSelf.Any(n => n.IsKind(SyntaxKind.InvocationExpression)))
             {
                 return true;
             }
