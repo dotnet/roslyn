@@ -285,11 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         private static bool MayContainSideEffects(SyntaxNode expression)
         {
             // Checks to see if inlining the temporary variable may change the code's semantics. 
-
-            if (expression == null)
-            {
-                return true;
-            }
+            // This is not meant to be an exhaustive check; it's more like a heuristic for obvious cases we know may cause side effects.
 
             if (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesizedExpression))
             {
@@ -298,6 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var descendantNodesAndSelf = expression.DescendantNodesAndSelf();
 
+            // Object creation:
             // e.g.:
             //     var [||]c = new C();
             //     c.P = 1;
@@ -305,11 +302,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             // After refactoring:
             //     new C().P = 1;
             //     var x = new C();
-            if (descendantNodesAndSelf.Any(n => n.IsKind(SyntaxKind.ObjectCreationExpression)))
-            {
-                return true;
-            }
 
+            // Invocation:
             // e.g. - let method M return a new instance of an object containing property P:
             //     var [||]c = M();
             //     c.P = 0;
@@ -317,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             // After refactoring:
             //     M().P = 0;
             //     var x = M();
-            if (descendantNodesAndSelf.Any(n => n.IsKind(SyntaxKind.InvocationExpression)))
+            if (descendantNodesAndSelf.Any(n => n.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.InvocationExpression)))
             {
                 return true;
             }
