@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class AsKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal class WithKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        public AsKeywordRecommender()
-            : base(SyntaxKind.AsKeyword)
+        public WithKeywordRecommender()
+            : base(SyntaxKind.WithKeyword)
         {
         }
 

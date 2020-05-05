@@ -171,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new WhenKeywordRecommender(),
                 new WhereKeywordRecommender(),
                 new WhileKeywordRecommender(),
+                new WithKeywordRecommender(),
                 new YieldKeywordRecommender(),
             }.ToImmutableArray();
         }
