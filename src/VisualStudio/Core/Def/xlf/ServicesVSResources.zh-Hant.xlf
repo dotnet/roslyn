@@ -47,6 +47,11 @@
         <target state="translated">全部方法</target>
         <note />
       </trans-unit>
+      <trans-unit id="All_sources">
+        <source>All sources</source>
+        <target state="new">All sources</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Allow_colon">
         <source>Allow:</source>
         <target state="translated">允許:</target>
@@ -172,6 +177,11 @@
         <target state="new">Enter a call site value or choose a different value injection kind</target>
         <note />
       </trans-unit>
+      <trans-unit id="Entire_repository">
+        <source>Entire repository</source>
+        <target state="new">Entire repository</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Entire_solution">
         <source>Entire solution</source>
         <target state="translated">整個解決方案</target>
@@ -207,6 +217,16 @@
         <target state="new">Index</target>
         <note>Index of parameter in original signature</note>
       </trans-unit>
+      <trans-unit id="Indexed_in_organization">
+        <source>Indexed in organization</source>
+        <target state="new">Indexed in organization</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexed_in_repo">
+        <source>Indexed in repo</source>
+        <target state="new">Indexed in repo</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
         <source>Inserting call site value '{0}'</source>
         <target state="new">Inserting call site value '{0}'</target>
@@ -227,6 +247,11 @@
         <target state="new">Introduce undefined TODO variables</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
       </trans-unit>
+      <trans-unit id="Item_origin">
+        <source>Item origin</source>
+        <target state="new">Item origin</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
         <target state="translated">以下情況保留所有括號:</target>
@@ -245,6 +270,26 @@
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
         <target state="translated">即時分析 (VSIX 延伸模組)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loaded_items">
+        <source>Loaded items</source>
+        <target state="new">Loaded items</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loaded_solution">
+        <source>Loaded solution</source>
+        <target state="new">Loaded solution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local">
+        <source>Local</source>
+        <target state="new">Local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local_metadata">
+        <source>Local metadata</source>
+        <target state="new">Local metadata</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -457,6 +502,11 @@
         <target state="new">Optional with default value:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Other">
+        <source>Others</source>
+        <target state="new">Others</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Parameter_Details">
         <source>Parameter Details</source>
         <target state="new">Parameter Details</target>
@@ -570,6 +620,11 @@
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">回報無效的規則運算式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repository">
+        <source>Repository</source>
+        <target state="new">Repository</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">

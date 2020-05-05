@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<object[]> HandleRequestAsync(Solution solution, DocumentSymbolParams request,
-            ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            ClientCapabilities clientCapabilities, string clientName, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);
             if (document == null)
             {
                 return Array.Empty<SymbolInformation>();
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var symbols = ArrayBuilder<object>.GetInstance();
 
-            var navBarService = document.Project.LanguageServices.GetService<INavigationBarItemService>();
+            var navBarService = document.Project.LanguageServices.GetRequiredService<INavigationBarItemService>();
             var navBarItems = await navBarService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             if (navBarItems.Count == 0)
             {
