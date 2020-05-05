@@ -248,7 +248,8 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 
                     Assert.Equal(expectedFlags, staticConstructor.Flags);
                 },
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234");
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234",
+                verify: !ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Skipped : Verification.Passes);
         }
 
         [Fact]
