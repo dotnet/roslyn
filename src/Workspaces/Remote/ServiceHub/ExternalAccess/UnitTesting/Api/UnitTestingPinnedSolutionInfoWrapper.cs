@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
     {
         /// <summary>
         /// Because PinnedSolutionInfo is internal, and it is directly passed into the callee in
-        /// <see cref="KeepAliveSession.TryInvokeAsync{T}(string, Solution, System.Collections.Generic.IReadOnlyList{object}, System.Threading.CancellationToken)"/>
+        /// <see cref="KeepAliveSession.RunRemoteAsync{T}(string, Solution, System.Collections.Generic.IReadOnlyList{object}, System.Threading.CancellationToken)"/>
         /// the type of <param name="underlyingObject"/> has to be object. Its runtime type is <see cref="JObject"/>.
         /// </summary>
         public UnitTestingPinnedSolutionInfoWrapper(object underlyingObject)

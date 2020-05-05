@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         private static readonly ConditionalWeakTable<INamespaceSymbol, List<string>> s_namespaceToNameMap =
             new ConditionalWeakTable<INamespaceSymbol, List<string>>();
-        private static readonly ConditionalWeakTable<INamespaceSymbol, List<string>>.CreateValueCallback s_getNameParts = GetNameParts;
 
         public static readonly Comparison<INamespaceSymbol> CompareNamespaces = CompareTo;
         public static readonly IEqualityComparer<INamespaceSymbol> EqualityComparer = new Comparer();

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -146,8 +147,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                 if (symbol == null)
                 {
-                    var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
-                    var overloads = semanticModel.GetMemberGroup(bindableParent);
+                    var bindableParent = document.GetLanguageService<ISyntaxFactsService>().TryGetBindableParent(token);
+                    var overloads = bindableParent != null ? semanticModel.GetMemberGroup(bindableParent) : ImmutableArray<ISymbol>.Empty;
                     symbol = overloads.FirstOrDefault();
                 }
             }

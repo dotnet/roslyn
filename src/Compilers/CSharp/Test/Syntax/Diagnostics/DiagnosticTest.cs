@@ -322,6 +322,8 @@ class X
                         case ErrorCode.WRN_GeneratorFailedDuringInitialization:
                         case ErrorCode.WRN_GeneratorFailedDuringGeneration:
                         case ErrorCode.WRN_ParameterDisallowsNull:
+                        case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
+                        case ErrorCode.WRN_IsPatternAlways:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -365,7 +367,9 @@ class X
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode,
                     ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
                     ErrorCode.WRN_GeneratorFailedDuringInitialization,
-                    ErrorCode.WRN_GeneratorFailedDuringGeneration
+                    ErrorCode.WRN_GeneratorFailedDuringGeneration,
+                    ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern,
+                    ErrorCode.WRN_IsPatternAlways,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

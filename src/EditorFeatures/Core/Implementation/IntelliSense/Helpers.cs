@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 
@@ -18,13 +19,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 {
     internal static class Helpers
     {
-        internal static IReadOnlyCollection<object> BuildInteractiveTextElements(ImmutableArray<TaggedText> taggedTexts, Document document, Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+        internal static IReadOnlyCollection<object> BuildInteractiveTextElements(
+            ImmutableArray<TaggedText> taggedTexts,
+            Document document,
+            IThreadingContext threadingContext,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
             var index = 0;
-            return BuildInteractiveTextElements(taggedTexts, ref index, document, streamingPresenter);
+            return BuildInteractiveTextElements(taggedTexts, ref index, document, threadingContext, streamingPresenter);
         }
 
-        private static IReadOnlyCollection<object> BuildInteractiveTextElements(ImmutableArray<TaggedText> taggedTexts, ref int index, Document document, Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+        private static IReadOnlyCollection<object> BuildInteractiveTextElements(
+            ImmutableArray<TaggedText> taggedTexts,
+            ref int index,
+            Document document,
+            IThreadingContext threadingContext,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
             // This method produces a sequence of zero or more paragraphs
             var paragraphs = new List<object>();
@@ -48,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                     }
 
                     index++;
-                    var nestedElements = BuildInteractiveTextElements(taggedTexts, ref index, document, streamingPresenter);
+                    var nestedElements = BuildInteractiveTextElements(taggedTexts, ref index, document, threadingContext, streamingPresenter);
                     if (nestedElements.Count <= 1)
                     {
                         currentParagraph.Add(new ContainerElement(
@@ -129,7 +139,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                         {
                             var target = part.NavigationTarget;
                             var tooltip = part.NavigationHint;
-                            currentRuns.Add(new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text, () => NavigateToQuickInfoTarget(target, document, streamingPresenter.Value), tooltip, style));
+                            currentRuns.Add(new ClassifiedTextRun(
+                                part.Tag.ToClassificationTypeName(), part.Text,
+                                () => NavigateToQuickInfoTarget(target, document, threadingContext, streamingPresenter.Value), tooltip, style));
                         }
                     }
                     else
@@ -156,7 +168,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             return paragraphs;
         }
 
-        private static void NavigateToQuickInfoTarget(string navigationTarget, Document document, IStreamingFindUsagesPresenter streamingPresenter)
+        private static void NavigateToQuickInfoTarget(
+            string navigationTarget,
+            Document document,
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingPresenter)
         {
             SymbolKeyResolution resolvedSymbolKey;
             try
@@ -171,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
             if (resolvedSymbolKey.GetAnySymbol() is { } symbol)
             {
-                GoToDefinitionHelpers.TryGoToDefinition(symbol, document.Project.Solution, streamingPresenter, CancellationToken.None);
+                GoToDefinitionHelpers.TryGoToDefinition(symbol, document.Project.Solution, threadingContext, streamingPresenter, CancellationToken.None);
                 return;
             }
         }

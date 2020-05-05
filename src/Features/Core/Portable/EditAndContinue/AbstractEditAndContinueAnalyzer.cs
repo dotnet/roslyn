@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyzer
     {
+        internal const int DefaultStatementPart = 0;
+
         internal abstract bool ExperimentalFeaturesEnabled(SyntaxTree tree);
 
         /// <summary>
@@ -194,7 +196,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Pairs of (node, statement part), or (node, -1) indicating there is no logical following statement.
         /// The enumeration continues until the root is reached.
         /// </returns>
-        protected abstract IEnumerable<KeyValuePair<SyntaxNode, int>> EnumerateNearStatements(SyntaxNode statement);
+        protected abstract IEnumerable<(SyntaxNode statement, int statementPart)> EnumerateNearStatements(SyntaxNode statement);
 
         protected abstract bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2);
 
@@ -590,9 +592,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+#pragma warning disable IDE0052 // Remove unread private members
         // Active statements spans are usually unavailable in crash dumps due to a bug in the debugger (DevDiv #150901), 
         // so we stash them here in plain array (can't use immutable, see the bug) just before we report NFW.
         private static ActiveStatement[]? s_fatalErrorBaseActiveStatements;
+#pragma warning restore IDE0052 // Remove unread private members
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "'AnalyzeDocumentAsync' is the name of the method where an error occurred.")]
         private static bool ReportFatalErrorAnalyzeDocumentAsync(ImmutableArray<ActiveStatement> baseActiveStatements, Exception e)
@@ -1005,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (hasActiveStatement)
                 {
-                    var newSpan = FindClosestActiveSpan(edit.NewNode, 0);
+                    var newSpan = FindClosestActiveSpan(edit.NewNode, DefaultStatementPart);
                     for (var i = start; i < end; i++)
                     {
                         Debug.Assert(newActiveStatements[i] == null && newSpan != default);
@@ -1652,10 +1656,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal TextSpan GetDeletedNodeActiveSpan(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode deletedNode)
         {
-            foreach (var nodeAndPart in EnumerateNearStatements(deletedNode))
+            foreach (var (oldNode, part) in EnumerateNearStatements(deletedNode))
             {
-                var oldNode = nodeAndPart.Key;
-                var part = nodeAndPart.Value;
                 if (part == -1)
                 {
                     break;
