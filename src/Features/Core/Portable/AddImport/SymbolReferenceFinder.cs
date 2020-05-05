@@ -119,13 +119,11 @@ namespace Microsoft.CodeAnalysis.AddImport
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
 
                 // Spin off tasks to do all our searching in parallel
-                var tasks = new List<Task<ImmutableArray<SymbolReference>>>
-                {
-                    GetReferencesForMatchingTypesAsync(searchScope),
-                    GetReferencesForMatchingNamespacesAsync(searchScope),
-                    GetReferencesForMatchingFieldsAndPropertiesAsync(searchScope),
-                    GetReferencesForMatchingExtensionMethodsAsync(searchScope),
-                };
+                using var _1 = ArrayBuilder<Task<ImmutableArray<SymbolReference>>>.GetInstance(out var tasks);
+                tasks.Add(GetReferencesForMatchingTypesAsync(searchScope));
+                tasks.Add(GetReferencesForMatchingNamespacesAsync(searchScope));
+                tasks.Add(GetReferencesForMatchingFieldsAndPropertiesAsync(searchScope));
+                tasks.Add(GetReferencesForMatchingExtensionMethodsAsync(searchScope));
 
                 // Searching for things like "Add" (for collection initializers) and "Select"
                 // (for extension methods) should only be done when doing an 'exact' search.
@@ -144,14 +142,14 @@ namespace Microsoft.CodeAnalysis.AddImport
                 await Task.WhenAll(tasks).ConfigureAwait(false);
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
 
-                var allReferences = ArrayBuilder<SymbolReference>.GetInstance();
+                using var _2 = ArrayBuilder<SymbolReference>.GetInstance(out var allReferences);
                 foreach (var task in tasks)
                 {
                     var taskResult = await task.ConfigureAwait(false);
                     allReferences.AddRange(taskResult);
                 }
 
-                return DeDupeAndSortReferences(allReferences.ToImmutableAndFree());
+                return DeDupeAndSortReferences(allReferences.ToImmutable());
             }
 
             private ImmutableArray<SymbolReference> DeDupeAndSortReferences(ImmutableArray<SymbolReference> allReferences)
