@@ -7,6 +7,8 @@ Microsoft.CodeAnalysis.CompilationOutputFilePaths.AssemblyPath.get -> string
 Microsoft.CodeAnalysis.CompilationOutputFilePaths.Equals(Microsoft.CodeAnalysis.CompilationOutputFilePaths other) -> bool
 Microsoft.CodeAnalysis.CompilationOutputFilePaths.WithAssemblyPath(string path) -> Microsoft.CodeAnalysis.CompilationOutputFilePaths
 Microsoft.CodeAnalysis.Project.CompilationOutputFilePaths.get -> Microsoft.CodeAnalysis.CompilationOutputFilePaths
+Microsoft.CodeAnalysis.Project.RemoveAdditionalDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Project
+Microsoft.CodeAnalysis.Project.RemoveAnalyzerConfigDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.ProjectInfo.CompilationOutputFilePaths.get -> Microsoft.CodeAnalysis.CompilationOutputFilePaths
 Microsoft.CodeAnalysis.ProjectInfo.WithCompilationOutputFilePaths(in Microsoft.CodeAnalysis.CompilationOutputFilePaths paths) -> Microsoft.CodeAnalysis.ProjectInfo
 Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction
