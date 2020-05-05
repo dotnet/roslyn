@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var endToken = generator.CreateInterpolatedStringEndToken()
                                 .WithTrailingTrivia(pieces.Last().GetTrailingTrivia());
 
-            var content = new List<SyntaxNode>(pieces.Count);
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(pieces.Count, out var content);
             var previousContentWasStringLiteralExpression = false;
             foreach (var piece in pieces)
             {
