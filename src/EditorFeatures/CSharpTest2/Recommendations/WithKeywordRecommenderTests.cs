@@ -12,6 +12,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class WithKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterWith()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"var q = goo with $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAtRoot_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
