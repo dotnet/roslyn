@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveNewMo
             "public new int [|Test|] { get; set; }",
             "public int [|Test|] { get; set; }")]
         [InlineData(
-            "public const new int [|test|] = 1;",
-            "public const int [|test|] = 1;")]
+            "public new const int [|test|] = 1;",
+            "public const int test = 1;")]
         [InlineData(
             "public new event Action [|Test|];",
             "public event Action Test;")]
@@ -54,85 +54,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveNewMo
         [InlineData(
             "new(int a, int b) [|test|];",
             "(int a, int b) test;")]
-        public Task TestRemoveNewModifierFromMembersWithRegularFormatting(string original, string expected) =>
-            TestRemoveNewModifierCodeFixAsync(original, expected);
+        public Task TestRemoveNewModifierFromMembersWithRegularFormatting(string original, string expected)
+            => TestRemoveNewModifierCodeFixAsync(original, expected);
 
         [Theory]
         [InlineData(
             "/* start */ public /* middle */ new /* end */ int [|Test|];",
-            "/* start */ public /* middle */ /* end */ int Test;")]
+            "/* start */ public /* middle */ int Test;")]
         [InlineData(
             "/* start */ public /* middle */ new    /* end */ int [|Test|];",
-            "/* start */ public /* middle */ /* end */ int Test;")]
+            "/* start */ public /* middle */ int Test;")]
         [InlineData(
             "/* start */ public /* middle */new /* end */ int [|Test|];",
-            "/* start */ public /* middle */ /* end */ int Test;")]
+            "/* start */ public /* middle */int Test;")]
         [InlineData(
             "/* start */ public /* middle */ new/* end */ int [|Test|];",
-            "/* start */ public /* middle */ /* end */ int Test;")]
+            "/* start */ public /* middle */ int Test;")]
         [InlineData(
             "/* start */ public /* middle */new/* end */ int [|Test|];",
-            "/* start */ public /* middle *//* end */ int Test;")]
+            "/* start */ public /* middle */int Test;")]
         [InlineData(
             "new /* end */ int [|Test|];",
-            "/* end */ int Test;")]
+            "int Test;")]
         [InlineData(
             "new     int [|Test|];",
             "int Test;")]
         [InlineData(
             "/* start */ new /* end */ int [|Test|];",
-            "/* start */ /* end */ int [|Test|];")]
-        public Task TestRemoveNewFromModifiersWithComplexTrivia(string original, string expected) =>
-            TestRemoveNewModifierCodeFixAsync(original, expected);
-
-        [Fact]
-        public Task TestRemoveNewFromModifiersFixAll() =>
-            TestInRegularAndScriptAsync(@"
-using System;
-
-class B
-{
-    public int ValidNew;
-}
-
-class C : B
-{
-    public new int ValidNew;
-
-    public new void {|FixAllInDocument:M|}() { }
-    public new int F;
-    public new event Action E;
-    public new int P { get; }
-    public new int this[int p] => p;
-    new class C2 { }
-    new struct S2 { }
-    new interface I2 { }
-    new delegate void D2();
-    new enum E2 { }
-}",
-                @"
-using System;
-
-class B
-{
-    public int ValidNew;
-}
-
-class C : B
-{
-    public new int ValidNew;
-
-    public void M() { }
-    public int F;
-    public event Action E;
-    public int P { get; }
-    public int this[int p] => p;
-    class C2 { }
-    struct S2 { }
-    interface I2 { }
-    delegate void D2();
-    enum E2 { }
-}");
+            "/* start */ int [|Test|];")]
+        public Task TestRemoveNewFromModifiersWithComplexTrivia(string original, string expected)
+            => TestRemoveNewModifierCodeFixAsync(original, expected);
 
         private Task TestRemoveNewModifierCodeFixAsync(string original, string expected)
         {

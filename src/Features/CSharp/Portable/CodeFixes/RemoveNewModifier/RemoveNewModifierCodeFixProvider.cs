@@ -11,9 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveNewModifier
@@ -47,75 +46,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveNewModifier
             if (memberDeclarationSyntax == null)
                 return;
 
-            var newModifier = GetNewModifier(memberDeclarationSyntax, CSharpSyntaxFacts.Instance);
-            if (newModifier == default)
+            var generator = context.Document.GetRequiredLanguageService<SyntaxGenerator>();
+            if (!generator.GetModifiers(memberDeclarationSyntax).IsNew)
                 return;
 
             context.RegisterCodeFix(
-                new MyCodeAction(ct => FixAsync(context.Document, memberDeclarationSyntax, ct)),
+                new MyCodeAction(ct => FixAsync(context.Document, generator, memberDeclarationSyntax, ct)),
                 context.Diagnostics);
         }
 
-        private async Task<Document> FixAsync(Document document, MemberDeclarationSyntax node, CancellationToken cancellationToken)
+        private static async Task<Document> FixAsync(
+            Document document,
+            SyntaxGenerator generator,
+            MemberDeclarationSyntax memberDeclaration,
+            CancellationToken cancellationToken)
         {
-            var syntaxFacts = CSharpSyntaxFacts.Instance;
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var newModifier = GetNewModifier(node, syntaxFacts);
-
-            var newNode = node;
-
-            if (newModifier.HasTrailingTrivia || newModifier.HasLeadingTrivia)
-            {
-                var newModifierTrivia = newModifier.GetAllTrivia().ToSyntaxTriviaList();
-                var previousToken = newModifier.GetPreviousToken();
-                var nextToken = newModifier.GetNextToken();
-
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var isFirstTokenOnLine = newModifier.IsFirstTokenOnLine(sourceText);
-
-                var newTrivia = new SyntaxTriviaList();
-                if (!isFirstTokenOnLine)
-                    newTrivia = newTrivia.AddRange(previousToken.TrailingTrivia);
-                newTrivia = newTrivia
-                    .AddRange(newModifierTrivia)
-                    .AddRange(nextToken.LeadingTrivia);
-                newTrivia = CollapseSequentialWhitespaceTrivia(newTrivia);
-
-                if (isFirstTokenOnLine)
-                {
-                    var nextTokenWithMovedTrivia = nextToken.WithLeadingTrivia(newTrivia);
-                    newNode = newNode.ReplaceToken(nextToken, nextTokenWithMovedTrivia);
-                }
-                else
-                {
-                    var previousTokenWithMovedTrivia = previousToken.WithTrailingTrivia(newTrivia);
-                    newNode = newNode.ReplaceToken(previousToken, previousTokenWithMovedTrivia);
-                }
-            }
-
-            newNode = newNode.ReplaceToken(GetNewModifier(newNode, syntaxFacts), SyntaxFactory.Token(SyntaxKind.None));
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = root.ReplaceNode(node, newNode);
-
-            return document.WithSyntaxRoot(newRoot);
-        }
-
-        private static SyntaxToken GetNewModifier(SyntaxNode fromNode, CSharpSyntaxFacts syntaxFacts) =>
-            syntaxFacts.GetModifierTokens(fromNode).FirstOrDefault(m => m.IsKind(SyntaxKind.NewKeyword));
-
-        private static SyntaxTriviaList CollapseSequentialWhitespaceTrivia(SyntaxTriviaList triviaList)
-        {
-            var result = new SyntaxTriviaList();
-            var previous = default(SyntaxTrivia);
-            foreach (var current in triviaList)
-            {
-                if (!(previous.IsWhitespace() && current.IsWhitespace()))
-                    result = result.Add(current);
-                previous = current;
-            }
-
-            return result;
+            return document.WithSyntaxRoot(root.ReplaceNode(
+                memberDeclaration,
+                generator.WithModifiers(
+                    memberDeclaration, generator.GetModifiers(memberDeclaration).WithIsNew(false))));
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
