@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // TODO: Once https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1040692.
                 // ServiceHub may throw non-cancellation exceptions if it is called after VS started to shut down,
                 // even if our cancellation token is signaled. Cancel the operation and do not report an error in these cases.
-                // 
+                //
                 // If ServiceHub did not throw non-cancellation exceptions when cancellation token is signaled,
                 // we can assume that these exceptions indicate a failure and should be reported to the user.
                 cancellationToken.ThrowIfCancellationRequested();
