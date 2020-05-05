@@ -243,8 +243,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // That's because later members won't conflict with it even if they have the same
                 // signature otherwise.  i.e. if we chose to implement IGoo.Bar explicitly, then we
                 // could implement IQuux.Bar implicitly (and vice versa).
-                var implementedVisibleMembers = new List<ISymbol>();
-                var implementedMembers = ArrayBuilder<ISymbol>.GetInstance();
+                using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var implementedVisibleMembers);
+                using var _2 = ArrayBuilder<ISymbol>.GetInstance(out var implementedMembers);
 
                 foreach (var (_, unimplementedInterfaceMembers) in unimplementedMembers)
                 {
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     }
                 }
 
-                return implementedMembers.ToImmutableAndFree();
+                return implementedMembers.ToImmutable();
             }
 
             private bool IsReservedName(string name)
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     State.ClassOrStructType.TypeParameters.Any(t => IdentifiersMatch(t.Name, name));
             }
 
-            private string DetermineMemberName(ISymbol member, List<ISymbol> implementedVisibleMembers)
+            private string DetermineMemberName(ISymbol member, ArrayBuilder<ISymbol> implementedVisibleMembers)
             {
                 if (HasConflictingMember(member, implementedVisibleMembers))
                 {
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private ISymbol GenerateMember(
                 Compilation compilation,
                 ISymbol member,
-                List<ISymbol> implementedVisibleMembers,
+                ArrayBuilder<ISymbol> implementedVisibleMembers,
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
                 CancellationToken cancellationToken)
             {
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
             }
 
-            private bool HasMatchingMember(List<ISymbol> implementedVisibleMembers, ISymbol member)
+            private bool HasMatchingMember(ArrayBuilder<ISymbol> implementedVisibleMembers, ISymbol member)
             {
                 // If this is a language that doesn't support implicit implementation then no
                 // implemented members will ever match.  For example, if you have:
