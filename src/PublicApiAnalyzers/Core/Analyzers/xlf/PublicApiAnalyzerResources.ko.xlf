@@ -188,8 +188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
-        <source>Annotate nullability of types and members in the declared API</source>
-        <target state="translated">선언된 API에서 형식 및 멤버의 Null 허용 여부 주석 추가</target>
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="needs-review-translation">선언된 API에서 형식 및 멤버의 Null 허용 여부 주석 추가</target>
         <note />
       </trans-unit>
     </body>
