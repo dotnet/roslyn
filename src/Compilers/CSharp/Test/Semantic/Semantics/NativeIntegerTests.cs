@@ -311,23 +311,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Null(underlyingType.NativeIntegerUnderlyingType);
             Assert.Same(nativeIntegerType, underlyingType.AsNativeInteger());
             Assert.Same(underlyingType, nativeIntegerType.NativeIntegerUnderlyingType);
-            verifyEqualButDistinct(underlyingType, underlyingType.AsNativeInteger());
-            verifyEqualButDistinct(nativeIntegerType, nativeIntegerType.NativeIntegerUnderlyingType);
-            verifyEqualButDistinct(underlyingType, nativeIntegerType);
+            VerifyEqualButDistinct(underlyingType, underlyingType.AsNativeInteger());
+            VerifyEqualButDistinct(nativeIntegerType, nativeIntegerType.NativeIntegerUnderlyingType);
+            VerifyEqualButDistinct(underlyingType, nativeIntegerType);
 
             VerifyTypes(underlyingType.GetPublicSymbol(), nativeIntegerType.GetPublicSymbol(), signed);
+        }
 
-            static void verifyEqualButDistinct(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType)
-            {
-                Assert.NotSame(underlyingType, nativeIntegerType);
-                Assert.NotEqual(underlyingType, nativeIntegerType);
-                Assert.NotEqual(nativeIntegerType, underlyingType);
-                Assert.False(underlyingType.Equals(nativeIntegerType, TypeCompareKind.ConsiderEverything));
-                Assert.False(nativeIntegerType.Equals(underlyingType, TypeCompareKind.ConsiderEverything));
-                Assert.True(underlyingType.Equals(nativeIntegerType, TypeCompareKind.IgnoreNativeIntegers));
-                Assert.True(nativeIntegerType.Equals(underlyingType, TypeCompareKind.IgnoreNativeIntegers));
-                Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
-            }
+        private static void VerifyEqualButDistinct(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType)
+        {
+            Assert.NotSame(underlyingType, nativeIntegerType);
+            Assert.NotEqual(underlyingType, nativeIntegerType);
+            Assert.NotEqual(nativeIntegerType, underlyingType);
+            Assert.False(underlyingType.Equals(nativeIntegerType, TypeCompareKind.ConsiderEverything));
+            Assert.False(nativeIntegerType.Equals(underlyingType, TypeCompareKind.ConsiderEverything));
+            Assert.True(underlyingType.Equals(nativeIntegerType, TypeCompareKind.IgnoreNativeIntegers));
+            Assert.True(nativeIntegerType.Equals(underlyingType, TypeCompareKind.IgnoreNativeIntegers));
+            Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
         }
 
         private static void VerifyInterfaces(NamedTypeSymbol underlyingType, ImmutableArray<NamedTypeSymbol> underlyingInterfaces, NamedTypeSymbol nativeIntegerType, ImmutableArray<NamedTypeSymbol> nativeIntegerInterfaces)
@@ -695,6 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             Assert.Null(underlyingType.NativeIntegerUnderlyingType);
             VerifyErrorType(nativeIntegerType.NativeIntegerUnderlyingType, specialType, isNativeInt: false);
+            VerifyEqualButDistinct(nativeIntegerType.NativeIntegerUnderlyingType, nativeIntegerType);
 
             VerifyErrorTypes(underlyingType.GetPublicSymbol(), nativeIntegerType.GetPublicSymbol(), signed);
         }
@@ -2106,7 +2107,7 @@ class Program
             }
         }
 
-        // ExplicitImplementations properties are empty on native integer types.
+        // Explicit implementations of methods and properties are not included in native integer types.
         [Theory]
         [InlineData(false)]
         [InlineData(true)]

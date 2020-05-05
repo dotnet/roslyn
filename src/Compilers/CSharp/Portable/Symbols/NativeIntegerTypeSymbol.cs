@@ -237,13 +237,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         [Conditional("DEBUG")]
-        internal static void VerifyEquality(Symbol nativeIntegerSymbol, Symbol underlyingSymbol)
+        internal static void VerifyEquality(Symbol symbolA, Symbol symbolB)
         {
-            Debug.Assert(!nativeIntegerSymbol.Equals(underlyingSymbol, TypeCompareKind.ConsiderEverything));
-            Debug.Assert(!underlyingSymbol.Equals(nativeIntegerSymbol, TypeCompareKind.ConsiderEverything));
-            Debug.Assert(nativeIntegerSymbol.Equals(underlyingSymbol, TypeCompareKind.IgnoreNativeIntegers));
-            Debug.Assert(underlyingSymbol.Equals(nativeIntegerSymbol, TypeCompareKind.IgnoreNativeIntegers));
-            Debug.Assert(nativeIntegerSymbol.GetHashCode() == underlyingSymbol.GetHashCode());
+            Debug.Assert(!symbolA.Equals(symbolB, TypeCompareKind.ConsiderEverything));
+            Debug.Assert(!symbolB.Equals(symbolA, TypeCompareKind.ConsiderEverything));
+            Debug.Assert(symbolA.Equals(symbolB, TypeCompareKind.IgnoreNativeIntegers));
+            Debug.Assert(symbolB.Equals(symbolA, TypeCompareKind.IgnoreNativeIntegers));
+            Debug.Assert(symbolA.GetHashCode() == symbolB.GetHashCode());
         }
 
         private sealed class NativeIntegerTypeMap : AbstractTypeMap
