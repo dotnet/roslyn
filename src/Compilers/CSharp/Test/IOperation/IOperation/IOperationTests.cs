@@ -15,6 +15,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.IOperation)]
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [Fact]
+        public void WithExpressionDoesntCrash()
+        {
+            var comp = CreateCompilation(@"
+data class C(int X, string Y)
+{
+    public void M()
+/*<bind>*/{
+        var c = new C(0, ""a"");
+        c = c with { X = 2 };
+    }/*</bind>*/
+}", parseOptions: TestOptions.RegularPreview);
+            // PROTOTYPE: This isn't right, but at least it doesn't crash
+            var expected = @"
+IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  Locals: Local_1: C c
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var c = new C(0, ""a"");')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c = new C(0, ""a"")')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C(0, ""a"")')
+            Initializer: 
+              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C(0, ""a"")')
+                IObjectCreationOperation (Constructor: C..ctor(System.Int32 X, System.String Y)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C(0, ""a"")')
+                  Arguments(2):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: X) (OperationKind.Argument, Type: null) (Syntax: '0')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Y) (OperationKind.Argument, Type: null) (Syntax: '""a""')
+                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""a"") (Syntax: '""a""')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Initializer: 
+                    null
+      Initializer: 
+        null
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = c with { X = 2 };')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: 'c = c with { X = 2 }')
+        Left: 
+          ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
+        Right: 
+          IOperation:  (OperationKind.None, Type: null) (Syntax: 'c with { X = 2 }')";
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, expected);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.RefLocalsReturns)]
         [Fact]
         public void SuppressNullableWarningOperation()

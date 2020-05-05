@@ -1793,10 +1793,21 @@ namespace System.Runtime.CompilerServices
             VerifyOperationTreeForTest<TSyntaxNode>(compilation, expectedOperationTree, additionalOperationTreeVerifier);
         }
 
+        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
+            CSharpCompilation compilation,
+            string expectedOperationTree,
+            params DiagnosticDescription[] expectedDiagnostics)
+            where TSyntaxNode : SyntaxNode
+            => VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
+                compilation,
+                expectedOperationTree,
+                expectedDiagnostics,
+                additionalOperationTreeVerifier: null);
+
         protected static void VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(
             CSharpCompilation compilation,
             string expectedFlowGraph,
-            DiagnosticDescription[] expectedDiagnostics)
+            params DiagnosticDescription[] expectedDiagnostics)
             where TSyntaxNode : SyntaxNode
         {
             var actualDiagnostics = compilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
