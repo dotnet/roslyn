@@ -1467,11 +1467,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
         <target state="translated">Convertir {0} en una función Async.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">Insertar conversión que falta</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">Convertir {0} en Iterador</target>
