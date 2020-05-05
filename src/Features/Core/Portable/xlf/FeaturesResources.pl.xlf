@@ -40,6 +40,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Add 'DebuggerDisplay' attribute</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="new">Add explicit cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Dodaj nazwę składowej</target>
@@ -238,6 +243,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">Konwertuj na strukturę</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="new">Convert type to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
