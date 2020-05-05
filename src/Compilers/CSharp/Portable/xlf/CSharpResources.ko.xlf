@@ -117,6 +117,11 @@
         <target state="translated">명령줄 구문 오류: '{0}'은(는) '{1}' 옵션에 유효한 값이 아닙니다. 값은 '{2}' 형식이어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadWithExpressionArgument">
+        <source>Arguments to a `with` expression must be simple assignments</source>
+        <target state="new">Arguments to a `with` expression must be simple assignments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantChangeInitOnlyOnOverride">
         <source>'{0}' must match by init-only of overridden member '{1}'</source>
         <target state="new">'{0}' must match by init-only of overridden member '{1}'</target>

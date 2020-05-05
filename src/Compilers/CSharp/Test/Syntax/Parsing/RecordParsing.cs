@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private new void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
             => UsingExpression(text, TestOptions.RegularPreview, expectedErrors);
 
+        private new void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
+            => UsingStatement(text, TestOptions.RegularPreview, expectedErrors);
+
         public RecordParsingTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -372,8 +375,11 @@ class C
                                         N(SyntaxKind.NumericLiteralToken, "0");
                                     }
                                     N(SyntaxKind.WithKeyword);
-                                    N(SyntaxKind.OpenBraceToken);
-                                    N(SyntaxKind.CloseBraceToken);
+                                    N(SyntaxKind.WithInitializerExpression);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
                                 }
                             }
                         }
@@ -450,8 +456,11 @@ class C
                                                         }
                                                     }
                                                     N(SyntaxKind.WithKeyword);
-                                                    N(SyntaxKind.OpenBraceToken);
-                                                    N(SyntaxKind.CloseBraceToken);
+                                                    N(SyntaxKind.WithInitializerExpression);
+                                                    {
+                                                        N(SyntaxKind.OpenBraceToken);
+                                                        N(SyntaxKind.CloseBraceToken);
+                                                    }
                                                 }
                                                 N(SyntaxKind.PlusToken);
                                                 N(SyntaxKind.NumericLiteralExpression);
@@ -492,8 +501,11 @@ class C
                     N(SyntaxKind.NumericLiteralToken, "0");
                 }
                 N(SyntaxKind.WithKeyword);
-                N(SyntaxKind.OpenBraceToken);
-                M(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.WithInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
             }
             EOF();
         }
@@ -516,15 +528,15 @@ class C
                     N(SyntaxKind.NumericLiteralToken, "0");
                 }
                 N(SyntaxKind.WithKeyword);
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                N(SyntaxKind.WithInitializerExpression);
                 {
+                    N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "X");
                     }
+                    M(SyntaxKind.CloseBraceToken);
                 }
-                M(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }
@@ -541,6 +553,9 @@ class C
                 // (1,15): error CS1525: Invalid expression term ','
                 // 0 with { X 3 =,
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 15),
+                // (1,16): error CS1733: Expected expression
+                // 0 with { X 3 =,
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 16),
                 // (1,16): error CS1513: } expected
                 // 0 with { X 3 =,
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 16)
@@ -553,17 +568,14 @@ class C
                     N(SyntaxKind.NumericLiteralToken, "0");
                 }
                 N(SyntaxKind.WithKeyword);
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                N(SyntaxKind.WithInitializerExpression);
                 {
+                    N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "X");
                     }
-                }
-                M(SyntaxKind.CommaToken);
-                N(SyntaxKind.AnonymousObjectMemberDeclarator);
-                {
+                    M(SyntaxKind.CommaToken);
                     N(SyntaxKind.SimpleAssignmentExpression);
                     {
                         N(SyntaxKind.NumericLiteralExpression);
@@ -576,9 +588,13 @@ class C
                             M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    N(SyntaxKind.CommaToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.CommaToken);
-                M(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }
@@ -607,8 +623,11 @@ class C
                         }
                     }
                     N(SyntaxKind.WithKeyword);
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.WithInitializerExpression);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
                 }
                 N(SyntaxKind.SwitchKeyword);
                 N(SyntaxKind.OpenBraceToken);
@@ -641,8 +660,11 @@ class C
                         }
                     }
                     N(SyntaxKind.WithKeyword);
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.WithInitializerExpression);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
                 }
                 N(SyntaxKind.PlusToken);
                 N(SyntaxKind.NumericLiteralExpression);
@@ -679,8 +701,11 @@ class C
                     }
                 }
                 N(SyntaxKind.WithKeyword);
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.WithInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
             EOF();
         }
@@ -709,12 +734,18 @@ class C
                         }
                     }
                     N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.WithInitializerExpression);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.WithInitializerExpression);
+                {
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.WithKeyword);
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }
@@ -744,8 +775,11 @@ class C
                                     N(SyntaxKind.IdentifierToken, "await");
                                 }
                                 N(SyntaxKind.WithKeyword);
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
+                                N(SyntaxKind.WithInitializerExpression);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
                             }
                         }
                     }
@@ -805,8 +839,11 @@ class C
                     N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.WithKeyword);
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.WithInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
             EOF();
         }
@@ -878,8 +915,225 @@ class C
                     }
                 }
                 N(SyntaxKind.WithKeyword);
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.WithInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing15()
+        {
+            var text = @"x with { X = ""2"" }";
+            UsingExpression(text);
+            N(SyntaxKind.WithExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.WithInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.StringLiteralExpression);
+                        {
+                            N(SyntaxKind.StringLiteralToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing16()
+        {
+            var text = @"x with { X = ""2"" };";
+            // PROTOTYPE
+            // The parser doesn't see this as an invalid expression
+            // statement, but as a broken declaration, e.g.
+            //      x with <missing ,> { X = ""2 "" <missing ;> };
+            UsingStatement(text,
+                // (1,8): error CS1003: Syntax error, ',' expected
+                // x with { X = "2" };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(1, 8));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing17()
+        {
+            var text = @"x = x with { X = ""2"" };";
+            UsingStatement(text);
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.WithExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.WithKeyword);
+                        N(SyntaxKind.WithInitializerExpression);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "X");
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.StringLiteralExpression);
+                                {
+                                    N(SyntaxKind.StringLiteralToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing18()
+        {
+            var text = @"x with { A = e is T y B = y }";
+            UsingExpression(text,
+                // (1,23): error CS1003: Syntax error, ',' expected
+                // x with { A = e is T y B = y }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",", "").WithLocation(1, 23));
+            N(SyntaxKind.WithExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.WithInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.IsPatternExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "e");
+                            }
+                            N(SyntaxKind.IsKeyword);
+                            N(SyntaxKind.DeclarationPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "T");
+                                }
+                                N(SyntaxKind.SingleVariableDesignation);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                        }
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "B");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing19()
+        {
+            var x = @"x with { , A = 10 }";
+
+            UsingExpression(x,
+                // (1,10): error CS1525: Invalid expression term ','
+                // x with { , A = 10 }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 10));
+            N(SyntaxKind.WithExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.WithInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "10");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
             EOF();
         }

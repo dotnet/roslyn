@@ -1,3 +1,9 @@
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.ArgumentList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.NewKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.ArgumentList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax
+abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax
+abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.NewKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.AddArgumentListArguments(params Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.WithArgumentList(Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax argumentList) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax
@@ -53,23 +59,19 @@ Microsoft.CodeAnalysis.CSharp.Syntax.UnaryPatternSyntax.Update(Microsoft.CodeAna
 Microsoft.CodeAnalysis.CSharp.Syntax.UnaryPatternSyntax.WithOperatorToken(Microsoft.CodeAnalysis.SyntaxToken operatorToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.UnaryPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.UnaryPatternSyntax.WithPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.UnaryPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.AddInitializers(params Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.CloseBraceToken.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.Initializers.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax>
-Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.OpenBraceToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.AddInitializerExpressions(params Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.Receiver.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax receiver, Microsoft.CodeAnalysis.SyntaxToken withKeyword, Microsoft.CodeAnalysis.SyntaxToken openBraceToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax> initializers, Microsoft.CodeAnalysis.SyntaxToken closeBraceToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.WithCloseBraceToken(Microsoft.CodeAnalysis.SyntaxToken closeBraceToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.WithInitializers(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax> initializers) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax receiver, Microsoft.CodeAnalysis.SyntaxToken withKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax initializer) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.WithInitializer(Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax initializer) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.WithKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.WithOpenBraceToken(Microsoft.CodeAnalysis.SyntaxToken openBraceToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.WithReceiver(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax receiver) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.WithWithKeyword(Microsoft.CodeAnalysis.SyntaxToken withKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.AndKeyword = 8439 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.AndPattern = 9032 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DataKeyword = 8441 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ImplicitObjectCreationExpression = 8659 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.InitAccessorDeclaration = 9061 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.InitAccessorDeclaration = 9060 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.InitKeyword = 8443 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.NotKeyword = 8440 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.NotPattern = 9033 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
@@ -78,11 +80,9 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.OrPattern = 9031 -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ParenthesizedPattern = 9028 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RelationalPattern = 9029 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.TypePattern = 9030 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithExpression = 9060 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithExpression = 9061 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithInitializerExpression = 9062 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithKeyword = 8442 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.ArgumentList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax
-abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax
-abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.NewKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitBinaryPattern(Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitImplicitObjectCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitObjectCreationExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitParenthesizedPattern(Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -123,15 +123,8 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.StructDeclaration(Microsoft.C
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TypePattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.TypePatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.UnaryPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.UnaryPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.UnaryPattern(Microsoft.CodeAnalysis.SyntaxToken operatorToken, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.UnaryPatternSyntax
-*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.ArgumentList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax
-*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax
-*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.NewKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
-*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.ArgumentList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax
-*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax
-*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.NewKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax receiver) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax receiver, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax> initializers) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax receiver, Microsoft.CodeAnalysis.SyntaxToken withKeyword, Microsoft.CodeAnalysis.SyntaxToken openBraceToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax> initializers, Microsoft.CodeAnalysis.SyntaxToken closeBraceToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax receiver, Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax initializer) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax receiver, Microsoft.CodeAnalysis.SyntaxToken withKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax initializer) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitBinaryPattern(Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitImplicitObjectCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitObjectCreationExpressionSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitParenthesizedPattern(Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax node) -> void

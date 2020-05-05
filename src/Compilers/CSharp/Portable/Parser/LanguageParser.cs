@@ -10553,24 +10553,6 @@ tryAgain:
             return result;
         }
 
-        private ExpressionSyntax ParseWithExpression(ExpressionSyntax receiverExpression, SyntaxToken withKeyword)
-        {
-            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-            var expressions = _pool.AllocateSeparated<AnonymousObjectMemberDeclaratorSyntax>();
-            this.ParseAnonymousTypeMemberInitializers(ref openBrace, ref expressions);
-            var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-            withKeyword = CheckFeatureAvailability(withKeyword, MessageID.IDS_FeatureRecords);
-            var result = _syntaxFactory.WithExpression(
-                receiverExpression,
-                withKeyword,
-                openBrace,
-                expressions,
-                closeBrace);
-            _pool.Free(expressions);
-
-            return result;
-        }
-
         private void ParseAnonymousTypeMemberInitializers(ref SyntaxToken openBrace, ref SeparatedSyntaxListBuilder<AnonymousObjectMemberDeclaratorSyntax> list)
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
@@ -10734,6 +10716,77 @@ tryAgain:
                 this.Release(ref point);
             }
         }
+
+#nullable enable
+
+        private ExpressionSyntax ParseWithExpression(ExpressionSyntax receiverExpression, SyntaxToken withKeyword)
+        {
+            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+
+            var list = _pool.AllocateSeparated<ExpressionSyntax>();
+            if (CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+            {
+                bool foundStart = true;
+                // Skip bad starting tokens until we find a valid start, if possible
+                while (!IsPossibleExpression() && CurrentToken.Kind != SyntaxKind.CommaToken)
+                {
+                    if (SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.IdentifierToken) == PostSkipAction.Abort)
+                    {
+                        foundStart = false;
+                        break;
+                    }
+                }
+
+                if (foundStart)
+                {
+                    // First
+                    list.Add(ParseExpressionCore());
+
+                    // Rest
+                    int lastTokenPosition = -1;
+                    while (IsMakingProgress(ref lastTokenPosition))
+                    {
+                        if (CurrentToken.Kind == SyntaxKind.CloseBraceToken)
+                        {
+                            break;
+                        }
+                        else if (IsPossibleExpression() || CurrentToken.Kind == SyntaxKind.CommaToken)
+                        {
+                            list.AddSeparator(EatToken(SyntaxKind.CommaToken));
+
+                            // check for exit case after legal trailing comma
+                            if (CurrentToken.Kind == SyntaxKind.CloseBraceToken)
+                            {
+                                break;
+                            }
+                            list.Add(ParseExpressionCore());
+                        }
+                        else if (SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
+
+            var initializer = _syntaxFactory.InitializerExpression(
+                SyntaxKind.WithInitializerExpression,
+                openBrace,
+                _pool.ToListAndFree(list),
+                closeBrace);
+
+            withKeyword = CheckFeatureAvailability(withKeyword, MessageID.IDS_FeatureRecords);
+
+            var result = _syntaxFactory.WithExpression(
+                receiverExpression,
+                withKeyword,
+                initializer);
+
+            return result;
+        }
+
+#nullable restore
 
         private InitializerExpressionSyntax ParseObjectOrCollectionInitializer()
         {

@@ -1799,6 +1799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoSingleCloneMethod = 8808,
         ERR_ContainingTypeMustDeriveFromWithReturnType = 8809,
         ERR_WithMemberIsNotRecordProperty = 8810,
+        ERR_BadWithExpressionArgument = 8811,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
