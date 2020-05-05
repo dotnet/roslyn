@@ -205,7 +205,7 @@ msbuild_item.AdditionalFiles.ToRetrieve = ghi789
         public void ItemIsNotFullyQualifiedPath()
         {
             TaskItem item1 = new TaskItem("file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
-            TaskItem item2 = new TaskItem("..\\file2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+            TaskItem item2 = new TaskItem("subDir\\file2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
             TaskItem item3 = new TaskItem("someDir\\otherDir\\thirdDir\\..\\file3.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
 
             GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
@@ -213,20 +213,25 @@ msbuild_item.AdditionalFiles.ToRetrieve = ghi789
                 MetadataItems = new[] { item1, item2, item3 }
             };
             configTask.Execute();
-
-            string executingLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
             var result = configTask.ConfigFileContents;
+
+
+            // MSBuild will convert the above relative paths to absolute paths based on the current location.
+            // We replicate that behavior here to test we get the expected full paths 
+            string executingLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location).Replace('\\', '/');
+            string expectedPath1 = $"{executingLocation}/file1.cs";
+            string expectedPath2 = $"{executingLocation}/subDir/file2.cs";
+            string expectedPath3 = $"{executingLocation}/someDir/otherDir/file3.cs";
 
             Assert.Equal($@"is_global = true
 
-[{Path.GetFullPath("file1.cs").Replace('\\', '/')}]
+[{expectedPath1}]
 msbuild_item.Compile.ToRetrieve = abc123
 
-[{Path.GetFullPath("..\\file2.cs").Replace('\\', '/')}]
+[{expectedPath2}]
 msbuild_item.Compile.ToRetrieve = abc123
 
-[{Path.GetFullPath("someDir\\otherDir\\thirdDir\\..\\file3.cs").Replace('\\', '/')}]
+[{expectedPath3}]
 msbuild_item.Compile.ToRetrieve = abc123
 ", result);
         }
@@ -234,8 +239,8 @@ msbuild_item.Compile.ToRetrieve = abc123
         [Fact]
         public void ItemsWithDifferentRelativeButSameFullPathAreCombined()
         {
-            TaskItem item1 = new TaskItem("file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
-            TaskItem item2 = new TaskItem("someDir\\..\\file1.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
+            TaskItem item1 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+            TaskItem item2 = new TaskItem("c:\\someDir\\..\\file1.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
 
             GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
             {
@@ -243,13 +248,11 @@ msbuild_item.Compile.ToRetrieve = abc123
             };
             configTask.Execute();
 
-            string executingLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
             var result = configTask.ConfigFileContents;
 
             Assert.Equal($@"is_global = true
 
-[{Path.GetFullPath("file1.cs").Replace('\\', '/')}]
+[c:/file1.cs]
 msbuild_item.Compile.ToRetrieve = abc123
 msbuild_item.AdditionalFile.ToRetrieve = def456
 ", result);

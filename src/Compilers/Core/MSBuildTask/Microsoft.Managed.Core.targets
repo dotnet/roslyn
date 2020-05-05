@@ -79,7 +79,7 @@
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildAnalyzerConfig" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
   <PropertyGroup>
-    <GeneratedMSBuildAnalyzerConfigFile Condition="'$(GeneratedMSBuildAnalyzerConfigFile)' ==''">$(IntermediateOutputPath)$(MSBuildProjectName).GeneratedMSBuildAnalyzerConfig.editorconfig</GeneratedMSBuildAnalyzerConfigFile>
+    <GeneratedMSBuildAnalyzerConfigFile Condition="'$(GeneratedMSBuildAnalyzerConfigFile)' == ''">$(IntermediateOutputPath)$(MSBuildProjectName).GeneratedMSBuildAnalyzerConfig.editorconfig</GeneratedMSBuildAnalyzerConfigFile>
     <GenerateMSBuildAnalyzerConfigFile Condition="'$(GenerateMSBuildAnalyzerConfigFile)' == ''">true</GenerateMSBuildAnalyzerConfigFile>
   </PropertyGroup>
 

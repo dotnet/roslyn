@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// <see cref="MetadataItems"/> is expected to be a list of items whose <see cref="ITaskItem.ItemSpec"/> represents a file in the 
     /// compilation source tree. It should have two metadata values: <c>ItemType</c> is the name of the MSBuild item that originally 
     /// inlcuded the file (e.g. <c>Compile</c>, <c>AdditionalFile</c> etc.); <c>MetadataName</c> is expected to contain the name of
-    /// another piece of metadata that should be retreived and used as the output value in the file. It is expected that a given 
+    /// another piece of metadata that should be retrieved and used as the output value in the file. It is expected that a given 
     /// file can have multiple entries in the <see cref="MetadataItems" /> differing by its <c>ItemType</c>.
     /// 
     /// Each of the <see cref="MetadataItems"/> will be transformed into a new section in the generated config file. The section
     /// header will be the full path of the item (generated via its<see cref="ITaskItem.ItemSpec"/>), and each section will have a 
-    /// set of <c>msbuild_metadata.<em>ItemType</em>.<em>MetadataName</em> = <em>RetreivedMetadataValue</em></c>, one per <c>ItemType</c>
+    /// set of <c>msbuild_metadata.<em>ItemType</em>.<em>MetadataName</em> = <em>RetrievedMetadataValue</em></c>, one per <c>ItemType</c>
     /// 
     /// The Microsoft.Managed.Core.targets calls this task with the collected results of the <c>AnalyzerProperty</c> and 
     /// <c>AnalyzerItemMetadata</c> item groups. 
