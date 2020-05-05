@@ -1742,21 +1742,21 @@ option3 = global
             configs.Add(Parse(@"
 [*.cs]
 option2 = config1
-", "c:/.editorconfig"));
+", "/.editorconfig"));
 
             configs.Add(Parse(@"
 [*.cs]
 option3 = config2
-", "c:/path/.editorconfig"));
+", "/path/.editorconfig"));
 
             configs.Add(Parse(@"
 [*.cs]
 option2 = config3
-", "c:/path/to/.editorconfig"));
+", "/path/to/.editorconfig"));
 
 
             var options = GetAnalyzerConfigOptions(
-                 new[] { "c:/path/to/file1.cs", "c:/path/file1.cs", "c:/file1.cs" },
+                 new[] { "/path/to/file1.cs", "/path/file1.cs", "/file1.cs" },
                  configs);
             configs.Free();
 
