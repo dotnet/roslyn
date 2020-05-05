@@ -199,7 +199,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var completedUnformattedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
                 unformattedInterfaceDocument.Project.Solution,
                 symbolMapping.DocumentIds,
-                refactoringResult.DocumentToExtractFrom.Id,
                 symbolMapping.TypeNodeAnnotation,
                 refactoringResult.TypeToExtractFrom,
                 extractedInterfaceSymbol,
@@ -250,8 +249,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
             // After the interface is inserted, update the original type to show it implements the new interface
             var unformattedSolutionWithUpdatedType = await GetSolutionWithOriginalTypeUpdatedAsync(
-                unformattedSolution, symbolMapping.DocumentIds,
-                refactoringResult.DocumentToExtractFrom.Id, symbolMapping.TypeNodeAnnotation,
+                unformattedSolution, symbolMapping.DocumentIds, symbolMapping.TypeNodeAnnotation,
                 refactoringResult.TypeToExtractFrom, extractedInterfaceSymbol,
                 extractInterfaceOptions.IncludedMembers, symbolMapping.SymbolToDeclarationAnnotationMap, cancellationToken).ConfigureAwait(false);
 
@@ -274,7 +272,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         {
             var symbolToDeclarationAnnotationMap = new Dictionary<ISymbol, SyntaxAnnotation>();
             var currentRoots = new Dictionary<SyntaxTree, SyntaxNode>();
-            var documentIds = new List<DocumentId>();
+            using var _ = ArrayBuilder<DocumentId>.GetInstance(out var documentIds);
 
             var typeNodeRoot = await typeNode.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var typeNodeAnnotation = new SyntaxAnnotation();
@@ -305,7 +303,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 annotatedSolution = document.WithSyntaxRoot(root.Value).Project.Solution;
             }
 
-            return new SymbolMapping(symbolToDeclarationAnnotationMap, annotatedSolution, documentIds, typeNodeAnnotation);
+            return new SymbolMapping(symbolToDeclarationAnnotationMap, annotatedSolution, documentIds.ToImmutable(), typeNodeAnnotation);
         }
 
         internal Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
@@ -387,8 +385,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
         private async Task<Solution> GetSolutionWithOriginalTypeUpdatedAsync(
             Solution solution,
-            List<DocumentId> documentIds,
-            DocumentId invocationLocationDocumentId,
+            ImmutableArray<DocumentId> documentIds,
             SyntaxAnnotation typeNodeAnnotation,
             INamedTypeSymbol typeToExtractFrom,
             INamedTypeSymbol extractedInterfaceSymbol,
