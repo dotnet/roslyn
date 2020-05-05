@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             return namesMatch;
         }
 
-        private IEnumerable<string> GetSuggestedFileNames(
+        private ImmutableArray<string> GetSuggestedFileNames(
             TTypeDeclarationSyntax typeNode,
             bool isNestedType,
             string typeName,
@@ -231,11 +231,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var typeNameParts = GetTypeNamePartsForNestedTypeNode(typeNode, semanticModel, cancellationToken);
                 var dottedName = typeNameParts.Join(".") + fileExtension;
 
-                return new List<string> { standaloneName, dottedName };
+                return ImmutableArray.Create(standaloneName, dottedName);
             }
             else
             {
-                return SpecializedCollections.SingletonEnumerable(standaloneName);
+                return ImmutableArray.Create(standaloneName);
             }
         }
 
