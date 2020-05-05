@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal class CheckConstraintsArgsBoxed
+        internal sealed class CheckConstraintsArgsBoxed
         {
             public readonly CheckConstraintsArgs Args;
 
