@@ -333,12 +333,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> names,
             ImmutableArray<bool> discardsOpt,
             bool isAsync,
-            bool hasErrors = false)
-            : base(BoundKind.UnboundLambda, syntax, null, hasErrors || !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType))
+            bool isStatic)
+            : base(BoundKind.UnboundLambda, syntax, null, !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType))
         {
             Debug.Assert(binder != null);
             Debug.Assert(syntax.IsAnonymousFunction());
-            this.Data = new PlainUnboundLambdaState(this, binder, names, discardsOpt, types, refKinds, isAsync, includeCache: true);
+            this.Data = new PlainUnboundLambdaState(this, binder, names, discardsOpt, types, refKinds, isAsync, isStatic, includeCache: true);
         }
 
         private UnboundLambda(SyntaxNode syntax, UnboundLambdaState state, NullableWalker.VariableState nullableState, bool hasErrors) :
@@ -393,6 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType) { Data.GenerateAnonymousFunctionConversionError(diagnostics, targetType); }
         public bool GenerateSummaryErrors(DiagnosticBag diagnostics) { return Data.GenerateSummaryErrors(diagnostics); }
         public bool IsAsync { get { return Data.IsAsync; } }
+        public bool IsStatic => Data.IsStatic;
         public TypeWithAnnotations ParameterTypeWithAnnotations(int index) { return Data.ParameterTypeWithAnnotations(index); }
         public TypeSymbol ParameterType(int index) { return ParameterTypeWithAnnotations(index).Type; }
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
@@ -463,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract int ParameterCount { get; }
         public abstract bool IsAsync { get; }
         public abstract bool HasNames { get; }
-
+        public abstract bool IsStatic { get; }
         public abstract Location ParameterLocation(int index);
         public abstract TypeWithAnnotations ParameterTypeWithAnnotations(int index);
         public abstract RefKind RefKind(int index);
@@ -694,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.HasSignature)
             {
                 // NOTE: we can get here with targetParameterTypes.Length > ParameterCount
-                // in a case where we are binding for error reporting purposes 
+                // in a case where we are binding for error reporting purposes
                 var numParametersToCheck = Math.Min(targetParameterTypes.Length, ParameterCount);
                 for (int i = 0; i < numParametersToCheck; i++)
                 {
@@ -891,8 +892,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // UNDONE: [MattWar]
-        // UNDONE: Here we enable the consumer of an unbound lambda that could not be 
-        // UNDONE: successfully converted to a best bound lambda to do error recovery 
+        // UNDONE: Here we enable the consumer of an unbound lambda that could not be
+        // UNDONE: successfully converted to a best bound lambda to do error recovery
         // UNDONE: by either picking an existing binding, or by binding the body using
         // UNDONE: error types for parameter types as necessary. This is not exactly
         // UNDONE: the strategy we discussed in the design meeting; rather there we
@@ -902,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // UNDONE: we never observed an unbound lambda in the tree.
         // UNDONE:
         // UNDONE: I think that is a reasonable approach but it is not implemented yet.
-        // UNDONE: When we figure out precisely where that rewriting pass should go, 
+        // UNDONE: When we figure out precisely where that rewriting pass should go,
         // UNDONE: we can use the gear implemented in this method as an implementation
         // UNDONE: detail of it.
         // UNDONE:
@@ -910,10 +911,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundLambda BindForErrorRecovery()
         {
             // It is possible that either (1) we never did a binding, because
-            // we've got code like "var x = (z)=>{int y = 123; M(y, z);};" or 
+            // we've got code like "var x = (z)=>{int y = 123; M(y, z);};" or
             // (2) we did a bunch of bindings but none of them turned out to
-            // be the one we wanted. In such a situation we still want 
-            // IntelliSense to work on y in the body of the lambda, and 
+            // be the one we wanted. In such a situation we still want
+            // IntelliSense to work on y in the body of the lambda, and
             // possibly to make a good guess as to what M means even if we
             // don't know the type of z.
 
@@ -1016,7 +1017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // It is highly likely that "the same" error will be given for two different
             // bindings of the same lambda but with different values for the parameters
             // of the error. For example, if we have x=>x.Blah() where x could be int
-            // or string, then the two errors will be "int does not have member Blah" and 
+            // or string, then the two errors will be "int does not have member Blah" and
             // "string does not have member Blah", but the locations and errors numbers
             // will be the same.
             //
@@ -1109,9 +1110,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static FirstAmongEqualsSet<Diagnostic> CreateFirstAmongEqualsSet(ImmutableArray<Diagnostic> bag)
         {
-            // For the purposes of lambda error reporting we wish to compare 
+            // For the purposes of lambda error reporting we wish to compare
             // diagnostics for equality only considering their code and location,
-            // but not other factors such as the values supplied for the 
+            // but not other factors such as the values supplied for the
             // parameters of the diagnostic.
             return new FirstAmongEqualsSet<Diagnostic>(
                 bag,
@@ -1127,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static int CanonicallyCompareDiagnostics(Diagnostic x, Diagnostic y)
         {
-            // Optimization: don't bother 
+            // Optimization: don't bother
             if (x.Code != y.Code)
                 return x.Code - y.Code;
 
@@ -1154,6 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<TypeWithAnnotations> _parameterTypesWithAnnotations;
         private readonly ImmutableArray<RefKind> _parameterRefKinds;
         private readonly bool _isAsync;
+        private readonly bool _isStatic;
 
         internal PlainUnboundLambdaState(
             UnboundLambda unboundLambda,
@@ -1163,6 +1165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> parameterTypesWithAnnotations,
             ImmutableArray<RefKind> parameterRefKinds,
             bool isAsync,
+            bool isStatic,
             bool includeCache)
             : base(binder, unboundLambda, includeCache)
         {
@@ -1171,6 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parameterTypesWithAnnotations = parameterTypesWithAnnotations;
             _parameterRefKinds = parameterRefKinds;
             _isAsync = isAsync;
+            _isStatic = isStatic;
         }
 
         public override bool HasNames { get { return !_parameterNames.IsDefault; } }
@@ -1182,6 +1186,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ParameterCount { get { return _parameterNames.IsDefault ? 0 : _parameterNames.Length; } }
 
         public override bool IsAsync { get { return _isAsync; } }
+
+        public override bool IsStatic => _isStatic;
 
         public override MessageID MessageID { get { return this.UnboundLambda.Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
@@ -1237,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override UnboundLambdaState WithCachingCore(bool includeCache)
         {
-            return new PlainUnboundLambdaState(unboundLambda: null, Binder, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _isAsync, includeCache);
+            return new PlainUnboundLambdaState(unboundLambda: null, Binder, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _isAsync, _isStatic, includeCache);
         }
 
         protected override BoundExpression GetLambdaExpressionBody(BoundBlock body)

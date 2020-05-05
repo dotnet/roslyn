@@ -1609,6 +1609,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarianceInterfaceNesting = 8427,
         ERR_ImplicitIndexIndexerWithName = 8428,
         ERR_ImplicitRangeIndexerWithName = 8429,
+        ERR_StaticAnonymousFunctionCannotCaptureVariable = 8430,
+        ERR_StaticAnonymousFunctionCannotCaptureThis = 8431,
+
         // available range
 
         #region diagnostics introduced for recursive patterns

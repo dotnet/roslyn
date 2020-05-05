@@ -17,6 +17,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => body is BlockSyntax block
                 ? Update(asyncKeyword, delegateKeyword, parameterList, block, null)
                 : Update(asyncKeyword, delegateKeyword, parameterList, null, (ExpressionSyntax)body);
+
+        public override SyntaxToken AsyncKeyword
+            => this.Modifiers.FirstOrDefault(SyntaxKind.AsyncKeyword);
+
+        internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
+        public new AnonymousMethodExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
+            => this.Update(asyncKeyword, this.DelegateKeyword, this.ParameterList, this.Block, this.ExpressionBody);
+
+        public AnonymousMethodExpressionSyntax Update(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody)
+            => Update(SyntaxFactory.TokenList(asyncKeyword), delegateKeyword, parameterList, block, expressionBody);
     }
 }
 
@@ -32,5 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterList: null,
                 Block(),
                 expressionBody: null);
+
+        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody)
+            => AnonymousMethodExpression(TokenList(asyncKeyword), delegateKeyword, parameterList, block, expressionBody);
     }
 }

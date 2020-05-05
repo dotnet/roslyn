@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Invariantly = MessageBase + 12663,
 
         IDS_FeatureAsync = MessageBase + 12668,
+        IDS_FeatureStaticAnonymousFunction = MessageBase + 12669,
 
         IDS_LIB_ENV = MessageBase + 12680,
         IDS_LIB_OPTION = MessageBase + 12681,
@@ -317,6 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureTypePattern:
                 case MessageID.IDS_FeatureRelationalPattern:
                 case MessageID.IDS_FeatureNativeInt:
+                case MessageID.IDS_FeatureStaticAnonymousFunction:
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.

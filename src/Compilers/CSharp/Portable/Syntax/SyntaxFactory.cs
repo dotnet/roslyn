@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SyntaxTrivia ElasticMarker { get; } = Syntax.InternalSyntax.SyntaxFactory.ElasticZeroSpace;
 
         /// <summary>
-        /// Creates a trivia with kind EndOfLineTrivia containing the specified text. 
+        /// Creates a trivia with kind EndOfLineTrivia containing the specified text.
         /// </summary>
         /// <param name="text">The text of the end of line. Any text can be specified here, however only carriage return and
         /// line feed characters are recognized by the parser as end of line.</param>
@@ -235,9 +235,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Creates a token corresponding to syntax kind. This method gives control over token Text and ValueText.
-        /// 
+        ///
         /// For example, consider the text '&lt;see cref="operator &amp;#43;"/&gt;'.  To create a token for the value of
-        /// the operator symbol (&amp;#43;), one would call 
+        /// the operator symbol (&amp;#43;), one would call
         /// Token(default(SyntaxTriviaList), SyntaxKind.PlusToken, "&amp;#43;", "+", default(SyntaxTriviaList)).
         /// </summary>
         /// <param name="leading">A list of trivia immediately preceding the token.</param>
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// documentation of method parameters).
         /// </summary>
         /// <param name="parameterName">The name of the parameter.</param>
-        /// <param name="content">A list of syntax nodes that represents the content of the param element (e.g. 
+        /// <param name="content">A list of syntax nodes that represents the content of the param element (e.g.
         /// the description and meaning of the parameter).</param>
         public static XmlElementSyntax XmlParamElement(string parameterName, params XmlNodeSyntax[] content)
         {
@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// documentation of method parameters).
         /// </summary>
         /// <param name="parameterName">The name of the parameter.</param>
-        /// <param name="content">A list of syntax nodes that represents the content of the param element (e.g. 
+        /// <param name="content">A list of syntax nodes that represents the content of the param element (e.g.
         /// the description and meaning of the parameter).</param>
         public static XmlElementSyntax XmlParamElement(string parameterName, SyntaxList<XmlNodeSyntax> content)
         {
@@ -1093,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates the syntax representation of an xml text that contains a newline token with a documentation comment 
+        /// Creates the syntax representation of an xml text that contains a newline token with a documentation comment
         /// exterior trivia at the end (continued documentation comment).
         /// </summary>
         /// <param name="text">The raw text within the new line.</param>
@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates the syntax representation of an xml newline token with a documentation comment exterior trivia at 
+        /// Creates the syntax representation of an xml newline token with a documentation comment exterior trivia at
         /// the end (continued documentation comment).
         /// </summary>
         /// <param name="text">The raw text within the new line.</param>
@@ -1177,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // TODO: [RobinSedlaczek] It is no compiler hot path here I think. But the contribution guide
             //       states to avoid LINQ (https://github.com/dotnet/roslyn/wiki/Contributing-Code). With
-            //       XText we have a reference to System.Xml.Linq. Isn't this rule valid here? 
+            //       XText we have a reference to System.Xml.Linq. Isn't this rule valid here?
             string encoded = new XText(value).ToString();
 
             return XmlTextLiteral(
@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Helper method that replaces less-than and greater-than characters with brackets. 
+        /// Helper method that replaces less-than and greater-than characters with brackets.
         /// </summary>
         /// <param name="originalToken">The original token that is to be replaced.</param>
         /// <param name="rewrittenToken">The new rewritten token.</param>
@@ -1620,7 +1620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // DocumentationCommentParser.ParseCrefAttributeValue, but that method won't
             // work unless the lexer makes the appropriate mode transitions.  Rather than
             // introducing a new code path that will have to be kept in sync with other
-            // mode changes distributed throughout Lexer, SyntaxParser, and 
+            // mode changes distributed throughout Lexer, SyntaxParser, and
             // DocumentationCommentParser, we'll just wrap the text in some lexable syntax
             // and then extract the piece we want.
             string commentText = string.Format(@"/// <see cref=""{0}""/>", text);
@@ -1906,10 +1906,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="oldTree">The original tree.</param>
         /// <param name="newTree">The new tree.</param>
-        /// <param name="topLevel"> 
+        /// <param name="topLevel">
         /// If true then the trees are equivalent if the contained nodes and tokens declaring
         /// metadata visible symbolic information are equivalent, ignoring any differences of nodes inside method bodies
-        /// or initializer expressions, otherwise all nodes and tokens must be equivalent. 
+        /// or initializer expressions, otherwise all nodes and tokens must be equivalent.
         /// </param>
         public static bool AreEquivalent(SyntaxTree? oldTree, SyntaxTree? newTree, bool topLevel)
         {
@@ -1931,10 +1931,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="oldNode">The old node.</param>
         /// <param name="newNode">The new node.</param>
-        /// <param name="topLevel"> 
+        /// <param name="topLevel">
         /// If true then the nodes are equivalent if the contained nodes and tokens declaring
         /// metadata visible symbolic information are equivalent, ignoring any differences of nodes inside method bodies
-        /// or initializer expressions, otherwise all nodes and tokens must be equivalent. 
+        /// or initializer expressions, otherwise all nodes and tokens must be equivalent.
         /// </param>
         public static bool AreEquivalent(SyntaxNode? oldNode, SyntaxNode? newNode, bool topLevel)
         {
@@ -1947,7 +1947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="oldNode">The old node.</param>
         /// <param name="newNode">The new node.</param>
         /// <param name="ignoreChildNode">
-        /// If specified called for every child syntax node (not token) that is visited during the comparison. 
+        /// If specified called for every child syntax node (not token) that is visited during the comparison.
         /// If it returns true the child is recursively visited, otherwise the child and its subtree is disregarded.
         /// </param>
         public static bool AreEquivalent(SyntaxNode? oldNode, SyntaxNode? newNode, Func<SyntaxKind, bool>? ignoreChildNode = null)
@@ -1980,10 +1980,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="oldList">The old list.</param>
         /// <param name="newList">The new list.</param>
-        /// <param name="topLevel"> 
+        /// <param name="topLevel">
         /// If true then the nodes are equivalent if the contained nodes and tokens declaring
         /// metadata visible symbolic information are equivalent, ignoring any differences of nodes inside method bodies
-        /// or initializer expressions, otherwise all nodes and tokens must be equivalent. 
+        /// or initializer expressions, otherwise all nodes and tokens must be equivalent.
         /// </param>
         public static bool AreEquivalent<TNode>(SyntaxList<TNode> oldList, SyntaxList<TNode> newList, bool topLevel)
             where TNode : CSharpSyntaxNode
@@ -1997,7 +1997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="oldList">The old list.</param>
         /// <param name="newList">The new list.</param>
         /// <param name="ignoreChildNode">
-        /// If specified called for every child syntax node (not token) that is visited during the comparison. 
+        /// If specified called for every child syntax node (not token) that is visited during the comparison.
         /// If it returns true the child is recursively visited, otherwise the child and its subtree is disregarded.
         /// </param>
         public static bool AreEquivalent<TNode>(SyntaxList<TNode> oldList, SyntaxList<TNode> newList, Func<SyntaxKind, bool>? ignoreChildNode = null)
@@ -2011,10 +2011,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="oldList">The old list.</param>
         /// <param name="newList">The new list.</param>
-        /// <param name="topLevel"> 
+        /// <param name="topLevel">
         /// If true then the nodes are equivalent if the contained nodes and tokens declaring
         /// metadata visible symbolic information are equivalent, ignoring any differences of nodes inside method bodies
-        /// or initializer expressions, otherwise all nodes and tokens must be equivalent. 
+        /// or initializer expressions, otherwise all nodes and tokens must be equivalent.
         /// </param>
         public static bool AreEquivalent<TNode>(SeparatedSyntaxList<TNode> oldList, SeparatedSyntaxList<TNode> newList, bool topLevel)
             where TNode : SyntaxNode
@@ -2028,7 +2028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="oldList">The old list.</param>
         /// <param name="newList">The new list.</param>
         /// <param name="ignoreChildNode">
-        /// If specified called for every child syntax node (not token) that is visited during the comparison. 
+        /// If specified called for every child syntax node (not token) that is visited during the comparison.
         /// If it returns true the child is recursively visited, otherwise the child and its subtree is disregarded.
         /// </param>
         public static bool AreEquivalent<TNode>(SeparatedSyntaxList<TNode> oldList, SeparatedSyntaxList<TNode> newList, Func<SyntaxKind, bool>? ignoreChildNode = null)
@@ -2588,8 +2588,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(ParameterListSyntax? parameterList, CSharpSyntaxNode body)
             => body is BlockSyntax block
-                ? AnonymousMethodExpression(default, SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, block, null)
-                : throw new ArgumentException(nameof(body));
+                ? AnonymousMethodExpression(default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, block, null)
+                : AnonymousMethodExpression(default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, null, null);
 
         public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, CSharpSyntaxNode body)
             => body is BlockSyntax block

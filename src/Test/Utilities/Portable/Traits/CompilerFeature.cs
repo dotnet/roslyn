@@ -35,5 +35,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         DefaultInterfaceImplementation,
         LambdaDiscardParameters,
         StatementAttributes,
+        AnonymousFunctions,
     }
 }
