@@ -649,11 +649,11 @@ class C {
         [Fact, WorkItem(544151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544151")]
         public void PublicViewOfPointerConversions()
         {
-            ValidateConversion(Conversion.PointerToVoid, ConversionKind.PointerToVoid);
-            ValidateConversion(Conversion.NullToPointer, ConversionKind.NullToPointer);
-            ValidateConversion(Conversion.PointerToPointer, ConversionKind.PointerToPointer);
-            ValidateConversion(Conversion.IntegerToPointer, ConversionKind.IntegerToPointer);
-            ValidateConversion(Conversion.PointerToInteger, ConversionKind.PointerToInteger);
+            ValidateConversion(Conversion.PointerToVoid, ConversionKind.ImplicitPointerToVoid);
+            ValidateConversion(Conversion.NullToPointer, ConversionKind.ImplicitNullToPointer);
+            ValidateConversion(Conversion.PointerToPointer, ConversionKind.ExplicitPointerToPointer);
+            ValidateConversion(Conversion.IntegerToPointer, ConversionKind.ExplicitIntegerToPointer);
+            ValidateConversion(Conversion.PointerToInteger, ConversionKind.ExplicitPointerToInteger);
             ValidateConversion(Conversion.IntPtr, ConversionKind.IntPtr);
         }
 
@@ -783,35 +783,35 @@ class C {
                     Assert.True(conv.IsExplicit);
                     Assert.True(conv.IsUserDefined);
                     break;
-                case ConversionKind.NullToPointer:
+                case ConversionKind.ImplicitNullToPointer:
                     Assert.True(conv.Exists);
                     Assert.True(conv.IsImplicit);
                     Assert.False(conv.IsExplicit);
                     Assert.False(conv.IsUserDefined);
                     Assert.True(conv.IsPointer);
                     break;
-                case ConversionKind.PointerToVoid:
+                case ConversionKind.ImplicitPointerToVoid:
                     Assert.True(conv.Exists);
                     Assert.True(conv.IsImplicit);
                     Assert.False(conv.IsExplicit);
                     Assert.False(conv.IsUserDefined);
                     Assert.True(conv.IsPointer);
                     break;
-                case ConversionKind.PointerToPointer:
+                case ConversionKind.ExplicitPointerToPointer:
                     Assert.True(conv.Exists);
                     Assert.False(conv.IsImplicit);
                     Assert.True(conv.IsExplicit);
                     Assert.False(conv.IsUserDefined);
                     Assert.True(conv.IsPointer);
                     break;
-                case ConversionKind.IntegerToPointer:
+                case ConversionKind.ExplicitIntegerToPointer:
                     Assert.True(conv.Exists);
                     Assert.False(conv.IsImplicit);
                     Assert.True(conv.IsExplicit);
                     Assert.False(conv.IsUserDefined);
                     Assert.True(conv.IsPointer);
                     break;
-                case ConversionKind.PointerToInteger:
+                case ConversionKind.ExplicitPointerToInteger:
                     Assert.True(conv.Exists);
                     Assert.False(conv.IsImplicit);
                     Assert.True(conv.IsExplicit);

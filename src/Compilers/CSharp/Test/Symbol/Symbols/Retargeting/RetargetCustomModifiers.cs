@@ -202,11 +202,12 @@ public class Modifiers
             Assert.False(p1.HasExplicitDefaultValue, "Parameter has default value");
             Assert.Equal(0, p1.Ordinal);
 
-            //PointerTypeSymbol p1Type = (PointerTypeSymbol)p1.Type;
+            PointerTypeSymbol p1Type = (PointerTypeSymbol)p1.Type;
 
-            //Assert.Same(mscorlibAssembly, p1Type.ContainingAssembly);
-            //Assert.Equal(SpecialType.System_DateTime, p1Type.PointedAtType.SpecialType);
-            //Assert.Equal(0, p1Type.CustomModifiers.Count);
+            Assert.Null(p1Type.ContainingAssembly);
+            Assert.Same(mscorlibAssembly, p1Type.PointedAtType.ContainingAssembly);
+            Assert.Equal(SpecialType.System_DateTime, p1Type.PointedAtType.SpecialType);
+            Assert.Equal(0, p1.TypeWithAnnotations.CustomModifiers.Length);
         }
     }
 }

@@ -94,6 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case PointerType:
                         return ((PointerTypeSyntax)parent).ElementType == node;
 
+                    case FunctionPointerType:
+                        // FunctionPointerTypeSyntax has no direct children that are ExpressionSyntaxes
+                        throw ExceptionUtilities.Unreachable;
+
                     case PredefinedType:
                         return true;
 

@@ -264,6 +264,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(CreatePart(SymbolDisplayPartKind.NumericLiteral, symbol, symbol.Name));
                 return;
             }
+            else if (symbol.MethodKind == MethodKind.FunctionPointerSignature)
+            {
+                AddKeyword(SyntaxKind.DelegateKeyword);
+                AddPunctuation(SyntaxKind.AsteriskToken);
+
+                // Expose calling convention here when there is a public API: https://github.com/dotnet/roslyn/issues/39865
+
+                AddPunctuation(SyntaxKind.LessThanToken);
+
+                foreach (var param in symbol.Parameters)
+                {
+                    param.Accept(this.NotFirstVisitor);
+                    AddPunctuation(SyntaxKind.CommaToken);
+                }
+
+                symbol.ReturnType.Accept(this.NotFirstVisitor);
+
+                AddPunctuation(SyntaxKind.GreaterThanToken);
+                return;
+            }
 
             if (symbol.IsExtensionMethod && format.ExtensionMethodStyle != SymbolDisplayExtensionMethodStyle.Default)
             {

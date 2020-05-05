@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value.ConstantValue != ConstantValue.Null;
             }
 
-            if ((object)type != null && type.IsPointerType())
+            if ((object)type != null && type.IsPointerOrFunctionPointer())
             {
                 // We always suppress the warning for pointer types. 
                 return true;
@@ -1895,7 +1895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we assume that external method may write and/or read all of its fields (recursively).
             // Strangely, the native compiler requires the "ref", even for reference types, to exhibit
             // this behavior.
-            if (refKind != RefKind.None && ((object)method == null || method.IsExtern))
+            if (refKind != RefKind.None && ((object)method == null || method.IsExtern) && arg.Type is { })
             {
                 MarkFieldsUsed(arg.Type);
             }

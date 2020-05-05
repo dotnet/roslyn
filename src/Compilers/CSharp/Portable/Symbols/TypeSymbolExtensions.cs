@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool CanBeAssignedNull(this TypeSymbol type)
         {
-            return type.IsReferenceType || type.IsPointerType() || type.IsNullableType();
+            return type.IsReferenceType || type.IsPointerOrFunctionPointer() || type.IsNullableType();
         }
 
         public static bool CanContainNull(this TypeSymbol type)
@@ -282,6 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Pointer:
                 case TypeKind.Dynamic:
+                case TypeKind.FunctionPointer:
                     return false;
                 default:
                     return true;
@@ -338,6 +339,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             RoslynDebug.Assert((object)type != null);
             return type.TypeKind == TypeKind.Array && ((ArrayTypeSymbol)type).IsSZArray;
+        }
+
+        public static bool IsFunctionPointer(this TypeSymbol type)
+        {
+            return type.TypeKind == TypeKind.FunctionPointer;
+        }
+
+        public static bool IsPointerOrFunctionPointer(this TypeSymbol type)
+        {
+            switch (type.TypeKind)
+            {
+                case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
         // If the type is a delegate type, it returns it. If the type is an
@@ -640,14 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                         {
                             // Let's try to avoid early resolution of nullable types
-                            var result = VisitType(
-                                typeWithAnnotationsOpt: canDigThroughNullable ? default : typeArg,
-                                type: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
-                                typeWithAnnotationsPredicate,
-                                typePredicate,
-                                arg,
-                                canDigThroughNullable,
-                                useDefaultType);
+                            var result = visitType(typeArg);
                             if (result is object)
                             {
                                 return result;
@@ -663,6 +675,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         next = ((PointerTypeSymbol)current).PointedAtTypeWithAnnotations;
                         break;
 
+                    case TypeKind.FunctionPointer:
+                        {
+                            MethodSymbol currentPointer = ((FunctionPointerTypeSymbol)current).Signature;
+                            var result = visitType(currentPointer.ReturnTypeWithAnnotations);
+                            if (result is object)
+                            {
+                                return result;
+                            }
+
+                            foreach (var parameter in currentPointer.Parameters)
+                            {
+                                result = visitType(parameter.TypeWithAnnotations);
+                                if (result is object)
+                                {
+                                    return result;
+                                }
+                            }
+                        }
+
+                        return null;
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(current.TypeKind);
                 }
@@ -671,6 +704,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeWithAnnotationsOpt = canDigThroughNullable ? default : next;
                 type = canDigThroughNullable ? next.NullableUnderlyingTypeOrSelf : null;
             }
+
+            TypeSymbol? visitType(TypeWithAnnotations typeArg) => VisitType(
+                    typeWithAnnotationsOpt: canDigThroughNullable ? default : typeArg,
+                    type: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
+                    typeWithAnnotationsPredicate,
+                    typePredicate,
+                    arg,
+                    canDigThroughNullable,
+                    useDefaultType);
         }
 
         private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
@@ -1095,6 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Error:
                 case TypeKind.Interface:
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     return true;
 
                 case TypeKind.Enum:
@@ -1131,6 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (type.TypeKind)
                 {
                     case TypeKind.Pointer:
+                    case TypeKind.FunctionPointer:
                         return true;
                     case TypeKind.Array:
                         type = ((ArrayTypeSymbol)type).ElementType;
@@ -1694,6 +1738,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal static bool IsWellKnownTypeInAttribute(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("InAttribute");
+
+        internal static bool IsWellKnownTypeOutAttribute(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("OutAttribute");
 
         internal static bool IsWellKnownTypeUnmanagedType(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("UnmanagedType");
 

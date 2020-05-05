@@ -198,6 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     result.Clear();
                     break;
 
@@ -1559,7 +1560,7 @@ symIsHidden:;
                     break;
             }
 
-            return (object)type != null && (type.IsDelegateType() || type.IsDynamic());
+            return (object)type != null && (type.IsDelegateType() || type.IsDynamic() || type.IsFunctionPointer());
         }
 
         private static bool IsInstance(Symbol symbol)

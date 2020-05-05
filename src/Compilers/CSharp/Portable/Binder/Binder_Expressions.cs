@@ -4035,6 +4035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
 
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotCreatable,
                         diagnostics.Add(ErrorCode.ERR_UnsafeTypeInObjectCreation, node.Location, type));
                     goto case TypeKind.Class;
@@ -4184,7 +4185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var boundMethodGroup = new BoundMethodGroup(
                             argument.Syntax, default, WellKnownMemberNames.DelegateInvokeName, ImmutableArray.Create(sourceDelegate.DelegateInvokeMethod),
                             sourceDelegate.DelegateInvokeMethod, null, BoundMethodGroupFlags.None, argument, LookupResultKind.Viable);
-                        if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, boundMethodGroup, type, diagnostics))
+                        if (!Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(this, boundMethodGroup, type, diagnostics))
                         {
                             // If we could not produce a more specialized diagnostic, we report
                             // No overload for '{0}' matches delegate '{1}'
@@ -5790,7 +5791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < typeArgumentsWithAnnotations.Length; ++i)
                 {
                     var typeArgument = typeArgumentsWithAnnotations[i];
-                    if ((typeArgument.Type.IsPointerType()) || typeArgument.Type.IsRestrictedType())
+                    if ((typeArgument.Type.IsPointerOrFunctionPointer()) || typeArgument.Type.IsRestrictedType())
                     {
                         // "The type '{0}' may not be used as a type argument"
                         Error(diagnostics, ErrorCode.ERR_BadTypeArgument, typeArgumentsSyntax[i], typeArgument.Type);
@@ -7918,11 +7919,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
             RefKind returnRefKind = default,
-            TypeSymbol returnType = null)
+            TypeSymbol returnType = null,
+            bool isFunctionPointerResolution = false,
+            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
         {
             return ResolveMethodGroup(
                 node, node.Syntax, node.Name, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics,
-                inferWithDynamic: inferWithDynamic, returnRefKind: returnRefKind, returnType: returnType);
+                inferWithDynamic: inferWithDynamic, returnRefKind: returnRefKind, returnType: returnType,
+                isFunctionPointerResolution: isFunctionPointerResolution, callingConvention: callingConvention);
         }
 
         internal MethodGroupResolution ResolveMethodGroup(
@@ -7935,12 +7939,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true,
             RefKind returnRefKind = default,
-            TypeSymbol returnType = null)
+            TypeSymbol returnType = null,
+            bool isFunctionPointerResolution = false,
+            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
         {
             var methodResolution = ResolveMethodGroupInternal(
                 node, expression, methodName, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics,
                 inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm,
-                returnRefKind: returnRefKind, returnType: returnType);
+                returnRefKind: returnRefKind, returnType: returnType,
+                isFunctionPointerResolution: isFunctionPointerResolution, callingConvention: callingConvention);
             if (methodResolution.IsEmpty && !methodResolution.HasAnyErrors)
             {
                 Debug.Assert(node.LookupError == null);
@@ -7955,6 +7962,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return methodResolution;
         }
 
+        internal MethodGroupResolution ResolveMethodGroupForFunctionPointer(
+            BoundMethodGroup methodGroup,
+            AnalyzedArguments analyzedArguments,
+            TypeSymbol returnType,
+            RefKind returnRefKind,
+            Cci.CallingConvention callingConvention,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            return ResolveDefaultMethodGroup(
+                methodGroup,
+                analyzedArguments,
+                isMethodGroupConversion: true,
+                ref useSiteDiagnostics,
+                inferWithDynamic: false,
+                allowUnexpandedForm: true,
+                returnRefKind,
+                returnType,
+                isFunctionPointerResolution: true,
+                callingConvention);
+        }
+
         private MethodGroupResolution ResolveMethodGroupInternal(
             BoundMethodGroup methodGroup,
             SyntaxNode expression,
@@ -7965,12 +7993,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true,
             RefKind returnRefKind = default,
-            TypeSymbol returnType = null)
+            TypeSymbol returnType = null,
+            bool isFunctionPointerResolution = false,
+            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
         {
             var methodResolution = ResolveDefaultMethodGroup(
                 methodGroup, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics,
-                inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm,
-                returnRefKind: returnRefKind, returnType: returnType);
+                inferWithDynamic, allowUnexpandedForm,
+                returnRefKind, returnType, isFunctionPointerResolution, callingConvention);
 
             // If the method group's receiver is dynamic then there is no point in looking for extension methods; 
             // it's going to be a dynamic invocation.
@@ -8035,7 +8065,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true,
             RefKind returnRefKind = default,
-            TypeSymbol returnType = null)
+            TypeSymbol returnType = null,
+            bool isFunctionPointerResolution = false,
+            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
         {
             var methods = node.Methods;
             if (methods.Length == 0)
@@ -8081,18 +8113,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
                 OverloadResolution.MethodInvocationOverloadResolution(
-                    methods: methodGroup.Methods,
-                    typeArguments: methodGroup.TypeArguments,
-                    receiver: methodGroup.Receiver,
-                    arguments: analyzedArguments,
-                    result: result,
-                    useSiteDiagnostics: ref useSiteDiagnostics,
-                    isMethodGroupConversion: isMethodGroupConversion,
-                    allowRefOmittedArguments: allowRefOmittedArguments,
-                    inferWithDynamic: inferWithDynamic,
-                    allowUnexpandedForm: allowUnexpandedForm,
-                    returnRefKind: returnRefKind,
-                    returnType: returnType);
+                    methodGroup.Methods,
+                    methodGroup.TypeArguments,
+                    methodGroup.Receiver,
+                    analyzedArguments,
+                    result,
+                    ref useSiteDiagnostics,
+                    isMethodGroupConversion,
+                    allowRefOmittedArguments,
+                    inferWithDynamic,
+                    allowUnexpandedForm,
+                    returnRefKind,
+                    returnType,
+                    isFunctionPointerResolution,
+                    callingConvention);
 
                 // Note: the MethodGroupResolution instance is responsible for freeing its copy of analyzed arguments
                 return new MethodGroupResolution(methodGroup, null, result, AnalyzedArguments.GetInstance(analyzedArguments), methodGroup.ResultKind, sealedDiagnostics);
@@ -8170,7 +8204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // - access cannot have unconstrained generic type
             // - access cannot be a pointer
             // - access cannot be a restricted type
-            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerType() || accessType.IsRestrictedType())
+            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerOrFunctionPointer() || accessType.IsRestrictedType())
             {
                 // Result type of the access is void when result value cannot be made nullable.
                 // For improved diagnostics we detect the cases where the value will be used and produce a
