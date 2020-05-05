@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
             => new InlineTemporaryCodeRefactoringProvider();
 
         private async Task TestFixOneAsync(string initial, string expected)
-            => await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected));
+            => await TestInRegularAndScript1Async(GetTreeText(initial), GetTreeText(expected));
 
         private string GetTreeText(string initial)
         {

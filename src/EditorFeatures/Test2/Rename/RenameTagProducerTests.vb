@@ -3,8 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.ObjectModel
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
@@ -1078,7 +1076,7 @@ End Class
                     workspace.GetService(Of IThreadingContext)(),
                     workspace.GetService(Of InlineRenameService))
 
-                Dim textViewService = New TextBufferAssociatedViewService()
+                Dim textViewService = Assert.IsType(Of TextBufferAssociatedViewService)(workspace.ExportProvider.GetExportedValue(Of ITextBufferAssociatedViewService)())
                 Dim buffers = New Collection(Of ITextBuffer)
                 buffers.Add(view.TextBuffer)
                 DirectCast(textViewService, ITextViewConnectionListener).SubjectBuffersConnected(view, ConnectionReason.TextViewLifetime, buffers)
@@ -1162,7 +1160,7 @@ End Class
                     workspace.GetService(Of IThreadingContext)(),
                     workspace.GetService(Of InlineRenameService))
 
-                Dim textViewService = New TextBufferAssociatedViewService()
+                Dim textViewService = Assert.IsType(Of TextBufferAssociatedViewService)(workspace.ExportProvider.GetExportedValue(Of ITextBufferAssociatedViewService)())
                 Dim buffers = New Collection(Of ITextBuffer)
                 buffers.Add(view.TextBuffer)
                 DirectCast(textViewService, ITextViewConnectionListener).SubjectBuffersConnected(view, ConnectionReason.TextViewLifetime, buffers)

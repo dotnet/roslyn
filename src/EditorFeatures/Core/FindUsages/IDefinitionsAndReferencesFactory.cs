@@ -51,6 +51,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal static class DefinitionItemExtensions
     {
+        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
+            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
+
         public static DefinitionItem ToNonClassifiedDefinitionItem(
             this ISymbol definition,
             Solution solution,
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             var displayParts = GetDisplayParts(definition);
-            var nameDisplayParts = GetNameDisplayParts(definition);
+            var nameDisplayParts = definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();
 
             var tags = GlyphTags.GetTags(definition.GetGlyph());
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(

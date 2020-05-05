@@ -4,13 +4,10 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.ErrorReporting;
 
-namespace Microsoft.VisualStudio.IntegrationTest.Setup
+namespace Microsoft.CodeAnalysis.ErrorReporting
 {
-    using Debugger = System.Diagnostics.Debugger;
-
-    internal class IntegrationTestTraceListener : TraceListener
+    internal class WatsonTraceListener : TraceListener
     {
         public override void Fail(string message, string detailMessage)
         {
@@ -96,7 +93,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         internal static void Install()
         {
             Trace.Listeners.Clear();
-            Trace.Listeners.Add(new IntegrationTestTraceListener());
+            Trace.Listeners.Add(new WatsonTraceListener());
         }
     }
 }
