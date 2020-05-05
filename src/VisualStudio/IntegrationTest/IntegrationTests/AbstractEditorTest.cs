@@ -68,6 +68,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             MarkupTestFile.GetPosition(markupCode, out string code, out int caretPosition);
 
+            VisualStudio.Editor.DismissCompletionSessions();
+            VisualStudio.Editor.DismissLightBulbSession();
+
             var originalValue = VisualStudio.Workspace.IsPrettyListingOn(LanguageName);
 
             VisualStudio.Workspace.SetPrettyListing(LanguageName, false);

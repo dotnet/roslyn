@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new SpacingFormattingRule(cachedOptions);
         }
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             RoslynDebug.Assert(previousToken.Parent != null && currentToken.Parent != null);
 
@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For spacing between parenthesis and expression
-            if ((previousParentKind == SyntaxKind.ParenthesizedExpression && previousKind == SyntaxKind.OpenParenToken) ||
-                (currentParentKind == SyntaxKind.ParenthesizedExpression && currentKind == SyntaxKind.CloseParenToken))
+            if ((previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKindEx.ParenthesizedPattern) && previousKind == SyntaxKind.OpenParenToken) ||
+                (currentToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKindEx.ParenthesizedPattern) && currentKind == SyntaxKind.CloseParenToken))
             {
                 return AdjustSpacesOperationZeroOrOne(_options.SpaceWithinExpressionParentheses);
             }
@@ -287,7 +287,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentToken.Parent is BinaryExpressionSyntax ||
                 previousToken.Parent is BinaryExpressionSyntax ||
                 currentToken.Parent is AssignmentExpressionSyntax ||
-                previousToken.Parent is AssignmentExpressionSyntax)
+                previousToken.Parent is AssignmentExpressionSyntax ||
+                currentToken.Parent.IsKind(SyntaxKindEx.AndPattern, SyntaxKindEx.OrPattern, SyntaxKindEx.RelationalPattern) ||
+                previousToken.Parent.IsKind(SyntaxKindEx.AndPattern, SyntaxKindEx.OrPattern, SyntaxKindEx.RelationalPattern))
             {
                 switch (_options.SpacingAroundBinaryOperator)
                 {
@@ -296,8 +298,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     case BinaryOperatorSpacingOptions.Remove:
                         if (currentKind == SyntaxKind.IsKeyword ||
                             currentKind == SyntaxKind.AsKeyword ||
+                            currentKind == SyntaxKindEx.AndKeyword ||
+                            currentKind == SyntaxKindEx.OrKeyword ||
                             previousKind == SyntaxKind.IsKeyword ||
-                            previousKind == SyntaxKind.AsKeyword)
+                            previousKind == SyntaxKind.AsKeyword ||
+                            previousKind == SyntaxKindEx.AndKeyword ||
+                            previousKind == SyntaxKindEx.OrKeyword)
                         {
                             // User want spaces removed but at least one is required for the "as" & "is" keyword
                             return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
@@ -312,6 +318,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         System.Diagnostics.Debug.Assert(false, "Invalid BinaryOperatorSpacingOptions");
                         break;
                 }
+            }
+
+            // For spacing after the 'not' pattern operator
+            if (previousToken.Parent.IsKind(SyntaxKindEx.NotPattern))
+            {
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // No space after $" and $@" and @$" at the start of an interpolated string
@@ -389,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            return nextOperation.Invoke();
+            return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
         public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)

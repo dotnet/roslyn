@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         public int CompareTo(PatternMatch other, bool ignoreCase)
             => ComparerWithState.CompareTo(this, other, ignoreCase, s_comparers);
 
-        private readonly static ImmutableArray<Func<PatternMatch, bool, IComparable>> s_comparers =
+        private static readonly ImmutableArray<Func<PatternMatch, bool, IComparable>> s_comparers =
             ImmutableArray.Create<Func<PatternMatch, bool, IComparable>>(
                 // Compare types
                 (p, b) => p.Kind,

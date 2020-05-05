@@ -409,7 +409,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         internal TestAccessor GetTestAccessor() => new TestAccessor(this);
 
-        internal class TestAccessor
+        internal readonly struct TestAccessor
         {
             private readonly InProcLanguageServer _server;
 

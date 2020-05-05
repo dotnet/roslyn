@@ -27,15 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
         {
-            /// <summary>
-            /// By default, the compiler reports diagnostics for nullable reference types at
-            /// <see cref="DiagnosticSeverity.Warning"/>, and the analyzer test framework defaults to only validating
-            /// diagnostics at <see cref="DiagnosticSeverity.Error"/>. This map contains all compiler diagnostic IDs
-            /// related to nullability mapped to <see cref="ReportDiagnostic.Error"/>, which is then used to enable all
-            /// of these warnings for default validation during analyzer and code fix tests.
-            /// </summary>
-            private static readonly ImmutableDictionary<string, ReportDiagnostic> s_nullableWarnings = GetNullableWarningsFromCompiler();
-
             public Test()
             {
                 MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
@@ -46,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
                     var compilationOptions = solution.GetProject(projectId)!.CompilationOptions!;
-                    compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(s_nullableWarnings));
+                    compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
                     var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
@@ -71,20 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                     return solution;
                 });
-            }
-
-            private static ImmutableDictionary<string, ReportDiagnostic> GetNullableWarningsFromCompiler()
-            {
-                string[] args = { "/warnaserror:nullable" };
-                var commandLineArguments = CSharpCommandLineParser.Default.Parse(args, baseDirectory: Environment.CurrentDirectory, sdkDirectory: Environment.CurrentDirectory);
-                var nullableWarnings = commandLineArguments.CompilationOptions.SpecificDiagnosticOptions;
-
-                // Workaround for https://github.com/dotnet/roslyn/issues/41610
-                nullableWarnings = nullableWarnings
-                    .SetItem("CS8632", ReportDiagnostic.Error)
-                    .SetItem("CS8669", ReportDiagnostic.Error);
-
-                return nullableWarnings;
             }
 
             /// <summary>

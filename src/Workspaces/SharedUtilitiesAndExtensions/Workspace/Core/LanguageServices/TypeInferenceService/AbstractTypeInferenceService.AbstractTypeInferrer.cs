@@ -120,7 +120,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
 
             protected static bool IsEnumHasFlag(ISymbol symbol)
             {
-                return symbol.Name == nameof(Enum.HasFlag) &&
+                return symbol.Kind == SymbolKind.Method &&
+                       symbol.Name == nameof(Enum.HasFlag) &&
                        symbol.ContainingType?.SpecialType == SpecialType.System_Enum;
             }
         }

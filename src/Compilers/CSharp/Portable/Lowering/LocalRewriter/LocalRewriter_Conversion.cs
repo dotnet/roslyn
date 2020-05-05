@@ -1398,7 +1398,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SpecialType.System_IntPtr:
                     case SpecialType.System_UIntPtr:
                         operand = MakeConversionNode(operand, get64BitType(_compilation, signed: fromType.SpecialType == SpecialType.System_IntPtr), @checked);
-                        return RewriteDecimalConversionCore(syntax, operand, operand.Type!, toType, isImplicit, constantValueOpt);
+                        Debug.Assert(operand.Type is { });
+                        return RewriteDecimalConversionCore(syntax, operand, operand.Type, toType, isImplicit, constantValueOpt);
                 }
             }
 
