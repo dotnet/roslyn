@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
             {
                 var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
-                var tasks = new List<Task<CodeRefactoring?>>();
+                using var _ = ArrayBuilder<Task<CodeRefactoring?>>.GetInstance(out var tasks);
 
                 foreach (var provider in GetProviders(document))
                 {
