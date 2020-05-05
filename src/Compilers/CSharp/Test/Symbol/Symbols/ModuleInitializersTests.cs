@@ -173,23 +173,6 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 source,
                 parseOptions: s_parseOptions,
                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                symbolValidator: module =>
-                {
-                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    var staticConstructor = (PEMethodSymbol)rootModuleType.GetMember(".cctor");
-
-                    Assert.NotNull(staticConstructor);
-                    Assert.Equal(MethodKind.StaticConstructor, staticConstructor.MethodKind);
-
-                    var expectedFlags =
-                        MethodAttributes.Private
-                        | MethodAttributes.Static
-                        | MethodAttributes.SpecialName
-                        | MethodAttributes.RTSpecialName
-                        | MethodAttributes.HideBySig;
-
-                    Assert.Equal(expectedFlags, staticConstructor.Flags);
-                },
                 expectedOutput: "1234");
         }
 
@@ -231,23 +214,6 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 parseOptions: s_parseOptions,
                 targetFramework: TargetFramework.NetStandardLatest,
                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                symbolValidator: module =>
-                {
-                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    var staticConstructor = (PEMethodSymbol)rootModuleType.GetMember(".cctor");
-
-                    Assert.NotNull(staticConstructor);
-                    Assert.Equal(MethodKind.StaticConstructor, staticConstructor.MethodKind);
-
-                    var expectedFlags =
-                        MethodAttributes.Private
-                        | MethodAttributes.Static
-                        | MethodAttributes.SpecialName
-                        | MethodAttributes.RTSpecialName
-                        | MethodAttributes.HideBySig;
-
-                    Assert.Equal(expectedFlags, staticConstructor.Flags);
-                },
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234",
                 verify: !ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Skipped : Verification.Passes);
         }
@@ -309,56 +275,7 @@ class C4
                 new[] { source1, source2, source3 },
                 parseOptions: s_parseOptions,
                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                symbolValidator: module =>
-                {
-                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    var staticConstructor = (PEMethodSymbol)rootModuleType.GetMember(".cctor");
-
-                    Assert.NotNull(staticConstructor);
-                    Assert.Equal(MethodKind.StaticConstructor, staticConstructor.MethodKind);
-
-                    var expectedFlags =
-                        MethodAttributes.Private
-                        | MethodAttributes.Static
-                        | MethodAttributes.SpecialName
-                        | MethodAttributes.RTSpecialName
-                        | MethodAttributes.HideBySig;
-
-                    Assert.Equal(expectedFlags, staticConstructor.Flags);
-                },
                 expectedOutput: "123456");
-        }
-
-        [Fact]
-        public void NonNullableField_01()
-        {
-            const string text = @"
-#nullable enable
-
-using System.Runtime.CompilerServices;
-
-class C
-{
-    static string s1;
-
-    [ModuleInitializer]
-    static void Init()
-    {
-        s1 = """";
-    }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-
-            var comp = CreateCompilation(text, parseOptions: s_parseOptions);
-            comp.VerifyDiagnostics(
-                // (8,19): warning CS8618: Non-nullable field 's1' is uninitialized. Consider declaring the field as nullable.
-                //     static string s1;
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s1").WithArguments("field", "s1").WithLocation(8, 19),
-                // (8,19): warning CS0414: The field 'C.s1' is assigned but its value is never used
-                //     static string s1;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s1").WithArguments("C.s1").WithLocation(8, 19));
         }
 
         [Fact]
@@ -425,7 +342,7 @@ using System.Runtime.CompilerServices;
 
 class C
 {
-    internal static string s1 = null!;
+    internal static string s1 = null;
 
     [ModuleInitializer]
     internal static void Init()
@@ -461,6 +378,55 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
+        public void StaticConstructor_EffectingInitializer_SameType()
+        {
+            const string text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    internal static int i = InitField();
+
+    internal static int InitField()
+    {
+        Console.Write(1);
+        return -1;
+    }
+
+    [ModuleInitializer]
+    internal static void Init()
+    {
+        i = 2;
+    }
+
+    static void Main()
+    {
+        Console.Write(i);
+    }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var verifier = CompileAndVerify(
+                text,
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: "12",
+                symbolValidator: validator);
+            verifier.VerifyDiagnostics();
+
+            void validator(ModuleSymbol module)
+            {
+                var cType = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.NotNull(cType.GetMember<MethodSymbol>(".cctor"));
+
+                var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                Assert.NotNull(moduleType.GetMember<MethodSymbol>(".cctor"));
+            }
+        }
+
+        [Fact]
         public void StaticConstructor_DefaultInitializer_OtherType()
         {
             const string text = @"
@@ -478,7 +444,7 @@ class C1
 
 class C2
 {
-    internal static string s1 = null!;
+    internal static string s1 = null;
 
     static void Main()
     {
@@ -501,6 +467,58 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 var c2Type = module.ContainingAssembly.GetTypeByMetadataName("C2");
                 // static constructor should be optimized out
                 Assert.Null(c2Type.GetMember<MethodSymbol>(".cctor"));
+
+                var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                Assert.NotNull(moduleType.GetMember<MethodSymbol>(".cctor"));
+            }
+        }
+
+        [Fact]
+        public void StaticConstructor_EffectingInitializer_OtherType()
+        {
+            const string text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C1
+{
+    [ModuleInitializer]
+    internal static void Init()
+    {
+        C2.i = 2;
+    }
+}
+
+class C2
+{
+    internal static int i = InitField();
+
+    static int InitField()
+    {
+        Console.Write(1);
+        return -1;
+    }
+
+    static void Main()
+    {
+        Console.Write(i);
+    }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var verifier = CompileAndVerify(
+                text,
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: "12",
+                symbolValidator: validator);
+            verifier.VerifyDiagnostics();
+
+            void validator(ModuleSymbol module)
+            {
+                var c2Type = module.ContainingAssembly.GetTypeByMetadataName("C2");
+                Assert.NotNull(c2Type.GetMember<MethodSymbol>(".cctor"));
 
                 var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
                 Assert.NotNull(moduleType.GetMember<MethodSymbol>(".cctor"));

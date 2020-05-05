@@ -178,7 +178,13 @@ namespace Roslyn.Utilities
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            // PERF: Do not use dictionary.Keys here because that creates a snapshot
+            // of the collection resulting in a List<T> allocation.
+            // Instead, enumerate the underlying dictionary and copy over the keys.
+            foreach (var kvp in _dictionary)
+            {
+                array[arrayIndex++] = kvp.Key;
+            }
         }
     }
 }

@@ -2832,8 +2832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
 
-                // note that we are casting the Symbol returned by the OrderBy enumerable to MethodSymbol, expecting it will succeed.
-                foreach (MethodSymbol method in _moduleInitializerMethods.OrderBy(LexicalOrderSymbolComparer.Instance))
+                foreach (MethodSymbol method in _moduleInitializerMethods.OrderBy<MethodSymbol>(LexicalOrderSymbolComparer.Instance))
                 {
                     ilBuilder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
 
