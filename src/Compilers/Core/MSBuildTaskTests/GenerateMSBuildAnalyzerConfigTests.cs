@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
@@ -65,7 +66,7 @@ msbuild_property.Property2 = def456
 
             Assert.Equal(@"is_global = true
 
-[c:\file1.cs]
+[c:/file1.cs]
 msbuild_item.Compile.ToRetrieve = abc123
 ", result);
         }
@@ -87,13 +88,13 @@ msbuild_item.Compile.ToRetrieve = abc123
 
             Assert.Equal(@"is_global = true
 
-[c:\file1.cs]
+[c:/file1.cs]
 msbuild_item.Compile.ToRetrieve = abc123
 
-[c:\file2.cs]
+[c:/file2.cs]
 msbuild_item.Compile.ToRetrieve = def456
 
-[c:\file3.cs]
+[c:/file3.cs]
 msbuild_item.AdditionalFiles.ToRetrieve = ghi789
 ", result);
         }
@@ -114,7 +115,7 @@ msbuild_item.AdditionalFiles.ToRetrieve = ghi789
 
             Assert.Equal(@"is_global = true
 
-[c:\file1.cs]
+[c:/file1.cs]
 msbuild_item.Compile.ToRetrieve = abc123
 msbuild_item.AdditionalFile.ToRetrieve = def456
 ", result);
@@ -135,7 +136,7 @@ msbuild_item.AdditionalFile.ToRetrieve = def456
 
             Assert.Equal(@"is_global = true
 
-[c:\file1.cs]
+[c:/file1.cs]
 msbuild_item.Compile.ToRetrieve = 
 ", result);
         }
@@ -157,7 +158,7 @@ msbuild_item.Compile.ToRetrieve =
 
             Assert.Equal(@"is_global = true
 
-[c:\file1.cs]
+[c:/file1.cs]
 msbuild_item.. = 
 msbuild_item.Compile. = 
 msbuild_item..ToRetrieve = 
@@ -188,14 +189,14 @@ msbuild_item..ToRetrieve =
 msbuild_property.Property1 = abc123
 msbuild_property.Property2 = def456
 
-[c:\file1.cs]
+[c:/file1.cs]
 msbuild_item.Compile.ToRetrieve = abc123
 msbuild_item.AdditionalFiles.ToRetrieve = jkl012
 
-[c:\file2.cs]
+[c:/file2.cs]
 msbuild_item.Compile.ToRetrieve = def456
 
-[c:\file3.cs]
+[c:/file3.cs]
 msbuild_item.AdditionalFiles.ToRetrieve = ghi789
 ", result);
         }
@@ -219,13 +220,13 @@ msbuild_item.AdditionalFiles.ToRetrieve = ghi789
 
             Assert.Equal($@"is_global = true
 
-[{Path.GetFullPath("file1.cs")}]
+[{Path.GetFullPath("file1.cs").Replace('\\', '/')}]
 msbuild_item.Compile.ToRetrieve = abc123
 
-[{Path.GetFullPath("..\\file2.cs")}]
+[{Path.GetFullPath("..\\file2.cs").Replace('\\', '/')}]
 msbuild_item.Compile.ToRetrieve = abc123
 
-[{Path.GetFullPath("someDir\\otherDir\\thirdDir\\..\\file3.cs")}]
+[{Path.GetFullPath("someDir\\otherDir\\thirdDir\\..\\file3.cs").Replace('\\', '/')}]
 msbuild_item.Compile.ToRetrieve = abc123
 ", result);
         }
@@ -248,9 +249,54 @@ msbuild_item.Compile.ToRetrieve = abc123
 
             Assert.Equal($@"is_global = true
 
-[{Path.GetFullPath("file1.cs")}]
+[{Path.GetFullPath("file1.cs").Replace('\\', '/')}]
 msbuild_item.Compile.ToRetrieve = abc123
 msbuild_item.AdditionalFile.ToRetrieve = def456
+", result);
+        }
+
+        [Fact]
+        [WorkItem(43970, "https://github.com/dotnet/roslyn/issues/43970")]
+        public void PropertiesWithNewLines()
+        {
+            // Currently new lines transfer from MSBuild through to the resulting configuration
+            // which can break downstream parsing. This tests tracks issue #43970 and should
+            // be adjusted when we address that.
+
+            string longPropertyValue = @"this is 
+a 
+property
+with  
+linebreaks
+"" quotation "" marks
+and 
+property = looking
+values
+";
+
+            TaskItem property1 = new TaskItem("Property1", new Dictionary<string, string> { { "Value", longPropertyValue } });
+            TaskItem property2 = new TaskItem("Property2", new Dictionary<string, string> { { "Value", "def456" } });
+
+            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            {
+                PropertyItems = new[] { property1, property2 }
+            };
+            configTask.Execute();
+
+            var result = configTask.ConfigFileContents;
+
+            Assert.Equal(@"is_global = true
+msbuild_property.Property1 = this is 
+a 
+property
+with  
+linebreaks
+"" quotation "" marks
+and 
+property = looking
+values
+
+msbuild_property.Property2 = def456
 ", result);
         }
     }

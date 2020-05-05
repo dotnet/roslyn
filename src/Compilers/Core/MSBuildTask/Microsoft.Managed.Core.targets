@@ -74,7 +74,7 @@
     Requested properties/items are requested via item groups like:
    
       <AnalyzerProperty Include="PropertyNameToEval" />
-      <AnalyzerItemMetadata Include="ItemType" MetadataName="MetaDataToRetrieve" />
+      <AnalyzerItemMetadata Include="ItemType" MetadataName="MetadataToRetrieve" />
     -->
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildAnalyzerConfig" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
@@ -83,19 +83,9 @@
     <GenerateMSBuildAnalyzerConfigFile Condition="'$(GenerateMSBuildAnalyzerConfigFile)' == ''">true</GenerateMSBuildAnalyzerConfigFile>
   </PropertyGroup>
 
-  <Target Name="GenerateMSBuildAnalyzerConfigFileShouldRun"
-          BeforeTargets="GenerateMSBuildAnalyzerConfigFile"
-          Condition="'$(Language)'=='VB' or '$(Language)'=='C#'">
-    <PropertyGroup>
-      <_GeneratedAnalyzerConfigHasItems Condition="'@(AnalyzerItemMetadata->Count())' != '0'">true</_GeneratedAnalyzerConfigHasItems>
-      <_GeneratedAnalyzerConfigShouldRun Condition="'$(GenerateMSBuildAnalyzerConfigFile)' == 'true' and ('$(_GeneratedAnalyzerConfigHasItems)' == 'true' or '@(AnalyzerProperty->Count())' != '0')">true</_GeneratedAnalyzerConfigShouldRun>
-    </PropertyGroup>
-  </Target>
-
   <Target Name="GenerateMSBuildAnalyzerConfigFile"
           BeforeTargets="BeforeCompile;CoreCompile"
-          DependsOnTargets="PrepareForBuild;GenerateMSBuildAnalyzerConfigFileShouldRun;GenerateMSBuildAnalyzerConfigFileCore"
-          Condition="'$(Language)'=='VB' or '$(Language)'=='C#'" />
+          DependsOnTargets="PrepareForBuild;GenerateMSBuildAnalyzerConfigFileShouldRun;GenerateMSBuildAnalyzerConfigFileCore" />
 
   <Target Name="GenerateMSBuildAnalyzerConfigFileShouldRun">
     <PropertyGroup>
@@ -122,7 +112,7 @@
 
       <!-- Record that we'll write a file, and add it to the editorconfig inputs -->
       <FileWrites Include="$(GeneratedMSBuildAnalyzerConfigFile)" />
-      <EditorConfigFiles Include="$(GeneratedMSBuildAnalyzerConfigFile)"  />
+      <EditorConfigFiles Include="$(GeneratedMSBuildAnalyzerConfigFile)" />
     </ItemGroup>
 
     <!-- Transform the collected properties and items into an editor config file -->
