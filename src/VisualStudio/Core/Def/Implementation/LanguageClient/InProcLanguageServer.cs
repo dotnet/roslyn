@@ -73,10 +73,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>();
             var serverCapabilities = await _protocol.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName,
                 _workspace.CurrentSolution, input.ToObject<InitializeParams>(), _clientCapabilities, _clientName, cancellationToken).ConfigureAwait(false);
-            // As soon as LSP supports classifications in hover, we can remove this and always advertise hover support.
-            // For now, just support for the razor lsp client.
-            // Tracking - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138/
-            serverCapabilities.Capabilities.HoverProvider = Equals(_clientName, RazorLanguageClient.ClientName);
+            // Always support hover - if any LSP client for a content type advertises support,
+            // then the liveshare provider is disabled.  So we must provide for both C# and razor
+            // until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/ is fixed
+            // or we have different content types.
+            serverCapabilities.Capabilities.HoverProvider = true;
             return serverCapabilities;
         }
 
