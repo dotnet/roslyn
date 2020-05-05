@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var member = comp.GlobalNamespace.GetMember(methodName);
             Assert.Equal(overridingMethodDisplay, member.ToTestDisplayString());
             var overriddenMember = member.GetOverriddenMember();
-            Assert.Equal(overriddenMethodDisplay, overriddenMember.ToTestDisplayString());
+            Assert.Equal(overriddenMethodDisplay, overriddenMember?.ToTestDisplayString());
             if (member is MethodSymbol method && overriddenMember is MethodSymbol overriddenMethod)
             {
                 Assert.True(method.IsOverride);
@@ -113,9 +113,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             return CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns, references: references, targetFramework: targetFramework);
         }
 
-        private static CSharpCompilation MetadataView(CSharpCompilation comp, params MetadataReference[] references)
+        private static CSharpCompilation CompilationReferenceView(CSharpCompilation comp, params MetadataReference[] references)
         {
             references = references.Append(comp.ToMetadataReference());
+            return CreateCompilation("", references: references);
+        }
+
+        private static CSharpCompilation MetadataView(CSharpCompilation comp, params MetadataReference[] references)
+        {
+            references = references.Append(comp.EmitToImageReference());
             return CreateCompilation("", references: references);
         }
 
@@ -143,9 +149,13 @@ public class Program
             var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
+            verify(MetadataView(comp));
+
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
@@ -185,6 +195,7 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
@@ -224,6 +235,7 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
@@ -263,6 +275,7 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
@@ -304,6 +317,7 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
@@ -343,11 +357,13 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M { get; }", "System.Object Base.M { get; }");
+                VerifyOverride(comp, "Derived.get_M", "System.String Derived.M.get", "System.Object Base.M.get");
                 VerifyAssignments(comp);
             }
         }
@@ -382,11 +398,13 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M", "U Derived<T, U>.M { get; }", "T Base<T>.M { get; }");
+                VerifyOverride(comp, "Derived.get_M", "U Derived<T, U>.M.get", "T Base<T>.M.get");
                 VerifyAssignments(comp);
             }
         }
@@ -423,11 +441,13 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M", "T Derived<T>.M { get; }", "N Base.M { get; }");
+                VerifyOverride(comp, "Derived.get_M", "T Derived<T>.M.get", "N Base.M.get");
                 VerifyAssignments(comp);
             }
         }
@@ -462,11 +482,13 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.this[]", "System.String Derived.this[System.Int32 i] { get; }", "System.Object Base.this[System.Int32 i] { get; }");
+                VerifyOverride(comp, "Derived.get_Item", "System.String Derived.this[System.Int32 i].get", "System.Object Base.this[System.Int32 i].get");
                 VerifyAssignments(comp);
             }
         }
@@ -501,11 +523,13 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.this[]", "U Derived<T, U>.this[System.Int32 i] { get; }", "T Base<T>.this[System.Int32 i] { get; }");
+                VerifyOverride(comp, "Derived.get_Item", "U Derived<T, U>.this[System.Int32 i].get", "T Base<T>.this[System.Int32 i].get");
                 VerifyAssignments(comp);
             }
         }
@@ -542,11 +566,13 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.this[]", "T Derived<T>.this[System.Int32 i] { get; }", "N Base.this[System.Int32 i] { get; }");
+                VerifyOverride(comp, "Derived.get_Item", "T Derived<T>.this[System.Int32 i].get", "N Base.this[System.Int32 i].get");
                 VerifyAssignments(comp);
             }
         }
@@ -663,6 +689,7 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp, baseMetadata));
             verify(MetadataView(comp, baseMetadata));
 
             static void verify(CSharpCompilation comp)
@@ -705,11 +732,13 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp, baseMetadata));
             verify(MetadataView(comp, baseMetadata));
 
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M { get; }", "System.Object Base.M { get; }");
+                VerifyOverride(comp, "Derived.get_M", "System.String Derived.M.get", "System.Object Base.M.get");
                 VerifyAssignments(comp);
             }
         }
@@ -747,11 +776,13 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp, baseMetadata));
             verify(MetadataView(comp, baseMetadata));
 
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.this[]", "System.String Derived.this[System.Int32 i] { get; }", "System.Object Base.this[System.Int32 i] { get; }");
+                VerifyOverride(comp, "Derived.get_Item", "System.String Derived.this[System.Int32 i].get", "System.Object Base.this[System.Int32 i].get");
                 VerifyAssignments(comp);
             }
         }
@@ -786,6 +817,7 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
@@ -1035,12 +1067,15 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M1", "IIn<System.Object> Derived.M1 { get; }", "IIn<System.String> Base.M1 { get; }");
+                VerifyOverride(comp, "Derived.get_M1", "IIn<System.Object> Derived.M1.get", "IIn<System.String> Base.M1.get");
                 VerifyOverride(comp, "Derived.M2", "IOut<System.String> Derived.M2 { get; }", "IOut<System.Object> Base.M2 { get; }");
+                VerifyOverride(comp, "Derived.get_M2", "IOut<System.String> Derived.M2.get", "IOut<System.Object> Base.M2.get");
                 VerifyAssignments(comp);
             }
         }
@@ -1094,7 +1129,9 @@ public class Program
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M1", "IIn<System.String> Derived.M1 { get; }", "IIn<System.Object> Base.M1 { get; }");
+                VerifyOverride(comp, "Derived.get_M1", "IIn<System.String> Derived.M1.get", "IIn<System.Object> Base.M1.get");
                 VerifyOverride(comp, "Derived.M2", "IOut<System.Object> Derived.M2 { get; }", "IOut<System.String> Base.M2 { get; }");
+                VerifyOverride(comp, "Derived.get_M2", "IOut<System.Object> Derived.M2.get", "IOut<System.String> Base.M2.get");
                 VerifyAssignments(comp);
             }
         }
@@ -1188,11 +1225,13 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M { get; }", "System.IComparable Base.M { get; }");
+                VerifyOverride(comp, "Derived.get_M", "System.String Derived.M.get", "System.IComparable Base.M.get");
                 VerifyAssignments(comp);
             }
         }
@@ -1299,6 +1338,7 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
@@ -1452,6 +1492,7 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
@@ -1498,7 +1539,6 @@ public class Program
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Base<T>.M(string)", "Base<T>.M(T)", "Derived").WithLocation(9, 28)
                 );
             verify(comp);
-            verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -1545,6 +1585,7 @@ public class Program
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
+            verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
 
             static void verify(CSharpCompilation comp)
