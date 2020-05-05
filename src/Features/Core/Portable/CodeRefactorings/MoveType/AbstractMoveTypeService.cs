@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return ImmutableArray<CodeAction>.Empty;
             }
 
-            var actions = new List<CodeAction>();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
             var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(state.SemanticDocument.Root);
             var isNestedType = IsNestedType(state.TypeNode);
 
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             Debug.Assert(actions.Count != 0, "No code actions found for MoveType Refactoring");
 
-            return actions.ToImmutableArray();
+            return actions.ToImmutable();
         }
 
         private CodeAction GetCodeAction(State state, string fileName, MoveTypeOperationKind operationKind) =>
