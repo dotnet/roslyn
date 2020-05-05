@@ -103,14 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return topMostCref.Parent;
             }
 
-            private static SyntaxNode GetParentNode(StatementSyntax statement)
-            {
-                return statement
-                    .AncestorsAndSelf()
-                    .OfType<StatementSyntax>()
-                    .LastOrDefault();
-            }
-
             protected SyntaxNode SimplifyNode<TNode>(
                 TNode node,
                 SyntaxNode newNode,

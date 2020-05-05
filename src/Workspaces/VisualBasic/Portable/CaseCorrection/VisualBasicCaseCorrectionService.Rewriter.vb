@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
-    Friend Partial Class VisualBasicCaseCorrectionService
+    Partial Friend Class VisualBasicCaseCorrectionService
         Private Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 

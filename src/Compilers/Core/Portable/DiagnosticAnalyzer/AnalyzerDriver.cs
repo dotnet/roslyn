@@ -1223,9 +1223,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 // When the queue is completed with a pending TryDequeueAsync return, the
                                 // the Optional<T> will not have a value. This signals the queue has reached
                                 // completion and no more items will be added to it.
-
-                                // This failure is being tracked by https://github.com/dotnet/roslyn/issues/5962
-                                // Debug.Assert(CompilationEventQueue.IsCompleted, "TryDequeueAsync should provide a value unless the AsyncQueue<T> is completed.");
+                                Debug.Assert(CompilationEventQueue.IsCompleted, "TryDequeueAsync should provide a value unless the AsyncQueue<T> is completed.");
                                 break;
                             }
 

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public Exception LoadAnalyzer(string analyzerPath)
         {
             Exception analyzerLoadException = null;
-            var analyzerRef = new AnalyzerFileReference(analyzerPath, FromFileLoader.Instance);
+            var analyzerRef = new AnalyzerFileReference(analyzerPath, TestAnalyzerAssemblyLoader.LoadFromFile);
             analyzerRef.AnalyzerLoadFailed += (s, e) => analyzerLoadException = e.Exception;
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             analyzerRef.AddAnalyzers(builder, LanguageNames.CSharp);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var dir = Temp.CreateDirectory();
             dir.CopyFile(typeof(AppDomainUtils).Assembly.Location);
-            dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
+            dir.CopyFile(typeof(RemoteAnalyzerFileReferenceTest).Assembly.Location);
             var analyzerFile = DesktopTestHelpers.CreateCSharpAnalyzerAssemblyWithTestAnalyzer(dir, "MyAnalyzer");
             var loadDomain = AppDomainUtils.Create("AnalyzerTestDomain", basePath: dir.Path);
             try
@@ -84,7 +84,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             dir.CopyFile(typeof(System.Runtime.CompilerServices.Unsafe).Assembly.Location);
             var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
-            dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
+            dir.CopyFile(typeof(RemoteAnalyzerFileReferenceTest).Assembly.Location);
 
             var analyzerCompilation = CSharp.CSharpCompilation.Create(
                 "MyAnalyzer",
