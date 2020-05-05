@@ -3069,6 +3069,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitSavePreviousSequencePoint(BoundSavePreviousSequencePoint node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitRestorePreviousSequencePoint(BoundRestorePreviousSequencePoint node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitStepThroughSequencePoint(BoundStepThroughSequencePoint node)
+        {
+            return null;
+        }
+
         /// <summary>
         /// This visitor represents just the non-assignment part of the null coalescing assignment
         /// operator (when the left operand is non-null).

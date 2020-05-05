@@ -63,15 +63,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode RefExpression(SyntaxNode expression)
             => SyntaxFactory.RefExpression((ExpressionSyntax)expression);
 
-        internal override SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
-        {
-            return Parenthesize(expression, includeElasticTrivia, addSimplifierAnnotation);
-        }
+        internal override SyntaxNode AddParentheses(SyntaxNode expressionOrPattern, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
+            => Parenthesize(expressionOrPattern, includeElasticTrivia, addSimplifierAnnotation);
 
-        internal static ExpressionSyntax Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
-        {
-            return ((ExpressionSyntax)expression).Parenthesize(includeElasticTrivia, addSimplifierAnnotation);
-        }
+        internal static SyntaxNode Parenthesize(SyntaxNode expressionOrPattern, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
+            => expressionOrPattern switch
+            {
+                ExpressionSyntax expression => expression.Parenthesize(includeElasticTrivia, addSimplifierAnnotation),
+#if !CODE_STYLE
+                PatternSyntax pattern => pattern.Parenthesize(includeElasticTrivia, addSimplifierAnnotation),
+#endif
+                var other => other,
+            };
 
         internal override SyntaxNode YieldReturnStatement(SyntaxNode expressionOpt = null)
             => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, (ExpressionSyntax)expressionOpt);

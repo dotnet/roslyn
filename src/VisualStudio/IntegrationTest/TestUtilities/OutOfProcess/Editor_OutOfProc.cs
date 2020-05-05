@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using UIAutomationClient;
+using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -233,7 +234,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _editorInProc.IsUseSuggestionModeOn();
 
         public void SetUseSuggestionMode(bool value)
-            => _editorInProc.SetUseSuggestionMode(value);
+        {
+            Assert.False(IsCompletionActive());
+            _editorInProc.SetUseSuggestionMode(value);
+        }
 
         public void WaitForActiveView(string viewName)
             => _editorInProc.WaitForActiveView(viewName);
