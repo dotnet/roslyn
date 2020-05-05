@@ -113,7 +113,7 @@ default, a separate instance than the standard "Experimental Instance" used by
 other Visual Studio SDK projects. If you're familiar with the idea of Visual
 Studio hives, we deploy into the RoslynDev root suffix.
 
-### Deploying with VSIX
+### Deploying with VSIX and Nuget package
 
 If you want to try your extension in your day-to-day use of Visual Studio, you
 can find the extensions you built in your Binaries folder with the .vsix
@@ -123,6 +123,11 @@ installed, you'll see it marked as "Experimental" in Tools > Extensions and
 Updates to indicate you're running your experimental version. You can uninstall
 your version and go back to the originally installed version by choosing your
 version and clicking Uninstall.
+
+If you only install the VSIX, then the IDE will behave correctly (ie. new compiler
+and IDE behavior), but the Build operation or building from the command-line won't. 
+To fix that, add a nuget package reference in your csproj to the 
+`Microsoft.Net.Compilers.Toolset` package you built.
 
 ### Deploying with command-line
 
