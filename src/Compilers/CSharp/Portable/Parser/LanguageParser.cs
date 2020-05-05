@@ -10902,24 +10902,6 @@ tryAgain:
             return result;
         }
 
-        private ExpressionSyntax ParseWithExpression(ExpressionSyntax receiverExpression, SyntaxToken withKeyword)
-        {
-            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-            var expressions = _pool.AllocateSeparated<AnonymousObjectMemberDeclaratorSyntax>();
-            this.ParseAnonymousTypeMemberInitializers(ref openBrace, ref expressions);
-            var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-            withKeyword = CheckFeatureAvailability(withKeyword, MessageID.IDS_FeatureRecords);
-            var result = _syntaxFactory.WithExpression(
-                receiverExpression,
-                withKeyword,
-                openBrace,
-                expressions,
-                closeBrace);
-            _pool.Free(expressions);
-
-            return result;
-        }
-
         private void ParseAnonymousTypeMemberInitializers(ref SyntaxToken openBrace, ref SeparatedSyntaxListBuilder<AnonymousObjectMemberDeclaratorSyntax> list)
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
@@ -11082,6 +11064,39 @@ tryAgain:
                 this.Reset(ref point);
                 this.Release(ref point);
             }
+        }
+
+        private ExpressionSyntax ParseWithExpression(ExpressionSyntax receiverExpression, SyntaxToken withKeyword)
+        {
+            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+
+            var expressions = _pool.AllocateSeparated<AssignmentExpressionSyntax>();
+            while (CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+            {
+                var identifier = this.ParseIdentifierName();
+                var equal = this.EatToken(SyntaxKind.EqualsToken);
+                var expression = this.ParseExpressionCore();
+
+                expressions.Add(_syntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    identifier,
+                    equal,
+                    expression));
+            }
+
+            var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
+            withKeyword = CheckFeatureAvailability(withKeyword, MessageID.IDS_FeatureRecords);
+
+            var result = _syntaxFactory.WithExpression(
+                receiverExpression,
+                withKeyword,
+                openBrace,
+                expressions.ToList(),
+                closeBrace);
+
+            _pool.Free(expressions);
+
+            return result;
         }
 
         private InitializerExpressionSyntax ParseObjectOrCollectionInitializer()

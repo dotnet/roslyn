@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private new void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
             => UsingExpression(text, TestOptions.RegularPreview, expectedErrors);
 
+        private new void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
+            => UsingStatement(text, TestOptions.RegularPreview, expectedErrors);
+
         public RecordParsingTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
@@ -894,6 +897,108 @@ class C
                 N(SyntaxKind.WithKeyword);
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing15()
+        {
+            var text = @"x with { X = ""2"" }";
+            UsingExpression(text);
+            N(SyntaxKind.WithExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing16()
+        {
+            var text = @"x with { X = ""2"" };";
+            // PROTOTYPE
+            // The parser doesn't see this as an invalid expression
+            // statement, but as a broken declaration, e.g.
+            //      x with <missing ,> { X = ""2 "" <missing ;> };
+            UsingStatement(text,
+                // (1,8): error CS1003: Syntax error, ',' expected
+                // x with { X = "2" };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(1, 8));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing17()
+        {
+            var text = @"x = x with { X = ""2"" };";
+            UsingStatement(text);
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.WithExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.WithKeyword);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.StringLiteralExpression);
+                            {
+                                N(SyntaxKind.StringLiteralToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
             }
             EOF();
         }

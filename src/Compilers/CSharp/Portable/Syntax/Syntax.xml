@@ -460,11 +460,21 @@
     </Field>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the open brace.</summary>
+      </PropertyComment>
     </Field>
-    <!-- PROTOTYPE: This is the same syntax as for an anonymous object creation, but do we want to share the nodes? -->
-    <Field Name="Initializers" Type="SeparatedSyntaxList&lt;AnonymousObjectMemberDeclaratorSyntax&gt;" AllowTrailingSeparator="true" />
+    <!-- PROTOTYPE: We could try to reuse the InitializerExpressionSyntax here. -->
+    <Field Name="Initializers" Type="SeparatedSyntaxList&lt;AssignmentExpressionSyntax&gt;" AllowTrailingSeparator="true">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of assignments representing the list of with member initializers.</summary>
+      </PropertyComment>
+    </Field>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the close brace.</summary>
+      </PropertyComment>
     </Field>
   </Node>
   <Node Name="MemberAccessExpressionSyntax" Base="ExpressionSyntax">
