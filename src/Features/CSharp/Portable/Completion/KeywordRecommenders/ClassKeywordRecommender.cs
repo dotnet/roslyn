@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 SyntaxKind.AbstractKeyword,
                 SyntaxKind.SealedKeyword,
                 SyntaxKind.StaticKeyword,
-                SyntaxKind.UnsafeKeyword
+                SyntaxKind.UnsafeKeyword,
+                SyntaxKind.DataKeyword
             };
 
         public ClassKeywordRecommender()
