@@ -328,5 +328,183 @@ class C4
                 },
                 expectedOutput: "123456");
         }
+
+        [Fact]
+        public void NonNullableField_01()
+        {
+            const string text = @"
+#nullable enable
+
+using System.Runtime.CompilerServices;
+
+class C
+{
+    static string s1;
+
+    [ModuleInitializer]
+    static void Init()
+    {
+        s1 = """";
+    }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+
+            var comp = CreateCompilation(text, parseOptions: s_parseOptions);
+            comp.VerifyDiagnostics(
+                // (8,19): warning CS8618: Non-nullable field 's1' is uninitialized. Consider declaring the field as nullable.
+                //     static string s1;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s1").WithArguments("field", "s1").WithLocation(8, 19),
+                // (8,19): warning CS0414: The field 'C.s1' is assigned but its value is never used
+                //     static string s1;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s1").WithArguments("C.s1").WithLocation(8, 19));
+        }
+
+        [Fact]
+        public void StaticConstructor_Ordering()
+        {
+            const string text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C1
+{
+    [ModuleInitializer]
+    internal static void Init() => Console.Write(1);
+}
+
+class C2
+{
+    static C2() => Console.Write(2);
+
+    static void Main()
+    {
+        Console.Write(3);
+    }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var verifier = CompileAndVerify(text, parseOptions: s_parseOptions, expectedOutput: "123");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void StaticConstructor_Ordering_SameType()
+        {
+            const string text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    static C() => Console.Write(1);
+
+    [ModuleInitializer]
+    internal static void Init() => Console.Write(2);
+
+    static void Main()
+    {
+        Console.Write(3);
+    }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var verifier = CompileAndVerify(text, parseOptions: s_parseOptions, expectedOutput: "123");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void StaticConstructor_DefaultInitializer_SameType()
+        {
+            const string text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    internal static string s1 = null!;
+
+    [ModuleInitializer]
+    internal static void Init()
+    {
+        s1 = ""hello"";
+    }
+
+    static void Main()
+    {
+        Console.Write(s1);
+    }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var verifier = CompileAndVerify(
+                text,
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: "hello",
+                symbolValidator: validator);
+            verifier.VerifyDiagnostics();
+
+            void validator(ModuleSymbol module)
+            {
+                var cType = module.ContainingAssembly.GetTypeByMetadataName("C");
+                // static constructor should be optimized out
+                Assert.Null(cType.GetMember<MethodSymbol>(".cctor"));
+
+                var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                Assert.NotNull(moduleType.GetMember<MethodSymbol>(".cctor"));
+            }
+        }
+
+        [Fact]
+        public void StaticConstructor_DefaultInitializer_OtherType()
+        {
+            const string text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C1
+{
+    [ModuleInitializer]
+    internal static void Init()
+    {
+        C2.s1 = ""hello"";
+    }
+}
+
+class C2
+{
+    internal static string s1 = null!;
+
+    static void Main()
+    {
+        Console.Write(s1);
+    }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var verifier = CompileAndVerify(
+                text,
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: "hello",
+                symbolValidator: validator);
+            verifier.VerifyDiagnostics();
+
+            void validator(ModuleSymbol module)
+            {
+                var c2Type = module.ContainingAssembly.GetTypeByMetadataName("C2");
+                // static constructor should be optimized out
+                Assert.Null(c2Type.GetMember<MethodSymbol>(".cctor"));
+
+                var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                Assert.NotNull(moduleType.GetMember<MethodSymbol>(".cctor"));
+            }
+        }
     }
 }
