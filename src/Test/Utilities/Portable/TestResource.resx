@@ -209,6 +209,9 @@ namespace My
             }
         }
 
+        public static bool IsAsciiLetter(char c) => c is (>= 'a' and &lt;= 'z') or (>= 'A' and &lt;= 'Z');
+        public static bool NotInteger(object o) => o is not int;
+
         [method: Obsolete]
         public A([param: Obsolete] int goo) :
             base(1)
@@ -316,6 +319,7 @@ namespace My
                 C = 0
             };
             var o5 = new { A = 0 };
+            object o6 = new();
             var dictionaryInitializer = new Dictionary&lt;int, string&gt; 
             { 
                 {1, ""}, 

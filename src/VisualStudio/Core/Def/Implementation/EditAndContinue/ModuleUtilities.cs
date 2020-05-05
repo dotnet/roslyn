@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
     internal static class ModuleUtilities
     {
-        internal static bool TryGetModuleInfo(this DkmClrModuleInstance module, [NotNullWhen(true)]out EnC.DebuggeeModuleInfo? info)
+        internal static bool TryGetModuleInfo(this DkmClrModuleInstance module, [NotNullWhen(true)] out EnC.DebuggeeModuleInfo? info)
         {
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA, "SymReader requires MTA");
 

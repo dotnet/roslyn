@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyzer
     {
+        internal const int DefaultStatementPart = 0;
+
         internal abstract bool ExperimentalFeaturesEnabled(SyntaxTree tree);
 
         /// <summary>
@@ -174,7 +176,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             int statementPart,
             SyntaxNode oldBody,
             SyntaxNode newBody,
-            [NotNullWhen(true)]out SyntaxNode? newStatement);
+            [NotNullWhen(true)] out SyntaxNode? newStatement);
 
         protected abstract bool TryGetEnclosingBreakpointSpan(SyntaxNode root, int position, out TextSpan span);
 
@@ -194,7 +196,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Pairs of (node, statement part), or (node, -1) indicating there is no logical following statement.
         /// The enumeration continues until the root is reached.
         /// </returns>
-        protected abstract IEnumerable<KeyValuePair<SyntaxNode, int>> EnumerateNearStatements(SyntaxNode statement);
+        protected abstract IEnumerable<(SyntaxNode statement, int statementPart)> EnumerateNearStatements(SyntaxNode statement);
 
         protected abstract bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2);
 
@@ -639,10 +641,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DocumentId documentId,
             IActiveStatementTrackingService? trackingService,
             ImmutableArray<ActiveStatement> oldActiveStatements,
-            [Out]ActiveStatement[] newActiveStatements,
-            [Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            [Out]List<UpdatedMemberInfo> updatedMethods,
-            [Out]List<RudeEditDiagnostic> diagnostics)
+            [Out] ActiveStatement[] newActiveStatements,
+            [Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
+            [Out] List<UpdatedMemberInfo> updatedMethods,
+            [Out] List<RudeEditDiagnostic> diagnostics)
         {
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
@@ -676,9 +678,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DocumentId documentId,
             IActiveStatementTrackingService? trackingService,
             ImmutableArray<ActiveStatement> oldActiveStatements,
-            [In, Out]ActiveStatement[] newActiveStatements,
-            [In, Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            [In, Out]ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)> updatedTrackingSpans)
+            [In, Out] ActiveStatement[] newActiveStatements,
+            [In, Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
+            [In, Out] ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)> updatedTrackingSpans)
         {
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
@@ -789,8 +791,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SyntaxNode newRoot,
             DocumentId documentId,
             IActiveStatementTrackingService? trackingService,
-            [In, Out]ActiveStatement[] newActiveStatements,
-            [In, Out]ImmutableArray<LinePositionSpan>[]? newExceptionRegions)
+            [In, Out] ActiveStatement[] newActiveStatements,
+            [In, Out] ImmutableArray<LinePositionSpan>[]? newExceptionRegions)
         {
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(newExceptionRegions == null || oldActiveStatements.Length == newExceptionRegions.Length);
@@ -950,11 +952,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DocumentId documentId,
             IActiveStatementTrackingService? trackingService,
             ImmutableArray<ActiveStatement> oldActiveStatements,
-            [Out]ActiveStatement[] newActiveStatements,
-            [Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            [Out]List<UpdatedMemberInfo> updatedMembers,
-            [Out]ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)> updatedTrackingSpans,
-            [Out]List<RudeEditDiagnostic> diagnostics)
+            [Out] ActiveStatement[] newActiveStatements,
+            [Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
+            [Out] List<UpdatedMemberInfo> updatedMembers,
+            [Out] ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)> updatedTrackingSpans,
+            [Out] List<RudeEditDiagnostic> diagnostics)
         {
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
@@ -1005,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (hasActiveStatement)
                 {
-                    var newSpan = FindClosestActiveSpan(edit.NewNode, 0);
+                    var newSpan = FindClosestActiveSpan(edit.NewNode, DefaultStatementPart);
                     for (var i = start; i < end; i++)
                     {
                         Debug.Assert(newActiveStatements[i] == null && newSpan != default);
@@ -1331,8 +1333,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SyntaxNode oldLambdaBody,
             SyntaxNode newLambdaBody,
             ActiveNode[] activeNodes,
-            [Out]Dictionary<SyntaxNode, LambdaInfo> activeOrMatchedLambdas,
-            [Out]List<RudeEditDiagnostic> diagnostics)
+            [Out] Dictionary<SyntaxNode, LambdaInfo> activeOrMatchedLambdas,
+            [Out] List<RudeEditDiagnostic> diagnostics)
         {
             ActiveNode[]? activeNodesInLambda;
             if (activeOrMatchedLambdas.TryGetValue(oldLambdaBody, out var info))
@@ -1652,10 +1654,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal TextSpan GetDeletedNodeActiveSpan(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode deletedNode)
         {
-            foreach (var nodeAndPart in EnumerateNearStatements(deletedNode))
+            foreach (var (oldNode, part) in EnumerateNearStatements(deletedNode))
             {
-                var oldNode = nodeAndPart.Key;
-                var part = nodeAndPart.Value;
                 if (part == -1)
                 {
                     break;
@@ -1680,7 +1680,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Finds the inner-most ancestor of the specified node that has a matching node in the new tree.
         /// </summary>
-        private static bool TryGetMatchingAncestor(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode? oldNode, [NotNullWhen(true)]out SyntaxNode? newAncestor)
+        private static bool TryGetMatchingAncestor(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode? oldNode, [NotNullWhen(true)] out SyntaxNode? newAncestor)
         {
             while (oldNode != null)
             {
@@ -1984,9 +1984,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SourceText newSource,
             Match<SyntaxNode> topMatch,
             Dictionary<SyntaxNode, EditKind> editMap,
-            [Out]List<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
-            [Out]List<LineChange> lineEdits,
-            [Out]List<RudeEditDiagnostic> diagnostics,
+            [Out] List<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
+            [Out] List<LineChange> lineEdits,
+            [Out] List<RudeEditDiagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
             foreach (var (oldNode, newNode) in topMatch.Matches)
@@ -2201,8 +2201,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             List<UpdatedMemberInfo> updatedMembers,
             SemanticModel oldModel,
             SemanticModel newModel,
-            [Out]List<SemanticEdit> semanticEdits,
-            [Out]List<RudeEditDiagnostic> diagnostics,
+            [Out] List<SemanticEdit> semanticEdits,
+            [Out] List<RudeEditDiagnostic> diagnostics,
             out Diagnostic? firstDeclarationError,
             CancellationToken cancellationToken)
         {
@@ -2853,7 +2853,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ref Func<SyntaxNode, SyntaxNode?>? syntaxMap,
             ref Dictionary<INamedTypeSymbol, ConstructorEdit>? instanceConstructorEdits,
             ref Dictionary<INamedTypeSymbol, ConstructorEdit>? staticConstructorEdits,
-            [Out]List<RudeEditDiagnostic> diagnostics,
+            [Out] List<RudeEditDiagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
             if (IsPartial(newType))
@@ -2912,8 +2912,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SemanticModel oldModel,
             HashSet<ISymbol> newSymbolsWithEdit,
             bool isStatic,
-            [Out]List<SemanticEdit> semanticEdits,
-            [Out]List<RudeEditDiagnostic> diagnostics,
+            [Out] List<SemanticEdit> semanticEdits,
+            [Out] List<RudeEditDiagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
             foreach (var (newType, update) in updatedTypes)
@@ -3464,10 +3464,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ISymbol newMember,
             SyntaxNode newMemberBody,
             BidirectionalMap<SyntaxNode> map,
-            [Out]ArrayBuilder<int> reverseCapturesMap,                  // {new capture index -> old capture index}
-            [Out]ArrayBuilder<SyntaxNode?> newCapturesToClosureScopes,  // {new capture index -> new closure scope}
-            [Out]ArrayBuilder<SyntaxNode?> oldCapturesToClosureScopes,  // {old capture index -> old closure scope}
-            [Out]List<RudeEditDiagnostic> diagnostics,
+            [Out] ArrayBuilder<int> reverseCapturesMap,                  // {new capture index -> old capture index}
+            [Out] ArrayBuilder<SyntaxNode?> newCapturesToClosureScopes,  // {new capture index -> new closure scope}
+            [Out] ArrayBuilder<SyntaxNode?> oldCapturesToClosureScopes,  // {old capture index -> old closure scope}
+            [Out] List<RudeEditDiagnostic> diagnostics,
             out bool hasErrors,
             CancellationToken cancellationToken)
         {

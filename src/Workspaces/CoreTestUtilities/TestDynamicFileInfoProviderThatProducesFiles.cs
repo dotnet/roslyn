@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {

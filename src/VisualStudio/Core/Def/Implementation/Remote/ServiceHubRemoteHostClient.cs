@@ -10,20 +10,22 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.Telemetry;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
+    internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient, IRemoteHostServiceCallback
     {
         private enum GlobalNotificationState
         {
@@ -82,12 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // use the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
                 WatsonReporter.InitializeLogger(hubClient.Logger);
 
-                // Create the RemotableDataJsonRpc before we create the remote host: this call implicitly sets up the remote IExperimentationService so that will be available for later calls
-                var snapshotServiceStream = await RequestServiceAsync(workspace, hubClient, WellKnownServiceHubServices.SnapshotService, hostGroup, cancellationToken).ConfigureAwait(false);
                 var remoteHostStream = await RequestServiceAsync(workspace, hubClient, WellKnownRemoteHostServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
-
-                var remotableDataProvider = new RemotableDataProvider(workspace, hubClient.Logger, snapshotServiceStream);
-                var connectionManager = new ConnectionManager(workspace, hubClient, hostGroup, enableConnectionPool, maxConnection, new ReferenceCountedDisposable<RemotableDataProvider>(remotableDataProvider));
+                var connectionManager = new ConnectionManager(workspace, hubClient, hostGroup, enableConnectionPool, maxConnection);
 
                 var client = new ServiceHubRemoteHostClient(workspace, hubClient.Logger, connectionManager, remoteHostStream);
 
@@ -163,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public override bool IsRemoteHost64Bit => RemoteHostOptions.IsServiceHubProcess64Bit(Workspace);
 
         public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
-            => _connectionManager.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken);
+            => _connectionManager.CreateConnectionAsync(serviceName, callbackTarget, cancellationToken).AsNullable();
 
         protected override void OnStarted()
             => RegisterGlobalOperationNotifications();
@@ -198,6 +196,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
+        #region Global Operation Notifications
+
         private void RegisterGlobalOperationNotifications()
         {
             var globalOperationService = this.Workspace.Services.GetService<IGlobalOperationNotificationService>();
@@ -216,21 +216,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 globalOperationService.Started -= OnGlobalOperationStarted;
                 globalOperationService.Stopped -= OnGlobalOperationStopped;
             }
-
-            Task localTask;
-            lock (_globalNotificationsGate)
-            {
-                // Unilaterally transition us to the finished state.  Once we're finished
-                // we cannot start or stop anymore.
-                _globalNotificationsTask = _globalNotificationsTask.ContinueWith(
-                    _ => GlobalNotificationState.Finished, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
-                localTask = _globalNotificationsTask;
-            }
-
-            // Have to wait for all the notifications to make it to the OOP side so we keep
-            // it in a consistent state.  Also, if we don't do this, our _rpc object will
-            // get disposed while we're remoting over the messages to the oop side.
-            localTask.Wait();
         }
 
         private void OnGlobalOperationStarted(object sender, EventArgs e)
@@ -285,6 +270,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return GlobalNotificationState.NotStarted;
             }
         }
+
+        #endregion
+
+        #region Assets
+
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public async Task GetAssetsAsync(int scopeId, Checksum[] checksums, string pipeName, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, pipeName, cancellationToken))
+                {
+                    await RemoteEndPoint.WriteDataToNamedPipeAsync(
+                        pipeName,
+                        (scopeId, checksums),
+                        (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(writer, RemotableDataService, data.scopeId, data.checksums, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return Task.FromResult(Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+            }
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        #endregion
 
         private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
             => Dispose();

@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis

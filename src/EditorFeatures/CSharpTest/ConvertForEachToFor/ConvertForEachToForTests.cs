@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -10,7 +9,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -25,10 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
 
         private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
 
-        private IDictionary<OptionKey2, object> ImplicitTypeEverywhere => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
+        private OptionsCollection ImplicitTypeEverywhere
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
+            };
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]

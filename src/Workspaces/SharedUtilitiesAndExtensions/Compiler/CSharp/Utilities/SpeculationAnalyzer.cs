@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -428,6 +426,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // expression type are not broken.
 
                 var newSwitchStatement = (SwitchStatementSyntax)currentReplacedNode;
+                var previousReplacedExpression = (ExpressionSyntax)previousReplacedNode;
+
+                // it is never legal to use `default/null` in a switch statement's expression.
+                if (previousReplacedExpression.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression))
+                    return true;
 
                 var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
                 var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();

@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis
         ChangeDocumentInfo = 16,
         AddAnalyzerConfigDocument = 17,
         RemoveAnalyzerConfigDocument = 18,
-        ChangeAnalyzerConfigDocument = 19
+        ChangeAnalyzerConfigDocument = 19,
+        AddSolutionAnalyzerReference = 20,
+        RemoveSolutionAnalyzerReference = 21,
     }
 }

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.PlatformUI;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -62,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private CompilationOptions? _compilationOptions;
         private ParseOptions? _parseOptions;
         private bool _hasAllInformation = true;
-        private string? _intermediateOutputFilePath;
+        private string? _compilationOutputAssemblyFilePath;
         private string? _outputFilePath;
         private string? _outputRefFilePath;
         private string? _defaultNamespace;
@@ -247,21 +248,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The path to the output in obj.
         /// </summary>
-        internal string? IntermediateOutputFilePath
+        internal string? CompilationOutputAssemblyFilePath
         {
-            get => _intermediateOutputFilePath;
-            set
-            {
-                // The Project System doesn't always indicate whether we emit PDB, what kind of PDB we emit nor the path of the PDB.
-                // To work around we look for the PDB on the path specified in the PDB debug directory.
-                // https://github.com/dotnet/roslyn/issues/35065
-                _workspace.SetCompilationOutputs(Id, new CompilationOutputFilesWithImplicitPdbPath(value));
-
-                // Unlike OutputFilePath and OutputRefFilePath, the intermediate output path isn't represented in the workspace anywhere;
-                // thus, we won't mutate the solution. We'll still call ChangeProjectOutputPath so we have the rest of the output path tracking
-                // for any P2P reference conversion.
-                ChangeProjectOutputPath(ref _intermediateOutputFilePath, value, s => s);
-            }
+            get => _compilationOutputAssemblyFilePath;
+            set => ChangeProjectOutputPath(
+                       ref _compilationOutputAssemblyFilePath,
+                       value,
+                       s => s.WithProjectCompilationOutputFilePaths(Id, s.GetRequiredProject(Id).CompilationOutputFilePaths.WithAssemblyPath(value)));
         }
 
         public string? OutputFilePath
@@ -437,39 +430,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         (s, ids) => s.RemoveAnalyzerConfigDocuments(ids),
                         WorkspaceChangeKind.AnalyzerConfigDocumentRemoved);
 
-                    // Metadata reference adding...
-                    if (_metadataReferencesAddedInBatch.Count > 0)
-                    {
-                        var projectReferencesCreated = new List<ProjectReference>();
-                        var metadataReferencesCreated = new List<MetadataReference>();
-
-                        foreach (var (path, properties) in _metadataReferencesAddedInBatch)
-                        {
-                            var projectReference = _workspace.TryCreateConvertedProjectReference(Id, path, properties);
-
-                            if (projectReference != null)
-                            {
-                                projectReferencesCreated.Add(projectReference);
-                            }
-                            else
-                            {
-                                var metadataReference = _workspace.FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(path, properties);
-                                metadataReferencesCreated.Add(metadataReference);
-                            }
-                        }
-
-                        solutionChanges.UpdateSolutionForProjectAction(
-                            Id,
-                            solutionChanges.Solution.AddProjectReferences(Id, projectReferencesCreated)
-                                                    .AddMetadataReferences(Id, metadataReferencesCreated));
-
-                        ClearAndZeroCapacity(_metadataReferencesAddedInBatch);
-                    }
-
-                    // Metadata reference removing...
+                    // Metadata reference removing. Do this before adding in case this removes a project reference that
+                    // we are also going to add in the same batch. This could happen if case is changing, or we're targeting
+                    // a different output path (say bin vs. obj vs. ref).
                     foreach (var (path, properties) in _metadataReferencesRemovedInBatch)
                     {
-                        var projectReference = _workspace.TryRemoveConvertedProjectReference(Id, path, properties);
+                        var projectReference = _workspace.TryRemoveConvertedProjectReference_NoLock(Id, path, properties);
 
                         if (projectReference != null)
                         {
@@ -492,6 +458,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     ClearAndZeroCapacity(_metadataReferencesRemovedInBatch);
+
+                    // Metadata reference adding...
+                    if (_metadataReferencesAddedInBatch.Count > 0)
+                    {
+                        var projectReferencesCreated = new List<ProjectReference>();
+                        var metadataReferencesCreated = new List<MetadataReference>();
+
+                        foreach (var (path, properties) in _metadataReferencesAddedInBatch)
+                        {
+                            var projectReference = _workspace.TryCreateConvertedProjectReference_NoLock(Id, path, properties);
+
+                            if (projectReference != null)
+                            {
+                                projectReferencesCreated.Add(projectReference);
+                            }
+                            else
+                            {
+                                var metadataReference = _workspace.FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(path, properties);
+                                metadataReferencesCreated.Add(metadataReference);
+                            }
+                        }
+
+                        solutionChanges.UpdateSolutionForProjectAction(
+                            Id,
+                            solutionChanges.Solution.AddProjectReferences(Id, projectReferencesCreated)
+                                                    .AddMetadataReferences(Id, metadataReferencesCreated));
+
+                        ClearAndZeroCapacity(_metadataReferencesAddedInBatch);
+                    }
 
                     // Project reference adding...
                     solutionChanges.UpdateSolutionForProjectAction(
@@ -750,16 +745,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void AddAnalyzerReference(string fullPath)
         {
-            if (string.IsNullOrEmpty(fullPath))
-            {
-                throw new ArgumentException("message", nameof(fullPath));
-            }
+            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
 
             var visualStudioAnalyzer = new VisualStudioAnalyzer(
                 fullPath,
                 _hostDiagnosticUpdateSource,
                 Id,
-                _workspace,
                 Language);
 
             lock (_gate)
@@ -847,7 +838,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _workspace.ApplyChangeToWorkspace(w =>
                     {
-                        var projectReference = _workspace.TryCreateConvertedProjectReference(Id, fullPath, properties);
+                        var projectReference = _workspace.TryCreateConvertedProjectReference_NoLock(Id, fullPath, properties);
 
                         if (projectReference != null)
                         {
@@ -910,7 +901,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _workspace.ApplyChangeToWorkspace(w =>
                     {
-                        var projectReference = _workspace.TryRemoveConvertedProjectReference(Id, fullPath, properties);
+                        var projectReference = _workspace.TryRemoveConvertedProjectReference_NoLock(Id, fullPath, properties);
 
                         // If this was converted to a project reference, we have now recorded the removal -- let's remove it here too
                         if (projectReference != null)

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         // SQLITE_OPEN_DELETEONCLOSE    = 0x00000008, /* VFS only */
         // SQLITE_OPEN_EXCLUSIVE        = 0x00000010, /* VFS only */
         // SQLITE_OPEN_AUTOPROXY        = 0x00000020, /* VFS only */
-        // SQLITE_OPEN_URI              = 0x00000040, /* Ok for sqlite3_open_v2() */
+        SQLITE_OPEN_URI = 0x00000040, /* Ok for sqlite3_open_v2() */
         // SQLITE_OPEN_MEMORY           = 0x00000080, /* Ok for sqlite3_open_v2() */
         // SQLITE_OPEN_MAIN_DB          = 0x00000100, /* VFS only */
         // SQLITE_OPEN_TEMP_DB          = 0x00000200, /* VFS only */
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         // SQLITE_OPEN_MASTER_JOURNAL   = 0x00004000, /* VFS only */
         SQLITE_OPEN_NOMUTEX = 0x00008000, /* Ok for sqlite3_open_v2() */
         // SQLITE_OPEN_FULLMUTEX        = 0x00010000, /* Ok for sqlite3_open_v2() */
-        // SQLITE_OPEN_SHAREDCACHE      = 0x00020000, /* Ok for sqlite3_open_v2() */
+        SQLITE_OPEN_SHAREDCACHE = 0x00020000, /* Ok for sqlite3_open_v2() */
         // SQLITE_OPEN_PRIVATECACHE     = 0x00040000, /* Ok for sqlite3_open_v2() */
         // SQLITE_OPEN_WAL              = 0x00080000, /* VFS only */
     }

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -15,17 +14,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IMethodSymbol symbol)
             => symbol.MethodKind == MethodKind.ExplicitInterfaceImplementation;
 
-        protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
+        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            IMethodSymbol symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // An explicit interface method will cascade to all the methods that it implements.
-            return Task.FromResult(
-                symbolAndProjectId.Symbol.ExplicitInterfaceImplementations.Select(
-                    ei => symbolAndProjectId.WithSymbol((ISymbol)ei)).ToImmutableArray());
+            return Task.FromResult(ImmutableArray<ISymbol>.CastUp(symbol.ExplicitInterfaceImplementations));
         }
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

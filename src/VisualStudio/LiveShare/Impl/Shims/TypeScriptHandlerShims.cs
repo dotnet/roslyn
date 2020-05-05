@@ -21,35 +21,48 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentCompletionName)]
-    internal class TypeScriptCompletionHandlerShim : CompletionHandler, ILspRequestHandler<object, object?, Solution>
+    internal class TypeScriptCompletionHandlerShim : CompletionHandler, ILspRequestHandler<object, LanguageServer.Protocol.CompletionItem[], Solution>
     {
+
+        /// <summary>
+        /// The VS LSP client supports streaming using IProgress on various requests.	
+        /// However, this works through liveshare on the LSP client, but not the LSP extension.
+        /// see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107682 for tracking.
+        /// </summary>
+        private static readonly JsonSerializer s_jsonSerializer = JsonSerializer.Create(new JsonSerializerSettings
+        {
+            Error = (sender, args) =>
+            {
+                if (object.Equals(args.ErrorContext.Member, "partialResultToken"))
+                {
+                    args.ErrorContext.Handled = true;
+                }
+            }
+        });
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptCompletionHandlerShim()
         {
         }
 
-        public async Task<object?> HandleAsync(object input, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        public Task<LanguageServer.Protocol.CompletionItem[]> HandleAsync(object input, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            // The VS LSP client supports streaming using IProgress<T> on various requests.
-            // However, this is not yet supported through Live Share, so deserialization fails on the IProgress<T> property.
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043376 tracks Live Share support for this (committed for 16.6).
-            var request = ((JObject)input).ToObject<CompletionParams>(InProcLanguageServer.JsonSerializer);
-            // The return definition for TextDocumentCompletionName is SumType<CompletionItem[], CompletionList>.
-            // However Live Share is unable to handle a SumType return when using ILspRequestHandler.
-            // So instead we just return the actual value from the SumType.
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1059193 tracks the fix.
-            var result = await base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), cancellationToken).ConfigureAwait(false);
-            return result?.Value;
+            // The VS LSP client supports streaming using IProgress<T> on various requests.	
+            // However, this works through liveshare on the LSP client, but not the LSP extension.
+            // see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107682 for tracking.
+            var request = ((JObject)input).ToObject<CompletionParams>(s_jsonSerializer);
+            return base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), null, cancellationToken);
         }
     }
 
@@ -63,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         }
 
         public Task<LanguageServer.Protocol.CompletionItem> HandleAsync(LanguageServer.Protocol.CompletionItem param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), cancellationToken);
+            => base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), null, cancellationToken);
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentDocumentHighlightName)]
@@ -76,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         }
 
         public Task<DocumentHighlight[]> HandleAsync(TextDocumentPositionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), cancellationToken);
+            => base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), null, cancellationToken);
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentDocumentSymbolName)]
@@ -97,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 clientCapabilities.TextDocument.DocumentSymbol.HierarchicalDocumentSymbolSupport = false;
             }
 
-            var response = await base.HandleRequestAsync(requestContext.Context, param, clientCapabilities, cancellationToken).ConfigureAwait(false);
+            var response = await base.HandleRequestAsync(requestContext.Context, param, clientCapabilities, null, cancellationToken).ConfigureAwait(false);
 
             // Since hierarchicalSupport will never be true, it is safe to cast the response to SymbolInformation[]
             return response.Cast<SymbolInformation>().ToArray();
@@ -115,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             => _threadingContext = threadingContext;
 
         public Task<TextEdit[]> HandleAsync(DocumentFormattingParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), cancellationToken);
+            => base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), null, cancellationToken);
 
         protected override async Task<IList<TextChange>> GetFormattingChangesAsync(IEditorFormattingService formattingService, Document document, TextSpan? textSpan, CancellationToken cancellationToken)
         {
@@ -136,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             => _threadingContext = threadingContext;
 
         public Task<TextEdit[]> HandleAsync(DocumentRangeFormattingParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), cancellationToken);
+            => base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), null, cancellationToken);
 
         protected override async Task<IList<TextChange>> GetFormattingChangesAsync(IEditorFormattingService formattingService, Document document, TextSpan? textSpan, CancellationToken cancellationToken)
         {
@@ -157,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             => _threadingContext = threadingContext;
 
         public Task<TextEdit[]> HandleAsync(DocumentOnTypeFormattingParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(requestContext.Context, request, requestContext?.ClientCapabilities?.ToObject<ClientCapabilities>(), cancellationToken);
+            => base.HandleRequestAsync(requestContext.Context, request, requestContext?.ClientCapabilities?.ToObject<ClientCapabilities>(), null, cancellationToken);
 
         protected override async Task<IList<TextChange>?> GetFormattingChangesAsync(IEditorFormattingService formattingService, Document document, char typedChar, int position, CancellationToken cancellationToken)
         {
@@ -175,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentImplementationName)]
-    internal class TypeScriptFindImplementationsHandlerShim : FindImplementationsHandler, ILspRequestHandler<TextDocumentPositionParams, object?, Solution>
+    internal class TypeScriptFindImplementationsHandlerShim : FindImplementationsHandler, ILspRequestHandler<TextDocumentPositionParams, LanguageServer.Protocol.Location[], Solution>
     {
         private readonly IThreadingContext _threadingContext;
 
@@ -184,15 +197,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         public TypeScriptFindImplementationsHandlerShim(IThreadingContext threadingContext)
             => _threadingContext = threadingContext;
 
-        public async Task<object?> HandleAsync(TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-        {
-            // The return definition for TextDocumentImplementationName is SumType<Location, Location[]>.
-            // However Live Share is unable to handle a SumType return when using ILspRequestHandler.
-            // So instead we just return the actual value from the SumType.
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1059193 tracks the fix.
-            var result = await base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), cancellationToken).ConfigureAwait(false);
-            return result?.Value;
-        }
+        public Task<LanguageServer.Protocol.Location[]> HandleAsync(TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+            => base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), null, cancellationToken);
 
         protected override async Task FindImplementationsAsync(IFindUsagesService findUsagesService, Document document, int position, SimpleFindUsagesContext context)
         {
@@ -213,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         public async Task<InitializeResult> HandleAsync(InitializeParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var initializeResult = await base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), cancellationToken).ConfigureAwait(false);
+            var initializeResult = await base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), null, cancellationToken).ConfigureAwait(false);
             initializeResult.Capabilities.Experimental = new RoslynExperimentalCapabilities { SyntacticLspProvider = true };
             return initializeResult;
         }
@@ -229,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         }
 
         public Task<SignatureHelp> HandleAsync(TextDocumentPositionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), cancellationToken);
+            => base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), null, cancellationToken);
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentRenameName)]
@@ -242,11 +248,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         }
 
         public Task<WorkspaceEdit> HandleAsync(RenameParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), cancellationToken);
+            => base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), null, cancellationToken);
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.WorkspaceSymbolName)]
-    internal class TypeScriptWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandler, ILspRequestHandler<object, SymbolInformation[], Solution>
+    internal class TypeScriptWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandler, ILspRequestHandler<WorkspaceSymbolParams, SymbolInformation[], Solution>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -254,13 +260,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
         }
 
-        public Task<SymbolInformation[]> HandleAsync(object input, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-        {
-            // The VS LSP client supports streaming using IProgress<T> on various requests.
-            // However, this is not yet supported through Live Share, so deserialization fails on the IProgress<T> property.
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043376 tracks Live Share support for this (committed for 16.6).
-            var request = ((JObject)input).ToObject<WorkspaceSymbolParams>(InProcLanguageServer.JsonSerializer);
-            return base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), cancellationToken);
-        }
+        [JsonRpcMethod(UseSingleObjectParameterDeserialization = true)]
+        public Task<SymbolInformation[]> HandleAsync(WorkspaceSymbolParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+            => base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), null, cancellationToken);
     }
 }

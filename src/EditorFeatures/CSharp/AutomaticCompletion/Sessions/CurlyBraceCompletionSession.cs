@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
         private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
             var indentStyle = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None).GetOption(FormattingOptions.SmartIndent);
-            return SpecializedCollections.SingletonEnumerable(BraceCompletionFormattingRule.ForIndentStyle(indentStyle)).Concat(Formatter.GetDefaultFormattingRules(document));
+            return SpecializedCollections.SingletonEnumerable<AbstractFormattingRule>(BraceCompletionFormattingRule.ForIndentStyle(indentStyle)).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
         private void FormatTrackingSpan(IBraceCompletionSession session, bool shouldHonorAutoFormattingOnCloseBraceOption, IEnumerable<AbstractFormattingRule> rules = null)
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             return openingPoint - openingSpanLine.Start;
         }
 
-        private class BraceCompletionFormattingRule : BaseFormattingRule
+        private sealed class BraceCompletionFormattingRule : BaseFormattingRule
         {
             private static readonly Predicate<SuppressOperation> s_predicate = o => o == null || o.Option.IsOn(SuppressOption.NoWrapping);
 
@@ -203,9 +204,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 new BraceCompletionFormattingRule(FormattingOptions.IndentStyle.Smart));
 
             private readonly FormattingOptions.IndentStyle _indentStyle;
+            private readonly CachedOptions _options;
 
-            private BraceCompletionFormattingRule(FormattingOptions.IndentStyle indentStyle)
-                => _indentStyle = indentStyle;
+            public BraceCompletionFormattingRule(FormattingOptions.IndentStyle indentStyle)
+                : this(indentStyle, new CachedOptions(null))
+            {
+            }
+
+            private BraceCompletionFormattingRule(FormattingOptions.IndentStyle indentStyle, CachedOptions options)
+            {
+                _indentStyle = indentStyle;
+                _options = options;
+            }
 
             public static AbstractFormattingRule ForIndentStyle(FormattingOptions.IndentStyle indentStyle)
             {
@@ -213,7 +223,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 return s_instances[(int)indentStyle];
             }
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+            {
+                var cachedOptions = new CachedOptions(options);
+
+                if (cachedOptions == _options)
+                {
+                    return this;
+                }
+
+                return new BraceCompletionFormattingRule(_indentStyle, cachedOptions);
+            }
+
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // Eg Cases -
                 // new MyObject {
@@ -227,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 currentToken.Parent.Kind() == SyntaxKind.ArrayInitializerExpression ||
                 currentToken.Parent.Kind() == SyntaxKind.ImplicitArrayCreationExpression))
                 {
-                    if (options.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers))
+                    if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                     {
                         return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                     }
@@ -237,12 +259,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                     }
                 }
 
-                return base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
+                return base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
             }
 
-            public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextAlignTokensOperationAction nextOperation)
+            public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)
             {
-                base.AddAlignTokensOperations(list, node, options, in nextOperation);
+                base.AddAlignTokensOperations(list, node, in nextOperation);
                 if (_indentStyle == FormattingOptions.IndentStyle.Block)
                 {
                     var bracePair = node.GetBracePair();
@@ -253,15 +275,54 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 }
             }
 
-            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextSuppressOperationAction nextOperation)
+            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
             {
-                base.AddSuppressOperations(list, node, options, in nextOperation);
+                base.AddSuppressOperations(list, node, in nextOperation);
 
                 // remove suppression rules for array and collection initializer
                 if (node.IsInitializerForArrayOrCollectionCreationExpression())
                 {
                     // remove any suppression operation
                     list.RemoveAll(s_predicate);
+                }
+            }
+
+            private readonly struct CachedOptions : IEquatable<CachedOptions>
+            {
+                public readonly bool NewLinesForBracesInObjectCollectionArrayInitializers;
+
+                public CachedOptions(AnalyzerConfigOptions options)
+                {
+                    NewLinesForBracesInObjectCollectionArrayInitializers = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers);
+                }
+
+                public static bool operator ==(CachedOptions left, CachedOptions right)
+                    => left.Equals(right);
+
+                public static bool operator !=(CachedOptions left, CachedOptions right)
+                    => !(left == right);
+
+                private static T GetOptionOrDefault<T>(AnalyzerConfigOptions options, Option2<T> option)
+                {
+                    if (options is null)
+                        return option.DefaultValue;
+
+                    return options.GetOption(option);
+                }
+
+                public override bool Equals(object obj)
+                    => obj is CachedOptions options && Equals(options);
+
+                public bool Equals(CachedOptions other)
+                {
+                    return NewLinesForBracesInObjectCollectionArrayInitializers == other.NewLinesForBracesInObjectCollectionArrayInitializers;
+                }
+
+                public override int GetHashCode()
+                {
+                    var hashCode = 0;
+                    hashCode = (hashCode << 1) + (NewLinesForBracesInObjectCollectionArrayInitializers ? 1 : 0);
+                    return hashCode;
                 }
             }
         }

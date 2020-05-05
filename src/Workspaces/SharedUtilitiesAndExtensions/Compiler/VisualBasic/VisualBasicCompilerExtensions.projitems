@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\VisualBasicCodeStyleOptions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VisualBasicVirtualCharService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.vb" />
@@ -29,6 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\VisualBasicSelectedMembers.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicDocumentationCommentService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicSyntaxFacts.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\VisualBasicInferredMemberNameSimplifier.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CastAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\DirectiveSyntaxEqualityComparer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\DirectiveWalker.vb" />

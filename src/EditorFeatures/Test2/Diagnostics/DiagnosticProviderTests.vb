@@ -308,12 +308,13 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Sub
 
         Private Function GetDiagnosticProvider(workspace As TestWorkspace) As DiagnosticAnalyzerService
-            Dim snapshot = workspace.CurrentSolution
-
             Dim compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap().Add(
                 NoCompilationConstants.LanguageName, ImmutableArray.Create(Of DiagnosticAnalyzer)(New NoCompilationDocumentDiagnosticAnalyzer()))
 
-            Dim analyzerService = New TestDiagnosticAnalyzerService(compilerAnalyzersMap)
+            Dim analyzerReference = New TestAnalyzerReferenceByLanguage(compilerAnalyzersMap)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
+
+            Dim analyzerService = New TestDiagnosticAnalyzerService()
 
             ' CollectErrors generates interleaved background and foreground tasks.
             Dim service = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)(), SolutionCrawlerRegistrationService)

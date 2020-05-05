@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // get span and common root
             this.SpanToFormat = GetSpanToFormat();
-            _commonRoot = token1.GetCommonRoot(token2);
+            _commonRoot = token1.GetCommonRoot(token2) ?? throw ExceptionUtilities.Unreachable;
             if (token1 == default)
             {
                 _language = token2.Language;

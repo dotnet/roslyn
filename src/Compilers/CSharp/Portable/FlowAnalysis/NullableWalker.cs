@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Conversions _conversions;
 
         /// <summary>
-        /// Use the the parameter types and nullability from _methodSignatureOpt for initial
+        /// Use the parameter types and nullability from _methodSignatureOpt for initial
         /// parameter state. If false, the signature of _member is used instead.
         /// </summary>
         private readonly bool _useDelegateInvokeParameterTypes;
@@ -2458,6 +2458,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = node.Arguments;
             var argumentResults = VisitArguments(node, arguments, node.ArgumentRefKindsOpt, node.Constructor, node.ArgsToParamsOpt, node.Expanded, invokedAsExtensionMethod: false).results;
             VisitObjectOrDynamicObjectCreation(node, arguments, argumentResults, node.InitializerExpressionOpt);
+            return null;
+        }
+
+        public override BoundNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
+        {
+            var discardedDiagnostics = new DiagnosticBag();
+            var expr = _binder.BindObjectCreationForErrorRecovery(node, discardedDiagnostics);
+            discardedDiagnostics.Free();
+            Visit(expr);
+            SetResultType(node, TypeWithState.Create(expr.Type, NullableFlowState.NotNull));
             return null;
         }
 
@@ -5281,6 +5291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ((BoundExpressionWithNullability)expr).NullableAnnotation;
                     case BoundKind.MethodGroup:
                     case BoundKind.UnboundLambda:
+                    case BoundKind.UnconvertedObjectCreationExpression:
                         return NullableAnnotation.NotAnnotated;
                     default:
                         Debug.Assert(false); // unexpected value
@@ -6130,6 +6141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultState = NullableFlowState.NotNull;
                     break;
 
+                case ConversionKind.ObjectCreation:
                 case ConversionKind.SwitchExpression:
                     // The switch expression conversion is not represented as a separate conversion in the bound tree.
                     throw ExceptionUtilities.UnexpectedValue(conversion.Kind);

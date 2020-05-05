@@ -522,7 +522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' If a method had an virtual inaccessible override, then an explicit override in metadata is needed
+        ''' If a method had a virtual inaccessible override, then an explicit override in metadata is needed
         ''' to make it really override what it intends to override, and "skip" the inaccessible virtual
         ''' method.
         ''' </summary>

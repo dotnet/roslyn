@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -467,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private AnchorData GetAnchorData(SyntaxToken token)
+        private AnchorData? GetAnchorData(SyntaxToken token)
         {
             var span = token.Span;
 
@@ -565,12 +567,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             return lastEndToken;
         }
 
-        private AnchorData FindAnchorSpanOnSameLineAfterToken(TokenData tokenData)
+        private AnchorData? FindAnchorSpanOnSameLineAfterToken(TokenData tokenData)
         {
             // every token after given token on same line is implicitly dependent to the token.
             // check whether one of them is an anchor token.
 
-            AnchorData lastBaseAnchorData = null;
+            AnchorData? lastBaseAnchorData = null;
             while (tokenData.IndexInStream >= 0)
             {
                 if (_anchorBaseTokenMap.TryGetValue(tokenData.Token, out var tempAnchorData))

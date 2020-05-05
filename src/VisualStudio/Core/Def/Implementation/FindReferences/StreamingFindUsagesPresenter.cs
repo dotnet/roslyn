@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -53,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
             IClassificationFormatMapService classificationFormatMapService,
-            [ImportMany]IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
+            [ImportMany] IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
             : this(workspace,
                    threadingContext,
                    serviceProvider,
@@ -111,6 +112,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     case StandardTableKeyNames2.SymbolKind:
                     case ContainingTypeColumnDefinition.ColumnName:
                     case ContainingMemberColumnDefinition.ColumnName:
+                    case StandardTableKeyNames.Repository:
+                    case StandardTableKeyNames.ItemOrigin:
                         yield return column.Value;
                         break;
                 }
