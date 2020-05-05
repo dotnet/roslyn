@@ -132,7 +132,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
         <source>Base classes contain inaccessible unimplemented members</source>
-        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <target state="translated">アクセス不可能な未実装のメンバーが基底クラスに含まれています</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -207,12 +207,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Configure_severity_for_all_0_analyzers">
         <source>Configure severity for all '{0}' analyzers</source>
-        <target state="new">Configure severity for all '{0}' analyzers</target>
+        <target state="translated">すべての '{0}' アナライザーの重要度を構成します</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_severity_for_all_analyzers">
         <source>Configure severity for all analyzers</source>
-        <target state="new">Configure severity for all analyzers</target>
+        <target state="translated">すべてのアナライザーの重要度を構成します</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -287,7 +287,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
         <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="new">Do not change this code. Put cleanup code in '{0}' method</target>
+        <target state="translated">このコードを変更しないでください。クリーンアップ コードを '{0}' メソッドに記述します</target>
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
@@ -402,12 +402,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Implement_abstract_class">
         <source>Implement abstract class</source>
-        <target state="new">Implement abstract class</target>
+        <target state="translated">抽象クラスの実装</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_interfaces_explicitly">
         <source>Implement all interfaces explicitly</source>
-        <target state="new">Implement all interfaces explicitly</target>
+        <target state="translated">すべてのインターフェイスを明示的に実装する</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
@@ -417,12 +417,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Implement_all_members_explicitly">
         <source>Implement all members explicitly</source>
-        <target state="new">Implement all members explicitly</target>
+        <target state="translated">すべてのメンバーを明示的に実装する</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
-        <target state="new">Implement explicitly</target>
+        <target state="translated">明示的に実装する</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_implicitly">
@@ -432,12 +432,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Implement_remaining_members_explicitly">
         <source>Implement remaining members explicitly</source>
-        <target state="new">Implement remaining members explicitly</target>
+        <target state="translated">残りのメンバーを明示的に実装する</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_through_0">
         <source>Implement through '{0}'</source>
-        <target state="new">Implement through '{0}'</target>
+        <target state="translated">'{0}' を通じて実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -1757,7 +1757,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
-        <target state="new">Resolve conflict markers</target>
+        <target state="translated">競合マーカーの解決</target>
         <note />
       </trans-unit>
       <trans-unit id="RudeEdit">
@@ -1787,12 +1787,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="new">TODO: free unmanaged resources (unmanaged objects) and override finalizer</target>
+        <target state="translated">TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、ファイナライザーをオーバーライドします</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
         <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="new">TODO: override finalizer only if '{0}' has code to free unmanaged resources</target>
+        <target state="translated">TODO: '{0}' にアンマネージド リソースを解放するコードが含まれる場合にのみ、ファイナライザーをオーバーライドします</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -1932,7 +1932,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
-        <target state="new">Value:</target>
+        <target state="translated">値:</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -3392,12 +3392,12 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
         <source>TODO: dispose managed state (managed objects)</source>
-        <target state="needs-review-translation">TODO: マネージ状態を破棄します (マネージ オブジェクト)。</target>
+        <target state="translated">TODO: マネージド状態を破棄します (マネージド オブジェクト)</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
         <source>TODO: set large fields to null</source>
-        <target state="needs-review-translation">TODO: 大きなフィールドを null に設定します。</target>
+        <target state="translated">TODO: 大きなフィールドを null に設定します</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
