@@ -38,10 +38,9 @@ public class Class1
 
     public void Method1(string? s)
     {
-        string? other, otherLocalOpt;
+        string? local, otherLocal;
     }
 }",
-                NumberOfFixAllIterations = 2,
 
             }.RunAsync();
         }
