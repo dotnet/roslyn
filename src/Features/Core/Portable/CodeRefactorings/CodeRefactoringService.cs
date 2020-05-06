@@ -25,6 +25,10 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
+#if DEBUG
+using System.Diagnostics;
+#endif
+
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     [Export(typeof(ICodeRefactoringService)), Shared]
@@ -90,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public async Task<bool> HasRefactoringsAsync(
             Document document,
             TextSpan textSpan,
+            TextSpan? pastedTextSpan,
             CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
@@ -99,10 +104,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     WellKnownServiceHubServices.CodeAnalysisService,
                     nameof(IRemoteCodeRefactoringService.HasRefactoringsAsync),
                     document.Project.Solution,
-                    new object[]
+                    new object?[]
                     {
                         document.Id,
                         textSpan,
+                        pastedTextSpan,
                     },
                     callbackTarget: new CodeRefactoringServiceCallback(this),
                     cancellationToken).ConfigureAwait(false);
@@ -112,6 +118,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     return result.Value;
                 }
             }
+
+#if DEBUG
+            // Verify that the paste tracking service for the current process is already tracking the expected pasted
+            // text span.
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            if (pastedTextSpan is object)
+            {
+                RoslynDebug.AssertNotNull(_pasteTrackingService);
+                Debug.Assert(_pasteTrackingService.TryGetPastedTextSpan(sourceText.Container, out var trackedPastedTextSpan)
+                    && trackedPastedTextSpan == pastedTextSpan);
+            }
+            else
+            {
+                Debug.Assert(_pasteTrackingService is null
+                    || !_pasteTrackingService.TryGetPastedTextSpan(sourceText.Container, out _));
+            }
+#endif
 
             return await HasRefactoringsInCurrentProcessAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         }

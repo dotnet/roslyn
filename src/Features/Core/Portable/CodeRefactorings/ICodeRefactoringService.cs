@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal interface ICodeRefactoringService
     {
-        Task<bool> HasRefactoringsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+        Task<bool> HasRefactoringsAsync(Document document, TextSpan textSpan, TextSpan? pastedTextSpan, CancellationToken cancellationToken);
 
         Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 

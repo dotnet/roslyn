@@ -14,42 +14,33 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class CodeAnalysisService : IRemoteCodeRefactoringService
     {
-        public Task<bool> HasRefactoringsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+        public Task<bool> HasRefactoringsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, TextSpan? pastedTextSpan, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (UserOperationBooster.Boost())
                 {
-                    using var pasteTrackingServiceRegistration = RemotePasteTrackingService.RegisterCallback(new PasteTrackingServiceCallback(EndPoint, cancellationToken));
-
                     var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
 
                     var mefHostExportProvider = (IMefHostExportProvider)solution.Workspace.Services.HostServices;
                     var service = mefHostExportProvider.GetExports<ICodeRefactoringService>().Single().Value;
+                    var pasteTrackingService = (RemotePasteTrackingService)mefHostExportProvider.GetExports<IPasteTrackingService>().SingleOrDefault()?.Value;
 
-                    return await service.HasRefactoringsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var container = sourceText.Container;
+
+                    try
+                    {
+                        pasteTrackingService?.SetPastedTextSpan(container, pastedTextSpan);
+                        return await service.HasRefactoringsAsync(document, textSpan, pastedTextSpan, cancellationToken).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        pasteTrackingService?.ClearPastedTextSpan(container);
+                    }
                 }
             }, cancellationToken);
-        }
-
-        private sealed class PasteTrackingServiceCallback : IPasteTrackingService
-        {
-            private readonly RemoteEndPoint _endPoint;
-            private readonly CancellationToken _cancellationToken;
-
-            public PasteTrackingServiceCallback(RemoteEndPoint endPoint, CancellationToken cancellationToken)
-            {
-                _endPoint = endPoint;
-                _cancellationToken = cancellationToken;
-            }
-
-            public bool TryGetPastedTextSpan(SourceTextContainer sourceTextContainer, out TextSpan textSpan)
-            {
-                var result = _endPoint.InvokeAsync<TextSpan?>(nameof(TryGetPastedTextSpan), new object[] { sourceTextContainer }, _cancellationToken).Result;
-                textSpan = result.GetValueOrDefault();
-                return result.HasValue;
-            }
         }
     }
 }

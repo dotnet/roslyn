@@ -977,12 +977,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                var pastedTextSpanOpt =
+                    provider._pasteTrackingService.TryGetPastedTextSpan(sourceText.Container, out var pastedTextSpan)
+                    ? (TextSpan?)pastedTextSpan
+                    : null;
+
                 if (document.Project.Solution.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     provider._codeRefactoringService != null &&
                     _subjectBuffer.SupportsRefactorings())
                 {
                     if (await provider._codeRefactoringService.HasRefactoringsAsync(
-                            document, selection.Value, cancellationToken).ConfigureAwait(false))
+                            document, selection.Value, pastedTextSpanOpt, cancellationToken).ConfigureAwait(false))
                     {
                         return PredefinedSuggestedActionCategoryNames.Refactoring;
                     }

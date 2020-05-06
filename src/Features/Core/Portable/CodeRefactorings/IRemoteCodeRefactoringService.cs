@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal interface IRemoteCodeRefactoringService
     {
-        Task<bool> HasRefactoringsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
+        Task<bool> HasRefactoringsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, TextSpan? pastedTextSpan, CancellationToken cancellationToken);
     }
 }

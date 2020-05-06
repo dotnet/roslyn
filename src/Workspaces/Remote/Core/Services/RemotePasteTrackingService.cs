@@ -5,11 +5,11 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
     [Shared]
     internal sealed class RemotePasteTrackingService : IPasteTrackingService
     {
-        private static ReferenceCountedDisposable<Callback>.WeakReference s_weakCallback;
+        private readonly Dictionary<SourceTextContainer, TextSpan> _trackedSpans = new Dictionary<SourceTextContainer, TextSpan>();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -25,39 +25,35 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public static IReferenceCountedDisposable<IDisposable> RegisterCallback(IPasteTrackingService implementation)
-        {
-            var callback = new ReferenceCountedDisposable<Callback>(new Callback(implementation));
-            s_weakCallback = new ReferenceCountedDisposable<Callback>.WeakReference(callback);
-            return callback;
-        }
-
         public bool TryGetPastedTextSpan(SourceTextContainer sourceTextContainer, out TextSpan textSpan)
         {
-            using var callback = s_weakCallback.TryAddReference();
-            if (callback is object)
+            lock (_trackedSpans)
             {
-                return callback.Target.TryGetPastedTextSpan(sourceTextContainer, out textSpan);
+                return _trackedSpans.TryGetValue(sourceTextContainer, out textSpan);
             }
-
-            textSpan = default;
-            return false;
         }
 
-        private sealed class Callback : IPasteTrackingService, IDisposable
+        internal void ClearPastedTextSpan(SourceTextContainer container)
         {
-            private readonly IPasteTrackingService _implementation;
-
-            public Callback(IPasteTrackingService implementation)
+            lock (_trackedSpans)
             {
-                _implementation = implementation;
+                _trackedSpans.Remove(container);
             }
+        }
 
-            public bool TryGetPastedTextSpan(SourceTextContainer sourceTextContainer, out TextSpan textSpan)
-                => _implementation.TryGetPastedTextSpan(sourceTextContainer, out textSpan);
-
-            public void Dispose()
-                => s_weakCallback = default;
+        internal void SetPastedTextSpan(SourceTextContainer container, TextSpan? pastedTextSpan)
+        {
+            lock (_trackedSpans)
+            {
+                if (pastedTextSpan is object)
+                {
+                    _trackedSpans[container] = pastedTextSpan.Value;
+                }
+                else
+                {
+                    _trackedSpans.Remove(container);
+                }
+            }
         }
     }
 }
