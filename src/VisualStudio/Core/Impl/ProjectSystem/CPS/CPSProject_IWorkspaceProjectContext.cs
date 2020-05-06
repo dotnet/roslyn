@@ -136,8 +136,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public ProjectId Id => _visualStudioProject.Id;
 
-        public void SetOptions(string commandLineForOptions)
-            => _visualStudioProjectOptionsProcessor?.SetCommandLine(commandLineForOptions);
+        public void SetOptions(string? commandLineForOptions)
+        {
+            if (_visualStudioProjectOptionsProcessor != null)
+            {
+                _visualStudioProjectOptionsProcessor.SetCommandLine(commandLineForOptions);
+            }
+            else
+            {
+                // This is only used for F# right now
+                _visualStudioProject.CommandLineOptions = commandLineForOptions;
+            }
+        }
 
         public string? DefaultNamespace
         {

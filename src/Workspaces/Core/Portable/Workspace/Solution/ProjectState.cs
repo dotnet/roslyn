@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private readonly ValueSource<AnalyzerConfigSet> _lazyAnalyzerConfigSet;
 
+        private readonly string? _commandLineOptions;
+
         private AnalyzerOptions? _lazyAnalyzerOptions;
 
         private ProjectState(
@@ -69,7 +71,8 @@ namespace Microsoft.CodeAnalysis
             ImmutableSortedDictionary<DocumentId, AnalyzerConfigDocumentState> analyzerConfigDocumentStates,
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
             AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion,
-            ValueSource<AnalyzerConfigSet> lazyAnalyzerConfigSet)
+            ValueSource<AnalyzerConfigSet> lazyAnalyzerConfigSet,
+            string? commandLineOptions)
         {
             _solutionServices = solutionServices;
             _languageServices = languageServices;
@@ -88,6 +91,8 @@ namespace Microsoft.CodeAnalysis
             _projectInfo = ClearAllDocumentsFromProjectInfo(projectInfo);
 
             _lazyChecksums = new AsyncLazy<ProjectStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
+
+            _commandLineOptions = commandLineOptions;
         }
 
         public ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, SolutionServices solutionServices)
@@ -436,6 +441,9 @@ namespace Microsoft.CodeAnalysis
         public ImmutableSortedDictionary<DocumentId, TextDocumentState> AdditionalDocumentStates => _additionalDocumentStates;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        internal string? CommandLineOptions => _commandLineOptions;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public ImmutableSortedDictionary<DocumentId, AnalyzerConfigDocumentState> AnalyzerConfigDocumentStates => _analyzerConfigDocumentStates;
 
         public bool ContainsDocument(DocumentId documentId)
@@ -474,7 +482,8 @@ namespace Microsoft.CodeAnalysis
             ImmutableSortedDictionary<DocumentId, AnalyzerConfigDocumentState>? analyzerConfigDocumentStates = null,
             AsyncLazy<VersionStamp>? latestDocumentVersion = null,
             AsyncLazy<VersionStamp>? latestDocumentTopLevelChangeVersion = null,
-            ValueSource<AnalyzerConfigSet>? analyzerConfigSet = null)
+            ValueSource<AnalyzerConfigSet>? analyzerConfigSet = null,
+            string? commandLineOptions = null)
         {
             return new ProjectState(
                 projectInfo ?? _projectInfo,
@@ -487,7 +496,8 @@ namespace Microsoft.CodeAnalysis
                 analyzerConfigDocumentStates ?? _analyzerConfigDocumentStates,
                 latestDocumentVersion ?? _lazyLatestDocumentVersion,
                 latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion,
-                analyzerConfigSet ?? _lazyAnalyzerConfigSet);
+                analyzerConfigSet ?? _lazyAnalyzerConfigSet,
+                commandLineOptions ?? _commandLineOptions);
         }
 
         private ProjectInfo.ProjectAttributes Attributes
@@ -778,6 +788,18 @@ namespace Microsoft.CodeAnalysis
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
                 documentIds: documentIds);
+        }
+
+        internal ProjectState UpdateCommandLineOptions(string commandLineOptions)
+        {
+            if (_commandLineOptions == commandLineOptions)
+            {
+                return this;
+            }
+
+            return this.With(
+                projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
+                commandLineOptions: commandLineOptions);
         }
 
         private void GetLatestDependentVersions(

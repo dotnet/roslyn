@@ -2985,6 +2985,30 @@ class C
             Assert.Empty(solution.GetDocumentIdsWithFilePath(editorConfigFilePath));
         }
 
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void SetAndRetrieveCommandLineOptions_Success()
+        {
+            var solution = CreateSolution();
+            var pid = ProjectId.CreateNewId();
+
+            solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);
+            var project = solution.GetProject(pid);
+
+            // Is null until we set it.
+            Assert.Null(project.CommandLineOptions);
+
+            solution = solution.WithProjectCommandLineOptions(pid, "--test");
+            project = solution.GetProject(pid);
+
+            Assert.Equal("--test", project.CommandLineOptions);
+
+            Assert.Throws<ArgumentException>(() => solution = solution.WithProjectCommandLineOptions(pid, null));
+            project = solution.GetProject(pid);
+
+            Assert.Equal("--test", project.CommandLineOptions);
+        }
+
         private static void GetMultipleProjects(
             out Project csBrokenProject,
             out Project vbNormalProject,

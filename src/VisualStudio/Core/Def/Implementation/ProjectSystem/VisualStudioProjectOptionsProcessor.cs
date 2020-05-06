@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        public void SetCommandLine(string commandLine)
+        public void SetCommandLine(string? commandLine)
         {
             if (commandLine == null)
                 throw new ArgumentNullException(nameof(commandLine));

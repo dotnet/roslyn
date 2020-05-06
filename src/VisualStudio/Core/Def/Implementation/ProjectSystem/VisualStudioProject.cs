@@ -76,6 +76,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // Effective boolean value to determine if analyzers should be executed based on _runAnalyzersPropertyValue and _runAnalyzersDuringLiveAnalysisPropertyValue.
         private bool _runAnalyzers = true;
 
+        // Stores the F# command-line options that come from the project system, which includes ordered source files that the F# language service needs.
+        private string? _commandLineOptions;
+
         private readonly Dictionary<string, ImmutableArray<MetadataReferenceProperties>> _allMetadataReferences = new Dictionary<string, ImmutableArray<MetadataReferenceProperties>>();
 
         /// <summary>
@@ -218,6 +221,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 ChangeProjectProperty(ref field, newValue, withNewValue);
+            }
+        }
+
+        internal string? CommandLineOptions
+        {
+            get => _commandLineOptions;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new ArgumentException(nameof(value));
+                }
+
+                ChangeProjectProperty(ref _commandLineOptions, value, s => s.WithProjectCommandLineOptions(Id, value));
             }
         }
 
@@ -529,6 +546,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     ClearAndZeroCapacity(_projectPropertyModificationsInBatch);
+
+                    solutionChanges.UpdateSolutionForProjectAction(Id, newSolution: solutionChanges.Solution.WithProjectCommandLineOptions(Id, _commandLineOptions));
 
                     return solutionChanges;
                 });

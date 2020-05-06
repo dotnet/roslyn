@@ -172,6 +172,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IReadOnlyList<DocumentId> AdditionalDocumentIds => _projectState.AdditionalDocumentIds;
 
+
+        /// <summary>
+        /// The command line options with this project.
+        /// </summary>
+        internal string? CommandLineOptions => _projectState.CommandLineOptions;
+
         /// <summary>
         /// All the documents associated with this project.
         /// </summary>

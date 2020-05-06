@@ -740,5 +740,16 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+
+        internal void OnProjectCommandLineOptionsChanged(ProjectId projectId, string commandLineOptions)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                var oldSolution = CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithProjectCommandLineOptions(projectId, commandLineOptions));
+
+                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            }
+        }
     }
 }
