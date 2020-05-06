@@ -188,8 +188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
-        <source>Annotate nullability of types and members in the declared API</source>
-        <target state="translated">Přidat anotace o možnosti použití hodnoty null u typů a členů v deklarovaném rozhraní API</target>
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="needs-review-translation">Přidat anotace o možnosti použití hodnoty null u typů a členů v deklarovaném rozhraní API</target>
         <note />
       </trans-unit>
     </body>

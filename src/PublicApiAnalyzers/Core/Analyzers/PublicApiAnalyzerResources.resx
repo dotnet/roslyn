@@ -138,7 +138,7 @@
   </data>
 
   <data name="ShouldAnnotateApiFilesTitle" xml:space="preserve">
-    <value>Annotate nullability of types and members in the declared API</value>
+    <value>Enable tracking of nullability of reference types in the declared API</value>
   </data>
   <data name="ShouldAnnotateApiFilesMessage" xml:space="preserve">
     <value>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</value>
