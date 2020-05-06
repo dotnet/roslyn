@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
@@ -20,6 +20,12 @@ namespace Microsoft.CodeAnalysis
 
             public override SymbolKind Kind => SymbolKind.DynamicType;
             public override TypeKind TypeKind => TypeKind.Dynamic;
+
+            public override void Accept(SymbolVisitor visitor)
+                => visitor.VisitDynamicType(this);
+
+            public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+                => visitor.VisitDynamicType(this);
 
             #region default implementation
 

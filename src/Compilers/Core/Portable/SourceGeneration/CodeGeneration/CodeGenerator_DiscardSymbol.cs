@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
@@ -32,9 +32,18 @@ namespace Microsoft.CodeAnalysis
                 Type = type;
             }
 
+            public override SymbolKind Kind => SymbolKind.Discard;
+
+            public override void Accept(SymbolVisitor visitor)
+                => visitor.VisitDiscard(this);
+
+            public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+                => visitor.VisitDiscard(this);
+
             #region default implementation
 
             public NullableAnnotation NullableAnnotation => throw new NotImplementedException();
+
 
             #endregion
         }

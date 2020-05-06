@@ -4,13 +4,15 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
-        private class TypeSymbol : Symbol, ITypeSymbol
+        private abstract class TypeSymbol : Symbol, ITypeSymbol
         {
-            public virtual TypeKind TypeKind => throw new System.NotImplementedException();
+            public abstract TypeKind TypeKind { get; }
+
+            #region default implementation
 
             public virtual INamedTypeSymbol BaseType => throw new System.NotImplementedException();
 
@@ -98,6 +100,8 @@ namespace Microsoft.CodeAnalysis
             {
                 throw new System.NotImplementedException();
             }
+
+            #endregion
         }
     }
 }

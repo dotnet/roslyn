@@ -7,15 +7,29 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
-        private class Symbol : ISymbol
+        private abstract class Symbol : ISymbol
         {
-            public virtual SymbolKind Kind => throw new System.NotImplementedException();
+            public abstract SymbolKind Kind { get; }
+            public abstract void Accept(SymbolVisitor visitor);
+            public abstract TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
 
-            public virtual string Language => throw new System.NotImplementedException();
+            public string Language => "SourceGenerator";
+
+            public virtual Accessibility DeclaredAccessibility => Accessibility.NotApplicable;
+            public virtual SymbolModifiers Modifiers => SymbolModifiers.None;
+
+            public virtual bool IsStatic => (Modifiers & SymbolModifiers.Static) != 0;
+            public virtual bool IsVirtual => (Modifiers & SymbolModifiers.Virtual) != 0;
+            public virtual bool IsOverride => (Modifiers & SymbolModifiers.Override) != 0;
+            public virtual bool IsAbstract => (Modifiers & SymbolModifiers.Abstract) != 0;
+            public virtual bool IsSealed => (Modifiers & SymbolModifiers.Sealed) != 0;
+            public virtual bool IsExtern => (Modifiers & SymbolModifiers.Extern) != 0;
+
+            #region default implementation
 
             public virtual string Name => throw new System.NotImplementedException();
 
@@ -33,18 +47,6 @@ namespace Microsoft.CodeAnalysis
 
             public virtual bool IsDefinition => throw new System.NotImplementedException();
 
-            public virtual bool IsStatic => throw new System.NotImplementedException();
-
-            public virtual bool IsVirtual => throw new System.NotImplementedException();
-
-            public virtual bool IsOverride => throw new System.NotImplementedException();
-
-            public virtual bool IsAbstract => throw new System.NotImplementedException();
-
-            public virtual bool IsSealed => throw new System.NotImplementedException();
-
-            public virtual bool IsExtern => throw new System.NotImplementedException();
-
             public virtual bool IsImplicitlyDeclared => throw new System.NotImplementedException();
 
             public virtual bool CanBeReferencedByName => throw new System.NotImplementedException();
@@ -53,21 +55,9 @@ namespace Microsoft.CodeAnalysis
 
             public virtual ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => throw new System.NotImplementedException();
 
-            public virtual Accessibility DeclaredAccessibility => throw new System.NotImplementedException();
-
             public virtual ISymbol OriginalDefinition => throw new System.NotImplementedException();
 
             public virtual bool HasUnsupportedMetadata => throw new System.NotImplementedException();
-
-            public virtual void Accept(SymbolVisitor visitor)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public virtual TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-            {
-                throw new System.NotImplementedException();
-            }
 
             public virtual bool Equals([NotNullWhen(true)] ISymbol other, SymbolEqualityComparer equalityComparer)
             {
@@ -113,6 +103,8 @@ namespace Microsoft.CodeAnalysis
             {
                 throw new System.NotImplementedException();
             }
+
+            #endregion
         }
     }
 }

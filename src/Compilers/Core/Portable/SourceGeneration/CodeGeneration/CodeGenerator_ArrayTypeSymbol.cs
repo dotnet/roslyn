@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
@@ -45,6 +45,12 @@ namespace Microsoft.CodeAnalysis
 
             public override SymbolKind Kind => SymbolKind.ArrayType;
             public override TypeKind TypeKind => TypeKind.Array;
+
+            public override void Accept(SymbolVisitor visitor)
+                => visitor.VisitArrayType(this);
+
+            public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+                => visitor.VisitArrayType(this);
 
             #region default implementation
 
