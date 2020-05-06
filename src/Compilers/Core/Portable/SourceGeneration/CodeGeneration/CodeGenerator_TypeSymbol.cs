@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
-        private abstract class TypeSymbol : Symbol, ITypeSymbol
+        private abstract class TypeSymbol : NamespaceOrTypeSymbol, ITypeSymbol
         {
             public abstract TypeKind TypeKind { get; }
 
@@ -40,38 +40,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             public virtual NullableAnnotation NullableAnnotation => throw new System.NotImplementedException();
 
-            public virtual bool IsNamespace => throw new System.NotImplementedException();
-
-            public virtual bool IsType => throw new System.NotImplementedException();
-
             ITypeSymbol ITypeSymbol.OriginalDefinition => throw new System.NotImplementedException();
 
             public virtual ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public virtual ImmutableArray<ISymbol> GetMembers()
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public virtual ImmutableArray<ISymbol> GetMembers(string name)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public virtual ImmutableArray<INamedTypeSymbol> GetTypeMembers()
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public virtual ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public virtual ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name, int arity)
             {
                 throw new System.NotImplementedException();
             }
