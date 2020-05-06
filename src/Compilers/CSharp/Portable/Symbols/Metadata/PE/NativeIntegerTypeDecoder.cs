@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
     internal struct NativeIntegerTypeDecoder
     {
+        private class ErrorTypeException : Exception { }
+
         internal static TypeSymbol TransformType(TypeSymbol type, EntityHandle handle, PEModuleSymbol containingModule)
         {
             return containingModule.Module.HasNativeIntegerAttribute(handle, out var transformFlags) ?
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return new UnsupportedMetadataTypeSymbol();
             }
-            catch (ArgumentException)
+            catch (ErrorTypeException)
             {
                 // If we failed to decode because there was an error type involved, marking the
                 // metadata as unsupported means that we'll cover up the error that would otherwise
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return TransformNamedType((NamedTypeSymbol)type);
                 default:
                     Debug.Assert(type.TypeKind == TypeKind.Error);
-                    throw new ArgumentException();
+                    throw new ErrorTypeException();
             }
         }
 
