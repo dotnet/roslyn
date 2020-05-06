@@ -18,6 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal sealed class VisualStudioAnalyzer : IDisposable
     {
         // Shadow copy analyzer files coming from packages to avoid locking the files in NuGet cache.
+        // NOTE: It is important that we share the same shadow copy assembly loader for all VisualStudioAnalyzer instances.
+        // This is required to ensure that shadow copied analyzer dependencies are correctly loaded.
         private static readonly IAnalyzerAssemblyLoader s_analyzerAssemblyLoader =
             new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"));
 
