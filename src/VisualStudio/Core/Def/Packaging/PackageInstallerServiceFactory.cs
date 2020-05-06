@@ -55,7 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly Lazy<IVsPackageUninstaller> _packageUninstaller;
         private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
 
-        private ImmutableArray<PackageSource> _packageSources;
         private JoinableTask<ImmutableArray<PackageSource>> _packageSourcesAsync;
         private IVsPackage _nugetPackageManager;
 
@@ -96,15 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         public async ValueTask<ImmutableArray<PackageSource>?> TryGetPackageSourcesAsync(bool allowSwitchToMainThread, CancellationToken cancellationToken)
         {
-            // Only read from _packageSources once, since OnSourceProviderSourcesChanged could reset it to default at
-            // any time while this method is running.
-            var packageSources = _packageSources;
-            if (packageSources != null)
-            {
-                return packageSources;
-            }
-
-            if (_packageSourcesAsync is null)
+            // Only read from _packageSourcesAsync once, since OnSourceProviderSourcesChanged could reset it to default
+            // at any time while this method is running.
+            var packageSourcesAsync = _packageSourcesAsync;
+            if (packageSourcesAsync is null)
             {
                 lock (_gate)
                 {
@@ -112,13 +106,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     {
                         _packageSourcesAsync = ThreadingContext.JoinableTaskFactory.RunAsync(() => GetPackageSourcesImplAsync());
                     }
+
+                    packageSourcesAsync = _packageSourcesAsync;
                 }
             }
 
-            if (allowSwitchToMainThread || _packageSourcesAsync.IsCompleted)
+            if (packageSourcesAsync.IsCompleted)
+            {
+                // Since the task is already completed, we know this 'await' will complete synchronously.
+                return await packageSourcesAsync;
+            }
+            else if (allowSwitchToMainThread)
             {
                 using var combinedToken = _tokenSource.Token.CombineWith(cancellationToken);
-                packageSources = await _packageSourcesAsync.JoinAsync(combinedToken.Token).ConfigureAwait(false);
+                return await packageSourcesAsync.JoinAsync(combinedToken.Token).ConfigureAwait(false);
             }
             else
             {
@@ -126,15 +127,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // a result.
                 return null;
             }
-
-            var previousPackageSources = ImmutableInterlocked.InterlockedCompareExchange(ref _packageSources, packageSources, default);
-            if (previousPackageSources != null)
-            {
-                // Another thread already initialized _packageSources
-                packageSources = previousPackageSources;
-            }
-
-            return packageSources;
         }
 
         private async Task<ImmutableArray<PackageSource>> GetPackageSourcesImplAsync()
@@ -242,7 +234,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)
         {
-            _packageSources = default;
+            lock (_gate)
+            {
+                // Reset the task for loading package sources.
+                _packageSourcesAsync = null;
+            }
+
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
         }
 
