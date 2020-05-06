@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,20 +24,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
         private readonly TestWorkspace _workspace;
-        public readonly DiagnosticAnalyzerService AnalyzerService;
+        public readonly DiagnosticAnalyzerService? AnalyzerService;
         private readonly ISolutionCrawlerRegistrationService _registrationService;
         private readonly ImmutableArray<IIncrementalAnalyzer> _incrementalAnalyzers;
-        private readonly SolutionCrawlerRegistrationService _solutionCrawlerService;
+        private readonly SolutionCrawlerRegistrationService? _solutionCrawlerService;
         public readonly DiagnosticService DiagnosticService;
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
-        private ITaggerProvider _taggerProvider;
+        private ITaggerProvider? _taggerProvider;
 
         public DiagnosticTaggerWrapper(
             TestWorkspace workspace,
-            IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null,
-            IDiagnosticUpdateSource updateSource = null,
+            IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>>? analyzerMap = null,
+            IDiagnosticUpdateSource? updateSource = null,
             bool createTaggerProvider = true)
         {
             _threadingContext = workspace.GetService<IThreadingContext>();
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             _workspace = workspace;
 
-            _registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+            _registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(workspace);
 
             DiagnosticService = new DiagnosticService(_listenerProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
@@ -81,14 +83,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     {
                         _taggerProvider = new DiagnosticsSquiggleTaggerProvider(
                             _threadingContext,
-                            DiagnosticService, _workspace.GetService<IForegroundNotificationService>(), _listenerProvider);
+                            DiagnosticService,
+                            _workspace.GetService<IForegroundNotificationService>(),
+                            _listenerProvider);
                     }
                     else if (typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider))
                     {
                         _taggerProvider = new DiagnosticsSuggestionTaggerProvider(
                             _threadingContext,
                             DiagnosticService,
-                            _workspace.GetService<IForegroundNotificationService>(), _listenerProvider);
+                            _workspace.GetService<IForegroundNotificationService>(),
+                            _listenerProvider);
                     }
                     else
                     {
