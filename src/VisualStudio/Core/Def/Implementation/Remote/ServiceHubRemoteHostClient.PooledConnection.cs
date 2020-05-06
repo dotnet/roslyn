@@ -7,23 +7,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal sealed partial class ServiceHubRemoteHostClient
     {
-        private partial class ConnectionManager
+        private partial class ConnectionPool
         {
             private class PooledConnection : Connection
             {
-                private readonly ConnectionManager _connectionManager;
+                private readonly ConnectionPool _pool;
                 private readonly string _serviceName;
-                private readonly JsonRpcConnection _connection;
+                private readonly Connection _connection;
 
-                public PooledConnection(ConnectionManager pools, string serviceName, JsonRpcConnection connection)
+                public PooledConnection(ConnectionPool pool, string serviceName, Connection connection)
                 {
-                    _connectionManager = pools;
+                    _pool = pool;
                     _serviceName = serviceName;
                     _connection = connection;
                 }
@@ -39,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 protected override void DisposeImpl()
                 {
-                    _connectionManager.Free(_serviceName, _connection);
+                    _pool.Free(_serviceName, _connection);
                     base.DisposeImpl();
                 }
             }

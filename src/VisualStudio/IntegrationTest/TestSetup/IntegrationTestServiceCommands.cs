@@ -11,10 +11,10 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Serialization.Formatters;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             {
                 AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainAssemblyResolve;
 
-                IntegrationTestTraceListener.Install();
+                WatsonTraceListener.Install();
 
                 _service = new IntegrationService();
 

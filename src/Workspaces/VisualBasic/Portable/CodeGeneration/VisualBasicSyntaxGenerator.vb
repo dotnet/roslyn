@@ -352,10 +352,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overloads Overrides Function ObjectCreationExpression(typeName As SyntaxNode, arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.ObjectCreationExpression(
-                Nothing,
+                attributeLists:=Nothing,
                 DirectCast(typeName, TypeSyntax),
                 CreateArgumentList(arguments),
-                Nothing)
+                initializer:=Nothing)
+        End Function
+
+        Friend Overrides Function ObjectCreationExpression(typeName As SyntaxNode, openParen As SyntaxToken, arguments As SeparatedSyntaxList(Of SyntaxNode), closeParen As SyntaxToken) As SyntaxNode
+            Return SyntaxFactory.ObjectCreationExpression(
+                attributeLists:=Nothing,
+                DirectCast(typeName, TypeSyntax),
+                SyntaxFactory.ArgumentList(openParen, arguments, closeParen),
+                initializer:=Nothing)
         End Function
 
         Public Overrides Function QualifiedName(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
@@ -3715,7 +3723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return False
         End Function
 
-        Friend Overrides Function IsPatternExpression(expression As SyntaxNode, pattern As SyntaxNode) As SyntaxNode
+        Friend Overrides Function IsPatternExpression(expression As SyntaxNode, isToken As SyntaxToken, pattern As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
@@ -3724,6 +3732,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Friend Overrides Function DeclarationPattern(type As INamedTypeSymbol, name As String) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function AndPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function NotPattern(pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function OrPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function ParenthesizedPattern(pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function TypePattern(type As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
