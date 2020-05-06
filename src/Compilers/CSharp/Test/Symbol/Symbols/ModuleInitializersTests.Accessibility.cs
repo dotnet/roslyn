@@ -29,7 +29,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (6,6): error CS8794: Module initializer method 'M' must be accessible at the module level
+                // (6,6): error CS8796: Module initializer method 'M' must be accessible at the module level
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
                 );
@@ -112,7 +112,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (8,10): error CS8794: Module initializer method 'M' must be accessible at the module level
+                // (8,10): error CS8796: Module initializer method 'M' must be accessible at the module level
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M").WithLocation(8, 10)
                 );

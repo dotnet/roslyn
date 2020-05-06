@@ -28,7 +28,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (9,10): error CS8793: A module initializer must be an ordinary member method
+                // (9,10): error CS8795: A module initializer must be an ordinary member method
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(9, 10)
                 );
@@ -81,7 +81,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (6,6): error CS8793: A module initializer must be an ordinary member method
+                // (6,6): error CS8795: A module initializer must be an ordinary member method
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(6, 6)
                 );
@@ -130,7 +130,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (6,6): error CS8793: A module initializer must be an ordinary member method
+                // (6,6): error CS8795: A module initializer must be an ordinary member method
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(6, 6)
                 );
@@ -179,7 +179,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (6,6): error CS8793: A module initializer must be an ordinary member method
+                // (6,6): error CS8795: A module initializer must be an ordinary member method
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(6, 6)
                 );
@@ -233,10 +233,10 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (8,10): error CS8793: A module initializer must be an ordinary member method
+                // (8,10): error CS8795: A module initializer must be an ordinary member method
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(8, 10),
-                // (10,10): error CS8793: A module initializer must be an ordinary member method
+                // (10,10): error CS8795: A module initializer must be an ordinary member method
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(10, 10)
                 );
@@ -298,10 +298,10 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (8,10): error CS8793: A module initializer must be an ordinary member method
+                // (8,10): error CS8795: A module initializer must be an ordinary member method
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(8, 10),
-                // (10,10): error CS8793: A module initializer must be an ordinary member method
+                // (10,10): error CS8795: A module initializer must be an ordinary member method
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(10, 10)
                 );
@@ -363,10 +363,10 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (8,10): error CS8793: A module initializer must be an ordinary member method
+                // (8,10): error CS8795: A module initializer must be an ordinary member method
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(8, 10),
-                // (10,10): error CS8793: A module initializer must be an ordinary member method
+                // (10,10): error CS8795: A module initializer must be an ordinary member method
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(10, 10)
                 );
@@ -423,7 +423,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (6,6): error CS8793: A module initializer must be an ordinary member method
+                // (6,6): error CS8795: A module initializer must be an ordinary member method
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(6, 6)
                 );
@@ -472,7 +472,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (6,6): error CS8793: A module initializer must be an ordinary member method
+                // (6,6): error CS8795: A module initializer must be an ordinary member method
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, "ModuleInitializer").WithLocation(6, 6)
                 );

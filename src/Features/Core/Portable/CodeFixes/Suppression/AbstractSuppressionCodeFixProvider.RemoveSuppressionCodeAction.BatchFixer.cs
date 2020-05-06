@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     }
                 }
 
-                protected async override Task AddProjectFixesAsync(
+                protected override async Task AddProjectFixesAsync(
                     Project project, ImmutableArray<Diagnostic> diagnostics,
                     ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> bag,
                     FixAllState fixAllState, CancellationToken cancellationToken)
