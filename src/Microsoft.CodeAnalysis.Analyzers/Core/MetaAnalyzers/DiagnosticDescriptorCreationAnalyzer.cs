@@ -68,6 +68,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableDoNotUseReservedDiagnosticIdMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDoNotUseReservedDiagnosticIdDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
+        /// <summary>
+        /// RS1007 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorTitle"/>)
+        /// </summary>
         public static readonly DiagnosticDescriptor UseLocalizableStringsInDescriptorRule = new DiagnosticDescriptor(
             DiagnosticIds.UseLocalizableStringsInDescriptorRuleId,
             s_localizableUseLocalizableStringsTitle,
@@ -78,6 +81,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableUseLocalizableStringsDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        /// <summary>
+        /// RS1015 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.ProvideHelpUriInDescriptorTitle"/>)
+        /// </summary>
         public static readonly DiagnosticDescriptor ProvideHelpUriInDescriptorRule = new DiagnosticDescriptor(
             DiagnosticIds.ProvideHelpUriInDescriptorRuleId,
             s_localizableProvideHelpUriTitle,
@@ -88,6 +94,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableProvideHelpUriDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        /// <summary>
+        /// RS1017 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeAConstantTitle"/>)
+        /// </summary>
         public static readonly DiagnosticDescriptor DiagnosticIdMustBeAConstantRule = new DiagnosticDescriptor(
             DiagnosticIds.DiagnosticIdMustBeAConstantRuleId,
             s_localizableDiagnosticIdMustBeAConstantTitle,
@@ -98,6 +107,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDiagnosticIdMustBeAConstantDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        /// <summary>
+        /// RS1019 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.UseUniqueDiagnosticIdTitle"/>)
+        /// </summary>
         public static readonly DiagnosticDescriptor UseUniqueDiagnosticIdRule = new DiagnosticDescriptor(
             DiagnosticIds.UseUniqueDiagnosticIdRuleId,
             s_localizableUseUniqueDiagnosticIdTitle,
@@ -108,6 +120,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableUseUniqueDiagnosticIdDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        /// <summary>
+        /// RS1028 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.ProvideCustomTagsInDescriptorTitle"/>)
+        /// </summary>
         public static readonly DiagnosticDescriptor ProvideCustomTagsInDescriptorRule = new DiagnosticDescriptor(
             DiagnosticIds.ProvideCustomTagsInDescriptorRuleId,
             s_localizableProvideCustomTagsTitle,
@@ -118,6 +133,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableProvideCustomTagsDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        /// <summary>
+        /// RS1029 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdTitle"/>)
+        /// </summary>
         public static readonly DiagnosticDescriptor DoNotUseReservedDiagnosticIdRule = new DiagnosticDescriptor(
             DiagnosticIds.DoNotUseReservedDiagnosticIdRuleId,
             s_localizableDoNotUseReservedDiagnosticIdTitle,

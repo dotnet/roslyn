@@ -186,6 +186,7 @@ namespace Analyzer.Utilities
         public const string SystemIOFileStream = "System.IO.FileStream";
         public const string SystemIOLogLogStore = "System.IO.Log.LogStore";
         public const string SystemIOPath = "System.IO.Path";
+        public const string SystemIOStream = "System.IO.Stream";
         public const string SystemIOStringReader = "System.IO.StringReader";
         public const string SystemIOUnmanagedMemoryStream = "System.IO.UnmanagedMemoryStream";
         public const string SystemIProgress1 = "System.IProgress`1";

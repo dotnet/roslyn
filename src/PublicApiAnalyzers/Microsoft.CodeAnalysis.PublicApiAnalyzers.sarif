@@ -163,8 +163,8 @@
         },
         "RS0037": {
           "id": "RS0037",
-          "shortDescription": "Annotate nullability of types and members in the declared API",
-          "fullDescription": "All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.",
+          "shortDescription": "Enable tracking of nullability of reference types in the declared API",
+          "fullDescription": "PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
           "properties": {
