@@ -3367,5 +3367,71 @@ class Class1
             CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 );
         }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedEnumConstantInIsPattern_01()
+        {
+            var source =
+@"enum E
+{
+    A, B, C
+}
+
+class Class1
+{
+    void M(object e)
+    {
+        if (e is global::E.A) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedTypeInIsType_02()
+        {
+            var source =
+@"enum E
+{
+    A, B, C
+}
+
+class Class1
+{
+    void M(object e)
+    {
+        if (e is global::E) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedTypeInIsType_03()
+        {
+            var source =
+@"namespace E
+{
+    public class A { }
+}
+
+class Class1
+{
+    void M(object e)
+    {
+        if (e is global::E.A) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
     }
 }
