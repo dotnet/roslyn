@@ -172,7 +172,6 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
             CompileAndVerify(
                 source,
                 parseOptions: s_parseOptions,
-                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 expectedOutput: "1234");
         }
 
@@ -213,7 +212,6 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 source,
                 parseOptions: s_parseOptions,
                 targetFramework: TargetFramework.NetStandardLatest,
-                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234",
                 verify: !ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Skipped : Verification.Passes);
         }
@@ -274,7 +272,6 @@ class C4
             CompileAndVerify(
                 new[] { source1, source2, source3 },
                 parseOptions: s_parseOptions,
-                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 expectedOutput: "123456");
         }
 
