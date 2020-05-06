@@ -5867,7 +5867,7 @@ class Program
         }
 
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
-            => await TestInRegularAndScriptAsync(code, expected, index: index, options: PreferIntrinsicTypeEverywhere);
+            => await TestInRegularAndScript1Async(code, expected, index, new TestParameters(options: PreferIntrinsicTypeEverywhere));
 
         private OptionsCollection PreferIntrinsicTypeEverywhere
             => new OptionsCollection(GetLanguage())
