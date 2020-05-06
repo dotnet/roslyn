@@ -887,6 +887,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         transformFlagsBuilder.Add(false);
                         break;
 
+                    case TypeKind.FunctionPointer:
+                        handleFunctionPointerType((FunctionPointerTypeSymbol)type, transformFlagsBuilder, isNestedNamedType, addCustomModifierFlags);
+
+                        // Function pointer types have nested custom modifiers and refkinds in line with types, and visit all their nested types
+                        // as part of this call.
+                        return true;
+
                     default:
                         // Encode transforms flag for this type.
                         // For nested named types, a single flag (false) is encoded for the entire type name, followed by flags for all of the type arguments.
@@ -906,6 +913,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Continue walking types
                 return false;
+
+                static void handleFunctionPointerType(FunctionPointerTypeSymbol funcPtr, ArrayBuilder<bool> transformFlagsBuilder, bool isNestedNamedType, bool addCustomModifierFlags)
+                {
+                    Func<TypeSymbol, (ArrayBuilder<bool>, bool), bool, bool> visitor = addFlags;
+
+                    transformFlagsBuilder.Add(false);
+
+                    var sig = funcPtr.Signature;
+                    handle(sig.RefKind, sig.RefCustomModifiers, sig.ReturnTypeWithAnnotations);
+
+                    foreach (var param in sig.Parameters)
+                    {
+                        handle(param.RefKind, param.RefCustomModifiers, param.TypeWithAnnotations);
+                    }
+
+                    void handle(RefKind refKind, ImmutableArray<CustomModifier> customModifiers, TypeWithAnnotations twa)
+                    {
+                        if (refKind != RefKind.None)
+                        {
+                            transformFlagsBuilder.Add(false);
+                        }
+
+                        if (addCustomModifierFlags)
+                        {
+                            HandleCustomModifiers(customModifiers.Length, transformFlagsBuilder);
+                            HandleCustomModifiers(twa.CustomModifiers.Length, transformFlagsBuilder);
+                        }
+
+                        twa.Type.VisitType(visitor, (transformFlagsBuilder, addCustomModifierFlags));
+                    }
+
+                    static bool addFlags(TypeSymbol type, (ArrayBuilder<bool> builder, bool addCustomModifiers) param, bool isNestedNamedType)
+                    {
+                        return AddFlags(type, param.builder, isNestedNamedType, param.addCustomModifiers);
+                    }
+                }
             }
 
             private static void HandleCustomModifiers(int customModifiersCount, ArrayBuilder<bool> transformFlagsBuilder)
