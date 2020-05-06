@@ -24,6 +24,8 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup Label="NuGet">
+    <NuspecProperty Include="MicrosoftCSharpVersion=$(MicrosoftCSharpVersion)"/>
+    <NuspecProperty Include="MicrosoftVisualStudioCompositionVersion=$(MicrosoftVisualStudioCompositionVersion)"/>
     <NuspecProperty Include="SystemThreadingTasksDataflowVersion=$(SystemThreadingTasksDataflowVersion)"/>
   </ItemGroup>
   <ItemGroup Label="PkgDef">
