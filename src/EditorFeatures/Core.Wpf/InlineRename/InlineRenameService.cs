@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     var workspace = document.Project.Solution.Workspace;
                     var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
+
                     foreach (var documentSpan in inlineRenameInfo.DefinitionLocations)
                     {
                         var sourceText = documentSpan.Document.GetTextSynchronously(cancellationToken);

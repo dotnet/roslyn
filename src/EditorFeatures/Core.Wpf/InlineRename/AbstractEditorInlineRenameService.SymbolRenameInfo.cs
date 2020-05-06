@@ -121,7 +121,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 var index = triggerText.LastIndexOf(searchName, StringComparison.Ordinal);
-
                 if (index < 0)
                 {
                     // Couldn't even find the search text at this reference location.  This might happen
