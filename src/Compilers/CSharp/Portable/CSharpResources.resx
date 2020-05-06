@@ -6074,7 +6074,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>module initializers</value>
   </data>
   <data name="ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType" xml:space="preserve">
-    <value>Module initializer method '{0}' must be accessible outside top-level type '{1}'</value>
+    <value>Module initializer method '{0}' must be accessible at the module level</value>
   </data>
   <data name="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid" xml:space="preserve">
     <value>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</value>

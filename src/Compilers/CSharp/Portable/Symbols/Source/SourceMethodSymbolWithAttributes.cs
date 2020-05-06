@@ -780,8 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             if (!AccessCheck.IsSymbolAccessible(this, ContainingAssembly, ref useSiteDiagnostics))
             {
-                var topLevelType = containingTypes(this).Last();
-                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, arguments.AttributeSyntaxOpt.Location, Name, topLevelType.Name);
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, arguments.AttributeSyntaxOpt.Location, Name);
                 hasError = true;
             }
 
@@ -802,14 +801,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!hasError)
             {
                 DeclaringCompilation.AddModuleInitializerMethod(this);
-            }
-
-            static IEnumerable<NamedTypeSymbol> containingTypes(Symbol symbol)
-            {
-                for (var type = symbol.ContainingType; type is { }; type = type.ContainingType)
-                {
-                    yield return type;
-                }
             }
         }
 #nullable restore

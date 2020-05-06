@@ -333,8 +333,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType">
-        <source>Module initializer method '{0}' must be accessible outside top-level type '{1}'</source>
-        <target state="new">Module initializer method '{0}' must be accessible outside top-level type '{1}'</target>
+        <source>Module initializer method '{0}' must be accessible at the module level</source>
+        <target state="new">Module initializer method '{0}' must be accessible at the module level</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeOrdinary">
