@@ -280,7 +280,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSpace();
                 }
 
+                if (ShouldMethodDisplayReadOnly(symbol))
+                {
+                    AddReadOnlyIfRequired();
+                }
+
+                if (symbol.ReturnsByRef)
+                {
+                    AddRefIfRequired();
+                }
+                else if (symbol.ReturnsByRefReadonly)
+                {
+                    AddRefReadonlyIfRequired();
+                }
+
+                AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
+
                 symbol.ReturnType.Accept(this.NotFirstVisitor);
+
+                AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers, leadingSpace: true, trailingSpace: false);
 
                 AddPunctuation(SyntaxKind.GreaterThanToken);
                 return;

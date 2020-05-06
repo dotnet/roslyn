@@ -397,9 +397,9 @@ unsafe class D
   // Code size       87 (0x57)
   .maxstack  2
   IL_0000:  ldftn      ""ref readonly int D.M()""
-  IL_0006:  stsfld     ""delegate*<int> C.Field1""
-  IL_000b:  ldsfld     ""delegate*<int> C.Field1""
-  IL_0010:  calli      ""delegate*<int>""
+  IL_0006:  stsfld     ""delegate*<ref readonly int> C.Field1""
+  IL_000b:  ldsfld     ""delegate*<ref readonly int> C.Field1""
+  IL_0010:  calli      ""delegate*<ref readonly int>""
   IL_0015:  dup
   IL_0016:  ldind.i4
   IL_0017:  call       ""void System.Console.Write(int)""
@@ -408,11 +408,11 @@ unsafe class D
   IL_0022:  ldind.i4
   IL_0023:  call       ""void System.Console.Write(int)""
   IL_0028:  ldftn      ""ref readonly int D.M()""
-  IL_002e:  stsfld     ""delegate*<int> C.Field2""
+  IL_002e:  stsfld     ""delegate*<ref readonly int> C.Field2""
   IL_0033:  ldc.i4.3
   IL_0034:  stsfld     ""int D.i""
-  IL_0039:  ldsfld     ""delegate*<int> C.Field2""
-  IL_003e:  calli      ""delegate*<int>""
+  IL_0039:  ldsfld     ""delegate*<ref readonly int> C.Field2""
+  IL_003e:  calli      ""delegate*<ref readonly int>""
   IL_0043:  dup
   IL_0044:  ldind.i4
   IL_0045:  call       ""void System.Console.Write(int)""
@@ -538,7 +538,7 @@ unsafe class C
   // Code size       31 (0x1f)
   .maxstack  2
   IL_0000:  ldftn      ""ref readonly int C.GetI()""
-  IL_0006:  calli      ""delegate*<int>""
+  IL_0006:  calli      ""delegate*<ref readonly int>""
   IL_000b:  dup
   IL_000c:  ldind.i4
   IL_000d:  call       ""void System.Console.Write(int)""
@@ -2402,8 +2402,8 @@ unsafe class C
   .maxstack  1
   IL_0000:  ldstr      ""Field""
   IL_0005:  stsfld     ""string Program.field""
-  IL_000a:  call       ""delegate*<string> Program.LoadPtr()""
-  IL_000f:  calli      ""delegate*<string>""
+  IL_000a:  call       ""delegate*<ref string> Program.LoadPtr()""
+  IL_000f:  calli      ""delegate*<ref string>""
   IL_0014:  ldind.ref
   IL_0015:  call       ""void System.Console.WriteLine(string)""
   IL_001a:  ret
@@ -2465,14 +2465,15 @@ unsafe class C
 {
   // Code size       27 (0x1b)
   .maxstack  2
-  IL_0000:  call       ""delegate*<string> Program.LoadPtr()""
-  IL_0005:  calli      ""delegate*<string>""
+  IL_0000:  call       ""delegate*<ref string> Program.LoadPtr()""
+  IL_0005:  calli      ""delegate*<ref string>""
   IL_000a:  ldstr      ""Field""
   IL_000f:  stind.ref
   IL_0010:  ldsfld     ""string Program.field""
   IL_0015:  call       ""void System.Console.WriteLine(string)""
   IL_001a:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -5061,7 +5062,7 @@ unsafe class C
   // Code size       34 (0x22)
   .maxstack  1
   IL_0000:  ldarg.1
-  IL_0001:  calli      ""delegate*<T>""
+  IL_0001:  calli      ""delegate*<ref T>""
   IL_0006:  constrained. ""T""
   IL_000c:  callvirt   ""void C.M1()""
   IL_0011:  ldarg.2

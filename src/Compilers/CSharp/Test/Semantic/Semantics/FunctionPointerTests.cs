@@ -1,4 +1,3 @@
-
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -497,7 +496,7 @@ unsafe class C
   // Code size       10 (0xa)
   .maxstack  1
   .locals init (delegate*<string, ref int, object> V_0, //ptr1
-                delegate*<string, int> V_1, //ptr2
+                delegate*<string, ref int> V_1, //ptr2
                 delegate*<string, void> V_2, //ptr3
                 delegate*<string, out int, object> V_3) //ptr4
   IL_0000:  ldarg.1
@@ -1411,11 +1410,11 @@ unsafe class C
                "delegate*<System.String?>",
                "?",
                "?",
-               "delegate*<System.String>",
+               "delegate*<ref System.String>",
                "delegate*<System.String?>",
                "?",
                "?",
-               "delegate*<System.String>"
+               "delegate*<ref System.String>"
             };
 
             AssertEx.Equal(expectedTypes, invocationTypes);
