@@ -30,6 +30,7 @@ This document provides guidance for thinking about language interactions and tes
     - GetCFG (`ControlFlowGraph`)
 - VB/F# interop
 - Performance and stress testing
+- Can build VS
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref

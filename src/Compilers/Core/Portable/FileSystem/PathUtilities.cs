@@ -732,6 +732,10 @@ namespace Roslyn.Utilities
         /// If the current environment uses the '\' directory separator, replaces all uses of '\'
         /// in the given string with '/'. Otherwise, returns the string.
         /// </summary>
+        /// <remarks>
+        /// This method is equivalent to Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildAnalyzerConfig.NormalizeWithForwardSlash
+        /// Both methods should be kept in sync.
+        /// </remarks>
         public static string NormalizeWithForwardSlash(string p)
             => DirectorySeparatorChar == '/' ? p : p.Replace(DirectorySeparatorChar, '/');
 

@@ -40,6 +40,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Add 'DebuggerDisplay' attribute</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="new">Add explicit cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Aggiungi nome del membro</target>
@@ -238,6 +243,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">Converti in struct</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="new">Convert type to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
@@ -713,6 +723,20 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Regex_any_character_group_short">
         <source>any character</source>
         <target state="new">any character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_atomic_group_long">
+        <source>Atomic groups (known in some other regular expression engines as a nonbacktracking subexpression, an atomic subexpression, or a once-only subexpression) disable backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+
+This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
+        <target state="new">Atomic groups (known in some other regular expression engines as a nonbacktracking subexpression, an atomic subexpression, or a once-only subexpression) disable backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+
+This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_atomic_group_short">
+        <source>atomic group</source>
+        <target state="new">atomic group</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_backspace_character_long">
@@ -1360,20 +1384,6 @@ If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]
       <trans-unit id="Regex_non_word_character_short">
         <source>non-word character</source>
         <target state="new">non-word character</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_nonbacktracking_subexpression_long">
-        <source>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
-
-This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
-        <target state="new">This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
-
-This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_nonbacktracking_subexpression_short">
-        <source>nonbacktracking subexpression</source>
-        <target state="new">nonbacktracking subexpression</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_long">

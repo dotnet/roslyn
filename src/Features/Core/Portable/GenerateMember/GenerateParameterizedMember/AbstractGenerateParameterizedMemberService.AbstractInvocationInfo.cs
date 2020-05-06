@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     attributes: default,
                     varianceKind: typeParameter.Variance,
                     name: typeParameter.Name,
-                    constraintTypes: constraints.AsImmutable<ITypeSymbol>(),
+                    constraintTypes: constraints.AsImmutable(),
                     hasConstructorConstraint: typeParameter.HasConstructorConstraint,
                     hasReferenceConstraint: typeParameter.HasReferenceTypeConstraint,
                     hasValueConstraint: typeParameter.HasValueTypeConstraint,

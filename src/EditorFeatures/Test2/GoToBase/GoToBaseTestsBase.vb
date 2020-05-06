@@ -11,6 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
                                            Optional metadataDefinitions As String() = Nothing) As Task
             Await GoToHelpers.TestAsync(
                 workspaceDefinition,
+                outOfProcess:=False,
                 Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext)
                     Dim gotoBaseService = document.GetLanguageService(Of IGoToBaseService)
                     Await gotoBaseService.FindBasesAsync(document, position, context)
