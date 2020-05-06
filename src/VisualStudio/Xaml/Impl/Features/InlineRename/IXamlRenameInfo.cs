@@ -44,11 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
         SymbolKind Kind { get; }
 
         /// <summary>
-        /// The locations of the potential rename candidates for the symbol.
-        /// </summary>
-        ImmutableArray<CodeAnalysis.DocumentSpan> DefinitionLocations { get; }
-
-        /// <summary>
         /// Find all locations to be renamed.
         /// </summary>
         /// <param name="renameInStrings">Whether or not to rename within strings</param>

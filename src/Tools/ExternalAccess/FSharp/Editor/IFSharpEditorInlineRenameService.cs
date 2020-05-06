@@ -131,11 +131,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         FSharpGlyph Glyph { get; }
 
         /// <summary>
-        /// The locations of the potential rename candidates for the symbol.
-        /// </summary>
-        ImmutableArray<DocumentSpan> DefinitionLocations { get; }
-
-        /// <summary>
         /// Gets the final name of the symbol if the user has typed the provided replacement text
         /// in the editor.  Normally, the final name will be same as the replacement text.  However,
         /// that may not always be the same.  For example, when renaming an attribute the replacement
