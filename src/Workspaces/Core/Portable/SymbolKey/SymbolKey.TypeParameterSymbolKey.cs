@@ -12,28 +12,48 @@ namespace Microsoft.CodeAnalysis
         {
             public static void Create(ITypeParameterSymbol symbol, SymbolKeyWriter visitor)
             {
-                visitor.WriteString(symbol.MetadataName);
-                visitor.WriteSymbolKey(symbol.ContainingSymbol);
+                if (symbol.TypeParameterKind == TypeParameterKind.Cref)
+                {
+                    visitor.WriteBoolean(true);
+                    visitor.WriteLocation(symbol.Locations[0]);
+                }
+                else
+                {
+                    visitor.WriteBoolean(false);
+                    visitor.WriteString(symbol.MetadataName);
+                    visitor.WriteSymbolKey(symbol.ContainingSymbol);
+                }
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var metadataName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var isCref = reader.ReadBoolean();
 
-                using var result = PooledArrayBuilder<ITypeParameterSymbol>.GetInstance();
-                foreach (var containingSymbol in containingSymbolResolution)
+                if (isCref)
                 {
-                    foreach (var typeParam in containingSymbol.GetTypeParameters())
+                    var location = reader.ReadLocation();
+                    var resolution = reader.ResolveLocation(location);
+                    return resolution.GetValueOrDefault();
+                }
+                else
+                {
+                    var metadataName = reader.ReadString();
+                    var containingSymbolResolution = reader.ReadSymbolKey();
+
+                    using var result = PooledArrayBuilder<ITypeParameterSymbol>.GetInstance();
+                    foreach (var containingSymbol in containingSymbolResolution)
                     {
-                        if (typeParam.MetadataName == metadataName)
+                        foreach (var typeParam in containingSymbol.GetTypeParameters())
                         {
-                            result.AddIfNotNull(typeParam);
+                            if (typeParam.MetadataName == metadataName)
+                            {
+                                result.AddIfNotNull(typeParam);
+                            }
                         }
                     }
-                }
 
-                return CreateResolution(result);
+                    return CreateResolution(result);
+                }
             }
         }
     }

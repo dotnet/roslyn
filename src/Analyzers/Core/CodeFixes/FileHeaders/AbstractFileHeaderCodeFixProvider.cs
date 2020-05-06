@@ -15,10 +15,13 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.Formatting;
+#endif
 
 namespace Microsoft.CodeAnalysis.FileHeaders
 {
@@ -230,7 +233,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CodeFixesResources.Add_file_banner, createChangedDocument, nameof(AbstractFileHeaderCodeFixProvider))
+                : base(CodeFixesResources.Add_file_header, createChangedDocument, nameof(AbstractFileHeaderCodeFixProvider))
             {
             }
         }
@@ -242,7 +245,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             public FixAll(AbstractFileHeaderCodeFixProvider codeFixProvider)
                 => _codeFixProvider = codeFixProvider;
 
-            protected override string CodeActionTitle => CodeFixesResources.Add_file_banner;
+            protected override string CodeActionTitle => CodeFixesResources.Add_file_header;
 
             protected override Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {

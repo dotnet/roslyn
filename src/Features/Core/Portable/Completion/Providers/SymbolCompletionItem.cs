@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal static partial class SymbolCompletionItem
     {
+        private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolEncoding = AddSymbolEncoding;
+        private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolInfo = AddSymbolInfo;
+
         private static CompletionItem CreateWorker(
             string displayText,
             string displayTextSuffix,
@@ -280,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
-                AddSymbolEncoding, sortText, insertionText,
+                s_addSymbolEncoding, sortText, insertionText,
                 filterText, supportedPlatforms, properties, tags);
         }
 
@@ -299,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
-                AddSymbolInfo, sortText, insertionText,
+                s_addSymbolInfo, sortText, insertionText,
                 filterText, supportedPlatforms, properties, tags);
         }
 

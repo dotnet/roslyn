@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract class AbstractSyntaxFacts
     {
-        private readonly static ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool
+        private static readonly ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool
             = SharedPools.Default<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>>();
 
         public abstract ISyntaxKinds SyntaxKinds { get; }
@@ -507,6 +507,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         public abstract SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
+
+        public abstract bool IsParameterNameXmlElementSyntax(SyntaxNode node);
+
+        public abstract SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
 
         public bool HasIncompleteParentMember(SyntaxNode node)
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;

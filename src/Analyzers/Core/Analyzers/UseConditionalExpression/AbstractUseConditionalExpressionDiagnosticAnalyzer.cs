@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
-        protected abstract bool TryMatchPattern(IConditionalOperation ifOperation);
+        protected abstract bool TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol);
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterOperationAction(AnalyzeOperation, OperationKind.Conditional);
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return;
             }
 
-            if (!TryMatchPattern(ifOperation))
+            if (!TryMatchPattern(ifOperation, context.ContainingSymbol))
             {
                 return;
             }

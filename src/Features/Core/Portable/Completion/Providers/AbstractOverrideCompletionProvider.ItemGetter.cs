@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -33,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             private readonly SourceText _text;
             private readonly SyntaxTree _syntaxTree;
             private readonly int _startLineNumber;
-            private readonly TextLine _startLine;
 
             private ItemGetter(
                 AbstractOverrideCompletionProvider overrideCompletionProvider,
@@ -42,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 SourceText text,
                 SyntaxTree syntaxTree,
                 int startLineNumber,
-                TextLine startLine,
                 CancellationToken cancellationToken)
             {
                 _provider = overrideCompletionProvider;
@@ -51,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _text = text;
                 _syntaxTree = syntaxTree;
                 _startLineNumber = startLineNumber;
-                _startLine = startLine;
                 _cancellationToken = cancellationToken;
             }
 
@@ -64,8 +60,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var startLineNumber = text.Lines.IndexOf(position);
-                var startLine = text.Lines[startLineNumber];
-                return new ItemGetter(overrideCompletionProvider, document, position, text, syntaxTree, startLineNumber, startLine, cancellationToken);
+                return new ItemGetter(overrideCompletionProvider, document, position, text, syntaxTree, startLineNumber, cancellationToken);
             }
 
             internal async Task<IEnumerable<CompletionItem>> GetItemsAsync()

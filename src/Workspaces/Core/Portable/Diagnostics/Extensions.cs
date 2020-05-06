@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder> ToResultBuilderMap(
             this AnalysisResult analysisResult,
             Project project, VersionStamp version, Compilation compilation, IEnumerable<DiagnosticAnalyzer> analyzers,
-            ISkippedAnalyzersInfo skippedAnalyzersInfo,
+            SkippedHostAnalyzersInfo skippedAnalyzersInfo,
             CancellationToken cancellationToken)
         {
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>();

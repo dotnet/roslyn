@@ -31,6 +31,54 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 Assert.Equal(expectedXMLFragment, extractedXMLFragment);
             }
 
+            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+            public async Task TestNativeInteger()
+            {
+                var metadataSource = "public class C { public nint i; public nuint i2; }";
+                var symbolName = "C";
+
+                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview",
+                    expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System;
+using System.Runtime.CompilerServices;
+
+public class [|C|]
+{{
+    [NativeIntegerAttribute]
+    public nint i;
+    [NativeIntegerAttribute]
+    public nuint i2;
+
+    public C();
+}}");
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            public async Task TestTupleWithNames()
+            {
+                var metadataSource = "public class C { public (int a, int b) t; }";
+                var symbolName = "C";
+
+                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp,
+                    expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System.Runtime.CompilerServices;
+
+public class [|C|]
+{{
+    [TupleElementNames(new[] {{ ""a"", ""b"" }})]
+    public (int a, int b) t;
+
+    public C();
+}}");
+            }
+
             [Fact, WorkItem(26605, "https://github.com/dotnet/roslyn/issues/26605")]
             public async Task TestValueTuple()
             {

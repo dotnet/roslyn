@@ -5,9 +5,13 @@
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.ExceptionServices
 Imports System.Runtime.InteropServices
+Imports EnvDTE
+Imports EnvDTE80
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -52,13 +56,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim notificationService = workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
 
                 Dim state = New CodeModelState(
                     threadingContext,
                     mockServiceProvider,
                     project.LanguageServices,
                     mockVisualStudioWorkspace,
-                    New ProjectCodeModelFactory(mockVisualStudioWorkspace, mockServiceProvider, threadingContext))
+                    New ProjectCodeModelFactory(
+                        mockVisualStudioWorkspace,
+                        mockServiceProvider,
+                        threadingContext,
+                        notificationService,
+                        listenerProvider))
 
                 Dim projectCodeModel = DirectCast(state.ProjectCodeModelFactory.CreateProjectCodeModel(project.Id, Nothing), ProjectCodeModel)
 
@@ -88,12 +99,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Private ReadOnly _componentModel As MockComponentModel
 
             Public Sub New(componentModel As MockComponentModel)
-                Me._componentModel = componentModel
+                _componentModel = componentModel
             End Sub
 
             Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
                 If serviceType = GetType(SComponentModel) Then
                     Return Me._componentModel
+                End If
+
+                If serviceType = GetType(EnvDTE.IVsExtensibility) Then
+                    Return Nothing
                 End If
 
                 Throw New NotImplementedException($"No service exists for {serviceType.FullName}")
@@ -132,7 +147,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Class
 
         <Extension()>
-        Public Function GetDocumentAtCursor(state As CodeModelTestState) As Document
+        Public Function GetDocumentAtCursor(state As CodeModelTestState) As Microsoft.CodeAnalysis.Document
             Dim cursorDocument = state.Workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
 
             Dim document = state.Workspace.CurrentSolution.GetDocument(cursorDocument.Id)

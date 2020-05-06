@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Then we look at the resulting list of strings, and remove any that are
         /// illegal identifiers, and pass the remaining ones through to the compiler.
         /// 
-        /// Note that CSharp does support assigning a value to the constants ... in
+        /// Note that CSharp doesn't support assigning a value to the constants ... in
         /// other words, a constant is either defined or not defined ... it can't have
         /// an actual value.
         /// </summary>

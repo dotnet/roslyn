@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Text
             return SnapshotSourceText.From(textBufferCloneServiceOpt, textSnapshot);
         }
 
-        internal static SourceText AsRoslynText(this ITextSnapshot textSnapshot, ITextBufferCloneService textBufferCloneServiceOpt, Encoding encoding)
+        internal static SourceText AsRoslynText(this ITextSnapshot textSnapshot, ITextBufferCloneService textBufferCloneServiceOpt, Encoding? encoding)
             => new SnapshotSourceText.ClosedSnapshotSourceText(textBufferCloneServiceOpt, ((ITextSnapshot2)textSnapshot).TextImage, encoding);
 
         /// <summary>

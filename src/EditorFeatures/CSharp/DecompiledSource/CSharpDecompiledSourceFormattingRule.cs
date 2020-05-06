@@ -6,7 +6,6 @@
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
@@ -19,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         {
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
-            SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(
+            in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             var operation = GetAdjustNewLinesOperation(previousToken, currentToken);
-            return operation ?? nextOperation.Invoke();
+            return operation ?? nextOperation.Invoke(in previousToken, in currentToken);
         }
 
         private AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)

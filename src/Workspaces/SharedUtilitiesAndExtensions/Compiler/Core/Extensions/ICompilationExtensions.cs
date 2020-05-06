@@ -112,8 +112,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? TaskOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(Task<>).FullName!);
 
+        public static INamedTypeSymbol? ValueTaskType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask");
+
         public static INamedTypeSymbol? ValueTaskOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+
         public static INamedTypeSymbol? IEnumerableOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName!);
 
@@ -140,6 +144,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? TupleElementNamesAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(TupleElementNamesAttribute).FullName!);
+
+        public static INamedTypeSymbol? NativeIntegerAttributeType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.NativeIntegerAttribute");
 
         public static INamedTypeSymbol? DynamicAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(DynamicAttribute).FullName!);

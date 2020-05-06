@@ -47,17 +47,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         {
         }
 
+        protected abstract TLanguageKindEnum GetSyntaxKind();
         protected abstract ISyntaxFacts GetSyntaxFacts();
 
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-        {
-            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
-            context.RegisterSyntaxNodeAction(AnalyzeSyntax,
-                syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.ParenthesizedExpression));
-        }
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKind());
 
         protected abstract bool CanRemoveParentheses(
             TParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,

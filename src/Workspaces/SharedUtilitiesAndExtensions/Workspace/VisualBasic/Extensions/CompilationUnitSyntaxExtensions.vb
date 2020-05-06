@@ -77,11 +77,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 [imports].Select(Function(u) u.WithAdditionalAnnotations(annotations)).ToSyntaxList())
         End Function
 
-        Private Function IsDocCommentOrElastic(t As SyntaxTrivia) As Boolean
-            Return t.Kind() = SyntaxKind.DocumentationCommentTrivia OrElse t.IsElastic()
-        End Function
-
-
         Private Function AddImportsStatements(root As CompilationUnitSyntax, importsStatements As IList(Of ImportsStatementSyntax)) As List(Of ImportsStatementSyntax)
             ' We need to try and not place the using inside of a directive if possible.
             Dim [imports] = New List(Of ImportsStatementSyntax)

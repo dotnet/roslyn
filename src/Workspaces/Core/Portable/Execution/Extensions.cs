@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Execution
                                      .WithStrongNameProvider(new DesktopStrongNameProvider(GetStrongNameKeyPaths(info)));
         }
 
-        private static XmlFileResolver GetXmlResolver(string filePath)
+        private static XmlFileResolver GetXmlResolver(string? filePath)
         {
             // Given filePath can be any arbitrary string project is created with.
             // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
@@ -82,16 +84,16 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             var builder = ArrayBuilder<string>.GetInstance();
-            if (info.FilePath != null && PathUtilities.IsAbsolute(info.FilePath))
+            if (PathUtilities.IsAbsolute(info.FilePath))
             {
                 // desktop strong name provider only knows how to deal with absolute path
-                builder.Add(PathUtilities.GetDirectoryName(info.FilePath));
+                builder.Add(PathUtilities.GetDirectoryName(info.FilePath)!);
             }
 
-            if (info.OutputFilePath != null && PathUtilities.IsAbsolute(info.OutputFilePath))
+            if (PathUtilities.IsAbsolute(info.OutputFilePath))
             {
                 // desktop strong name provider only knows how to deal with absolute path
-                builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath));
+                builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath)!);
             }
 
             return builder.ToImmutableAndFree();
