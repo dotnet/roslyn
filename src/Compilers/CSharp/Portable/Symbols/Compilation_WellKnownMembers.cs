@@ -978,6 +978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case TypeKind.Array:
                     case TypeKind.Pointer:
+                    case TypeKind.FunctionPointer:
                     case TypeKind.TypeParameter:
                     case TypeKind.Dynamic:
                         builder.Add(false);
