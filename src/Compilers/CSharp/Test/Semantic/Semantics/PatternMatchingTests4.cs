@@ -3433,5 +3433,56 @@ class Class1
             CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 );
         }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedTypeInIsType_04()
+        {
+            var source =
+@"namespace E
+{
+    public class A<T> { }
+}
+
+class Class1
+{
+    void M<T>(object e)
+    {
+        if (e is global::E.A<int>) { }
+        if (e is global::E.A<object>) { }
+        if (e is global::E.A<T>) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedTypeInIsType_05()
+        {
+            var source =
+@"namespace E
+{
+    public class A<T>
+    {
+        public class B { }
+    }
+}
+
+class Class1
+{
+    void M<T>(object e)
+    {
+        if (e is global::E.A<int>.B) { }
+        if (e is global::E.A<object>.B) { }
+        if (e is global::E.A<T>.B) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
     }
 }
