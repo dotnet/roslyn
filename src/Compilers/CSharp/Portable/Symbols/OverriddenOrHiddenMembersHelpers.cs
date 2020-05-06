@@ -935,8 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // TODO: do we want to add more sophisticated handling for the case where there are multiple runtime-overridden methods?
                 MethodSymbol runtimeOverriddenMethod = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
                 return runtimeOverriddenMethod is null ||
-                    csharpOverriddenMethod != runtimeOverriddenMethod &&
-                    method.IsAccessor() != runtimeOverriddenMethod.IsAccessor();
+                    (csharpOverriddenMethod != runtimeOverriddenMethod && method.IsAccessor() != runtimeOverriddenMethod.IsAccessor());
             }
 
             return false;

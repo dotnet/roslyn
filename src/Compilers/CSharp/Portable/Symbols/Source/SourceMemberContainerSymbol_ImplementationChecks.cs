@@ -900,8 +900,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     {
                                         // error CS1715: 'Derived.M': type must be 'object' to match overridden member 'Base.M'
                                         diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.Type);
-                                        // PROTOTYPE(covariant-returns): when overriddenMemberType.Type is an inheritable reference type and the covariant return
-                                        // feature is enabled, and the platform supports it, and there is no setter, we can say it has to be 'object' **or a derived type**.
+                                        // PROTOTYPE(covariant-returns): when overriddenMemberType.Type is an inheritable reference type
+                                        // and the platform supports it, and there is no setter, we can say it has to be 'object' **or a derived reference type**.
                                         // That would probably be a new error code.
                                     }
                                 }
@@ -1020,8 +1020,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     {
                                         // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
                                         diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType);
-                                        // PROTOTYPE(covariant-returns): when overriddenMethod.ReturnType is an inheritable reference type and the covariant return
-                                        // feature is enabled, and the platform supports it, we can say it has to be 'C<V>' **or a derived type**.
+                                        // PROTOTYPE(covariant-returns): when overriddenMethod.ReturnType is an inheritable reference type
+                                        // and the platform supports it, we can say it has to be 'C<V>' **or a derived reference type**.
                                         // That would probably be a new error code.
                                     }
                                 }

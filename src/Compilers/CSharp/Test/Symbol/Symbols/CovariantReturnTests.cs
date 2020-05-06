@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             else if (member is PropertySymbol property && overriddenMember is PropertySymbol overriddenProperty)
             {
                 var isCovariant = !property.Type.Equals(overriddenProperty.Type, TypeCompareKind.AllIgnoreOptions);
-                var checkMetadata = hasReturnConversion(property.Type, overriddenProperty.Type);
                 if (property.GetMethod is MethodSymbol getMethod && overriddenProperty.GetMethod is MethodSymbol overriddenGetMethod)
                 {
                     Assert.True(getMethod.GetOverriddenMember().Equals(overriddenGetMethod));
+                    var checkMetadata = hasReturnConversion(property.Type, overriddenProperty.Type);
                     if (checkMetadata)
                     {
                         Assert.Equal(isCovariant, getMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
