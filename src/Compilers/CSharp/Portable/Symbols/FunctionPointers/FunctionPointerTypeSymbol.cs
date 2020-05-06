@@ -113,14 +113,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
-            // PROTOTYPE(func-ptr): Implement
+            Signature.AddNullableTransforms(transforms);
         }
 
         internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
         {
-            // PROTOTYPE(func-ptr): Implement
-            result = this;
-            return true;
+            var newSignature = Signature.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position);
+            bool madeChanges = (object)Signature != newSignature;
+            result = madeChanges ? new FunctionPointerTypeSymbol(newSignature) : this;
+            return madeChanges;
         }
 
         internal override DiagnosticInfo? GetUseSiteDiagnostic()

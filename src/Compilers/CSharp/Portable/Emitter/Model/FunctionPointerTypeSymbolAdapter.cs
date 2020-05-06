@@ -9,6 +9,7 @@ using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -51,8 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// as a StandaloneMethodSig. To do this, we wrap the <see cref="FunctionPointerMethodSymbol"/> in a
         /// <see cref="FunctionPointerMethodSignature"/>, to hide its implementation of <see cref="IMethodSymbol"/>.
         /// </summary>
-        // PROTOTYPE(func-ptr): Provide a way for nullability info to compare correctly in MetadataEntityReferenceComparer.
-        private sealed class FunctionPointerMethodSignature : ISignature
+        private sealed class FunctionPointerMethodSignature : ISignature, ISymbolCompareKindComparableInternal
         {
             private readonly FunctionPointerMethodSymbol _underlying;
             internal ISignature Underlying => _underlying;
@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return obj is FunctionPointerMethodSignature { Underlying: var otherUnderlying } &&
                     Underlying.Equals(otherUnderlying);
+            }
+
+            bool ISymbolCompareKindComparableInternal.Equals(ISymbolCompareKindComparableInternal? other, TypeCompareKind compareKind)
+            {
+                return other is FunctionPointerMethodSignature otherSig && _underlying.Equals(otherSig._underlying, compareKind);
             }
 
             public override int GetHashCode() => Underlying.GetHashCode();

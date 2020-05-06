@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: symbolValidator, verify: Verification.Skipped);
         }
 
-        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, IEnumerable<MetadataReference>? references = null)
+        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, IEnumerable<MetadataReference>? references = null, CSharpCompilationOptions? options = null)
         {
-            return CreateCompilation(source, references: references, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
         }
 
         private CSharpCompilation CreateCompilationWithFunctionPointersAndIl(string source, string ilStub, IEnumerable<MetadataReference>? references = null)
@@ -428,28 +428,28 @@ unsafe class D
   // Code size       75 (0x4b)
   .maxstack  2
   .locals init (int V_0, //local
-                delegate*<out int,void> V_1,
-                delegate*<out int,void> V_2)
+                delegate*<out int, void> V_1,
+                delegate*<out int, void> V_2)
   IL_0000:  ldftn      ""void D.MOut(out int)""
-  IL_0006:  stsfld     ""delegate*<out int,void> C.Field3""
+  IL_0006:  stsfld     ""delegate*<out int, void> C.Field3""
   IL_000b:  ldc.i4.5
   IL_000c:  stsfld     ""int D.i""
-  IL_0011:  ldsfld     ""delegate*<out int,void> C.Field3""
+  IL_0011:  ldsfld     ""delegate*<out int, void> C.Field3""
   IL_0016:  stloc.1
   IL_0017:  ldloca.s   V_0
   IL_0019:  ldloc.1
-  IL_001a:  calli      ""delegate*<out int,void>""
+  IL_001a:  calli      ""delegate*<out int, void>""
   IL_001f:  ldloc.0
   IL_0020:  call       ""void System.Console.Write(int)""
   IL_0025:  ldftn      ""void D.MOut(out int)""
-  IL_002b:  stsfld     ""delegate*<out int,void> C.Field5""
+  IL_002b:  stsfld     ""delegate*<out int, void> C.Field5""
   IL_0030:  ldc.i4.6
   IL_0031:  stsfld     ""int D.i""
-  IL_0036:  ldsfld     ""delegate*<out int,void> C.Field5""
+  IL_0036:  ldsfld     ""delegate*<out int, void> C.Field5""
   IL_003b:  stloc.2
   IL_003c:  ldloca.s   V_0
   IL_003e:  ldloc.2
-  IL_003f:  calli      ""delegate*<out int,void>""
+  IL_003f:  calli      ""delegate*<out int, void>""
   IL_0044:  ldloc.0
   IL_0045:  call       ""void System.Console.Write(int)""
   IL_004a:  ret
@@ -459,26 +459,26 @@ unsafe class D
 {
   // Code size       69 (0x45)
   .maxstack  2
-  .locals init (delegate*<in int,void> V_0,
-                delegate*<in int,void> V_1)
+  .locals init (delegate*<in int, void> V_0,
+                delegate*<in int, void> V_1)
   IL_0000:  ldc.i4.7
   IL_0001:  stsfld     ""int D.i""
   IL_0006:  ldftn      ""void D.MIn(in int)""
-  IL_000c:  stsfld     ""delegate*<in int,void> C.Field4""
-  IL_0011:  ldsfld     ""delegate*<in int,void> C.Field4""
+  IL_000c:  stsfld     ""delegate*<in int, void> C.Field4""
+  IL_0011:  ldsfld     ""delegate*<in int, void> C.Field4""
   IL_0016:  stloc.0
   IL_0017:  ldsflda    ""int D.i""
   IL_001c:  ldloc.0
-  IL_001d:  calli      ""delegate*<in int,void>""
+  IL_001d:  calli      ""delegate*<in int, void>""
   IL_0022:  ldc.i4.8
   IL_0023:  stsfld     ""int D.i""
   IL_0028:  ldftn      ""void D.MIn(in int)""
-  IL_002e:  stsfld     ""delegate*<in int,void> C.Field6""
-  IL_0033:  ldsfld     ""delegate*<in int,void> C.Field6""
+  IL_002e:  stsfld     ""delegate*<in int, void> C.Field6""
+  IL_0033:  ldsfld     ""delegate*<in int, void> C.Field6""
   IL_0038:  stloc.1
   IL_0039:  ldsflda    ""int D.i""
   IL_003e:  ldloc.1
-  IL_003f:  calli      ""delegate*<in int,void>""
+  IL_003f:  calli      ""delegate*<in int, void>""
   IL_0044:  ret
 }
 ");
@@ -690,7 +690,7 @@ public unsafe class C
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""delegate*<string,void> C.<Prop1>k__BackingField""
+  IL_0001:  ldfld      ""delegate*<string, void> C.<Prop1>k__BackingField""
   IL_0006:  ret
 }
 ");
@@ -701,7 +701,7 @@ public unsafe class C
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  stfld      ""delegate*<string,void> C.<Prop1>k__BackingField""
+  IL_0002:  stfld      ""delegate*<string, void> C.<Prop1>k__BackingField""
   IL_0007:  ret
 }
 ");
@@ -1109,12 +1109,12 @@ unsafe class Caller
 {
   // Code size       18 (0x12)
   .maxstack  2
-  .locals init (delegate*<string,void> V_0)
-  IL_0000:  ldsfld     ""delegate*<string,void> Caller._field""
+  .locals init (delegate*<string, void> V_0)
+  IL_0000:  ldsfld     ""delegate*<string, void> Caller._field""
   IL_0005:  stloc.0
   IL_0006:  ldstr      ""Called""
   IL_000b:  ldloc.0
-  IL_000c:  calli      ""delegate*<string,void>""
+  IL_000c:  calli      ""delegate*<string, void>""
   IL_0011:  ret
 }");
         }
@@ -1233,17 +1233,17 @@ class Caller
 
             var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: "Hello World");
             // PROTOTYPE(func-ptr): Add calling convention when the formatter supports it
-            verifier.VerifyIL($"Caller.Call(delegate*<string,string,string>)", @"
+            verifier.VerifyIL($"Caller.Call(delegate*<string, string, string>)", @"
 {
   // Code size       24 (0x18)
   .maxstack  3
-  .locals init (delegate*<string,string,string> V_0)
+  .locals init (delegate*<string, string, string> V_0)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldstr      ""Hello""
   IL_0007:  ldstr      "" World""
   IL_000c:  ldloc.0
-  IL_000d:  calli      ""delegate*<string,string,string>""
+  IL_000d:  calli      ""delegate*<string, string, string>""
   IL_0012:  call       ""void System.Console.WriteLine(string)""
   IL_0017:  ret
 }");
@@ -1475,18 +1475,18 @@ unsafe class C
   // Code size       37 (0x25)
   .maxstack  2
   .locals init (S V_0, //s
-                delegate*<S*,int> V_1)
+                delegate*<S*, int> V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.1
   IL_000b:  stfld      ""int S.i""
-  IL_0010:  call       ""delegate*<S*,int> UnmanagedFunctionPointer.GetFuncPtrSingleParam()""
+  IL_0010:  call       ""delegate*<S*, int> UnmanagedFunctionPointer.GetFuncPtrSingleParam()""
   IL_0015:  stloc.1
   IL_0016:  ldloca.s   V_0
   IL_0018:  conv.u
   IL_0019:  ldloc.1
-  IL_001a:  calli      ""delegate*<S*,int>""
+  IL_001a:  calli      ""delegate*<S*, int>""
   IL_001f:  call       ""void System.Console.Write(int)""
   IL_0024:  ret
 }
@@ -1497,19 +1497,19 @@ unsafe class C
   // Code size       38 (0x26)
   .maxstack  3
   .locals init (S V_0, //s
-                delegate*<S*,int,int> V_1)
+                delegate*<S*, int, int> V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.2
   IL_000b:  stfld      ""int S.i""
-  IL_0010:  call       ""delegate*<S*,int,int> UnmanagedFunctionPointer.GetFuncPtrMultipleParams()""
+  IL_0010:  call       ""delegate*<S*, int, int> UnmanagedFunctionPointer.GetFuncPtrMultipleParams()""
   IL_0015:  stloc.1
   IL_0016:  ldloca.s   V_0
   IL_0018:  conv.u
   IL_0019:  ldc.i4.3
   IL_001a:  ldloc.1
-  IL_001b:  calli      ""delegate*<S*,int,int>""
+  IL_001b:  calli      ""delegate*<S*, int, int>""
   IL_0020:  call       ""void System.Console.Write(int)""
   IL_0025:  ret
 }
@@ -1799,18 +1799,18 @@ unsafe class C
   // Code size       42 (0x2a)
   .maxstack  2
   .locals init (S V_0, //s
-                delegate*<S*,IntWrapper> V_1)
+                delegate*<S*, IntWrapper> V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.1
   IL_000b:  stfld      ""int S.i""
-  IL_0010:  call       ""delegate*<S*,IntWrapper> UnmanagedFunctionPointer.GetFuncPtrSingleParam()""
+  IL_0010:  call       ""delegate*<S*, IntWrapper> UnmanagedFunctionPointer.GetFuncPtrSingleParam()""
   IL_0015:  stloc.1
   IL_0016:  ldloca.s   V_0
   IL_0018:  conv.u
   IL_0019:  ldloc.1
-  IL_001a:  calli      ""delegate*<S*,IntWrapper>""
+  IL_001a:  calli      ""delegate*<S*, IntWrapper>""
   IL_001f:  ldfld      ""int IntWrapper.i""
   IL_0024:  call       ""void System.Console.WriteLine(int)""
   IL_0029:  ret
@@ -1821,19 +1821,19 @@ unsafe class C
   // Code size       58 (0x3a)
   .maxstack  3
   .locals init (S V_0, //s
-                delegate*<S*,float,ReturnWrapper> V_1)
+                delegate*<S*, float, ReturnWrapper> V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.2
   IL_000b:  stfld      ""int S.i""
-  IL_0010:  call       ""delegate*<S*,float,ReturnWrapper> UnmanagedFunctionPointer.GetFuncPtrMultipleParams()""
+  IL_0010:  call       ""delegate*<S*, float, ReturnWrapper> UnmanagedFunctionPointer.GetFuncPtrMultipleParams()""
   IL_0015:  stloc.1
   IL_0016:  ldloca.s   V_0
   IL_0018:  conv.u
   IL_0019:  ldc.r4     3.5
   IL_001e:  ldloc.1
-  IL_001f:  calli      ""delegate*<S*,float,ReturnWrapper>""
+  IL_001f:  calli      ""delegate*<S*, float, ReturnWrapper>""
   IL_0024:  dup
   IL_0025:  ldfld      ""int ReturnWrapper.i1""
   IL_002a:  call       ""void System.Console.Write(int)""
@@ -1944,15 +1944,15 @@ Getting 4
 {
   // Code size       33 (0x21)
   .maxstack  3
-  .locals init (delegate*<string,string,void> V_0)
-  IL_0000:  call       ""delegate*<string,string,void> C.Prop.get""
+  .locals init (delegate*<string, string, void> V_0)
+  IL_0000:  call       ""delegate*<string, string, void> C.Prop.get""
   IL_0005:  stloc.0
   IL_0006:  ldstr      ""1""
   IL_000b:  call       ""string C.GetArg(string)""
   IL_0010:  ldstr      ""2""
   IL_0015:  call       ""string C.GetArg(string)""
   IL_001a:  ldloc.0
-  IL_001b:  calli      ""delegate*<string,string,void>""
+  IL_001b:  calli      ""delegate*<string, string, void>""
   IL_0020:  ret
 }");
 
@@ -1960,15 +1960,15 @@ Getting 4
 {
   // Code size       33 (0x21)
   .maxstack  3
-  .locals init (delegate*<string,string,void> V_0)
-  IL_0000:  call       ""delegate*<string,string,void> C.Method()""
+  .locals init (delegate*<string, string, void> V_0)
+  IL_0000:  call       ""delegate*<string, string, void> C.Method()""
   IL_0005:  stloc.0
   IL_0006:  ldstr      ""3""
   IL_000b:  call       ""string C.GetArg(string)""
   IL_0010:  ldstr      ""4""
   IL_0015:  call       ""string C.GetArg(string)""
   IL_001a:  ldloc.0
-  IL_001b:  calli      ""delegate*<string,string,void>""
+  IL_001b:  calli      ""delegate*<string, string, void>""
   IL_0020:  ret
 }");
         }
@@ -2031,12 +2031,12 @@ Returned");
 {
   // Code size       23 (0x17)
   .maxstack  2
-  .locals init (delegate*<string,string> V_0)
-  IL_0000:  call       ""delegate*<string,string> Program.LoadPtr()""
+  .locals init (delegate*<string, string> V_0)
+  IL_0000:  call       ""delegate*<string, string> Program.LoadPtr()""
   IL_0005:  stloc.0
   IL_0006:  ldstr      ""Returned""
   IL_000b:  ldloc.0
-  IL_000c:  calli      ""delegate*<string,string>""
+  IL_000c:  calli      ""delegate*<string, string>""
   IL_0011:  call       ""void System.Console.WriteLine(string)""
   IL_0016:  ret
 }");
@@ -2100,12 +2100,12 @@ Constant");
 {
   // Code size       29 (0x1d)
   .maxstack  2
-  .locals init (delegate*<string,string> V_0)
-  IL_0000:  call       ""delegate*<string,string> Program.LoadPtr()""
+  .locals init (delegate*<string, string> V_0)
+  IL_0000:  call       ""delegate*<string, string> Program.LoadPtr()""
   IL_0005:  stloc.0
   IL_0006:  ldstr      ""Unused""
   IL_000b:  ldloc.0
-  IL_000c:  calli      ""delegate*<string,string>""
+  IL_000c:  calli      ""delegate*<string, string>""
   IL_0011:  pop
   IL_0012:  ldstr      ""Constant""
   IL_0017:  call       ""void System.Console.WriteLine(string)""
@@ -2182,13 +2182,13 @@ Returned");
 {
   // Code size       28 (0x1c)
   .maxstack  2
-  .locals init (delegate*<string,string> V_0)
-  IL_0000:  call       ""delegate*<delegate*<string,string>> Program.LoadPtr()""
-  IL_0005:  calli      ""delegate*<delegate*<string,string>>""
+  .locals init (delegate*<string, string> V_0)
+  IL_0000:  call       ""delegate*<delegate*<string, string>> Program.LoadPtr()""
+  IL_0005:  calli      ""delegate*<delegate*<string, string>>""
   IL_000a:  stloc.0
   IL_000b:  ldstr      ""Returned""
   IL_0010:  ldloc.0
-  IL_0011:  calli      ""delegate*<string,string>""
+  IL_0011:  calli      ""delegate*<string, string>""
   IL_0016:  call       ""void System.Console.WriteLine(string)""
   IL_001b:  ret
 }");
@@ -2261,13 +2261,13 @@ Implicit conversion
 {
   // Code size       23 (0x17)
   .maxstack  2
-  .locals init (delegate*<Program,void> V_0)
-  IL_0000:  call       ""delegate*<Program,void> Program.LoadPtr()""
+  .locals init (delegate*<Program, void> V_0)
+  IL_0000:  call       ""delegate*<Program, void> Program.LoadPtr()""
   IL_0005:  stloc.0
   IL_0006:  newobj     ""C..ctor()""
   IL_000b:  call       ""Program C.op_Implicit(C)""
   IL_0010:  ldloc.0
-  IL_0011:  calli      ""delegate*<Program,void>""
+  IL_0011:  calli      ""delegate*<Program, void>""
   IL_0016:  ret
 }");
         }
@@ -2330,14 +2330,14 @@ unsafe class C
   // Code size       27 (0x1b)
   .maxstack  2
   .locals init (string V_0, //str
-                delegate*<ref string,void> V_1)
-  IL_0000:  call       ""delegate*<ref string,void> Program.LoadPtr()""
+                delegate*<ref string, void> V_1)
+  IL_0000:  call       ""delegate*<ref string, void> Program.LoadPtr()""
   IL_0005:  ldstr      ""Unset""
   IL_000a:  stloc.0
   IL_000b:  stloc.1
   IL_000c:  ldloca.s   V_0
   IL_000e:  ldloc.1
-  IL_000f:  calli      ""delegate*<ref string,void>""
+  IL_000f:  calli      ""delegate*<ref string, void>""
   IL_0014:  ldloc.0
   IL_0015:  call       ""void System.Console.WriteLine(string)""
   IL_001a:  ret
@@ -2561,28 +2561,28 @@ Returned From Function 2");
 {
   // Code size       57 (0x39)
   .maxstack  2
-  .locals init (delegate*<string,string> V_0, //ptr
-                delegate*<string,string> V_1,
-                delegate*<string,string> V_2)
-  IL_0000:  call       ""delegate*<string,string> Program.LoadPtr1()""
+  .locals init (delegate*<string, string> V_0, //ptr
+                delegate*<string, string> V_1,
+                delegate*<string, string> V_2)
+  IL_0000:  call       ""delegate*<string, string> Program.LoadPtr1()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  stloc.1
-  IL_0008:  call       ""delegate*<string,string> Program.LoadPtr2()""
+  IL_0008:  call       ""delegate*<string, string> Program.LoadPtr2()""
   IL_000d:  dup
   IL_000e:  stloc.0
   IL_000f:  stloc.2
   IL_0010:  ldstr      ""Argument To Function 2""
   IL_0015:  ldloc.2
-  IL_0016:  calli      ""delegate*<string,string>""
+  IL_0016:  calli      ""delegate*<string, string>""
   IL_001b:  ldloc.1
-  IL_001c:  calli      ""delegate*<string,string>""
+  IL_001c:  calli      ""delegate*<string, string>""
   IL_0021:  call       ""void System.Console.WriteLine(string)""
   IL_0026:  ldloc.0
   IL_0027:  stloc.1
   IL_0028:  ldstr      ""Argument To Function 2""
   IL_002d:  ldloc.1
-  IL_002e:  calli      ""delegate*<string,string>""
+  IL_002e:  calli      ""delegate*<string, string>""
   IL_0033:  call       ""void System.Console.WriteLine(string)""
   IL_0038:  ret
 }");
@@ -2829,13 +2829,13 @@ unsafe class C
 {
   // Code size       20 (0x14)
   .maxstack  3
-  .locals init (delegate*<string,int,void> V_0)
+  .locals init (delegate*<string, int, void> V_0)
   IL_0000:  ldftn      ""void C.M(string, int)""
   IL_0006:  stloc.0
   IL_0007:  ldstr      ""1""
   IL_000c:  ldc.i4.2
   IL_000d:  ldloc.0
-  IL_000e:  calli      ""delegate*<string,int,void>""
+  IL_000e:  calli      ""delegate*<string, int, void>""
   IL_0013:  ret
 }");
         }
@@ -2871,7 +2871,7 @@ unsafe class C
   .locals init (string V_0, //s
                 int V_1, //i
                 object V_2, //o
-                delegate*<ref string,in int,out object,void> V_3)
+                delegate*<ref string, in int, out object, void> V_3)
   IL_0000:  ldftn      ""void C.M(ref string, in int, out object)""
   IL_0006:  ldstr      ""1""
   IL_000b:  stloc.0
@@ -2882,7 +2882,7 @@ unsafe class C
   IL_0011:  ldloca.s   V_1
   IL_0013:  ldloca.s   V_2
   IL_0015:  ldloc.3
-  IL_0016:  calli      ""delegate*<ref string,in int,out object,void>""
+  IL_0016:  calli      ""delegate*<ref string, in int, out object, void>""
   IL_001b:  ldloc.0
   IL_001c:  call       ""void System.Console.Write(string)""
   IL_0021:  ldloc.2
@@ -2917,13 +2917,13 @@ unsafe struct S
 {
   // Code size       23 (0x17)
   .maxstack  2
-  .locals init (delegate*<int,S> V_0,
+  .locals init (delegate*<int, S> V_0,
                 S V_1)
   IL_0000:  ldftn      ""S S.MakeS(int)""
   IL_0006:  stloc.0
   IL_0007:  ldc.i4.1
   IL_0008:  ldloc.0
-  IL_0009:  calli      ""delegate*<int,S>""
+  IL_0009:  calli      ""delegate*<int, S>""
   IL_000e:  stloc.1
   IL_000f:  ldloca.s   V_1
   IL_0011:  call       ""void S.M()""
@@ -2957,12 +2957,12 @@ unsafe class C
 {
   // Code size       20 (0x14)
   .maxstack  2
-  .locals init (delegate*<int,C> V_0)
+  .locals init (delegate*<int, C> V_0)
   IL_0000:  ldftn      ""C C.MakeC(int)""
   IL_0006:  stloc.0
   IL_0007:  ldc.i4.1
   IL_0008:  ldloc.0
-  IL_0009:  calli      ""delegate*<int,C>""
+  IL_0009:  calli      ""delegate*<int, C>""
   IL_000e:  callvirt   ""void C.M()""
   IL_0013:  ret
 }");
@@ -2989,7 +2989,7 @@ unsafe class C
   // Code size       24 (0x18)
   .maxstack  3
   .locals init (int V_0, //i
-                delegate*<string,int*,void> V_1)
+                delegate*<string, int*, void> V_1)
   IL_0000:  ldftn      ""void C.M(object, void*)""
   IL_0006:  ldc.i4.2
   IL_0007:  stloc.0
@@ -2998,7 +2998,7 @@ unsafe class C
   IL_000e:  ldloca.s   V_0
   IL_0010:  conv.u
   IL_0011:  ldloc.1
-  IL_0012:  calli      ""delegate*<string,int*,void>""
+  IL_0012:  calli      ""delegate*<string, int*, void>""
   IL_0017:  ret
 }");
         }
@@ -3065,13 +3065,13 @@ unsafe class C
 {
   // Code size       29 (0x1d)
   .maxstack  2
-  .locals init (delegate*<string,object> V_0)
-  IL_0000:  ldftn      ""delegate*<object,string> C.Returner()""
-  IL_0006:  calli      ""delegate*<delegate*<string,object>>""
+  .locals init (delegate*<string, object> V_0)
+  IL_0000:  ldftn      ""delegate*<object, string> C.Returner()""
+  IL_0006:  calli      ""delegate*<delegate*<string, object>>""
   IL_000b:  stloc.0
   IL_000c:  ldstr      ""1""
   IL_0011:  ldloc.0
-  IL_0012:  calli      ""delegate*<string,object>""
+  IL_0012:  calli      ""delegate*<string, object>""
   IL_0017:  call       ""void System.Console.Write(object)""
   IL_001c:  ret
 }
@@ -3106,20 +3106,20 @@ unsafe class C
   // Code size       40 (0x28)
   .maxstack  2
   .locals init (string V_0, //s
-                delegate*<string,void> V_1,
-                delegate*<{refType} string,void> V_2)
+                delegate*<string, void> V_1,
+                delegate*<{refType} string, void> V_2)
   IL_0000:  ldftn      ""void C.M(string)""
   IL_0006:  stloc.1
   IL_0007:  ldstr      ""1""
   IL_000c:  ldloc.1
-  IL_000d:  calli      ""delegate*<string,void>""
+  IL_000d:  calli      ""delegate*<string, void>""
   IL_0012:  ldstr      ""2""
   IL_0017:  stloc.0
   IL_0018:  ldftn      ""void C.M({refType} string)""
   IL_001e:  stloc.2
   IL_001f:  ldloca.s   V_0
   IL_0021:  ldloc.2
-  IL_0022:  calli      ""delegate*<{refType} string,void>""
+  IL_0022:  calli      ""delegate*<{refType} string, void>""
   IL_0027:  ret
 }}
 ");
@@ -3151,18 +3151,18 @@ unsafe class C
   // Code size       40 (0x28)
   .maxstack  2
   .locals init (string V_0, //s
-                delegate*<string,void> V_1,
-                delegate*<out string,void> V_2)
+                delegate*<string, void> V_1,
+                delegate*<out string, void> V_2)
   IL_0000:  ldftn      ""void C.M(string)""
   IL_0006:  stloc.1
   IL_0007:  ldstr      ""1""
   IL_000c:  ldloc.1
-  IL_000d:  calli      ""delegate*<string,void>""
+  IL_000d:  calli      ""delegate*<string, void>""
   IL_0012:  ldftn      ""void C.M(out string)""
   IL_0018:  stloc.2
   IL_0019:  ldloca.s   V_0
   IL_001b:  ldloc.2
-  IL_001c:  calli      ""delegate*<out string,void>""
+  IL_001c:  calli      ""delegate*<out string, void>""
   IL_0021:  ldloc.0
   IL_0022:  call       ""void System.Console.Write(string)""
   IL_0027:  ret
@@ -3216,24 +3216,24 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (9,44): error CS8757: No overload for 'M1' matches function pointer 'delegate*<ref string,void>'
+                // (9,44): error CS8757: No overload for 'M1' matches function pointer 'delegate*<ref string, void>'
                 //         delegate*<ref string, void> ptr1 = &M1;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<ref string,void>").WithLocation(9, 44),
-                // (10,40): error CS8757: No overload for 'M1' matches function pointer 'delegate*<string,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<ref string, void>").WithLocation(9, 44),
+                // (10,40): error CS8757: No overload for 'M1' matches function pointer 'delegate*<string, void>'
                 //         delegate*<string, void> ptr2 = &M1;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<string,void>").WithLocation(10, 40),
-                // (11,43): error CS8757: No overload for 'M2' matches function pointer 'delegate*<in string,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<string, void>").WithLocation(10, 40),
+                // (11,43): error CS8757: No overload for 'M2' matches function pointer 'delegate*<in string, void>'
                 //         delegate*<in string, void> ptr3 = &M2;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<in string,void>").WithLocation(11, 43),
-                // (12,40): error CS8757: No overload for 'M2' matches function pointer 'delegate*<string,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<in string, void>").WithLocation(11, 43),
+                // (12,40): error CS8757: No overload for 'M2' matches function pointer 'delegate*<string, void>'
                 //         delegate*<string, void> ptr4 = &M2;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<string,void>").WithLocation(12, 40),
-                // (13,44): error CS8757: No overload for 'M3' matches function pointer 'delegate*<out object,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<string, void>").WithLocation(12, 40),
+                // (13,44): error CS8757: No overload for 'M3' matches function pointer 'delegate*<out object, void>'
                 //         delegate*<out object, void> ptr5 = &M3;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<out object,void>").WithLocation(13, 44),
-                // (14,40): error CS8757: No overload for 'M3' matches function pointer 'delegate*<string,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<out object, void>").WithLocation(13, 44),
+                // (14,40): error CS8757: No overload for 'M3' matches function pointer 'delegate*<string, void>'
                 //         delegate*<string, void> ptr6 = &M3;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<string,void>").WithLocation(14, 40)
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<string, void>").WithLocation(14, 40)
             );
         }
 
@@ -3274,42 +3274,42 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (13,40): error CS8757: No overload for 'M1' matches function pointer 'delegate*<object,void>'
+                // (13,40): error CS8757: No overload for 'M1' matches function pointer 'delegate*<object, void>'
                 //         delegate*<object, void> ptr1 = &M1;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<object,void>").WithLocation(13, 40),
-                // (14,40): error CS8757: No overload for 'M2' matches function pointer 'delegate*<object,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<object, void>").WithLocation(13, 40),
+                // (14,40): error CS8757: No overload for 'M2' matches function pointer 'delegate*<object, void>'
                 //         delegate*<object, void> ptr2 = &M2;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<object,void>").WithLocation(14, 40),
-                // (15,40): error CS8757: No overload for 'M3' matches function pointer 'delegate*<object,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<object, void>").WithLocation(14, 40),
+                // (15,40): error CS8757: No overload for 'M3' matches function pointer 'delegate*<object, void>'
                 //         delegate*<object, void> ptr3 = &M3;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<object,void>").WithLocation(15, 40),
-                // (16,44): error CS8757: No overload for 'M2' matches function pointer 'delegate*<ref object,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<object, void>").WithLocation(15, 40),
+                // (16,44): error CS8757: No overload for 'M2' matches function pointer 'delegate*<ref object, void>'
                 //         delegate*<ref object, void> ptr4 = &M2;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<ref object,void>").WithLocation(16, 44),
-                // (17,44): error CS8757: No overload for 'M3' matches function pointer 'delegate*<ref object,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<ref object, void>").WithLocation(16, 44),
+                // (17,44): error CS8757: No overload for 'M3' matches function pointer 'delegate*<ref object, void>'
                 //         delegate*<ref object, void> ptr5 = &M3;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<ref object,void>").WithLocation(17, 44),
-                // (18,44): error CS8757: No overload for 'M4' matches function pointer 'delegate*<ref object,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<ref object, void>").WithLocation(17, 44),
+                // (18,44): error CS8757: No overload for 'M4' matches function pointer 'delegate*<ref object, void>'
                 //         delegate*<ref object, void> ptr6 = &M4;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M4").WithArguments("M4", "delegate*<ref object,void>").WithLocation(18, 44),
-                // (19,43): error CS8757: No overload for 'M1' matches function pointer 'delegate*<in object,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M4").WithArguments("M4", "delegate*<ref object, void>").WithLocation(18, 44),
+                // (19,43): error CS8757: No overload for 'M1' matches function pointer 'delegate*<in object, void>'
                 //         delegate*<in object, void> ptr7 = &M1;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<in object,void>").WithLocation(19, 43),
-                // (20,43): error CS8757: No overload for 'M3' matches function pointer 'delegate*<in object,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<in object, void>").WithLocation(19, 43),
+                // (20,43): error CS8757: No overload for 'M3' matches function pointer 'delegate*<in object, void>'
                 //         delegate*<in object, void> ptr8 = &M3;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<in object,void>").WithLocation(20, 43),
-                // (21,43): error CS8757: No overload for 'M4' matches function pointer 'delegate*<in object,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<in object, void>").WithLocation(20, 43),
+                // (21,43): error CS8757: No overload for 'M4' matches function pointer 'delegate*<in object, void>'
                 //         delegate*<in object, void> ptr9 = &M4;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M4").WithArguments("M4", "delegate*<in object,void>").WithLocation(21, 43),
-                // (22,45): error CS8757: No overload for 'M1' matches function pointer 'delegate*<out object,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M4").WithArguments("M4", "delegate*<in object, void>").WithLocation(21, 43),
+                // (22,45): error CS8757: No overload for 'M1' matches function pointer 'delegate*<out object, void>'
                 //         delegate*<out object, void> ptr10 = &M1;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<out object,void>").WithLocation(22, 45),
-                // (23,45): error CS8757: No overload for 'M2' matches function pointer 'delegate*<out object,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<out object, void>").WithLocation(22, 45),
+                // (23,45): error CS8757: No overload for 'M2' matches function pointer 'delegate*<out object, void>'
                 //         delegate*<out object, void> ptr11 = &M2;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<out object,void>").WithLocation(23, 45),
-                // (24,45): error CS8757: No overload for 'M4' matches function pointer 'delegate*<out object,void>'
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<out object, void>").WithLocation(23, 45),
+                // (24,45): error CS8757: No overload for 'M4' matches function pointer 'delegate*<out object, void>'
                 //         delegate*<out object, void> ptr12 = &M4;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M4").WithArguments("M4", "delegate*<out object,void>").WithLocation(24, 45),
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M4").WithArguments("M4", "delegate*<out object, void>").WithLocation(24, 45),
                 // (25,36): error CS8758: Ref mismatch between 'C.M5()' and function pointer 'delegate*<object>'
                 //         delegate*<object> ptr13 = &M5;
                 Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M5").WithArguments("C.M5()", "delegate*<object>").WithLocation(25, 36),
@@ -3373,12 +3373,12 @@ unsafe class C
 {
   // Code size       20 (0x14)
   .maxstack  2
-  .locals init (delegate*<int,string> V_0)
+  .locals init (delegate*<int, string> V_0)
   IL_0000:  ldftn      ""string C.Convert(int)""
   IL_0006:  stloc.0
   IL_0007:  ldc.i4.1
   IL_0008:  ldloc.0
-  IL_0009:  calli      ""delegate*<int,string>""
+  IL_0009:  calli      ""delegate*<int, string>""
   IL_000e:  call       ""void System.Console.Write(string)""
   IL_0013:  ret
 }");
@@ -3424,9 +3424,9 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (9,35): error CS8757: No overload for 'M' matches function pointer 'delegate*<int,int>'
+                // (9,35): error CS8757: No overload for 'M' matches function pointer 'delegate*<int, int>'
                 //         delegate*<int, int> ptr = &M;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M").WithArguments("M", "delegate*<int,int>").WithLocation(9, 35)
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M").WithArguments("M", "delegate*<int, int>").WithLocation(9, 35)
             );
         }
 
@@ -3504,7 +3504,7 @@ unsafe class C
   // Code size       12 (0xc)
   .maxstack  1
   IL_0000:  ldftn      ""void C.M(string)""
-  IL_0006:  call       ""void C.Caller(delegate*<string,void>)""
+  IL_0006:  call       ""void C.Caller(delegate*<string, void>)""
   IL_000b:  ret
 }
 ");
@@ -3608,12 +3608,12 @@ public unsafe class C : I1, I2 {
 {
   // Code size       19 (0x13)
   .maxstack  2
-  .locals init (delegate*<C,void> V_0)
+  .locals init (delegate*<C, void> V_0)
   IL_0000:  ldftn      ""void C.M(I2)""
   IL_0006:  stloc.0
   IL_0007:  newobj     ""C..ctor()""
   IL_000c:  ldloc.0
-  IL_000d:  calli      ""delegate*<C,void>""
+  IL_000d:  calli      ""delegate*<C, void>""
   IL_0012:  ret
 }
 ");
@@ -3666,17 +3666,17 @@ unsafe class C
 {
   // Code size       29 (0x1d)
   .maxstack  2
-  .locals init (delegate*<int,void> V_0)
+  .locals init (delegate*<int, void> V_0)
   IL_0000:  ldftn      ""void C.M1<int>(int)""
   IL_0006:  stloc.0
   IL_0007:  ldc.i4.1
   IL_0008:  ldloc.0
-  IL_0009:  calli      ""delegate*<int,void>""
+  IL_0009:  calli      ""delegate*<int, void>""
   IL_000e:  ldftn      ""void C.M1<int>(int)""
   IL_0014:  stloc.0
   IL_0015:  ldc.i4.2
   IL_0016:  ldloc.0
-  IL_0017:  calli      ""delegate*<int,void>""
+  IL_0017:  calli      ""delegate*<int, void>""
   IL_001c:  ret
 }
 ");
@@ -3700,9 +3700,9 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (10,35): error CS8757: No overload for 'M1' matches function pointer 'delegate*<C,void>'
+                // (10,35): error CS8757: No overload for 'M1' matches function pointer 'delegate*<C, void>'
                 //         delegate*<C, void> ptr1 = &c.M1;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&c.M1").WithArguments("M1", "delegate*<C,void>").WithLocation(10, 35),
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&c.M1").WithArguments("M1", "delegate*<C, void>").WithLocation(10, 35),
                 // (11,32): error CS8788: Cannot use a an extension method with a receiver as the target of a '&amp;' operator.
                 //         delegate*<void> ptr2 = &c.M1;
                 Diagnostic(ErrorCode.ERR_CannotUseReducedExtensionMethodInAddressOf, "&c.M1").WithLocation(11, 32)
@@ -3736,7 +3736,7 @@ unsafe class C
   // Code size       28 (0x1c)
   .maxstack  3
   .locals init (C V_0, //c
-                delegate*<C,void> V_1)
+                delegate*<C, void> V_1)
   IL_0000:  ldftn      ""void CHelper.M1(C)""
   IL_0006:  newobj     ""C..ctor()""
   IL_000b:  stloc.0
@@ -3746,7 +3746,7 @@ unsafe class C
   IL_0013:  stloc.1
   IL_0014:  ldloc.0
   IL_0015:  ldloc.1
-  IL_0016:  calli      ""delegate*<C,void>""
+  IL_0016:  calli      ""delegate*<C, void>""
   IL_001b:  ret
 }
 ");
@@ -3827,9 +3827,9 @@ public unsafe class Program1
 ");
 
             comp.VerifyDiagnostics(
-                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program1.D(delegate*<int,void>)' and 'Program1.D(delegate*<long,void>)'
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program1.D(delegate*<int, void>)' and 'Program1.D(delegate*<long, void>)'
                 //         D(&Y);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "D").WithArguments("Program1.D(delegate*<int,void>)", "Program1.D(delegate*<long,void>)").WithLocation(11, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "D").WithArguments("Program1.D(delegate*<int, void>)", "Program1.D(delegate*<long, void>)").WithLocation(11, 9)
             );
         }
 
@@ -3915,16 +3915,16 @@ unsafe class C
 {
   // Code size       27 (0x1b)
   .maxstack  3
-  .locals init (delegate*<object,void> V_0, //printer
-                delegate*<delegate*<object,void>,string,void> V_1)
-  IL_0000:  ldftn      ""void C.PrintWrapper(delegate*<string,void>, string)""
+  .locals init (delegate*<object, void> V_0, //printer
+                delegate*<delegate*<object, void>, string, void> V_1)
+  IL_0000:  ldftn      ""void C.PrintWrapper(delegate*<string, void>, string)""
   IL_0006:  ldftn      ""void C.Printer(object)""
   IL_000c:  stloc.0
   IL_000d:  stloc.1
   IL_000e:  ldloc.0
   IL_000f:  ldstr      ""1""
   IL_0014:  ldloc.1
-  IL_0015:  calli      ""delegate*<delegate*<object,void>,string,void>""
+  IL_0015:  calli      ""delegate*<delegate*<object, void>, string, void>""
   IL_001a:  ret
 }
 ");
@@ -3952,11 +3952,11 @@ unsafe class C
 {
   // Code size       57 (0x39)
   .maxstack  4
-  .locals init (delegate*<string,void>[] V_0, //ptrs
+  .locals init (delegate*<string, void>[] V_0, //ptrs
                 int V_1, //i
-                delegate*<string,void> V_2)
+                delegate*<string, void> V_2)
   IL_0000:  ldc.i4.2
-  IL_0001:  newarr     ""delegate*<string,void>""
+  IL_0001:  newarr     ""delegate*<string, void>""
   IL_0006:  dup
   IL_0007:  ldc.i4.0
   IL_0008:  ldftn      ""void C.M(string)""
@@ -3976,7 +3976,7 @@ unsafe class C
   IL_0021:  ldloca.s   V_1
   IL_0023:  call       ""string int.ToString()""
   IL_0028:  ldloc.2
-  IL_0029:  calli      ""delegate*<string,void>""
+  IL_0029:  calli      ""delegate*<string, void>""
   IL_002e:  ldloc.1
   IL_002f:  ldc.i4.1
   IL_0030:  add
@@ -4120,12 +4120,12 @@ unsafe class C
   // Code size       66 (0x42)
   .maxstack  4
   .locals init (int V_0, //i
-                delegate*<string,void>[] V_1,
+                delegate*<string, void>[] V_1,
                 int V_2,
-                delegate*<string,void> V_3,
+                delegate*<string, void> V_3,
                 int V_4)
   IL_0000:  ldc.i4.2
-  IL_0001:  newarr     ""delegate*<string,void>""
+  IL_0001:  newarr     ""delegate*<string, void>""
   IL_0006:  dup
   IL_0007:  ldc.i4.0
   IL_0008:  ldftn      ""void C.M(string)""
@@ -4153,7 +4153,7 @@ unsafe class C
   IL_002a:  ldloca.s   V_4
   IL_002c:  call       ""string int.ToString()""
   IL_0031:  ldloc.3
-  IL_0032:  calli      ""delegate*<string,void>""
+  IL_0032:  calli      ""delegate*<string, void>""
   IL_0037:  ldloc.2
   IL_0038:  ldc.i4.1
   IL_0039:  add
@@ -4196,38 +4196,38 @@ unsafe class C
   // Code size       82 (0x52)
   .maxstack  5
   .locals init (C V_0,
-                delegate*<string,void> V_1)
+                delegate*<string, void> V_1)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldc.i4.1
-  IL_0008:  newarr     ""delegate*<string,void>""
+  IL_0008:  newarr     ""delegate*<string, void>""
   IL_000d:  dup
   IL_000e:  ldc.i4.0
   IL_000f:  ldftn      ""void C.Print(string)""
   IL_0015:  stelem.i
-  IL_0016:  stfld      ""delegate*<string,void>[] C.arr1""
+  IL_0016:  stfld      ""delegate*<string, void>[] C.arr1""
   IL_001b:  ldloc.0
-  IL_001c:  ldfld      ""delegate*<string,void>[] C.arr2""
+  IL_001c:  ldfld      ""delegate*<string, void>[] C.arr2""
   IL_0021:  ldc.i4.0
   IL_0022:  ldftn      ""void C.Print(string)""
   IL_0028:  stelem.i
   IL_0029:  ldloc.0
   IL_002a:  dup
-  IL_002b:  ldfld      ""delegate*<string,void>[] C.arr1""
+  IL_002b:  ldfld      ""delegate*<string, void>[] C.arr1""
   IL_0030:  ldc.i4.0
   IL_0031:  ldelem.i
   IL_0032:  stloc.1
   IL_0033:  ldstr      ""1""
   IL_0038:  ldloc.1
-  IL_0039:  calli      ""delegate*<string,void>""
-  IL_003e:  ldfld      ""delegate*<string,void>[] C.arr2""
+  IL_0039:  calli      ""delegate*<string, void>""
+  IL_003e:  ldfld      ""delegate*<string, void>[] C.arr2""
   IL_0043:  ldc.i4.0
   IL_0044:  ldelem.i
   IL_0045:  stloc.1
   IL_0046:  ldstr      ""2""
   IL_004b:  ldloc.1
-  IL_004c:  calli      ""delegate*<string,void>""
+  IL_004c:  calli      ""delegate*<string, void>""
   IL_0051:  ret
 }
 ");
@@ -4252,7 +4252,7 @@ unsafe class C
   // Code size       32 (0x20)
   .maxstack  4
   IL_0000:  ldc.i4.3
-  IL_0001:  newarr     ""delegate*<string,void>""
+  IL_0001:  newarr     ""delegate*<string, void>""
   IL_0006:  dup
   IL_0007:  ldc.i4.0
   IL_0008:  ldc.i4.0
@@ -4301,15 +4301,15 @@ unsafe class C
 {
   // Code size       58 (0x3a)
   .maxstack  4
-  .locals init (delegate*<string,void> V_0, //ptr1
-                delegate*<object,void> V_1, //ptr2
-                delegate*<string,void> V_2)
+  .locals init (delegate*<string, void> V_0, //ptr1
+                delegate*<object, void> V_1, //ptr2
+                delegate*<string, void> V_2)
   IL_0000:  ldftn      ""void C.Print(string)""
   IL_0006:  stloc.0
   IL_0007:  ldftn      ""void C.Print(object)""
   IL_000d:  stloc.1
   IL_000e:  ldc.i4.2
-  IL_000f:  newarr     ""delegate*<string,void>""
+  IL_000f:  newarr     ""delegate*<string, void>""
   IL_0014:  dup
   IL_0015:  ldc.i4.0
   IL_0016:  ldloc.0
@@ -4324,13 +4324,13 @@ unsafe class C
   IL_001f:  stloc.2
   IL_0020:  ldstr      ""1""
   IL_0025:  ldloc.2
-  IL_0026:  calli      ""delegate*<string,void>""
+  IL_0026:  calli      ""delegate*<string, void>""
   IL_002b:  ldc.i4.1
   IL_002c:  ldelem.i
   IL_002d:  stloc.2
   IL_002e:  ldstr      ""2""
   IL_0033:  ldloc.2
-  IL_0034:  calli      ""delegate*<string,void>""
+  IL_0034:  calli      ""delegate*<string, void>""
   IL_0039:  ret
 }
 ");
@@ -4420,9 +4420,9 @@ unsafe class C
 {
   // Code size       53 (0x35)
   .maxstack  2
-  .locals init (delegate*<object,void> V_0, //ptr1
-                delegate*<string,void> V_1, //ptr2
-                delegate*<string,void> V_2)
+  .locals init (delegate*<object, void> V_0, //ptr1
+                delegate*<string, void> V_1, //ptr2
+                delegate*<string, void> V_2)
   IL_0000:  ldftn      ""void C.Print(object)""
   IL_0006:  stloc.0
   IL_0007:  ldftn      ""void C.Print(string)""
@@ -4435,7 +4435,7 @@ unsafe class C
   IL_0015:  stloc.2
   IL_0016:  ldstr      ""1""
   IL_001b:  ldloc.2
-  IL_001c:  calli      ""delegate*<string,void>""
+  IL_001c:  calli      ""delegate*<string, void>""
   IL_0021:  ldarg.0
   IL_0022:  brtrue.s   IL_0027
   IL_0024:  ldloc.0
@@ -4444,7 +4444,7 @@ unsafe class C
   IL_0028:  stloc.2
   IL_0029:  ldstr      ""2""
   IL_002e:  ldloc.2
-  IL_002f:  calli      ""delegate*<string,void>""
+  IL_002f:  calli      ""delegate*<string, void>""
   IL_0034:  ret
 }
 ");
@@ -4550,11 +4550,11 @@ unsafe class C
 {
   // Code size       32 (0x20)
   .maxstack  2
-  .locals init (delegate*<delegate*<object,void>,string,void> V_0, //printObject
-                delegate*<delegate*<string,void>,string,void> V_1) //printString
-  IL_0000:  ldftn      ""void C.PrintObject(delegate*<object,void>, string)""
+  .locals init (delegate*<delegate*<object, void>, string, void> V_0, //printObject
+                delegate*<delegate*<string, void>, string, void> V_1) //printString
+  IL_0000:  ldftn      ""void C.PrintObject(delegate*<object, void>, string)""
   IL_0006:  stloc.0
-  IL_0007:  ldftn      ""void C.PrintString(delegate*<string,void>, string)""
+  IL_0007:  ldftn      ""void C.PrintString(delegate*<string, void>, string)""
   IL_000d:  stloc.1
   IL_000e:  ldarg.0
   IL_000f:  brtrue.s   IL_0014
@@ -4562,7 +4562,7 @@ unsafe class C
   IL_0012:  br.s       IL_0015
   IL_0014:  ldloc.0
   IL_0015:  ldstr      ""1""
-  IL_001a:  call       ""void C.Invoke(delegate*<delegate*<object,void>,string,void>, string)""
+  IL_001a:  call       ""void C.Invoke(delegate*<delegate*<object, void>, string, void>, string)""
   IL_001f:  ret
 }
 ");
@@ -4614,12 +4614,12 @@ unsafe class C
 {
   // Code size       42 (0x2a)
   .maxstack  3
-  .locals init (delegate*<delegate*<ref object,object,void>,ref object,string,void> V_0, //printObject1
-                delegate*<delegate*<ref object,string,void>,ref object,string,void> V_1, //printObject2
+  .locals init (delegate*<delegate*<ref object, object, void>, ref object, string, void> V_0, //printObject1
+                delegate*<delegate*<ref object, string, void>, ref object, string, void> V_1, //printObject2
                 object V_2) //o
-  IL_0000:  ldftn      ""void C.PrintObject(delegate*<ref object,object,void>, ref object, object)""
+  IL_0000:  ldftn      ""void C.PrintObject(delegate*<ref object, object, void>, ref object, object)""
   IL_0006:  stloc.0
-  IL_0007:  ldftn      ""void C.PrintString(delegate*<ref object,string,void>, ref object, string)""
+  IL_0007:  ldftn      ""void C.PrintString(delegate*<ref object, string, void>, ref object, string)""
   IL_000d:  stloc.1
   IL_000e:  ldnull
   IL_000f:  stloc.2
@@ -4630,7 +4630,7 @@ unsafe class C
   IL_0016:  ldloc.0
   IL_0017:  ldloca.s   V_2
   IL_0019:  ldstr      ""1""
-  IL_001e:  call       ""void C.Invoke(delegate*<delegate*<ref object,object,void>,ref object,string,void>, ref object, object)""
+  IL_001e:  call       ""void C.Invoke(delegate*<delegate*<ref object, object, void>, ref object, string, void>, ref object, object)""
   IL_0023:  ldloc.2
   IL_0024:  call       ""void System.Console.Write(object)""
   IL_0029:  ret
@@ -4726,26 +4726,26 @@ static unsafe class C
   .maxstack  4
   IL_0000:  ldc.i4.3
   IL_0001:  conv.u
-  IL_0002:  sizeof     ""delegate*<int,int>""
+  IL_0002:  sizeof     ""delegate*<int, int>""
   IL_0008:  mul.ovf.un
   IL_0009:  localloc
   IL_000b:  dup
   IL_000c:  ldftn      ""int C.Getter(int)""
   IL_0012:  stind.i
   IL_0013:  dup
-  IL_0014:  sizeof     ""delegate*<int,int>""
+  IL_0014:  sizeof     ""delegate*<int, int>""
   IL_001a:  add
   IL_001b:  ldftn      ""int C.Getter(int)""
   IL_0021:  stind.i
   IL_0022:  dup
   IL_0023:  ldc.i4.2
   IL_0024:  conv.i
-  IL_0025:  sizeof     ""delegate*<int,int>""
+  IL_0025:  sizeof     ""delegate*<int, int>""
   IL_002b:  mul
   IL_002c:  add
   IL_002d:  ldftn      ""int C.Getter(int)""
   IL_0033:  stind.i
-  IL_0034:  call       ""void C.Print(delegate*<int,int>*)""
+  IL_0034:  call       ""void C.Print(delegate*<int, int>*)""
   IL_0039:  ret
 }
 ");
@@ -4766,9 +4766,9 @@ static unsafe class C
 ", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
 
             comp.VerifyDiagnostics(
-                // (7,14): error CS0306: The type 'delegate*<int,int>' may not be used as a type argument
+                // (7,14): error CS0306: The type 'delegate*<int, int>' may not be used as a type argument
                 //         Span<delegate*<int, int>> p = stackalloc delegate*<int, int>[1];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, int>").WithArguments("delegate*<int,int>").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, int>").WithArguments("delegate*<int, int>").WithLocation(7, 14)
             );
         }
 
@@ -5071,6 +5071,107 @@ unsafe class C
   IL_0021:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void NullableAnnotationsInMetadata()
+        {
+            var source = @"
+public unsafe class C
+{
+    public delegate*<string, object, C> F1;
+    public delegate*<string?, object, C> F2;
+    public delegate*<string, object?, C> F3;
+    public delegate*<string, object, C?> F4;
+    public delegate*<string?, object?, C?> F5;
+    public delegate*<delegate*<string, int*>, delegate*<string?>, delegate*<void*, string>> F6;
+}";
+
+            var comp = CreateCompilationWithFunctionPointers(source, options: WithNonNullTypesTrue(TestOptions.UnsafeReleaseDll));
+            comp.VerifyDiagnostics();
+
+            verifySymbolNullabilities(comp.GetTypeByMetadataName("C")!);
+
+            CompileAndVerify(comp, symbolValidator: symbolValidator);
+
+            static void symbolValidator(ModuleSymbol module)
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                Assert.Equal("System.Runtime.CompilerServices.NullableAttribute({0, 1, 1, 1})", getAttribute("F1"));
+                Assert.Equal("System.Runtime.CompilerServices.NullableAttribute({0, 1, 2, 1})", getAttribute("F2"));
+                Assert.Equal("System.Runtime.CompilerServices.NullableAttribute({0, 1, 1, 2})", getAttribute("F3"));
+                Assert.Equal("System.Runtime.CompilerServices.NullableAttribute({0, 2, 1, 1})", getAttribute("F4"));
+                Assert.Equal("System.Runtime.CompilerServices.NullableAttribute({0, 2, 2, 2})", getAttribute("F5"));
+                Assert.Equal("System.Runtime.CompilerServices.NullableAttribute({0, 0, 1, 0, 0, 0, 1, 0, 2})", getAttribute("F6"));
+
+                verifySymbolNullabilities(c);
+
+                string getAttribute(string fieldName) => c.GetField(fieldName).GetAttributes().Single().ToString()!;
+            }
+
+            static void verifySymbolNullabilities(NamedTypeSymbol c)
+            {
+                assertExpected("delegate*<System.String!, System.Object!, C!>", "F1");
+                assertExpected("delegate*<System.String?, System.Object!, C!>", "F2");
+                assertExpected("delegate*<System.String!, System.Object?, C!>", "F3");
+                assertExpected("delegate*<System.String!, System.Object!, C?>", "F4");
+                assertExpected("delegate*<System.String?, System.Object?, C?>", "F5");
+                assertExpected("delegate*<delegate*<System.String!, System.Int32*>, delegate*<System.String?>, delegate*<System.Void*, System.String!>>", "F6");
+
+                void assertExpected(string expectedType, string fieldName)
+                {
+                    var type = (FunctionPointerTypeSymbol)c.GetField(fieldName).Type;
+                    CommonVerifyFunctionPointer(type);
+                    Assert.Equal(expectedType, type.ToTestDisplayString(includeNonNullable: true));
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("delegate*<Z, Z, (Z a, Z b)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b""})")]
+        [InlineData("delegate*<(Z a, Z b), Z, Z>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b""})")]
+        [InlineData("delegate*<Z, (Z a, Z b)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b""})")]
+        [InlineData("delegate*<(Z c, Z d), (Z e, Z f), (Z a, Z b)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b"", ""c"", ""d"", ""e"", ""f""})")]
+        [InlineData("delegate*<(Z, Z), (Z, Z), (Z a, Z b)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b"", null, null, null, null})")]
+        [InlineData("delegate*<(Z, Z), (Z, Z), (Z a, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", null, null, null, null, null})")]
+        [InlineData("delegate*<(Z, Z), (Z, Z), (Z, Z b)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, ""b"", null, null, null, null})")]
+        [InlineData("delegate*<(Z c, Z d), (Z, Z), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, ""c"", ""d"", null, null})")]
+        [InlineData("delegate*<(Z c, Z), (Z, Z), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, ""c"", null, null, null})")]
+        [InlineData("delegate*<(Z, Z d), (Z, Z), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, null, ""d"", null, null})")]
+        [InlineData("delegate*<(Z, Z), (Z e, Z f), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, null, null, ""e"", ""f""})")]
+        [InlineData("delegate*<(Z, Z), (Z e, Z), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, null, null, ""e"", null})")]
+        [InlineData("delegate*<(Z, Z), (Z, Z f), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, null, null, null, ""f""})")]
+        [InlineData("delegate*<(Z a, (Z b, Z c) d), (Z e, Z f)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""e"", ""f"", ""a"", ""d"", ""b"", ""c""})")]
+        [InlineData("delegate*<(Z a, Z b), ((Z c, Z d) e, Z f)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""e"", ""f"", ""c"", ""d"", ""a"", ""b""})")]
+        [InlineData("delegate*<delegate*<(Z a, Z b), Z>, delegate*<Z, (Z d, Z e)>>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""d"", ""e"", ""a"", ""b""})")]
+        [InlineData("delegate*<(Z, Z), (Z, Z), (Z, Z)>", null)]
+        public void TupleNamesInMetadata(string type, string? expectedAttribute)
+        {
+            var comp = CompileAndVerifyFunctionPointers($@"
+#pragma warning disable CS0649 // Unassigned field
+unsafe class Z
+{{
+    public {type} F;
+}}
+", symbolValidator: symbolValidator);
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                var c = module.GlobalNamespace.GetTypeMember("Z");
+
+                var field = c.GetField("F");
+                if (expectedAttribute == null)
+                {
+                    Assert.Empty(field.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal(expectedAttribute, field.GetAttributes().Single().ToString());
+                }
+
+                CommonVerifyFunctionPointer((FunctionPointerTypeSymbol)field.Type);
+                Assert.Equal(type, field.Type.ToTestDisplayString());
+            }
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
