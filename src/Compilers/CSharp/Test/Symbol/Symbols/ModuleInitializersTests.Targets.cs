@@ -444,15 +444,15 @@ class C
 
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Method)]
     class ModuleInitializerAttribute : System.Attribute { }
 }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (7,6): error CS0592: Attribute 'ModuleInitializer' is not valid on this declaration type. It is only valid on 'class' declarations.
+                // (7,6): error CS0592: Attribute 'ModuleInitializer' is not valid on this declaration type. It is only valid on 'method' declarations.
                 //     [ModuleInitializer]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ModuleInitializer").WithArguments("ModuleInitializer", "class").WithLocation(7, 6)
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ModuleInitializer").WithArguments("ModuleInitializer", "method").WithLocation(7, 6)
                 );
         }
 
@@ -493,15 +493,15 @@ class C
 
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Method)]
     class ModuleInitializerAttribute : System.Attribute { }
 }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (7,6): error CS0592: Attribute 'ModuleInitializer' is not valid on this declaration type. It is only valid on 'class' declarations.
+                // (7,6): error CS0592: Attribute 'ModuleInitializer' is not valid on this declaration type. It is only valid on 'method' declarations.
                 //     [ModuleInitializer]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ModuleInitializer").WithArguments("ModuleInitializer", "class").WithLocation(7, 6)
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ModuleInitializer").WithArguments("ModuleInitializer", "method").WithLocation(7, 6)
                 );
         }
     }
