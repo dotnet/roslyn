@@ -9,28 +9,17 @@ namespace Microsoft.CodeAnalysis
 {
     internal static partial class CodeGenerator
     {
-        public static IArrayTypeSymbol ArrayType(ITypeSymbol elementType)
-            => new ArrayTypeSymbol(elementType, rank: 1);
+        public static IDynamicTypeSymbol DynamicType()
+            => new DynamicTypeSymbol();
 
-        public static IArrayTypeSymbol ArrayType(
-            ITypeSymbol elementType, int rank)
+        private class DynamicTypeSymbol : TypeSymbol, IDynamicTypeSymbol
         {
-            return new ArrayTypeSymbol(elementType, rank);
-        }
-
-        private class ArrayTypeSymbol : TypeSymbol, IArrayTypeSymbol
-        {
-            public ITypeSymbol ElementType { get; }
-            public int Rank { get; }
-
-            public ArrayTypeSymbol(ITypeSymbol elementType, int rank)
+            public DynamicTypeSymbol()
             {
-                ElementType = elementType;
-                Rank = rank;
             }
 
-            public override SymbolKind Kind => SymbolKind.ArrayType;
-            public override TypeKind TypeKind => TypeKind.Array;
+            public override SymbolKind Kind => SymbolKind.DynamicType;
+            public override TypeKind TypeKind => TypeKind.Dynamic;
 
             #region default implementation
 
