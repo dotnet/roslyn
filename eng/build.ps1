@@ -410,6 +410,14 @@ function TestUsingOptimizedRunner() {
   $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
   $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
+  if ($configuration -eq 'Debug') {
+    $excludedConfiguration = 'Release'
+  } else {
+    $excludedConfiguration = 'Debug'
+  }
+
+  $dlls = $dlls | ?{ -not (($_.FullName -match ".*\\$excludedConfiguration\\.*") -or ($_.FullName -match ".*/$excludedConfiguration/.*")) }
+
   if ($ci) {
     $args += " -xml"
     if ($testVsi) {

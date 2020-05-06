@@ -426,6 +426,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // expression type are not broken.
 
                 var newSwitchStatement = (SwitchStatementSyntax)currentReplacedNode;
+                var previousReplacedExpression = (ExpressionSyntax)previousReplacedNode;
+
+                // it is never legal to use `default/null` in a switch statement's expression.
+                if (previousReplacedExpression.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression))
+                    return true;
 
                 var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
                 var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
@@ -476,10 +481,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 return previousOriginalNode != null &&
                     ReplacementBreaksCollectionInitializerAddMethod((ExpressionSyntax)previousOriginalNode, (ExpressionSyntax)previousReplacedNode);
-            }
-            else if (currentOriginalNode.Kind() == SyntaxKind.Interpolation)
-            {
-                return ReplacementBreaksInterpolation((InterpolationSyntax)currentOriginalNode, (InterpolationSyntax)currentReplacedNode);
             }
             else if (currentOriginalNode.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
             {
@@ -650,9 +651,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !SymbolsAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull) ||
                 !TypesAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull);
         }
-
-        private bool ReplacementBreaksInterpolation(InterpolationSyntax interpolation, InterpolationSyntax newInterpolation)
-            => !TypesAreCompatible(interpolation.Expression, newInterpolation.Expression);
 
         private bool ReplacementBreaksIsOrAsExpression(BinaryExpressionSyntax originalIsOrAsExpression, BinaryExpressionSyntax newIsOrAsExpression)
         {

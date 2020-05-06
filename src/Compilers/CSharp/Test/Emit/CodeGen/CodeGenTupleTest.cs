@@ -15708,13 +15708,13 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,19): error CS1525: Invalid expression term 'int'
+                // (6,19): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 19),
-                // (6,24): error CS1525: Invalid expression term 'int'
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(6, 19),
+                // (6,24): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 24),
-                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(6, 24),
+                // (6,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(6, 18)
                 );
@@ -15807,13 +15807,13 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,19): error CS1525: Invalid expression term 'int'
+                // (7,19): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 19),
-                // (7,24): error CS1525: Invalid expression term 'int'
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(7, 19),
+                // (7,24): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 24),
-                // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(7, 24),
+                // (7,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(7, 18)
                );
@@ -24933,9 +24933,9 @@ class P
 }";
             var comp = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,29): error CS1525: Invalid expression term 'int'
+                // (6,29): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 29),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(6, 29),
                 // (6,41): error CS1525: Invalid expression term ';'
                 //         var x1 = (1, 1) is (int, int a)?;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
@@ -24944,10 +24944,7 @@ class P
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(6, 41),
                 // (6,41): error CS1525: Invalid expression term ';'
                 //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
-                // (6,29): error CS0150: A constant value is expected
-                //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41)
                 );
         }
 
@@ -26462,6 +26459,7 @@ public class ClassB
         [Fact]
         [WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")]
         [WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
         public void CustomFields_01()
         {
             var source0 = @"
@@ -26508,25 +26506,44 @@ class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "123");
+            verifyField(comp1);
 
             var comp1Ref = new[] { comp1.ToMetadataReference() };
             var comp1ImageRef = new[] { comp1.EmitToImageReference() };
 
-            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
             CompileAndVerify(comp4, expectedOutput: "123");
 
-            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1Ref);
             CompileAndVerify(comp5, expectedOutput: "123");
+            verifyField(comp5);
 
-            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1ImageRef);
+            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1ImageRef);
             CompileAndVerify(comp6, expectedOutput: "123");
+            verifyField(comp6);
+
+            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
+            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            //CompileAndVerify(comp7, expectedOutput: "123");
+            //verifyField(comp7);
+
+            void verifyField(CSharpCompilation comp)
+            {
+                var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
+                Assert.NotNull(field.TupleUnderlyingField);
+                Assert.NotSame(field, field.TupleUnderlyingField);
+                var toEmit = field.ContainingType.GetFieldsToEmit().Where(f => f.Name == "F1").Single();
+                Assert.Same(toEmit, toEmit.TupleUnderlyingField);
+                Assert.Same(field.TupleUnderlyingField, toEmit);
+            }
         }
 
         [Fact]
         [WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")]
         [WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
         public void CustomFields_02()
         {
             var source0 = @"
@@ -26574,20 +26591,224 @@ class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "123");
+            verifyField(comp1);
 
             var comp1Ref = new[] { comp1.ToMetadataReference() };
             var comp1ImageRef = new[] { comp1.EmitToImageReference() };
 
-            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
             CompileAndVerify(comp4, expectedOutput: "123");
 
-            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1Ref);
             CompileAndVerify(comp5, expectedOutput: "123");
+            verifyField(comp5);
 
-            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1ImageRef);
+            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1ImageRef);
             CompileAndVerify(comp6, expectedOutput: "123");
+            verifyField(comp6);
+
+            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
+            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            //CompileAndVerify(comp7, expectedOutput: "123");
+            //verifyField(comp7);
+
+            void verifyField(CSharpCompilation comp)
+            {
+                var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
+                Assert.NotNull(field.TupleUnderlyingField);
+                Assert.NotSame(field, field.TupleUnderlyingField);
+                var toEmit = field.ContainingType.GetFieldsToEmit().Where(f => f.Name == "F1").Single();
+                Assert.Same(toEmit, toEmit.TupleUnderlyingField);
+                Assert.Same(field.TupleUnderlyingField, toEmit);
+            }
+        }
+
+        [Fact]
+        [WorkItem(43524, "https://github.com/dotnet/roslyn/issues/43524")]
+        [WorkItem(1095184, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        public void CustomFields_03()
+        {
+            var source0 = @"
+namespace System
+{
+    public struct ValueTuple
+    {
+        public static readonly int F1 = 4;
+
+        public static int CombineHashCodes(int h1, int h2)
+        {
+            return F1 + h1 + h2;
+        }
+    }
+}
+";
+
+            var source1 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(System.ValueTuple.CombineHashCodes(2, 3));
+    }
+}
+";
+
+            var source2 = @"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(System.ValueTuple.F1 + 2 + 3);
+    }
+}
+";
+
+            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "9");
+            verifyField(comp1);
+
+            var comp1Ref = new[] { comp1.ToMetadataReference() };
+            var comp1ImageRef = new[] { comp1.EmitToImageReference() };
+
+            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
+            CompileAndVerify(comp4, expectedOutput: "9");
+
+            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp5, expectedOutput: "9");
+            verifyField(comp5);
+
+            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1ImageRef);
+            CompileAndVerify(comp6, expectedOutput: "9");
+            verifyField(comp6);
+
+            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
+            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            //CompileAndVerify(comp7, expectedOutput: "9");
+            //verifyField(comp7);
+
+            void verifyField(CSharpCompilation comp)
+            {
+                var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
+                Assert.NotNull(field.TupleUnderlyingField);
+                Assert.NotSame(field, field.TupleUnderlyingField);
+                var toEmit = field.ContainingType.GetFieldsToEmit().Single();
+                Assert.Same(toEmit, toEmit.TupleUnderlyingField);
+                Assert.Same(field.TupleUnderlyingField, toEmit);
+            }
+        }
+
+        [Fact]
+        [WorkItem(43524, "https://github.com/dotnet/roslyn/issues/43524")]
+        [WorkItem(1095184, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        public void CustomFields_04()
+        {
+            var source0 = @"
+namespace System
+{
+    public struct ValueTuple
+    {
+        public int F1;
+
+        public int CombineHashCodes(int h1, int h2)
+        {
+            return F1 + h1 + h2;
+        }
+    }
+}
+";
+
+            var source1 = @"
+class Program
+{
+    static void Main()
+    {
+        System.ValueTuple tuple = default;
+        tuple.F1 = 4;
+        System.Console.WriteLine(tuple.CombineHashCodes(2, 3));
+    }
+}
+";
+
+            var source2 = @"
+class Program
+{
+    public static void Main()
+    {
+        System.ValueTuple tuple = default;
+        tuple.F1 = 4;
+        System.Console.WriteLine(tuple.F1 + 2 + 3);
+    }
+}
+";
+
+            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "9");
+            verifyField(comp1);
+
+            var comp1Ref = new[] { comp1.ToMetadataReference() };
+            var comp1ImageRef = new[] { comp1.EmitToImageReference() };
+
+            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
+            CompileAndVerify(comp4, expectedOutput: "9");
+
+            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp5, expectedOutput: "9");
+            verifyField(comp5);
+
+            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1ImageRef);
+            CompileAndVerify(comp6, expectedOutput: "9");
+            verifyField(comp6);
+
+            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
+            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            //CompileAndVerify(comp7, expectedOutput: "9");
+            //verifyField(comp7);
+
+            void verifyField(CSharpCompilation comp)
+            {
+                var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
+                Assert.NotNull(field.TupleUnderlyingField);
+                Assert.NotSame(field, field.TupleUnderlyingField);
+                var toEmit = field.ContainingType.GetFieldsToEmit().Single();
+                Assert.Same(toEmit, toEmit.TupleUnderlyingField);
+                Assert.Same(field.TupleUnderlyingField, toEmit);
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43621")]
+        [WorkItem(43621, "https://github.com/dotnet/roslyn/issues/43621")]
+        public void CustomFields_05()
+        {
+            var source0 = @"
+using System;
+
+namespace System
+{
+    public class C
+    {
+        public unsafe static void Main()
+        {
+            var s = new ValueTuple();
+            int* p = s.MessageType;
+            s.MessageType[0] = 12;
+            p[1] = p[0];
+            Console.WriteLine(s.MessageType[1]);
+        }
+    }
+
+    public unsafe struct ValueTuple
+    {
+        public fixed int MessageType[50];
+    }
+}
+";
+
+            var comp1 = CreateCompilation(source0, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp1, expectedOutput: "12");
         }
 
         [Fact]
@@ -27086,6 +27307,33 @@ class C
       IL_031e:  ret
     }
 ");
+        }
+
+        [Fact]
+        [WorkItem(24517, "https://github.com/dotnet/roslyn/issues/24517")]
+        public void Issue24517()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+class C
+{
+    static void Main()
+    {
+        Expression<Func<ValueTuple<int, int>>> e1 = () => new ValueTuple<int, int>(1, 2);
+        Expression<Func<KeyValuePair<int, int>>> e2 = () => new KeyValuePair<int, int>(1, 2);
+
+        e1.Compile()();
+        e2.Compile()();
+
+        Console.WriteLine(""Done."");
+    }
+}";
+            var comp = CreateCompilation(
+                source,
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"Done.");
         }
     }
 }

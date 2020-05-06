@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
+            if (obj is NativeIntegerParameterSymbol nps)
+            {
+                return nps.Equals(this, compareKind);
+            }
+
             var symbol = obj as SourceParameterSymbolBase;
             return (object)symbol != null
                 && symbol.Ordinal == this.Ordinal

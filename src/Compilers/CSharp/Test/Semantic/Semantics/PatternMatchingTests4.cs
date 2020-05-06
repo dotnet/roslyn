@@ -1482,10 +1482,9 @@ class _
 {
 }";
             var compilation = CreatePatternCompilation(source);
+            // Diagnostics are not ideal here.  On the other hand, this is not likely to be a frequent occurrence except in test code
+            // so any effort at improving the diagnostics would not likely be well spent.
             compilation.VerifyDiagnostics(
-                // (9,18): error CS0119: '_' is a type, which is not valid in the given context
-                //             case _ x: break;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "_").WithArguments("_", "type").WithLocation(9, 18),
                 // (9,20): error CS1003: Syntax error, ':' expected
                 //             case _ x: break;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(":", "").WithLocation(9, 20),
@@ -1855,7 +1854,7 @@ class _
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (13,13): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                // (13,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             (null, true) => 6,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "(null, true)").WithLocation(13, 13)
                 );
@@ -3339,6 +3338,33 @@ public class A
                 // (16,18): error CS8651: It is not legal to use nullable reference type 'A[][]?' in an as expression; use the underlying type 'A[][]' instead.
                 //         _ = o as A[][]?;              // error 10 (can't 'as' nullable reference type)
                 Diagnostic(ErrorCode.ERR_AsNullableType, "A[][]?").WithArguments("A[][]").WithLocation(16, 18)
+                );
+        }
+
+        [Fact, WorkItem(43960, "https://github.com/dotnet/roslyn/issues/43960")]
+        public void NamespaceQualifiedEnumConstantInSwitchCase()
+        {
+            var source =
+@"enum E
+{
+    A, B, C
+}
+
+class Class1
+{
+    void M(E e)
+    {
+        switch (e)
+        {
+            case global::E.A: break;
+            case global::E.B: break;
+            case global::E.C: break;
+        }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 );
         }
     }

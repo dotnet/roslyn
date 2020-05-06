@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                 public override SyntaxTree SyntaxTreeToModify => _suppressionTargetInfo.StartToken.SyntaxTree;
 
-                protected async override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+                protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
                     => await GetChangedDocumentAsync(includeStartTokenChange: true, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 public async Task<Document> GetChangedDocumentAsync(bool includeStartTokenChange, bool includeEndTokenChange, CancellationToken cancellationToken)

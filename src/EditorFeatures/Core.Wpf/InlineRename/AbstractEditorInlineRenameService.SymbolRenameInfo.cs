@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
@@ -121,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 var index = triggerText.LastIndexOf(searchName, StringComparison.Ordinal);
+
                 if (index < 0)
                 {
                     // Couldn't even find the search text at this reference location.  This might happen
@@ -194,8 +196,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     {
                         // If this is the first call, then just start finding the initial set of rename
                         // locations.
+                        var solution = _document.Project.Solution;
                         _underlyingFindRenameLocationsTask = Renamer.FindRenameLocationsAsync(
-                            _document.Project.Solution, this.RenameSymbol, optionSet, cancellationToken);
+                            solution, this.RenameSymbol, RenameOptionSet.From(solution, optionSet), cancellationToken);
                         renameTask = _underlyingFindRenameLocationsTask;
 
                         // null out the option set.  We don't need it anymore, and this will ensure

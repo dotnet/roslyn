@@ -46,14 +46,43 @@
     },
     {
         "label": "build current project skip analyzers",
-        "command": "./.dotnet/dotnet",
         "type": "shell",
+        "command": "./.dotnet/dotnet",
         "args": [
           "pwsh",
           "${workspaceRoot}/scripts/vscode-build.ps1",
           "-filePath",
-          "${file}"
+          "${file}",
+          "-msbuildEngine",
+          "dotnet"
         ],
+        "windows": {
+          "command": "powershell",
+          "args": [
+            "${workspaceRoot}/scripts/vscode-build.ps1",
+            "-filePath",
+            "${file}",
+            "-msbuildEngine",
+            "dotnet"
+          ],
+        },
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "msbuild current project skip analyzers",
+        "type": "shell",
+        "command": "echo 'Task not supported on this OS'",
+        "windows": {
+          "command": "powershell",
+          "args": [
+            "${workspaceRoot}/scripts/vscode-build.ps1",
+            "-filePath",
+            "${file}",
+            "-msbuildEngine",
+            "vs"
+          ],
+        },
         "problemMatcher": "$msCompile",
         "group": "build"
     },
@@ -69,6 +98,25 @@
         "group": "build"
     },
     {
+        "label": "update xlf files",
+        "command": "./build.sh",
+        "type": "shell",
+        "args": [
+          "--skipAnalyzers"
+        ],
+        "windows": {
+          "command": "./build.cmd",
+          "args": [
+            "-skipAnalyzers"
+          ],
+        },
+        "options": {
+          "env": { "UpdateXlfOnBuild": "true" }
+        },
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
         "label": "run tests in current file (netcoreapp3.1)",
         "command": "./.dotnet/dotnet",
         "type": "shell",
@@ -77,6 +125,8 @@
           "${workspaceRoot}/scripts/vscode-run-tests.ps1",
           "-filePath",
           "${file}",
+          "-msbuildEngine",
+          "dotnet",
           "-framework",
           "netcoreapp3.1",
           "-filter",
@@ -94,8 +144,38 @@
           "${workspaceRoot}/scripts/vscode-run-tests.ps1",
           "-filePath",
           "${file}",
+          "-msbuildEngine",
+          "dotnet",
           "-framework",
           "netcoreapp3.1"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "test"
+    },
+    {
+        "label": "run tests in current file (all frameworks)",
+        "command": "./.dotnet/dotnet",
+        "type": "shell",
+        "args": [
+          "pwsh",
+          "${workspaceRoot}/scripts/vscode-run-tests.ps1",
+          "-filePath",
+          "${file}",
+          "-filter",
+          "${fileBasenameNoExtension}"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "test"
+    },
+    {
+        "label": "run tests in current project (all frameworks)",
+        "command": "./.dotnet/dotnet",
+        "type": "shell",
+        "args": [
+          "pwsh",
+          "${workspaceRoot}/scripts/vscode-run-tests.ps1",
+          "-filePath",
+          "${file}"
         ],
         "problemMatcher": "$msCompile",
         "group": "test"

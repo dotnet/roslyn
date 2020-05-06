@@ -16,20 +16,20 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
         public async Task FindBasesAsync(Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var symbolAndSolutionOpt = await FindUsagesHelpers.GetRelevantSymbolAndSolutionAtPositionAsync(
+            var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
 
-            if (symbolAndSolutionOpt == null)
+            if (symbolAndProjectOpt == null)
             {
                 await context.ReportMessageAsync(
                     EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
                 return;
             }
 
-            var (symbol, solution) = symbolAndSolutionOpt.Value;
+            var (symbol, project) = symbolAndProjectOpt.Value;
 
-            var bases = FindBaseHelpers.FindBases(
-                symbol, solution, cancellationToken);
+            var solution = project.Solution;
+            var bases = FindBaseHelpers.FindBases(symbol, solution, cancellationToken);
 
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_bases,
