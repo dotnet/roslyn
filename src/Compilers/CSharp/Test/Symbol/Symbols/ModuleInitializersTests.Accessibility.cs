@@ -150,61 +150,6 @@ Program.Main");
         }
 
         [Fact]
-        public void MayBeDeclaredByStruct()
-        {
-            string source = @"
-using System;
-using System.Runtime.CompilerServices;
-
-struct S
-{
-    [ModuleInitializer]
-    internal static void M() => Console.WriteLine(""C.M"");
-}
-
-class Program 
-{
-    static void Main() => Console.WriteLine(""Program.Main"");
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
-C.M
-Program.Main");
-        }
-
-        [Fact]
-        public void MayBeDeclaredByInterface()
-        {
-            string source = @"
-using System;
-using System.Runtime.CompilerServices;
-
-interface I
-{
-    [ModuleInitializer]
-    internal static void M() => Console.WriteLine(""I.M"");
-}
-
-class Program 
-{
-    static void Main() => Console.WriteLine(""Program.Main"");
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            CompileAndVerify(
-                source,
-                parseOptions: s_parseOptions,
-                targetFramework: TargetFramework.NetStandardLatest,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"
-I.M
-Program.Main" : null,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
-        }
-
-        [Fact]
         public void ImplicitPublicInterfaceMethodAccessibility()
         {
             string source = @"
