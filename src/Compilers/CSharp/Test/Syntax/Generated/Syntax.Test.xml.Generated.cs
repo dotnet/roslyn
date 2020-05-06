@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.PlusPlusToken));
 
         private static Syntax.InternalSyntax.WithExpressionSyntax GenerateWithExpression()
-            => InternalSyntaxFactory.WithExpression(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.WithKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.AnonymousObjectMemberDeclaratorSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            => InternalSyntaxFactory.WithExpression(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.WithKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.AssignmentExpressionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         private static Syntax.InternalSyntax.MemberAccessExpressionSyntax GenerateMemberAccessExpression()
             => InternalSyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.DotToken), GenerateIdentifierName());
@@ -9161,7 +9161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.PlusPlusToken));
 
         private static WithExpressionSyntax GenerateWithExpression()
-            => SyntaxFactory.WithExpression(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.WithKeyword), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            => SyntaxFactory.WithExpression(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.WithKeyword), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<AssignmentExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         private static MemberAccessExpressionSyntax GenerateMemberAccessExpression()
             => SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.DotToken), GenerateIdentifierName());

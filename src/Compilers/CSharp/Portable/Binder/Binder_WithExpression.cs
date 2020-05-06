@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiver = BindRValueWithoutTargetType(syntax.Receiver, diagnostics);
             var receiverType = receiver.Type;
 
-            var lookupResult = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             bool hasErrors = false;
 
             if (receiverType is null || receiverType.IsVoidType())
@@ -38,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? cloneMethod = null;
             if (!receiverType.IsErrorType())
             {
+                var lookupResult = LookupResult.GetInstance();
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+
                 // PROTOTYPE: The receiver type must have a instance method called 'Clone' with no parameters
                 LookupMembersInType(
                     lookupResult,
@@ -91,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE: discarding use-site diagnostics
                     useSiteDiagnostics = null;
                 }
+                lookupResult.Free();
             }
 
             var cloneReturnType = cloneMethod?.ReturnType;
@@ -106,39 +108,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Bind with expression arguments
             foreach (var initializer in syntax.Initializers)
             {
-                var propSyntax = initializer.NameEquals?.Name;
-                var propName = propSyntax?.Identifier.Text;
-                BoundExpression? boundMember = null;
-                if (!(propName is null))
-                {
-                    var location = initializer.NameEquals!.Name.Location;
-                    boundMember = BindInstanceMemberAccess(
-                        node: propSyntax,
-                        right: propSyntax,
-                        boundLeft: implicitReceiver,
-                        rightName: propName,
-                        rightArity: 0,
-                        typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
-                        typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
-                        invoked: false,
-                        indexed: false,
-                        diagnostics: diagnostics);
+                // We're expecting a simple assignment only, with an ID on the left
+                var propName = ((IdentifierNameSyntax)initializer.Left).Identifier.Text;
+                var boundMember = BindInstanceMemberAccess(
+                    node: initializer.Left,
+                    right: initializer.Left,
+                    boundLeft: implicitReceiver,
+                    rightName: propName,
+                    rightArity: 0,
+                    typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
+                    typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
+                    invoked: false,
+                    indexed: false,
+                    diagnostics: diagnostics);
 
-                    hasErrors = boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
+                hasErrors = boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
+                boundMember = CheckValue(boundMember, BindValueKind.Assignable, diagnostics);
 
-                    boundMember = CheckValue(boundMember, BindValueKind.Assignable, diagnostics);
-                }
+                var expr = BindValue(initializer.Right, diagnostics, BindValueKind.RValue);
+                var assignment = BindAssignment(initializer, boundMember, expr, isRef: false, diagnostics);
+                expr = assignment.Right;
 
-                var expr = BindValue(initializer.Expression, diagnostics, BindValueKind.RValue);
-                if (!(boundMember is null))
-                {
-                    var assignment = BindAssignment(initializer, boundMember, expr, isRef: false, diagnostics);
-                    expr = assignment.Right;
-                }
                 args.Add((boundMember?.ExpressionSymbol, expr));
             }
 
-            lookupResult.Free();
 
             return new BoundWithExpression(
                 syntax,

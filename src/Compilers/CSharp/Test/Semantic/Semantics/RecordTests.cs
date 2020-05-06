@@ -5,6 +5,8 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -780,9 +782,9 @@ data class C(int X, int Y)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (8,22): error CS1525: Invalid expression term '='
+                // (8,22): error CS1001: Identifier expected
                 //         c = c with { = 5 };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(8, 22)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(8, 22)
             );
         }
 
@@ -1592,6 +1594,33 @@ True
 True
 False
 1 2 3");
+        }
+
+        [Fact]
+        public void WithSemanticModel1()
+        {
+            var src = @"
+data class C(int X, string Y)
+{
+    public static void Main()
+    {
+        var c = new C(0, ""a"");
+        c = c with { X = 2 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var model = comp.GetSemanticModel(tree);
+            var withExpr = root.DescendantNodes().OfType<WithExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(withExpr);
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            Assert.True(c.ISymbol.Equals(typeInfo.Type));
+
+            var x = c.GetMembers("X").Single();
+            var xId = withExpr.DescendantNodes().Single(id => id.ToString() == "X");
+            var symbolInfo = model.GetSymbolInfo(xId);
+            Assert.True(x.ISymbol.Equals(symbolInfo.Symbol));
         }
     }
 }

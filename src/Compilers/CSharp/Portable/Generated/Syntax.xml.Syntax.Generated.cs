@@ -927,17 +927,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken WithKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.WithExpressionSyntax)this.Green).withKeyword, GetChildPosition(1), GetChildIndex(1));
 
+        /// <summary>SyntaxToken representing the open brace.</summary>
         public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.WithExpressionSyntax)this.Green).openBraceToken, GetChildPosition(2), GetChildIndex(2));
 
-        public SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> Initializers
+        /// <summary>SeparatedSyntaxList of assignments representing the list of with member initializers.</summary>
+        public SeparatedSyntaxList<AssignmentExpressionSyntax> Initializers
         {
             get
             {
                 var red = GetRed(ref this.initializers, 3);
-                return red != null ? new SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax>(red, GetChildIndex(3)) : default;
+                return red != null ? new SeparatedSyntaxList<AssignmentExpressionSyntax>(red, GetChildIndex(3)) : default;
             }
         }
 
+        /// <summary>SyntaxToken representing the close brace.</summary>
         public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.WithExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(4), GetChildIndex(4));
 
         internal override SyntaxNode? GetNodeSlot(int index)
@@ -960,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         [return: MaybeNull]
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWithExpression(this);
 
-        public WithExpressionSyntax Update(ExpressionSyntax receiver, SyntaxToken withKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, SyntaxToken closeBraceToken)
+        public WithExpressionSyntax Update(ExpressionSyntax receiver, SyntaxToken withKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<AssignmentExpressionSyntax> initializers, SyntaxToken closeBraceToken)
         {
             if (receiver != this.Receiver || withKeyword != this.WithKeyword || openBraceToken != this.OpenBraceToken || initializers != this.Initializers || closeBraceToken != this.CloseBraceToken)
             {
@@ -975,10 +978,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public WithExpressionSyntax WithReceiver(ExpressionSyntax receiver) => Update(receiver, this.WithKeyword, this.OpenBraceToken, this.Initializers, this.CloseBraceToken);
         public WithExpressionSyntax WithWithKeyword(SyntaxToken withKeyword) => Update(this.Receiver, withKeyword, this.OpenBraceToken, this.Initializers, this.CloseBraceToken);
         public WithExpressionSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(this.Receiver, this.WithKeyword, openBraceToken, this.Initializers, this.CloseBraceToken);
-        public WithExpressionSyntax WithInitializers(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers) => Update(this.Receiver, this.WithKeyword, this.OpenBraceToken, initializers, this.CloseBraceToken);
+        public WithExpressionSyntax WithInitializers(SeparatedSyntaxList<AssignmentExpressionSyntax> initializers) => Update(this.Receiver, this.WithKeyword, this.OpenBraceToken, initializers, this.CloseBraceToken);
         public WithExpressionSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.Receiver, this.WithKeyword, this.OpenBraceToken, this.Initializers, closeBraceToken);
 
-        public WithExpressionSyntax AddInitializers(params AnonymousObjectMemberDeclaratorSyntax[] items) => WithInitializers(this.Initializers.AddRange(items));
+        public WithExpressionSyntax AddInitializers(params AssignmentExpressionSyntax[] items) => WithInitializers(this.Initializers.AddRange(items));
     }
 
     /// <summary>Class which represents the syntax node for member access expression.</summary>
