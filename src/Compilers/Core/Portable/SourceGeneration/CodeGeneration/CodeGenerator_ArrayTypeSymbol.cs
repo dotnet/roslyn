@@ -18,6 +18,20 @@ namespace Microsoft.CodeAnalysis
             return new ArrayTypeSymbol(elementType, rank);
         }
 
+        public static IArrayTypeSymbol With(this IArrayTypeSymbol arrayType, Optional<ITypeSymbol> elementType = default, Optional<int> rank = default)
+        {
+            var newElementType = elementType.HasValue ? elementType.Value : arrayType.ElementType;
+            var newRank = rank.HasValue ? rank.Value : arrayType.Rank;
+
+            if (arrayType.ElementType == newElementType &&
+                arrayType.Rank == newRank)
+            {
+                return arrayType;
+            }
+
+            return new ArrayTypeSymbol(newElementType, newRank);
+        }
+
         private class ArrayTypeSymbol : TypeSymbol, IArrayTypeSymbol
         {
             public ITypeSymbol ElementType { get; }
