@@ -1295,8 +1295,7 @@ namespace Microsoft.CodeAnalysis
 
             void checkInCompilationReferences(ISymbol s, string parameterName)
             {
-                var containingAssembly = computeContainingAssembly(s);
-                if (!assemblyIsInReferences(containingAssembly))
+                if (!isContainingAssemblyInReferences(s))
                 {
                     throw new ArgumentException(string.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, parameterName), parameterName);
                 }
@@ -1344,14 +1343,14 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            IAssemblySymbol computeContainingAssembly(ISymbol s)
+            bool isContainingAssemblyInReferences(ISymbol s)
             {
                 while (true)
                 {
                     switch (s.Kind)
                     {
                         case SymbolKind.Assembly:
-                            return (IAssemblySymbol)s;
+                            return assemblyIsInReferences((IAssemblySymbol)s);
                         case SymbolKind.PointerType:
                             s = ((IPointerTypeSymbol)s).PointedAtType;
                             continue;
@@ -1364,15 +1363,31 @@ namespace Microsoft.CodeAnalysis
                         case SymbolKind.Discard:
                             s = ((IDiscardSymbol)s).Type;
                             continue;
+                        case SymbolKind.FunctionPointer:
+                            var funcPtr = (IFunctionPointerTypeSymbol)s;
+                            if (!isContainingAssemblyInReferences(funcPtr.Signature.ReturnType))
+                            {
+                                return false;
+                            }
+
+                            foreach (var param in funcPtr.Signature.Parameters)
+                            {
+                                if (!isContainingAssemblyInReferences(param.Type))
+                                {
+                                    return false;
+                                }
+                            }
+
+                            return true;
                         case SymbolKind.DynamicType:
                         case SymbolKind.ErrorType:
                         case SymbolKind.Preprocessing:
                         case SymbolKind.Namespace:
                             // these symbols are not restricted in where they can be accessed, so unless they report
                             // a containing assembly, we treat them as in the current assembly for access purposes
-                            return s.ContainingAssembly ?? this.Assembly;
+                            return assemblyIsInReferences(s.ContainingAssembly ?? this.Assembly);
                         default:
-                            return s.ContainingAssembly;
+                            return assemblyIsInReferences(s.ContainingAssembly);
                     }
                 }
             }
