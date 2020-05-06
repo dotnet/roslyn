@@ -12,25 +12,16 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IArrayTypeSymbol ArrayType(ITypeSymbol elementType)
             => new ArrayTypeSymbol(elementType, rank: 1);
 
-        public static IArrayTypeSymbol ArrayType(
-            ITypeSymbol elementType, int rank)
-        {
-            return new ArrayTypeSymbol(elementType, rank);
-        }
+        //public static IArrayTypeSymbol ArrayType(
+        //    ITypeSymbol elementType, int rank)
+        //{
+        //    return new ArrayTypeSymbol(elementType, rank);
+        //}
 
         public static IArrayTypeSymbol With(this IArrayTypeSymbol arrayType, Optional<ITypeSymbol> elementType = default, Optional<int> rank = default)
-        {
-            var newElementType = elementType.HasValue ? elementType.Value : arrayType.ElementType;
-            var newRank = rank.HasValue ? rank.Value : arrayType.Rank;
-
-            if (arrayType.ElementType == newElementType &&
-                arrayType.Rank == newRank)
-            {
-                return arrayType;
-            }
-
-            return new ArrayTypeSymbol(newElementType, newRank);
-        }
+            => new ArrayTypeSymbol(
+                elementType.GetValueOr(arrayType.ElementType),
+                rank.GetValueOr(arrayType.Rank));
 
         private class ArrayTypeSymbol : TypeSymbol, IArrayTypeSymbol
         {

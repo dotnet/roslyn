@@ -72,5 +72,8 @@ namespace Microsoft.CodeAnalysis
                 ? _value?.ToString() ?? "null"
                 : "unspecified";
         }
+
+        internal T GetValueOr(T @default)
+            => this.HasValue ? this.Value : @default;
     }
 }

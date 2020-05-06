@@ -11,17 +11,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IDiscardSymbol Discard()
             => new DiscardSymbol();
 
-        public static IDiscardSymbol Discard(ITypeSymbol type)
-            => new DiscardSymbol(type);
+        //public static IDiscardSymbol Discard(ITypeSymbol type)
+        //    => new DiscardSymbol(type);
 
         public static IDiscardSymbol With(this IDiscardSymbol discard, Optional<ITypeSymbol> type = default)
-        {
-            var newType = type.HasValue ? type.Value : discard.Type;
-            if (newType == discard.Type)
-                return discard;
-
-            return new DiscardSymbol(newType);
-        }
+            => new DiscardSymbol(
+                type.GetValueOr(discard.Type));
 
         private class DiscardSymbol : Symbol, IDiscardSymbol
         {
