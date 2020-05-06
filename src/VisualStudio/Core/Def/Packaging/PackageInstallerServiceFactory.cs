@@ -115,20 +115,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 }
             }
 
-            if (allowSwitchToMainThread)
+            if (allowSwitchToMainThread || _packageSourcesAsync.IsCompleted)
             {
                 using var combinedToken = _tokenSource.Token.CombineWith(cancellationToken);
                 packageSources = await _packageSourcesAsync.JoinAsync(combinedToken.Token).ConfigureAwait(false);
-            }
-            else if (_packageSourcesAsync.IsCompleted)
-            {
-                if (_packageSourcesAsync.Task.Status != TaskStatus.RanToCompletion)
-                {
-                    // The operation did not complete successfully
-                    return null;
-                }
-
-                packageSources = _packageSourcesAsync.GetAwaiter().GetResult();
             }
             else
             {
