@@ -35,11 +35,20 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             // Unsafe = 1 << 3,
             // Partial = 1 << 10,
 
+            if (symbol is IFieldSymbol field)
+            {
+                if (field.IsReadOnly)
+                    result |= SymbolModifiers.ReadOnly;
+
+                if (field.IsConst)
+                    result |= SymbolModifiers.Const;
+
+                if (field.IsVolatile)
+                    result |= SymbolModifiers.Volatile;
+            }
+
             // could be inferred from symbol
-            // ReadOnly = 1 << 4,
-            // Const = 1 << 8,
             // WriteOnly = 1 << 12,
-            // Volatile = 1 << 14,
 
             // could be inferred from iops:
             // Async = 1 << 11,

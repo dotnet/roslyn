@@ -9,8 +9,24 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
-        public static IEventSymbol Event(string name, ITypeSymbol type)
-            => new EventSymbol(name, type);
+        public static IEventSymbol Event(
+            string name,
+            ITypeSymbol type,
+            Accessibility declaredAccessibility = Accessibility.NotApplicable,
+            SymbolModifiers modifiers = SymbolModifiers.None,
+            IMethodSymbol addMethod = null,
+            IMethodSymbol removeMethod = null,
+            IMethodSymbol raiseMethod = null,
+            ImmutableArray<IEventSymbol> explicitInterfaceImplementations = default)
+            => new EventSymbol(
+                name,
+                type,
+                declaredAccessibility,
+                modifiers,
+                addMethod,
+                removeMethod,
+                raiseMethod,
+                explicitInterfaceImplementations);
 
         public static IEventSymbol With(
             this IEventSymbol @event,

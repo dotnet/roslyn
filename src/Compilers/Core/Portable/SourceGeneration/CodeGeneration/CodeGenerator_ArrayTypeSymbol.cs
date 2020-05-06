@@ -9,14 +9,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
-        public static IArrayTypeSymbol ArrayType(ITypeSymbol elementType)
-            => new ArrayTypeSymbol(elementType, rank: 1);
-
-        //public static IArrayTypeSymbol ArrayType(
-        //    ITypeSymbol elementType, int rank)
-        //{
-        //    return new ArrayTypeSymbol(elementType, rank);
-        //}
+        public static IArrayTypeSymbol ArrayType(ITypeSymbol elementType, int rank = 1)
+            => new ArrayTypeSymbol(
+                elementType,
+                rank);
 
         public static IArrayTypeSymbol With(this IArrayTypeSymbol arrayType, Optional<ITypeSymbol> elementType = default, Optional<int> rank = default)
             => new ArrayTypeSymbol(
