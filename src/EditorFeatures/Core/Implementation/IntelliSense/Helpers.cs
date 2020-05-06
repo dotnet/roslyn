@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
@@ -128,11 +129,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                     var style = GetClassifiedTextRunStyle(part.Style);
                     if (part.NavigationTarget is object)
                     {
-                        var target = part.NavigationTarget;
-                        var tooltip = part.NavigationHint;
-                        currentRuns.Add(new ClassifiedTextRun(
-                            part.Tag.ToClassificationTypeName(), part.Text,
-                            () => NavigateToQuickInfoTarget(target, document, threadingContext, streamingPresenter.Value), tooltip, style));
+                        if (Uri.TryCreate(part.NavigationTarget, UriKind.Absolute, out var absoluteUri))
+                        {
+                            var target = new QuickInfoHyperLink(document.Project.Solution.Workspace, absoluteUri);
+                            var tooltip = part.NavigationHint;
+                            currentRuns.Add(new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text, target.NavigationAction, tooltip, style));
+                        }
+                        else
+                        {
+                            var target = part.NavigationTarget;
+                            var tooltip = part.NavigationHint;
+                            currentRuns.Add(new ClassifiedTextRun(
+                                part.Tag.ToClassificationTypeName(), part.Text,
+                                () => NavigateToQuickInfoTarget(target, document, threadingContext, streamingPresenter.Value), tooltip, style));
+                        }
                     }
                     else
                     {
@@ -164,13 +174,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingPresenter)
         {
-            var navigateToLinkService = document.Project.Solution.Workspace.Services.GetRequiredService<INavigateToLinkService>();
-            if (Uri.TryCreate(navigationTarget, UriKind.Absolute, out var absoluteUri))
-            {
-                navigateToLinkService.TryNavigateToLinkAsync(absoluteUri, CancellationToken.None);
-                return;
-            }
-
             SymbolKeyResolution resolvedSymbolKey;
             try
             {

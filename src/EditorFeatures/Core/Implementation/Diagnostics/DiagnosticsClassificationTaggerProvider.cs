@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -63,30 +65,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected internal override bool IncludeDiagnostic(DiagnosticData data) =>
             data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
-        protected internal override ITagSpan<ClassificationTag> CreateTagSpan(bool isLiveUpdate, SnapshotSpan span, DiagnosticData data) =>
+        protected internal override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data) =>
             new TagSpan<ClassificationTag>(span, _classificationTag);
 
         protected internal override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
         {
-            using var locationsToTagDisposer = PooledObjects.ArrayBuilder<DiagnosticDataLocation>.GetInstance(out var locationsToTag);
-
             // If there are 'unnecessary' locations specified in the property bag, use those instead of the main diagnostic location.
             if (diagnosticData.AdditionalLocations?.Count > 0
                 && diagnosticData.Properties != null
-                && diagnosticData.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var unnecessaryIndices))
+                && diagnosticData.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var unnecessaryIndices)
+                && unnecessaryIndices is object)
             {
+                using var locationsToTagDisposer = PooledObjects.ArrayBuilder<DiagnosticDataLocation>.GetInstance(out var locationsToTag);
+
                 var additionalLocations = diagnosticData.AdditionalLocations.ToImmutableArray();
                 var indices = GetLocationIndices(unnecessaryIndices);
                 locationsToTag.AddRange(indices.Select(i => additionalLocations[i]).ToImmutableArray());
             }
-            else
-            {
-                locationsToTag.Add(diagnosticData.DataLocation);
-            }
 
-            return locationsToTag.ToImmutable();
+            // Default to the base implementation for the diagnostic data
+            return base.GetLocationsToTag(diagnosticData);
 
-            static IEnumerable<int> GetLocationIndices(string indicesProperty)
+            static IEnumerable<int>? GetLocationIndices(string indicesProperty)
             {
                 try
                 {
