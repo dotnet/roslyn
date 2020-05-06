@@ -5111,24 +5111,18 @@ public unsafe class C
 
             static void verifySymbolNullabilities(NamedTypeSymbol c)
             {
-                assertExpected("System.String!", "System.Object!", "C!", "F1");
-                assertExpected("System.String?", "System.Object!", "C!", "F2");
-                assertExpected("System.String!", "System.Object?", "C!", "F3");
-                assertExpected("System.String!", "System.Object!", "C?", "F4");
-                assertExpected("System.String?", "System.Object?", "C?", "F5");
-                assertExpected("System.String?", "System.Object?", "C?", "F5");
-                assertExpected("delegate*<System.String!, System.Int32*>", "delegate*<System.String?>", "delegate*<System.Void*, System.String!>", "F6");
+                assertExpected("delegate*<System.String!, System.Object!, C!>", "F1");
+                assertExpected("delegate*<System.String?, System.Object!, C!>", "F2");
+                assertExpected("delegate*<System.String!, System.Object?, C!>", "F3");
+                assertExpected("delegate*<System.String!, System.Object!, C?>", "F4");
+                assertExpected("delegate*<System.String?, System.Object?, C?>", "F5");
+                assertExpected("delegate*<delegate*<System.String!, System.Int32*>, delegate*<System.String?>, delegate*<System.Void*, System.String!>>", "F6");
 
-                void assertExpected(string param1Type, string param2Type, string returnType, string fieldName)
+                void assertExpected(string expectedType, string fieldName)
                 {
-                    var field = (FunctionPointerTypeSymbol)c.GetField(fieldName).Type;
-
-                    var paramTypes = field.Signature.ParameterTypesWithAnnotations;
-                    Assert.Equal(2, paramTypes.Length);
-                    Assert.Equal(param1Type, paramTypes[0].ToTestDisplayString(includeNonNullable: true));
-                    Assert.Equal(param2Type, paramTypes[1].ToTestDisplayString(includeNonNullable: true));
-
-                    Assert.Equal(returnType, field.Signature.ReturnTypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
+                    var type = (FunctionPointerTypeSymbol)c.GetField(fieldName).Type;
+                    CommonVerifyFunctionPointer(type);
+                    Assert.Equal(expectedType, type.ToTestDisplayString(includeNonNullable: true));
                 }
             }
         }
@@ -5147,6 +5141,9 @@ public unsafe class C
         [InlineData("delegate*<(Z, Z), (Z e, Z f), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, null, null, ""e"", ""f""})")]
         [InlineData("delegate*<(Z, Z), (Z e, Z), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, null, null, ""e"", null})")]
         [InlineData("delegate*<(Z, Z), (Z, Z f), (Z, Z)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, null, null, null, null, ""f""})")]
+        [InlineData("delegate*<(Z a, (Z b, Z c) d), (Z e, Z f)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""e"", ""f"", ""a"", ""d"", ""b"", ""c""})")]
+        [InlineData("delegate*<(Z a, Z b), ((Z c, Z d) e, Z f)>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""e"", ""f"", ""c"", ""d"", ""a"", ""b""})")]
+        [InlineData("delegate*<delegate*<(Z a, Z b), Z>, delegate*<Z, (Z d, Z e)>>", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""d"", ""e"", ""a"", ""b""})")]
         [InlineData("delegate*<(Z, Z), (Z, Z), (Z, Z)>", null)]
         public void TupleNamesInMetadata(string type, string? expectedAttribute)
         {

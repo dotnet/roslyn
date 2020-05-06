@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </summary>
         /// <remarks>
         /// Because TypeSymbol equality can differ based on e.g. nullability, any symbols that contain TypeSymbols can also differ in the same way
-        /// This call allows the symbol to accept a comparison kind that should be used when comparing its contained types
+        /// This call allows the component to accept a comparison kind that should be used when comparing its contained types
         /// </remarks>
         bool Equals(ISymbolCompareKindComparableInternal? other, TypeCompareKind compareKind);
     }
