@@ -81,9 +81,10 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
             CompileAndVerify(
                 source,
                 parseOptions: s_parseOptions,
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, metadataImportOptions: MetadataImportOptions.All),
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
+                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
                     var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
                     Assert.Null(rootModuleType.GetMember(".cctor"));
                 },
@@ -118,6 +119,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
+                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
                     var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
                     var staticConstructor = (PEMethodSymbol)rootModuleType.GetMember(".cctor");
 
