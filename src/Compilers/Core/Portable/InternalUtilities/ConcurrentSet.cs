@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -180,10 +179,10 @@ namespace Roslyn.Utilities
         {
             // PERF: Do not use dictionary.Keys here because that creates a snapshot
             // of the collection resulting in a List<T> allocation.
-            // Instead, enumerate the underlying dictionary and copy over the keys.
-            foreach (var kvp in _dictionary)
+            // Instead, enumerate the set and copy over the elements.
+            foreach (var element in this)
             {
-                array[arrayIndex++] = kvp.Key;
+                array[arrayIndex++] = element;
             }
         }
     }
