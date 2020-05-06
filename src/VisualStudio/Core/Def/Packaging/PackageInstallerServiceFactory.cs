@@ -117,17 +117,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             if (allowSwitchToMainThread)
             {
-                try
-                {
-                    using var combinedToken = _tokenSource.Token.CombineWith(cancellationToken);
-                    packageSources = await _packageSourcesAsync.JoinAsync(combinedToken.Token).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-                {
-                    // The operation did not complete successfully due to a change in the workspace. Return but do not
-                    // cache this result.
-                    return null;
-                }
+                using var combinedToken = _tokenSource.Token.CombineWith(cancellationToken);
+                packageSources = await _packageSourcesAsync.JoinAsync(combinedToken.Token).ConfigureAwait(false);
             }
             else if (_packageSourcesAsync.IsCompleted)
             {
