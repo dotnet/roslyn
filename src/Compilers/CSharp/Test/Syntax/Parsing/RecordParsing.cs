@@ -1002,5 +1002,66 @@ class C
             }
             EOF();
         }
+
+        [Fact]
+        public void WithParsing18()
+        {
+            var text = @"x with { A = e is T y B = y }";
+            UsingExpression(text,
+                // (1,23): error CS1003: Syntax error, ',' expected
+                // x with { A = e is T y B = y }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",", "").WithLocation(1, 23));
+            N(SyntaxKind.WithExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "A");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                    }
+                }
+                M(SyntaxKind.CommaToken);
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "B");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
     }
 }

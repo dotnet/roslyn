@@ -11082,6 +11082,11 @@ tryAgain:
                     identifier,
                     equal,
                     expression));
+
+                if (CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+                {
+                    expressions.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                }
             }
 
             var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
