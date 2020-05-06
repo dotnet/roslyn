@@ -3340,5 +3340,32 @@ public class A
                 Diagnostic(ErrorCode.ERR_AsNullableType, "A[][]?").WithArguments("A[][]").WithLocation(16, 18)
                 );
         }
+
+        [Fact, WorkItem(43960, "https://github.com/dotnet/roslyn/issues/43960")]
+        public void NamespaceQualifiedEnumConstantInSwitchCase()
+        {
+            var source =
+@"enum E
+{
+    A, B, C
+}
+
+class Class1
+{
+    void M(E e)
+    {
+        switch (e)
+        {
+            case global::E.A: break;
+            case global::E.B: break;
+            case global::E.C: break;
+        }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
     }
 }
