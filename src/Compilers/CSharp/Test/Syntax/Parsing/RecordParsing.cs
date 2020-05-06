@@ -497,6 +497,15 @@ class C
             var text = "0 with {";
 
             UsingExpression(text,
+                // (1,9): error CS1001: Identifier expected
+                // 0 with {
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1003: Syntax error, '=' expected
+                // 0 with {
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=", "").WithLocation(1, 9),
+                // (1,9): error CS1733: Expected expression
+                // 0 with {
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
                 // (1,9): error CS1513: } expected
                 // 0 with {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 9)
@@ -510,6 +519,18 @@ class C
                 }
                 N(SyntaxKind.WithKeyword);
                 N(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.EqualsToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
                 M(SyntaxKind.CloseBraceToken);
             }
             EOF();
@@ -521,6 +542,12 @@ class C
             var text = "0 with { X";
 
             UsingExpression(text,
+                // (1,11): error CS1003: Syntax error, '=' expected
+                // 0 with { X
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=", "").WithLocation(1, 11),
+                // (1,11): error CS1733: Expected expression
+                // 0 with { X
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 11),
                 // (1,11): error CS1513: } expected
                 // 0 with { X
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 11)
@@ -534,11 +561,16 @@ class C
                 }
                 N(SyntaxKind.WithKeyword);
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                N(SyntaxKind.SimpleAssignmentExpression);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    M(SyntaxKind.EqualsToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
                     }
                 }
                 M(SyntaxKind.CloseBraceToken);
@@ -552,12 +584,21 @@ class C
             var text = "0 with { X 3 =,";
 
             UsingExpression(text,
-                // (1,12): error CS1003: Syntax error, ',' expected
+                // (1,12): error CS1003: Syntax error, '=' expected
                 // 0 with { X 3 =,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "3").WithArguments(",", "").WithLocation(1, 12),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "3").WithArguments("=", "").WithLocation(1, 12),
                 // (1,15): error CS1525: Invalid expression term ','
                 // 0 with { X 3 =,
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 15),
+                // (1,16): error CS1001: Identifier expected
+                // 0 with { X 3 =,
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 16),
+                // (1,16): error CS1003: Syntax error, '=' expected
+                // 0 with { X 3 =,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=", "").WithLocation(1, 16),
+                // (1,16): error CS1733: Expected expression
+                // 0 with { X 3 =,
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 16),
                 // (1,16): error CS1513: } expected
                 // 0 with { X 3 =,
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 16)
@@ -571,16 +612,13 @@ class C
                 }
                 N(SyntaxKind.WithKeyword);
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                N(SyntaxKind.SimpleAssignmentExpression);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "X");
                     }
-                }
-                M(SyntaxKind.CommaToken);
-                N(SyntaxKind.AnonymousObjectMemberDeclarator);
-                {
+                    M(SyntaxKind.EqualsToken);
                     N(SyntaxKind.SimpleAssignmentExpression);
                     {
                         N(SyntaxKind.NumericLiteralExpression);
@@ -595,6 +633,18 @@ class C
                     }
                 }
                 N(SyntaxKind.CommaToken);
+                M(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.EqualsToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
                 M(SyntaxKind.CloseBraceToken);
             }
             EOF();

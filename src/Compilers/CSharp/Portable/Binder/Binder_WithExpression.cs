@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We're expecting a simple assignment only, with an ID on the left
                 var propName = ((IdentifierNameSyntax)initializer.Left).Identifier.Text;
                 var boundMember = BindInstanceMemberAccess(
-                    node: initializer,
-                    right: initializer.Right,
+                    node: initializer.Left,
+                    right: initializer.Left,
                     boundLeft: implicitReceiver,
                     rightName: propName,
                     rightArity: 0,

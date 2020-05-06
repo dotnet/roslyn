@@ -1365,7 +1365,7 @@ class C
             comp.VerifyDiagnostics(
                 // (10,22): error CS1656: Cannot assign to 'X' because it is a 'method group'
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "X = 11").WithArguments("X", "method group").WithLocation(10, 22)
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "X").WithArguments("X", "method group").WithLocation(10, 22)
             );
         }
 

@@ -11071,21 +11071,36 @@ tryAgain:
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
             var expressions = _pool.AllocateSeparated<AssignmentExpressionSyntax>();
-            while (CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+            if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-                var identifier = this.ParseIdentifierName();
-                var equal = this.EatToken(SyntaxKind.EqualsToken);
-                var expression = this.ParseExpressionCore();
+                // first argument
+                expressions.Add(parseWithArgument());
 
-                expressions.Add(_syntaxFactory.AssignmentExpression(
-                    SyntaxKind.SimpleAssignmentExpression,
-                    identifier,
-                    equal,
-                    expression));
-
-                if (CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+                // additional arguments
+                int lastTokenPosition = -1;
+                while (IsMakingProgress(ref lastTokenPosition))
                 {
-                    expressions.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                    if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
+                    {
+                        break;
+                    }
+                    else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                    {
+                        expressions.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+
+                        // check for exit case after legal trailing comma
+                        if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
+                        {
+                            break;
+                        }
+
+                        expressions.Add(parseWithArgument());
+                        continue;
+                    }
+                    else if (skipBadTokens(ref openBrace, expressions, SyntaxKind.CommaToken) == PostSkipAction.Abort)
+                    {
+                        break;
+                    }
                 }
             }
 
@@ -11102,6 +11117,28 @@ tryAgain:
             _pool.Free(expressions);
 
             return result;
+
+            AssignmentExpressionSyntax parseWithArgument()
+            {
+                var identifier = ParseIdentifierName();
+                var equal = EatToken(SyntaxKind.EqualsToken);
+                var expression = ParseExpressionCore();
+
+                return _syntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    identifier,
+                    equal,
+                    expression);
+            }
+
+            PostSkipAction skipBadTokens<T>(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<T> list, SyntaxKind expected)
+                where T : CSharpSyntaxNode
+            {
+                return this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
+                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && p.CurrentToken.Kind != SyntaxKind.IdentifierToken,
+                    p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
+                    expected);
+            }
         }
 
         private InitializerExpressionSyntax ParseObjectOrCollectionInitializer()
@@ -11182,8 +11219,6 @@ tryAgain:
                     goto tryAgain;
                 }
             }
-
-            // We may have invalid initializer elements. These will be reported during binding.
         }
 
         private ExpressionSyntax ParseObjectOrCollectionInitializerMember(ref bool isObjectInitializer)
