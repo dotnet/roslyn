@@ -12,11 +12,6 @@
         <target state="translated">"await" hinzufügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">Explizite Umwandlung hinzufügen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_missing_usings">
         <source>Add missing usings</source>
         <target state="translated">Fehlende using-Anweisungen hinzufügen</target>
@@ -110,11 +105,6 @@
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
         <target state="translated">In ausführliche Zeichenfolge konvertieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_type_to_0">
-        <source>Convert type to '{0}'</source>
-        <target state="translated">Typ in "{0}" konvertieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">

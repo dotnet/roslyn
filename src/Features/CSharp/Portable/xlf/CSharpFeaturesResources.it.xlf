@@ -12,11 +12,6 @@
         <target state="translated">Aggiungi await</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">Aggiungi cast esplicito</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_missing_usings">
         <source>Add missing usings</source>
         <target state="translated">Aggiungi using mancanti</target>
@@ -110,11 +105,6 @@
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
         <target state="translated">Converti in stringa verbatim</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_type_to_0">
-        <source>Convert type to '{0}'</source>
-        <target state="translated">Converti il tipo in '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">

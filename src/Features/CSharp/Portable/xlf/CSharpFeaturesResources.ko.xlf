@@ -12,11 +12,6 @@
         <target state="translated">await 추가</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">명시적 캐스트 추가</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_missing_usings">
         <source>Add missing usings</source>
         <target state="translated">누락된 using 추가</target>
@@ -110,11 +105,6 @@
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
         <target state="translated">축자 문자열로 변환</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_type_to_0">
-        <source>Convert type to '{0}'</source>
-        <target state="translated">형식을 '{0}'(으)로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
