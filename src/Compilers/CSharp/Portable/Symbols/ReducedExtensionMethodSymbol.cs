@@ -198,8 +198,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck);
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var success = method.CheckConstraints(conversions, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
-                                                  ref useSiteDiagnosticsBuilder, template: new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo),
+            var success = method.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo)),
+                                                  substitution, typeParams, typeArgsForConstraintsCheck, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
+                                                  ref useSiteDiagnosticsBuilder,
                                                   ignoreTypeConstraintsDependentOnTypeParametersOpt: notInferredTypeParameters.Count > 0 ? notInferredTypeParameters : null);
             diagnosticsBuilder.Free();
             notInferredTypeParameters.Free();

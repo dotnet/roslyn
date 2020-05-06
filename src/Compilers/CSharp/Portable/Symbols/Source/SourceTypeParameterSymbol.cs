@@ -223,9 +223,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!_lazyBounds.IsSet())
             {
                 var diagnostics = BindingDiagnosticBag.GetInstance();
-                var bounds = this.ResolveBounds(inProgress, diagnostics);
 
-                if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset), TypeParameterBounds.Unset))
+                if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBounds, this.ResolveBounds(inProgress, diagnostics), TypeParameterBounds.Unset), TypeParameterBounds.Unset))
                 {
                     this.CheckConstraintTypeConstraints(diagnostics);
                     this.CheckUnmanagedConstraint(diagnostics);
@@ -256,10 +255,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var args = new ConstraintsHelper.CheckConstraintsArgs(DeclaringCompilation, new TypeConversions(ContainingAssembly.CorLibrary), _locations[0], diagnostics);
+            var args = new ConstraintsHelper.CheckConstraintsArgsBoxed(DeclaringCompilation, new TypeConversions(ContainingAssembly.CorLibrary), _locations[0], diagnostics);
             foreach (var constraintType in constraintTypes)
             {
-                if (!diagnostics.ReportUseSite(constraintType.Type, args.Location))
+                if (!diagnostics.ReportUseSite(constraintType.Type, args.Args.Location))
                 {
                     constraintType.Type.CheckAllConstraints(args);
                 }

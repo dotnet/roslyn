@@ -385,12 +385,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
             bool constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
                 method,
-                this.Conversions,
-                this.Compilation,
+                new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null, template),
                 diagnosticsBuilder,
                 nullabilityDiagnosticsBuilderOpt: null,
-                ref useSiteDiagnosticsBuilder,
-                template);
+                ref useSiteDiagnosticsBuilder);
 
             if (!constraintsSatisfied)
             {
