@@ -78,16 +78,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             var projectId = ProjectId.CreateNewId(invocationInfo.ProjectFilePath);
 
-            DocumentInfo CreateDocumentInfo(string unmappedPath)
-            {
-                var mappedPath = mapPath(unmappedPath);
-                return DocumentInfo.Create(
-                    DocumentId.CreateNewId(projectId, mappedPath),
-                    name: mappedPath,
-                    filePath: mappedPath,
-                    loader: new FileTextLoader(mappedPath, parsedCommandLine.Encoding));
-            }
-
             var projectInfo = ProjectInfo.Create(
                 projectId,
                 VersionStamp.Default,
@@ -108,6 +98,17 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var compilation = await workspace.CurrentSolution.GetProject(projectId)!.GetRequiredCompilationAsync(CancellationToken.None);
 
             return new CompilerInvocation(compilation, languageServices, invocationInfo.ProjectFilePath);
+
+            // Local methods:
+            DocumentInfo CreateDocumentInfo(string unmappedPath)
+            {
+                var mappedPath = mapPath(unmappedPath);
+                return DocumentInfo.Create(
+                    DocumentId.CreateNewId(projectId, mappedPath),
+                    name: mappedPath,
+                    filePath: mappedPath,
+                    loader: new FileTextLoader(mappedPath, parsedCommandLine.Encoding));
+            }
         }
 
         private static string GetLanguageName(CompilerInvocationInfo invocationInfo)
