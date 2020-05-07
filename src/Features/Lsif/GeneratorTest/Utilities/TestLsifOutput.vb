@@ -46,23 +46,34 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
         End Property
 
         ''' <summary>
-        ''' Returns the <see cref="Range" /> vertex in the output that corresponds to the selected range in the <see cref="TestWorkspace" />.
+        ''' Returns the <see cref="Range" /> verticies in the output that corresponds to the selected range in the <see cref="TestWorkspace" />.
         ''' </summary>
+        Public Async Function GetSelectedRangesAsync() As Task(Of IEnumerable(Of Graph.Range))
+            Dim builder = ImmutableArray.CreateBuilder(Of Range)
+
+            For Each testDocument In _workspace.Documents
+                Dim documentVertex = _testLsifJsonWriter.Vertices _
+                                                        .OfType(Of Graph.Document) _
+                                                        .Where(Function(d) d.Uri.LocalPath = testDocument.FilePath) _
+                                                        .Single()
+                Dim rangeVertices = GetLinkedVertices(Of Range)(documentVertex, "contains")
+
+
+                For Each selectedSpan In testDocument.SelectedSpans
+                    Dim document = _workspace.CurrentSolution.GetDocument(testDocument.Id)
+                    Dim selectionRange = Range.FromTextSpan(selectedSpan, Await document.GetTextAsync())
+
+                    builder.Add(rangeVertices.Where(Function(r) r.Start = selectionRange.Start AndAlso
+                                                                r.End = selectionRange.End) _
+                                             .Single())
+                Next
+            Next
+
+            Return builder.ToImmutable()
+        End Function
+
         Public Async Function GetSelectedRangeAsync() As Task(Of Graph.Range)
-            Dim selectedTestDocument = _workspace.Documents.Single(Function(d) d.SelectedSpans.Any())
-            Dim selectedDocument = _workspace.CurrentSolution.GetDocument(selectedTestDocument.Id)
-            Dim selectionTextSpan = selectedTestDocument.SelectedSpans.Single()
-            Dim selectionRange = Range.FromTextSpan(selectionTextSpan, Await selectedDocument.GetTextAsync())
-
-            Dim documentVertex = _testLsifJsonWriter.Vertices _
-                                                    .OfType(Of Graph.Document) _
-                                                    .Where(Function(d) d.Uri.LocalPath = selectedDocument.FilePath) _
-                                                    .Single()
-
-            Return _testLsifJsonWriter.GetLinkedVertices(Of Range)(documentVertex, "contains") _
-                                      .Where(Function(r) r.Start = selectionRange.Start AndAlso
-                                                         r.End = selectionRange.End) _
-                                      .Single()
+            Return (Await GetSelectedRangesAsync()).Single()
         End Function
     End Class
 End Namespace

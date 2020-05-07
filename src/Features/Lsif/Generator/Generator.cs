@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             // We create a ResultSetTracker to track all top-level symbols in the project. We don't want all writes to immediately go to
             // the JSON file -- we support parallel processing, so we'll accumulate them and then apply at once to avoid a lot
             // of contention on shared locks.
-            var topLevelSymbolsWriter = new InMemoryLsifJsonWriter();
+            var topLevelSymbolsWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
             var topLevelSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(topLevelSymbolsWriter, compilation);
 
             Parallel.ForEach(compilation.SyntaxTrees, syntaxTree =>
@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 // level symbol result sets made first, since the document contents will point to that. Parallel calls to CopyAndEmpty
                 // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
                 // is preserved.
-                var documentWriter = new InMemoryLsifJsonWriter();
+                var documentWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
                 var documentId = GenerateForDocument(semanticModel, languageServices, topLevelSymbolsResultSetTracker, documentWriter);
-                topLevelSymbolsWriter.CopyToAndEmpty(_lsifJsonWriter);
-                documentWriter.CopyToAndEmpty(_lsifJsonWriter);
+                topLevelSymbolsWriter.FlushToUnderlyingAndEmpty();
+                documentWriter.FlushToUnderlyingAndEmpty();
 
                 documentIds.Add(documentId);
             });

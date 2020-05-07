@@ -77,5 +77,39 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Dim referencedRange = Assert.Single(lsif.GetLinkedVertices(Of Graph.Range)(referencesVertex, "item"))
             Assert.Same(rangeVertex, referencedRange)
         End Sub
+
+        <Fact>
+        Public Async Sub ReferenceIncludedInSameReferenceResultForMultipleFilesAsync()
+            Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
+                TestWorkspace.CreateWorkspace(
+                    <Workspace>
+                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                            <Document Name="A.cs" FilePath="Z:\A.cs">
+                                class A { [|string|] s; }
+                            </Document>
+                            <Document Name="B.cs" FilePath="Z:\B.cs">
+                                class B { [|string|] s; }
+                            </Document>
+                            <Document Name="C.cs" FilePath="Z:\C.cs">
+                                class C { [|string|] s; }
+                            </Document>
+                            <Document Name="D.cs" FilePath="Z:\D.cs">
+                                class D { [|string|] s; }
+                            </Document>
+                            <Document Name="E.cs" FilePath="Z:\E.cs">
+                                class E { [|string|] s; }
+                            </Document>
+                        </Project>
+                    </Workspace>))
+
+            For Each rangeVertex In Await lsif.GetSelectedRangesAsync()
+                Dim resultSetVertex = lsif.GetLinkedVertices(Of Graph.ResultSet)(rangeVertex, "next").Single()
+                Dim referencesVertex = lsif.GetLinkedVertices(Of Graph.ReferenceResult)(resultSetVertex, Methods.TextDocumentReferencesName).Single()
+
+                ' The references vertex should point back to our range
+                Dim referencedRanges = lsif.GetLinkedVertices(Of Graph.Range)(referencesVertex, "item")
+                Assert.Contains(rangeVertex, referencedRanges)
+            Next
+        End Sub
     End Class
 End Namespace
