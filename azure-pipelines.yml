@@ -5,6 +5,7 @@ trigger:
 - release/*
 - features/*
 - demos/*
+- dev/xuachen/* #temporary testing
 
 # Branches that trigger builds on PR
 pr:
@@ -254,3 +255,20 @@ jobs:
       continueOnError: true
       condition: not(succeeded())
 
+- job: RichCodeNav_Indexing
+  pool:
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+  timeoutInMinutes: 90
+
+  steps:
+    - powershell: ./eng/build.sh --ci --restore
+      displayName: Restore
+
+    - task: RichCodeNavIndexer@0
+      displayName: RichCodeNav Upload
+      inputs:
+        languages: 'csharp'
+        environment: production
+        isPrivateFeed: false
+      continueOnError: true
