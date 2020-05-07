@@ -14,21 +14,21 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol type,
             Accessibility declaredAccessibility = Accessibility.NotApplicable,
             SymbolModifiers modifiers = SymbolModifiers.None,
-            ImmutableArray<AttributeData> attributes = default,
             IMethodSymbol addMethod = null,
             IMethodSymbol removeMethod = null,
             IMethodSymbol raiseMethod = null,
-            ImmutableArray<IEventSymbol> explicitInterfaceImplementations = default)
+            ImmutableArray<IEventSymbol> explicitInterfaceImplementations = default,
+            ImmutableArray<AttributeData> attributes = default)
             => new EventSymbol(
                 name,
                 type,
                 declaredAccessibility,
                 modifiers,
-                attributes,
                 addMethod,
                 removeMethod,
                 raiseMethod,
-                explicitInterfaceImplementations);
+                explicitInterfaceImplementations,
+                attributes);
 
         public static IEventSymbol With(
             this IEventSymbol @event,
@@ -36,22 +36,22 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Optional<ITypeSymbol> type = default,
             Optional<Accessibility> declaredAccessibility = default,
             Optional<SymbolModifiers> modifiers = default,
-            Optional<ImmutableArray<AttributeData>> attributes = default,
             Optional<IMethodSymbol> addMethod = default,
             Optional<IMethodSymbol> removeMethod = default,
             Optional<IMethodSymbol> raiseMethod = default,
-            Optional<ImmutableArray<IEventSymbol>> explicitInterfaceImplementations = default)
+            Optional<ImmutableArray<IEventSymbol>> explicitInterfaceImplementations = default,
+            Optional<ImmutableArray<AttributeData>> attributes = default)
         {
             return new EventSymbol(
                 name.GetValueOr(@event.Name),
                 type.GetValueOr(@event.Type),
                 declaredAccessibility.GetValueOr(@event.DeclaredAccessibility),
                 modifiers.GetValueOr(@event.GetModifiers()),
-                attributes.GetValueOr(@event.GetAttributes()),
                 addMethod.GetValueOr(@event.AddMethod),
                 removeMethod.GetValueOr(@event.RemoveMethod),
                 raiseMethod.GetValueOr(@event.RaiseMethod),
-                explicitInterfaceImplementations.GetValueOr(@event.ExplicitInterfaceImplementations));
+                explicitInterfaceImplementations.GetValueOr(@event.ExplicitInterfaceImplementations),
+                attributes.GetValueOr(@event.GetAttributes()));
         }
 
         private class EventSymbol : Symbol, IEventSymbol
@@ -63,11 +63,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 ITypeSymbol type,
                 Accessibility declaredAccessibility = default,
                 SymbolModifiers modifiers = default,
-                ImmutableArray<AttributeData> attributes = default,
                 IMethodSymbol addMethod = null,
                 IMethodSymbol removeMethod = null,
                 IMethodSymbol raiseMethod = null,
-                ImmutableArray<IEventSymbol> explicitInterfaceImplementations = default)
+                ImmutableArray<IEventSymbol> explicitInterfaceImplementations = default,
+                ImmutableArray<AttributeData> attributes = default)
             {
                 Name = name;
                 Type = type;

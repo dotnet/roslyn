@@ -14,17 +14,17 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol type,
             Accessibility declaredAccessibility = Accessibility.NotApplicable,
             SymbolModifiers modifiers = SymbolModifiers.None,
-            ImmutableArray<AttributeData> attributes = default,
             Optional<object> constantValue = default,
-            bool isFixedSizeBuffer = false)
+            bool isFixedSizeBuffer = false,
+            ImmutableArray<AttributeData> attributes = default)
             => new FieldSymbol(
                 name,
                 type,
                 declaredAccessibility,
                 modifiers,
-                attributes,
                 constantValue,
-                isFixedSizeBuffer);
+                isFixedSizeBuffer,
+                attributes);
 
         public static IFieldSymbol With(
             this IFieldSymbol field,
@@ -32,18 +32,18 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Optional<ITypeSymbol> type = default,
             Optional<Accessibility> declaredAccessibility = default,
             Optional<SymbolModifiers> modifiers = default,
-            Optional<ImmutableArray<AttributeData>> attributes = default,
             Optional<Optional<object>> constantValue = default,
-            Optional<bool> isFixedSizeBuffer = default)
+            Optional<bool> isFixedSizeBuffer = default,
+            Optional<ImmutableArray<AttributeData>> attributes = default)
         {
             return new FieldSymbol(
                 name.GetValueOr(field.Name),
                 type.GetValueOr(field.Type),
                 declaredAccessibility.GetValueOr(field.DeclaredAccessibility),
                 modifiers.GetValueOr(field.GetModifiers()),
-                attributes.GetValueOr(field.GetAttributes()),
                 constantValue.GetValueOr(GetConstantValue(field)),
-                isFixedSizeBuffer.GetValueOr(field.IsFixedSizeBuffer));
+                isFixedSizeBuffer.GetValueOr(field.IsFixedSizeBuffer),
+                attributes.GetValueOr(field.GetAttributes()));
         }
 
         private static Optional<object> GetConstantValue(IFieldSymbol field)
@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 ITypeSymbol type,
                 Accessibility declaredAccessibility,
                 SymbolModifiers modifiers,
-                ImmutableArray<AttributeData> attributes,
                 Optional<object> constantValue,
-                bool isFixedSizeBuffer)
+                bool isFixedSizeBuffer,
+                ImmutableArray<AttributeData> attributes)
             {
                 Name = name;
                 Type = type;
