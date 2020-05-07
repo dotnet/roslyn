@@ -11,32 +11,44 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
     {
         public static INamespaceSymbol GlobalNamespace(
             ImmutableArray<INamespaceOrTypeSymbol> imports = default,
-            ImmutableArray<INamespaceOrTypeSymbol> members = default)
+            ImmutableArray<INamespaceOrTypeSymbol> members = default,
+            ISymbol containingSymbol = null)
         {
-            return Namespace("", imports, members);
+            return new NamespaceSymbol(
+                null,
+                imports,
+                members,
+                containingSymbol,
+                isGlobalNamespace: true);
         }
 
         public static INamespaceSymbol Namespace(
             string name,
             ImmutableArray<INamespaceOrTypeSymbol> imports = default,
-            ImmutableArray<INamespaceOrTypeSymbol> members = default)
+            ImmutableArray<INamespaceOrTypeSymbol> members = default,
+            ISymbol containingSymbol = null)
         {
             return new NamespaceSymbol(
                 name,
                 imports,
-                members);
+                members,
+                containingSymbol,
+                isGlobalNamespace: false);
         }
 
         public static INamespaceSymbol With(
             this INamespaceSymbol symbol,
             Optional<string> name = default,
             Optional<ImmutableArray<INamespaceOrTypeSymbol>> imports = default,
-            Optional<ImmutableArray<INamespaceOrTypeSymbol>> members = default)
+            Optional<ImmutableArray<INamespaceOrTypeSymbol>> members = default,
+            Optional<ISymbol> containingSymbol = default)
         {
             return new NamespaceSymbol(
                 name.GetValueOr(symbol.Name),
                 imports.GetValueOr(GetImports(symbol)),
-                members.GetValueOr(symbol.GetMembers().ToImmutableArray()));
+                members.GetValueOr(symbol.GetMembers().ToImmutableArray()),
+                containingSymbol.GetValueOr(symbol.ContainingSymbol),
+                symbol.IsGlobalNamespace);
         }
 
         internal static ImmutableArray<INamespaceOrTypeSymbol> GetImports(INamespaceSymbol symbol)
@@ -51,15 +63,20 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public NamespaceSymbol(
                 string name,
                 ImmutableArray<INamespaceOrTypeSymbol> imports,
-                ImmutableArray<INamespaceOrTypeSymbol> members)
+                ImmutableArray<INamespaceOrTypeSymbol> members,
+                ISymbol containingSymbol,
+                bool isGlobalNamespace)
             {
                 Name = name;
                 Imports = imports.NullToEmpty();
-                _members = members.NullToEmpty();
+                _members = members.NullToEmpty().SelectAsArray(m => m.With(containingSymbol: this));
+                ContainingSymbol = containingSymbol;
+                IsGlobalNamespace = isGlobalNamespace;
             }
 
-            public bool IsGlobalNamespace => Name == "";
+            public bool IsGlobalNamespace { get; }
 
+            public override ISymbol ContainingSymbol { get; }
             public override SymbolKind Kind => SymbolKind.Namespace;
             public override string Name { get; }
 

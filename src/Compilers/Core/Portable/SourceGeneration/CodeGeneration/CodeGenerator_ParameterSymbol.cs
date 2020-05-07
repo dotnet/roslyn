@@ -12,40 +12,50 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IParameterSymbol Parameter(
             string name,
             ITypeSymbol type,
+            ImmutableArray<AttributeData> attributes = default,
             RefKind refKind = default,
             bool isParams = false,
-            bool isDiscard = false,
-            Optional<object> explicitDefaultValue = default,
-            ImmutableArray<AttributeData> attributes = default)
+            Optional<object> explicitDefaultValue = default)
         {
             return new ParameterSymbol(
                 name,
                 type,
+                attributes,
                 refKind,
                 isParams,
-                isDiscard,
                 explicitDefaultValue,
-                attributes);
+                isDiscard: false);
+        }
+
+        public static IParameterSymbol DiscardParameter()
+        {
+            return new ParameterSymbol(
+                name: null,
+                type: null,
+                attributes: default,
+                refKind: default,
+                isParams: default,
+                explicitDefaultValue: default,
+                isDiscard: true);
         }
 
         public static IParameterSymbol With(
             this IParameterSymbol parameter,
             Optional<string> name = default,
             Optional<ITypeSymbol> type = default,
+            Optional<ImmutableArray<AttributeData>> attributes = default,
             Optional<RefKind> refKind = default,
             Optional<bool> isParams = default,
-            Optional<bool> isDiscard = default,
-            Optional<Optional<object>> explicitDefaultValue = default,
-            Optional<ImmutableArray<AttributeData>> attributes = default)
+            Optional<Optional<object>> explicitDefaultValue = default)
         {
             return new ParameterSymbol(
                 name.GetValueOr(parameter.Name),
                 type.GetValueOr(parameter.Type),
+                attributes.GetValueOr(parameter.GetAttributes()),
                 refKind.GetValueOr(parameter.RefKind),
                 isParams.GetValueOr(parameter.IsParams),
-                isDiscard.GetValueOr(parameter.IsDiscard),
                 explicitDefaultValue.GetValueOr(GetExplicitDefaultValue(parameter)),
-                attributes.GetValueOr(parameter.GetAttributes()));
+                isDiscard: parameter.IsDiscard);
         }
 
         private static Optional<object> GetExplicitDefaultValue(IParameterSymbol parameter)
@@ -58,11 +68,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public ParameterSymbol(
                 string name,
                 ITypeSymbol type,
+                ImmutableArray<AttributeData> attributes,
                 RefKind refKind,
                 bool isParams,
-                bool isDiscard,
                 Optional<object> explicitDefaultValue,
-                ImmutableArray<AttributeData> attributes)
+                bool isDiscard)
             {
                 Name = name;
                 Type = type;

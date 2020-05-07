@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 IModuleSymbol module,
                 ImmutableArray<AttributeData> attributes)
             {
-                _modules = ImmutableArray.Create(module);
+                _modules = ImmutableArray.Create(module.With(containingSymbol: this));
                 _attributes = attributes;
             }
 

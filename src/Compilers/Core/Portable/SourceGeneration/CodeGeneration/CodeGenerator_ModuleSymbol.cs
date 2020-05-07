@@ -9,17 +9,24 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
-        public static IModuleSymbol Module(INamespaceSymbol globalNamespace, ImmutableArray<AttributeData> attributes = default)
-            => new ModuleSymbol(globalNamespace, attributes);
+        public static IModuleSymbol Module(
+            INamespaceSymbol globalNamespace,
+            ImmutableArray<AttributeData> attributes = default,
+            ISymbol containingSymbol = null)
+        {
+            return new ModuleSymbol(globalNamespace, attributes, containingSymbol);
+        }
 
         public static IModuleSymbol With(
             this IModuleSymbol module,
             Optional<INamespaceSymbol> globalNamespace = default,
-            Optional<ImmutableArray<AttributeData>> attributes = default)
+            Optional<ImmutableArray<AttributeData>> attributes = default,
+            Optional<ISymbol> containingSymbol = default)
         {
             return new ModuleSymbol(
                 globalNamespace.GetValueOr(module.GlobalNamespace),
-                attributes.GetValueOr(module.GetAttributes()));
+                attributes.GetValueOr(module.GetAttributes()),
+                containingSymbol.GetValueOr(module.ContainingSymbol));
         }
 
         private class ModuleSymbol : Symbol, IModuleSymbol
@@ -28,12 +35,15 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             public ModuleSymbol(
                 INamespaceSymbol globalNamespace,
-                ImmutableArray<AttributeData> attributes)
+                ImmutableArray<AttributeData> attributes,
+                ISymbol containingSymbol)
             {
-                GlobalNamespace = globalNamespace;
+                GlobalNamespace = globalNamespace.With(containingSymbol: this);
                 _attributes = attributes;
+                ContainingSymbol = containingSymbol;
             }
 
+            public override ISymbol ContainingSymbol { get; }
             public override SymbolKind Kind => SymbolKind.NetModule;
             public INamespaceSymbol GlobalNamespace { get; }
 
