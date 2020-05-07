@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using System.IO.Pipes;
+using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -112,8 +113,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // The client connection failing to close isn't fatal to the server process.  It is simply a client
                 // for which we can no longer communicate and that's okay because the Close method indicates we are
                 // done with the client already.
-                var msg = string.Format($"Pipe {LoggingIdentifier}: Error closing pipe.");
-                CompilerServerLogger.LogException(e, msg);
+                CompilerServerLogger.LogException(e, $"Pipe {LoggingIdentifier}: Error closing pipe.");
             }
         }
 
@@ -124,10 +124,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 BuildRequest request;
                 try
                 {
-                    Log("Begin reading request.");
                     request = await BuildRequest.ReadAsync(_stream, cancellationToken).ConfigureAwait(false);
                     ValidateBuildRequest(request);
-                    Log("End reading request.");
                 }
                 catch (Exception e)
                 {
@@ -149,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 else if (!allowCompilationRequests)
                 {
-                    return await HandleRejectedRequestAsync(cancellationToken).ConfigureAwait(false);
+                    return await HandleRejectedRequestAsync("Compilation requests not allowed at this time", cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -181,10 +179,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 try
                 {
-                    Log("Begin writing response.");
                     await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
                     reason = CompletionReason.CompilationCompleted;
-                    Log("End writing response.");
                 }
                 catch
                 {
@@ -216,9 +212,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return new ConnectionData(CompletionReason.CompilationNotStarted);
         }
 
-        private async Task<ConnectionData> HandleRejectedRequestAsync(CancellationToken cancellationToken)
+        private async Task<ConnectionData> HandleRejectedRequestAsync(string reason, CancellationToken cancellationToken)
         {
-            var response = new RejectedBuildResponse();
+            var response = new RejectedBuildResponse(reason);
             await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
             return new ConnectionData(CompletionReason.CompilationNotStarted);
         }
@@ -266,29 +262,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             Func<BuildResponse> func = () =>
             {
-                // Do the compilation
-                Log("Begin compilation");
-
                 var request = BuildProtocolUtil.GetRunRequest(buildRequest);
                 var response = _compilerServerHost.RunCompilation(request, cancellationToken);
-
-                Log("End compilation");
                 return response;
             };
 
             var task = new Task<BuildResponse>(func, cancellationToken, TaskCreationOptions.LongRunning);
             task.Start();
             return task;
-        }
-
-        private void Log(string message)
-        {
-            CompilerServerLogger.Log("Client {0}: {1}", _loggingIdentifier, message);
-        }
-
-        private void LogException(Exception e, string message)
-        {
-            CompilerServerLogger.LogException(e, string.Format("Client {0}: {1}", _loggingIdentifier, message));
         }
     }
 }
