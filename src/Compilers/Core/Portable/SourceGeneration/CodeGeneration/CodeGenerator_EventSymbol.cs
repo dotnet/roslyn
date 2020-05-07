@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             IMethodSymbol raiseMethod = null,
             ImmutableArray<IEventSymbol> explicitInterfaceImplementations = default,
             ImmutableArray<AttributeData> attributes = default)
-            => new EventSymbol(
+        {
+            return new EventSymbol(
                 name,
                 type,
                 declaredAccessibility,
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 raiseMethod,
                 explicitInterfaceImplementations,
                 attributes);
+        }
 
         public static IEventSymbol With(
             this IEventSymbol @event,
