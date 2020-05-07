@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             if (symbol.SpecialType != SpecialType.None)
                 return GenerateSpecialTypeSyntaxWithoutNullable(symbol);
 
+            if (symbol.DelegateInvokeMethod != null)
+                throw new NotImplementedException();
+
+            TypeDeclaration()
+
             throw new NotImplementedException();
         }
 

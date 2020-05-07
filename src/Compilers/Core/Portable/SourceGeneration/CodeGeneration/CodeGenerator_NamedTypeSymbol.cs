@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 interfaces,
                 members,
                 tupleElements: default,
+                delegateInvokeMethod: null,
                 nullableAnnotation,
                 containingSymbol);
         }
@@ -51,7 +52,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             NullableAnnotation nullableAnnotation = default,
             ISymbol containingSymbol = null)
         {
-
             return new NamedTypeSymbol(
                 CodeAnalysis.SpecialType.None,
                 TypeKind.Class,
@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 interfaces,
                 members,
                 tupleElements: default,
+                delegateInvokeMethod: null,
                 nullableAnnotation,
                 containingSymbol);
         }
@@ -93,6 +94,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 interfaces,
                 members,
                 tupleElements: default,
+                delegateInvokeMethod: null,
                 nullableAnnotation,
                 containingSymbol);
         }
@@ -120,6 +122,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 interfaces,
                 members,
                 tupleElements: default,
+                delegateInvokeMethod: null,
                 nullableAnnotation,
                 containingSymbol);
         }
@@ -146,8 +149,29 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 interfaces: default,
                 members,
                 tupleElements: default,
+                delegateInvokeMethod: null,
                 nullableAnnotation,
                 containingSymbol);
+        }
+
+        public static INamedTypeSymbol Delegate(
+            IMethodSymbol delegateInvokeMethod)
+        {
+            return new NamedTypeSymbol(
+                CodeAnalysis.SpecialType.None,
+                TypeKind.Delegate,
+                attributes: default,
+                declaredAccessibility: default,
+                modifiers: default,
+                name: null,
+                typeArguments: default,
+                baseType: null,
+                interfaces: default,
+                members: default,
+                tupleElements: default,
+                delegateInvokeMethod,
+                nullableAnnotation: default,
+                containingSymbol: null);
         }
 
         public static INamedTypeSymbol TupleType(
@@ -166,6 +190,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 interfaces: default,
                 members: default,
                 tupleElements,
+                delegateInvokeMethod: null,
                 nullableAnnotation,
                 containingSymbol: null);
         }
@@ -193,6 +218,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 interfaces: default,
                 members: default,
                 tupleElements: default,
+                delegateInvokeMethod: null,
                 nullableAnnotation,
                 containingSymbol: null);
         }
@@ -210,6 +236,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Optional<ImmutableArray<INamedTypeSymbol>> interfaces = default,
             Optional<ImmutableArray<ISymbol>> members = default,
             Optional<ImmutableArray<IFieldSymbol>> tupleElements = default,
+            Optional<IMethodSymbol> delegateInvokeMethod = default,
             Optional<NullableAnnotation> nullableAnnotation = default,
             Optional<ISymbol> containingSymbol = default)
         {
@@ -225,6 +252,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 interfaces.GetValueOr(type.Interfaces),
                 members.GetValueOr(type.GetMembers()),
                 tupleElements.GetValueOr(type.TupleElements),
+                delegateInvokeMethod.GetValueOr(type.DelegateInvokeMethod),
                 nullableAnnotation.GetValueOr(type.NullableAnnotation),
                 containingSymbol.GetValueOr(type.ContainingSymbol));
         }
@@ -246,6 +274,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 ImmutableArray<INamedTypeSymbol> interfaces,
                 ImmutableArray<ISymbol> members,
                 ImmutableArray<IFieldSymbol> tupleElements,
+                IMethodSymbol delegateInvokeMethod,
                 NullableAnnotation nullableAnnotation,
                 ISymbol containingSymbol)
             {
@@ -259,6 +288,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 BaseType = baseType;
                 Interfaces = interfaces;
                 TupleElements = tupleElements;
+                DelegateInvokeMethod = delegateInvokeMethod;
                 NullableAnnotation = nullableAnnotation;
                 ContainingSymbol = containingSymbol;
 
@@ -280,11 +310,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             public ImmutableArray<ITypeSymbol> TypeArguments { get; }
 
-            public IMethodSymbol DelegateInvokeMethod => throw new NotImplementedException();
-
-            public INamedTypeSymbol EnumUnderlyingType => throw new NotImplementedException();
-
-            public ImmutableArray<IMethodSymbol> Constructors => throw new NotImplementedException();
+            public IMethodSymbol DelegateInvokeMethod { get; }
 
             public ImmutableArray<IFieldSymbol> TupleElements { get; }
 
@@ -297,34 +323,29 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             #region default implementation
 
             public int Arity => throw new NotImplementedException();
+            public ISymbol AssociatedSymbol => throw new NotImplementedException();
+            public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations) => throw new NotImplementedException();
+            public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments) => throw new NotImplementedException();
+            public INamedTypeSymbol ConstructedFrom => throw new NotImplementedException();
+            public ImmutableArray<IMethodSymbol> Constructors => throw new NotImplementedException();
+            public INamedTypeSymbol ConstructUnboundGenericType() => throw new NotImplementedException();
+            public INamedTypeSymbol EnumUnderlyingType => throw new NotImplementedException();
+            public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal) => throw new NotImplementedException();
+            public ImmutableArray<IMethodSymbol> InstanceConstructors => throw new NotImplementedException();
+            public bool IsComImport => throw new NotImplementedException();
             public bool IsGenericType => throw new NotImplementedException();
+            public bool IsImplicitClass => throw new NotImplementedException();
             public bool IsUnboundGenericType => throw new NotImplementedException();
             public bool IsScriptClass => throw new NotImplementedException();
-            public bool IsImplicitClass => throw new NotImplementedException();
-            public bool IsComImport => throw new NotImplementedException();
-            public IEnumerable<string> MemberNames => throw new NotImplementedException();
-
-            public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => throw new NotImplementedException();
-
-            public INamedTypeSymbol ConstructedFrom => throw new NotImplementedException();
-            public ImmutableArray<IMethodSymbol> InstanceConstructors => throw new NotImplementedException();
-            public ImmutableArray<IMethodSymbol> StaticConstructors => throw new NotImplementedException();
-
-            public ISymbol AssociatedSymbol => throw new NotImplementedException();
-            public bool MightContainExtensionMethods => throw new NotImplementedException();
-            public INamedTypeSymbol TupleUnderlyingType => throw new NotImplementedException();
-            public ImmutableArray<ITypeParameterSymbol> TypeParameters => throw new NotImplementedException();
-
-            public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations) => throw new NotImplementedException();
-            public INamedTypeSymbol ConstructUnboundGenericType() => throw new NotImplementedException();
-            public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal) => throw new NotImplementedException();
-
             public bool IsSerializable => throw new NotImplementedException();
-
+            public IEnumerable<string> MemberNames => throw new NotImplementedException();
+            public bool MightContainExtensionMethods => throw new NotImplementedException();
             public INamedTypeSymbol NativeIntegerUnderlyingType => throw new NotImplementedException();
             INamedTypeSymbol INamedTypeSymbol.OriginalDefinition => throw new NotImplementedException();
-
-            public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments) => throw new NotImplementedException();
+            public ImmutableArray<IMethodSymbol> StaticConstructors => throw new NotImplementedException();
+            public ImmutableArray<ITypeParameterSymbol> TypeParameters => throw new NotImplementedException();
+            public INamedTypeSymbol TupleUnderlyingType => throw new NotImplementedException();
+            public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => throw new NotImplementedException();
 
             #endregion
         }
