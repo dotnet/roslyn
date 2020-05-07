@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -401,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void VisitRankSpecifiers<TArg>(this TypeSyntax type, Action<ArrayRankSpecifierSyntax, TArg> action, in TArg argument)
         {
             // Use a manual stack here to avoid deeply nested recursion which can blow the real stack
-            var stack = new Stack<ArrayRankSpecifierOrTypeSyntax>();
+            var stack = ArrayBuilder<ArrayRankSpecifierOrTypeSyntax>.GetInstance();
             stack.Push(new ArrayRankSpecifierOrTypeSyntax(type));
 
             while (stack.Count > 0)
@@ -479,6 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            stack.Free();
         }
 
         private struct ArrayRankSpecifierOrTypeSyntax
