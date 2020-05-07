@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
         {
             return !(left == right);
         }
+
+        public override string ToString()
+        {
+            return $"{NumericId}";
+        }
     }
 
     internal interface ISerializableId

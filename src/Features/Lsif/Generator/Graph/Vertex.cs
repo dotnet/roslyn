@@ -13,5 +13,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
             : base(type: "vertex", label)
         {
         }
+
+        public override string ToString()
+        {
+            return $"{Label} vertex with ID {Id}";
+        }
     }
 }

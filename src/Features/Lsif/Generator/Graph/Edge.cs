@@ -48,5 +48,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 
             return new Edge(label, outVertex.As<TOutVertex, Vertex>(), inVerticesArray);
         }
+
+        public override string ToString()
+        {
+            return $"{Label} edge from {OutVertex} to {string.Join(", ", InVertices)}";
+        }
     }
 }
