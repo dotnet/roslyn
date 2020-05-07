@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<AnalyzerConfig.Section> NamedSections { get; }
 
-        internal readonly static string ConfigPath = "<Global Config>";
+        internal const string ConfigPath = "<Global Config>";
 
         public GlobalAnalyzerConfig(AnalyzerConfig.Section globalSection, ImmutableArray<AnalyzerConfig.Section> namedSections)
         {

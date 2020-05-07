@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public sealed class AnalyzerConfigSet
     {
+        internal const string GlobalKey = "is_global";
+
         /// <summary>
         /// The list of <see cref="AnalyzerConfig" />s in this set. This list has been sorted per <see cref="AnalyzerConfig.DirectoryLengthComparer"/>.
         /// </summary>
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis
             sortedAnalyzerConfigs.AddRange(analyzerConfigs);
             sortedAnalyzerConfigs.Sort(AnalyzerConfig.DirectoryLengthComparer);
 
-            var globalConfig = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(sortedAnalyzerConfigs, out unsetGlobalKeys);
+            var globalConfig = MergeGlobalConfigs(sortedAnalyzerConfigs, out unsetGlobalKeys);
             return new AnalyzerConfigSet(sortedAnalyzerConfigs.ToImmutableAndFree(), globalConfig);
         }
 
@@ -400,23 +402,15 @@ namespace Microsoft.CodeAnalysis
             severity = default;
             return false;
         }
-    }
 
-    /// <summary>
-    /// Builds a global analyzer config from a series of configs
-    /// </summary>
-    internal class GlobalAnalyzerConfigBuilder
-    {
-        internal const string GlobalKey = "is_global";
-
-        private PooledDictionary<string, ImmutableDictionary<string, (string value, string configPath)>.Builder>? _values;
-        private PooledDictionary<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>? _duplicates;
+        internal static bool IsPartialGlobalConfig(AnalyzerConfig config) => config.GlobalSection.Properties.ContainsKey(GlobalKey);
 
         /// <summary>
-        /// Merge any partial global configs into a single config file
+        /// Merge any partial global configs into a single global config, and remove the partial configs
         /// </summary>
         /// <param name="analyzerConfigs">An <see cref="ArrayBuilder{T}"/> of <see cref="AnalyzerConfig"/> containing a mix of regular and unmerged partial global configs</param>
-        /// <returns>An <see cref="ImmutableArray{T}"/> of duplicate global keys that were unset</returns>
+        /// <param name="unsetAnalyzerKeys">An <see cref="ImmutableArray{T}"/> of duplicate global keys that were unset</param>
+        /// <returns>A <see cref="GlobalAnalyzerConfig" /> that contains the merged partial configs, or <c>null</c> if there were no partial configs</returns>
         internal static GlobalAnalyzerConfig? MergeGlobalConfigs(ArrayBuilder<AnalyzerConfig> analyzerConfigs, out ImmutableArray<AnalyzerUnsetKey> unsetAnalyzerKeys)
         {
             GlobalAnalyzerConfigBuilder globalAnalyzerConfigBuilder = new GlobalAnalyzerConfigBuilder();
@@ -434,116 +428,123 @@ namespace Microsoft.CodeAnalysis
             return globalConfig;
         }
 
-        internal static bool IsPartialGlobalConfig(AnalyzerConfig config) => config.GlobalSection.Properties.ContainsKey(GlobalKey);
-
-        private void MergeIntoGlobalConfig(AnalyzerConfig config)
+        /// <summary>
+        /// Builds a global analyzer config from a series of partial configs
+        /// </summary>
+        class GlobalAnalyzerConfigBuilder
         {
-            if (_values is null)
+            private PooledDictionary<string, ImmutableDictionary<string, (string value, string configPath)>.Builder>? _values;
+            private PooledDictionary<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>? _duplicates;
+
+            internal void MergeIntoGlobalConfig(AnalyzerConfig config)
             {
-                _values = PooledDictionary<string, ImmutableDictionary<string, (string, string)>.Builder>.GetInstance();
-                _duplicates = PooledDictionary<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>.GetInstance();
-            }
-
-            MergeSection(config.PathToFile, config.GlobalSection);
-            foreach (var section in config.NamedSections)
-            {
-                MergeSection(config.PathToFile, section);
-            }
-        }
-
-        private GlobalAnalyzerConfig? Build(out ImmutableArray<AnalyzerUnsetKey> unsetKeys)
-        {
-            if (_values is null || _duplicates is null)
-            {
-                unsetKeys = ImmutableArray<AnalyzerUnsetKey>.Empty;
-                return null;
-            }
-
-            unsetKeys = getUnsetKeys();
-
-            Section globalSection = getSection(string.Empty);
-            _values.Remove(string.Empty);
-
-            ArrayBuilder<Section> namedSectionBuilder = new ArrayBuilder<Section>(_values.Count);
-            foreach (var sectionName in _values.Keys)
-            {
-                namedSectionBuilder.Add(getSection(sectionName));
-            }
-
-            GlobalAnalyzerConfig globalConfig = new GlobalAnalyzerConfig(globalSection, namedSectionBuilder.ToImmutableAndFree());
-            _values.Free();
-            return globalConfig;
-
-            ImmutableArray<AnalyzerUnsetKey> getUnsetKeys()
-            {
-                ArrayBuilder<AnalyzerUnsetKey> unsetKeys = ArrayBuilder<AnalyzerUnsetKey>.GetInstance();
-                foreach ((var section, var keys) in _duplicates)
+                if (_values is null)
                 {
-                    bool isGlobalSection = string.IsNullOrWhiteSpace(section);
-                    string sectionName = isGlobalSection ? "Global Section" : section;
-                    foreach ((var keyName, var configs) in keys)
+                    _values = PooledDictionary<string, ImmutableDictionary<string, (string, string)>.Builder>.GetInstance();
+                    _duplicates = PooledDictionary<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>.GetInstance();
+                }
+
+                MergeSection(config.PathToFile, config.GlobalSection);
+                foreach (var section in config.NamedSections)
+                {
+                    MergeSection(config.PathToFile, section);
+                }
+            }
+
+            internal GlobalAnalyzerConfig? Build(out ImmutableArray<AnalyzerUnsetKey> unsetKeys)
+            {
+                if (_values is null || _duplicates is null)
+                {
+                    unsetKeys = ImmutableArray<AnalyzerUnsetKey>.Empty;
+                    return null;
+                }
+
+                unsetKeys = getUnsetKeys();
+
+                Section globalSection = getSection(string.Empty);
+                _values.Remove(string.Empty);
+
+                ArrayBuilder<Section> namedSectionBuilder = new ArrayBuilder<Section>(_values.Count);
+                foreach (var sectionName in _values.Keys)
+                {
+                    namedSectionBuilder.Add(getSection(sectionName));
+                }
+
+                GlobalAnalyzerConfig globalConfig = new GlobalAnalyzerConfig(globalSection, namedSectionBuilder.ToImmutableAndFree());
+                _values.Free();
+                return globalConfig;
+
+                ImmutableArray<AnalyzerUnsetKey> getUnsetKeys()
+                {
+                    ArrayBuilder<AnalyzerUnsetKey> unsetKeys = ArrayBuilder<AnalyzerUnsetKey>.GetInstance();
+                    foreach ((var section, var keys) in _duplicates)
                     {
-                        unsetKeys.Add(new AnalyzerUnsetKey(keyName, sectionName, isGlobalSection, configs.ToImmutableAndFree()));
+                        bool isGlobalSection = string.IsNullOrWhiteSpace(section);
+                        string sectionName = isGlobalSection ? "Global Section" : section;
+                        foreach ((var keyName, var configs) in keys)
+                        {
+                            unsetKeys.Add(new AnalyzerUnsetKey(keyName, sectionName, isGlobalSection, configs.ToImmutableAndFree()));
+                        }
                     }
-                }
-                _duplicates.Free();
-                return unsetKeys.ToImmutableAndFree();
-            }
-
-            Section getSection(string sectionName)
-            {
-                var dict = _values[sectionName];
-                var result = dict.ToImmutableDictionary(d => d.Key, d => d.Value.value, Section.PropertiesKeyComparer);
-                return new Section(sectionName, result);
-            }
-        }
-
-        private void MergeSection(string configPath, Section section)
-        {
-            Debug.Assert(_values is object);
-            Debug.Assert(_duplicates is object);
-
-            if (!_values.TryGetValue(section.Name, out var sectionDict))
-            {
-                sectionDict = ImmutableDictionary.CreateBuilder<string, (string, string)>(Section.NameEqualityComparer);
-                _values.Add(section.Name, sectionDict);
-            }
-
-            var duplicateDict = _duplicates.ContainsKey(section.Name) ? _duplicates[section.Name] : null;
-            foreach ((var key, var value) in section.Properties)
-            {
-                if (Section.PropertiesKeyComparer.Equals(key, GlobalKey))
-                {
-                    continue;
+                    _duplicates.Free();
+                    return unsetKeys.ToImmutableAndFree();
                 }
 
-                bool keyInSection = sectionDict.ContainsKey(key);
-                bool keyDuplicated = duplicateDict?.ContainsKey(key) ?? false;
-
-                // if this key is neither already present, or already duplicate, we can add it
-                if (!keyInSection && !keyDuplicated)
+                Section getSection(string sectionName)
                 {
-                    sectionDict.Add(key, (value, configPath));
+                    var dict = _values[sectionName];
+                    var result = dict.ToImmutableDictionary(d => d.Key, d => d.Value.value, Section.PropertiesKeyComparer);
+                    return new Section(sectionName, result);
                 }
-                else
+            }
+
+            private void MergeSection(string configPath, Section section)
+            {
+                Debug.Assert(_values is object);
+                Debug.Assert(_duplicates is object);
+
+                if (!_values.TryGetValue(section.Name, out var sectionDict))
                 {
-                    if (duplicateDict is null)
+                    sectionDict = ImmutableDictionary.CreateBuilder<string, (string, string)>(Section.NameEqualityComparer);
+                    _values.Add(section.Name, sectionDict);
+                }
+
+                var duplicateDict = _duplicates.ContainsKey(section.Name) ? _duplicates[section.Name] : null;
+                foreach ((var key, var value) in section.Properties)
+                {
+                    if (Section.PropertiesKeyComparer.Equals(key, GlobalKey))
                     {
-                        duplicateDict = ImmutableDictionary.CreateBuilder<string, ArrayBuilder<string>>(Section.NameEqualityComparer);
-                        _duplicates.Add(section.Name, duplicateDict);
+                        continue;
                     }
 
-                    // record that this key is now a duplicate
-                    ArrayBuilder<string> configList = keyDuplicated ? duplicateDict[key] : ArrayBuilder<string>.GetInstance();
-                    configList.Add(configPath);
-                    duplicateDict[key] = configList;
+                    bool keyInSection = sectionDict.ContainsKey(key);
+                    bool keyDuplicated = duplicateDict?.ContainsKey(key) ?? false;
 
-                    // if we'd previously added this key, remove it and remember the extra duplicate location
-                    if (keyInSection)
+                    // if this key is neither already present, or already duplicate, we can add it
+                    if (!keyInSection && !keyDuplicated)
                     {
-                        var originalConfigPath = sectionDict[key].configPath;
-                        sectionDict.Remove(key);
-                        duplicateDict[key].Insert(0, originalConfigPath);
+                        sectionDict.Add(key, (value, configPath));
+                    }
+                    else
+                    {
+                        if (duplicateDict is null)
+                        {
+                            duplicateDict = ImmutableDictionary.CreateBuilder<string, ArrayBuilder<string>>(Section.NameEqualityComparer);
+                            _duplicates.Add(section.Name, duplicateDict);
+                        }
+
+                        // record that this key is now a duplicate
+                        ArrayBuilder<string> configList = keyDuplicated ? duplicateDict[key] : ArrayBuilder<string>.GetInstance();
+                        configList.Add(configPath);
+                        duplicateDict[key] = configList;
+
+                        // if we'd previously added this key, remove it and remember the extra duplicate location
+                        if (keyInSection)
+                        {
+                            var originalConfigPath = sectionDict[key].configPath;
+                            sectionDict.Remove(key);
+                            duplicateDict[key].Insert(0, originalConfigPath);
+                        }
                     }
                 }
             }
