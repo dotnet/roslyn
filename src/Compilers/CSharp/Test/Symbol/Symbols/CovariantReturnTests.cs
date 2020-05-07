@@ -16,7 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class CovariantReturnTests : CSharpTestBase
     {
-        private static void VerifyOverride(CSharpCompilation comp, string methodName, string overridingMethodDisplay, string overriddenMethodDisplay)
+        private static void VerifyOverride(
+            CSharpCompilation comp,
+            string methodName,
+            string overridingMethodDisplay,
+            string overriddenMethodDisplay,
+            bool binaryCompat = false)
         {
             var member = comp.GlobalNamespace.GetMember(methodName);
             Assert.Equal(overridingMethodDisplay, member.ToTestDisplayString());
@@ -28,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 Assert.False(method.IsVirtual);
                 Assert.True(method.IsMetadataVirtual(ignoreInterfaceImplementationChanges: true));
                 var isCovariant = !method.ReturnType.Equals(overriddenMethod.ReturnType, TypeCompareKind.AllIgnoreOptions);
-                var checkMetadata = hasReturnConversion(method.ReturnType, overriddenMethod.ReturnType);
+                var checkMetadata = !binaryCompat && hasReturnConversion(method.ReturnType, overriddenMethod.ReturnType);
                 if (checkMetadata)
                 {
                     Assert.Equal(isCovariant, method.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
@@ -41,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 if (property.GetMethod is MethodSymbol getMethod && overriddenProperty.GetMethod is MethodSymbol overriddenGetMethod)
                 {
                     Assert.True(getMethod.GetOverriddenMember().Equals(overriddenGetMethod));
-                    var checkMetadata = hasReturnConversion(property.Type, overriddenProperty.Type);
+                    var checkMetadata = !binaryCompat && hasReturnConversion(property.Type, overriddenProperty.Type);
                     if (checkMetadata)
                     {
                         Assert.Equal(isCovariant, getMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
@@ -103,14 +108,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             }
         }
 
-        private CSharpCompilation CreateCompilationWithCovariantReturns(string source, MetadataReference[] references = null, TargetFramework targetFramework = TargetFramework.Standard)
+        private CSharpCompilation CreateCompilationWithCovariantReturns(
+            string source, MetadataReference[] references = null,
+            TargetFramework targetFramework = TargetFramework.Standard,
+            string assemblyName = "")
         {
-            return CreateCompilation(source, parseOptions: TestOptions.WithCovariantReturns, references: references, targetFramework: targetFramework);
+            return CreateCompilation(
+                source,
+                parseOptions: TestOptions.WithCovariantReturns,
+                references: references,
+                targetFramework: targetFramework,
+                assemblyName: assemblyName);
         }
 
-        private CSharpCompilation CreateCompilationWithoutCovariantReturns(string source, MetadataReference[] references = null, TargetFramework targetFramework = TargetFramework.Standard)
+        private CSharpCompilation CreateCompilationWithoutCovariantReturns(
+            string source,
+            MetadataReference[] references = null,
+            TargetFramework targetFramework = TargetFramework.Standard,
+            string assemblyName = "")
         {
-            return CreateCompilation(source, parseOptions: TestOptions.WithoutCovariantReturns, references: references, targetFramework: targetFramework);
+            return CreateCompilation(
+                source,
+                parseOptions: TestOptions.WithoutCovariantReturns,
+                references: references,
+                targetFramework: targetFramework,
+                assemblyName: assemblyName);
         }
 
         private static CSharpCompilation CompilationReferenceView(CSharpCompilation comp, params MetadataReference[] references)
@@ -1706,6 +1728,199 @@ End Class
             }
 
             Assert.Equal(9, count);
+        }
+
+        [Fact]
+        public void BinaryCompatibility_01()
+        {
+            var s0 = @"
+public class Base
+{
+    public virtual object M() => null;
+}
+";
+            var ref0 = CreateCompilationWithoutCovariantReturns(s0).EmitToImageReference();
+
+            var s1a = @"
+public class Mid : Base
+{
+}
+";
+            var ref1a = CreateCompilationWithoutCovariantReturns(s1a, references: new[] { ref0 }, assemblyName: "ref1").EmitToImageReference();
+
+            var s1b = @"
+public class Mid : Base
+{
+    public override string M() => null;
+}
+";
+            var ref1b = CreateCompilationWithCovariantReturns(s1b, references: new[] { ref0 }, assemblyName: "ref1").EmitToImageReference();
+
+            var s2 = @"
+public class Derived : Mid
+{
+    public override string M() => null;
+}
+";
+            var comp = CreateCompilationWithoutCovariantReturns(s2, references: new[] { ref0, ref1a }).VerifyDiagnostics(
+                // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string M() => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
+                );
+            verify1(comp);
+
+            comp = CreateCompilationWithCovariantReturns(s2, references: new[] { ref0, ref1a }).VerifyDiagnostics(
+                );
+            verify1(comp);
+            verify1(CompilationReferenceView(comp, ref0, ref1a));
+            verify1(MetadataView(comp, ref0, ref1a));
+            verify1(RetargetedView(comp, ref0, ref1a));
+
+            verify2(CompilationReferenceView(comp, ref0, ref1b));
+            verify2(MetadataView(comp, ref0, ref1b));
+            verify2(RetargetedView(comp, ref0, ref1b));
+
+            static void verify1(CSharpCompilation comp)
+            {
+                VerifyOverride(comp, "Derived.M", "System.String Derived.M()", "System.Object Base.M()");
+            }
+
+            static void verify2(CSharpCompilation comp)
+            {
+                VerifyOverride(comp, "Derived.M", "System.String Derived.M()", "System.String Mid.M()", binaryCompat: true);
+                VerifyOverride(comp, "Mid.M", "System.String Mid.M()", "System.Object Base.M()");
+            }
+        }
+
+        [Fact]
+        public void BinaryCompatibility_02()
+        {
+            var s0 = @"
+public class Base
+{
+    public virtual object P => null;
+}
+";
+            var ref0 = CreateCompilationWithoutCovariantReturns(s0).EmitToImageReference();
+
+            var s1a = @"
+public class Mid : Base
+{
+}
+";
+            var ref1a = CreateCompilationWithoutCovariantReturns(s1a, references: new[] { ref0 }, assemblyName: "ref1").EmitToImageReference();
+
+            var s1b = @"
+public class Mid : Base
+{
+    public override string P => null;
+}
+";
+            var ref1b = CreateCompilationWithCovariantReturns(s1b, references: new[] { ref0 }, assemblyName: "ref1").EmitToImageReference();
+
+            var s2 = @"
+public class Derived : Mid
+{
+    public override string P => null;
+}
+";
+            var comp = CreateCompilationWithoutCovariantReturns(s2, references: new[] { ref0, ref1a }).VerifyDiagnostics(
+                // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string P => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(4, 28)
+                );
+            verify1(comp);
+
+            comp = CreateCompilationWithCovariantReturns(s2, references: new[] { ref0, ref1a }).VerifyDiagnostics(
+                );
+            verify1(comp);
+            verify1(CompilationReferenceView(comp, ref0, ref1a));
+            verify1(MetadataView(comp, ref0, ref1a));
+            verify1(RetargetedView(comp, ref0, ref1a));
+
+            verify2(CompilationReferenceView(comp, ref0, ref1b));
+            verify2(MetadataView(comp, ref0, ref1b));
+            verify2(RetargetedView(comp, ref0, ref1b));
+
+            static void verify1(CSharpCompilation comp)
+            {
+                VerifyOverride(comp, "Derived.P", "System.String Derived.P { get; }", "System.Object Base.P { get; }");
+                VerifyOverride(comp, "Derived.get_P", "System.String Derived.P.get", "System.Object Base.P.get");
+            }
+
+            static void verify2(CSharpCompilation comp)
+            {
+                VerifyOverride(comp, "Derived.P", "System.String Derived.P { get; }", "System.String Mid.P { get; }", binaryCompat: true);
+                VerifyOverride(comp, "Derived.get_P", "System.String Derived.P.get", "System.String Mid.P.get", binaryCompat: true);
+                VerifyOverride(comp, "Mid.P", "System.String Mid.P { get; }", "System.Object Base.P { get; }");
+                VerifyOverride(comp, "Mid.get_P", "System.String Mid.P.get", "System.Object Base.P.get");
+            }
+        }
+
+        [Fact]
+        public void BinaryCompatibility_03()
+        {
+            var s0 = @"
+public class Base
+{
+    public virtual object M() => null;
+}
+";
+            var ref0 = CreateCompilationWithoutCovariantReturns(s0).EmitToImageReference();
+
+            var s1a = @"
+public class Mid : Base
+{
+}
+";
+            var ref1a = CreateCompilationWithoutCovariantReturns(s1a, references: new[] { ref0 }, assemblyName: "ref1").EmitToImageReference();
+
+            var s1b = @"
+public class Mid : Base
+{
+    public override object M() => null;
+}
+";
+            var ref1b = CreateCompilationWithCovariantReturns(s1b, references: new[] { ref0 }, assemblyName: "ref1").EmitToImageReference();
+
+            var s2 = @"
+public class Derived : Mid
+{
+    public override string M() => null;
+}
+";
+            var comp = CreateCompilationWithoutCovariantReturns(s2, references: new[] { ref0, ref1a }).VerifyDiagnostics(
+                // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string M() => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
+                );
+            verify1(comp);
+
+            comp = CreateCompilationWithCovariantReturns(s2, references: new[] { ref0, ref1a }).VerifyDiagnostics(
+                );
+            verify1(comp);
+            verify1(CompilationReferenceView(comp, ref0, ref1a));
+            verify1(MetadataView(comp, ref0, ref1a));
+            verify1(RetargetedView(comp, ref0, ref1a));
+
+            verify2(CompilationReferenceView(comp, ref0, ref1b));
+            verify2(MetadataView(comp, ref0, ref1b));
+            verify2(RetargetedView(comp, ref0, ref1b));
+
+            static void verify1(CSharpCompilation comp)
+            {
+                VerifyOverride(comp, "Derived.M", "System.String Derived.M()", "System.Object Base.M()");
+            }
+
+            static void verify2(CSharpCompilation comp)
+            {
+                // When viewed from metadata, we do not see a relationship between Derived.M and Mid.M because
+                // there is nothing in the metadata to indicate there is relationship. The compiler
+                // does no simulate the covariant language rules on metadata nor does the compiler simulate the
+                // virtual slot unification that the runtime does.
+                VerifyOverride(comp, "Derived.M", "System.String Derived.M()", "System.Object Base.M()");
+                VerifyOverride(comp, "Mid.M", "System.Object Mid.M()", "System.Object Base.M()");
+            }
         }
     }
 }
