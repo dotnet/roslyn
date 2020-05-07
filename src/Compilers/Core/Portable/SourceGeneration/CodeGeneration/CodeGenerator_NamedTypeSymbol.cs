@@ -32,19 +32,24 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         //public static INamedTypeSymbol AnonymousType(ITypeSymbol type = null)
         //    => new DiscardSymbol(type);
 
-        public static INamedTypeSymbol SpecialType(SpecialType specialType)
+        public static INamedTypeSymbol SpecialType(
+            SpecialType specialType,
+            NullableAnnotation nullableAnnotation = NullableAnnotation.None)
         {
             return new NamedTypeSymbol(
                 specialType,
+                nullableAnnotation,
                 containingSymbol: null);
         }
 
         public static INamedTypeSymbol With(
             this INamedTypeSymbol type,
+            Optional<NullableAnnotation> nullableAnnotation = default,
             Optional<ISymbol> containingSymbol = default)
         {
             return new NamedTypeSymbol(
                 type.SpecialType,
+                nullableAnnotation.GetValueOr(type.NullableAnnotation),
                 containingSymbol.GetValueOr(type.ContainingSymbol));
         }
 
@@ -52,14 +57,17 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         {
             public NamedTypeSymbol(
                 SpecialType specialType,
+                NullableAnnotation nullableAnnotation,
                 ISymbol containingSymbol)
             {
                 SpecialType = specialType;
+                NullableAnnotation = nullableAnnotation;
                 ContainingSymbol = containingSymbol;
             }
 
             public override ISymbol ContainingSymbol { get; }
             public override SymbolKind Kind => SymbolKind.NamedType;
+            public override NullableAnnotation NullableAnnotation { get; }
             public override SpecialType SpecialType { get; }
             public override TypeKind TypeKind { get; }
 

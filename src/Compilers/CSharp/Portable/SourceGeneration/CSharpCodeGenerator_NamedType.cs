@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpCodeGenerator
     {
-        private static TypeSyntax GenerateType(INamedTypeSymbol symbol)
+        private static TypeSyntax GenerateNamedTypeSyntaxWithoutNullable(INamedTypeSymbol symbol)
         {
             if (symbol.SpecialType != SpecialType.None)
-                return GenerateSpecialType(symbol);
+                return GenerateSpecialTypeSyntaxWithoutNullable(symbol);
 
             throw new NotImplementedException();
         }
 
-        private static TypeSyntax GenerateSpecialType(INamedTypeSymbol symbol)
+        private static TypeSyntax GenerateSpecialTypeSyntaxWithoutNullable(INamedTypeSymbol symbol)
         {
             switch (symbol.SpecialType)
             {

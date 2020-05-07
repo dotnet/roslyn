@@ -21,21 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
         public static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol)
         {
-            switch (symbol.Kind)
-            {
-                case SymbolKind.NamedType:
-                    return GenerateType((INamedTypeSymbol)symbol);
-                case SymbolKind.ArrayType:
-                case SymbolKind.DynamicType:
-                case SymbolKind.ErrorType:
-                case SymbolKind.PointerType:
-                case SymbolKind.TypeParameter:
-                    break;
-                case SymbolKind.Namespace:
-                    return GenerateNameSyntax((INamespaceSymbol)symbol);
-                default:
-                    break;
-            }
+            if (symbol is INamespaceSymbol nsSymbol)
+                return GenerateNameSyntax(nsSymbol);
+            else if (symbol is ITypeSymbol type)
+                return GenerateTypeSyntax(type);
 
             throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
         }
