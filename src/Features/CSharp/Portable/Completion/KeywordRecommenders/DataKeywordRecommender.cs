@@ -19,17 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsGlobalStatementContext ||
-                context.TargetToken.IsUsingKeywordInUsingDirective() ||
                 IsValidContextForType(context, cancellationToken);
         }
 
         private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             if (context.IsTypeDeclarationContext(
-                validModifiers: SyntaxKindSet.AllTypeModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
-                canBePartial: true,
-                cancellationToken: cancellationToken))
+                    validModifiers: SyntaxKindSet.AllTypeModifiers,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    canBePartial: true,
+                    cancellationToken: cancellationToken))
             {
                 return CheckPreviousModifiers(context);
             }

@@ -202,6 +202,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRef()
+        {
+            await VerifyKeywordAsync(
+@"ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterData()
         {
             await VerifyAbsenceAsync(
