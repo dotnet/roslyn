@@ -18,5 +18,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
         /// cref="Workspace.WorkspaceChanged"/>).  This can be called on any thread.
         /// </summary>
         Task ReportTodoCommentsAsync(Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Legacy entry-point to allow existing in-process TypeScript language service to report when documents
+        /// which have previously reported todo comments are removed from the workspace.
+        /// This can be called on any thread.
+        /// </summary>
+        Task OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken);
     }
 }

@@ -221,5 +221,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             await ReportTodoCommentDataAsync(
                 document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
         }
+
+        /// <inheritdoc cref="IVsTypeScriptTodoCommentService.OnDocumentRemovedAsync(DocumentId, CancellationToken)"/>
+        Task IVsTypeScriptTodoCommentService.OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken) =>
+            OnDocumentRemovedAsync(documentId, cancellationToken);
     }
 }
