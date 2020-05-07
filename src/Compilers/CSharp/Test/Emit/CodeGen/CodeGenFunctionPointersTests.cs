@@ -5394,6 +5394,157 @@ unsafe class B : A
             }
         }
 
+        [Fact]
+        public void BetterFunctionMember_BreakTiesByCustomModifierCount_TypeMods()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        void RetModifiers (method void modopt([mscorlib]System.Object) modopt([mscorlib]System.Object) *()) cil managed 
+    {
+        ldstr ""M""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+
+    .method public hidebysig static 
+        void RetModifiers (method void modopt([mscorlib]System.Object) *()) cil managed 
+    {
+        ldstr ""L""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+
+    .method public hidebysig static 
+        void ParamModifiers (method void *(int32 modopt([mscorlib]System.Object) modopt([mscorlib]System.Object))) cil managed 
+    {
+        ldstr ""M""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+
+    .method public hidebysig static 
+        void ParamModifiers (method void *(int32) modopt([mscorlib]System.Object)) cil managed 
+    {
+        ldstr ""L""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+}";
+
+            var source = @"
+unsafe class C
+{
+    static void Main()
+    {
+        delegate*<void> ptr1 = null;
+        Program.RetModifiers(ptr1);
+        delegate*<int, void> ptr2 = null;
+        Program.ParamModifiers(ptr2);
+    }
+}";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, il, expectedOutput: "LL");
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (delegate*<void> V_0, //ptr1
+                delegate*<int, void> V_1) //ptr2
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""void Program.RetModifiers(delegate*<void>)""
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  call       ""void Program.ParamModifiers(delegate*<int, void>)""
+  IL_0012:  ret
+}
+            ");
+        }
+
+        [Fact]
+        public void BetterFunctionMember_BreakTiesByCustomModifierCount_Ref()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        void RetModifiers (method int32 & modopt([mscorlib]System.Object) modopt([mscorlib]System.Object) *()) cil managed 
+    {
+        ldstr ""M""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+
+    .method public hidebysig static 
+        void RetModifiers (method int32 & modopt([mscorlib]System.Object) *()) cil managed 
+    {
+        ldstr ""L""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+
+    .method public hidebysig static 
+        void ParamModifiers (method void *(int32 & modopt([mscorlib]System.Object) modopt([mscorlib]System.Object))) cil managed 
+    {
+        ldstr ""M""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+
+    .method public hidebysig static 
+        void ParamModifiers (method void *(int32 & modopt([mscorlib]System.Object))) cil managed 
+    {
+        ldstr ""L""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+}
+";
+
+            var source = @"
+unsafe class C
+{
+    static void Main()
+    {
+        delegate*<ref int> ptr1 = null;
+        Program.RetModifiers(ptr1);
+        delegate*<ref int, void> ptr2 = null;
+        Program.ParamModifiers(ptr2);
+    }
+}";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, il, expectedOutput: "LL");
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (delegate*<ref int> V_0, //ptr1
+                delegate*<ref int, void> V_1) //ptr2
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""void Program.RetModifiers(delegate*<ref int>)""
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  call       ""void Program.ParamModifiers(delegate*<ref int, void>)""
+  IL_0012:  ret
+}
+");
+    }
+
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
         private static readonly BlobContentId s_contentId = new BlobContentId(s_guid, 0x04030201);
 
