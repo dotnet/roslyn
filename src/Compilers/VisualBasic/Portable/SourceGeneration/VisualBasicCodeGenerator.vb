@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
-    Friend Module VisualBasicCodeGenerator
+    Partial Friend Module VisualBasicCodeGenerator
         <Extension>
         Public Function GenerateString(
                 symbol As ISymbol,
@@ -38,53 +38,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
                     Return GenerateNamespace(DirectCast(symbol, INamespaceSymbol))
             End Select
 
-            Throw New NotImplementedException()
-        End Function
-
-        Private Function GenerateNamespace(symbol As INamespaceSymbol) As SyntaxNode
-            Dim [imports] = GenerateImports(CodeGenerator.GetImports(symbol))
-            Dim members = GenerateMembers(symbol.GetMembers())
-
-            If symbol.IsGlobalNamespace Then
-                Return CompilationUnit(options:=Nothing, [imports], attributes:=Nothing, members)
-            End If
-
-            If [imports].Count > 0 Then
-                Throw New ArgumentException("VisualBasic namespaces cannot contain imports.")
-            End If
-
-            Return NamespaceBlock(
-                NamespaceStatement(ParseName(symbol.Name)),
-                members)
-        End Function
-
-        Private Function GenerateMembers(members As IEnumerable(Of INamespaceOrTypeSymbol)) As SyntaxList(Of StatementSyntax)
-            Dim builder = ArrayBuilder(Of StatementSyntax).GetInstance()
-
-            For Each member In members
-                builder.Add(GenerateMember(member))
-            Next
-
-            Return List(builder.ToImmutableAndFree())
-        End Function
-
-        Private Function GenerateMember(member As INamespaceOrTypeSymbol) As StatementSyntax
-            Return DirectCast(GenerateSyntaxWorker(member), StatementSyntax)
-        End Function
-
-        Private Function GenerateImports([imports] As ImmutableArray(Of INamespaceOrTypeSymbol)) As SyntaxList(Of ImportsStatementSyntax)
-            Dim builder = ArrayBuilder(Of ImportsStatementSyntax).GetInstance()
-
-            For Each import In [imports]
-                builder.Add(
-                    ImportsStatement(
-                        SingletonSeparatedList(Of ImportsClauseSyntax)(SimpleImportsClause(GenerateName(import)))))
-            Next
-
-            Return List(builder.ToImmutableAndFree())
-        End Function
-
-        Private Function GenerateName(import As INamespaceOrTypeSymbol) As NameSyntax
             Throw New NotImplementedException()
         End Function
     End Module
