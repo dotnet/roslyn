@@ -62,6 +62,17 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             _lsifJsonWriter.Write(new Event(Event.EventKind.End, projectVertex.GetId()));
         }
 
+        /// <summary>
+        /// Generates the LSIF content for a single document.
+        /// </summary>
+        /// <returns>The ID of the outputted Document vertex.</returns>
+        /// <remarks>
+        /// The high level algorithm here is we are going to walk across each token, produce a <see cref="Graph.Range"/> for that token's span,
+        /// bind that token, and then link up the various features. So we'll link that range to the symbols it defines or references,
+        /// will link it to results like Quick Info, and more. This method has a <paramref name="topLevelSymbolsResultSetTracker"/> that
+        /// lets us link symbols across files, and will only talk about "top level" symbols that aren't things like locals that can't
+        /// leak outside a file.
+        /// </remarks>
         private static Id<Graph.Document> GenerateForDocument(
             SemanticModel semanticModel,
             HostLanguageServices languageServices,
