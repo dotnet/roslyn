@@ -13,11 +13,36 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
     Partial Friend Module VisualBasicCodeGenerator
         Private Function GenerateNamedTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
+            If Not symbol.TupleElements.IsDefault Then
+                Return GenerateTupleTypeSyntax(symbol)
+            End If
+
             If symbol.SpecialType <> SpecialType.None Then
                 Return GenerateSpecialTypeSyntax(symbol)
             End If
 
             Throw New NotImplementedException()
+        End Function
+
+        Private Function GenerateTupleTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
+            If symbol.TupleElements.Length < 2 Then
+                Throw New ArgumentException("Tuples must contain at least two elements")
+            End If
+
+            Using temp = GetArrayBuilder(Of TupleElementSyntax)()
+                Dim elements = temp.Builder
+
+                For Each field In symbol.TupleElements
+                    Dim fieldType = field.Type.GenerateTypeSyntax()
+                    If String.IsNullOrEmpty(field.Name) Then
+                        elements.Add(TypedTupleElement(fieldType))
+                    Else
+                        elements.Add(NamedTupleElement(Identifier(field.Name), SimpleAsClause(fieldType)))
+                    End If
+                Next
+
+                Return TupleType(SeparatedList(elements))
+            End Using
         End Function
 
         Private Function GenerateSpecialTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax

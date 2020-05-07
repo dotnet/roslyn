@@ -14,10 +14,31 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
     {
         private static TypeSyntax GenerateNamedTypeSyntaxWithoutNullable(INamedTypeSymbol symbol)
         {
+            if (!symbol.TupleElements.IsDefault)
+                return GenerateTupleTypeSyntaxWithoutNullable(symbol);
+
             if (symbol.SpecialType != SpecialType.None)
                 return GenerateSpecialTypeSyntaxWithoutNullable(symbol);
 
             throw new NotImplementedException();
+        }
+
+        private static TypeSyntax GenerateTupleTypeSyntaxWithoutNullable(INamedTypeSymbol symbol)
+        {
+            if (symbol.TupleElements.Length < 2)
+                throw new ArgumentException("Tuples must contain at least two elements");
+
+            using var _ = GetArrayBuilder<TupleElementSyntax>(out var elements);
+
+            foreach (var field in symbol.TupleElements)
+            {
+                var fieldType = field.Type.GenerateTypeSyntax();
+                elements.Add(string.IsNullOrEmpty(field.Name)
+                    ? TupleElement(fieldType)
+                    : TupleElement(fieldType, Identifier(field.Name)));
+            }
+
+            return TupleType(SeparatedList(elements));
         }
 
         private static TypeSyntax GenerateSpecialTypeSyntaxWithoutNullable(INamedTypeSymbol symbol)

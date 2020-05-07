@@ -22,9 +22,16 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         //public static INamedTypeSymbol EnumType(ITypeSymbol type = null)
         //    => new DiscardSymbol(type);
 
-        //public static INamedTypeSymbol TupleType(
-        //    ImmutableArray<IFieldSymbol> tupleElements)
-        //    => new DiscardSymbol(type);
+        public static INamedTypeSymbol TupleType(
+            ImmutableArray<IFieldSymbol> tupleElements,
+            NullableAnnotation nullableAnnotation = NullableAnnotation.None)
+        {
+            return new NamedTypeSymbol(
+                CodeAnalysis.SpecialType.None,
+                tupleElements,
+                nullableAnnotation,
+                containingSymbol: null);
+        }
 
         //public static INamedTypeSymbol DelegateType(ITypeSymbol type = null)
         //    => new DiscardSymbol(type);
@@ -38,17 +45,20 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         {
             return new NamedTypeSymbol(
                 specialType,
+                tupleElements: default,
                 nullableAnnotation,
                 containingSymbol: null);
         }
 
         public static INamedTypeSymbol With(
             this INamedTypeSymbol type,
+            Optional<ImmutableArray<IFieldSymbol>> tupleElements = default,
             Optional<NullableAnnotation> nullableAnnotation = default,
             Optional<ISymbol> containingSymbol = default)
         {
             return new NamedTypeSymbol(
                 type.SpecialType,
+                tupleElements.GetValueOr(type.TupleElements),
                 nullableAnnotation.GetValueOr(type.NullableAnnotation),
                 containingSymbol.GetValueOr(type.ContainingSymbol));
         }
@@ -57,10 +67,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         {
             public NamedTypeSymbol(
                 SpecialType specialType,
+                ImmutableArray<IFieldSymbol> tupleElements,
                 NullableAnnotation nullableAnnotation,
                 ISymbol containingSymbol)
             {
                 SpecialType = specialType;
+                TupleElements = tupleElements;
                 NullableAnnotation = nullableAnnotation;
                 ContainingSymbol = containingSymbol;
             }
@@ -81,7 +93,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             public ImmutableArray<IMethodSymbol> Constructors => throw new NotImplementedException();
 
-            public ImmutableArray<IFieldSymbol> TupleElements => throw new NotImplementedException();
+            public ImmutableArray<IFieldSymbol> TupleElements { get; }
 
             public override void Accept(SymbolVisitor visitor)
                 => visitor.VisitNamedType(this);

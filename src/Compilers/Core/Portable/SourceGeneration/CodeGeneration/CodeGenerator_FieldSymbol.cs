@@ -43,6 +43,20 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 constantValue,
                 isFixedSizeBuffer: true);
 
+        public static IFieldSymbol TupleElement(
+            ITypeSymbol type,
+            string name = null)
+        {
+            return new FieldSymbol(
+                attributes: default,
+                declaredAccessibility: default,
+                modifiers: default,
+                type,
+                name,
+                constantValue: default,
+                isFixedSizeBuffer: default);
+        }
+
         public static IFieldSymbol With(
             this IFieldSymbol field,
             Optional<ImmutableArray<AttributeData>> attributes = default,
