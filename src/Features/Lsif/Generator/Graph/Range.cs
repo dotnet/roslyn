@@ -7,6 +7,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
+    /// <summary>
+    /// Represents a Range for serialization. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#ranges for further details.
+    /// </summary>
     internal sealed class Range : Vertex
     {
         public Position Start { get; }

@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
     /// <summary>
     /// Represents an ID of a vertex or edge.
     /// </summary>
-    /// <typeparam name="T">Used to distinguish what type of object this ID applies to. This is not actually used, but simply helps
-    /// to ensure type safety since it's not uncommon to hold onto just an ID somewhere.</typeparam>
+    /// <typeparam name="T">Used to distinguish what type of object this ID applies to. This is dropped in serialization, but simply helps
+    /// to ensure type safety in the code so we don't cross IDs of different types.</typeparam>
     internal struct Id<T> : IEquatable<Id<T>>, ISerializableId where T : Element
     {
         /// <summary>

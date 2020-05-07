@@ -5,7 +5,7 @@
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
     /// <summary>
-    /// The base class of any vertex in the graph.
+    /// The base class of any vertex in the graph that we serialize.
     /// </summary>
     internal abstract class Vertex : Element
     {

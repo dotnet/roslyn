@@ -4,6 +4,9 @@
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
+    /// <summary>
+    /// Represents a referenceResult vertex for serialization. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#request-textdocumentreferences for further details.
+    /// </summary>
     internal sealed class ReferenceResult : Vertex
     {
         public ReferenceResult()
