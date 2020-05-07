@@ -12,24 +12,44 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IPropertySymbol Property(
             string name,
             ITypeSymbol type,
+            ImmutableArray<AttributeData> attributes = default,
+            ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
             RefKind refKind = default,
-            bool isIndexer = false,
             ImmutableArray<IParameterSymbol> parameters = default,
             IMethodSymbol getMethod = null,
-            IMethodSymbol setMethod = null,
-            ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
-            ImmutableArray<AttributeData> attributes = default)
+            IMethodSymbol setMethod = null)
         {
             return new PropertySymbol(
                 name,
                 type,
+                attributes,
+                explicitInterfaceImplementations,
                 refKind,
-                isIndexer,
                 parameters,
                 getMethod,
                 setMethod,
+                isIndexer: false);
+        }
+
+        public static IPropertySymbol Indexer(
+            ITypeSymbol type,
+            ImmutableArray<AttributeData> attributes = default,
+            ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
+            RefKind refKind = default,
+            ImmutableArray<IParameterSymbol> parameters = default,
+            IMethodSymbol getMethod = null,
+            IMethodSymbol setMethod = null)
+        {
+            return new PropertySymbol(
+                name: null,
+                type,
+                attributes,
                 explicitInterfaceImplementations,
-                attributes);
+                refKind,
+                parameters,
+                getMethod,
+                setMethod,
+                isIndexer: true);
         }
 
         public static IPropertySymbol With(
@@ -37,7 +57,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Optional<string> name = default,
             Optional<ITypeSymbol> type = default,
             Optional<RefKind> refKind = default,
-            Optional<bool> isIndexer = default,
             Optional<ImmutableArray<IParameterSymbol>> parameters = default,
             Optional<IMethodSymbol> getMethod = default,
             Optional<IMethodSymbol> setMethod = default,
@@ -47,13 +66,13 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new PropertySymbol(
                 name.GetValueOr(property.Name),
                 type.GetValueOr(property.Type),
+                attributes.GetValueOr(property.GetAttributes()),
+                explicitInterfaceImplementations.GetValueOr(property.ExplicitInterfaceImplementations),
                 refKind.GetValueOr(property.RefKind),
-                isIndexer.GetValueOr(property.IsIndexer),
                 parameters.GetValueOr(property.Parameters),
                 getMethod.GetValueOr(property.GetMethod),
                 setMethod.GetValueOr(property.SetMethod),
-                explicitInterfaceImplementations.GetValueOr(property.ExplicitInterfaceImplementations),
-                attributes.GetValueOr(property.GetAttributes()));
+                isIndexer: property.IsIndexer);
         }
 
         private class PropertySymbol : Symbol, IPropertySymbol
@@ -63,13 +82,13 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public PropertySymbol(
                 string name,
                 ITypeSymbol type,
+                ImmutableArray<AttributeData> attributes,
+                ImmutableArray<IPropertySymbol> explicitInterfaceImplementations,
                 RefKind refKind,
-                bool isIndexer,
                 ImmutableArray<IParameterSymbol> parameters,
                 IMethodSymbol getMethod,
                 IMethodSymbol setMethod,
-                ImmutableArray<IPropertySymbol> explicitInterfaceImplementations,
-                ImmutableArray<AttributeData> attributes)
+                bool isIndexer)
             {
                 Name = name;
                 Type = type;

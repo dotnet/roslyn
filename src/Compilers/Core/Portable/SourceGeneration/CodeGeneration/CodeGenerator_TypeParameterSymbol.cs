@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
     {
         public static ITypeParameterSymbol TypeParameter(
             string name,
-            VarianceKind variance,
-            bool hasReferenceTypeConstraint,
-            bool hasValueTypeConstraint,
-            bool hasUnmanagedTypeConstraint,
-            bool hasNotNullConstraint,
-            bool hasConstructorConstraint,
-            ImmutableArray<ITypeSymbol> constraintTypes,
-            ImmutableArray<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes = default,
+            VarianceKind variance = default,
+            bool hasReferenceTypeConstraint = default,
+            bool hasValueTypeConstraint = default,
+            bool hasUnmanagedTypeConstraint = default,
+            bool hasNotNullConstraint = default,
+            bool hasConstructorConstraint = default,
+            ImmutableArray<ITypeSymbol> constraintTypes = default,
             NullableAnnotation nullableAnnotation = NullableAnnotation.None)
         {
             return new TypeParameterSymbol(

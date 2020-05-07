@@ -3,11 +3,24 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
+        public static INamespaceOrTypeSymbol With(
+            this INamespaceOrTypeSymbol namespaceOrType,
+            Optional<ISymbol> containingSymbol = default)
+        {
+            if (namespaceOrType is INamespaceSymbol nsSymbol)
+                return nsSymbol.With(containingSymbol: containingSymbol);
+            else if (namespaceOrType is INamedTypeSymbol namedType)
+                return namedType.With(containingSymbol: containingSymbol);
+
+            throw ExceptionUtilities.UnexpectedValue(namespaceOrType.Kind);
+        }
+
         private abstract class NamespaceOrTypeSymbol : Symbol, INamespaceOrTypeSymbol
         {
             #region default implementation
