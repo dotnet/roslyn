@@ -1922,5 +1922,54 @@ public class Derived : Mid
                 VerifyOverride(comp, "Mid.M", "System.Object Mid.M()", "System.Object Base.M()");
             }
         }
+
+        [Fact]
+        public void OverlappingMethodimplRequirements()
+        {
+            var source = @"
+public class A
+{
+    public virtual object get_P() => null;
+}
+
+public class B : A
+{
+    public virtual object P => null;
+}
+
+public class C : B
+{
+    public override string get_P() => null;
+}
+
+public class D : C
+{
+    public override string P => null;
+}
+";
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+                // (14,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string get_P() => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get_P").WithArguments("covariant returns").WithLocation(14, 28),
+                // (19,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string P => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(19, 28)
+                );
+            verify(comp);
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
+                );
+            verify(comp);
+            verify(CompilationReferenceView(comp));
+            verify(MetadataView(comp));
+            verify(RetargetedView(comp));
+
+            static void verify(CSharpCompilation comp)
+            {
+                VerifyOverride(comp, "C.get_P", "System.String C.get_P()", "System.Object A.get_P()");
+                VerifyOverride(comp, "D.P", "System.String D.P { get; }", "System.Object B.P { get; }");
+                VerifyOverride(comp, "D.get_P", "System.String D.P.get", "System.Object B.P.get");
+                VerifyAssignments(comp);
+            }
+        }
     }
 }
