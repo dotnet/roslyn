@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var bit = x64 ? "64" : "";
 
+            RemoteHostService = "roslynRemoteHost" + bit;
             CodeAnalysisService = NamePrefix + "CodeAnalysis" + bit;
             RemoteDesignerAttributeService = NamePrefix + "RemoteDesignerAttributeService" + bit;
             RemoteProjectTelemetryService = NamePrefix + "RemoteProjectTelemetryService" + bit;
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
             LanguageServer = NamePrefix + "LanguageServer" + bit;
         }
 
+        public static string RemoteHostService { get; private set; } = NamePrefix + "RemoteHost";
         public static string CodeAnalysisService { get; private set; } = NamePrefix + "CodeAnalysis";
         public static string RemoteSymbolSearchUpdateEngine { get; private set; } = NamePrefix + "RemoteSymbolSearchUpdateEngine";
         public static string RemoteDesignerAttributeService { get; private set; } = NamePrefix + "RemoteDesignerAttributeService";

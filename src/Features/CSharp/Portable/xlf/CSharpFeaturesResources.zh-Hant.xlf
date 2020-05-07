@@ -12,11 +12,6 @@
         <target state="translated">新增等候</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">新增明確轉換</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_missing_usings">
         <source>Add missing usings</source>
         <target state="translated">新增遺漏的 using</target>
@@ -112,11 +107,6 @@
         <target state="translated">轉換為逐字字串</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_type_to_0">
-        <source>Convert type to '{0}'</source>
-        <target state="translated">將類型轉換為 '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Declare_as_nullable">
         <source>Declare as nullable</source>
         <target state="translated">宣告為可為 Null</target>
@@ -185,6 +175,11 @@
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
         <target state="translated">警告: 內嵌臨時加入條件式方法呼叫。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
+        <source>Warning: Inlining temporary variable may change code meaning.</source>
+        <target state="new">Warning: Inlining temporary variable may change code meaning.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">

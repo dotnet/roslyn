@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
                     symbol, solution, projects, _cancellationToken).ConfigureAwait(false);
 
-                var implementedTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresAndClassesAsync(
+                var implementedTypes = await SymbolFinder.FindImplementationsAsync(
                     symbol, solution, projects, _cancellationToken).ConfigureAwait(false);
 
                 return derivedClasses.Concat(implementedTypes).ToSet();

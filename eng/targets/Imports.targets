@@ -25,6 +25,13 @@
       to only set in the inner builds, not the outer build where only $(TargetFrameworks) is defined.
     -->
     <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND $(TargetFrameworks.Contains('netcoreapp3.1')) AND '$(TargetFramework)' != '' AND '$(TargetFramework)' != 'netcoreapp3.1'">true</DisableNullableWarnings>
+
+    <!--
+      Disable code style analyzers in "older" targets for a multi-targeted project. These analyzers don't
+      impact the correctness of the output, so we avoid the performance overhead where it's easy to do so.
+    -->
+    <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND '$(DisableNullableWarnings)' == 'true'">false</RoslynCheckCodeStyle>
+    <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RoslynEnforceCodeStyle)' == 'true')">true</RoslynCheckCodeStyle>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
@@ -334,4 +341,14 @@
     <Error Text="Unit test project TargetFileName must end with '.IntegrationTests.dll': '$(TargetFileName)'"
            Condition="$(IsIntegrationTestProject) != $(TargetFileName.EndsWith('.IntegrationTests.dll'))" />
   </Target>
+
+  <!-- Work around for https://github.com/dotnet/sdk/issues/10591 -->
+  <Target Name="WorkAroundDotnetSdk10591"
+          AfterTargets="ResolveTargetingPackAssets"
+          Condition="'$(Language)' == 'VB' AND '$(VBRuntime)' == 'Embed'">
+    <ItemGroup>
+      <Reference Remove="@(Reference)" Condition=" '%(FileName)' == 'Microsoft.VisualBasic' or '%(FileName)' == 'Microsoft.VisualBasic.Core' " />
+    </ItemGroup>
+  </Target>
+
 </Project>

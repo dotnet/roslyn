@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             CancellationToken = cancellationToken;
         }
 
-        public async override Task OnCompletedAsync()
+        public override async Task OnCompletedAsync()
         {
             using var _ = ArrayBuilder<VSReferenceItem>.GetInstance(out var referencesToReport);
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             _progress.Report(referencesToReport.ToArray());
         }
 
-        public async override Task OnDefinitionFoundAsync(DefinitionItem definition)
+        public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
         {
             using var _ = ArrayBuilder<VSReferenceItem>.GetInstance(out var referencesToReport);
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             ReportIfNotEmpty(referencesToReport);
         }
 
-        public async override Task OnReferenceFoundAsync(SourceReferenceItem reference)
+        public override async Task OnReferenceFoundAsync(SourceReferenceItem reference)
         {
             using var _ = ArrayBuilder<VSReferenceItem>.GetInstance(out var referencesToReport);
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))

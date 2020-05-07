@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Rename
@@ -23,10 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
     Friend Class VisualBasicRenameRewriterLanguageService
         Inherits AbstractRenameRewriterLanguageService
 
-        Private ReadOnly _languageServiceProvider As HostLanguageServices
+        Public Shared ReadOnly Instance As New VisualBasicRenameRewriterLanguageService()
 
-        Public Sub New(provider As HostLanguageServices)
-            _languageServiceProvider = provider
+        Private Sub New()
         End Sub
 
 #Region "Annotate"

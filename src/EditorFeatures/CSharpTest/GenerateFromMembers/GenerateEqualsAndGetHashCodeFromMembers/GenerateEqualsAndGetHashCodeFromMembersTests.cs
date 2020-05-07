@@ -1941,6 +1941,58 @@ parameters: CSharp6Implicit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
+        public async Task TestOverrideEqualsOnRefStructReturnsFalse()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+ref struct Program
+{
+    public string s;
+    [||]
+}",
+@"
+ref struct Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return false;
+    }
+}",
+chosenSymbols: null);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
+        public async Task TestImplementIEquatableOnRefStructSkipsIEquatable()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+ref struct Program
+{
+    public string s;
+    [||]
+}",
+@"
+ref struct Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return false;
+    }
+}",
+chosenSymbols: null,
+// We are forcefully enabling the ImplementIEquatable option, as that is our way
+// to test that the option does nothing. The VS mode will ensure if the option
+// is not available it will not be shown.
+optionsCallback: options => EnableOption(options, ImplementIEquatableId));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestImplementIEquatableOnStructInNullableContextWithUnannotatedMetadata()
         {
             await TestWithPickMembersDialogAsync(
