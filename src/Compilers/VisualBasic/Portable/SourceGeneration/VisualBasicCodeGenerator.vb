@@ -49,6 +49,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
                     Return GenerateFieldDeclaration(DirectCast(symbol, IFieldSymbol))
                 Case SymbolKind.Label
                     Return GenerateLabelIdentifierName(DirectCast(symbol, ILabelSymbol))
+                Case SymbolKind.Local
+                    Return GenerateLocalIdentifierName(DirectCast(symbol, ILocalSymbol))
                 Case SymbolKind.Namespace
                     Return GenerateNamespaceBlockOrCompilationUnit(DirectCast(symbol, INamespaceSymbol))
             End Select

@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
     Partial Friend Module VisualBasicCodeGenerator
-        Private Function GenerateLabelIdentifierName(symbol As ILabelSymbol) As IdentifierNameSyntax
+        Private Function GenerateLocalIdentifierName(symbol As ILocalSymbol) As IdentifierNameSyntax
             Return IdentifierName(symbol.Name)
         End Function
     End Module

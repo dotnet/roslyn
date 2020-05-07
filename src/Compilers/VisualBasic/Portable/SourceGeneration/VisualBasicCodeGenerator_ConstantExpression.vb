@@ -12,8 +12,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
     Partial Friend Module VisualBasicCodeGenerator
-        Private Function GenerateLabelIdentifierName(symbol As ILabelSymbol) As IdentifierNameSyntax
-            Return IdentifierName(symbol.Name)
+        Private Function GenerateConstantExpression(
+            type As ITypeSymbol, hasConstantValue As Boolean, constantValue As Object) As ExpressionSyntax
+
+            If Not hasConstantValue Then
+                Return Nothing
+            End If
+
+            Throw New NotImplementedException()
         End Function
     End Module
 End Namespace
