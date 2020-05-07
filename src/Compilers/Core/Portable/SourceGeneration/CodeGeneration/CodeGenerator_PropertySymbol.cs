@@ -123,17 +123,17 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             #region default implementation
 
+            IPropertySymbol IPropertySymbol.OriginalDefinition => throw new NotImplementedException();
             public bool IsReadOnly => throw new NotImplementedException();
-            public bool IsWriteOnly => throw new NotImplementedException();
             public bool IsWithEvents => throw new NotImplementedException();
-            public RefKind RefKind => throw new NotImplementedException();
+            public bool IsWriteOnly => throw new NotImplementedException();
             public bool ReturnsByRef => throw new NotImplementedException();
             public bool ReturnsByRefReadonly => throw new NotImplementedException();
-            public NullableAnnotation NullableAnnotation => throw new NotImplementedException();
-            public IPropertySymbol OverriddenProperty => throw new NotImplementedException();
             public ImmutableArray<CustomModifier> RefCustomModifiers => throw new NotImplementedException();
             public ImmutableArray<CustomModifier> TypeCustomModifiers => throw new NotImplementedException();
-            IPropertySymbol IPropertySymbol.OriginalDefinition => throw new NotImplementedException();
+            public IPropertySymbol OverriddenProperty => throw new NotImplementedException();
+            public NullableAnnotation NullableAnnotation => throw new NotImplementedException();
+            public RefKind RefKind => throw new NotImplementedException();
 
             #endregion
         }

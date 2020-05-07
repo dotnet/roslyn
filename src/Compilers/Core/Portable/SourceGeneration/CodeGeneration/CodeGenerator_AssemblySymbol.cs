@@ -53,16 +53,17 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             #region default implementation
 
-            public bool IsInteractive => throw new NotImplementedException();
             public AssemblyIdentity Identity => throw new NotImplementedException();
-            public ICollection<string> TypeNames => throw new NotImplementedException();
-            public ICollection<string> NamespaceNames => throw new NotImplementedException();
-            public bool MightContainExtensionMethods => throw new NotImplementedException();
-            public INamespaceSymbol GlobalNamespace => throw new NotImplementedException();
+            public AssemblyMetadata GetMetadata() => throw new NotImplementedException();
             public bool GivesAccessTo(IAssemblySymbol toAssembly) => throw new NotImplementedException();
+            public bool IsInteractive => throw new NotImplementedException();
+            public bool MightContainExtensionMethods => throw new NotImplementedException();
+            public ICollection<string> NamespaceNames => throw new NotImplementedException();
+            public ICollection<string> TypeNames => throw new NotImplementedException();
             public INamedTypeSymbol GetTypeByMetadataName(string fullyQualifiedMetadataName) => throw new NotImplementedException();
             public INamedTypeSymbol ResolveForwardedType(string fullyQualifiedMetadataName) => throw new NotImplementedException();
-            public AssemblyMetadata GetMetadata() => throw new NotImplementedException();
+            public INamespaceSymbol GlobalNamespace => throw new NotImplementedException();
+
             #endregion
         }
     }

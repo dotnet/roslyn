@@ -105,10 +105,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             #region default implementation
 
-            public NullableAnnotation NullableAnnotation => throw new NotImplementedException();
+            IEventSymbol IEventSymbol.OriginalDefinition => throw new NotImplementedException();
             public bool IsWindowsRuntimeEvent => throw new NotImplementedException();
             public IEventSymbol OverriddenEvent => throw new NotImplementedException();
-            IEventSymbol IEventSymbol.OriginalDefinition => throw new NotImplementedException();
+            public NullableAnnotation NullableAnnotation => throw new NotImplementedException();
 
             #endregion
         }

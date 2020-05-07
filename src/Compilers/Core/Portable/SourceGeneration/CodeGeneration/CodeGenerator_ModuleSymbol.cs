@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             public ImmutableArray<AssemblyIdentity> ReferencedAssemblies => throw new NotImplementedException();
             public ImmutableArray<IAssemblySymbol> ReferencedAssemblySymbols => throw new NotImplementedException();
-            public ModuleMetadata GetMetadata() => throw new NotImplementedException();
             public INamespaceSymbol GetModuleNamespace(INamespaceSymbol namespaceSymbol) => throw new NotImplementedException();
+            public ModuleMetadata GetMetadata() => throw new NotImplementedException();
 
             #endregion
         }

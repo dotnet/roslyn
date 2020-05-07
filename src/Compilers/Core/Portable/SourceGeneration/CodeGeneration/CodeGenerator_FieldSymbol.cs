@@ -128,11 +128,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             #region default implementation
 
+            IFieldSymbol IFieldSymbol.OriginalDefinition => throw new NotImplementedException();
+            public IFieldSymbol CorrespondingTupleField => throw new NotImplementedException();
+            public ImmutableArray<CustomModifier> CustomModifiers => throw new NotImplementedException();
             public ISymbol AssociatedSymbol => throw new NotImplementedException();
             public NullableAnnotation NullableAnnotation => throw new NotImplementedException();
-            public ImmutableArray<CustomModifier> CustomModifiers => throw new NotImplementedException();
-            public IFieldSymbol CorrespondingTupleField => throw new NotImplementedException();
-            IFieldSymbol IFieldSymbol.OriginalDefinition => throw new NotImplementedException();
 
             #endregion
         }

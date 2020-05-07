@@ -31,28 +31,28 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             #region default implementation
 
-            public virtual string Name => throw new NotImplementedException();
-            public virtual string MetadataName => throw new NotImplementedException();
-            public virtual ISymbol ContainingSymbol => throw new NotImplementedException();
+            public virtual bool CanBeReferencedByName => throw new NotImplementedException();
+            public virtual bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer) => throw new NotImplementedException();
+            public virtual bool Equals(ISymbol other) => throw new NotImplementedException();
+            public virtual bool HasUnsupportedMetadata => throw new NotImplementedException();
+            public virtual bool IsDefinition => throw new NotImplementedException();
+            public virtual bool IsImplicitlyDeclared => throw new NotImplementedException();
             public virtual IAssemblySymbol ContainingAssembly => throw new NotImplementedException();
+            public virtual ImmutableArray<AttributeData> GetAttributes() => throw new NotImplementedException();
+            public virtual ImmutableArray<Location> Locations => throw new NotImplementedException();
+            public virtual ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null) => throw new NotImplementedException();
+            public virtual ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null) => throw new NotImplementedException();
+            public virtual ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => throw new NotImplementedException();
             public virtual IModuleSymbol ContainingModule => throw new NotImplementedException();
             public virtual INamedTypeSymbol ContainingType => throw new NotImplementedException();
             public virtual INamespaceSymbol ContainingNamespace => throw new NotImplementedException();
-            public virtual bool IsDefinition => throw new NotImplementedException();
-            public virtual bool IsImplicitlyDeclared => throw new NotImplementedException();
-            public virtual bool CanBeReferencedByName => throw new NotImplementedException();
-            public virtual ImmutableArray<Location> Locations => throw new NotImplementedException();
-            public virtual ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => throw new NotImplementedException();
+            public virtual ISymbol ContainingSymbol => throw new NotImplementedException();
             public virtual ISymbol OriginalDefinition => throw new NotImplementedException();
-            public virtual bool HasUnsupportedMetadata => throw new NotImplementedException();
-            public virtual bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer) => throw new NotImplementedException();
-            public virtual bool Equals(ISymbol other) => throw new NotImplementedException();
-            public virtual ImmutableArray<AttributeData> GetAttributes() => throw new NotImplementedException();
             public virtual string GetDocumentationCommentId() => throw new NotImplementedException();
             public virtual string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public virtual ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null) => throw new NotImplementedException();
+            public virtual string MetadataName => throw new NotImplementedException();
+            public virtual string Name => throw new NotImplementedException();
             public virtual string ToDisplayString(SymbolDisplayFormat format = null) => throw new NotImplementedException();
-            public virtual ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null) => throw new NotImplementedException();
             public virtual string ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null) => throw new NotImplementedException();
 
             #endregion

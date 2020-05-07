@@ -94,11 +94,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             #region default implementation
 
-            public NamespaceKind NamespaceKind => throw new System.NotImplementedException();
-            public Compilation ContainingCompilation => throw new System.NotImplementedException();
-            public ImmutableArray<INamespaceSymbol> ConstituentNamespaces => throw new System.NotImplementedException();
-            public IEnumerable<INamespaceSymbol> GetNamespaceMembers() => throw new System.NotImplementedException();
             IEnumerable<INamespaceOrTypeSymbol> INamespaceSymbol.GetMembers(string name) => throw new System.NotImplementedException();
+            public Compilation ContainingCompilation => throw new System.NotImplementedException();
+            public IEnumerable<INamespaceSymbol> GetNamespaceMembers() => throw new System.NotImplementedException();
+            public ImmutableArray<INamespaceSymbol> ConstituentNamespaces => throw new System.NotImplementedException();
+            public NamespaceKind NamespaceKind => throw new System.NotImplementedException();
 
             #endregion
         }

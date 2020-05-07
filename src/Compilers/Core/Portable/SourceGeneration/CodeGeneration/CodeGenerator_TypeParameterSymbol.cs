@@ -112,14 +112,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             #region default implementation
 
-            public int Ordinal => throw new NotImplementedException();
-            public TypeParameterKind TypeParameterKind => throw new NotImplementedException();
-            public IMethodSymbol DeclaringMethod => throw new NotImplementedException();
-            public INamedTypeSymbol DeclaringType => throw new NotImplementedException();
-            public NullableAnnotation ReferenceTypeConstraintNullableAnnotation => throw new NotImplementedException();
-            public ImmutableArray<NullableAnnotation> ConstraintNullableAnnotations => throw new NotImplementedException();
-            public ITypeParameterSymbol ReducedFrom => throw new NotImplementedException();
             ITypeParameterSymbol ITypeParameterSymbol.OriginalDefinition => throw new NotImplementedException();
+            public IMethodSymbol DeclaringMethod => throw new NotImplementedException();
+            public ImmutableArray<NullableAnnotation> ConstraintNullableAnnotations => throw new NotImplementedException();
+            public INamedTypeSymbol DeclaringType => throw new NotImplementedException();
+            public int Ordinal => throw new NotImplementedException();
+            public ITypeParameterSymbol ReducedFrom => throw new NotImplementedException();
+            public NullableAnnotation ReferenceTypeConstraintNullableAnnotation => throw new NotImplementedException();
+            public TypeParameterKind TypeParameterKind => throw new NotImplementedException();
 
             #endregion
         }

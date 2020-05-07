@@ -15,26 +15,26 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             #region default implementation
 
-            public virtual INamedTypeSymbol BaseType => throw new NotImplementedException();
-            public virtual ImmutableArray<INamedTypeSymbol> Interfaces => throw new NotImplementedException();
-            public virtual ImmutableArray<INamedTypeSymbol> AllInterfaces => throw new NotImplementedException();
-            public virtual bool IsReferenceType => throw new NotImplementedException();
-            public virtual bool IsValueType => throw new NotImplementedException();
-            public virtual bool IsAnonymousType => throw new NotImplementedException();
-            public virtual bool IsTupleType => throw new NotImplementedException();
-            public virtual bool IsNativeIntegerType => throw new NotImplementedException();
-            public virtual SpecialType SpecialType => throw new NotImplementedException();
-            public virtual bool IsRefLikeType => throw new NotImplementedException();
-            public virtual bool IsUnmanagedType => throw new NotImplementedException();
-            public virtual bool IsReadOnly => throw new NotImplementedException();
-            public virtual NullableAnnotation NullableAnnotation => throw new NotImplementedException();
             ITypeSymbol ITypeSymbol.OriginalDefinition => throw new NotImplementedException();
-            public virtual ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember) => throw new NotImplementedException();
+            public virtual bool IsAnonymousType => throw new NotImplementedException();
+            public virtual bool IsNativeIntegerType => throw new NotImplementedException();
+            public virtual bool IsReadOnly => throw new NotImplementedException();
+            public virtual bool IsReferenceType => throw new NotImplementedException();
+            public virtual bool IsRefLikeType => throw new NotImplementedException();
+            public virtual bool IsTupleType => throw new NotImplementedException();
+            public virtual bool IsUnmanagedType => throw new NotImplementedException();
+            public virtual bool IsValueType => throw new NotImplementedException();
+            public virtual ImmutableArray<INamedTypeSymbol> AllInterfaces => throw new NotImplementedException();
+            public virtual ImmutableArray<INamedTypeSymbol> Interfaces => throw new NotImplementedException();
             public virtual ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null) => throw new NotImplementedException();
-            public virtual string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null) => throw new NotImplementedException();
             public virtual ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null) => throw new NotImplementedException();
-            public virtual string ToMinimalDisplayString(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null) => throw new NotImplementedException();
+            public virtual INamedTypeSymbol BaseType => throw new NotImplementedException();
+            public virtual ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember) => throw new NotImplementedException();
             public virtual ITypeSymbol WithNullableAnnotation(NullableAnnotation nullableAnnotation) => throw new NotImplementedException();
+            public virtual NullableAnnotation NullableAnnotation => throw new NotImplementedException();
+            public virtual SpecialType SpecialType => throw new NotImplementedException();
+            public virtual string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null) => throw new NotImplementedException();
+            public virtual string ToMinimalDisplayString(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null) => throw new NotImplementedException();
 
             #endregion
         }

@@ -322,30 +322,30 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             #region default implementation
 
-            public int Arity => throw new NotImplementedException();
-            public ISymbol AssociatedSymbol => throw new NotImplementedException();
-            public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations) => throw new NotImplementedException();
-            public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments) => throw new NotImplementedException();
-            public INamedTypeSymbol ConstructedFrom => throw new NotImplementedException();
-            public ImmutableArray<IMethodSymbol> Constructors => throw new NotImplementedException();
-            public INamedTypeSymbol ConstructUnboundGenericType() => throw new NotImplementedException();
-            public INamedTypeSymbol EnumUnderlyingType => throw new NotImplementedException();
-            public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal) => throw new NotImplementedException();
-            public ImmutableArray<IMethodSymbol> InstanceConstructors => throw new NotImplementedException();
+            INamedTypeSymbol INamedTypeSymbol.OriginalDefinition => throw new NotImplementedException();
             public bool IsComImport => throw new NotImplementedException();
             public bool IsGenericType => throw new NotImplementedException();
             public bool IsImplicitClass => throw new NotImplementedException();
-            public bool IsUnboundGenericType => throw new NotImplementedException();
             public bool IsScriptClass => throw new NotImplementedException();
             public bool IsSerializable => throw new NotImplementedException();
-            public IEnumerable<string> MemberNames => throw new NotImplementedException();
+            public bool IsUnboundGenericType => throw new NotImplementedException();
             public bool MightContainExtensionMethods => throw new NotImplementedException();
-            public INamedTypeSymbol NativeIntegerUnderlyingType => throw new NotImplementedException();
-            INamedTypeSymbol INamedTypeSymbol.OriginalDefinition => throw new NotImplementedException();
+            public IEnumerable<string> MemberNames => throw new NotImplementedException();
+            public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal) => throw new NotImplementedException();
+            public ImmutableArray<IMethodSymbol> Constructors => throw new NotImplementedException();
+            public ImmutableArray<IMethodSymbol> InstanceConstructors => throw new NotImplementedException();
             public ImmutableArray<IMethodSymbol> StaticConstructors => throw new NotImplementedException();
             public ImmutableArray<ITypeParameterSymbol> TypeParameters => throw new NotImplementedException();
-            public INamedTypeSymbol TupleUnderlyingType => throw new NotImplementedException();
             public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => throw new NotImplementedException();
+            public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations) => throw new NotImplementedException();
+            public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments) => throw new NotImplementedException();
+            public INamedTypeSymbol ConstructedFrom => throw new NotImplementedException();
+            public INamedTypeSymbol ConstructUnboundGenericType() => throw new NotImplementedException();
+            public INamedTypeSymbol EnumUnderlyingType => throw new NotImplementedException();
+            public INamedTypeSymbol NativeIntegerUnderlyingType => throw new NotImplementedException();
+            public INamedTypeSymbol TupleUnderlyingType => throw new NotImplementedException();
+            public int Arity => throw new NotImplementedException();
+            public ISymbol AssociatedSymbol => throw new NotImplementedException();
 
             #endregion
         }
