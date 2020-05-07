@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public const SyntaxKind DataKeyword = (SyntaxKind)8438;
 
 #if !CODE_STYLE
-        private const uint DotDotTokenValueAssertion = -(DataKeyword - SyntaxKind.DataKeyword);
+        private const uint DataKeywordValueAssertion = -(DataKeyword - SyntaxKind.DataKeyword);
 #endif
 
         // When the code style layer needs access to some syntax defined in newer versions of Roslyn,
