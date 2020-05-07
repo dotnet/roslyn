@@ -17,19 +17,19 @@ namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]
     [RyuJitX64Job]
-    public class CSharpIdeAnalyzerBenchmarks
+    public class IncrementalAnalyzerBenchmarks
     {
         private readonly string _solutionPath;
 
         private Options _options;
         private MSBuildWorkspace _workspace;
 
-        private DiagnosticAnalyzerRunner _diagnosticAnalyzerRunner;
+        private IncrementalAnalyzerRunner _incrementalAnalyzerRunner;
 
-        [Params("CSharpAddBracesDiagnosticAnalyzer")]
+        [Params("SymbolTreeInfoIncrementalAnalyzerProvider", "SyntaxTreeInfoIncrementalAnalyzerProvider")]
         public string AnalyzerName { get; set; }
 
-        public CSharpIdeAnalyzerBenchmarks()
+        public IncrementalAnalyzerBenchmarks()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
             _solutionPath = Path.Combine(roslynRoot, @"src\Tools\IdeCoreBenchmarks\Assets\Microsoft.CodeAnalysis.sln");
@@ -40,15 +40,15 @@ namespace IdeCoreBenchmarks
             }
         }
 
-        [GlobalSetup]
+        [IterationSetup]
         public void Setup()
         {
-            var analyzerAssemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Microsoft.CodeAnalysis.CSharp.Features.dll");
+            var analyzerAssemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Microsoft.CodeAnalysis.Features.dll");
 
             _options = new Options(
                 analyzerPath: analyzerAssemblyPath,
                 solutionPath: _solutionPath,
-                analyzerIds: ImmutableHashSet.Create(AnalyzerName),
+                analyzerIds: ImmutableHashSet<string>.Empty,
                 refactoringNodes: ImmutableHashSet<string>.Empty,
                 runConcurrent: true,
                 reportSuppressedDiagnostics: true,
@@ -56,14 +56,14 @@ namespace IdeCoreBenchmarks
                 useAll: false,
                 iterations: 1,
                 usePersistentStorage: false,
-                fullSolutionAnalysis: false,
-                incrementalAnalyzerNames: ImmutableArray<string>.Empty);
+                fullSolutionAnalysis: true,
+                incrementalAnalyzerNames: ImmutableArray.Create(AnalyzerName));
 
             _workspace = AnalyzerRunnerHelper.LoadSolutionAsync(_solutionPath, CancellationToken.None).Result;
-            _diagnosticAnalyzerRunner = new DiagnosticAnalyzerRunner(_workspace.CurrentSolution, _options);
+            _incrementalAnalyzerRunner = new IncrementalAnalyzerRunner(_workspace, _options);
         }
 
-        [GlobalCleanup]
+        [IterationCleanup]
         public void Cleanup()
         {
             _workspace?.Dispose();
@@ -71,9 +71,10 @@ namespace IdeCoreBenchmarks
         }
 
         [Benchmark]
-        public async Task RunAnalyzer()
+        public async Task RunIncrementalAnalyzer()
         {
-            await _diagnosticAnalyzerRunner.RunAsync(CancellationToken.None).ConfigureAwait(false);
+            await _incrementalAnalyzerRunner.RunAsync(CancellationToken.None).ConfigureAwait(false);
         }
+
     }
 }
