@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new ClassKeywordRecommender(),
                 new ConstKeywordRecommender(),
                 new ContinueKeywordRecommender(),
+                new DataKeywordRecommender(),
                 new DecimalKeywordRecommender(),
                 new DefaultKeywordRecommender(),
                 new DefineKeywordRecommender(),
@@ -170,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new WhenKeywordRecommender(),
                 new WhereKeywordRecommender(),
                 new WhileKeywordRecommender(),
+                new WithKeywordRecommender(),
                 new YieldKeywordRecommender(),
             }.ToImmutableArray();
         }
