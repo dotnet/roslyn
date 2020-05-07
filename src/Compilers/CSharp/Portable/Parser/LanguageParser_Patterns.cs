@@ -58,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         when ConvertExpressionToType(expr, out var leftType):
                     type = _syntaxFactory.QualifiedName(leftType, dotToken, simpleName);
                     return true;
+                case AliasQualifiedNameSyntax a:
+                    type = a;
+                    return true;
                 default:
                     return false;
             };
