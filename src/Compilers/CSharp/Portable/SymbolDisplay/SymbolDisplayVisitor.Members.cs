@@ -277,6 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     param.Accept(this.NotFirstVisitor);
                     AddPunctuation(SyntaxKind.CommaToken);
+                    AddSpace();
                 }
 
                 symbol.ReturnType.Accept(this.NotFirstVisitor);
@@ -601,7 +602,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // used on their own or in the context of methods.
 
             var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType);
-            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName);
+            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName)
+                              && !(symbol.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.FunctionPointerSignature });
             var includeBrackets = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets);
 
             if (includeBrackets && symbol.IsOptional)

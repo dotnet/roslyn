@@ -32,6 +32,10 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 return sx.Equals(sy, _compareKind);
             }
+            else if (x is ISymbolCompareKindComparableInternal cx && y is ISymbolCompareKindComparableInternal cy)
+            {
+                return cx.Equals(cy, _compareKind);
+            }
             else
             {
                 return x.Equals(y);
