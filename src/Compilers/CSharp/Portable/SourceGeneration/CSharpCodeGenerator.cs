@@ -3,20 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal static partial class CSharpCodeGenerator
     {
         public static string GenerateString(this ISymbol symbol, string indentation = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation, string eol = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, bool elasticTrivia = false)
-            => symbol.GenerateSyntax(indentation, eol, elasticTrivia).ToFullString();
+            => symbol.GenerateSyntax().NormalizeWhitespace(indentation, eol, elasticTrivia).ToFullString();
 
-        public static SyntaxNode GenerateSyntax(this ISymbol symbol, string indentation = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation, string eol = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, bool elasticTrivia = false)
-        {
-            return GenerateSyntaxWorker(symbol).NormalizeWhitespace<SyntaxNode>(indentation, eol, elasticTrivia);
-        }
-
-        private static SyntaxNode GenerateSyntaxWorker(ISymbol symbol)
+        public static SyntaxNode GenerateSyntax(this ISymbol symbol)
         {
             switch (symbol.Kind)
             {
@@ -65,6 +61,27 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             }
 
             throw new NotImplementedException();
+        }
+
+        private static BuilderDisposer<T> GetArrayBuilder<T>(out ArrayBuilder<T> builder)
+        {
+            builder = ArrayBuilder<T>.GetInstance();
+            return new BuilderDisposer<T>(builder);
+        }
+
+        private ref struct BuilderDisposer<T>
+        {
+            private readonly ArrayBuilder<T> _builder;
+
+            public BuilderDisposer(ArrayBuilder<T> builder)
+            {
+                _builder = builder;
+            }
+
+            public void Dispose()
+            {
+                _builder.Free();
+            }
         }
     }
 }

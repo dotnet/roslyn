@@ -19,20 +19,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
                 Optional eol As String = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL,
                 Optional elasticTrivia As Boolean = False) As String
 
-            Return symbol.GenerateSyntax(indentation, eol, elasticTrivia).ToFullString()
+            Return symbol.GenerateSyntax().NormalizeWhitespace(indentation, eol, elasticTrivia).ToFullString()
         End Function
 
         <Extension>
-        Public Function GenerateSyntax(
-                symbol As ISymbol,
-                Optional indentation As String = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation,
-                Optional eol As String = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL,
-                Optional elasticTrivia As Boolean = False) As SyntaxNode
-
-            Return GenerateSyntaxWorker(symbol).NormalizeWhitespace(indentation, eol, elasticTrivia)
-        End Function
-
-        Private Function GenerateSyntaxWorker(symbol As ISymbol) As SyntaxNode
+        Public Function GenerateSyntax(symbol As ISymbol) As SyntaxNode
             Select Case symbol.Kind
                 Case SymbolKind.Label
                     Return GenerateLabel(DirectCast(symbol, ILabelSymbol))

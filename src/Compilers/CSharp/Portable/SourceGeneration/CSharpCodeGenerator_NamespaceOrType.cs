@@ -12,24 +12,23 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpCodeGenerator
     {
-
         private static SyntaxList<MemberDeclarationSyntax> GenerateMembers(IEnumerable<INamespaceOrTypeSymbol> members)
         {
-            var builder = ArrayBuilder<MemberDeclarationSyntax>.GetInstance();
+            using var _ = GetArrayBuilder<MemberDeclarationSyntax>(out var builder);
 
             foreach (var member in members)
                 builder.Add(GenerateMember(member));
 
-            return List(builder.ToImmutableAndFree());
+            return List(builder);
         }
 
         private static MemberDeclarationSyntax GenerateMember(INamespaceOrTypeSymbol member)
-            => (MemberDeclarationSyntax)GenerateSyntaxWorker(member);
+            => (MemberDeclarationSyntax)GenerateSyntax(member);
 
         private static SyntaxList<UsingDirectiveSyntax> GenerateUsings(
             ImmutableArray<INamespaceOrTypeSymbol> imports)
         {
-            var builder = ArrayBuilder<UsingDirectiveSyntax>.GetInstance();
+            using var _ = GetArrayBuilder<UsingDirectiveSyntax>(out var builder);
 
             foreach (var import in imports)
             {
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                     builder.Add(UsingDirective(Token(SyntaxKind.StaticKeyword), alias: null, GenerateName(typeSymbol)));
             }
 
-            return List(builder.ToImmutableAndFree());
+            return List(builder);
         }
     }
 }

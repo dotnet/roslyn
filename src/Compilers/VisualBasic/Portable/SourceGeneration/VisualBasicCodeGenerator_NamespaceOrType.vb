@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
     Partial Friend Module VisualBasicCodeGenerator
         Private Function GenerateMember(member As INamespaceOrTypeSymbol) As StatementSyntax
-            Return DirectCast(GenerateSyntaxWorker(member), StatementSyntax)
+            Return DirectCast(GenerateSyntax(member), StatementSyntax)
         End Function
 
         Private Function GenerateImports([imports] As ImmutableArray(Of INamespaceOrTypeSymbol)) As SyntaxList(Of ImportsStatementSyntax)
