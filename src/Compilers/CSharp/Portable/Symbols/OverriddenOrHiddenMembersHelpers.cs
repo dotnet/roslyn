@@ -134,8 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If the metadata indicates a specific override, use that.
             Symbol explicitOverride = member switch
             {
-                PEMethodSymbol method => method.ExplicitlyOverriddenClassMethod,
-                PEPropertySymbol property => property.ExplicitlyOverriddenClassProperty,
+                MethodSymbol method => method.ExplicitlyOverriddenClassMethod,
+                PropertySymbol property => property.ExplicitlyOverriddenClassProperty,
                 _ => null
             };
 
@@ -262,8 +262,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return MemberSignatureComparer.CSharpAccessorOverrideComparer.Equals(accessor, overriddenAccessor); //NB: custom comparer
                 }
 
-                if (accessor is PEMethodSymbol { ExplicitlyOverriddenClassMethod: MethodSymbol peOverriddenAccessor } &&
-                    overriddenAccessor.Equals(peOverriddenAccessor, TypeCompareKind.AllIgnoreOptions))
+                if (accessor is MethodSymbol { ExplicitlyOverriddenClassMethod: MethodSymbol explicitlyOverriddenAccessor } &&
+                    overriddenAccessor.Equals(explicitlyOverriddenAccessor, TypeCompareKind.AllIgnoreOptions))
                 {
                     return true;
                 }

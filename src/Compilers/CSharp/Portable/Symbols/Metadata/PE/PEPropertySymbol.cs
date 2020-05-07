@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal PropertySymbol ExplicitlyOverriddenClassProperty
+        internal override PropertySymbol ExplicitlyOverriddenClassProperty
         {
             get
             {

@@ -280,6 +280,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return builder.ToImmutableAndFree();
         }
 
+        internal override MethodSymbol ExplicitlyOverriddenClassMethod
+        {
+            get
+            {
+                return _underlyingMethod.OverriddenMethod is MethodSymbol overridden
+                    ? this.RetargetingTranslator.Retarget(overridden, MemberSignatureComparer.RetargetedExplicitImplementationComparer)
+                    : null;
+            }
+        }
+
         internal override DiagnosticInfo GetUseSiteDiagnostic()
         {
             if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))

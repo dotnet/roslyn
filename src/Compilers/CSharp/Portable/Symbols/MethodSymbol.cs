@@ -466,6 +466,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// If we know a specific overridden class method, that method.
+        /// </summary>
+        internal virtual MethodSymbol ExplicitlyOverriddenClassMethod => null;
+
+        /// <summary>
         /// Returns true if calls to this method are omitted in this syntax tree. Calls are omitted
         /// when the called method is a partial method with no implementation part, or when the
         /// called method is a conditional method whose condition is not true in the source file

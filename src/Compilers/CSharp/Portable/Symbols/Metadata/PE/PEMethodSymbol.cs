@@ -1226,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return new MetadataDecoder(moduleSymbol, _containingType).GetExplicitlyOverriddenMethods(_containingType.Handle, _handle, this.ContainingType);
         }
 
-        internal MethodSymbol ExplicitlyOverriddenClassMethod
+        internal override MethodSymbol ExplicitlyOverriddenClassMethod
         {
             get
             {

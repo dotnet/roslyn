@@ -125,6 +125,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             return CreateCompilation("", references: references);
         }
 
+        private static CSharpCompilation RetargetedView(CSharpCompilation comp, params MetadataReference[] references)
+        {
+            var someType = comp.GlobalNamespace.GetMembers().OfType<NamedTypeSymbol>().FirstOrDefault();
+            references = references.Append(comp.ToMetadataReference());
+            var result = CreateCompilation("", references: references, targetFramework: TargetFramework.NetStandardLatest);
+            result.VerifyDiagnostics();
+            var originalCorLib = comp.Assembly.CorLibrary;
+            var newCorLib = result.Assembly.CorLibrary;
+            Assert.NotEqual(originalCorLib, newCorLib);
+
+            if (someType is { })
+            {
+                // confirm that it is retargeted
+                var someRetargetedType = result.GlobalNamespace.GetMembers(someType.Name).OfType<NamedTypeSymbol>().FirstOrDefault();
+                var someRetargetedMember = someRetargetedType.GetMembers().OfType<MethodSymbol>().FirstOrDefault();
+                Assert.True(someRetargetedMember is null || someRetargetedMember is CSharp.Symbols.Retargeting.RetargetingMethodSymbol);
+            }
+
+            return result;
+        }
+
         [Fact]
         public void CovariantReturns_00()
         {
@@ -151,12 +172,14 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -197,6 +220,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -237,6 +261,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -277,6 +302,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -319,6 +345,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -359,6 +386,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -400,6 +428,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -443,6 +472,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -484,6 +514,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -525,6 +556,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -568,6 +600,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -691,6 +724,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp, baseMetadata));
             verify(MetadataView(comp, baseMetadata));
+            verify(RetargetedView(comp, baseMetadata));
 
             static void verify(CSharpCompilation comp)
             {
@@ -734,6 +768,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp, baseMetadata));
             verify(MetadataView(comp, baseMetadata));
+            verify(RetargetedView(comp, baseMetadata));
 
             static void verify(CSharpCompilation comp)
             {
@@ -778,6 +813,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp, baseMetadata));
             verify(MetadataView(comp, baseMetadata));
+            verify(RetargetedView(comp, baseMetadata));
 
             static void verify(CSharpCompilation comp)
             {
@@ -819,6 +855,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -1069,6 +1106,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -1227,6 +1265,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -1340,6 +1379,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -1494,6 +1534,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
@@ -1587,6 +1628,7 @@ public class Program
             verify(comp);
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
+            verify(RetargetedView(comp));
 
             static void verify(CSharpCompilation comp)
             {
