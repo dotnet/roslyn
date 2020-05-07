@@ -12,12 +12,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     /// </summary>
     internal static class SyntaxKindEx
     {
-        // The code style layer does not currently need access to any syntax defined in newer versions of Roslyn. This
-        // type is included as an example should this change in future updates.
+        public const SyntaxKind DataKeyword = (SyntaxKind)8438;
+
+#if !CODE_STYLE
+        private const uint DataKeywordValueAssertion = -(DataKeyword - SyntaxKind.DataKeyword);
+#endif
+
+        // When the code style layer needs access to some syntax defined in newer versions of Roslyn,
+        // a check like the following should be included.
 #if false
         public const SyntaxKind DotDotToken = (SyntaxKind)8222;
 
-#if CODE_STYLE
+#if !CODE_STYLE
         /// <summary>
         /// This will only compile if <see cref="DotDotToken"/> and <see cref="SyntaxKind.DotDotToken"/> have the same
         /// value.

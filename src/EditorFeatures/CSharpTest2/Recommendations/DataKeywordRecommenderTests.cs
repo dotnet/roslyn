@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
-    public class StructKeywordRecommenderTests : KeywordRecommenderTests
+    public class DataKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtRoot_Interactive()
@@ -138,62 +138,6 @@ $$");
 using Goo;");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterReadonly()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"readonly $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRef()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"ref $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefReadonly()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"ref readonly $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPublicRefReadonly()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"public ref readonly $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterReadonlyRef()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"readonly ref $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterInternalReadonlyRef()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Regular,
-@"internal readonly ref $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterReadonlyInMethod()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular,
-@"class C { void M() { readonly $$ } }");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterRefInMethod()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular,
-@"class C { void M() { ref $$ } }");
-        }
-
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotBeforeUsing_Interactive()
         {
@@ -258,15 +202,32 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterData()
+        public async Task TestAfterRef()
         {
             await VerifyKeywordAsync(
+@"ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterData()
+        {
+            await VerifyAbsenceAsync(
 @"data $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAbstract()
-            => await VerifyAbsenceAsync(@"abstract $$");
+        public async Task TestNotAfterPublicData()
+        {
+            await VerifyAbsenceAsync(
+@"public data $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAbstract()
+        {
+            await VerifyKeywordAsync(
+@"abstract $$");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterInternal()
@@ -274,6 +235,24 @@ $$");
             await VerifyKeywordAsync(
 @"internal $$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStaticPublic()
+        {
+            await VerifyKeywordAsync(
+@"static public $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterPublicStatic()
+        {
+            await VerifyKeywordAsync(
+@"public static $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterInvalidPublic()
+            => await VerifyAbsenceAsync(@"virtual public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPublic()
@@ -297,19 +276,80 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterSealed()
-            => await VerifyAbsenceAsync(@"sealed $$");
+        public async Task TestAfterSealed()
+        {
+            await VerifyKeywordAsync(
+@"sealed $$");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStatic()
-            => await VerifyAbsenceAsync(@"static $$");
+        public async Task TestAfterStatic()
+        {
+            await VerifyKeywordAsync(
+@"static $$");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAbstractPublic()
-            => await VerifyAbsenceAsync(@"abstract public $$");
+        public async Task TestNotAfterStaticInUsingDirective()
+        {
+            await VerifyAbsenceAsync(
+@"using static $$");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStruct()
-            => await VerifyAbsenceAsync(@"struct $$");
+        public async Task TestNotAfterClass()
+            => await VerifyAbsenceAsync(@"class $$");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBetweenUsings()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"using Goo;
+$$
+using Bar;"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterClassTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+@"class C<T> where T : $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterClassTypeParameterConstraint2()
+        {
+            await VerifyAbsenceAsync(
+@"class C<T>
+    where T : $$
+    where U : U");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterMethodTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    void Goo<T>()
+      where T : $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterMethodTypeParameterConstraint2()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    void Goo<T>()
+      where T : $$
+      where U : T");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNew()
+        {
+            await VerifyKeywordAsync(
+@"class C {
+    new $$");
+        }
     }
 }
