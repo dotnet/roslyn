@@ -9,25 +9,37 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
-        public static IPointerTypeSymbol Pointer(ITypeSymbol pointedAtType)
-            => new PointerTypeSymbol(pointedAtType);
+        public static IPointerTypeSymbol Pointer(
+            ITypeSymbol pointedAtType,
+            NullableAnnotation nullableAnnotation = NullableAnnotation.None)
+        {
+            return new PointerTypeSymbol(
+                pointedAtType,
+                nullableAnnotation);
+        }
 
         public static IPointerTypeSymbol With(
             this IPointerTypeSymbol pointer,
-            Optional<ITypeSymbol> pointedAtType = default)
+            Optional<ITypeSymbol> pointedAtType = default,
+            Optional<NullableAnnotation> nullableAnnotation = default)
         {
             return new PointerTypeSymbol(
-                pointedAtType.GetValueOr(pointer.PointedAtType));
+                pointedAtType.GetValueOr(pointer.PointedAtType),
+                nullableAnnotation.GetValueOr(pointer.NullableAnnotation));
         }
 
         private class PointerTypeSymbol : TypeSymbol, IPointerTypeSymbol
         {
-            public PointerTypeSymbol(ITypeSymbol pointedAtType)
+            public PointerTypeSymbol(
+                ITypeSymbol pointedAtType,
+                NullableAnnotation nullableAnnotation)
             {
                 PointedAtType = pointedAtType;
+                NullableAnnotation = nullableAnnotation;
             }
 
             public override SymbolKind Kind => SymbolKind.PointerType;
+            public override NullableAnnotation NullableAnnotation { get; }
             public override TypeKind TypeKind => TypeKind.Pointer;
 
             public ITypeSymbol PointedAtType { get; }

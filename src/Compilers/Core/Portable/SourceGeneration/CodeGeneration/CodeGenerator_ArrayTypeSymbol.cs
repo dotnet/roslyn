@@ -9,28 +9,46 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
-        public static IArrayTypeSymbol ArrayType(ITypeSymbol elementType, int rank = 1)
-            => new ArrayTypeSymbol(
+        public static IArrayTypeSymbol ArrayType(
+            ITypeSymbol elementType,
+            int rank = 1,
+            NullableAnnotation nullableAnnotation = NullableAnnotation.None)
+        {
+            return new ArrayTypeSymbol(
                 elementType,
-                rank);
+                rank,
+                nullableAnnotation);
+        }
 
-        public static IArrayTypeSymbol With(this IArrayTypeSymbol arrayType, Optional<ITypeSymbol> elementType = default, Optional<int> rank = default)
-            => new ArrayTypeSymbol(
+        public static IArrayTypeSymbol With(
+            this IArrayTypeSymbol arrayType,
+            Optional<ITypeSymbol> elementType = default,
+            Optional<int> rank = default,
+            Optional<NullableAnnotation> nullableAnnotation = default)
+        {
+            return new ArrayTypeSymbol(
                 elementType.GetValueOr(arrayType.ElementType),
-                rank.GetValueOr(arrayType.Rank));
+                rank.GetValueOr(arrayType.Rank),
+                nullableAnnotation.GetValueOr(arrayType.NullableAnnotation));
+        }
 
         private class ArrayTypeSymbol : TypeSymbol, IArrayTypeSymbol
         {
             public ITypeSymbol ElementType { get; }
             public int Rank { get; }
 
-            public ArrayTypeSymbol(ITypeSymbol elementType, int rank)
+            public ArrayTypeSymbol(
+                ITypeSymbol elementType,
+                int rank,
+                NullableAnnotation nullableAnnotation)
             {
                 ElementType = elementType;
                 Rank = rank;
+                NullableAnnotation = nullableAnnotation;
             }
 
             public override SymbolKind Kind => SymbolKind.ArrayType;
+            public override NullableAnnotation NullableAnnotation { get; }
             public override TypeKind TypeKind => TypeKind.Array;
 
             public override void Accept(SymbolVisitor visitor)

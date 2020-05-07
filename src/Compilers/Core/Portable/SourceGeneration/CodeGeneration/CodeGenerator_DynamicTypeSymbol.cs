@@ -9,16 +9,29 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
-        public static IDynamicTypeSymbol DynamicType()
-            => new DynamicTypeSymbol();
+        public static IDynamicTypeSymbol DynamicType(
+            NullableAnnotation nullableAnnotation = NullableAnnotation.None)
+        {
+            return new DynamicTypeSymbol(nullableAnnotation);
+        }
+
+        public static IDynamicTypeSymbol With(
+            IDynamicTypeSymbol dynamicType,
+            Optional<NullableAnnotation> nullableAnnotation = default)
+        {
+            return new DynamicTypeSymbol(
+                nullableAnnotation.GetValueOr(dynamicType.NullableAnnotation));
+        }
 
         private class DynamicTypeSymbol : TypeSymbol, IDynamicTypeSymbol
         {
-            public DynamicTypeSymbol()
+            public DynamicTypeSymbol(NullableAnnotation nullableAnnotation)
             {
+                NullableAnnotation = nullableAnnotation;
             }
 
             public override SymbolKind Kind => SymbolKind.DynamicType;
+            public override NullableAnnotation NullableAnnotation { get; }
             public override TypeKind TypeKind => TypeKind.Dynamic;
 
             public override void Accept(SymbolVisitor visitor)
