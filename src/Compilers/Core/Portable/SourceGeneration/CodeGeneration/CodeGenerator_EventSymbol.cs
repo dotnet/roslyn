@@ -12,48 +12,48 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IEventSymbol Event(
             string name,
             ITypeSymbol type,
+            ImmutableArray<AttributeData> attributes = default,
             Accessibility declaredAccessibility = Accessibility.NotApplicable,
             SymbolModifiers modifiers = SymbolModifiers.None,
+            ImmutableArray<IEventSymbol> explicitInterfaceImplementations = default,
             IMethodSymbol addMethod = null,
             IMethodSymbol removeMethod = null,
-            IMethodSymbol raiseMethod = null,
-            ImmutableArray<IEventSymbol> explicitInterfaceImplementations = default,
-            ImmutableArray<AttributeData> attributes = default)
+            IMethodSymbol raiseMethod = null)
         {
             return new EventSymbol(
                 name,
                 type,
+                attributes,
                 declaredAccessibility,
                 modifiers,
+                explicitInterfaceImplementations,
                 addMethod,
                 removeMethod,
-                raiseMethod,
-                explicitInterfaceImplementations,
-                attributes);
+                raiseMethod);
         }
 
         public static IEventSymbol With(
             this IEventSymbol @event,
             Optional<string> name = default,
             Optional<ITypeSymbol> type = default,
+            Optional<ImmutableArray<AttributeData>> attributes = default,
             Optional<Accessibility> declaredAccessibility = default,
             Optional<SymbolModifiers> modifiers = default,
+            Optional<ImmutableArray<IEventSymbol>> explicitInterfaceImplementations = default,
             Optional<IMethodSymbol> addMethod = default,
             Optional<IMethodSymbol> removeMethod = default,
-            Optional<IMethodSymbol> raiseMethod = default,
-            Optional<ImmutableArray<IEventSymbol>> explicitInterfaceImplementations = default,
-            Optional<ImmutableArray<AttributeData>> attributes = default)
+            Optional<IMethodSymbol> raiseMethod = default)
         {
             return new EventSymbol(
                 name.GetValueOr(@event.Name),
                 type.GetValueOr(@event.Type),
+                attributes.GetValueOr(@event.GetAttributes()),
                 declaredAccessibility.GetValueOr(@event.DeclaredAccessibility),
                 modifiers.GetValueOr(@event.GetModifiers()),
+                explicitInterfaceImplementations.GetValueOr(@event.ExplicitInterfaceImplementations),
                 addMethod.GetValueOr(@event.AddMethod),
                 removeMethod.GetValueOr(@event.RemoveMethod),
-                raiseMethod.GetValueOr(@event.RaiseMethod),
-                explicitInterfaceImplementations.GetValueOr(@event.ExplicitInterfaceImplementations),
-                attributes.GetValueOr(@event.GetAttributes()));
+                raiseMethod.GetValueOr(@event.RaiseMethod));
         }
 
         private class EventSymbol : Symbol, IEventSymbol
@@ -63,13 +63,13 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public EventSymbol(
                 string name,
                 ITypeSymbol type,
+                ImmutableArray<AttributeData> attributes = default,
                 Accessibility declaredAccessibility = default,
                 SymbolModifiers modifiers = default,
+                ImmutableArray<IEventSymbol> explicitInterfaceImplementations = default,
                 IMethodSymbol addMethod = null,
                 IMethodSymbol removeMethod = null,
-                IMethodSymbol raiseMethod = null,
-                ImmutableArray<IEventSymbol> explicitInterfaceImplementations = default,
-                ImmutableArray<AttributeData> attributes = default)
+                IMethodSymbol raiseMethod = null)
             {
                 Name = name;
                 Type = type;
