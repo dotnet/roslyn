@@ -10,17 +10,145 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
-        //public static INamedTypeSymbol ClassType(ITypeSymbol type = null)
-        //    => new DiscardSymbol(type);
+        public static INamedTypeSymbol NamedType(
+            TypeKind typeKind,
+            string name,
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default,
+            ImmutableArray<ITypeSymbol> typeArguments = default,
+            INamedTypeSymbol baseType = null,
+            ImmutableArray<INamedTypeSymbol> interfaces = default,
+            ImmutableArray<ISymbol> members = default,
+            NullableAnnotation nullableAnnotation = default,
+            ISymbol containingSymbol = null)
+        {
+            return new NamedTypeSymbol(
+                CodeAnalysis.SpecialType.None,
+                typeKind,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                name,
+                typeArguments,
+                baseType,
+                interfaces,
+                members,
+                tupleElements: default,
+                nullableAnnotation,
+                containingSymbol);
+        }
 
-        //public static INamedTypeSymbol StructType(ITypeSymbol type = null)
-        //    => new DiscardSymbol(type);
+        public static INamedTypeSymbol Class(
+            string name,
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default,
+            ImmutableArray<ITypeSymbol> typeArguments = default,
+            INamedTypeSymbol baseType = null,
+            ImmutableArray<INamedTypeSymbol> interfaces = default,
+            ImmutableArray<ISymbol> members = default,
+            NullableAnnotation nullableAnnotation = default,
+            ISymbol containingSymbol = null)
+        {
 
-        //public static INamedTypeSymbol InterfaceType(ITypeSymbol type = null)
-        //    => new DiscardSymbol(type);
+            return new NamedTypeSymbol(
+                CodeAnalysis.SpecialType.None,
+                TypeKind.Class,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                name,
+                typeArguments,
+                baseType,
+                interfaces,
+                members,
+                tupleElements: default,
+                nullableAnnotation,
+                containingSymbol);
+        }
 
-        //public static INamedTypeSymbol EnumType(ITypeSymbol type = null)
-        //    => new DiscardSymbol(type);
+        public static INamedTypeSymbol Struct(
+            string name,
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default,
+            ImmutableArray<ITypeSymbol> typeArguments = default,
+            INamedTypeSymbol baseType = null,
+            ImmutableArray<INamedTypeSymbol> interfaces = default,
+            ImmutableArray<ISymbol> members = default,
+            NullableAnnotation nullableAnnotation = default,
+            ISymbol containingSymbol = null)
+        {
+
+            return new NamedTypeSymbol(
+                CodeAnalysis.SpecialType.None,
+                TypeKind.Struct,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                name,
+                typeArguments,
+                baseType,
+                interfaces,
+                members,
+                tupleElements: default,
+                nullableAnnotation,
+                containingSymbol);
+        }
+
+        public static INamedTypeSymbol Interface(
+            string name,
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default,
+            ImmutableArray<ITypeSymbol> typeArguments = default,
+            ImmutableArray<INamedTypeSymbol> interfaces = default,
+            ImmutableArray<ISymbol> members = default,
+            NullableAnnotation nullableAnnotation = default,
+            ISymbol containingSymbol = null)
+        {
+            return new NamedTypeSymbol(
+                CodeAnalysis.SpecialType.None,
+                TypeKind.Struct,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                name,
+                typeArguments,
+                baseType: null,
+                interfaces,
+                members,
+                tupleElements: default,
+                nullableAnnotation,
+                containingSymbol);
+        }
+
+        public static INamedTypeSymbol Enum(
+            string name,
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default,
+            INamedTypeSymbol baseType = null,
+            ImmutableArray<ISymbol> members = default,
+            NullableAnnotation nullableAnnotation = default,
+            ISymbol containingSymbol = null)
+        {
+            return new NamedTypeSymbol(
+                CodeAnalysis.SpecialType.None,
+                TypeKind.Enum,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                name,
+                typeArguments: default,
+                baseType,
+                interfaces: default,
+                members,
+                tupleElements: default,
+                nullableAnnotation,
+                containingSymbol);
+        }
 
         public static INamedTypeSymbol TupleType(
             ImmutableArray<IFieldSymbol> tupleElements,
@@ -28,6 +156,15 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         {
             return new NamedTypeSymbol(
                 CodeAnalysis.SpecialType.None,
+                TypeKind.Struct,
+                attributes: default,
+                declaredAccessibility: default,
+                modifiers: default,
+                name: null,
+                typeArguments: default,
+                baseType: null,
+                interfaces: default,
+                members: default,
                 tupleElements,
                 nullableAnnotation,
                 containingSymbol: null);
@@ -41,10 +178,20 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static INamedTypeSymbol SpecialType(
             SpecialType specialType,
+            ImmutableArray<ITypeSymbol> typeArguments = default,
             NullableAnnotation nullableAnnotation = NullableAnnotation.None)
         {
             return new NamedTypeSymbol(
                 specialType,
+                typeKind: default,
+                attributes: default,
+                declaredAccessibility: default,
+                modifiers: default,
+                name: null,
+                typeArguments,
+                baseType: null,
+                interfaces: default,
+                members: default,
                 tupleElements: default,
                 nullableAnnotation,
                 containingSymbol: null);
@@ -52,12 +199,31 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static INamedTypeSymbol With(
             this INamedTypeSymbol type,
+            Optional<SpecialType> specialType = default,
+            Optional<TypeKind> typeKind = default,
+            Optional<ImmutableArray<AttributeData>> attributes = default,
+            Optional<Accessibility> declaredAccessibility = default,
+            Optional<SymbolModifiers> modifiers = default,
+            Optional<string> name = default,
+            Optional<ImmutableArray<ITypeSymbol>> typeArguments = default,
+            Optional<INamedTypeSymbol> baseType = default,
+            Optional<ImmutableArray<INamedTypeSymbol>> interfaces = default,
+            Optional<ImmutableArray<ISymbol>> members = default,
             Optional<ImmutableArray<IFieldSymbol>> tupleElements = default,
             Optional<NullableAnnotation> nullableAnnotation = default,
             Optional<ISymbol> containingSymbol = default)
         {
             return new NamedTypeSymbol(
-                type.SpecialType,
+                specialType.GetValueOr(type.SpecialType),
+                typeKind.GetValueOr(type.TypeKind),
+                attributes.GetValueOr(type.GetAttributes()),
+                declaredAccessibility.GetValueOr(type.DeclaredAccessibility),
+                modifiers.GetValueOr(type.GetModifiers()),
+                name.GetValueOr(type.Name),
+                typeArguments.GetValueOr(type.TypeArguments),
+                baseType.GetValueOr(type.BaseType),
+                interfaces.GetValueOr(type.Interfaces),
+                members.GetValueOr(type.GetMembers()),
                 tupleElements.GetValueOr(type.TupleElements),
                 nullableAnnotation.GetValueOr(type.NullableAnnotation),
                 containingSymbol.GetValueOr(type.ContainingSymbol));
@@ -65,27 +231,54 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         private class NamedTypeSymbol : TypeSymbol, INamedTypeSymbol
         {
+            private readonly ImmutableArray<AttributeData> _attributes;
+            private readonly ImmutableArray<ISymbol> _members;
+
             public NamedTypeSymbol(
                 SpecialType specialType,
+                TypeKind typeKind,
+                ImmutableArray<AttributeData> attributes,
+                Accessibility declaredAccessibility,
+                SymbolModifiers modifiers,
+                string name,
+                ImmutableArray<ITypeSymbol> typeArguments,
+                INamedTypeSymbol baseType,
+                ImmutableArray<INamedTypeSymbol> interfaces,
+                ImmutableArray<ISymbol> members,
                 ImmutableArray<IFieldSymbol> tupleElements,
                 NullableAnnotation nullableAnnotation,
                 ISymbol containingSymbol)
             {
                 SpecialType = specialType;
+                TypeKind = typeKind;
+                _attributes = attributes;
+                DeclaredAccessibility = declaredAccessibility;
+                Modifiers = modifiers;
+                Name = name;
+                TypeArguments = typeArguments;
+                BaseType = baseType;
+                Interfaces = interfaces;
                 TupleElements = tupleElements;
                 NullableAnnotation = nullableAnnotation;
                 ContainingSymbol = containingSymbol;
+
+                _members = members.SelectAsArray(
+                    m => m is INamedTypeSymbol nt ? nt.With(containingSymbol: this) : m);
             }
 
-            public override ISymbol ContainingSymbol { get; }
             public override SymbolKind Kind => SymbolKind.NamedType;
+
+            public override INamedTypeSymbol BaseType { get; }
+            public override ISymbol ContainingSymbol { get; }
+            public override Accessibility DeclaredAccessibility { get; }
+            public override ImmutableArray<INamedTypeSymbol> Interfaces { get; }
+            public override SymbolModifiers Modifiers { get; }
+            public override string Name { get; }
             public override NullableAnnotation NullableAnnotation { get; }
             public override SpecialType SpecialType { get; }
             public override TypeKind TypeKind { get; }
 
-            public ImmutableArray<ITypeParameterSymbol> TypeParameters => throw new NotImplementedException();
-
-            public ImmutableArray<ITypeSymbol> TypeArguments => throw new NotImplementedException();
+            public ImmutableArray<ITypeSymbol> TypeArguments { get; }
 
             public IMethodSymbol DelegateInvokeMethod => throw new NotImplementedException();
 
@@ -100,11 +293,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
                 => visitor.VisitNamedType(this);
-
-            public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
-            {
-                throw new NotImplementedException();
-            }
 
             #region default implementation
 
@@ -125,6 +313,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public ISymbol AssociatedSymbol => throw new NotImplementedException();
             public bool MightContainExtensionMethods => throw new NotImplementedException();
             public INamedTypeSymbol TupleUnderlyingType => throw new NotImplementedException();
+            public ImmutableArray<ITypeParameterSymbol> TypeParameters => throw new NotImplementedException();
 
             public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations) => throw new NotImplementedException();
             public INamedTypeSymbol ConstructUnboundGenericType() => throw new NotImplementedException();
@@ -134,6 +323,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             public INamedTypeSymbol NativeIntegerUnderlyingType => throw new NotImplementedException();
             INamedTypeSymbol INamedTypeSymbol.OriginalDefinition => throw new NotImplementedException();
+
+            public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments) => throw new NotImplementedException();
 
             #endregion
         }
