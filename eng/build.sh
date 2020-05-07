@@ -31,7 +31,7 @@ usage()
   echo "  --ci                       Building in CI"
   echo "  --docker                   Run in a docker container if applicable"
   echo "  --bootstrap                Build using a bootstrap compilers"
-  echo "  --skipAnalyzers            Do not run analyzers during build operations"
+  echo "  --runAnalyzers             Run analyzers during build operations"
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Simulate building for source-build"
