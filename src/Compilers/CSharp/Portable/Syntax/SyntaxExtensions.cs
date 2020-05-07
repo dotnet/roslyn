@@ -402,19 +402,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void VisitRankSpecifiers<TArg>(this TypeSyntax type, Action<ArrayRankSpecifierSyntax, TArg> action, in TArg argument)
         {
             // Use a manual stack here to avoid deeply nested recursion which can blow the real stack
-            var stack = ArrayBuilder<ArrayRankSpecifierOrTypeSyntax>.GetInstance();
-            stack.Push(new ArrayRankSpecifierOrTypeSyntax(type));
+            var stack = ArrayBuilder<SyntaxNode>.GetInstance();
+            stack.Push(type);
 
             while (stack.Count > 0)
             {
-                if (stack.Pop().IsRankSpecifier(out var rankSpecifier, out var currentType))
+                var current = stack.Pop();
+                if (current is ArrayRankSpecifierSyntax rankSpecifier)
                 {
                     action(rankSpecifier, argument);
                     continue;
                 }
                 else
                 {
-                    type = currentType;
+                    type = (TypeSyntax)current;
                 }
 
                 switch (type.Kind())
@@ -423,17 +424,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var arrayTypeSyntax = (ArrayTypeSyntax)type;
                         for (int i = arrayTypeSyntax.RankSpecifiers.Count - 1; i >= 0; i--)
                         {
-                            stack.Push(new ArrayRankSpecifierOrTypeSyntax(arrayTypeSyntax.RankSpecifiers[i]));
+                            stack.Push(arrayTypeSyntax.RankSpecifiers[i]);
                         }
-                        stack.Push(new ArrayRankSpecifierOrTypeSyntax(arrayTypeSyntax.ElementType));
+                        stack.Push(arrayTypeSyntax.ElementType);
                         break;
                     case SyntaxKind.NullableType:
                         var nullableTypeSyntax = (NullableTypeSyntax)type;
-                        stack.Push(new ArrayRankSpecifierOrTypeSyntax(nullableTypeSyntax.ElementType));
+                        stack.Push(nullableTypeSyntax.ElementType);
                         break;
                     case SyntaxKind.PointerType:
                         var pointerTypeSyntax = (PointerTypeSyntax)type;
-                        stack.Push(new ArrayRankSpecifierOrTypeSyntax(pointerTypeSyntax.ElementType));
+                        stack.Push(pointerTypeSyntax.ElementType);
                         break;
                     case SyntaxKind.FunctionPointerType:
                         var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)type;
@@ -441,35 +442,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             TypeSyntax? paramType = functionPointerTypeSyntax.Parameters[i].Type;
                             Debug.Assert(paramType is object);
-                            stack.Push(new ArrayRankSpecifierOrTypeSyntax(paramType));
+                            stack.Push(paramType);
                         }
                         break;
                     case SyntaxKind.TupleType:
                         var tupleTypeSyntax = (TupleTypeSyntax)type;
                         for (int i = tupleTypeSyntax.Elements.Count - 1; i >= 0; i--)
                         {
-                            stack.Push(new ArrayRankSpecifierOrTypeSyntax(tupleTypeSyntax.Elements[i].Type));
+                            stack.Push(tupleTypeSyntax.Elements[i].Type);
                         }
                         break;
                     case SyntaxKind.RefType:
                         var refTypeSyntax = (RefTypeSyntax)type;
-                        stack.Push(new ArrayRankSpecifierOrTypeSyntax(refTypeSyntax.Type));
+                        stack.Push(refTypeSyntax.Type);
                         break;
                     case SyntaxKind.GenericName:
                         var genericNameSyntax = (GenericNameSyntax)type;
                         for (int i = genericNameSyntax.TypeArgumentList.Arguments.Count - 1; i >= 0; i--)
                         {
-                            stack.Push(new ArrayRankSpecifierOrTypeSyntax(genericNameSyntax.TypeArgumentList.Arguments[i]));
+                            stack.Push(genericNameSyntax.TypeArgumentList.Arguments[i]);
                         }
                         break;
                     case SyntaxKind.QualifiedName:
                         var qualifiedNameSyntax = (QualifiedNameSyntax)type;
-                        stack.Push(new ArrayRankSpecifierOrTypeSyntax(qualifiedNameSyntax.Right));
-                        stack.Push(new ArrayRankSpecifierOrTypeSyntax(qualifiedNameSyntax.Left));
+                        stack.Push(qualifiedNameSyntax.Right);
+                        stack.Push(qualifiedNameSyntax.Left);
                         break;
                     case SyntaxKind.AliasQualifiedName:
                         var aliasQualifiedNameSyntax = (AliasQualifiedNameSyntax)type;
-                        stack.Push(new ArrayRankSpecifierOrTypeSyntax(aliasQualifiedNameSyntax.Name));
+                        stack.Push(aliasQualifiedNameSyntax.Name);
                         break;
                     case SyntaxKind.IdentifierName:
                     case SyntaxKind.OmittedTypeArgument:
@@ -481,37 +482,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             stack.Free();
-        }
-
-        private struct ArrayRankSpecifierOrTypeSyntax
-        {
-            private readonly ArrayRankSpecifierSyntax? ArrayRank;
-            private readonly TypeSyntax? Type;
-
-            internal ArrayRankSpecifierOrTypeSyntax(ArrayRankSpecifierSyntax arrayRank)
-            {
-                ArrayRank = arrayRank;
-                Type = null;
-            }
-
-            internal ArrayRankSpecifierOrTypeSyntax(TypeSyntax typeSyntax)
-            {
-                ArrayRank = null;
-                Type = typeSyntax;
-            }
-
-            internal bool IsRankSpecifier([NotNullWhen(true)] out ArrayRankSpecifierSyntax? arrayRank, [NotNullWhen(false)] out TypeSyntax? type)
-            {
-                arrayRank = ArrayRank;
-                type = Type;
-                if (arrayRank is object)
-                {
-                    return true;
-                }
-
-                Debug.Assert(type is object);
-                return false;
-            }
         }
     }
 }
