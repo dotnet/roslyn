@@ -19,8 +19,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.SimplePrograms)]
-    public class SimpleProgramsTests : CompilingTestBase
+    [CompilerTrait(CompilerFeature.TopLevelStatements)]
+    public class TopLevelStatementsTests : CompilingTestBase
     {
         private static CSharpParseOptions DefaultParseOptions => TestOptions.RegularPreview;
 
@@ -571,7 +571,7 @@ void local() => System.Console.WriteLine(i);
                 Assert.NotNull(operation2);
                 Assert.IsAssignableFrom<ILocalReferenceOperation>(operation2);
 
-                // PROTOTYPE(SimplePrograms): The following assert fails due to https://github.com/dotnet/roslyn/issues/41853, enable once the issue is fixed.
+                // PROTOTYPE(TopLevelStatements): The following assert fails due to https://github.com/dotnet/roslyn/issues/41853, enable once the issue is fixed.
                 //Assert.Contains(declSymbol, model1.AnalyzeDataFlow(localRef).DataFlowsIn);
             }
         }
@@ -584,9 +584,9 @@ void local() => System.Console.WriteLine(i);
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8);
 
             comp.VerifyDiagnostics(
-                // (1,1): error CS8652: The feature 'simple programs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // System.Console.WriteLine("Hi!");
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"System.Console.WriteLine(""Hi!"");").WithArguments("simple programs").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"System.Console.WriteLine(""Hi!"");").WithArguments("top-level statements").WithLocation(1, 1)
                 );
         }
 
@@ -1808,9 +1808,9 @@ namespace N1
 
             comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (2,1): error CS8652: The feature 'simple programs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // string Test = "1";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"string Test = ""1"";").WithArguments("simple programs").WithLocation(2, 1)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"string Test = ""1"";").WithArguments("top-level statements").WithLocation(2, 1)
                 );
         }
 
@@ -2185,9 +2185,9 @@ namespace N1
 
             comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (2,1): error CS8652: The feature 'simple programs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // string Test() => "1";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"string Test() => ""1"";").WithArguments("simple programs").WithLocation(2, 1)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"string Test() => ""1"";").WithArguments("top-level statements").WithLocation(2, 1)
                 );
         }
 
@@ -5195,7 +5195,7 @@ void local() => System.Console.WriteLine(1);
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // PROTOTYPE(SimplePrograms): Is this message good enough for local functions?
+                // PROTOTYPE(TopLevelStatements): Is this message good enough for local functions?
                 // (6,1): error CS9002: Top-level statements must precede namespace and type declarations.
                 // void local() => System.Console.WriteLine(1);
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "void local() => System.Console.WriteLine(1);").WithLocation(6, 1)

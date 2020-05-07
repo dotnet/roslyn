@@ -1,4 +1,4 @@
-Simple Programs
+Top-level statements
 =========================
 
 Allow a sequence of *statements* to occur right before the *namespace_member_declaration*s of a *compilation_unit* (i.e. source file).
@@ -15,6 +15,7 @@ static class Program
 }
 ```
 
-Proposal: https://github.com/dotnet/csharplang/blob/master/proposals/Simple-programs.md
+Proposal: https://github.com/dotnet/csharplang/blob/master/proposals/top-level-statements.md
 Open issues and TODOs are tracked at https://github.com/dotnet/roslyn/issues/41704.
+Test plan: https://github.com/dotnet/roslyn/issues/43563.
 See also https://github.com/dotnet/csharplang/issues/3117.

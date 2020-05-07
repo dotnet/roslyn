@@ -166,7 +166,7 @@ using G=   H.I;
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact(Skip:="PROTOTYPE(SimplePrograms)"), Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact(Skip:="PROTOTYPE(TopLevelStatements)"), Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function TestAddImport_BadNamespaceGetsAdded() As Task
             Dim originalCode = ""
             Dim namespacesToAdd = {"$system"}

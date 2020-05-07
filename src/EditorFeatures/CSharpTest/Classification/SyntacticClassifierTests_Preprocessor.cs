@@ -372,7 +372,7 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [Fact(Skip = "PROTOTYPE(SimplePrograms): Script and Regular parse differently now"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "PROTOTYPE(TopLevelStatements): Script and Regular parse differently now"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_If8()
         {
             var code =
@@ -396,7 +396,7 @@ aeu";
                 Field("aeu"));
         }
 
-        [Fact(Skip = "PROTOTYPE(SimplePrograms): Script and Regular parse differently now"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "PROTOTYPE(TopLevelStatements): Script and Regular parse differently now"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_If9()
         {
             var code =

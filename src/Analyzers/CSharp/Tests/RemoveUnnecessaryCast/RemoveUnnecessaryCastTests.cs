@@ -142,7 +142,7 @@ class Program
         }
 
         [WorkItem(545138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545138")]
-        [Fact(Skip = "PROTOTYPE(SimplePrograms): Parsing and errors are different now"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact(Skip = "PROTOTYPE(TopLevelStatements): Parsing and errors are different now"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveTypeParameterCastToObject()
         {
             var source =
@@ -173,7 +173,7 @@ class Program
         }
 
         [WorkItem(545139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545139")]
-        [Fact(Skip = "PROTOTYPE(SimplePrograms): Parsing and errors are different now"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact(Skip = "PROTOTYPE(TopLevelStatements): Parsing and errors are different now"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastInIsTest()
         {
             var source =

@@ -2115,7 +2115,7 @@ class Class
             await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.CharacterLiteralToken, SyntaxKind.None);
         }
 
-        [Fact(Skip = "PROTOTYPE(SimplePrograms)")]
+        [Fact(Skip = "PROTOTYPE(TopLevelStatements)")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task CharLiterals1()
         {

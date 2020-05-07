@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact(Skip = "PROTOTYPE(SimplePrograms)"), Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact(Skip = "PROTOTYPE(TopLevelStatements)"), Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFileAfterAtSignDollarSign()
             => TestNotHandled(@"@$[||]");
 

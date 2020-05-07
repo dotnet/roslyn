@@ -348,7 +348,7 @@ on a new line """),
                 Local("stuff"));
         }
 
-        [Fact(Skip = "PROTOTYPE(SimplePrograms): Script and Regular parse differently now"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "PROTOTYPE(TopLevelStatements): Script and Regular parse differently now"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VerbatimStringLiteral6()
         {
             await TestAsync(
@@ -459,7 +459,7 @@ on a new line """),
                 String(@"""bar"""));
         }
 
-        [Fact(Skip = "PROTOTYPE(SimplePrograms): Script and Regular parse differently now"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "PROTOTYPE(TopLevelStatements): Script and Regular parse differently now"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarContextualKeywordAtNamespaceLevel()
         {
             var code = @"var goo = 2;";
@@ -472,7 +472,7 @@ on a new line """),
                 Punctuation.Semicolon);
         }
 
-        [Fact(Skip = "PROTOTYPE(SimplePrograms): Script and Regular parse differently now"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "PROTOTYPE(TopLevelStatements): Script and Regular parse differently now"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsAtNamespaceLevel()
         {
             // the contextual keywords are actual keywords since we parse top level field declaration and only give a semantic error

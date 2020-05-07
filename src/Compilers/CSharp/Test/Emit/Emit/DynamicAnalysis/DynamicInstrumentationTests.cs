@@ -3308,8 +3308,8 @@ True
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.SimplePrograms)]
-        public void SimplePrograms_01()
+        [CompilerTrait(CompilerFeature.TopLevelStatements)]
+        public void TopLevelStatements_01()
         {
             var source = @"
 using System;
