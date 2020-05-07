@@ -5,7 +5,6 @@
 Using the command line, Roslyn can be developed using the following pattern:
 
 1. Clone https://github.com/dotnet/roslyn
-1. Run Restore.cmd
 1. Run Build.cmd
 1. Run Test.cmd
 
@@ -22,7 +21,6 @@ The minimal required version of .NET Framework is 4.7.2.
     - Restart Visual Studio
 1. [.NET Core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet-core/thank-you/sdk-3.1.100-windows-x64-installer)
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
-1. Run Restore.cmd
 1. Open Roslyn.sln
 
 ## Running Tests

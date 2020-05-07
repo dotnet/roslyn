@@ -21,7 +21,7 @@ param (
   [string]$msbuildEngine = "vs",
 
   # Actions
-  [switch][Alias('r')]$restore,
+  [switch][Alias('r')]$restore = $true,
   [switch][Alias('b')]$build,
   [switch]$rebuild,
   [switch]$sign,

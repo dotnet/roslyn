@@ -38,7 +38,6 @@ Given this entry we can quickly run the following developer flow to validate the
 
 ``` cmd
 > cd <roslyn root>
-> Restore.cmd
 > Build.cmd
 > Test.cmd
 ```
