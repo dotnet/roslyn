@@ -4057,9 +4057,9 @@ class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (7,30): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'new()' and 'new()'
+                // (7,24): error CS0121: The call is ambiguous between the following methods or properties: 'Console.Write(bool)' and 'Console.Write(char)'
                 //         System.Console.Write(flag ? new() : new());
-                Diagnostic(ErrorCode.ERR_InvalidQM, "flag ? new() : new()").WithArguments("new()", "new()").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Write").WithArguments("System.Console.Write(bool)", "System.Console.Write(char)").WithLocation(7, 24)
                 );
         }
 
