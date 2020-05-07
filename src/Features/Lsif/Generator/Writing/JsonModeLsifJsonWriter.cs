@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
             lock (_writeGate)
             {
                 _jsonSerializer.Serialize(_jsonTextWriter, element);
-                _jsonTextWriter.WriteWhitespace("\r\n");
+                _jsonTextWriter.WriteWhitespace(Environment.NewLine);
             }
         }
 
