@@ -12,18 +12,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
     Partial Friend Module VisualBasicCodeGenerator
-        Private Function GenerateTypeSyntax(symbol As ITypeSymbol) As TypeSyntax
-            Select Case symbol.Kind
-                Case SymbolKind.ArrayType
-                    Return GenerateArrayTypeSyntax(DirectCast(symbol, IArrayTypeSymbol))
-                Case SymbolKind.DynamicType
-                    Return GenerateDynamicTypeSyntax(DirectCast(symbol, IDynamicTypeSymbol))
-                Case SymbolKind.NamedType
-                    Return GenerateNamedTypeSyntax(DirectCast(symbol, INamedTypeSymbol))
-            End Select
-
-            Throw New NotImplementedException()
-
+        Private Function GenerateDynamicTypeSyntax(symbol As IDynamicTypeSymbol) As PredefinedTypeSyntax
+            Return PredefinedType(Token(SyntaxKind.ObjectKeyword))
         End Function
     End Module
 End Namespace
