@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private bool GetNextWorkItem(out WorkItem workItem, out CancellationToken cancellationToken)
                     {
                         // GetNextWorkItem since it can't fail. we still return bool to confirm that this never fail.
-                        var documentId = _processor._documentTracker.TryGetActiveDocument();
+                        var documentId = _processor._documentTracker?.TryGetActiveDocument();
                         if (documentId != null)
                         {
                             if (_workItemQueue.TryTake(documentId, out workItem, out cancellationToken))

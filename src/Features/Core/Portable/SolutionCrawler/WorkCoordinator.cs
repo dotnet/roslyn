@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private readonly LogAggregator _logAggregator;
             private readonly IAsynchronousOperationListener _listener;
             private readonly IOptionService _optionService;
-            private readonly IDocumentTrackingService _documentTrackingService;
+            private readonly IDocumentTrackingService? _documentTrackingService;
 
             private readonly CancellationTokenSource _shutdownNotificationSource;
             private readonly CancellationToken _shutdownToken;
@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _gate = new object();
 
                 _listener = listener;
-                _optionService = _registration.GetService<IOptionService>();
-                _documentTrackingService = _registration.GetService<IDocumentTrackingService>();
+                _optionService = _registration.Workspace.Services.GetRequiredService<IOptionService>();
+                _documentTrackingService = _registration.Workspace.Services.GetService<IDocumentTrackingService>();
 
                 // event and worker queues
                 _shutdownNotificationSource = new CancellationTokenSource();
@@ -584,13 +584,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     projectChanges.GetRemovedMetadataReferences().Any() ||
                     projectChanges.GetRemovedProjectReferences().Any() ||
                     projectChanges.GetRemovedAnalyzerReferences().Any() ||
-                    !Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
-                    !Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
-                    !Equals(oldProject.Name, newProject.Name) ||
-                    !Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
-                    !Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
-                    !Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
-                    !Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath) ||
+                    !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
+                    !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
+                    !object.Equals(oldProject.Name, newProject.Name) ||
+                    !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
+                    !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
+                    !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
+                    !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath) ||
                     !oldProject.CompilationOutputFilePaths.Equals(newProject.CompilationOutputFilePaths) ||
                     oldProject.State.RunAnalyzers != newProject.State.RunAnalyzers)
                 {
