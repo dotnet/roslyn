@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.SourceGeneration
         Public Sub TestSpecialTypeInt32()
             AssertEx.AreEqual(
 "Integer",
-CodeGenerator.SpecialType(SpecialType.System_Int32).GenerateString())
+CodeGenerator.SpecialType(SpecialType.System_Int32).GenerateTypeString())
         End Sub
     End Class
 End Namespace

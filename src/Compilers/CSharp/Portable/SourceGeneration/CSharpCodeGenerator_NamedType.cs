@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpCodeGenerator
     {
-        private static SyntaxNode GenerateNamedType(INamedTypeSymbol symbol)
+        private static TypeSyntax GenerateType(INamedTypeSymbol symbol)
         {
             if (symbol.SpecialType != SpecialType.None)
                 return GenerateSpecialType(symbol);
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             throw new NotImplementedException();
         }
 
-        private static SyntaxNode GenerateSpecialType(INamedTypeSymbol symbol)
+        private static TypeSyntax GenerateSpecialType(INamedTypeSymbol symbol)
         {
             switch (symbol.SpecialType)
             {

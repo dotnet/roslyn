@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
     Partial Friend Module VisualBasicCodeGenerator
-        Private Function GenerateNamedType(symbol As INamedTypeSymbol) As SyntaxNode
+        Private Function GenerateNamedType(symbol As INamedTypeSymbol) As TypeSyntax
             If symbol.SpecialType <> SpecialType.None Then
                 Return GenerateSpecialType(symbol)
             End If
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
             Throw New NotImplementedException()
         End Function
 
-        Private Function GenerateSpecialType(symbol As INamedTypeSymbol) As SyntaxNode
+        Private Function GenerateSpecialType(symbol As INamedTypeSymbol) As TypeSyntax
             Select Case symbol.SpecialType
                 Case SpecialType.System_Object
                     Return PredefinedType(Token(SyntaxKind.ObjectKeyword))

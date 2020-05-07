@@ -12,16 +12,16 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
     Partial Friend Module VisualBasicCodeGenerator
-        Private Function GenerateNamespace(symbol As INamespaceSymbol) As SyntaxNode
-            Dim [imports] = GenerateImports(CodeGenerator.GetImports(symbol))
-            Dim members = GenerateMembers(symbol.GetMembers())
+        Private Function GenerateNamespaceBlockOrCompilationUnit(symbol As INamespaceSymbol) As SyntaxNode
+            Dim [imports] = GenerateImportsStatements(CodeGenerator.GetImports(symbol))
+            Dim members = GenerateMemberStatements(symbol.GetMembers())
 
             If symbol.IsGlobalNamespace Then
                 Return CompilationUnit(options:=Nothing, [imports], attributes:=Nothing, members)
             End If
 
             If [imports].Count > 0 Then
-                Throw New ArgumentException("VisualBasic namespaces cannot contain imports.")
+                Throw New ArgumentException("VisualBasic Namespaces cannot contain Imports.")
             End If
 
             Return NamespaceBlock(

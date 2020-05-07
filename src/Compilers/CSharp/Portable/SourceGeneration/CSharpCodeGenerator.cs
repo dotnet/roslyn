@@ -12,6 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         public static string GenerateString(this ISymbol symbol, string indentation = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation, string eol = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, bool elasticTrivia = false)
             => symbol.GenerateSyntax().NormalizeWhitespace(indentation, eol, elasticTrivia).ToFullString();
 
+        public static string GenerateNameString(this INamespaceOrTypeSymbol symbol, string indentation = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation, string eol = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, bool elasticTrivia = false)
+            => symbol.GenerateNameSyntax().NormalizeWhitespace(indentation, eol, elasticTrivia).ToFullString();
+
+        public static string GenerateTypeString(this INamespaceOrTypeSymbol symbol, string indentation = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation, string eol = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, bool elasticTrivia = false)
+            => symbol.GenerateTypeSyntax().NormalizeWhitespace(indentation, eol, elasticTrivia).ToFullString();
+
         public static SyntaxNode GenerateSyntax(this ISymbol symbol)
         {
             switch (symbol.Kind)
@@ -31,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case SymbolKind.Field:
                     break;
                 case SymbolKind.Label:
-                    return GenerateLabel((ILabelSymbol)symbol);
+                    return GenerateLabelIdentifierName((ILabelSymbol)symbol);
                 case SymbolKind.Local:
                     break;
                 case SymbolKind.Method:
@@ -39,9 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case SymbolKind.NetModule:
                     break;
                 case SymbolKind.NamedType:
-                    return GenerateNamedType((INamedTypeSymbol)symbol);
+                    break;
                 case SymbolKind.Namespace:
-                    return GenerateNamespace((INamespaceSymbol)symbol);
+                    return GenerateCompilationUnitOrNamespaceDeclaration((INamespaceSymbol)symbol);
                 case SymbolKind.Parameter:
                     break;
                 case SymbolKind.PointerType:

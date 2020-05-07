@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpCodeGenerator
     {
-        private static SyntaxNode GenerateNamespace(INamespaceSymbol symbol)
+        private static SyntaxNode GenerateCompilationUnitOrNamespaceDeclaration(INamespaceSymbol symbol)
         {
-            var usings = GenerateUsings(CodeGenerator.GetImports(symbol));
-            var members = GenerateMembers(symbol.GetMembers());
+            var usings = GenerateUsingDirectives(CodeGenerator.GetImports(symbol));
+            var members = GenerateMemberDeclarations(symbol.GetMembers());
 
             if (symbol.IsGlobalNamespace)
                 return CompilationUnit(externs: default, usings, attributeLists: default, members);

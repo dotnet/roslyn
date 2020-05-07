@@ -13,9 +13,5 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpCodeGenerator
     {
-        private static NameSyntax GenerateName(ITypeSymbol typeSymbol)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

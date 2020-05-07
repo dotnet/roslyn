@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpCodeGenerator
     {
-        private static SyntaxNode GenerateLabel(ILabelSymbol symbol)
+        private static IdentifierNameSyntax GenerateLabelIdentifierName(ILabelSymbol symbol)
             => IdentifierName(symbol.Name);
     }
 }

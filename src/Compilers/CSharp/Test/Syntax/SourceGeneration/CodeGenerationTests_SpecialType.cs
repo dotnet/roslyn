@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
         {
             AssertEx.AreEqual(
 "int",
-SpecialType(SpecialType.System_Int32).GenerateString());
+SpecialType(SpecialType.System_Int32).GenerateTypeString());
         }
     }
 }

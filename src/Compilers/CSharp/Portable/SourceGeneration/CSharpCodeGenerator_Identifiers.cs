@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpCodeGenerator
     {
-        private static SyntaxNode IdentifierName(string text)
+        private static IdentifierNameSyntax IdentifierName(string text)
             => SyntaxFactory.IdentifierName(Identifier(text));
 
         private static SyntaxToken Identifier(string text)

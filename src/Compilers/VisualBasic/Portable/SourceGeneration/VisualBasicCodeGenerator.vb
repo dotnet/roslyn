@@ -23,14 +23,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
         End Function
 
         <Extension>
+        Public Function GenerateNameString(
+                symbol As INamespaceOrTypeSymbol,
+                Optional indentation As String = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation,
+                Optional eol As String = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL,
+                Optional elasticTrivia As Boolean = False) As String
+
+            Return symbol.GenerateNameSyntax().NormalizeWhitespace(indentation, eol, elasticTrivia).ToFullString()
+        End Function
+
+        <Extension>
+        Public Function GenerateTypeString(
+                symbol As INamespaceOrTypeSymbol,
+                Optional indentation As String = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation,
+                Optional eol As String = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL,
+                Optional elasticTrivia As Boolean = False) As String
+
+            Return symbol.GenerateTypeSyntax().NormalizeWhitespace(indentation, eol, elasticTrivia).ToFullString()
+        End Function
+
+        <Extension>
         Public Function GenerateSyntax(symbol As ISymbol) As SyntaxNode
             Select Case symbol.Kind
                 Case SymbolKind.Label
-                    Return GenerateLabel(DirectCast(symbol, ILabelSymbol))
-                Case SymbolKind.NamedType
-                    Return GenerateNamedType(DirectCast(symbol, INamedTypeSymbol))
+                    Return GenerateLabelIdentifierName(DirectCast(symbol, ILabelSymbol))
                 Case SymbolKind.Namespace
-                    Return GenerateNamespace(DirectCast(symbol, INamespaceSymbol))
+                    Return GenerateNamespaceBlockOrCompilationUnit(DirectCast(symbol, INamespaceSymbol))
             End Select
 
             Throw New NotImplementedException()
