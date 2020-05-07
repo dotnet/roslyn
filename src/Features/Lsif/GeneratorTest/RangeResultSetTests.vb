@@ -12,13 +12,14 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         Private Const TestProjectAssemblyName As String = "TestProject"
 
         <Theory>
-        <InlineData("class C { [|string|] s; }", "mscorlib#T:System.String")>
-        <InlineData("class C { void M() { [|M|](); }", TestProjectAssemblyName + "#M:C.M")>
-        <InlineData("class C { void M(string s) { M([|s|]) }", TestProjectAssemblyName + "#M:C.M(System.String)#s")>
-        <InlineData("class C { void M(string s) { string local; M([|local|]) }", Nothing)>
-        <InlineData("class C { void M(string s) { M(s [|+|] s) }", Nothing)>
-        <InlineData("using [|S|] = System.String;", Nothing)>
-        Public Async Sub ReferenceMonikerAsync(code As String, expectedMoniker As String)
+        <InlineData("class C { [|string|] s; }", "mscorlib#T:System.String", WellKnownSymbolMonikerSchemes.DotnetXmlDoc)>
+        <InlineData("class C { void M() { [|M|](); }", TestProjectAssemblyName + "#M:C.M", WellKnownSymbolMonikerSchemes.DotnetXmlDoc)>
+        <InlineData("class C { void M(string s) { M([|s|]) }", TestProjectAssemblyName + "#M:C.M(System.String)#s", WellKnownSymbolMonikerSchemes.DotnetXmlDoc)>
+        <InlineData("class C { void M(string s) { string local; M([|local|]) }", Nothing, Nothing)>
+        <InlineData("class C { void M(string s) { M(s [|+|] s) }", Nothing, Nothing)>
+        <InlineData("using [|S|] = System.String;", Nothing, Nothing)>
+        <InlineData("class C { [|global|]::System.String s; }", "<global namespace>", WellKnownSymbolMonikerSchemes.DotnetNamespace)>
+        Public Async Sub ReferenceMoniker(code As String, expectedMoniker As String, expectedMonikerScheme As String)
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
                     <Workspace>
@@ -34,10 +35,28 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Dim monikerVertex = lsif.GetLinkedVertices(Of Graph.Moniker)(resultSetVertex, "moniker").SingleOrDefault()
 
             Assert.Equal(expectedMoniker, monikerVertex?.Identifier)
+            Assert.Equal(expectedMonikerScheme, monikerVertex?.Scheme)
+        End Sub
+
+        <Theory>
+        <InlineData("// Comment")>
+        <InlineData("extern alias A;")>
+        Public Async Sub NoRangesAtAll(code As String)
+            Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
+                TestWorkspace.CreateWorkspace(
+                    <Workspace>
+                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                            <Document Name="A.cs" FilePath="Z:\A.cs">
+                                <%= code %>
+                            </Document>
+                        </Project>
+                    </Workspace>))
+
+            Assert.Empty(lsif.Vertices.OfType(Of Range))
         End Sub
 
         <Fact>
-        Public Async Sub DefinitionIncludedInDefinitionResultAsync()
+        Public Async Sub DefinitionIncludedInDefinitionResult()
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
                     <Workspace>
@@ -58,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         End Sub
 
         <Fact>
-        Public Async Sub ReferenceIncludedInReferenceResultAsync()
+        Public Async Sub ReferenceIncludedInReferenceResult()
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
                     <Workspace>
@@ -79,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         End Sub
 
         <Fact>
-        Public Async Sub ReferenceIncludedInSameReferenceResultForMultipleFilesAsync()
+        Public Async Sub ReferenceIncludedInSameReferenceResultForMultipleFiles()
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
                     <Workspace>

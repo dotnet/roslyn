@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat
 {
     internal static class WellKnownSymbolMonikerSchemes
     {
-        public static string DotnetNamespace = "dotnet-namespace";
-        public static string DotnetXmlDoc = "dotnet-xml-doc";
+        public const string DotnetNamespace = "dotnet-namespace";
+        public const string DotnetXmlDoc = "dotnet-xml-doc";
     }
 }
