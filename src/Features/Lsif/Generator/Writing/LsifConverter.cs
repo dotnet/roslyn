@@ -26,17 +26,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
             switch (value)
             {
                 case ISerializableId id:
-
                     writer.WriteValue(id.NumericId);
                     break;
 
                 case Uri uri:
-
                     writer.WriteValue(uri.AbsoluteUri);
                     break;
 
                 default:
-
                     throw new NotSupportedException();
             }
         }
