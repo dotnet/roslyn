@@ -29,4 +29,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         Extern      = 1 << 15,
 #pragma warning restore format
     }
+
+    internal static class SymbolModifiersExtensions
+    {
+        public static bool HasFlag(this SymbolModifiers modifiers, SymbolModifiers other)
+            => other != SymbolModifiers.None && (modifiers & other) == other;
+    }
 }

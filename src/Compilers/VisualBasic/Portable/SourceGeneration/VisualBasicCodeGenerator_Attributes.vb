@@ -12,18 +12,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
     Partial Friend Module VisualBasicCodeGenerator
-        Private Function IdentifierName(text As String) As IdentifierNameSyntax
-            Return SyntaxFactory.IdentifierName(Identifier(text))
-        End Function
+        Private Function GenerateAttributeLists(attributes As ImmutableArray(Of AttributeData)) As SyntaxList(Of AttributeListSyntax)
+            If attributes.IsDefaultOrEmpty Then
+                Return Nothing
+            End If
 
-        Private Function Identifier(text As String) As SyntaxToken
-            Return If(SyntaxFacts.GetKeywordKind(text) <> SyntaxKind.None OrElse SyntaxFacts.GetContextualKeywordKind(text) <> SyntaxKind.None,
-                      SyntaxFactory.Identifier($"[{text}]"),
-                      SyntaxFactory.Identifier(text))
-        End Function
-
-        Private Function ModifiedIdentifier(text As String) As ModifiedIdentifierSyntax
-            Return SyntaxFactory.ModifiedIdentifier(Identifier(text))
+            Throw New NotImplementedException()
         End Function
     End Module
 End Namespace

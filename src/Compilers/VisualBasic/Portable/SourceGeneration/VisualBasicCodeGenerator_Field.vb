@@ -12,14 +12,18 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
     Partial Friend Module VisualBasicCodeGenerator
-        Private Function GenerateConstantExpression(
-            type As ITypeSymbol, hasConstantValue As Boolean, constantValue As Object) As ExpressionSyntax
-
-            If Not hasConstantValue Then
-                Return Nothing
+        Private Function GenerateFieldDeclaration(symbol As IFieldSymbol) As FieldDeclarationSyntax
+            Dim modifiers = GenerateModifiers(isType:=False, symbol.DeclaredAccessibility, symbol.GetModifiers())
+            If modifiers.Count = 0 Then
+                modifiers = TokenList(Token(SyntaxKind.DimKeyword))
             End If
 
-            Throw New NotImplementedException()
+            Return FieldDeclaration(
+                GenerateAttributeLists(symbol.GetAttributes()),
+                modifiers,
+                SingletonSeparatedList(
+                    GenerateVariableDeclarator(symbol.Type, symbol.Name,
+                        GenerateConstantExpression(symbol.Type, symbol.HasConstantValue, symbol.ConstantValue))))
         End Function
     End Module
 End Namespace

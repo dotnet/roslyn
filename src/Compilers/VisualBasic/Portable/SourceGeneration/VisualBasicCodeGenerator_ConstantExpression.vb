@@ -12,18 +12,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
     Partial Friend Module VisualBasicCodeGenerator
-        Private Function IdentifierName(text As String) As IdentifierNameSyntax
-            Return SyntaxFactory.IdentifierName(Identifier(text))
-        End Function
-
-        Private Function Identifier(text As String) As SyntaxToken
-            Return If(SyntaxFacts.GetKeywordKind(text) <> SyntaxKind.None OrElse SyntaxFacts.GetContextualKeywordKind(text) <> SyntaxKind.None,
-                      SyntaxFactory.Identifier($"[{text}]"),
-                      SyntaxFactory.Identifier(text))
-        End Function
-
-        Private Function ModifiedIdentifier(text As String) As ModifiedIdentifierSyntax
-            Return SyntaxFactory.ModifiedIdentifier(Identifier(text))
+        Private Function GenerateLabelIdentifierName(symbol As ILabelSymbol) As IdentifierNameSyntax
+            Return IdentifierName(symbol.Name)
         End Function
     End Module
 End Namespace

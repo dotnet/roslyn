@@ -54,5 +54,16 @@ Field(
     declaredAccessibility: Accessibility.Private,
     modifiers: SymbolModifiers.Static).GenerateString());
         }
+
+        [Fact]
+        public void TestConstantField1()
+        {
+            AssertEx.AreEqual(
+"const int f;",
+Field(
+    "f",
+    SpecialType(SpecialType.System_Int32),
+    modifiers: SymbolModifiers.Const).GenerateString());
+        }
     }
 }

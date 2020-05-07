@@ -45,6 +45,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
         <Extension>
         Public Function GenerateSyntax(symbol As ISymbol) As SyntaxNode
             Select Case symbol.Kind
+                Case SymbolKind.Field
+                    Return GenerateFieldDeclaration(DirectCast(symbol, IFieldSymbol))
                 Case SymbolKind.Label
                     Return GenerateLabelIdentifierName(DirectCast(symbol, ILabelSymbol))
                 Case SymbolKind.Namespace

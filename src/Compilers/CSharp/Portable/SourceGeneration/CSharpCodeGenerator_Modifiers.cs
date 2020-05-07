@@ -41,46 +41,46 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                     break;
             }
 
-            if ((symbolModifiers & SymbolModifiers.Static) != 0)
+            if (symbolModifiers.HasFlag(SymbolModifiers.Static))
                 result.Add(Token(SyntaxKind.StaticKeyword));
 
-            if ((symbolModifiers & SymbolModifiers.Abstract) != 0)
+            if (symbolModifiers.HasFlag(SymbolModifiers.Abstract))
                 result.Add(Token(SyntaxKind.AbstractKeyword));
 
-            if ((symbolModifiers & SymbolModifiers.New) != 0)
+            if (symbolModifiers.HasFlag(SymbolModifiers.New))
                 result.Add(Token(SyntaxKind.NewKeyword));
 
-            if ((symbolModifiers & SymbolModifiers.Unsafe) != 0)
+            if (symbolModifiers.HasFlag(SymbolModifiers.Unsafe))
                 result.Add(Token(SyntaxKind.UnsafeKeyword));
 
-            if ((symbolModifiers & SymbolModifiers.ReadOnly) != 0)
+            if (symbolModifiers.HasFlag(SymbolModifiers.ReadOnly))
                 result.Add(Token(SyntaxKind.ReadOnlyKeyword));
 
-            if ((symbolModifiers & SymbolModifiers.Virtual) != 0)
+            if (symbolModifiers.HasFlag(SymbolModifiers.Virtual))
                 result.Add(Token(SyntaxKind.VirtualKeyword));
 
-            if ((symbolModifiers & SymbolModifiers.Override) != 0)
+            if (symbolModifiers.HasFlag(SymbolModifiers.Override))
                 result.Add(Token(SyntaxKind.OverrideKeyword));
 
-            if ((symbolModifiers & SymbolModifiers.Sealed) != 0)
+            if (symbolModifiers.HasFlag(SymbolModifiers.Sealed))
                 result.Add(Token(SyntaxKind.SealedKeyword));
 
-            if ((symbolModifiers & SymbolModifiers.Const) != 0)
+            if (symbolModifiers.HasFlag(SymbolModifiers.Const))
                 result.Add(Token(SyntaxKind.ConstKeyword));
 
-            if ((symbolModifiers & SymbolModifiers.Async) != 0)
+            if (symbolModifiers.HasFlag(SymbolModifiers.Async))
                 result.Add(Token(SyntaxKind.AsyncKeyword));
 
-            if ((symbolModifiers & SymbolModifiers.Volatile) != 0)
+            if (symbolModifiers.HasFlag(SymbolModifiers.Volatile))
                 result.Add(Token(SyntaxKind.VolatileKeyword));
 
-            if ((symbolModifiers & SymbolModifiers.Extern) != 0)
+            if (symbolModifiers.HasFlag(SymbolModifiers.Extern))
                 result.Add(Token(SyntaxKind.ExternKeyword));
 
-            if ((symbolModifiers & SymbolModifiers.Ref) != 0)
+            if (symbolModifiers.HasFlag(SymbolModifiers.Ref))
                 result.Add(Token(SyntaxKind.RefKeyword));
 
-            if ((symbolModifiers & SymbolModifiers.Partial) != 0)
+            if (symbolModifiers.HasFlag(SymbolModifiers.Partial))
                 result.Add(Token(SyntaxKind.PartialKeyword));
 
             return TokenList(result);
