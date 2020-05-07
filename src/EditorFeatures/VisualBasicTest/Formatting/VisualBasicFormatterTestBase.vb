@@ -12,11 +12,16 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.EditorUtilities
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <[UseExportProvider]>
     Public Class VisualBasicFormatterTestBase
         Inherits CoreFormatterTestsBase
+
+        Public Sub New(output As ITestOutputHelper)
+            MyBase.New(output)
+        End Sub
 
         Protected Overrides Function GetLanguageName() As String
             Return LanguageNames.VisualBasic
