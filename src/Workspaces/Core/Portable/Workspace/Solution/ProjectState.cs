@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis
                 documentIds: documentIds);
         }
 
-        internal ProjectState UpdateCommandLineOptions(string commandLineOptions)
+        internal ProjectState UpdateCommandLineOptions(string? commandLineOptions)
         {
             if (_commandLineOptions == commandLineOptions)
             {

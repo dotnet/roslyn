@@ -788,11 +788,6 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            if (string.IsNullOrWhiteSpace(commandLineOptions))
-            {
-                throw new ArgumentException(nameof(commandLineOptions));
-            }
-
             CheckContainsProject(projectId);
 
             var oldProject = this.GetProjectState(projectId);
