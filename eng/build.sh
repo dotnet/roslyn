@@ -64,7 +64,7 @@ verbosity='minimal'
 binary_log=false
 ci=false
 bootstrap=false
-skip_analyzers=false
+run_analyzers=false
 prepare_machine=false
 warn_as_error=false
 properties=""
@@ -129,8 +129,8 @@ while [[ $# > 0 ]]; do
       # Bootstrap requires restore
       restore=true
       ;;
-    --skipanalyzers)
-      skip_analyzers=true
+    --runAnalyzers)
+      run_analyzers=true
       ;;
     --preparemachine)
       prepare_machine=true
@@ -224,10 +224,9 @@ function BuildSolution {
   local projects="$repo_root/$solution" 
   
   # https://github.com/dotnet/roslyn/issues/23736
-  local enable_analyzers=!$skip_analyzers
   UNAME="$(uname)"
   if [[ "$UNAME" == "Darwin" ]]; then
-    enable_analyzers=false
+    run_analyzers=false
   fi
 
   # NuGet often exceeds the limit of open files on Mac and Linux
@@ -273,7 +272,7 @@ function BuildSolution {
     /p:Test=$test \
     /p:Pack=$pack \
     /p:Publish=$publish \
-    /p:UseRoslynAnalyzers=$enable_analyzers \
+    /p:UseRoslynAnalyzers=$run_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \

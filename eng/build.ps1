@@ -37,7 +37,7 @@ param (
   [switch]$buildServerLog,
   [switch]$ci,
   [switch]$procdump,
-  [switch]$runAnalyzers,
+  [switch][Alias('a')]$runAnalyzers,
   [switch][Alias('d')]$deployExtensions,
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
@@ -97,7 +97,7 @@ function Print-Usage() {
   Write-Host "  -bootstrapConfiguration   Build configuration for bootstrap compiler: 'Debug' or 'Release'"
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
   Write-Host "  -procdump                 Monitor test runs with procdump"
-  Write-Host "  -runAnalyzers             Run analyzers during build operations"
+  Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
