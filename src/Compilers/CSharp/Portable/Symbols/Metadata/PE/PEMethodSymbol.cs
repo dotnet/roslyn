@@ -1232,15 +1232,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (IsExplicitClassOverride)
                 {
+                    // If there is a *single* methodimpl entry, we return that.
+                    MethodSymbol result = null;
                     foreach (MethodSymbol method in ExplicitlyOverriddenMethods())
                     {
                         if (method.ContainingType.IsClassType())
                         {
-                            return method;
+                            if (result is { })
+                                return null;
+
+                            result = method;
                         }
                     }
 
-                    throw ExceptionUtilities.Unreachable;
+                    return result;
                 }
 
                 return null;
