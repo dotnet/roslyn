@@ -27338,5 +27338,31 @@ class C
                 options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"Done.");
         }
+
+        [Fact]
+        [WorkItem(44000, "https://github.com/dotnet/roslyn/issues/44000")]
+        public void TupleField_ForceComplete()
+        {
+            var source =
+@"namespace System
+{
+    public struct ValueTuple<T1>
+    {
+        public T1 Item1;
+        public ValueTuple(T1 item1)
+        {
+            Item1 = item1;
+        }
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
+            var type = (SourceNamedTypeSymbol)comp.GetMember("System.ValueTuple");
+            var field = (TupleFieldSymbol)type.GetMember("Item1");
+            Assert.False(isComplete(field));
+            field.ForceComplete(null, default);
+            Assert.True(isComplete(field));
+
+            static bool isComplete(TupleFieldSymbol field) => field.TupleUnderlyingField.HasComplete(CompletionPart.All);
+        }
     }
 }
