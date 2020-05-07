@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the concatenation of the <see cref="GlobalSection" /> and <see cref="NamedSections" />
         /// </summary>
-        internal ImmutableArray<Section> AllSections { get; }
+        internal IEnumerable<Section> AllSections { get; }
 
         /// <summary>
         /// Gets whether this editorconfig is a topmost editorconfig.
@@ -86,21 +87,21 @@ namespace Microsoft.CodeAnalysis
         internal bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
 
         /// <summary>
-        /// Gets whether this editorconfig is a global editorconfig
+        /// Gets whether this editorconfig is a merged global editorconfig
         /// </summary>
-        internal bool IsGlobal { get; }
+        internal bool IsMergedGlobal { get; }
 
         internal AnalyzerConfig(
             Section globalSection,
             ImmutableArray<Section> namedSections,
             string pathToFile,
-            bool isGlobal)
+            bool isMergedGlobal)
         {
             GlobalSection = globalSection;
             NamedSections = namedSections;
-            AllSections = NamedSections.Insert(0, globalSection);
+            AllSections = NamedSections.Prepend(globalSection);
             PathToFile = pathToFile;
-            IsGlobal = isGlobal;
+            IsMergedGlobal = isMergedGlobal;
 
             // Find the containing directory and normalize the path separators
             string directory = Path.GetDirectoryName(pathToFile) ?? pathToFile;
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis
             // Add the last section
             addNewSection();
 
-            return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile, isGlobal: false);
+            return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile, isMergedGlobal: false);
 
             void addNewSection()
             {
@@ -234,6 +235,12 @@ namespace Microsoft.CodeAnalysis
             /// be a case-sensitive comparison.
             /// </summary>
             public static StringComparison NameComparer { get; } = StringComparison.Ordinal;
+
+            /// <summary>
+            /// Used to compare <see cref="Name"/>s of sections. Specified by editorconfig to
+            /// be a case-sensitive comparison.
+            /// </summary>
+            internal static IEqualityComparer<string> NameEqualityComparer { get; } = StringComparer.Ordinal;
 
             /// <summary>
             /// Used to compare keys in <see cref="Properties"/>. The editorconfig spec defines property
