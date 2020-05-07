@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case SymbolKind.Event:
                     break;
                 case SymbolKind.Field:
-                    break;
+                    return GenerateFieldDeclaration((IFieldSymbol)symbol);
                 case SymbolKind.Label:
                     return GenerateLabelIdentifierName((ILabelSymbol)symbol);
                 case SymbolKind.Local:

@@ -4,23 +4,24 @@
 
 #nullable enable
 
+using System;
+using System.Collections.Generic;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpCodeGenerator
     {
-        private static ArrayTypeSyntax GenerateArrayTypeSyntaxWithoutNullable(IArrayTypeSymbol symbol)
+        private static ExpressionSyntax? GenerateConstantExpression(
+            ITypeSymbol type, bool hasConstantValue, object? constantValue)
         {
-            using var _ = GetArrayBuilder<ExpressionSyntax>(out var sizes);
+            if (!hasConstantValue)
+                return null;
 
-            for (int i = 0; i < symbol.Rank; i++)
-                sizes.Add(OmittedArraySizeExpression());
-
-            return ArrayType(
-                symbol.ElementType.GenerateTypeSyntax(),
-                SingletonList(ArrayRankSpecifier(SeparatedList(sizes))));
+            throw new NotImplementedException();
         }
     }
 }
