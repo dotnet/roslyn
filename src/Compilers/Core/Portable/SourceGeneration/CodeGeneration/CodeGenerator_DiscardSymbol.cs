@@ -8,12 +8,16 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
-        public static IDiscardSymbol Discard(ITypeSymbol type = default)
+        public static IDiscardSymbol Discard(ITypeSymbol type = null)
             => new DiscardSymbol(type);
 
-        public static IDiscardSymbol With(this IDiscardSymbol discard, Optional<ITypeSymbol> type = default)
-            => new DiscardSymbol(
+        public static IDiscardSymbol With(
+            this IDiscardSymbol discard,
+            Optional<ITypeSymbol> type = default)
+        {
+            return new DiscardSymbol(
                 type.GetValueOr(discard.Type));
+        }
 
         private class DiscardSymbol : Symbol, IDiscardSymbol
         {

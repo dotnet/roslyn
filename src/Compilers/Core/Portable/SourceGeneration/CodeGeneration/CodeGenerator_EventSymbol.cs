@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol type,
             Accessibility declaredAccessibility = Accessibility.NotApplicable,
             SymbolModifiers modifiers = SymbolModifiers.None,
+            ImmutableArray<AttributeData> attributes = default,
             IMethodSymbol addMethod = null,
             IMethodSymbol removeMethod = null,
             IMethodSymbol raiseMethod = null,
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 type,
                 declaredAccessibility,
                 modifiers,
+                attributes,
                 addMethod,
                 removeMethod,
                 raiseMethod,
@@ -34,6 +36,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Optional<ITypeSymbol> type = default,
             Optional<Accessibility> declaredAccessibility = default,
             Optional<SymbolModifiers> modifiers = default,
+            Optional<ImmutableArray<AttributeData>> attributes = default,
             Optional<IMethodSymbol> addMethod = default,
             Optional<IMethodSymbol> removeMethod = default,
             Optional<IMethodSymbol> raiseMethod = default,
@@ -44,6 +47,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 type.GetValueOr(@event.Type),
                 declaredAccessibility.GetValueOr(@event.DeclaredAccessibility),
                 modifiers.GetValueOr(@event.GetModifiers()),
+                attributes.GetValueOr(@event.GetAttributes()),
                 addMethod.GetValueOr(@event.AddMethod),
                 removeMethod.GetValueOr(@event.RemoveMethod),
                 raiseMethod.GetValueOr(@event.RaiseMethod),
@@ -52,11 +56,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         private class EventSymbol : Symbol, IEventSymbol
         {
+            private readonly ImmutableArray<AttributeData> _attributes;
+
             public EventSymbol(
                 string name,
                 ITypeSymbol type,
                 Accessibility declaredAccessibility = default,
                 SymbolModifiers modifiers = default,
+                ImmutableArray<AttributeData> attributes = default,
                 IMethodSymbol addMethod = null,
                 IMethodSymbol removeMethod = null,
                 IMethodSymbol raiseMethod = null,
@@ -66,6 +73,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 Type = type;
                 DeclaredAccessibility = declaredAccessibility;
                 Modifiers = modifiers;
+                _attributes = attributes;
                 AddMethod = addMethod;
                 RemoveMethod = removeMethod;
                 RaiseMethod = raiseMethod;
@@ -81,7 +89,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public override Accessibility DeclaredAccessibility { get; }
             public override SymbolKind Kind => SymbolKind.Event;
             public override SymbolModifiers Modifiers { get; }
+
             public override string Name { get; }
+
+            public override ImmutableArray<AttributeData> GetAttributes()
+                => _attributes;
 
             public override void Accept(SymbolVisitor visitor)
                 => visitor.VisitEvent(this);

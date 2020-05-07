@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol type,
             Accessibility declaredAccessibility = Accessibility.NotApplicable,
             SymbolModifiers modifiers = SymbolModifiers.None,
+            ImmutableArray<AttributeData> attributes = default,
             Optional<object> constantValue = default,
             bool isFixedSizeBuffer = false)
             => new FieldSymbol(
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 type,
                 declaredAccessibility,
                 modifiers,
+                attributes,
                 constantValue,
                 isFixedSizeBuffer);
 
@@ -30,6 +32,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Optional<ITypeSymbol> type = default,
             Optional<Accessibility> declaredAccessibility = default,
             Optional<SymbolModifiers> modifiers = default,
+            Optional<ImmutableArray<AttributeData>> attributes = default,
             Optional<Optional<object>> constantValue = default,
             Optional<bool> isFixedSizeBuffer = default)
         {
@@ -38,6 +41,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 type.GetValueOr(field.Type),
                 declaredAccessibility.GetValueOr(field.DeclaredAccessibility),
                 modifiers.GetValueOr(field.GetModifiers()),
+                attributes.GetValueOr(field.GetAttributes()),
                 constantValue.GetValueOr(GetConstantValue(field)),
                 isFixedSizeBuffer.GetValueOr(field.IsFixedSizeBuffer));
         }
@@ -47,11 +51,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         private class FieldSymbol : Symbol, IFieldSymbol
         {
+            private readonly ImmutableArray<AttributeData> _attributes;
+
             public FieldSymbol(
                 string name,
                 ITypeSymbol type,
                 Accessibility declaredAccessibility,
                 SymbolModifiers modifiers,
+                ImmutableArray<AttributeData> attributes,
                 Optional<object> constantValue,
                 bool isFixedSizeBuffer)
             {
@@ -59,6 +66,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 Type = type;
                 DeclaredAccessibility = declaredAccessibility;
                 Modifiers = modifiers;
+                _attributes = attributes;
                 HasConstantValue = constantValue.HasValue;
                 ConstantValue = constantValue.Value;
                 IsFixedSizeBuffer = isFixedSizeBuffer;
@@ -69,12 +77,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public override SymbolModifiers Modifiers { get; }
             public override string Name { get; }
 
-            public override void Accept(SymbolVisitor visitor)
-                => visitor.VisitField(this);
-
-            public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-                => visitor.VisitField(this);
-
             public bool IsConst => (Modifiers & SymbolModifiers.Const) != 0;
             public bool IsReadOnly => (Modifiers & SymbolModifiers.ReadOnly) != 0;
             public bool IsVolatile => (Modifiers & SymbolModifiers.Volatile) != 0;
@@ -84,6 +86,15 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             public bool HasConstantValue { get; }
             public object ConstantValue { get; }
+
+            public override ImmutableArray<AttributeData> GetAttributes()
+                => _attributes;
+
+            public override void Accept(SymbolVisitor visitor)
+                => visitor.VisitField(this);
+
+            public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+                => visitor.VisitField(this);
 
             #region default implementation
 
