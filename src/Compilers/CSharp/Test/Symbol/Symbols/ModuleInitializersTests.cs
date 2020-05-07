@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -136,6 +137,389 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 expectedOutput: @"
 C.M
 Program.Main");
+        }
+
+        [Fact]
+        public void MultipleInitializers_SingleFile()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C1
+{
+    [ModuleInitializer]
+    internal static void M1() => Console.Write(1);
+
+    internal class C2
+    {
+        [ModuleInitializer]
+        internal static void M2() => Console.Write(2);
+    }
+
+    [ModuleInitializer]
+    internal static void M3() => Console.Write(3);
+}
+
+class Program 
+{
+    static void Main() => Console.Write(4);
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+
+            CompileAndVerify(
+                source,
+                parseOptions: s_parseOptions,
+                expectedOutput: "1234");
+        }
+
+        [Fact]
+        public void MultipleInitializers_DifferentContainingTypeKinds()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C1
+{
+    [ModuleInitializer]
+    internal static void M1() => Console.Write(1);
+}
+
+struct S1
+{
+    [ModuleInitializer]
+    internal static void M2() => Console.Write(2);
+}
+
+interface I1
+{
+    [ModuleInitializer]
+    internal static void M3() => Console.Write(3);
+}
+
+class Program 
+{
+    static void Main() => Console.Write(4);
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+
+            CompileAndVerify(
+                source,
+                parseOptions: s_parseOptions,
+                targetFramework: TargetFramework.NetStandardLatest,
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234",
+                verify: !ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Skipped : Verification.Passes);
+        }
+
+        [Fact]
+        public void MultipleInitializers_MultipleFiles()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C1
+{
+    [ModuleInitializer]
+    internal static void M1() => Console.Write(1);
+    [ModuleInitializer]
+    internal static void M2() => Console.Write(2);
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            string source2 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C2
+{
+    internal class C3
+    {
+        [ModuleInitializer]
+        internal static void M3() => Console.Write(3);
+    }
+
+    [ModuleInitializer]
+    internal static void M4() => Console.Write(4);
+}
+
+class Program 
+{
+    static void Main() => Console.Write(6);
+}
+";
+
+            string source3 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C4
+{
+    // shouldn't be called
+    internal static void M() => Console.Write(0);
+
+    [ModuleInitializer]
+    internal static void M5() => Console.Write(5);
+}
+";
+
+            CompileAndVerify(
+                new[] { source1, source2, source3 },
+                parseOptions: s_parseOptions,
+                expectedOutput: "123456");
+        }
+
+        [Fact]
+        public void StaticConstructor_Ordering()
+        {
+            const string text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C1
+{
+    [ModuleInitializer]
+    internal static void Init() => Console.Write(1);
+}
+
+class C2
+{
+    static C2() => Console.Write(2);
+
+    static void Main()
+    {
+        Console.Write(3);
+    }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var verifier = CompileAndVerify(text, parseOptions: s_parseOptions, expectedOutput: "123");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void StaticConstructor_Ordering_SameType()
+        {
+            const string text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    static C() => Console.Write(1);
+
+    [ModuleInitializer]
+    internal static void Init() => Console.Write(2);
+
+    static void Main()
+    {
+        Console.Write(3);
+    }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var verifier = CompileAndVerify(text, parseOptions: s_parseOptions, expectedOutput: "123");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void StaticConstructor_DefaultInitializer_SameType()
+        {
+            const string text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    internal static string s1 = null;
+
+    [ModuleInitializer]
+    internal static void Init()
+    {
+        s1 = ""hello"";
+    }
+
+    static void Main()
+    {
+        Console.Write(s1);
+    }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var verifier = CompileAndVerify(
+                text,
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: "hello",
+                symbolValidator: validator);
+            verifier.VerifyDiagnostics();
+
+            void validator(ModuleSymbol module)
+            {
+                var cType = module.ContainingAssembly.GetTypeByMetadataName("C");
+                // static constructor should be optimized out
+                Assert.Null(cType.GetMember<MethodSymbol>(".cctor"));
+
+                var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                Assert.NotNull(moduleType.GetMember<MethodSymbol>(".cctor"));
+            }
+        }
+
+        [Fact]
+        public void StaticConstructor_EffectingInitializer_SameType()
+        {
+            const string text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    internal static int i = InitField();
+
+    internal static int InitField()
+    {
+        Console.Write(1);
+        return -1;
+    }
+
+    [ModuleInitializer]
+    internal static void Init()
+    {
+        i = 2;
+    }
+
+    static void Main()
+    {
+        Console.Write(i);
+    }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var verifier = CompileAndVerify(
+                text,
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: "12",
+                symbolValidator: validator);
+            verifier.VerifyDiagnostics();
+
+            void validator(ModuleSymbol module)
+            {
+                var cType = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.NotNull(cType.GetMember<MethodSymbol>(".cctor"));
+
+                var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                Assert.NotNull(moduleType.GetMember<MethodSymbol>(".cctor"));
+            }
+        }
+
+        [Fact]
+        public void StaticConstructor_DefaultInitializer_OtherType()
+        {
+            const string text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C1
+{
+    [ModuleInitializer]
+    internal static void Init()
+    {
+        C2.s1 = ""hello"";
+    }
+}
+
+class C2
+{
+    internal static string s1 = null;
+
+    static void Main()
+    {
+        Console.Write(s1);
+    }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var verifier = CompileAndVerify(
+                text,
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: "hello",
+                symbolValidator: validator);
+            verifier.VerifyDiagnostics();
+
+            void validator(ModuleSymbol module)
+            {
+                var c2Type = module.ContainingAssembly.GetTypeByMetadataName("C2");
+                // static constructor should be optimized out
+                Assert.Null(c2Type.GetMember<MethodSymbol>(".cctor"));
+
+                var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                Assert.NotNull(moduleType.GetMember<MethodSymbol>(".cctor"));
+            }
+        }
+
+        [Fact]
+        public void StaticConstructor_EffectingInitializer_OtherType()
+        {
+            const string text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C1
+{
+    [ModuleInitializer]
+    internal static void Init()
+    {
+        C2.i = 2;
+    }
+}
+
+class C2
+{
+    internal static int i = InitField();
+
+    static int InitField()
+    {
+        Console.Write(1);
+        return -1;
+    }
+
+    static void Main()
+    {
+        Console.Write(i);
+    }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var verifier = CompileAndVerify(
+                text,
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: "12",
+                symbolValidator: validator);
+            verifier.VerifyDiagnostics();
+
+            void validator(ModuleSymbol module)
+            {
+                var c2Type = module.ContainingAssembly.GetTypeByMetadataName("C2");
+                Assert.NotNull(c2Type.GetMember<MethodSymbol>(".cctor"));
+
+                var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                Assert.NotNull(moduleType.GetMember<MethodSymbol>(".cctor"));
+            }
         }
     }
 }

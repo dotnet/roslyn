@@ -2811,7 +2811,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
-                GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag);
+                if (!hasDeclarationErrors && !CommonCompiler.HasUnsuppressableErrors(methodBodyDiagnosticBag))
+                {
+                    GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag);
+                }
 
                 bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
 
@@ -2832,8 +2835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
 
-                // PROTOTYPE(module-initializers): require deterministic order
-                foreach (var method in _moduleInitializerMethods)
+                foreach (MethodSymbol method in _moduleInitializerMethods.OrderBy<MethodSymbol>(LexicalOrderSymbolComparer.Instance))
                 {
                     ilBuilder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
 
