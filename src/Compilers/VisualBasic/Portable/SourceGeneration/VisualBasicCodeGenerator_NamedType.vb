@@ -12,15 +12,15 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
     Partial Friend Module VisualBasicCodeGenerator
-        Private Function GenerateNamedType(symbol As INamedTypeSymbol) As TypeSyntax
+        Private Function GenerateNamedTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
             If symbol.SpecialType <> SpecialType.None Then
-                Return GenerateSpecialType(symbol)
+                Return GenerateSpecialTypeSyntax(symbol)
             End If
 
             Throw New NotImplementedException()
         End Function
 
-        Private Function GenerateSpecialType(symbol As INamedTypeSymbol) As TypeSyntax
+        Private Function GenerateSpecialTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
             Select Case symbol.SpecialType
                 Case SpecialType.System_Object
                     Return PredefinedType(Token(SyntaxKind.ObjectKeyword))

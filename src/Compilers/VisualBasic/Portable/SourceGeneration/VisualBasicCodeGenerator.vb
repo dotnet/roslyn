@@ -53,5 +53,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
 
             Throw New NotImplementedException()
         End Function
+
+        Private Function GetArrayBuilder(Of T)() As BuilderDisposer(Of T)
+            Return New BuilderDisposer(Of T)(ArrayBuilder(Of T).GetInstance())
+        End Function
+
+        Private Structure BuilderDisposer(Of T)
+            Implements IDisposable
+
+            Public ReadOnly Builder As ArrayBuilder(Of T)
+
+            Public Sub New(arrayBuilder As ArrayBuilder(Of T))
+                Builder = arrayBuilder
+            End Sub
+
+            Public Sub Dispose() Implements IDisposable.Dispose
+                Builder.Free()
+            End Sub
+        End Structure
     End Module
 End Namespace

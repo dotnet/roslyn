@@ -19,14 +19,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
 
         <Extension>
         Public Function GenerateTypeSyntax(symbol As INamespaceOrTypeSymbol) As TypeSyntax
-            Select Case symbol.Kind
-                Case SymbolKind.Namespace
-                    Return GenerateNameSyntax(symbol)
-                Case SymbolKind.NamedType
-                    Return GenerateNamedType(DirectCast(symbol, INamedTypeSymbol))
-            End Select
+            If TypeOf symbol Is INamespaceSymbol Then
+                Return GenerateNameSyntax(symbol)
+            ElseIf TypeOf symbol Is ITypeSymbol Then
+                Return GenerateTypeSyntax(DirectCast(symbol, ITypeSymbol))
+            End If
 
-            Throw New NotImplementedException()
+            Throw ExceptionUtilities.UnexpectedValue(symbol.Kind)
         End Function
 
         Private Function GenerateMemberStatement(member As INamespaceOrTypeSymbol) As StatementSyntax
@@ -34,25 +33,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
         End Function
 
         Private Function GenerateImportsStatements([imports] As ImmutableArray(Of INamespaceOrTypeSymbol)) As SyntaxList(Of ImportsStatementSyntax)
-            Dim builder = ArrayBuilder(Of ImportsStatementSyntax).GetInstance()
+            Using builder = GetArrayBuilder(Of ImportsStatementSyntax)()
 
-            For Each import In [imports]
-                builder.Add(
-                    ImportsStatement(
-                        SingletonSeparatedList(Of ImportsClauseSyntax)(SimpleImportsClause(GenerateNameSyntax(import)))))
-            Next
+                For Each import In [imports]
+                    builder.Builder.Add(
+                        ImportsStatement(
+                            SingletonSeparatedList(Of ImportsClauseSyntax)(SimpleImportsClause(GenerateNameSyntax(import)))))
+                Next
 
-            Return List(builder.ToImmutableAndFree())
+                Return List(builder.Builder)
+            End Using
         End Function
 
         Private Function GenerateMemberStatements(members As IEnumerable(Of INamespaceOrTypeSymbol)) As SyntaxList(Of StatementSyntax)
-            Dim builder = ArrayBuilder(Of StatementSyntax).GetInstance()
+            Using builder = GetArrayBuilder(Of StatementSyntax)()
 
-            For Each member In members
-                builder.Add(GenerateMemberStatement(member))
-            Next
+                For Each member In members
+                    builder.Builder.Add(GenerateMemberStatement(member))
+                Next
 
-            Return List(builder.ToImmutableAndFree())
+                Return List(builder.Builder)
+            End Using
         End Function
     End Module
 End Namespace
