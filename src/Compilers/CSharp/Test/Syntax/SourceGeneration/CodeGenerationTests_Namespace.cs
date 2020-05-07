@@ -10,13 +10,13 @@ using static Microsoft.CodeAnalysis.SourceGeneration.CodeGenerator;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
 {
-    public class CodeGenerationTests
+    public partial class CodeGenerationTests
     {
-        [Fact(Skip = "NYI")]
+        [Fact]
         public void TestLabel()
         {
             AssertEx.AreEqual(
-"x:",
+"x",
 Label("x").GenerateString());
         }
 

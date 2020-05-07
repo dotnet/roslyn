@@ -8,14 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.SourceGeneration
-    Public Class CodeGenerationTests
-        <Fact(Skip:="NYI")>
-        Public Sub TestLabel()
-            AssertEx.AreEqual(
-"x:",
-Label("x").GenerateString())
-        End Sub
-
+    Partial Public Class CodeGenerationTests
         <Fact>
         Public Sub TestNamespace()
             AssertEx.AreEqual(

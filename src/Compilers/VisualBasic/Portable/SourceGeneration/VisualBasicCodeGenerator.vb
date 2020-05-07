@@ -34,6 +34,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
 
         Private Function GenerateSyntaxWorker(symbol As ISymbol) As SyntaxNode
             Select Case symbol.Kind
+                Case SymbolKind.Label
+                    Return GenerateLabel(DirectCast(symbol, ILabelSymbol))
+                Case SymbolKind.NamedType
+                    Return GenerateNamedType(DirectCast(symbol, INamedTypeSymbol))
                 Case SymbolKind.Namespace
                     Return GenerateNamespace(DirectCast(symbol, INamespaceSymbol))
             End Select

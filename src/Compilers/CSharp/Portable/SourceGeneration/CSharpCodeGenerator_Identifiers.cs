@@ -7,12 +7,20 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpCodeGenerator
     {
-        private static SyntaxNode GenerateLabel(ILabelSymbol symbol)
-            => IdentifierName(symbol.Name);
+        private static SyntaxNode IdentifierName(string text)
+            => SyntaxFactory.IdentifierName(Identifier(text));
+
+        private static SyntaxToken Identifier(string text)
+        {
+            return GetKeywordKind(text) != SyntaxKind.None || GetContextualKeywordKind(text) != SyntaxKind.None
+                ? SyntaxFactory.Identifier("@" + text)
+                : SyntaxFactory.Identifier(text);
+        }
     }
 }

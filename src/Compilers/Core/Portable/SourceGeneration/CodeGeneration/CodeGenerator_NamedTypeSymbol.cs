@@ -33,24 +33,32 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         //    => new DiscardSymbol(type);
 
         public static INamedTypeSymbol SpecialType(SpecialType specialType)
-            => new NamedTypeSymbol(specialType);
+        {
+            return new NamedTypeSymbol(
+                specialType,
+                containingSymbol: null);
+        }
 
         public static INamedTypeSymbol With(
             this INamedTypeSymbol type,
-            Optional<SpecialType> specialType = default)
+            Optional<ISymbol> containingSymbol = default)
         {
             return new NamedTypeSymbol(
-                specialType.GetValueOr(type.SpecialType));
+                type.SpecialType,
+                containingSymbol.GetValueOr(type.ContainingSymbol));
         }
 
         private class NamedTypeSymbol : TypeSymbol, INamedTypeSymbol
         {
             public NamedTypeSymbol(
-                SpecialType specialType)
+                SpecialType specialType,
+                ISymbol containingSymbol)
             {
                 SpecialType = specialType;
+                ContainingSymbol = containingSymbol;
             }
 
+            public override ISymbol ContainingSymbol { get; }
             public override SymbolKind Kind => SymbolKind.NamedType;
             public override SpecialType SpecialType { get; }
             public override TypeKind TypeKind { get; }
