@@ -584,14 +584,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     projectChanges.GetRemovedMetadataReferences().Any() ||
                     projectChanges.GetRemovedProjectReferences().Any() ||
                     projectChanges.GetRemovedAnalyzerReferences().Any() ||
-                    !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
-                    !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
-                    !object.Equals(oldProject.Name, newProject.Name) ||
-                    !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
-                    !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
-                    !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
-                    !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath) ||
-                    !object.Equals(oldProject.CompilationOutputFilePaths, newProject.CompilationOutputFilePaths) ||
+                    !Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
+                    !Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
+                    !Equals(oldProject.Name, newProject.Name) ||
+                    !Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
+                    !Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
+                    !Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
+                    !Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath) ||
+                    !oldProject.CompilationOutputFilePaths.Equals(newProject.CompilationOutputFilePaths) ||
                     oldProject.State.RunAnalyzers != newProject.State.RunAnalyzers)
                 {
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);
