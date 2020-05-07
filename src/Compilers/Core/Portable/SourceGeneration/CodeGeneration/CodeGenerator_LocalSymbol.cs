@@ -10,27 +10,29 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
     internal static partial class CodeGenerator
     {
         public static ILocalSymbol Local(
-            string name,
             ITypeSymbol type,
+            string name,
             SymbolModifiers modifiers = default,
             Optional<object> constantValue = default)
-            => new LocalSymbol(
-                name,
-                type,
+        {
+            return new LocalSymbol(
                 modifiers,
+                type,
+                name,
                 constantValue);
+        }
 
         public static ILocalSymbol With(
             this ILocalSymbol local,
-            Optional<string> name = default,
-            Optional<ITypeSymbol> type = default,
             Optional<SymbolModifiers> modifiers = default,
+            Optional<ITypeSymbol> type = default,
+            Optional<string> name = default,
             Optional<Optional<object>> constantValue = default)
         {
             return new LocalSymbol(
-                name.GetValueOr(local.Name),
-                type.GetValueOr(local.Type),
                 modifiers.GetValueOr(local.GetModifiers()),
+                type.GetValueOr(local.Type),
+                name.GetValueOr(local.Name),
                 constantValue.GetValueOr(GetConstantValue(local)));
         }
 
@@ -40,14 +42,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         private class LocalSymbol : Symbol, ILocalSymbol
         {
             public LocalSymbol(
-                string name,
-                ITypeSymbol type,
                 SymbolModifiers modifiers,
+                ITypeSymbol type,
+                string name,
                 Optional<object> constantValue)
             {
-                Name = name;
-                Type = type;
                 Modifiers = modifiers;
+                Type = type;
+                Name = name;
                 HasConstantValue = constantValue.HasValue;
                 ConstantValue = constantValue.Value;
             }
@@ -57,9 +59,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public override string Name { get; }
 
             public ITypeSymbol Type { get; }
-
-            public bool IsConst => (Modifiers & SymbolModifiers.Const) != 0;
-            public bool IsRef => (Modifiers & SymbolModifiers.Ref) != 0;
 
             public bool HasConstantValue { get; }
             public object ConstantValue { get; }
@@ -72,6 +71,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             #region default implementation
 
+            public bool IsConst => throw new NotImplementedException();
+            public bool IsRef => throw new NotImplementedException();
             public bool IsFunctionValue => throw new NotImplementedException();
             public bool IsFixed => throw new NotImplementedException();
             public RefKind RefKind => throw new NotImplementedException();

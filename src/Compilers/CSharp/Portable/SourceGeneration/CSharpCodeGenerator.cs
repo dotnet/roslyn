@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case SymbolKind.Label:
                     return GenerateLabelIdentifierName((ILabelSymbol)symbol);
                 case SymbolKind.Local:
-                    break;
+                    return GenerateLocalIdentifierName((ILocalSymbol)symbol);
                 case SymbolKind.Method:
                     break;
                 case SymbolKind.NetModule:

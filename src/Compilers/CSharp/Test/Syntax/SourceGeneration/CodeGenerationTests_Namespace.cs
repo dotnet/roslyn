@@ -13,14 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
     public partial class CodeGenerationTests
     {
         [Fact]
-        public void TestLabel()
-        {
-            AssertEx.AreEqual(
-"x",
-Label("x").GenerateString());
-        }
-
-        [Fact]
         public void TestNamespace()
         {
             AssertEx.AreEqual(

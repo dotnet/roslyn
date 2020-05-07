@@ -10,52 +10,54 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
     internal static partial class CodeGenerator
     {
         public static IFieldSymbol Field(
-            string name,
             ITypeSymbol type,
+            string name,
             ImmutableArray<AttributeData> attributes = default,
             Accessibility declaredAccessibility = Accessibility.NotApplicable,
             SymbolModifiers modifiers = SymbolModifiers.None,
             Optional<object> constantValue = default)
-            => new FieldSymbol(
-                name,
-                type,
+        {
+            return new FieldSymbol(
                 attributes,
                 declaredAccessibility,
                 modifiers,
+                type,
+                name,
                 constantValue,
                 isFixedSizeBuffer: false);
+        }
 
         public static IFieldSymbol FixedSizeBuffer(
-            string name,
             ITypeSymbol type,
+            string name,
             ImmutableArray<AttributeData> attributes = default,
             Accessibility declaredAccessibility = Accessibility.NotApplicable,
             SymbolModifiers modifiers = SymbolModifiers.None,
             Optional<object> constantValue = default)
             => new FieldSymbol(
-                name,
-                type,
                 attributes,
                 declaredAccessibility,
                 modifiers,
+                type,
+                name,
                 constantValue,
                 isFixedSizeBuffer: true);
 
         public static IFieldSymbol With(
             this IFieldSymbol field,
-            Optional<string> name = default,
-            Optional<ITypeSymbol> type = default,
             Optional<ImmutableArray<AttributeData>> attributes = default,
             Optional<Accessibility> declaredAccessibility = default,
             Optional<SymbolModifiers> modifiers = default,
+            Optional<ITypeSymbol> type = default,
+            Optional<string> name = default,
             Optional<Optional<object>> constantValue = default)
         {
             return new FieldSymbol(
-                name.GetValueOr(field.Name),
-                type.GetValueOr(field.Type),
                 attributes.GetValueOr(field.GetAttributes()),
                 declaredAccessibility.GetValueOr(field.DeclaredAccessibility),
                 modifiers.GetValueOr(field.GetModifiers()),
+                type.GetValueOr(field.Type),
+                name.GetValueOr(field.Name),
                 constantValue.GetValueOr(GetConstantValue(field)),
                 field.IsFixedSizeBuffer);
         }
@@ -68,11 +70,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             private readonly ImmutableArray<AttributeData> _attributes;
 
             public FieldSymbol(
-                string name,
-                ITypeSymbol type,
                 ImmutableArray<AttributeData> attributes,
                 Accessibility declaredAccessibility,
                 SymbolModifiers modifiers,
+                ITypeSymbol type,
+                string name,
                 Optional<object> constantValue,
                 bool isFixedSizeBuffer)
             {

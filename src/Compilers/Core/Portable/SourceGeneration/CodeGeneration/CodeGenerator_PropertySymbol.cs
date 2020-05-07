@@ -13,18 +13,18 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             string name,
             ITypeSymbol type,
             ImmutableArray<AttributeData> attributes = default,
+            SymbolModifiers modifiers = default,
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
-            RefKind refKind = default,
             ImmutableArray<IParameterSymbol> parameters = default,
             IMethodSymbol getMethod = null,
             IMethodSymbol setMethod = null)
         {
             return new PropertySymbol(
-                name,
-                type,
                 attributes,
+                modifiers,
+                type,
                 explicitInterfaceImplementations,
-                refKind,
+                name,
                 parameters,
                 getMethod,
                 setMethod,
@@ -33,19 +33,19 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IPropertySymbol Indexer(
             ITypeSymbol type,
+            ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<AttributeData> attributes = default,
+            SymbolModifiers modifiers = default,
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
-            RefKind refKind = default,
-            ImmutableArray<IParameterSymbol> parameters = default,
             IMethodSymbol getMethod = null,
             IMethodSymbol setMethod = null)
         {
             return new PropertySymbol(
-                name: null,
-                type,
                 attributes,
+                modifiers,
+                type,
                 explicitInterfaceImplementations,
-                refKind,
+                name: null,
                 parameters,
                 getMethod,
                 setMethod,
@@ -54,21 +54,21 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IPropertySymbol With(
             this IPropertySymbol property,
-            Optional<string> name = default,
+            Optional<ImmutableArray<AttributeData>> attributes = default,
+            Optional<SymbolModifiers> modifiers = default,
             Optional<ITypeSymbol> type = default,
-            Optional<RefKind> refKind = default,
+            Optional<ImmutableArray<IPropertySymbol>> explicitInterfaceImplementations = default,
+            Optional<string> name = default,
             Optional<ImmutableArray<IParameterSymbol>> parameters = default,
             Optional<IMethodSymbol> getMethod = default,
-            Optional<IMethodSymbol> setMethod = default,
-            Optional<ImmutableArray<IPropertySymbol>> explicitInterfaceImplementations = default,
-            Optional<ImmutableArray<AttributeData>> attributes = default)
+            Optional<IMethodSymbol> setMethod = default)
         {
             return new PropertySymbol(
-                name.GetValueOr(property.Name),
-                type.GetValueOr(property.Type),
                 attributes.GetValueOr(property.GetAttributes()),
+                modifiers.GetValueOr(property.GetModifiers()),
+                type.GetValueOr(property.Type),
                 explicitInterfaceImplementations.GetValueOr(property.ExplicitInterfaceImplementations),
-                refKind.GetValueOr(property.RefKind),
+                name.GetValueOr(property.Name),
                 parameters.GetValueOr(property.Parameters),
                 getMethod.GetValueOr(property.GetMethod),
                 setMethod.GetValueOr(property.SetMethod),
@@ -80,11 +80,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             private readonly ImmutableArray<AttributeData> _attributes;
 
             public PropertySymbol(
-                string name,
-                ITypeSymbol type,
                 ImmutableArray<AttributeData> attributes,
+                SymbolModifiers modifiers,
+                ITypeSymbol type,
                 ImmutableArray<IPropertySymbol> explicitInterfaceImplementations,
-                RefKind refKind,
+                string name,
                 ImmutableArray<IParameterSymbol> parameters,
                 IMethodSymbol getMethod,
                 IMethodSymbol setMethod,
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             {
                 Name = name;
                 Type = type;
-                RefKind = refKind;
+                Modifiers = modifiers;
                 IsIndexer = isIndexer;
                 Parameters = parameters;
                 GetMethod = getMethod;
@@ -102,10 +102,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             }
 
             public override SymbolKind Kind => SymbolKind.Property;
+            public override SymbolModifiers Modifiers { get; }
             public override string Name { get; }
 
             public bool IsIndexer { get; }
-            public RefKind RefKind { get; }
             public ITypeSymbol Type { get; }
             public ImmutableArray<IParameterSymbol> Parameters { get; }
             public IMethodSymbol GetMethod { get; }
@@ -126,6 +126,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public bool IsReadOnly => throw new NotImplementedException();
             public bool IsWriteOnly => throw new NotImplementedException();
             public bool IsWithEvents => throw new NotImplementedException();
+            public RefKind RefKind => throw new NotImplementedException();
             public bool ReturnsByRef => throw new NotImplementedException();
             public bool ReturnsByRefReadonly => throw new NotImplementedException();
             public NullableAnnotation NullableAnnotation => throw new NotImplementedException();

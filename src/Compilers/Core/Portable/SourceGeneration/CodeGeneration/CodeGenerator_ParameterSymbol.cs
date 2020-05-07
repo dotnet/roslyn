@@ -10,19 +10,17 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
     internal static partial class CodeGenerator
     {
         public static IParameterSymbol Parameter(
-            string name,
             ITypeSymbol type,
+            string name,
             ImmutableArray<AttributeData> attributes = default,
-            RefKind refKind = default,
-            bool isParams = false,
+            SymbolModifiers modifiers = default,
             Optional<object> explicitDefaultValue = default)
         {
             return new ParameterSymbol(
-                name,
-                type,
                 attributes,
-                refKind,
-                isParams,
+                modifiers,
+                type,
+                name,
                 explicitDefaultValue,
                 isDiscard: false);
         }
@@ -30,30 +28,27 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IParameterSymbol DiscardParameter()
         {
             return new ParameterSymbol(
-                name: null,
-                type: null,
                 attributes: default,
-                refKind: default,
-                isParams: default,
+                modifiers: default,
+                type: null,
+                name: null,
                 explicitDefaultValue: default,
                 isDiscard: true);
         }
 
         public static IParameterSymbol With(
             this IParameterSymbol parameter,
-            Optional<string> name = default,
-            Optional<ITypeSymbol> type = default,
             Optional<ImmutableArray<AttributeData>> attributes = default,
-            Optional<RefKind> refKind = default,
-            Optional<bool> isParams = default,
+            Optional<SymbolModifiers> modifiers = default,
+            Optional<ITypeSymbol> type = default,
+            Optional<string> name = default,
             Optional<Optional<object>> explicitDefaultValue = default)
         {
             return new ParameterSymbol(
-                name.GetValueOr(parameter.Name),
-                type.GetValueOr(parameter.Type),
                 attributes.GetValueOr(parameter.GetAttributes()),
-                refKind.GetValueOr(parameter.RefKind),
-                isParams.GetValueOr(parameter.IsParams),
+                modifiers.GetValueOr(parameter.GetModifiers()),
+                type.GetValueOr(parameter.Type),
+                name.GetValueOr(parameter.Name),
                 explicitDefaultValue.GetValueOr(GetExplicitDefaultValue(parameter)),
                 isDiscard: parameter.IsDiscard);
         }
@@ -66,18 +61,16 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             private readonly ImmutableArray<AttributeData> _attributes;
 
             public ParameterSymbol(
-                string name,
-                ITypeSymbol type,
                 ImmutableArray<AttributeData> attributes,
-                RefKind refKind,
-                bool isParams,
+                SymbolModifiers modifiers,
+                ITypeSymbol type,
+                string name,
                 Optional<object> explicitDefaultValue,
                 bool isDiscard)
             {
                 Name = name;
                 Type = type;
-                RefKind = refKind;
-                IsParams = isParams;
+                Modifiers = modifiers;
                 IsDiscard = isDiscard;
                 HasExplicitDefaultValue = explicitDefaultValue.HasValue;
                 ExplicitDefaultValue = explicitDefaultValue.Value;
@@ -85,9 +78,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             }
 
             public override SymbolKind Kind => SymbolKind.Parameter;
+            public override SymbolModifiers Modifiers { get; }
             public override string Name { get; }
-            public RefKind RefKind { get; }
-            public bool IsParams { get; }
+
             public bool IsDiscard { get; }
 
             public ITypeSymbol Type { get; }
@@ -106,6 +99,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             #region default implementation
 
+            public RefKind RefKind => throw new NotImplementedException();
+            public bool IsParams => throw new NotImplementedException();
             public bool IsOptional => throw new NotImplementedException();
             public bool IsThis => throw new NotImplementedException();
             public NullableAnnotation NullableAnnotation => throw new NotImplementedException();

@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         Ref         = 1 << 13,
         Volatile    = 1 << 14,
         Extern      = 1 << 15,
+        Params      = 1 << 16,
 #pragma warning restore format
     }
 
