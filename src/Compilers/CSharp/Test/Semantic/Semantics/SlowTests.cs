@@ -10,7 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class SlowTests : CSharpTestBase
     {
-        [Fact, WorkItem(35949, "https://github.com/dotnet/roslyn/issues/35949")]
+        [WorkItem(35949, "https://github.com/dotnet/roslyn/issues/35949")]
+        [ConditionalFact(typeof(IsRelease))]
         public void NotNull_Complexity()
         {
             var source = @"
