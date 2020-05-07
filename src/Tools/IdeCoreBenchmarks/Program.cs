@@ -5,20 +5,35 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Validators;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace IdeCoreBenchmarks
 {
     internal class Program
     {
+        private class IgnoreReleaseOnly : ManualConfig
+        {
+            public IgnoreReleaseOnly()
+            {
+                AddValidator(JitOptimizationsValidator.DontFailOnError);
+                AddLogger(DefaultConfig.Instance.GetLoggers().ToArray());
+                AddExporter(DefaultConfig.Instance.GetExporters().ToArray());
+                AddColumnProvider(DefaultConfig.Instance.GetColumnProviders().ToArray());
+                AddDiagnoser(MemoryDiagnoser.Default);
+            }
+        }
+
         public const string RoslynRootPathEnvVariableName = "ROSLYN_SOURCE_ROOT_PATH";
 
         public static string GetRoslynRootLocation([CallerFilePath] string sourceFilePath = "")

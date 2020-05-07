@@ -76,6 +76,5 @@ namespace IdeCoreBenchmarks
         {
             await _runner.RunAsync(CancellationToken.None).ConfigureAwait(false);
         }
-
     }
 }
