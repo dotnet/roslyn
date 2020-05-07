@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         private sealed class SymbolAnalyzer
         {
             private readonly INamedTypeSymbol _namedTypeSymbol;
-            private bool _hasTypeInstanceAssigment;
+            private bool _hasTypeInstanceAssignment;
 
             private SymbolAnalyzer(INamedTypeSymbol namedTypeSymbol)
                 => _namedTypeSymbol = namedTypeSymbol;
@@ -102,13 +102,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                 if (operationAssigmnent.Target is IInstanceReferenceOperation instance &&
                     instance.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance)
                 {
-                    Volatile.Write(ref _hasTypeInstanceAssigment, true);
+                    Volatile.Write(ref _hasTypeInstanceAssignment, true);
                 }
             }
 
             private void SymbolEndAction(SymbolAnalysisContext symbolEndContext)
             {
-                if (_hasTypeInstanceAssigment)
+                if (_hasTypeInstanceAssignment)
                 {
                     var diagnostic = Diagnostic.Create(
                                     s_diagnosticDescriptor,

@@ -1125,7 +1125,7 @@ unsafe class Caller
         [InlineData("stdcall")]
         public void UnmanagedCallingConventions(string convention)
         {
-            // Use IntPtr Marshal.GetFunctionPointerForDelegate<TDelgate>(TDelegate delegate) to
+            // Use IntPtr Marshal.GetFunctionPointerForDelegate<TDelegate>(TDelegate delegate) to
             // get a function pointer around a native calling convention
             var ilStub = $@"
 .class public auto ansi beforefieldinit UnmanagedFunctionPointer
@@ -4114,7 +4114,7 @@ unsafe class C
         [Fact]
         public void MultipleApplicableMethods()
         {
-            // This is analgous to MethodBodyModelTests.MethodGroupToDelegate04, where both methods
+            // This is analogous to MethodBodyModelTests.MethodGroupToDelegate04, where both methods
             // are applicable even though D(delegate*<int, void>) is not compatible.
             var comp = CreateCompilationWithFunctionPointers(@"
 public unsafe class Program1

@@ -1803,7 +1803,7 @@ class C
             // - update OptimizationLevelFacts.ToPdbSerializedString
             // - update tests that call this method
             // - update docs\features\compilation-from-portable-pdb.md
-            // NOTE: release is duplicated because the return value for release is the same regardless of the debugPluseMode bool
+            // NOTE: release is duplicated because the return value for release is the same regardless of the debugPlusMode bool
             AssertEx.SetEqual(new[] { "release", "release", "debug", "debug-plus" },
                 Enum.GetValues(typeof(OptimizationLevel)).Cast<OptimizationLevel>().SelectMany(l => new[] { l.ToPdbSerializedString(false), l.ToPdbSerializedString(true) }));
         }
@@ -12197,7 +12197,7 @@ generated_code = auto");
                 defaultSeverity == DiagnosticSeverity.Info && !errorlog;
 
             // We use an analyzer that throws an exception on every analyzer callback.
-            // So an AD0001 analyzer exeption diagnostic is reported if analyzer executed, otherwise not.
+            // So an AD0001 analyzer exception diagnostic is reported if analyzer executed, otherwise not.
             var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: true);
 
             var dir = Temp.CreateDirectory();
