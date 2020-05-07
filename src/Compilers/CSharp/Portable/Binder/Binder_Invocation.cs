@@ -1540,7 +1540,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We relax the instance-vs-static requirement for top-level member access expressions by creating a NameofBinder binder.
             var nameofBinder = new NameofBinder(argument, this);
             var boundArgument = nameofBinder.BindExpression(argument, diagnostics);
-            boundArgument = boundArgument.HasAnyErrors ? BindToTypeForErrorRecovery(boundArgument) : BindToNaturalType(boundArgument, diagnostics);
             if (!boundArgument.HasAnyErrors && CheckSyntaxForNameofArgument(argument, out name, diagnostics) && boundArgument.Kind == BoundKind.MethodGroup)
             {
                 var methodGroup = (BoundMethodGroup)boundArgument;
