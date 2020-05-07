@@ -1480,9 +1480,10 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"is_global = true ", "/.editorconfig"));
 
-            _ = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs);
+            var globalConfig = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs, out _);
 
-            Assert.True(configs.Single().IsMergedGlobal);
+            Assert.Empty(configs);
+            Assert.NotNull(globalConfig);
             configs.Free();
         }
 
@@ -1493,9 +1494,10 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
             configs.Add(Parse(@"
 [*.cs]
 is_global = true ", "/.editorconfig"));
-            _ = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs);
+            var globalConfig = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs, out _);
 
-            Assert.False(configs.Single().IsMergedGlobal);
+            Assert.Single(configs);
+            Assert.Null(globalConfig);
             configs.Free();
         }
 
@@ -1509,12 +1511,11 @@ option1 = value1", "/.globalconfig1"));
             configs.Add(Parse(@"option2 = value2", "/.editorconfig1"));
             configs.Add(Parse(@"option3 = value3", "/.editorconfig2"));
 
-            var unsetKeys = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs);
-            var globalConfig = configs.Single(ac => ac.IsMergedGlobal);
+            var globalConfig = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs, out var unsetKeys);
 
             Assert.Empty(unsetKeys);
-            Assert.Equal(3, configs.Count);
-            Assert.True(globalConfig.IsMergedGlobal);
+            Assert.Equal(2, configs.Count);
+            Assert.NotNull(globalConfig);
             Assert.Equal("value1", globalConfig.GlobalSection.Properties["option1"]);
             configs.Free();
         }
@@ -1532,12 +1533,11 @@ option2 = value2", "/.globalconfig2"));
             configs.Add(Parse(@"option3 = value3", "/.editorconfig1"));
             configs.Add(Parse(@"option4 = value4", "/.editorconfig2"));
 
-            var unsetKeys = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs);
-            var globalConfig = configs.Single(ac => ac.IsMergedGlobal);
+            var globalConfig = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs, out var unsetKeys);
 
             Assert.Empty(unsetKeys);
-            Assert.Equal(3, configs.Count);
-            Assert.True(globalConfig.IsMergedGlobal);
+            Assert.Equal(2, configs.Count);
+            Assert.NotNull(globalConfig);
             Assert.Equal("value1", globalConfig.GlobalSection.Properties["option1"]);
             Assert.Equal("value2", globalConfig.GlobalSection.Properties["option2"]);
             configs.Free();
@@ -1567,12 +1567,11 @@ option2 = value2
 option1 = value1",
 "/.globalconfig2"));
 
-            var unsetKeys = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs);
-            var globalConfig = configs.Single();
+            var globalConfig = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs, out var unsetKeys);
 
             Assert.Empty(unsetKeys);
-            Assert.Equal(1, configs.Count);
-            Assert.True(globalConfig.IsMergedGlobal);
+            Assert.Empty(configs);
+            Assert.NotNull(globalConfig);
             Assert.Equal("value1", globalConfig.GlobalSection.Properties["option1"]);
             Assert.Equal("value2", globalConfig.GlobalSection.Properties["option2"]);
 
@@ -1806,9 +1805,9 @@ option1 = value1
 option1 = value2",
 "/.globalconfig2"));
 
-            var unsetKeys = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs);
+            var globalConfig = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs, out var unsetKeys);
             Assert.Empty(unsetKeys);
-            Assert.Equal(2, configs.Single().NamedSections.Length);
+            Assert.Equal(2, globalConfig.NamedSections.Length);
             configs.Free();
         }
 
@@ -1826,7 +1825,7 @@ option1 = value1
 opTioN1 = value2",
 "/.globalconfig2"));
 
-            var unsetKeys = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs);
+            var globalConfig = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs, out var unsetKeys);
             Assert.Equal(1, unsetKeys.Length);
             Assert.Equal("option1", unsetKeys[0].KeyName);
             Assert.Equal("c:/path/to/file1.cs", unsetKeys[0].SectionName);
@@ -1845,7 +1844,7 @@ option1 = value1
 opTioN1 = value2",
 "/.globalconfig2"));
 
-            var unsetKeys = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs);
+            var globalConfig = GlobalAnalyzerConfigBuilder.MergeGlobalConfigs(configs, out var unsetKeys);
             Assert.Equal(1, unsetKeys.Length);
             Assert.Equal("option1", unsetKeys[0].KeyName);
             configs.Free();
@@ -1922,6 +1921,33 @@ dotnet_diagnostic.cs000.severity = error
                 SyntaxTree.EmptyDiagnosticOptions,
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error))
             }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [Fact]
+        public void GlobalConfigInvalidSeverity()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+dotnet_diagnostic.cs000.severity = foo
+
+[c:/path/to/file.cs]
+dotnet_diagnostic.cs001.severity = bar
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "c:/path/to/file.cs" },
+                configs);
+            configs.Free();
+
+            options[0].Diagnostics.Verify(
+                Diagnostic("InvalidSeverityInAnalyzerConfig").WithArguments("cs000", "foo", "<Global Config>").WithLocation(1, 1)
+                );
+
+            options[1].Diagnostics.Verify(
+                Diagnostic("InvalidSeverityInAnalyzerConfig").WithArguments("cs000", "foo", "<Global Config>").WithLocation(1, 1),
+                Diagnostic("InvalidSeverityInAnalyzerConfig").WithArguments("cs001", "bar", "<Global Config>").WithLocation(1, 1)
+                );
         }
 
 

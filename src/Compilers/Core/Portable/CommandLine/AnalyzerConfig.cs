@@ -77,31 +77,18 @@ namespace Microsoft.CodeAnalysis
         internal ImmutableArray<Section> NamedSections { get; }
 
         /// <summary>
-        /// Gets the concatenation of the <see cref="GlobalSection" /> and <see cref="NamedSections" />
-        /// </summary>
-        internal IEnumerable<Section> AllSections { get; }
-
-        /// <summary>
         /// Gets whether this editorconfig is a topmost editorconfig.
         /// </summary>
         internal bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
 
-        /// <summary>
-        /// Gets whether this editorconfig is a merged global editorconfig
-        /// </summary>
-        internal bool IsMergedGlobal { get; }
-
         internal AnalyzerConfig(
             Section globalSection,
             ImmutableArray<Section> namedSections,
-            string pathToFile,
-            bool isMergedGlobal)
+            string pathToFile)
         {
             GlobalSection = globalSection;
             NamedSections = namedSections;
-            AllSections = NamedSections.Prepend(globalSection);
             PathToFile = pathToFile;
-            IsMergedGlobal = isMergedGlobal;
 
             // Find the containing directory and normalize the path separators
             string directory = Path.GetDirectoryName(pathToFile) ?? pathToFile;
@@ -193,7 +180,7 @@ namespace Microsoft.CodeAnalysis
             // Add the last section
             addNewSection();
 
-            return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile, isMergedGlobal: false);
+            return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile);
 
             void addNewSection()
             {
@@ -267,6 +254,22 @@ namespace Microsoft.CodeAnalysis
             /// the values are the literal values present in the source.
             /// </summary>
             public ImmutableDictionary<string, string> Properties { get; }
+        }
+    }
+
+    internal sealed class GlobalAnalyzerConfig
+    {
+        internal AnalyzerConfig.Section GlobalSection { get; }
+
+        internal ImmutableArray<AnalyzerConfig.Section> NamedSections { get; }
+
+        internal readonly static string ConfigPath = "<Global Config>";
+
+        public GlobalAnalyzerConfig(AnalyzerConfig.Section globalSection, ImmutableArray<AnalyzerConfig.Section> namedSections)
+        {
+            GlobalSection = globalSection;
+            NamedSections = namedSections;
+
         }
     }
 }
