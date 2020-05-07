@@ -97,17 +97,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             #region default implementation
 
             public bool IsOptional => throw new NotImplementedException();
-
             public bool IsThis => throw new NotImplementedException();
-
             public NullableAnnotation NullableAnnotation => throw new NotImplementedException();
-
             public ImmutableArray<CustomModifier> CustomModifiers => throw new NotImplementedException();
-
             public ImmutableArray<CustomModifier> RefCustomModifiers => throw new NotImplementedException();
-
             public int Ordinal => throw new NotImplementedException();
-
             IParameterSymbol IParameterSymbol.OriginalDefinition => throw new NotImplementedException();
 
             #endregion

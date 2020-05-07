@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             public NullableAnnotation NullableAnnotation => throw new NotImplementedException();
 
-
             #endregion
         }
     }

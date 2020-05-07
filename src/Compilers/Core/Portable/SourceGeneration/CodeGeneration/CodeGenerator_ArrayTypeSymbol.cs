@@ -60,19 +60,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             #region default implementation
 
             public bool IsSZArray => throw new NotImplementedException();
-
             public ImmutableArray<int> LowerBounds => throw new NotImplementedException();
-
             public ImmutableArray<int> Sizes => throw new NotImplementedException();
-
             public NullableAnnotation ElementNullableAnnotation => throw new NotImplementedException();
-
             public ImmutableArray<CustomModifier> CustomModifiers => throw new NotImplementedException();
-
-            public bool Equals(IArrayTypeSymbol other)
-            {
-                throw new NotImplementedException();
-            }
+            public bool Equals(IArrayTypeSymbol other) => throw new NotImplementedException();
 
             #endregion
         }

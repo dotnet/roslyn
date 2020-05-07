@@ -13,33 +13,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             #region default implementation
 
             public bool IsNamespace => throw new System.NotImplementedException();
-
             public bool IsType => throw new System.NotImplementedException();
-
-            public virtual ImmutableArray<ISymbol> GetMembers()
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public ImmutableArray<ISymbol> GetMembers(string name)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public ImmutableArray<INamedTypeSymbol> GetTypeMembers()
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name, int arity)
-            {
-                throw new System.NotImplementedException();
-            }
+            public virtual ImmutableArray<ISymbol> GetMembers() => throw new System.NotImplementedException();
+            public ImmutableArray<ISymbol> GetMembers(string name) => throw new System.NotImplementedException();
+            public ImmutableArray<INamedTypeSymbol> GetTypeMembers() => throw new System.NotImplementedException();
+            public ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name) => throw new System.NotImplementedException();
+            public ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name, int arity) => throw new System.NotImplementedException();
 
             #endregion
         }

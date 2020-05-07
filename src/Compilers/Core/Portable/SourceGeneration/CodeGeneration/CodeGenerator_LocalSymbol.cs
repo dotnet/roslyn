@@ -73,11 +73,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             #region default implementation
 
             public bool IsFunctionValue => throw new NotImplementedException();
-
             public bool IsFixed => throw new NotImplementedException();
-
             public RefKind RefKind => throw new NotImplementedException();
-
             public NullableAnnotation NullableAnnotation => throw new NotImplementedException();
 
             #endregion
