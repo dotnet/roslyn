@@ -116,6 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingField.GetUseSiteDiagnostic();
         }
 
+        internal override bool RequiresCompletion => _underlyingField.RequiresCompletion;
+
+        internal override bool HasComplete(CompletionPart part) => _underlyingField.HasComplete(part);
+
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
             _underlyingField.ForceComplete(locationOpt, cancellationToken);

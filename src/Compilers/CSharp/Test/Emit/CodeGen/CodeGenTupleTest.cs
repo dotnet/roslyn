@@ -27358,11 +27358,19 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
             var type = (SourceNamedTypeSymbol)comp.GetMember("System.ValueTuple");
             var field = (TupleFieldSymbol)type.GetMember("Item1");
-            Assert.False(isComplete(field));
-            field.ForceComplete(null, default);
-            Assert.True(isComplete(field));
+            var underlyingField = field.TupleUnderlyingField;
 
-            static bool isComplete(TupleFieldSymbol field) => field.TupleUnderlyingField.HasComplete(CompletionPart.All);
+            Assert.True(field.RequiresCompletion);
+            Assert.True(underlyingField.RequiresCompletion);
+            Assert.False(field.HasComplete(CompletionPart.All));
+            Assert.False(underlyingField.HasComplete(CompletionPart.All));
+
+            field.ForceComplete(null, default);
+
+            Assert.True(field.RequiresCompletion);
+            Assert.True(underlyingField.RequiresCompletion);
+            Assert.True(field.HasComplete(CompletionPart.All));
+            Assert.True(underlyingField.HasComplete(CompletionPart.All));
         }
     }
 }
