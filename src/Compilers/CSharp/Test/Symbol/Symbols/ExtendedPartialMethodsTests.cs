@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -584,6 +585,49 @@ class D : C
         }
 
         [Fact]
+        public void Virtual_AllowNull_05()
+        {
+            const string text1 = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+partial class C
+{
+    internal virtual partial void M1([AllowNull] string s1, string s2);
+    internal virtual partial void M1(string s1, [AllowNull] string s2) { }
+}
+class D : C
+{
+    internal override void M1([AllowNull] string s1, [AllowNull] string s2)
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { text1, AllowNullAttributeDefinition }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Virtual_AllowNull_06()
+        {
+            const string text1 = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+partial class C
+{
+    internal virtual partial void M1([AllowNull] string s1, string s2);
+    internal virtual partial void M1(string s1, [AllowNull] string s2) { }
+}
+partial class D : C
+{
+    internal override partial void M1(string s1, [AllowNull] string s2);
+    internal override partial void M1([AllowNull] string s1, string s2) { }
+}";
+            var comp = CreateCompilation(new[] { text1, AllowNullAttributeDefinition }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Override_LangVersion()
         {
             const string text1 = @"
@@ -674,6 +718,55 @@ partial class D : C
                 // (10,27): error CS8796: Partial method 'D.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     override partial void M1() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("D.M1()").WithLocation(10, 27)
+            );
+            var method = comp.GetMember<MethodSymbol>("D.M1");
+            Assert.Equal(comp.GetMember<MethodSymbol>("C.M1"), method.OverriddenMethod);
+        }
+
+        [Fact]
+        public void Override_NoImpl()
+        {
+            const string text1 = @"
+class C
+{
+    internal virtual void M1() { }
+}
+
+partial class D : C
+{
+    internal override partial void M1();
+}";
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (9,36): error CS8793: Partial method 'D.M1()' must have an implementation part because it has accessibility modifiers.
+                //     internal override partial void M1();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M1").WithArguments("D.M1()").WithLocation(9, 36)
+            );
+            var method = comp.GetMember<MethodSymbol>("D.M1");
+            Assert.Equal(comp.GetMember<MethodSymbol>("C.M1"), method.OverriddenMethod);
+        }
+
+        [Fact]
+        public void Override_NoImpl_NoAccessibility()
+        {
+            const string text1 = @"
+class C
+{
+    internal virtual void M1() { }
+}
+
+partial class D : C
+{
+    override partial void M1();
+}";
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (9,27): error CS8796: Partial method 'D.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                //     override partial void M1();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("D.M1()").WithLocation(9, 27),
+                // (9,27): error CS0507: 'D.M1()': cannot change access modifiers when overriding 'internal' inherited member 'C.M1()'
+                //     override partial void M1();
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "M1").WithArguments("D.M1()", "internal", "C.M1()").WithLocation(9, 27)
             );
             var method = comp.GetMember<MethodSymbol>("D.M1");
             Assert.Equal(comp.GetMember<MethodSymbol>("C.M1"), method.OverriddenMethod);
@@ -776,6 +869,27 @@ partial class D : C
                 // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         s2.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(15, 9));
+        }
+
+        [Fact]
+        public void Override_GenericBase()
+        {
+            const string text1 = @"
+#nullable enable
+
+class C<T>
+{
+    internal virtual void M1(T t1) { }
+}
+partial class D : C<string>
+{
+    internal override partial void M1(string t1);
+    internal override partial void M1(string t1)
+    {
+    }
+}";
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -891,6 +1005,23 @@ partial class D : C
         }
 
         [Fact]
+        public void NewVirtual_Reordered()
+        {
+            const string text1 = @"
+class C
+{
+    internal virtual void M1() { }
+}
+partial class D : C
+{
+    internal new virtual partial void M1();
+    internal virtual new partial void M1() { }
+}";
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Extern_LangVersion()
         {
             const string text1 = @"
@@ -914,6 +1045,32 @@ partial class C
 
             comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Extern_DuplicateMod()
+        {
+            const string text1 = @"
+using System.Runtime.InteropServices;
+
+partial class C
+{
+    internal static extern partial void M1();
+
+    [DllImport(""something.dll"")]
+    internal static extern partial void M1();
+}";
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (6,41): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M1()'
+                //     internal static extern partial void M1();
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M1").WithArguments("C.M1()").WithLocation(6, 41),
+                // (9,41): error CS0757: A partial method may not have multiple implementing declarations
+                //     internal static extern partial void M1();
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneActual, "M1").WithLocation(9, 41),
+                // (9,41): error CS0111: Type 'C' already defines a member called 'M1' with the same parameter types
+                //     internal static extern partial void M1();
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "C").WithLocation(9, 41));
         }
 
         [Fact]
@@ -994,7 +1151,14 @@ public partial class C
                 var type = module.ContainingAssembly.GetTypeByMetadataName("C");
                 var method = type.GetMember<MethodSymbol>("M1");
 
+                // note: we're opting to give the same answer for 'IsExtern' on both partial method declarations 
+                // because 'IsExtern' is true when the method is round tripped from metadata.
                 Assert.True(method.IsExtern);
+                if (method.PartialImplementationPart is MethodSymbol implementation)
+                {
+                    Assert.True(method.IsPartialDefinition());
+                    Assert.True(implementation.IsExtern);
+                }
 
                 var importData = method.GetDllImportData();
                 Assert.NotNull(importData);
@@ -1028,9 +1192,6 @@ partial class C
 
             var method = (MethodSymbol)comp.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
-            // PROTOTYPE: it feels like both IsAsync/IsExtern should be shared between
-            // definition+implementation, or neither should.
-            // Currently IsExtern is shared but IsAsync is not.
             Assert.False(method.IsAsync);
             Assert.True(method.PartialImplementationPart.IsAsync);
         }
@@ -1055,9 +1216,6 @@ partial class C
 
             var method = (MethodSymbol)comp.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
-            // PROTOTYPE: it feels like both IsAsync/IsExtern should be shared between
-            // definition+implementation, or neither should.
-            // Currently IsExtern is shared but IsAsync is not.
             Assert.False(method.IsAsync);
             Assert.True(method.PartialImplementationPart.IsAsync);
         }
@@ -1090,9 +1248,6 @@ partial class C
 
             var method = (MethodSymbol)verifier.Compilation.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
-            // PROTOTYPE: it feels like both IsAsync/IsExtern should be shared between
-            // definition+implementation, or neither should.
-            // Currently IsExtern is shared but IsAsync is not.
             Assert.False(method.IsAsync);
             Assert.True(method.PartialImplementationPart.IsAsync);
         }
@@ -1169,6 +1324,32 @@ partial class C
                 // (9,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task>'.
                 //         await Task.Yield();
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Yield()").WithArguments("System.Threading.Tasks.Task").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void Async_07()
+        {
+            const string text = @"
+using System.Threading.Tasks;
+
+partial class C
+{
+    partial Task M();
+    async partial Task M()
+    {
+        await Task.Yield();
+    }
+}
+";
+
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS8794: Partial method 'C.M()' must have accessibility modifiers because it has a non-void return type.
+                //     partial Task M();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M").WithArguments("C.M()").WithLocation(6, 18),
+                // (7,24): error CS8794: Partial method 'C.M()' must have accessibility modifiers because it has a non-void return type.
+                //     async partial Task M()
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M").WithArguments("C.M()").WithLocation(7, 24));
         }
 
         [Fact]
@@ -1470,6 +1651,155 @@ partial class C
         }
 
         [Fact]
+        public void DefaultInterfaceImpl_NoImpl()
+        {
+            const string text = @"
+#nullable enable
+
+partial interface I
+{
+    internal partial void M(string s1);
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS8793: Partial method 'I.M(string)' must have an implementation part because it has accessibility modifiers.
+                //     internal partial void M(string s1);
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M").WithArguments("I.M(string)").WithLocation(6, 27)
+            );
+        }
+
+        [Fact]
+        public void DefaultInterfaceImpl_01()
+        {
+            const string text = @"
+#nullable enable
+
+partial interface I
+{
+    internal partial void M(string s1);
+    internal partial void M(string s1) { }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            comp.VerifyDiagnostics(
+            );
+        }
+
+        [Fact]
+        public void DefaultInterfaceImpl_AllowNull_01()
+        {
+            const string text = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+partial interface I
+{
+    public partial void M([AllowNull] string s1);
+    public partial void M(string s1)
+    {
+        _ = s1.ToString(); // 1
+    }
+}
+
+class C : I
+{
+    public void M(string s1) { }
+}
+";
+            // note that I.M is not virtual so C.M does not implement it
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            comp.VerifyDiagnostics(
+                // (10,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s1").WithLocation(10, 13)
+            );
+        }
+
+        [Fact]
+        public void DefaultInterfaceImpl_AllowNull_02()
+        {
+            const string text = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+partial interface I
+{
+    public virtual partial void M([AllowNull] string s1, string s2);
+    public virtual partial void M(string s1, [AllowNull] string s2)
+    {
+        _ = s1.ToString(); // 1
+        _ = s2.ToString(); // 2
+    }
+}
+
+class C : I
+{
+    void I.M(string s1, string s2) { } // 3, 4
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            comp.VerifyDiagnostics(
+                // (10,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s1").WithLocation(10, 13),
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(11, 13),
+                // (17,12): warning CS8769: Nullability of reference types in type of parameter 's1' doesn't match implemented member 'void I.M(string s1, string s2)' (possibly because of nullability attributes).
+                //     void I.M(string s1, string s2) { } // 3, 4
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation, "M").WithArguments("s1", "void I.M(string s1, string s2)").WithLocation(17, 12),
+                // (17,12): warning CS8769: Nullability of reference types in type of parameter 's2' doesn't match implemented member 'void I.M(string s1, string s2)' (possibly because of nullability attributes).
+                //     void I.M(string s1, string s2) { } // 3, 4
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation, "M").WithArguments("s2", "void I.M(string s1, string s2)").WithLocation(17, 12)
+            );
+        }
+
+        [Fact]
+        public void DefaultInterfaceImpl_AllowNull_03()
+        {
+            const string text = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+partial interface I
+{
+    public virtual partial void M([AllowNull] string s1, string s2);
+    public virtual partial void M(string s1, [AllowNull] string s2)
+    {
+        _ = s1.ToString(); // 1
+        _ = s2.ToString(); // 2
+    }
+}
+
+partial class C : I
+{
+    public partial void M(string s1, [AllowNull] string s2);
+    public partial void M([AllowNull] string s1, string s2)
+    {
+        _ = s1.ToString(); // 3
+        _ = s2.ToString(); // 4
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            comp.VerifyDiagnostics(
+                // (10,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s1").WithLocation(10, 13),
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(11, 13),
+                // (20,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s1.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s1").WithLocation(20, 13),
+                // (21,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s2.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(21, 13)
+            );
+        }
+
+        [Fact]
         public void ExplicitInterfaceImpl_01()
         {
             const string text = @"
@@ -1492,6 +1822,60 @@ partial class C : I
                 // (10,20): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I.M() { } // 2
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(10, 20));
+        }
+
+        [Fact]
+        public void ExplicitInterfaceImpl_02()
+        {
+            const string text = @"
+interface I
+{
+    int M();
+}
+
+partial class C : I
+{
+    partial int I.M();
+    partial int I.M() => 42;
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (9,19): error CS0754: A partial method may not explicitly implement an interface method
+                //     partial int I.M();
+                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(9, 19),
+                // (9,19): error CS8794: Partial method 'C.I.M()' must have accessibility modifiers because it has a non-void return type.
+                //     partial int I.M();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M").WithArguments("C.I.M()").WithLocation(9, 19),
+                // (10,19): error CS0754: A partial method may not explicitly implement an interface method
+                //     partial int I.M() => 42;
+                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(10, 19),
+                // (10,19): error CS8794: Partial method 'C.I.M()' must have accessibility modifiers because it has a non-void return type.
+                //     partial int I.M() => 42;
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M").WithArguments("C.I.M()").WithLocation(10, 19));
+        }
+
+        [Fact]
+        public void InsideStruct()
+        {
+            const string text = @"
+partial struct S
+{
+    public partial int M();
+    public partial int M() => 42;
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (4,24): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public partial int M();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("extended partial methods").WithLocation(4, 24),
+                // (5,24): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public partial int M() => 42;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("extended partial methods").WithLocation(5, 24));
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
