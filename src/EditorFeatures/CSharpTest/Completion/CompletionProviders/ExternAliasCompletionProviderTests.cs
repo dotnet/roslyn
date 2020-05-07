@@ -31,7 +31,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE(SimplePrograms)"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact(Skip = "PROTOTYPE(TopLevelStatements)"), Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExternAlias()
         {
             var markup = @"

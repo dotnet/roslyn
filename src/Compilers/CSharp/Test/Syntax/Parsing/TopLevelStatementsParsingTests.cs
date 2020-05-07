@@ -10,10 +10,10 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.SimplePrograms)]
-    public sealed class SimpleProgramsParsingTests : ParsingTests
+    [CompilerTrait(CompilerFeature.TopLevelStatements)]
+    public sealed class TopLevelStatementsParsingTests : ParsingTests
     {
-        public SimpleProgramsParsingTests(ITestOutputHelper output) : base(output) { }
+        public TopLevelStatementsParsingTests(ITestOutputHelper output) : base(output) { }
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {

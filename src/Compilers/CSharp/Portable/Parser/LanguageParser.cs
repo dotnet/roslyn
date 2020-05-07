@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int _recursionDepth;
         private TerminatorState _termState; // Resettable
         private bool _isInTry; // Resettable
-        private bool _checkedSimpleProgramsFeatureAvailability; // Resettable
+        private bool _checkedTopLevelStatementsFeatureAvailability; // Resettable
 
         // NOTE: If you add new state, you should probably add it to ResetPoint as well.
 
@@ -590,15 +590,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private GlobalStatementSyntax CheckSimpleProgramsFeatureAvailability(GlobalStatementSyntax globalStatementSyntax)
+        private GlobalStatementSyntax CheckTopLevelStatementsFeatureAvailability(GlobalStatementSyntax globalStatementSyntax)
         {
-            if (IsScript || _checkedSimpleProgramsFeatureAvailability)
+            if (IsScript || _checkedTopLevelStatementsFeatureAvailability)
             {
                 return globalStatementSyntax;
             }
 
-            _checkedSimpleProgramsFeatureAvailability = true;
-            return CheckFeatureAvailability(globalStatementSyntax, MessageID.IDS_FeatureSimplePrograms);
+            _checkedTopLevelStatementsFeatureAvailability = true;
+            return CheckFeatureAvailability(globalStatementSyntax, MessageID.IDS_TopLevelStatements);
         }
 
         private static void AddIncompleteMembers(ref SyntaxListBuilder<MemberDeclarationSyntax> incompleteMembers, ref NamespaceBodyBuilder body)
@@ -2051,14 +2051,14 @@ tryAgain:
                             case SyntaxKind.UnsafeKeyword:
                                 if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
                                 {
-                                    return CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes)));
+                                    return CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes)));
                                 }
                                 break;
 
                             case SyntaxKind.FixedKeyword:
                                 if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
                                 {
-                                    return CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseFixedStatement(attributes)));
+                                    return CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseFixedStatement(attributes)));
                                 }
                                 break;
 
@@ -2067,14 +2067,14 @@ tryAgain:
                                 {
                                     case SyntaxKind.OpenParenToken:
                                     case SyntaxKind.OpenBraceToken:
-                                        return CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes)));
+                                        return CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes)));
                                 }
                                 break;
 
                             case SyntaxKind.NewKeyword:
                                 if (IsPossibleNewExpression())
                                 {
-                                    return CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes)));
+                                    return CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes)));
                                 }
                                 break;
                         }
@@ -2192,7 +2192,7 @@ tryAgain:
                                 IsInAsync = true; // We are implicitly in an async context
                             }
                             // In Script we don't allow local declaration statements at the top level.  We want
-                            // to fall out below and parse them instead as fields. For Simple Programs, we allow
+                            // to fall out below and parse them instead as fields. For top-level statements, we allow
                             // them, but want to try properties , etc. first.
                             var statement = this.ParseStatementCore(attributes, isGlobal: true);
 
@@ -2201,7 +2201,7 @@ tryAgain:
 
                             if (isAcceptableNonDeclarationStatement(statement, IsScript))
                             {
-                                return CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
+                                return CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
                             }
                         }
 
@@ -2333,7 +2333,7 @@ parse_member_name:;
 
                 if (topLevelStatement is DeclarationSyntax declaration && IsMakingProgress(ref lastTokenPosition, assertIfFalse: false))
                 {
-                    result = CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(declaration));
+                    result = CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(declaration));
                     return true;
                 }
 

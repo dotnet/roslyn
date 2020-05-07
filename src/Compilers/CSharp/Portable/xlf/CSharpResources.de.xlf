@@ -1039,11 +1039,6 @@
         <target state="translated">ref-Neuzuweisung</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureSimplePrograms">
-        <source>simple programs</source>
-        <target state="new">simple programs</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
         <source>stackalloc initializer</source>
         <target state="translated">stackalloc-Initialisierer</target>
@@ -1112,6 +1107,11 @@
       <trans-unit id="IDS_RELATEDWARNING">
         <source>(Location of symbol related to previous warning)</source>
         <target state="translated">(Position des Symbols für die vorherige Warnung)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_TopLevelStatements">
+        <source>top-level statements</source>
+        <target state="new">top-level statements</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED">

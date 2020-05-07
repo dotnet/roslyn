@@ -459,7 +459,7 @@ public class goo
         }
 
         [WorkItem(775091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
-        [Fact(Skip = "PROTOTYPE(SimplePrograms)"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact(Skip = "PROTOTYPE(TopLevelStatements)"), Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ParamRefNames()
         {
             await VerifyItemExistsAsync(@"
@@ -472,7 +472,7 @@ static void Main(string[] args)
 ", "args");
         }
 
-        [Fact(Skip = "PROTOTYPE(SimplePrograms)"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact(Skip = "PROTOTYPE(TopLevelStatements)"), Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ParamNamesInEmptyAttribute()
         {
             await VerifyItemExistsAsync(@"

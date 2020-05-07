@@ -1337,7 +1337,7 @@ class P
             => await IterateAllAsync(TestResource.AllInOneCSharpCode);
 
         [WorkItem(9931, "DevDiv_Projects/Roslyn")]
-        [Fact(Skip = "PROTOTYPE(SimplePrograms)"), Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact(Skip = "PROTOTYPE(TopLevelStatements)"), Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethodIdentifierAtEndOfInteractiveBuffer()
         {
             var code = @"using System.Console;

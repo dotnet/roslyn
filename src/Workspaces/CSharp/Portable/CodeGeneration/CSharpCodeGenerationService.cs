@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         protected override TDeclarationNode AddMethod<TDeclarationNode>(TDeclarationNode destination, IMethodSymbol method, CodeGenerationOptions options, IList<bool> availableIndices)
         {
-            // PROTOTYPE(SimplePrograms): Add handling for top level statements
+            // PROTOTYPE(TopLevelStatements): Add handling for top level statements
             if (destination is GlobalStatementSyntax)
             {
                 return destination;

@@ -674,9 +674,9 @@ namespace A.B {
              );
 
             comp.VerifyDiagnostics(
-                // (1,1): error CS8652: The feature 'simple programs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("simple programs").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("top-level statements").WithLocation(1, 1),
                 // (1,1): error CS8652: The feature 'extern local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("extern local functions").WithLocation(1, 1),
