@@ -206,7 +206,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             workQueue.AddWork(new DocumentAndComments(documentId, infos));
         }
 
-        /// <inheritdoc cref="IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>
         async Task IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(
             Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken)
         {
@@ -222,7 +221,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
         }
 
-        /// <inheritdoc cref="IVsTypeScriptTodoCommentService.OnDocumentRemovedAsync(DocumentId, CancellationToken)"/>
         Task IVsTypeScriptTodoCommentService.OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken) =>
             OnDocumentRemovedAsync(documentId, cancellationToken);
     }
