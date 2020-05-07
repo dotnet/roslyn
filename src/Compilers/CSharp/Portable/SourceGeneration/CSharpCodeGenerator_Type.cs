@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case SymbolKind.ArrayType:
                     return GenerateArrayTypeSyntaxWithoutNullable((IArrayTypeSymbol)symbol);
                 case SymbolKind.DynamicType:
+                    return GenerateDynamicTypeSyntaxWithoutNullable((IDynamicTypeSymbol)symbol);
                 case SymbolKind.ErrorType:
                 case SymbolKind.PointerType:
                 case SymbolKind.TypeParameter:
