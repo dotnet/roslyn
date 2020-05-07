@@ -3002,11 +3002,6 @@ class C
             project = solution.GetProject(pid);
 
             Assert.Equal("--test", project.CommandLineOptions);
-
-            Assert.Throws<ArgumentException>(() => solution = solution.WithProjectCommandLineOptions(pid, null));
-            project = solution.GetProject(pid);
-
-            Assert.Equal("--test", project.CommandLineOptions);
         }
 
         private static void GetMultipleProjects(

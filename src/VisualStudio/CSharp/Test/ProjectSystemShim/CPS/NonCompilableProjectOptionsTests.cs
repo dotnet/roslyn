@@ -37,9 +37,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             Assert.Equal("--test", GetCommandLineOptions());
 
             Assert.Throws<ArgumentException>(() => project.SetOptions(null));
-
-            Assert.Equal("--test", GetCommandLineOptions());
-
         }
 
         [WpfFact]
