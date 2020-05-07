@@ -93,6 +93,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public IMethodSymbol SetMethod { get; }
             public ImmutableArray<IPropertySymbol> ExplicitInterfaceImplementations { get; }
 
+            public override ImmutableArray<AttributeData> GetAttributes()
+                => _attributes;
+
             public override void Accept(SymbolVisitor visitor)
                 => visitor.VisitProperty(this);
 
