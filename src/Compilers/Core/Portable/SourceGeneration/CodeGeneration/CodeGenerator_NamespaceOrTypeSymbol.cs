@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             public bool IsType => throw new System.NotImplementedException();
 
-            public ImmutableArray<ISymbol> GetMembers()
+            public virtual ImmutableArray<ISymbol> GetMembers()
             {
                 throw new System.NotImplementedException();
             }
