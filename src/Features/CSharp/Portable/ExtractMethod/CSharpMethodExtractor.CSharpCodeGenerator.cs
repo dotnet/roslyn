@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     modifiers: CreateMethodModifiers(),
                     returnType: AnalyzerResult.ReturnType,
                     refKind: RefKind.None,
+                    isInitOnly: false,
                     explicitInterfaceImplementations: default,
                     name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(),

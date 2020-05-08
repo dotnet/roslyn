@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public IMethodSymbol ConstructedFrom => _symbol.ConstructedFrom;
 
             public bool IsReadOnly => _symbol.IsReadOnly;
-            public bool IsInitOnly => _symbol.IsInitOnly; // TODO2: test MetadataAsSource
+            public bool IsInitOnly => _symbol.IsInitOnly;
 
             public ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
             {

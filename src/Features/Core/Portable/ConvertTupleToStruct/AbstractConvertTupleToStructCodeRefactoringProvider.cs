@@ -748,6 +748,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 modifiers: default,
                 model.Compilation.GetSpecialType(SpecialType.System_Void),
                 RefKind.None,
+                isInitOnly: false,
                 explicitInterfaceImplementations: default,
                 WellKnownMemberNames.DeconstructMethodName,
                 typeParameters: default,

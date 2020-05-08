@@ -150,6 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 modifiers:=Nothing,
                 returnType:=typeToGenerateIn,
                 refKind:=RefKind.None,
+                isInitOnly:=False,
                 explicitInterfaceImplementations:=Nothing,
                 name:=Nothing,
                 typeParameters:=ImmutableArray(Of ITypeParameterSymbol).Empty,

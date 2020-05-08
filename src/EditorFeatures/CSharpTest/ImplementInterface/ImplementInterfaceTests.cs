@@ -8418,6 +8418,30 @@ class C : [|I|]
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task ImplementInitOnlyProperty()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    int Property { get; init; }
+}
+
+class C : [|I|]
+{
+}",
+@"
+interface I
+{
+    int Property { get; init; }
+}
+
+class C : [|I|]
+{
+    public int Property { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task ImplementRemainingExplicitlyMissingWhenAllImplemented()
         {
             await TestActionCountAsync(@"

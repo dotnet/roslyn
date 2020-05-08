@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
         private static IMethodSymbol CreateAccessorSymbol(IPropertySymbol prop, MethodKind kind)
             => CodeGenerationSymbolFactory.CreateMethodSymbol(
                    attributes: default, Accessibility.Public, DeclarationModifiers.Abstract,
-                   prop.Type, refKind: default, explicitInterfaceImplementations: default,
+                   prop.Type, refKind: default, isInitOnly: false, explicitInterfaceImplementations: default,
                    name: "", typeParameters: default, parameters: default, methodKind: kind);
 
         private static IMethodSymbol CreateConstructor(

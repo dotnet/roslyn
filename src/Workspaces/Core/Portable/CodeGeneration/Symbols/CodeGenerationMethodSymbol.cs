@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -34,7 +35,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             this.ReturnType = returnType;
             this.RefKind = refKind;
-            this.IsInitOnly = isInitOnly;
+
+            Debug.Assert(!isInitOnly || methodKind == MethodKind.PropertySet);
+            this.IsInitOnly = methodKind == MethodKind.PropertySet && isInitOnly;
+
             this.TypeParameters = typeParameters.NullToEmpty();
             this.Parameters = parameters.NullToEmpty();
             this.MethodKind = methodKind;

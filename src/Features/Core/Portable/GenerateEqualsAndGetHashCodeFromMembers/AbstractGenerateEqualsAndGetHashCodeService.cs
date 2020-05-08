@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 modifiers: new DeclarationModifiers(isOverride: true),
                 returnType: compilation.GetSpecialType(SpecialType.System_Int32),
                 refKind: RefKind.None,
+                isInitOnly: false,
                 explicitInterfaceImplementations: default,
                 name: GetHashCodeName,
                 typeParameters: default,
