@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case SymbolKind.PointerType:
                     break;
                 case SymbolKind.Property:
-                    break;
+                    return GeneratePropertyOrIndexerDeclaration((IPropertySymbol)symbol);
                 case SymbolKind.RangeVariable:
                     break;
                 case SymbolKind.TypeParameter:

@@ -2427,7 +2427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
             TypeSyntax type,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
+            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
             SyntaxToken identifier,
             AccessorListSyntax accessorList)
         {

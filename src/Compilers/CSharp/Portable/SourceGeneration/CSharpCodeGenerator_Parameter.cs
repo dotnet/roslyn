@@ -23,6 +23,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             return ParameterList(SeparatedList(builder));
         }
 
+        private static BracketedParameterListSyntax GenerateBracketedParameterList(ImmutableArray<IParameterSymbol> parameters)
+        {
+            using var _ = GetArrayBuilder<ParameterSyntax>(out var builder);
+
+            foreach (var parameter in parameters)
+                builder.Add(GenerateParameter(parameter));
+
+            return BracketedParameterList(SeparatedList(builder));
+        }
+
         private static ParameterSyntax GenerateParameter(IParameterSymbol parameter)
         {
             var expression = GenerateConstantExpression(
