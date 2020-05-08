@@ -29,8 +29,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
             Throw New NotImplementedException()
         End Function
 
-        Private Function GenerateConstructor(symbol As IMethodSymbol) As DeclarationStatementSyntax
-            Throw New NotImplementedException()
+        Private Function GenerateConstructor(symbol As IMethodSymbol) As ConstructorBlockSyntax
+            Return ConstructorBlock(
+                SubNewStatement(
+                    GenerateAttributeLists(symbol.GetAttributes()),
+                    GenerateModifiers(isType:=False, symbol.DeclaredAccessibility, symbol.GetModifiers()),
+                    GenerateParameterList(symbol.Parameters)),
+                statements:=Nothing,
+                EndSubStatement())
         End Function
 
         Private Function GenerateConversion(symbol As IMethodSymbol) As DeclarationStatementSyntax

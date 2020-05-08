@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 Identifier(method.ContainingType?.Name ?? method.Name),
                 GenerateParameterList(method.Parameters),
                 initializer: null,
-                body: null,
-                semicolonToken: Token(SyntaxKind.SemicolonToken));
+                body: Block(),
+                semicolonToken: default);
         }
 
         private static ConversionOperatorDeclarationSyntax GenerateConversion(IMethodSymbol method)
