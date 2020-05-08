@@ -1155,10 +1155,13 @@ class Test
             // although it may change from one version of the CLR to another (not sure). If it turns out that this makes
             // the test flaky, we can delete this test.
 
+            // Note: When implementing covariant return types, we caused the compiler to insert a methodimpl for the
+            // override that forces the runtime to agree with the compile-time override behavior.  It used to be
+            // that the third line printed was "Base.Method(ref)", but it now correctly prints as "Derived.Method(ref)".
             var comp = CompileAndVerify(source, expectedOutput: @"
 Derived.Method(ref, out)
 Base.Method(ref, out)
-Base.Method(ref)");
+Derived.Method(ref)");
         }
         [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
         [Fact]

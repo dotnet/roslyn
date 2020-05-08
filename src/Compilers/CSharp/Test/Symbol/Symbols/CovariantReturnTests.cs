@@ -1924,7 +1924,7 @@ public class Derived : Mid
         }
 
         [Fact]
-        public void OverlappingMethodimplRequirements()
+        public void OverlappingMethodimplRequirements_01()
         {
             var source = @"
 public class A
@@ -1969,6 +1969,85 @@ public class D : C
                 VerifyOverride(comp, "D.P", "System.String D.P { get; }", "System.Object B.P { get; }");
                 VerifyOverride(comp, "D.get_P", "System.String D.P.get", "System.Object B.P.get");
                 VerifyAssignments(comp);
+            }
+        }
+
+        [Fact]
+        public void OverlappingMethodimplRequirements_02()
+        {
+            var source = @"
+public class A
+{
+    public virtual string P => null;
+}
+public class B : A
+{
+    public virtual new object P => null;
+}
+public class C : B
+{
+    public override string P => null;
+}
+";
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+                // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string P => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(12, 28)
+                );
+            verify(comp);
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
+                );
+            verify(comp);
+            verify(CompilationReferenceView(comp));
+            verify(MetadataView(comp));
+            verify(RetargetedView(comp));
+
+            static void verify(CSharpCompilation comp)
+            {
+                VerifyNoOverride(comp, "A.P");
+                VerifyNoOverride(comp, "A.get_P");
+                VerifyNoOverride(comp, "B.P");
+                VerifyNoOverride(comp, "B.get_P");
+                VerifyOverride(comp, "C.P", "System.String C.P { get; }", "System.Object B.P { get; }");
+                VerifyOverride(comp, "C.get_P", "System.String C.P.get", "System.Object B.P.get");
+            }
+        }
+
+        [Fact]
+        public void OverlappingMethodimplRequirements_03()
+        {
+            var source = @"
+public class A
+{
+    public virtual string M() => null;
+}
+public class B : A
+{
+    public virtual new object M() => null;
+}
+public class C : B
+{
+    public override string M() => null;
+}
+";
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+                // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string M() => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(12, 28)
+                );
+            verify(comp);
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
+                );
+            verify(comp);
+            verify(CompilationReferenceView(comp));
+            verify(MetadataView(comp));
+            verify(RetargetedView(comp));
+
+            static void verify(CSharpCompilation comp)
+            {
+                VerifyNoOverride(comp, "A.M");
+                VerifyNoOverride(comp, "B.M");
+                VerifyOverride(comp, "C.M", "System.String C.M()", "System.Object B.M()");
             }
         }
     }

@@ -934,8 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // We can ignore interface implementation changes since the method is already metadata virtual (since override).
                 // TODO: do we want to add more sophisticated handling for the case where there are multiple runtime-overridden methods?
                 MethodSymbol runtimeOverriddenMethod = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
-                return runtimeOverriddenMethod is null ||
-                    (csharpOverriddenMethod != runtimeOverriddenMethod && method.IsAccessor() != runtimeOverriddenMethod.IsAccessor());
+                return csharpOverriddenMethod != runtimeOverriddenMethod;
             }
 
             return false;
