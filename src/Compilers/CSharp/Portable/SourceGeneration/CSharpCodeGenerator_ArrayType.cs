@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         private static ArrayTypeSyntax GenerateArrayTypeSyntaxWithoutNullable(IArrayTypeSymbol symbol, bool onlyNames)
         {
             if (onlyNames)
-                throw new ArgumentException("Array cannot be used in a name-only location.");
+                throw new ArgumentException("Array cannot be generated in a name-only location.");
 
             using var _ = GetArrayBuilder<ExpressionSyntax>(out var sizes);
 

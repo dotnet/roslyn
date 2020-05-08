@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                     return GenerateArrayTypeSyntaxWithoutNullable((IArrayTypeSymbol)symbol, onlyNames);
                 case SymbolKind.DynamicType:
                     return GenerateDynamicTypeSyntaxWithoutNullable((IDynamicTypeSymbol)symbol);
-                case SymbolKind.ErrorType:
                 case SymbolKind.PointerType:
-                    break;
+                    return GeneratePointerTypeSyntaxWithoutNullable((IPointerTypeSymbol)symbol, onlyNames);
                 case SymbolKind.TypeParameter:
                     return GenerateTypeParameterTypeSyntaxWithoutNullable((ITypeParameterSymbol)symbol);
+                case SymbolKind.ErrorType:
                 default:
                     break;
             }
