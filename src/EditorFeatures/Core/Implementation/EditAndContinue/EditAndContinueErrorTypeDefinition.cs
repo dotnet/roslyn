@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Utilities;
@@ -14,6 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         [Export(typeof(ErrorTypeDefinition))]
         [Name(Name)]
-        internal static ErrorTypeDefinition Definition;
+        internal static ErrorTypeDefinition? Definition;
     }
 }
