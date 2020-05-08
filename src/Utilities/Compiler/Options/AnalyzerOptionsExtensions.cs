@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -21,6 +22,28 @@ namespace Analyzer.Utilities
         private static readonly ImmutableHashSet<OutputKind> s_defaultOutputKinds =
             ImmutableHashSet.CreateRange(Enum.GetValues(typeof(OutputKind)).Cast<OutputKind>());
 
+        private static bool TryGetSyntaxTreeForOption(ISymbol symbol, [NotNullWhen(returnValue: true)] out SyntaxTree? tree)
+        {
+            switch (symbol)
+            {
+                case IAssemblySymbol _:
+                    tree = null;
+                    return false;
+
+                case INamespaceSymbol ns:
+                    if (ns.IsGlobalNamespace)
+                    {
+                        tree = null;
+                        return false;
+                    }
+
+                    break;
+            }
+
+            tree = symbol.Locations[0].SourceTree;
+            return tree != null;
+        }
+
         public static SymbolVisibilityGroup GetSymbolVisibilityGroupOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
@@ -28,7 +51,9 @@ namespace Analyzer.Utilities
             Compilation compilation,
             SymbolVisibilityGroup defaultValue,
             CancellationToken cancellationToken)
-        => options.GetSymbolVisibilityGroupOption(rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
+        => TryGetSyntaxTreeForOption(symbol, out var tree)
+            ? options.GetSymbolVisibilityGroupOption(rule, tree, compilation, defaultValue, cancellationToken)
+            : defaultValue;
 
         public static SymbolVisibilityGroup GetSymbolVisibilityGroupOption(
             this AnalyzerOptions options,
@@ -46,7 +71,9 @@ namespace Analyzer.Utilities
             Compilation compilation,
             SymbolModifiers defaultValue,
             CancellationToken cancellationToken)
-        => options.GetRequiredModifiersOption(rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
+        => TryGetSyntaxTreeForOption(symbol, out var tree)
+            ? options.GetRequiredModifiersOption(rule, tree, compilation, defaultValue, cancellationToken)
+            : defaultValue;
 
         public static SymbolModifiers GetRequiredModifiersOption(
             this AnalyzerOptions options,
@@ -64,7 +91,9 @@ namespace Analyzer.Utilities
             Compilation compilation,
             EnumValuesPrefixTrigger defaultValue,
             CancellationToken cancellationToken)
-        => options.GetEnumValuesPrefixTriggerOption(rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
+        => TryGetSyntaxTreeForOption(symbol, out var tree)
+            ? options.GetEnumValuesPrefixTriggerOption(rule, tree, compilation, defaultValue, cancellationToken)
+            : defaultValue;
 
         public static EnumValuesPrefixTrigger GetEnumValuesPrefixTriggerOption(
             this AnalyzerOptions options,
@@ -90,7 +119,9 @@ namespace Analyzer.Utilities
             Compilation compilation,
             ImmutableHashSet<SymbolKind> defaultSymbolKinds,
             CancellationToken cancellationToken)
-        => options.GetAnalyzedSymbolKindsOption(rule, symbol.Locations[0].SourceTree, compilation, defaultSymbolKinds, cancellationToken);
+        => TryGetSyntaxTreeForOption(symbol, out var tree)
+            ? options.GetAnalyzedSymbolKindsOption(rule, tree, compilation, defaultSymbolKinds, cancellationToken)
+            : defaultSymbolKinds;
 
         public static ImmutableHashSet<SymbolKind> GetAnalyzedSymbolKindsOption(
             this AnalyzerOptions options,
@@ -173,7 +204,9 @@ namespace Analyzer.Utilities
             Compilation compilation,
             bool defaultValue,
             CancellationToken cancellationToken)
-        => options.GetBoolOptionValue(optionName, rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
+        => TryGetSyntaxTreeForOption(symbol, out var tree)
+            ? options.GetBoolOptionValue(optionName, rule, tree, compilation, defaultValue, cancellationToken)
+            : defaultValue;
 
         public static bool GetBoolOptionValue(
             this AnalyzerOptions options,
@@ -196,7 +229,9 @@ namespace Analyzer.Utilities
             Compilation compilation,
             uint defaultValue,
             CancellationToken cancellationToken)
-        => options.GetUnsignedIntegralOptionValue(optionName, rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
+        => TryGetSyntaxTreeForOption(symbol, out var tree)
+            ? options.GetUnsignedIntegralOptionValue(optionName, rule, tree, compilation, defaultValue, cancellationToken)
+            : defaultValue;
 
         public static uint GetUnsignedIntegralOptionValue(
             this AnalyzerOptions options,
@@ -233,7 +268,9 @@ namespace Analyzer.Utilities
             ISymbol symbol,
             Compilation compilation,
             CancellationToken cancellationToken)
-        => options.GetExcludedSymbolNamesWithValueOption(rule, symbol.Locations[0].SourceTree, compilation, cancellationToken);
+        => TryGetSyntaxTreeForOption(symbol, out var tree)
+            ? options.GetExcludedSymbolNamesWithValueOption(rule, tree, compilation, cancellationToken)
+            : SymbolNamesWithValueOption<Unit>.Empty;
 
         public static SymbolNamesWithValueOption<Unit> GetExcludedSymbolNamesWithValueOption(
             this AnalyzerOptions options,
@@ -249,7 +286,9 @@ namespace Analyzer.Utilities
             ISymbol symbol,
             Compilation compilation,
             CancellationToken cancellationToken)
-        => options.GetExcludedTypeNamesWithDerivedTypesOption(rule, symbol.Locations[0].SourceTree, compilation, cancellationToken);
+        => TryGetSyntaxTreeForOption(symbol, out var tree)
+            ? options.GetExcludedTypeNamesWithDerivedTypesOption(rule, tree, compilation, cancellationToken)
+            : SymbolNamesWithValueOption<Unit>.Empty;
 
         public static SymbolNamesWithValueOption<Unit> GetExcludedTypeNamesWithDerivedTypesOption(
             this AnalyzerOptions options,
