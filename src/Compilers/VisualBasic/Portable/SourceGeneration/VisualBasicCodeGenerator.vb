@@ -51,6 +51,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
                     Return GenerateLabelIdentifierName(DirectCast(symbol, ILabelSymbol))
                 Case SymbolKind.Local
                     Return GenerateLocalIdentifierName(DirectCast(symbol, ILocalSymbol))
+                Case SymbolKind.Method
+                    Return GenerateMethodDeclaration(DirectCast(symbol, IMethodSymbol))
                 Case SymbolKind.NamedType
                     Return GenerateNamedTypeDeclaration(DirectCast(symbol, INamedTypeSymbol))
                 Case SymbolKind.Namespace

@@ -8,5 +8,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.SourceGeneration
     Partial Public Class CodeGenerationTests
         Private ReadOnly Int32 As ITypeSymbol = CodeGenerator.SpecialType(SpecialType.System_Int32)
         Private ReadOnly [Boolean] As ITypeSymbol = CodeGenerator.SpecialType(SpecialType.System_Boolean)
+        Private ReadOnly Void As ITypeSymbol = CodeGenerator.SpecialType(SpecialType.System_Void)
     End Class
 End Namespace

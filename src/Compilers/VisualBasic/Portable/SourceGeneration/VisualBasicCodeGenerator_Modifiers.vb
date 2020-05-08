@@ -83,6 +83,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
                     builder.Add(Token(SyntaxKind.WriteOnlyKeyword))
                 End If
 
+                If symbolModifiers.HasFlag(SymbolModifiers.Params) Then
+                    builder.Add(Token(SyntaxKind.ParamArrayKeyword))
+                End If
+
                 Return TokenList(builder)
             End Using
         End Function
