@@ -98,7 +98,29 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             if (symbol.TypeKind == TypeKind.Delegate)
                 return GenerateDelegateDeclaration(symbol);
 
-            throw new NotImplementedException();
+            var typeKind =
+                symbol.TypeKind == TypeKind.Struct ? SyntaxKind.StructDeclaration :
+                symbol.TypeKind == TypeKind.Interface ? SyntaxKind.InterfaceDeclaration :
+                SyntaxKind.ClassDeclaration;
+
+            var keyword = Token(
+                symbol.TypeKind == TypeKind.Struct ? SyntaxKind.StructKeyword :
+                symbol.TypeKind == TypeKind.Interface ? SyntaxKind.InterfaceKeyword :
+                SyntaxKind.ClassKeyword);
+
+            return TypeDeclaration(
+                typeKind,
+                GenerateAttributeLists(symbol.GetAttributes()),
+                GenerateModifiers(symbol.DeclaredAccessibility, symbol.GetModifiers()),
+                keyword,
+                Identifier(symbol.Name),
+                GenerateTypeParameterList(symbol.TypeArguments),
+                GenerateBaseList(symbol.BaseType, symbol.Interfaces),
+                GenerateTypeParameterConstraintClauses(symbol.TypeArguments),
+                Token(SyntaxKind.OpenBraceToken),
+                GenerateMemberDeclarations(symbol.GetMembers()),
+                Token(SyntaxKind.CloseBraceToken),
+                semicolonToken: default);
         }
 
         private static BaseListSyntax? GenerateBaseList(

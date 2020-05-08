@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         private static SyntaxNode GenerateCompilationUnitOrNamespaceDeclaration(INamespaceSymbol symbol)
         {
             var usings = GenerateUsingDirectives(CodeGenerator.GetImports(symbol));
-            var members = GenerateMemberDeclarations(symbol.GetMembers());
+            var members = GenerateMemberDeclarations(symbol.GetMembers().ToImmutableArray<ISymbol>());
 
             if (symbol.IsGlobalNamespace)
                 return CompilationUnit(externs: default, usings, attributeLists: default, members);

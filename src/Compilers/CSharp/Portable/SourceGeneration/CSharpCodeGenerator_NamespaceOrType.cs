@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         public static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol)
             => GenerateTypeSyntax(symbol, onlyNames: false);
 
-        public static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol, bool onlyNames)
+        private static TypeSyntax GenerateTypeSyntax(INamespaceOrTypeSymbol symbol, bool onlyNames)
         {
             if (symbol is INamespaceSymbol nsSymbol)
                 return GenerateNameSyntax(nsSymbol);
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
         }
 
-        private static SyntaxList<MemberDeclarationSyntax> GenerateMemberDeclarations(IEnumerable<INamespaceOrTypeSymbol> members)
+        private static SyntaxList<MemberDeclarationSyntax> GenerateMemberDeclarations(ImmutableArray<ISymbol> members)
         {
             using var _ = GetArrayBuilder<MemberDeclarationSyntax>(out var builder);
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             return List(builder);
         }
 
-        private static MemberDeclarationSyntax GenerateMemberDeclaration(INamespaceOrTypeSymbol member)
+        private static MemberDeclarationSyntax GenerateMemberDeclaration(ISymbol member)
             => (MemberDeclarationSyntax)GenerateSyntax(member);
 
         private static SyntaxList<UsingDirectiveSyntax> GenerateUsingDirectives(
