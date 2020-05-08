@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case SymbolKind.ErrorType:
                     break;
                 case SymbolKind.Event:
-                    break;
+                    return GenerateEventDeclaration((IEventSymbol)symbol);
                 case SymbolKind.Field:
                     return GenerateFieldDeclaration((IFieldSymbol)symbol);
                 case SymbolKind.Label:
