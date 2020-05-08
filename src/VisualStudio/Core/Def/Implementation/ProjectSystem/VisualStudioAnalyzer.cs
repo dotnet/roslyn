@@ -10,7 +10,6 @@ using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -18,10 +17,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     // Analyzers should not be loaded in devenv process (see https://github.com/dotnet/roslyn/issues/43008).
     internal sealed class VisualStudioAnalyzer : IDisposable
     {
+        // Shadow copy analyzer files coming from packages to avoid locking the files in NuGet cache.
+        // NOTE: It is important that we share the same shadow copy assembly loader for all VisualStudioAnalyzer instances.
+        // This is required to ensure that shadow copied analyzer dependencies are correctly loaded.
+        private static readonly IAnalyzerAssemblyLoader s_analyzerAssemblyLoader =
+            new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"));
+
         private readonly ProjectId _projectId;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly string _language;
-        private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
 
         // these 2 are mutable states that must be guarded under the _gate.
         private readonly object _gate = new object();
@@ -34,9 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _projectId = projectId;
             _language = language;
-
-            // Shadow copy analyzer files coming from packages to avoid locking the files in NuGet cache.
-            _analyzerAssemblyLoader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"));
         }
 
         public string FullPath { get; }
@@ -50,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // TODO: ensure the file watcher is subscribed
                     // (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/661546)
 
-                    var analyzerFileReference = new AnalyzerFileReference(FullPath, _analyzerAssemblyLoader);
+                    var analyzerFileReference = new AnalyzerFileReference(FullPath, s_analyzerAssemblyLoader);
                     analyzerFileReference.AnalyzerLoadFailed += OnAnalyzerLoadError;
                     _analyzerReference = analyzerFileReference;
                 }

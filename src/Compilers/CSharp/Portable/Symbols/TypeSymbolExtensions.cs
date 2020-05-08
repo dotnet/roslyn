@@ -659,7 +659,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                         {
                             // Let's try to avoid early resolution of nullable types
-                            var result = visitType(typeArg);
+                            var result = VisitType(
+                                typeWithAnnotationsOpt: canDigThroughNullable ? default : typeArg,
+                                type: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
+                                typeWithAnnotationsPredicate,
+                                typePredicate,
+                                arg,
+                                canDigThroughNullable,
+                                useDefaultType);
                             if (result is object)
                             {
                                 return result;
@@ -676,25 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case TypeKind.FunctionPointer:
-                        {
-                            MethodSymbol currentPointer = ((FunctionPointerTypeSymbol)current).Signature;
-                            var result = visitType(currentPointer.ReturnTypeWithAnnotations);
-                            if (result is object)
-                            {
-                                return result;
-                            }
-
-                            foreach (var parameter in currentPointer.Parameters)
-                            {
-                                result = visitType(parameter.TypeWithAnnotations);
-                                if (result is object)
-                                {
-                                    return result;
-                                }
-                            }
-                        }
-
-                        return null;
+                        return visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(current.TypeKind);
@@ -705,7 +694,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type = canDigThroughNullable ? next.NullableUnderlyingTypeOrSelf : null;
             }
 
-            TypeSymbol? visitType(TypeWithAnnotations typeArg) => VisitType(
+            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable)
+            {
+
+                MethodSymbol currentPointer = type.Signature;
+                var result = visitType(currentPointer.ReturnTypeWithAnnotations);
+                if (result is object)
+                {
+                    return result;
+                }
+
+                foreach (var parameter in currentPointer.Parameters)
+                {
+                    result = visitType(parameter.TypeWithAnnotations);
+                    if (result is object)
+                    {
+                        return result;
+                    }
+                }
+
+                return null;
+
+                TypeSymbol? visitType(TypeWithAnnotations typeArg) => VisitType(
                     typeWithAnnotationsOpt: canDigThroughNullable ? default : typeArg,
                     type: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
                     typeWithAnnotationsPredicate,
@@ -713,6 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     arg,
                     canDigThroughNullable,
                     useDefaultType);
+            }
         }
 
         private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
@@ -960,6 +971,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool ContainsNativeInteger(this TypeWithAnnotations type)
         {
             return type.Type?.ContainsNativeInteger() == true;
+        }
+
+        internal static bool ContainsErrorType(this TypeSymbol type)
+        {
+            var result = type.VisitType((type, unused1, unused2) => type.IsErrorType(), (object?)null, canDigThroughNullable: true);
+            return result is object;
         }
 
         /// <summary>

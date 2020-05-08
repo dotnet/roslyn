@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     return ParseNegativeLookaheadGrouping(openParenToken, questionToken);
 
                 case RegexKind.GreaterThanToken:
-                    return ParseNonBacktrackingGrouping(openParenToken, questionToken);
+                    return ParseAtomicGrouping(openParenToken, questionToken);
 
                 default:
                     if (_currentToken.Kind != RegexKind.CloseParenToken)
@@ -1136,8 +1136,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 openParenToken, questionToken, _currentToken,
                 ParseGroupingEmbeddedExpression(_options & ~RegexOptions.RightToLeft), ParseGroupingCloseParen());
 
-        private RegexNonBacktrackingGroupingNode ParseNonBacktrackingGrouping(RegexToken openParenToken, RegexToken questionToken)
-            => new RegexNonBacktrackingGroupingNode(
+        private RegexAtomicGroupingNode ParseAtomicGrouping(RegexToken openParenToken, RegexToken questionToken)
+            => new RegexAtomicGroupingNode(
                 openParenToken, questionToken, _currentToken,
                 ParseGroupingEmbeddedExpression(_options), ParseGroupingCloseParen());
 

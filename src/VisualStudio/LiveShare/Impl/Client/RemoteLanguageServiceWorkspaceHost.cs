@@ -102,7 +102,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         private async Task LoadRoslynPackageAsync(CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
 
             // Explicitly trigger the load of the Roslyn package. This ensures that UI-bound services are appropriately prefetched,
             // that FatalError is correctly wired up, etc. Ideally once the things happening in the package initialize are cleaned up with

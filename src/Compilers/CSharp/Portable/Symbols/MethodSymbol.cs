@@ -1069,6 +1069,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return sms.Equals(this, compareKind);
             }
 
+            if (other is NativeIntegerMethodSymbol nms)
+            {
+                return nms.Equals(this, compareKind);
+            }
+
             return base.Equals(other, compareKind);
         }
 

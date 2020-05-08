@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -23,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
         protected abstract TestWorkspace CreateWorkspace(string code);
         protected abstract Action CreateNextHandler(TestWorkspace workspace);
 
-        internal abstract IChainedCommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
-            ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperations);
+        internal abstract IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(TestWorkspace workspace);
 
         protected void Test(string expected, string code, bool completionActive = false, bool assertNextHandlerInvoked = false)
         {
@@ -37,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
                 view.Caret.MoveTo(new SnapshotPoint(buffer.CurrentSnapshot, workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value));
 
-                var commandHandler = CreateCommandHandler(
-                                        GetExportedValue<ITextUndoHistoryRegistry>(workspace),
-                                        GetExportedValue<IEditorOperationsFactoryService>(workspace));
+                var commandHandler = GetCommandHandler(workspace);
 
                 commandHandler.ExecuteCommand(new AutomaticLineEnderCommandArgs(view, buffer),
                                                     assertNextHandlerInvoked
