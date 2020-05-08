@@ -338,7 +338,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 accessor.TypeParameters,
                 accessor.Parameters,
                 statements,
-                returnTypeAttributes: accessor.GetReturnTypeAttributes());
+                returnTypeAttributes: accessor.GetReturnTypeAttributes(),
+                methodKind: accessor.MethodKind);
         }
 
         /// <summary>
@@ -478,7 +479,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 method.TypeParameters,
                 parameters ?? method.Parameters,
                 statements,
-                returnTypeAttributes: returnTypeAttributes.HasValue ? returnTypeAttributes.Value : method.GetReturnTypeAttributes());
+                returnTypeAttributes: returnTypeAttributes.HasValue ? returnTypeAttributes.Value : method.GetReturnTypeAttributes(),
+                methodKind: method.MethodKind);
         }
 
         internal static IPropertySymbol CreatePropertySymbol(

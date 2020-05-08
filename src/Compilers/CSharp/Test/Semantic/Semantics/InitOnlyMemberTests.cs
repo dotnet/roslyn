@@ -19,11 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         // Spec: https://github.com/dotnet/csharplang/blob/master/proposals/init.md
 
         // PROTOTYPE(init-only): test allowed from 'with' expression
-        // PROTOTYPE(init-only): public API, confirm behavior of IsInitOnly and test on each leaf type of wrapped symbol
-
-        // PROTOTYPE(init-only): open issues:
-        // PROTOTYPE(init-only): queue discussion on init methods (`init void Init()`) and collection initializers (`init void Add()`)
-
         // PROTOTYPE(init-only): test dynamic scenario
         // PROTOTYPE(init-only): test whether reflection use property despite modreq?
         // PROTOTYPE(init-only): test behavior of old compiler with modreq. For example VB
@@ -601,6 +596,74 @@ class Derived2 : Derived
             Assert.False(property.GetPublicSymbol().GetMethod.IsInitOnly);
             Assert.True(property.SetMethod.IsInitOnly);
             Assert.True(property.GetPublicSymbol().SetMethod.IsInitOnly);
+        }
+
+        [Fact(Skip = "PROTOTYPE(init-only) Not yet supported")]
+        public void InitOnlyPropertyAssignmentAllowedInWithInitializer()
+        {
+            string source = @"
+public class C
+{
+    public int Property { get; init; }
+
+    void M(C c)
+    {
+        _ = c with { Property = null };
+    }
+
+    public C Clone() => throw null;
+}
+
+class Derived : C
+{
+}
+
+class Derived2 : Derived
+{
+    void M(C c)
+    {
+        _ = c with { Property = null };
+        _ = this with { Property = null };
+    }
+}
+
+class Other
+{
+    void M()
+    {
+        var c = new C() with { Property = 42 };
+        System.Console.Write($""{c.Property}"");
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact(Skip = "PROTOTYPE(init-only) Not yet supported")]
+        public void InitOnlyPropertyAssignmentAllowedInWithInitializer_Evaluation()
+        {
+            string source = @"
+public class C
+{
+    private int field;
+    public int Property { get { return field; } init { field = value; System.Console.Write(""set ""); } }
+
+    public C Clone() { System.Console.Write(""clone ""); return this; }
+}
+
+class Other
+{
+    public static void Main()
+    {
+        var c = new C() with { Property = 42 };
+        System.Console.Write($""{c.Property}"");
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "clone set 42");
         }
 
         [Fact]
@@ -2025,7 +2088,7 @@ public class C
         }
 
         [Fact]
-        public void ConstructorsAreNotInitOnly()
+        public void ConstructorAndDestructorAreNotInitOnly()
         {
             string source = @"
 public class C
@@ -2044,6 +2107,31 @@ public class C
             var destructor = comp.GlobalNamespace.GetMember<SourceDestructorSymbol>("C.Finalize");
             Assert.False(destructor.IsInitOnly);
             Assert.False(destructor.GetPublicSymbol().IsInitOnly);
+        }
+
+        [Fact]
+        public void ConstructedMethodsAreNotInitOnly()
+        {
+            string source = @"
+public class C
+{
+    void M<T>()
+    {
+        M<string>();
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var method = (IMethodSymbol)model.GetSymbolInfo(invocation).Symbol;
+            Assert.Equal("void C.M<System.String>()", method.ToTestDisplayString());
+            Assert.False(method.IsInitOnly);
         }
 
         [Fact]

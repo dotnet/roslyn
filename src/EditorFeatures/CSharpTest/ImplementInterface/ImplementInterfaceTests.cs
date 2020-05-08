@@ -8437,7 +8437,7 @@ interface I
 
 class C : [|I|]
 {
-    public int Property { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+    public int Property { get => throw new System.NotImplementedException(); init => throw new System.NotImplementedException(); }
 }");
         }
 
