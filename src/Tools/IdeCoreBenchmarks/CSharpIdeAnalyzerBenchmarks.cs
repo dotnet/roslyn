@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace IdeCoreBenchmarks
@@ -59,8 +60,10 @@ namespace IdeCoreBenchmarks
                 fullSolutionAnalysis: false,
                 incrementalAnalyzerNames: ImmutableArray<string>.Empty);
 
-            _workspace = AnalyzerRunnerHelper.LoadSolutionAsync(_solutionPath, CancellationToken.None).Result;
-            _diagnosticAnalyzerRunner = new DiagnosticAnalyzerRunner(_workspace.CurrentSolution, _options);
+            _workspace = AnalyzerRunnerHelper.CreateWorkspace();
+            _diagnosticAnalyzerRunner = new DiagnosticAnalyzerRunner(_workspace, _options);
+
+            _ = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
         }
 
         [GlobalCleanup]

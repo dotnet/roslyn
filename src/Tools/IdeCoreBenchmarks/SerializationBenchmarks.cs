@@ -15,6 +15,9 @@ namespace IdeCoreBenchmarks
     public class SerializationBenchmarks
     {
         private CompilationUnitSyntax _root;
+        private MemoryStream _stream;
+
+        private readonly int _iterationCount = 10;
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -32,16 +35,48 @@ namespace IdeCoreBenchmarks
             _root = tree.GetCompilationUnitRoot();
         }
 
-        [Benchmark]
-        public void RoundTripSyntaxNode()
+        [IterationCleanup]
+        public void SerializationCleanup()
         {
-            var stream = new MemoryStream();
-            _root.SerializeTo(stream);
+            _stream?.Dispose();
+        }
 
-            stream.Position = 0;
+        [IterationSetup(Target = nameof(SerializeSyntaxNode))]
+        public void SerializationSetup()
+        {
+            _stream = new MemoryStream();
+        }
 
-            var droot = CSharpSyntaxNode.DeserializeFrom(stream);
-            var nodes = droot.DescendantNodesAndSelf().ToImmutableArray();
+        [Benchmark]
+        public void SerializeSyntaxNode()
+        {
+            for (var i = 0; i < _iterationCount; ++i)
+            {
+                _root.SerializeTo(_stream);
+            }
+        }
+
+        [IterationSetup(Target = nameof(DeserializeSyntaxNode))]
+        public void DeserializationSetup()
+        {
+            _stream = new MemoryStream();
+
+            for (var i = 0; i < _iterationCount; ++i)
+            {
+                _root.SerializeTo(_stream);
+            }
+
+            _stream.Position = 0;
+        }
+
+        [Benchmark]
+        public void DeserializeSyntaxNode()
+        {
+            for (var i = 0; i < _iterationCount; ++i)
+            {
+                var droot = CSharpSyntaxNode.DeserializeFrom(_stream);
+                _ = droot.DescendantNodesAndSelf().ToImmutableArray();
+            }
         }
     }
 }

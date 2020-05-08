@@ -30,24 +30,21 @@ namespace AnalyzerRunner
             MSBuildLocator.RegisterInstance(msBuildInstance);
         }
 
-        public static async Task<MSBuildWorkspace> LoadSolutionAsync(string solutionPath, CancellationToken cancellationToken)
+        public static MSBuildWorkspace CreateWorkspace()
         {
             var properties = new Dictionary<string, string>
             {
 #if NETCOREAPP
-            // This property ensures that XAML files will be compiled in the current AppDomain
-            // rather than a separate one. Any tasks isolated in AppDomains or tasks that create
-            // AppDomains will likely not work due to https://github.com/Microsoft/MSBuildLocator/issues/16.
-            { "AlwaysCompileMarkupFilesInSeparateDomain", bool.FalseString },
+                // This property ensures that XAML files will be compiled in the current AppDomain
+                // rather than a separate one. Any tasks isolated in AppDomains or tasks that create
+                // AppDomains will likely not work due to https://github.com/Microsoft/MSBuildLocator/issues/16.
+                { "AlwaysCompileMarkupFilesInSeparateDomain", bool.FalseString },
 #endif
                 // Use the latest language version to force the full set of available analyzers to run on the project.
                 { "LangVersion", "latest" },
             };
 
-            var workspace = MSBuildWorkspace.Create(properties, AnalyzerRunnerMefHostServices.DefaultServices);
-            var solution = await workspace.OpenSolutionAsync(solutionPath, progress: null, cancellationToken).ConfigureAwait(false);
-
-            return workspace;
+            return MSBuildWorkspace.Create(properties, AnalyzerRunnerMefHostServices.DefaultServices);
         }
     }
 }

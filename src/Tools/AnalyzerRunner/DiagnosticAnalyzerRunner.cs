@@ -19,13 +19,13 @@ namespace AnalyzerRunner
 {
     public sealed class DiagnosticAnalyzerRunner
     {
-        private readonly Solution _solution;
+        private readonly Workspace _workspace;
         private readonly Options _options;
         private readonly ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _analyzers;
 
-        public DiagnosticAnalyzerRunner(Solution solution, Options options)
+        public DiagnosticAnalyzerRunner(Workspace workspace, Options options)
         {
-            _solution = solution;
+            _workspace = workspace;
             _options = options;
 
             var analyzers = GetDiagnosticAnalyzers(options.AnalyzerPath);
@@ -60,7 +60,7 @@ namespace AnalyzerRunner
                 return;
             }
 
-            var solution = _solution;
+            var solution = _workspace.CurrentSolution;
             solution = SetOptions(solution);
 
             await GetAnalysisResultAsync(solution, _analyzers, _options, cancellationToken).ConfigureAwait(false);
@@ -74,7 +74,7 @@ namespace AnalyzerRunner
                 return;
             }
 
-            var solution = _solution;
+            var solution = _workspace.CurrentSolution;
 
             solution = SetOptions(solution);
 

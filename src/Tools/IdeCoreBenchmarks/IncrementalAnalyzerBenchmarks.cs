@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.MSBuild;
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]
-    [RyuJitX64Job]
     public class IncrementalAnalyzerBenchmarks
     {
         private readonly string _solutionPath;
@@ -59,8 +58,10 @@ namespace IdeCoreBenchmarks
                 fullSolutionAnalysis: true,
                 incrementalAnalyzerNames: ImmutableArray.Create(AnalyzerName));
 
-            _workspace = AnalyzerRunnerHelper.LoadSolutionAsync(_solutionPath, CancellationToken.None).Result;
+            _workspace = AnalyzerRunnerHelper.CreateWorkspace();
             _incrementalAnalyzerRunner = new IncrementalAnalyzerRunner(_workspace, _options);
+
+            _ = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
         }
 
         [IterationCleanup]

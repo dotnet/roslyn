@@ -47,14 +47,13 @@ namespace AnalyzerRunner
 
             var cancellationToken = cts.Token;
 
-            var stopwatch = PerformanceTracker.StartNew();
-
             if (!string.IsNullOrEmpty(options.ProfileRoot))
             {
-                ProfileOptimization.StartProfile(nameof(MSBuildWorkspace.OpenSolutionAsync));
+                Directory.CreateDirectory(options.ProfileRoot);
+                ProfileOptimization.SetProfileRoot(options.ProfileRoot);
             }
 
-            using var workspace = await AnalyzerRunnerHelper.LoadSolutionAsync(options.SolutionPath, cancellationToken).ConfigureAwait(false);
+            using var workspace = AnalyzerRunnerHelper.CreateWorkspace();
 
             foreach (var workspaceDiagnostic in workspace.Diagnostics)
             {
@@ -64,10 +63,8 @@ namespace AnalyzerRunner
                 }
             }
 
-            Console.WriteLine($"Loaded solution in {stopwatch.GetSummary(preciseMemory: true)}");
-
             var incrementalAnalyzerRunner = new IncrementalAnalyzerRunner(workspace, options);
-            var diagnosticAnalyzerRunner = new DiagnosticAnalyzerRunner(workspace.CurrentSolution, options);
+            var diagnosticAnalyzerRunner = new DiagnosticAnalyzerRunner(workspace, options);
             var codeRefactoringRunner = new CodeRefactoringRunner(workspace, options);
 
             if (!incrementalAnalyzerRunner.HasAnalyzers && !diagnosticAnalyzerRunner.HasAnalyzers && !codeRefactoringRunner.HasRefactorings)
@@ -77,12 +74,23 @@ namespace AnalyzerRunner
                 return;
             }
 
+            var stopwatch = PerformanceTracker.StartNew();
+
+            if (!string.IsNullOrEmpty(options.ProfileRoot))
+            {
+                ProfileOptimization.StartProfile(nameof(MSBuildWorkspace.OpenSolutionAsync));
+            }
+
+            await workspace.OpenSolutionAsync(options.SolutionPath, progress: null, cancellationToken).ConfigureAwait(false);
+
             if (options.ShowStats)
             {
                 stopwatch = PerformanceTracker.StartNew();
                 ShowSolutionStatistics(workspace.CurrentSolution, cancellationToken);
                 Console.WriteLine($"Statistics gathered in {stopwatch.GetSummary(preciseMemory: true)}");
             }
+
+            Console.WriteLine($"Loaded solution in {stopwatch.GetSummary(preciseMemory: true)}");
 
             if (options.ShowCompilerDiagnostics)
             {
@@ -163,19 +171,12 @@ namespace AnalyzerRunner
 
         private static void ShowSolutionStatistics(Solution solution, CancellationToken cancellationToken)
         {
-            var sums = new ConcurrentBag<Statistic>();
             var projects = solution.Projects.Where(project => project.Language == LanguageNames.CSharp || project.Language == LanguageNames.VisualBasic).ToList();
 
             Console.WriteLine("Number of projects:\t\t" + projects.Count);
             Console.WriteLine("Number of documents:\t\t" + projects.Sum(x => x.DocumentIds.Count));
 
-            Parallel.ForEach(projects.SelectMany(project => project.Documents), document =>
-            {
-                var documentStatistics = GetSolutionStatisticsAsync(document, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
-                sums.Add(documentStatistics);
-            });
-
-            var statistics = sums.Aggregate(new Statistic(0, 0, 0), (currentResult, value) => currentResult + value);
+            var statistics = GetSolutionStatistics(projects, cancellationToken);
 
             Console.WriteLine("Number of syntax nodes:\t\t" + statistics.NumberofNodes);
             Console.WriteLine("Number of syntax tokens:\t" + statistics.NumberOfTokens);
