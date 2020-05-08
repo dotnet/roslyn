@@ -5,11 +5,7 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.SourceGeneration;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {

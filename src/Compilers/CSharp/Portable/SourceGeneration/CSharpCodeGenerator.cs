@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration

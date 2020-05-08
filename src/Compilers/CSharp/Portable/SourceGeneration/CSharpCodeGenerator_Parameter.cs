@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SourceGeneration;

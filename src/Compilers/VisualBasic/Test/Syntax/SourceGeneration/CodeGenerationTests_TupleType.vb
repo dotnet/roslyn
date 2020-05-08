@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.SourceGeneration
 Imports Microsoft.CodeAnalysis.SourceGeneration.CodeGenerator
 Imports Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
 Imports Roslyn.Test.Utilities

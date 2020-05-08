@@ -4,8 +4,6 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;

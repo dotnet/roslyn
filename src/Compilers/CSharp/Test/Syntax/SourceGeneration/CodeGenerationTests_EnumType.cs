@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.SourceGeneration;
-using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.SourceGeneration.CodeGenerator;
