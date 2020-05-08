@@ -18,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
                 Return GenerateSpecialTypeSyntax(symbol, onlyNames)
             End If
 
+            Return GenerateNormalNamedTypeSyntax(symbol)
+        End Function
+
+        Private Function GenerateNormalNamedTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
             Dim nameSyntax = If(symbol.TypeArguments.IsDefaultOrEmpty,
                 DirectCast(IdentifierName(symbol.Name), SimpleNameSyntax),
                 GenericName(Identifier(symbol.Name), GenerateTypeArgumentList(symbol.TypeArguments)))
@@ -61,81 +65,84 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
 
         Private Function GenerateSpecialTypeSyntax(symbol As INamedTypeSymbol, onlyNames As Boolean) As TypeSyntax
             If onlyNames Then
-                Return CodeGenerator.GenerateSystemType(symbol.SpecialType).GenerateNameSyntax()
+                Dim generated = CodeGenerator.TryGenerateSystemType(symbol.SpecialType)
+                If generated IsNot Nothing Then
+                    Return generated.GenerateNameSyntax()
+                End If
+            Else
+                Select Case symbol.SpecialType
+                    Case SpecialType.System_Object
+                        Return PredefinedType(Token(SyntaxKind.ObjectKeyword))
+                    Case SpecialType.System_Boolean
+                        Return PredefinedType(Token(SyntaxKind.BooleanKeyword))
+                    Case SpecialType.System_Char
+                        Return PredefinedType(Token(SyntaxKind.CharKeyword))
+                    Case SpecialType.System_SByte
+                        Return PredefinedType(Token(SyntaxKind.SByteKeyword))
+                    Case SpecialType.System_Byte
+                        Return PredefinedType(Token(SyntaxKind.ByteKeyword))
+                    Case SpecialType.System_Int16
+                        Return PredefinedType(Token(SyntaxKind.ShortKeyword))
+                    Case SpecialType.System_UInt16
+                        Return PredefinedType(Token(SyntaxKind.UShortKeyword))
+                    Case SpecialType.System_Int32
+                        Return PredefinedType(Token(SyntaxKind.IntegerKeyword))
+                    Case SpecialType.System_UInt32
+                        Return PredefinedType(Token(SyntaxKind.UIntegerKeyword))
+                    Case SpecialType.System_Int64
+                        Return PredefinedType(Token(SyntaxKind.LongKeyword))
+                    Case SpecialType.System_UInt64
+                        Return PredefinedType(Token(SyntaxKind.ULongKeyword))
+                    Case SpecialType.System_Decimal
+                        Return PredefinedType(Token(SyntaxKind.DecimalKeyword))
+                    Case SpecialType.System_Single
+                        Return PredefinedType(Token(SyntaxKind.SingleKeyword))
+                    Case SpecialType.System_Double
+                        Return PredefinedType(Token(SyntaxKind.DoubleKeyword))
+                    Case SpecialType.System_String
+                        Return PredefinedType(Token(SyntaxKind.StringKeyword))
+                    Case SpecialType.System_DateTime
+                        Return PredefinedType(Token(SyntaxKind.DateKeyword))
+                End Select
             End If
 
-            Select Case symbol.SpecialType
-                Case SpecialType.System_Object
-                    Return PredefinedType(Token(SyntaxKind.ObjectKeyword))
-                Case SpecialType.System_Boolean
-                    Return PredefinedType(Token(SyntaxKind.BooleanKeyword))
-                Case SpecialType.System_Char
-                    Return PredefinedType(Token(SyntaxKind.CharKeyword))
-                Case SpecialType.System_SByte
-                    Return PredefinedType(Token(SyntaxKind.SByteKeyword))
-                Case SpecialType.System_Byte
-                    Return PredefinedType(Token(SyntaxKind.ByteKeyword))
-                Case SpecialType.System_Int16
-                    Return PredefinedType(Token(SyntaxKind.ShortKeyword))
-                Case SpecialType.System_UInt16
-                    Return PredefinedType(Token(SyntaxKind.UShortKeyword))
-                Case SpecialType.System_Int32
-                    Return PredefinedType(Token(SyntaxKind.IntegerKeyword))
-                Case SpecialType.System_UInt32
-                    Return PredefinedType(Token(SyntaxKind.UIntegerKeyword))
-                Case SpecialType.System_Int64
-                    Return PredefinedType(Token(SyntaxKind.LongKeyword))
-                Case SpecialType.System_UInt64
-                    Return PredefinedType(Token(SyntaxKind.ULongKeyword))
-                Case SpecialType.System_Decimal
-                    Return PredefinedType(Token(SyntaxKind.DecimalKeyword))
-                Case SpecialType.System_Single
-                    Return PredefinedType(Token(SyntaxKind.SingleKeyword))
-                Case SpecialType.System_Double
-                    Return PredefinedType(Token(SyntaxKind.DoubleKeyword))
-                Case SpecialType.System_String
-                    Return PredefinedType(Token(SyntaxKind.StringKeyword))
-                Case SpecialType.System_DateTime
-                    Return PredefinedType(Token(SyntaxKind.DateKeyword))
-            End Select
-
-            Throw New NotImplementedException()
+            Return GenerateNormalNamedTypeSyntax(symbol)
         End Function
 
         Private Function GenerateNamedTypeDeclaration(symbol As INamedTypeSymbol) As DeclarationStatementSyntax
-            If symbol.TypeKind = TypeKind.Enum Then
+            If symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Enum Then
                 Return GenerateEnumDeclaration(symbol)
-            ElseIf symbol.TypeKind = TypeKind.Delegate Then
+            ElseIf symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Delegate Then
                 Return GenerateDelegateDeclaration(symbol)
             End If
 
             Dim blockKind =
-                If(symbol.TypeKind = TypeKind.Structure, SyntaxKind.StructureBlock,
-                If(symbol.TypeKind = TypeKind.Interface, SyntaxKind.InterfaceBlock,
+                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Structure, SyntaxKind.StructureBlock,
+                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Interface, SyntaxKind.InterfaceBlock,
                    SyntaxKind.ClassBlock))
 
             Dim statementKind =
-                If(symbol.TypeKind = TypeKind.Structure, SyntaxKind.StructureStatement,
-                If(symbol.TypeKind = TypeKind.Interface, SyntaxKind.InterfaceStatement,
+                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Structure, SyntaxKind.StructureStatement,
+                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Interface, SyntaxKind.InterfaceStatement,
                    SyntaxKind.ClassStatement))
 
             Dim typeKeyword = Token(
-                If(symbol.TypeKind = TypeKind.Structure, SyntaxKind.StructureKeyword,
-                If(symbol.TypeKind = TypeKind.Interface, SyntaxKind.InterfaceKeyword,
+                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Structure, SyntaxKind.StructureKeyword,
+                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Interface, SyntaxKind.InterfaceKeyword,
                    SyntaxKind.ClassKeyword)))
 
             Dim inheritsList =
-                If(symbol.TypeKind = TypeKind.Interface, GenerateInheritsList(symbol.Interfaces),
-                If(symbol.TypeKind = TypeKind.Class, GenerateInheritsList(ImmutableArray.Create(symbol.BaseType)), Nothing))
+                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Interface, GenerateInheritsList(symbol.Interfaces),
+                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Class, GenerateInheritsList(ImmutableArray.Create(symbol.BaseType)), Nothing))
 
             Dim implementsList =
-                If(symbol.TypeKind = TypeKind.Class OrElse symbol.TypeKind = TypeKind.Structure,
+                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Class OrElse symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Structure,
                    GenerateImplementsList(symbol.Interfaces),
                    Nothing)
 
             Dim endStatement =
-                If(symbol.TypeKind = TypeKind.Structure, EndStructureStatement(),
-                If(symbol.TypeKind = TypeKind.Interface, EndInterfaceStatement(),
+                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Structure, EndStructureStatement(),
+                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Interface, EndInterfaceStatement(),
                    EndClassStatement()))
 
             Return TypeBlock(

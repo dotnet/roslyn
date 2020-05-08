@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                     containingSymbol: GlobalNamespace()));
         }
 
-        internal static INamedTypeSymbol GenerateSystemType(SpecialType specialType)
+        internal static INamedTypeSymbol TryGenerateSystemType(SpecialType specialType)
         {
             switch (specialType)
             {
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 case CodeAnalysis.SpecialType.System_DateTime: return GenerateSystemType(nameof(DateTime));
             }
 
-            throw new NotImplementedException();
+            return null;
 
             static INamedTypeSymbol GenerateSystemType(string name)
             {
