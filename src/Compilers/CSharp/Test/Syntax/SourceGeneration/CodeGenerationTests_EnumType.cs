@@ -114,7 +114,7 @@ Enum(
 Enum(
     "X",
     members: ImmutableArray.Create<ISymbol>(
-        Field(Int32, "A"))).GenerateString());
+        EnumMember("A"))).GenerateString());
         }
 
         [Fact]
@@ -129,8 +129,8 @@ Enum(
 Enum(
     "X",
     members: ImmutableArray.Create<ISymbol>(
-        Field(Int32, "A"),
-        Field(Int32, "B"))).GenerateString());
+        EnumMember("A"),
+        EnumMember("B"))).GenerateString());
         }
     }
 }

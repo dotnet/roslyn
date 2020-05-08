@@ -57,6 +57,21 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 isFixedSizeBuffer: default);
         }
 
+        public static IFieldSymbol EnumMember(
+            string name,
+            ImmutableArray<AttributeData> attributes = default,
+            Optional<object> constantValue = default)
+        {
+            return new FieldSymbol(
+                attributes,
+                declaredAccessibility: default,
+                modifiers: default,
+                type: null,
+                name,
+                constantValue,
+                isFixedSizeBuffer: false);
+        }
+
         public static IFieldSymbol With(
             this IFieldSymbol field,
             Optional<ImmutableArray<AttributeData>> attributes = default,

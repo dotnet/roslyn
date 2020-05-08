@@ -104,5 +104,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
 
             Throw New NotImplementedException()
         End Function
+
+        Private Function GenerateNamedTypeDeclaration(symbol As INamedTypeSymbol) As DeclarationStatementSyntax
+            If symbol.TypeKind = TypeKind.Enum Then
+                Return GenerateEnumDeclaration(symbol)
+            ElseIf symbol.TypeKind = TypeKind.Delegate Then
+                Return GenerateDelegateDeclaration(symbol)
+            End If
+
+            Throw New NotImplementedException()
+        End Function
+
+        Private Function GenerateDelegateDeclaration(symbol As INamedTypeSymbol) As DeclarationStatementSyntax
+            Throw New NotImplementedException()
+        End Function
     End Module
 End Namespace
