@@ -1166,13 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return explicitInterfaceImplementations;
                 }
 
-                var moduleSymbol = _containingType.ContainingPEModule;
-
-                // Context: we need the containing type of this method as context so that we can substitute appropriately into
-                // any generic interfaces that we might be explicitly implementing.  There is no reason to pass in the method
-                // context, however, because any method type parameters will belong to the implemented (i.e. interface) method,
-                // which we do not yet know.
-                var explicitlyOverriddenMethods = new MetadataDecoder(moduleSymbol, _containingType).GetExplicitlyOverriddenMethods(_containingType.Handle, _handle, this.ContainingType);
+                var explicitlyOverriddenMethods = ExplicitlyOverriddenMethods();
 
                 //avoid allocating a builder in the common case
                 var anyToRemove = false;
@@ -1183,9 +1177,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         anyToRemove = true;
                         sawObjectFinalize =
-                            (method.ContainingType.SpecialType == SpecialType.System_Object &&
-                             method.Name == WellKnownMemberNames.DestructorName && // Cheaper than MethodKind.
-                             method.MethodKind == MethodKind.Destructor);
+                           (method.ContainingType.SpecialType == SpecialType.System_Object &&
+                            method.Name == WellKnownMemberNames.DestructorName && // Cheaper than MethodKind.
+                            method.MethodKind == MethodKind.Destructor);
                     }
 
                     if (anyToRemove && sawObjectFinalize)
@@ -1218,6 +1212,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return InterlockedOperations.Initialize(ref _lazyExplicitMethodImplementations, explicitInterfaceImplementations);
+            }
+        }
+
+        private ImmutableArray<MethodSymbol> ExplicitlyOverriddenMethods()
+        {
+            var moduleSymbol = _containingType.ContainingPEModule;
+
+            // Context: we need the containing type of this method as context so that we can substitute appropriately into
+            // any generic interfaces that we might be explicitly implementing.  There is no reason to pass in the method
+            // context, however, because any method type parameters will belong to the implemented (i.e. interface) method,
+            // which we do not yet know.
+            return new MetadataDecoder(moduleSymbol, _containingType).GetExplicitlyOverriddenMethods(_containingType.Handle, _handle, this.ContainingType);
+        }
+
+        internal MethodSymbol ExplicitlyOverriddenClassMethod
+        {
+            get
+            {
+                if (IsExplicitClassOverride)
+                {
+                    foreach (MethodSymbol method in ExplicitlyOverriddenMethods())
+                    {
+                        if (method.ContainingType.IsClassType())
+                        {
+                            return method;
+                        }
+                    }
+
+                    throw ExceptionUtilities.Unreachable;
+                }
+
+                return null;
             }
         }
 
