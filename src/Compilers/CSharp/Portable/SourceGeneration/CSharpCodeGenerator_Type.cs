@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case SymbolKind.PointerType:
                     break;
                 case SymbolKind.TypeParameter:
-                    return GenerateTypeParamterTypeSyntaxWithoutNullable((ITypeParameterSymbol)symbol);
+                    return GenerateTypeParameterTypeSyntaxWithoutNullable((ITypeParameterSymbol)symbol);
                 default:
                     break;
             }

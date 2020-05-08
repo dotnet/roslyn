@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case MethodKind.UserDefinedOperator:
                     return GenerateOperator(method);
                 case MethodKind.Ordinary:
+                case MethodKind.ExplicitInterfaceImplementation:
                     return GenerateOrdinaryMethod(method);
             }
 

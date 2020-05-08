@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpCodeGenerator
     {
-        private static IdentifierNameSyntax GenerateTypeParamaterTypeSyntaxWithoutNullable(ITypeParameterSymbol symbol)
+        private static IdentifierNameSyntax GenerateTypeParameterTypeSyntaxWithoutNullable(ITypeParameterSymbol symbol)
             => SyntaxFactory.IdentifierName(symbol.Name);
 
         private static TypeParameterListSyntax? GenerateTypeParameterList(ImmutableArray<ITypeSymbol> typeArguments)
