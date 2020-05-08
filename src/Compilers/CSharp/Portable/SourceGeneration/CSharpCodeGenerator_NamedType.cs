@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case SpecialType.System_Single: return PredefinedType(Token(SyntaxKind.FloatKeyword));
                 case SpecialType.System_Double: return PredefinedType(Token(SyntaxKind.DoubleKeyword));
                 case SpecialType.System_String: return PredefinedType(Token(SyntaxKind.StringKeyword));
+                case SpecialType.System_Void: return PredefinedType(Token(SyntaxKind.VoidKeyword));
             }
 
             throw new NotImplementedException();

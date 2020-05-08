@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case SymbolKind.Local:
                     return GenerateLocalIdentifierName((ILocalSymbol)symbol);
                 case SymbolKind.Method:
-                    break;
+                    return GenerateMethodDeclaration((IMethodSymbol)symbol);
                 case SymbolKind.NetModule:
                     break;
                 case SymbolKind.NamedType:

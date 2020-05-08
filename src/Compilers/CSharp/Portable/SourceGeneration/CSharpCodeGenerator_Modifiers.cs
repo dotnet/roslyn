@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             if (symbolModifiers.HasFlag(SymbolModifiers.Extern))
                 result.Add(Token(SyntaxKind.ExternKeyword));
 
+            if (symbolModifiers.HasFlag(SymbolModifiers.Params))
+                result.Add(Token(SyntaxKind.ParamsKeyword));
+
             if (symbolModifiers.HasFlag(SymbolModifiers.Ref))
                 result.Add(Token(SyntaxKind.RefKeyword));
 

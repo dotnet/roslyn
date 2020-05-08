@@ -13,5 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
     {
         private static ITypeSymbol Int32 = SpecialType(SpecialType.System_Int32);
         private static ITypeSymbol Boolean = SpecialType(SpecialType.System_Boolean);
+        private static ITypeSymbol Void = SpecialType(SpecialType.System_Void);
     }
 }

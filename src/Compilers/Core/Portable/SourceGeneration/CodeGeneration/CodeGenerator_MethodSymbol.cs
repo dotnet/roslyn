@@ -182,15 +182,16 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 DeclaredAccessibility = declaredAccessibility;
                 Modifiers = modifiers;
                 ReturnType = returnType;
-                ExplicitInterfaceImplementations = explicitInterfaceImplementations;
+                ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
                 Name = name;
-                TypeArguments = typeArguments;
-                Parameters = parameters;
+                TypeArguments = typeArguments.NullToEmpty();
+                Parameters = parameters.NullToEmpty();
                 ContainingSymbol = containingSymbol;
             }
 
             public override ISymbol ContainingSymbol { get; }
             public override Accessibility DeclaredAccessibility { get; }
+            public override ImmutableArray<AttributeData> GetAttributes() => _attributes;
             public override SymbolKind Kind => SymbolKind.Method;
             public override SymbolModifiers Modifiers { get; }
             public override string Name { get; }
