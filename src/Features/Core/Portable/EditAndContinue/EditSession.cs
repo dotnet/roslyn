@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal readonly DebuggingSession DebuggingSession;
         internal readonly EditSessionTelemetry Telemetry;
+        internal readonly IDebuggeeModuleMetadataProvider DebugeeModuleMetadataProvider;
 
         private readonly ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> _nonRemappableRegions;
 
@@ -62,10 +63,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private bool _changesApplied;
 
-        internal EditSession(DebuggingSession debuggingSession, EditSessionTelemetry telemetry, ActiveStatementProvider activeStatementsProvider)
+        internal EditSession(DebuggingSession debuggingSession, EditSessionTelemetry telemetry, ActiveStatementProvider activeStatementsProvider, IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider)
         {
             DebuggingSession = debuggingSession;
             Telemetry = telemetry;
+            DebugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
+
             _nonRemappableRegions = debuggingSession.NonRemappableRegions;
 
             BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(cancellationToken => GetBaseActiveStatementsAsync(activeStatementsProvider, cancellationToken), cacheResult: true);
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <returns><see langword="default"/> if the module is not loaded.</returns>
         public async Task<ImmutableArray<Diagnostic>?> GetModuleDiagnosticsAsync(Guid mvid, string projectDisplayName, CancellationToken cancellationToken)
         {
-            var availability = await DebuggingSession.DebugeeModuleMetadataProvider.GetEncAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
+            var availability = await DebugeeModuleMetadataProvider.GetEncAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
             if (availability == null)
             {
                 return null;
@@ -777,7 +780,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA, "SymReader requires MTA");
 
                         // TODO: Use moduleLoaded to determine whether or not to create an initial baseline, once we move OOP.
-                        var baseline = DebuggingSession.GetOrCreateEmitBaseline(project.Id, mvid);
+                        var baseline = DebuggingSession.GetOrCreateEmitBaseline(project.Id, mvid, DebugeeModuleMetadataProvider);
 
                         // The metadata blob is guaranteed to not be disposed while "continue" operation is being executed.
                         // If it is disposed it means it had been disposed when "continue" operation started.
