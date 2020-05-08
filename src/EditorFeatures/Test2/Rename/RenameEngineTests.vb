@@ -7046,6 +7046,7 @@ class C
             End Using
         End Sub
 
+        <WorkItem(44070, "https://github.com/dotnet/roslyn/issues/44070")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeParameterFromCRef(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,

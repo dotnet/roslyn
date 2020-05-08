@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -22,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     // the same operation on the same symbol key might produce different results depending on which project it was found
     // in.  For example, each symbol's project may have a different set of downstream dependent projects.  As such,
     // there may be a different set of related symbols found for each.
-    using RelatedTypeCache = ConditionalWeakTable<Solution, ConcurrentDictionary<(SymbolKey, ProjectId, IImmutableSet<Project>), AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>>>;
+    using RelatedTypeCache = ConditionalWeakTable<Solution, ConcurrentDictionary<(SymbolKey, ProjectId?, IImmutableSet<Project>), AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>>>;
 
     using SymbolSet = HashSet<INamedTypeSymbol>;
 
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// which has derived type called 'B' somewhere".  So when the index is examined for the name 'A', it will say
     /// 'examine types called 'B' to see if they're an actual match'.
     /// <para/>
-    /// These links are then continually tranversed to get the full set of results.
+    /// These links are then continually traversed to get the full set of results.
     /// </remarks>
     internal static partial class DependentTypeFinder
     {
@@ -78,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// uses reference equality not value equality.
         /// </summary>
         private static readonly RelatedTypeCache.CreateValueCallback s_createTypeMap =
-            _ => new ConcurrentDictionary<(SymbolKey, ProjectId, IImmutableSet<Project>), AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>>(KeyEqualityComparer.Instance);
+            _ => new ConcurrentDictionary<(SymbolKey, ProjectId?, IImmutableSet<Project>), AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>>(KeyEqualityComparer.Instance);
 
         private static async Task<ImmutableArray<INamedTypeSymbol>> FindTypesFromCacheOrComputeAsync(
             INamedTypeSymbol type,
@@ -119,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var project = solution.GetProject(group.Key);
+                var project = solution.GetRequiredProject(group.Key);
                 if (project.SupportsCompilation)
                 {
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -446,7 +449,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Finally, because we're searching metadata and source symbols, this needs to be a project
             // that actually supports compilations.
             return projectsThatCouldReferenceType.Intersect(allProjectsThatTheseProjectsDependOn)
-                                                 .Select(solution.GetProject)
+                                                 .Select(id => solution.GetRequiredProject(id))
                                                  .Where(p => p.SupportsCompilation)
                                                  .ToList();
         }
@@ -465,7 +468,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (currentMetadataTypes.Count == 0)
                 return;
 
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             using var _1 = GetSymbolSet(out var typesToSearchFor);
             using var _2 = GetSymbolSet(out var tempBuffer);
@@ -536,7 +539,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static bool TypeHasBaseTypeInSet(INamedTypeSymbol type, SymbolSet set)
-            => set.Contains(type.BaseType?.OriginalDefinition);
+        {
+            var baseType = type.BaseType?.OriginalDefinition;
+            return baseType != null && set.Contains(baseType);
+        }
 
         private static bool TypeHasInterfaceInSet(INamedTypeSymbol type, SymbolSet set)
         {
@@ -675,7 +681,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 cachedModels.Add(semanticModel);
 
                 var resolvedType = info.TryResolve(semanticModel, cancellationToken);
@@ -691,7 +697,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ConcurrentSet<SemanticModel> cachedModels,
             MultiDictionary<Document, DeclaredSymbolInfo> documentToInfos,
             SymbolSet result,
-            Func<INamedTypeSymbol, bool> predicateOpt,
+            Func<INamedTypeSymbol, bool>? predicateOpt,
             CancellationToken cancellationToken)
         {
             foreach (var (document, infos) in documentToInfos)
@@ -699,7 +705,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 Debug.Assert(infos.Count > 0);
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 cachedModels.Add(semanticModel);
 
                 foreach (var info in infos)
