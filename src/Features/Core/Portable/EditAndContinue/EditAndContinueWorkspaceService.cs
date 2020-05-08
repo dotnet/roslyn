@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private DebuggingSession? _debuggingSession;
         private EditSession? _editSession;
-        private PendingSolutionUpdate? _pendingUpdate;
 
         internal EditAndContinueWorkspaceService(
             Workspace workspace,
@@ -73,7 +72,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // test only:
         internal DebuggingSession? Test_GetDebuggingSession() => _debuggingSession;
         internal EditSession? Test_GetEditSession() => _editSession;
-        internal PendingSolutionUpdate? Test_GetPendingSolutionUpdate() => _pendingUpdate;
 
         public bool IsDebuggingSessionInProgress
             => _debuggingSession != null;
@@ -392,17 +390,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var solution = _workspace.CurrentSolution;
 
             var solutionUpdate = await editSession.EmitSolutionUpdateAsync(solution, cancellationToken).ConfigureAwait(false);
-
             if (solutionUpdate.Summary == SolutionUpdateStatus.Ready)
             {
-                var previousPendingUpdate = Interlocked.Exchange(ref _pendingUpdate, new PendingSolutionUpdate(
-                    solution,
-                    solutionUpdate.EmitBaselines,
-                    solutionUpdate.Deltas,
-                    solutionUpdate.ModuleReaders));
-
-                // commit/discard was not called:
-                Contract.ThrowIfFalse(previousPendingUpdate == null);
+                editSession.StorePendingUpdate(solution, solutionUpdate);
             }
 
             // clear emit/apply diagnostics reported previously:
@@ -422,23 +412,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public void CommitSolutionUpdate()
         {
             var editSession = _editSession;
-
             Contract.ThrowIfNull(editSession);
 
-            var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
-            Contract.ThrowIfNull(pendingUpdate);
-
+            var pendingUpdate = editSession.RetrievePendingUpdate();
             editSession.DebuggingSession.CommitSolutionUpdate(pendingUpdate);
             editSession.ChangesApplied();
         }
 
         public void DiscardSolutionUpdate()
         {
-            Contract.ThrowIfNull(_editSession);
+            var editSession = _editSession;
+            Contract.ThrowIfNull(editSession);
 
-            var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
-            Contract.ThrowIfNull(pendingUpdate);
-
+            var pendingUpdate = editSession.RetrievePendingUpdate();
             foreach (var moduleReader in pendingUpdate.ModuleReaders)
             {
                 moduleReader.Dispose();

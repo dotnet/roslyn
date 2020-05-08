@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly HashSet<DocumentId> _documentsWithReportedDiagnostics = new HashSet<DocumentId>();
         private readonly object _documentsWithReportedDiagnosticsGuard = new object();
 
+        private PendingSolutionUpdate? _pendingUpdate;
         private bool _changesApplied;
 
         internal EditSession(DebuggingSession debuggingSession, EditSessionTelemetry telemetry, ActiveStatementProvider activeStatementsProvider, IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider)
@@ -73,6 +74,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(cancellationToken => GetBaseActiveStatementsAsync(activeStatementsProvider, cancellationToken), cacheResult: true);
         }
+
+        internal PendingSolutionUpdate? Test_GetPendingSolutionUpdate() => _pendingUpdate;
 
         internal CancellationToken CancellationToken => _cancellationSource.Token;
         internal void Cancel() => _cancellationSource.Cancel();
@@ -1084,6 +1087,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             nonRemappableRegions = nonRemappableRegionsBuilder.ToImmutableAndFree();
+        }
+
+        internal void StorePendingUpdate(Solution solution, SolutionUpdate update)
+        {
+            var previousPendingUpdate = Interlocked.Exchange(ref _pendingUpdate, new PendingSolutionUpdate(
+                solution,
+                update.EmitBaselines,
+                update.Deltas,
+                update.ModuleReaders));
+
+            // commit/discard was not called:
+            Contract.ThrowIfFalse(previousPendingUpdate == null);
+        }
+
+        internal PendingSolutionUpdate RetrievePendingUpdate()
+        {
+            var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
+            Contract.ThrowIfNull(pendingUpdate);
+            return pendingUpdate;
         }
 
         internal void ChangesApplied()
