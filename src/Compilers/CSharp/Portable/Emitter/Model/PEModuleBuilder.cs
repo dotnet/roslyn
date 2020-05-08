@@ -261,8 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                         // NOTE: Dev11 does not add synthesized static constructors to this map,
                                         //       but adds synthesized instance constructors, Roslyn adds both
                                         var method = (MethodSymbol)member;
-                                        if (method.IsDefaultValueTypeConstructor() ||
-                                            method.IsPartialMethod() && (object)method.PartialImplementationPart == null)
+                                        if (!method.ShouldEmit())
                                         {
                                             break;
                                         }
@@ -271,19 +270,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                         break;
 
                                     case SymbolKind.Property:
+                                        AddSymbolLocation(result, member);
+                                        break;
                                     case SymbolKind.Field:
                                         // NOTE: Dev11 does not add synthesized backing fields for properties,
                                         //       but adds backing fields for events, Roslyn adds both
-                                        AddSymbolLocation(result, member);
+                                        {
+                                            var field = (FieldSymbol)member;
+                                            AddSymbolLocation(result, field.TupleUnderlyingField ?? field);
+                                        }
                                         break;
 
                                     case SymbolKind.Event:
                                         AddSymbolLocation(result, member);
                                         //  event backing fields do not show up in GetMembers
-                                        FieldSymbol field = ((EventSymbol)member).AssociatedField;
-                                        if ((object)field != null)
                                         {
-                                            AddSymbolLocation(result, field);
+                                            FieldSymbol field = ((EventSymbol)member).AssociatedField;
+                                            if ((object)field != null)
+                                            {
+                                                AddSymbolLocation(result, field.TupleUnderlyingField ?? field);
+                                            }
                                         }
                                         break;
 
@@ -1003,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             bool needDeclaration = false)
         {
             Debug.Assert(fieldSymbol.IsDefinitionOrDistinct());
-            Debug.Assert(!fieldSymbol.IsVirtualTupleField, "virtual tuple fields should be rewritten to underlying by now");
+            Debug.Assert(!fieldSymbol.IsVirtualTupleField && (object)(fieldSymbol.TupleUnderlyingField ?? fieldSymbol) == fieldSymbol, "tuple fields should be rewritten to underlying by now");
 
             if (!fieldSymbol.IsDefinition)
             {
@@ -1171,6 +1177,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (!methodSymbol.IsDefinition)
             {
                 Debug.Assert(!needDeclaration);
+                Debug.Assert(!(methodSymbol.OriginalDefinition is NativeIntegerMethodSymbol));
+                Debug.Assert(!(methodSymbol.ConstructedFrom is NativeIntegerMethodSymbol));
 
                 return methodSymbol;
             }
@@ -1207,6 +1215,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     methodRef = (Cci.IMethodReference)_genericInstanceMap.GetOrAdd(methodSymbol, methodRef);
 
                     return methodRef;
+                }
+                else if (methodSymbol is NativeIntegerMethodSymbol { UnderlyingMethod: MethodSymbol underlyingMethod })
+                {
+                    methodSymbol = underlyingMethod;
                 }
             }
 

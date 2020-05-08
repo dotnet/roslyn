@@ -9,14 +9,39 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
     internal interface IRemoteRenamer
     {
+        /// <summary>
+        /// Runs the entire rename operation OOP and returns the final result. More efficient (due to less back and
+        /// forth marshaling) when the intermediary results of rename are not needed. To get the individual parts of
+        /// rename remoted use <see cref="FindRenameLocationsAsync"/> and <see cref="ResolveConflictsAsync"/>.
+        /// </summary>
+        Task<SerializableConflictResolution> RenameSymbolAsync(
+            PinnedSolutionInfo solutionInfo,
+            SerializableSymbolAndProjectId symbolAndProjectId,
+            string replacementText,
+            SerializableRenameOptionSet options,
+            SerializableSymbolAndProjectId[] nonConflictSymbolIds,
+            CancellationToken cancellationToken);
+
         Task<SerializableRenameLocations> FindRenameLocationsAsync(
-            PinnedSolutionInfo solutionInfo, SerializableSymbolAndProjectId symbol, SerializableRenameOptionSet options, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo,
+            SerializableSymbolAndProjectId symbolAndProjectId,
+            SerializableRenameOptionSet options,
+            CancellationToken cancellationToken);
+
+        Task<SerializableConflictResolution> ResolveConflictsAsync(
+            PinnedSolutionInfo solutionInfo,
+            SerializableRenameLocations renameLocationSet,
+            string replacementText,
+            SerializableSymbolAndProjectId[] nonConflictSymbolIds,
+            CancellationToken cancellationToken);
     }
 
     internal struct SerializableRenameOptionSet
@@ -207,5 +232,106 @@ namespace Microsoft.CodeAnalysis.Rename
         public SerializableSearchResult[] OverloadsResult;
         public SerializableRenameLocation[] StringsResult;
         public SerializableRenameLocation[] CommentsResult;
+    }
+
+    internal class SerializableComplexifiedSpan
+    {
+        public TextSpan OriginalSpan;
+        public TextSpan NewSpan;
+        public ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)> ModifiedSubSpans;
+
+        public ComplexifiedSpan Rehydrate()
+            => new ComplexifiedSpan(OriginalSpan, NewSpan, ModifiedSubSpans);
+
+        public static SerializableComplexifiedSpan Dehydrate(ComplexifiedSpan span)
+            => new SerializableComplexifiedSpan
+            {
+                OriginalSpan = span.OriginalSpan,
+                NewSpan = span.NewSpan,
+                ModifiedSubSpans = span.ModifiedSubSpans,
+            };
+    }
+
+    internal class SerializableRelatedLocation
+    {
+        public TextSpan ConflictCheckSpan;
+        public RelatedLocationType Type;
+        public bool IsReference;
+        public DocumentId DocumentId;
+        public TextSpan ComplexifiedTargetSpan;
+
+        public RelatedLocation Rehydrate()
+            => new RelatedLocation(ConflictCheckSpan, DocumentId, Type, IsReference, ComplexifiedTargetSpan);
+
+        public static SerializableRelatedLocation Dehydrate(RelatedLocation location)
+            => new SerializableRelatedLocation
+            {
+                ConflictCheckSpan = location.ConflictCheckSpan,
+                Type = location.Type,
+                IsReference = location.IsReference,
+                DocumentId = location.DocumentId,
+                ComplexifiedTargetSpan = location.ComplexifiedTargetSpan,
+            };
+    }
+
+    internal class SerializableConflictResolution
+    {
+        public string ErrorMessage;
+
+        public bool ReplacementTextValid;
+
+        public (DocumentId documentId, string newName) RenamedDocument;
+
+        // Note: arrays are used (instead of ImmutableArray) as jsonrpc can't marshal null values to/from those types.
+        //
+        // We also flatten dictionaries into key/value tuples because jsonrpc only supports dictionaries with string keys.
+
+        public DocumentId[] DocumentIds;
+        public SerializableRelatedLocation[] RelatedLocations;
+        public (DocumentId, TextChange[])[] DocumentTextChanges;
+        public (DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>)[] DocumentToModifiedSpansMap;
+        public (DocumentId, ImmutableArray<SerializableComplexifiedSpan>)[] DocumentToComplexifiedSpansMap;
+        public (DocumentId, ImmutableArray<SerializableRelatedLocation>)[] DocumentToRelatedLocationsMap;
+
+        public async Task<ConflictResolution> RehydrateAsync(Solution oldSolution, CancellationToken cancellationToken)
+        {
+            if (ErrorMessage != null)
+                return new ConflictResolution(ErrorMessage);
+
+            var newSolutionWithoutRenamedDocument = await RemoteUtilities.UpdateSolutionAsync(
+                oldSolution, DocumentTextChanges, cancellationToken).ConfigureAwait(false);
+            return new ConflictResolution(
+                oldSolution,
+                newSolutionWithoutRenamedDocument,
+                ReplacementTextValid,
+                RenamedDocument,
+                DocumentIds.ToImmutableArray(),
+                RelatedLocations.SelectAsArray(loc => loc.Rehydrate()),
+                DocumentToModifiedSpansMap.ToImmutableDictionary(t => t.Item1, t => t.Item2),
+                DocumentToComplexifiedSpansMap.ToImmutableDictionary(t => t.Item1, t => t.Item2.SelectAsArray(c => c.Rehydrate())),
+                DocumentToRelatedLocationsMap.ToImmutableDictionary(t => t.Item1, t => t.Item2.SelectAsArray(c => c.Rehydrate())));
+        }
+    }
+
+    internal partial struct ConflictResolution
+    {
+        public async Task<SerializableConflictResolution> DehydrateAsync(CancellationToken cancellationToken)
+        {
+            if (ErrorMessage != null)
+                return new SerializableConflictResolution { ErrorMessage = ErrorMessage };
+
+            var documentTextChanges = await RemoteUtilities.GetDocumentTextChangesAsync(OldSolution, _newSolutionWithoutRenamedDocument, cancellationToken).ConfigureAwait(false);
+            return new SerializableConflictResolution
+            {
+                ReplacementTextValid = ReplacementTextValid,
+                RenamedDocument = _renamedDocument,
+                DocumentIds = DocumentIds.ToArray(),
+                RelatedLocations = RelatedLocations.Select(loc => SerializableRelatedLocation.Dehydrate(loc)).ToArray(),
+                DocumentTextChanges = documentTextChanges,
+                DocumentToModifiedSpansMap = _documentToModifiedSpansMap.Select(kvp => (kvp.Key, kvp.Value)).ToArray(),
+                DocumentToComplexifiedSpansMap = _documentToComplexifiedSpansMap.Select(kvp => (kvp.Key, kvp.Value.SelectAsArray(s => SerializableComplexifiedSpan.Dehydrate(s)))).ToArray(),
+                DocumentToRelatedLocationsMap = _documentToRelatedLocationsMap.Select(kvp => (kvp.Key, kvp.Value.SelectAsArray(s => SerializableRelatedLocation.Dehydrate(s)))).ToArray(),
+            };
+        }
     }
 }

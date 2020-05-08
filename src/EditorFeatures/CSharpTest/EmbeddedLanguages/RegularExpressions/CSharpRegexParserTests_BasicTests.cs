@@ -6086,18 +6086,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         [Fact]
-        public void TestNonBacktrackingGrouping1()
+        public void TestAtomicGrouping1()
         {
             Test(@"""(?>)""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <NonBacktrackingGrouping>
+      <AtomicGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
         <GreaterThanToken>&gt;</GreaterThanToken>
         <Sequence />
         <CloseParenToken>)</CloseParenToken>
-      </NonBacktrackingGrouping>
+      </AtomicGrouping>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -6108,12 +6108,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         [Fact]
-        public void TestNonBacktrackingGrouping2()
+        public void TestAtomicGrouping2()
         {
             Test(@"""(?>a)""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <NonBacktrackingGrouping>
+      <AtomicGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
         <GreaterThanToken>&gt;</GreaterThanToken>
@@ -6123,7 +6123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
           </Text>
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
-      </NonBacktrackingGrouping>
+      </AtomicGrouping>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -6134,18 +6134,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         [Fact]
-        public void TestNonBacktrackingGrouping3()
+        public void TestAtomicGrouping3()
         {
             Test(@"""(?>""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
-      <NonBacktrackingGrouping>
+      <AtomicGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
         <GreaterThanToken>&gt;</GreaterThanToken>
         <Sequence />
         <CloseParenToken />
-      </NonBacktrackingGrouping>
+      </AtomicGrouping>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -6159,18 +6159,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         [Fact]
-        public void TestNonBacktrackingGrouping4()
+        public void TestAtomicGrouping4()
         {
             Test(@"""(?> """, $@"<Tree>
   <CompilationUnit>
     <Sequence>
-      <NonBacktrackingGrouping>
+      <AtomicGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
         <GreaterThanToken>&gt;</GreaterThanToken>
         <Sequence />
         <CloseParenToken />
-      </NonBacktrackingGrouping>
+      </AtomicGrouping>
     </Sequence>
     <EndOfFile>
       <Trivia>
