@@ -258,7 +258,7 @@ jobs:
   pool:
     name: NetCorePublic-Pool
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
-  timeoutInMinutes: 90
+  timeoutInMinutes: 150
 
   steps:
     - powershell: ./eng/build.sh --ci --restore
