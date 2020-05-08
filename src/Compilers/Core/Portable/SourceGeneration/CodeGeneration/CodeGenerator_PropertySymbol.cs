@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
             ImmutableArray<IParameterSymbol> parameters = default,
             IMethodSymbol getMethod = null,
-            IMethodSymbol setMethod = null)
+            IMethodSymbol setMethod = null,
+            ISymbol containingSymbol = null)
         {
             return new PropertySymbol(
                 attributes,
@@ -28,7 +29,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 parameters,
                 getMethod,
                 setMethod,
-                isIndexer: false);
+                isIndexer: false,
+                containingSymbol);
         }
 
         public static IPropertySymbol Indexer(
@@ -38,7 +40,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             SymbolModifiers modifiers = default,
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
             IMethodSymbol getMethod = null,
-            IMethodSymbol setMethod = null)
+            IMethodSymbol setMethod = null,
+            ISymbol containingSymbol = null)
         {
             return new PropertySymbol(
                 attributes,
@@ -49,7 +52,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 parameters,
                 getMethod,
                 setMethod,
-                isIndexer: true);
+                isIndexer: true,
+                containingSymbol);
         }
 
         public static IPropertySymbol With(
@@ -61,7 +65,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Optional<string> name = default,
             Optional<ImmutableArray<IParameterSymbol>> parameters = default,
             Optional<IMethodSymbol> getMethod = default,
-            Optional<IMethodSymbol> setMethod = default)
+            Optional<IMethodSymbol> setMethod = default,
+            Optional<ISymbol> containingSymbol = default)
         {
             return new PropertySymbol(
                 attributes.GetValueOr(property.GetAttributes()),
@@ -72,7 +77,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 parameters.GetValueOr(property.Parameters),
                 getMethod.GetValueOr(property.GetMethod),
                 setMethod.GetValueOr(property.SetMethod),
-                isIndexer: property.IsIndexer);
+                isIndexer: property.IsIndexer,
+                containingSymbol.GetValueOr(property.ContainingSymbol));
         }
 
         private class PropertySymbol : Symbol, IPropertySymbol
@@ -88,7 +94,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 ImmutableArray<IParameterSymbol> parameters,
                 IMethodSymbol getMethod,
                 IMethodSymbol setMethod,
-                bool isIndexer)
+                bool isIndexer,
+                ISymbol containingSymbol)
             {
                 Name = name;
                 Type = type;
@@ -99,8 +106,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 SetMethod = setMethod;
                 ExplicitInterfaceImplementations = explicitInterfaceImplementations;
                 _attributes = attributes;
+                ContainingSymbol = containingSymbol;
             }
 
+            public override ISymbol ContainingSymbol { get; }
             public override SymbolKind Kind => SymbolKind.Property;
             public override SymbolModifiers Modifiers { get; }
             public override string Name { get; }

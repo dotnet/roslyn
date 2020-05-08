@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ImmutableArray<IEventSymbol> explicitInterfaceImplementations = default,
             IMethodSymbol addMethod = null,
             IMethodSymbol removeMethod = null,
-            IMethodSymbol raiseMethod = null)
+            IMethodSymbol raiseMethod = null,
+            ISymbol containingSymbol = null)
         {
             return new EventSymbol(
                 attributes,
@@ -29,7 +30,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 name,
                 addMethod,
                 removeMethod,
-                raiseMethod);
+                raiseMethod,
+                containingSymbol);
         }
 
         public static IEventSymbol With(
@@ -42,7 +44,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Optional<string> name = default,
             Optional<IMethodSymbol> addMethod = default,
             Optional<IMethodSymbol> removeMethod = default,
-            Optional<IMethodSymbol> raiseMethod = default)
+            Optional<IMethodSymbol> raiseMethod = default,
+            Optional<ISymbol> containingSymbol = default)
         {
             return new EventSymbol(
                 attributes.GetValueOr(@event.GetAttributes()),
@@ -53,7 +56,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 name.GetValueOr(@event.Name),
                 addMethod.GetValueOr(@event.AddMethod),
                 removeMethod.GetValueOr(@event.RemoveMethod),
-                raiseMethod.GetValueOr(@event.RaiseMethod));
+                raiseMethod.GetValueOr(@event.RaiseMethod),
+                containingSymbol.GetValueOr(@event.ContainingSymbol));
         }
 
         private class EventSymbol : Symbol, IEventSymbol
@@ -69,7 +73,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 string name,
                 IMethodSymbol addMethod,
                 IMethodSymbol removeMethod,
-                IMethodSymbol raiseMethod)
+                IMethodSymbol raiseMethod,
+                ISymbol containingSymbol)
             {
                 Name = name;
                 Type = type;
@@ -80,6 +85,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 RemoveMethod = removeMethod;
                 RaiseMethod = raiseMethod;
                 ExplicitInterfaceImplementations = explicitInterfaceImplementations;
+                ContainingSymbol = containingSymbol;
             }
 
             public ITypeSymbol Type { get; }
@@ -88,6 +94,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public IMethodSymbol RaiseMethod { get; }
             public ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations { get; }
 
+            public override ISymbol ContainingSymbol { get; }
             public override Accessibility DeclaredAccessibility { get; }
             public override SymbolKind Kind => SymbolKind.Event;
             public override SymbolModifiers Modifiers { get; }
