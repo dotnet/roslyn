@@ -12855,6 +12855,9 @@ partial class C
                 // (35,12): warning CS0612: '(T1, T2)' is obsolete
                 //     static (int a, int b, int c, int d, int e, int f, int g, int h, int Item2) M103()
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int a, int b, int c, int d, int e, int f, int g, int h, int Item2)").WithArguments("(T1, T2)").WithLocation(35, 12),
+                // (55,10): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
+                //         [System.Runtime.InteropServices.FieldOffsetAttribute(20)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "System.Runtime.InteropServices.FieldOffsetAttribute").WithLocation(55, 10),
                 // (78,10): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //         [System.Runtime.InteropServices.FieldOffsetAttribute(21)]
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "System.Runtime.InteropServices.FieldOffsetAttribute").WithLocation(78, 10),
@@ -27334,6 +27337,40 @@ class C
                 source,
                 options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"Done.");
+        }
+
+        [Fact]
+        [WorkItem(44000, "https://github.com/dotnet/roslyn/issues/44000")]
+        public void TupleField_ForceComplete()
+        {
+            var source =
+@"namespace System
+{
+    public struct ValueTuple<T1>
+    {
+        public T1 Item1;
+        public ValueTuple(T1 item1)
+        {
+            Item1 = item1;
+        }
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
+            var type = (SourceNamedTypeSymbol)comp.GetMember("System.ValueTuple");
+            var field = (TupleFieldSymbol)type.GetMember("Item1");
+            var underlyingField = field.TupleUnderlyingField;
+
+            Assert.True(field.RequiresCompletion);
+            Assert.True(underlyingField.RequiresCompletion);
+            Assert.False(field.HasComplete(CompletionPart.All));
+            Assert.False(underlyingField.HasComplete(CompletionPart.All));
+
+            field.ForceComplete(null, default);
+
+            Assert.True(field.RequiresCompletion);
+            Assert.True(underlyingField.RequiresCompletion);
+            Assert.True(field.HasComplete(CompletionPart.All));
+            Assert.True(underlyingField.HasComplete(CompletionPart.All));
         }
     }
 }
