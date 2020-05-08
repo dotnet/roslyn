@@ -221,7 +221,7 @@ using System.Runtime.CompilerServices;
 struct S
 {
     [ModuleInitializer]
-    internal static void M() => Console.WriteLine(""C.M"");
+    internal static void M() => Console.WriteLine(""S.M"");
 }
 
 class Program 
@@ -232,7 +232,7 @@ class Program
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
-C.M
+S.M
 Program.Main");
         }
 
