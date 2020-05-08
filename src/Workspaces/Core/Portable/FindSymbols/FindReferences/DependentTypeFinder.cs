@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly Func<INamedTypeSymbol, bool> s_isNonSealedClass = t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
         private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass = t => s_isInterface(t) || s_isNonSealedClass(t);
 
-        private static readonly ObjectPool<PooledHashSet<INamedTypeSymbol>> s_setPool1 = PooledHashSet<INamedTypeSymbol>.CreatePool(SymbolEquivalenceComparer.Instance);
+        private static readonly ObjectPool<PooledHashSet<INamedTypeSymbol>> s_symbolSetPool = PooledHashSet<INamedTypeSymbol>.CreatePool(SymbolEquivalenceComparer.Instance);
+        private static readonly ObjectPool<PooledDictionary<INamedTypeSymbol, Project>> s_symbolToProjectPool = PooledDictionary<INamedTypeSymbol, Project>.CreatePool(SymbolEquivalenceComparer.Instance);
 
         // Caches from a types to their related types (in the context of a specific solution).
         // Kept as a cache so that clients who make many calls into us won't end up computing
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             IImmutableSet<Project> projects,
             RelatedTypeCache cache,
-            Func<CancellationToken, Task<ImmutableArray<INamedTypeSymbol>>> findAsync,
+            Func<CancellationToken, Task<ImmutableArray<(INamedTypeSymbol, Project)>>> findAsync,
             CancellationToken cancellationToken)
         {
             var dictionary = cache.GetValue(solution, s_createTypeMap);
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 lazy = dictionary.GetOrAdd(key,
                     new AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>(
-                        c => GetSymbolKeysAndProjectIdsAsync(solution, findAsync, c),
+                        c => GetSymbolKeysAndProjectIdsAsync(findAsync, c),
                         cacheResult: true));
             }
 
@@ -138,8 +139,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<ImmutableArray<(SymbolKey, ProjectId)>> GetSymbolKeysAndProjectIdsAsync(
-            Solution solution,
-            Func<CancellationToken, Task<ImmutableArray<INamedTypeSymbol>>> findAsync,
+            Func<CancellationToken, Task<ImmutableArray<(INamedTypeSymbol, Project)>>> findAsync,
             CancellationToken cancellationToken)
         {
             // If we're the code that is actually computing the symbols, then just 
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // doesn't need to incur the cost of deserializing the symbol keys that
             // we're create right below this.
             var result = await findAsync(cancellationToken).ConfigureAwait(false);
-            return result.SelectAsArray(t => (t.GetSymbolKey(), solution.GetOriginatingProjectId(t)));
+            return result.SelectAsArray(t => (t.Item1.GetSymbolKey(), t.Item2.Id));
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// inherit from it that would match this search.</param>
         /// <param name="transitive">If this search after finding the direct inherited types that match the provided
         /// predicate, or if the search should continue recursively using those types as the starting point.</param>
-        private static async Task<ImmutableArray<INamedTypeSymbol>> DescendInheritanceTreeAsync(
+        private static async Task<ImmutableArray<(INamedTypeSymbol, Project)>> DescendInheritanceTreeAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -200,9 +200,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var orderedProjectsToExamine = GetOrderedProjectsToExamine(
                 solution, projects, projectsThatCouldReferenceType);
 
-
             // The final set of results we'll be returning.
-            using var _1 = GetSymbolSet(out var result);
+            using var _1 = GetSymbolToProjectMap(out var result);
 
             // The current total set of matching metadata types in the descendant tree (including the initial type if it
             // is from metadata).  Will be used when examining new types to see if they inherit from any of these.
@@ -236,12 +235,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     transitive, cancellationToken).ConfigureAwait(false);
             }
 
-            return result.ToImmutableArray();
+            return result.SelectAsArray(kvp => (kvp.Key, kvp.Value));
         }
 
         private static async Task DescendInheritanceTreeInProjectAsync(
             bool searchInMetadata,
-            SymbolSet result,
+            Dictionary<INamedTypeSymbol, Project> result,
             SymbolSet currentMetadataTypes,
             SymbolSet currentSourceAndMetadataTypes,
             Project project,
@@ -272,7 +271,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Add all the matches we found to the result set.
                 AssertContents(tempBuffer, assert: s_isInMetadata, "Found type was not from metadata");
-                AddRange(tempBuffer, result);
+                AddRange(tempBuffer, project, result);
 
                 // Now, if we're doing a transitive search, add these found types to the 'current' sets we're
                 // searching for more results for. These will then be used when searching for more types in the next
@@ -299,7 +298,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Add all the matches we found to the result set.
                 AssertContents(tempBuffer, assert: s_isInSource, "Found type was not from source");
-                AddRange(tempBuffer, result);
+                AddRange(tempBuffer, project, result);
 
                 // Now, if we're doing a transitive search, add these types to the currentSourceAndMetadataTypes
                 // set. These will then be used when searching for more types in the next project (which our caller
@@ -318,11 +317,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 Debug.Assert(type.Locations.All(assert), message);
         }
 
-        private static void AddRange(SymbolSet foundTypes, SymbolSet result)
+        private static void AddRange(SymbolSet foundTypes, Project project, Dictionary<INamedTypeSymbol, Project> result)
         {
             // Directly enumerate to avoid IEnumerator allocations.
             foreach (var type in foundTypes)
-                result.Add(type);
+                result[type] = project;
         }
 
         private static void AddRange(SymbolSet foundTypes, SymbolSet currentTypes, Func<INamedTypeSymbol, bool> shouldContinueSearching)
@@ -722,10 +721,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static PooledDisposer<PooledHashSet<INamedTypeSymbol>> GetSymbolSet(out SymbolSet instance)
         {
-            var pooledInstance = s_setPool1.Allocate();
+            var pooledInstance = s_symbolSetPool.Allocate();
             Debug.Assert(pooledInstance.Count == 0);
             instance = pooledInstance;
             return new PooledDisposer<PooledHashSet<INamedTypeSymbol>>(pooledInstance);
+        }
+
+        public static PooledDisposer<PooledDictionary<INamedTypeSymbol, Project>> GetSymbolToProjectMap(out Dictionary<INamedTypeSymbol, Project> instance)
+        {
+            var pooledInstance = s_symbolToProjectPool.Allocate();
+            Debug.Assert(pooledInstance.Count == 0);
+            instance = pooledInstance;
+            return new PooledDisposer<PooledDictionary<INamedTypeSymbol, Project>>(pooledInstance);
         }
     }
 }

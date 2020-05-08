@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken);
         }
 
-        private static async Task<ImmutableArray<INamedTypeSymbol>> FindWithoutCachingImplementingTypesAsync(
+        private static async Task<ImmutableArray<(INamedTypeSymbol, Project)>> FindWithoutCachingImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -88,13 +88,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // FindDerivedInterfacesAsync.  Delegates/Enums only happen in a few corner cases.  For example, enums
                 // implement IComparable, and delegates implement ICloneable.
                 return allTypes.WhereAsArray(
-                    t => t.TypeKind == TypeKind.Class ||
-                         t.TypeKind == TypeKind.Struct ||
-                         t.TypeKind == TypeKind.Delegate ||
-                         t.TypeKind == TypeKind.Enum);
+                    t => t.Item1.TypeKind == TypeKind.Class ||
+                         t.Item1.TypeKind == TypeKind.Struct ||
+                         t.Item1.TypeKind == TypeKind.Delegate ||
+                         t.Item1.TypeKind == TypeKind.Enum);
             }
 
-            return ImmutableArray<INamedTypeSymbol>.Empty;
+            return ImmutableArray<(INamedTypeSymbol, Project)>.Empty;
         }
     }
 }

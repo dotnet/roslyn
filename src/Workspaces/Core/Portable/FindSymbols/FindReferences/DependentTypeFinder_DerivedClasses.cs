@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken);
         }
 
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindWithoutCachingDerivedClassesAsync(
+        private static Task<ImmutableArray<(INamedTypeSymbol, Project)>> FindWithoutCachingDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     cancellationToken: cancellationToken);
             }
 
-            return SpecializedTasks.EmptyImmutableArray<INamedTypeSymbol>();
+            return SpecializedTasks.EmptyImmutableArray<(INamedTypeSymbol, Project)>();
         }
     }
 }
