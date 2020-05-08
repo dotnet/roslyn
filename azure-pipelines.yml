@@ -5,7 +5,6 @@ trigger:
 - release/*
 - features/*
 - demos/*
-- dev/xuachen/* #temporary testing
 
 # Branches that trigger builds on PR
 pr:
