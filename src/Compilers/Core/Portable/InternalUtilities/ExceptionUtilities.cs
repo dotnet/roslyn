@@ -19,7 +19,12 @@ namespace Roslyn.Utilities
         internal static Exception UnexpectedValue(object? o)
         {
             string output = string.Format("Unexpected value '{0}' of type '{1}'", o, (o != null) ? o.GetType().FullName : "<unknown>");
-            Debug.Assert(false, output);
+#if DEBUG
+            if (Debugger.IsAttached)
+            {
+                Debug.Assert(false, output);
+            }
+#endif
 
             // We do not throw from here because we don't want all Watson reports to be bucketed to this call.
             return new InvalidOperationException(output);
