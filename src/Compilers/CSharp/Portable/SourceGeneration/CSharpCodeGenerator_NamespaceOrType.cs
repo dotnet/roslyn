@@ -35,8 +35,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
             foreach (var member in members)
             {
-                if (!member.IsImplicitlyDeclared)
-                    builder.Add(GenerateMemberDeclaration(member));
+                if (member.IsImplicitlyDeclared)
+                    continue;
+
+                // skip accessors
+                if (member is IMethodSymbol method)
+                {
+                    var associatedSymbol = method.AssociatedSymbol;
+                    if (associatedSymbol is IPropertySymbol || associatedSymbol is IEventSymbol)
+                        continue;
+                }
+
+                builder.Add(GenerateMemberDeclaration(member));
             }
 
             return List(builder);
