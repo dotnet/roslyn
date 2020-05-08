@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             IImmutableSet<Project> projects,
             RelatedTypeCache cache,
-            Func<CancellationToken, Task<ImmutableArray<(INamedTypeSymbol, Project)>>> findAsync,
+            Func<CancellationToken, Task<ImmutableArray<(INamedTypeSymbol type, Project project)>>> findAsync,
             CancellationToken cancellationToken)
         {
             var dictionary = cache.GetValue(solution, s_createTypeMap);
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<ImmutableArray<(SymbolKey, ProjectId)>> GetSymbolKeysAndProjectIdsAsync(
-            Func<CancellationToken, Task<ImmutableArray<(INamedTypeSymbol, Project)>>> findAsync,
+            Func<CancellationToken, Task<ImmutableArray<(INamedTypeSymbol type, Project project)>>> findAsync,
             CancellationToken cancellationToken)
         {
             // If we're the code that is actually computing the symbols, then just 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // doesn't need to incur the cost of deserializing the symbol keys that
             // we're create right below this.
             var result = await findAsync(cancellationToken).ConfigureAwait(false);
-            return result.SelectAsArray(t => (t.Item1.GetSymbolKey(), t.Item2.Id));
+            return result.SelectAsArray(t => (t.type.GetSymbolKey(), t.project.Id));
         }
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// inherit from it that would match this search.</param>
         /// <param name="transitive">If this search after finding the direct inherited types that match the provided
         /// predicate, or if the search should continue recursively using those types as the starting point.</param>
-        private static async Task<ImmutableArray<(INamedTypeSymbol, Project)>> DescendInheritanceTreeAsync(
+        private static async Task<ImmutableArray<(INamedTypeSymbol type, Project project)>> DescendInheritanceTreeAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,

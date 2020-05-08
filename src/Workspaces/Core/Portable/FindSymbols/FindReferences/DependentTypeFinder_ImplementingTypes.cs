@@ -90,10 +90,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // FindDerivedInterfacesAsync.  Delegates/Enums only happen in a few corner cases.  For example, enums
                 // implement IComparable, and delegates implement ICloneable.
                 return allTypes.WhereAsArray(
-                    t => t.Item1.TypeKind == TypeKind.Class ||
-                         t.Item1.TypeKind == TypeKind.Struct ||
-                         t.Item1.TypeKind == TypeKind.Delegate ||
-                         t.Item1.TypeKind == TypeKind.Enum);
+                    t => t.type.TypeKind == TypeKind.Class ||
+                         t.type.TypeKind == TypeKind.Struct ||
+                         t.type.TypeKind == TypeKind.Delegate ||
+                         t.type.TypeKind == TypeKind.Enum);
             }
 
             return ImmutableArray<(INamedTypeSymbol, Project)>.Empty;
