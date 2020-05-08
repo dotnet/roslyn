@@ -24,14 +24,14 @@ namespace Analyzer.Utilities
 
         private static bool TryGetSyntaxTreeForOption(ISymbol symbol, [NotNullWhen(returnValue: true)] out SyntaxTree? tree)
         {
-            switch (symbol)
+            switch (symbol.Kind)
             {
-                case IAssemblySymbol _:
+                case SymbolKind.Assembly:
                     tree = null;
                     return false;
 
-                case INamespaceSymbol ns:
-                    if (ns.IsGlobalNamespace)
+                case SymbolKind.Namespace:
+                    if (((INamespaceSymbol)symbol).IsGlobalNamespace)
                     {
                         tree = null;
                         return false;
