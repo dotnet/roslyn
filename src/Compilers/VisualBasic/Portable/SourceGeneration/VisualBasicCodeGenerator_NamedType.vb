@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
                 Return GenerateTupleTypeSyntax(symbol, onlyNames)
             End If
 
-            If symbol.SpecialType <> SpecialType.None Then
-                Return GenerateSpecialTypeSyntax(symbol, onlyNames)
+            If Not onlyNames AndAlso symbol.SpecialType <> SpecialType.None Then
+                Return GenerateSpecialTypeSyntax(symbol)
             End If
 
             Return GenerateNormalNamedTypeSyntax(symbol)
@@ -63,48 +63,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
             End Using
         End Function
 
-        Private Function GenerateSpecialTypeSyntax(symbol As INamedTypeSymbol, onlyNames As Boolean) As TypeSyntax
-            If onlyNames Then
-                Dim generated = CodeGenerator.TryGenerateSystemType(symbol.SpecialType)
-                If generated IsNot Nothing Then
-                    Return generated.GenerateNameSyntax()
-                End If
-            Else
-                Select Case symbol.SpecialType
-                    Case SpecialType.System_Object
-                        Return PredefinedType(Token(SyntaxKind.ObjectKeyword))
-                    Case SpecialType.System_Boolean
-                        Return PredefinedType(Token(SyntaxKind.BooleanKeyword))
-                    Case SpecialType.System_Char
-                        Return PredefinedType(Token(SyntaxKind.CharKeyword))
-                    Case SpecialType.System_SByte
-                        Return PredefinedType(Token(SyntaxKind.SByteKeyword))
-                    Case SpecialType.System_Byte
-                        Return PredefinedType(Token(SyntaxKind.ByteKeyword))
-                    Case SpecialType.System_Int16
-                        Return PredefinedType(Token(SyntaxKind.ShortKeyword))
-                    Case SpecialType.System_UInt16
-                        Return PredefinedType(Token(SyntaxKind.UShortKeyword))
-                    Case SpecialType.System_Int32
-                        Return PredefinedType(Token(SyntaxKind.IntegerKeyword))
-                    Case SpecialType.System_UInt32
-                        Return PredefinedType(Token(SyntaxKind.UIntegerKeyword))
-                    Case SpecialType.System_Int64
-                        Return PredefinedType(Token(SyntaxKind.LongKeyword))
-                    Case SpecialType.System_UInt64
-                        Return PredefinedType(Token(SyntaxKind.ULongKeyword))
-                    Case SpecialType.System_Decimal
-                        Return PredefinedType(Token(SyntaxKind.DecimalKeyword))
-                    Case SpecialType.System_Single
-                        Return PredefinedType(Token(SyntaxKind.SingleKeyword))
-                    Case SpecialType.System_Double
-                        Return PredefinedType(Token(SyntaxKind.DoubleKeyword))
-                    Case SpecialType.System_String
-                        Return PredefinedType(Token(SyntaxKind.StringKeyword))
-                    Case SpecialType.System_DateTime
-                        Return PredefinedType(Token(SyntaxKind.DateKeyword))
-                End Select
-            End If
+        Private Function GenerateSpecialTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
+            Select Case symbol.SpecialType
+                Case SpecialType.System_Object
+                    Return PredefinedType(Token(SyntaxKind.ObjectKeyword))
+                Case SpecialType.System_Boolean
+                    Return PredefinedType(Token(SyntaxKind.BooleanKeyword))
+                Case SpecialType.System_Char
+                    Return PredefinedType(Token(SyntaxKind.CharKeyword))
+                Case SpecialType.System_SByte
+                    Return PredefinedType(Token(SyntaxKind.SByteKeyword))
+                Case SpecialType.System_Byte
+                    Return PredefinedType(Token(SyntaxKind.ByteKeyword))
+                Case SpecialType.System_Int16
+                    Return PredefinedType(Token(SyntaxKind.ShortKeyword))
+                Case SpecialType.System_UInt16
+                    Return PredefinedType(Token(SyntaxKind.UShortKeyword))
+                Case SpecialType.System_Int32
+                    Return PredefinedType(Token(SyntaxKind.IntegerKeyword))
+                Case SpecialType.System_UInt32
+                    Return PredefinedType(Token(SyntaxKind.UIntegerKeyword))
+                Case SpecialType.System_Int64
+                    Return PredefinedType(Token(SyntaxKind.LongKeyword))
+                Case SpecialType.System_UInt64
+                    Return PredefinedType(Token(SyntaxKind.ULongKeyword))
+                Case SpecialType.System_Decimal
+                    Return PredefinedType(Token(SyntaxKind.DecimalKeyword))
+                Case SpecialType.System_Single
+                    Return PredefinedType(Token(SyntaxKind.SingleKeyword))
+                Case SpecialType.System_Double
+                    Return PredefinedType(Token(SyntaxKind.DoubleKeyword))
+                Case SpecialType.System_String
+                    Return PredefinedType(Token(SyntaxKind.StringKeyword))
+                Case SpecialType.System_DateTime
+                    Return PredefinedType(Token(SyntaxKind.DateKeyword))
+            End Select
 
             Return GenerateNormalNamedTypeSyntax(symbol)
         End Function

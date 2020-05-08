@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 IsDiscard = isDiscard;
                 HasExplicitDefaultValue = explicitDefaultValue.HasValue;
                 ExplicitDefaultValue = explicitDefaultValue.Value;
-                _attributes = attributes;
+                _attributes = attributes.NullToEmpty();
             }
 
             public override SymbolKind Kind => SymbolKind.Parameter;

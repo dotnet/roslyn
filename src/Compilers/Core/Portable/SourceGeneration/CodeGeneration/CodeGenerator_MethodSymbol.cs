@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 ISymbol containingSymbol)
             {
                 MethodKind = methodKind;
-                _attributes = attributes;
+                _attributes = attributes.NullToEmpty();
                 DeclaredAccessibility = declaredAccessibility;
                 Modifiers = modifiers;
                 ReturnType = returnType;
@@ -189,6 +189,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 ContainingSymbol = containingSymbol;
             }
 
+            public ISymbol AssociatedSymbol => null;
             public override ISymbol ContainingSymbol { get; }
             public override Accessibility DeclaredAccessibility { get; }
             public override ImmutableArray<AttributeData> GetAttributes() => _attributes;
@@ -238,7 +239,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => throw new NotImplementedException();
             public INamedTypeSymbol AssociatedAnonymousDelegate => throw new NotImplementedException();
             public int Arity => throw new NotImplementedException();
-            public ISymbol AssociatedSymbol => throw new NotImplementedException();
             public ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter) => throw new NotImplementedException();
             public ITypeSymbol ReceiverType => throw new NotImplementedException();
             public NullableAnnotation ReceiverNullableAnnotation => throw new NotImplementedException();

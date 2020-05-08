@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 HasNotNullConstraint = hasNotNullConstraint;
                 HasConstructorConstraint = hasConstructorConstraint;
                 ConstraintTypes = constraintTypes.NullToEmpty();
-                _attributes = attributes;
+                _attributes = attributes.NullToEmpty();
                 NullableAnnotation = nullableAnnotation;
             }
 

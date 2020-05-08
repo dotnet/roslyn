@@ -202,28 +202,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         //public static INamedTypeSymbol AnonymousType(ITypeSymbol type = null)
         //    => new DiscardSymbol(type);
 
-        public static INamedTypeSymbol SpecialType(
-            SpecialType specialType,
-            ImmutableArray<ITypeSymbol> typeArguments = default,
-            NullableAnnotation nullableAnnotation = NullableAnnotation.None)
-        {
-            return new NamedTypeSymbol(
-                specialType,
-                typeKind: default,
-                attributes: default,
-                declaredAccessibility: default,
-                modifiers: default,
-                name: null,
-                typeArguments,
-                baseType: null,
-                interfaces: default,
-                members: default,
-                tupleElements: default,
-                delegateInvokeMethod: null,
-                nullableAnnotation,
-                containingSymbol: null);
-        }
-
         public static INamedTypeSymbol With(
             this INamedTypeSymbol type,
             Optional<SpecialType> specialType = default,
@@ -283,39 +261,39 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                     containingSymbol: GlobalNamespace()));
         }
 
-        internal static INamedTypeSymbol TryGenerateSystemType(SpecialType specialType)
-        {
-            switch (specialType)
-            {
-                case CodeAnalysis.SpecialType.System_Object: return GenerateSystemType(nameof(Object));
-                case CodeAnalysis.SpecialType.System_Boolean: return GenerateSystemType(nameof(Boolean));
-                case CodeAnalysis.SpecialType.System_Char: return GenerateSystemType(nameof(Char));
-                case CodeAnalysis.SpecialType.System_SByte: return GenerateSystemType(nameof(SByte));
-                case CodeAnalysis.SpecialType.System_Byte: return GenerateSystemType(nameof(Byte));
-                case CodeAnalysis.SpecialType.System_Int16: return GenerateSystemType(nameof(Int16));
-                case CodeAnalysis.SpecialType.System_UInt16: return GenerateSystemType(nameof(UInt16));
-                case CodeAnalysis.SpecialType.System_Int32: return GenerateSystemType(nameof(Int32));
-                case CodeAnalysis.SpecialType.System_UInt32: return GenerateSystemType(nameof(UInt32));
-                case CodeAnalysis.SpecialType.System_Int64: return GenerateSystemType(nameof(Int64));
-                case CodeAnalysis.SpecialType.System_UInt64: return GenerateSystemType(nameof(UInt64));
-                case CodeAnalysis.SpecialType.System_Decimal: return GenerateSystemType(nameof(Decimal));
-                case CodeAnalysis.SpecialType.System_Single: return GenerateSystemType(nameof(Single));
-                case CodeAnalysis.SpecialType.System_Double: return GenerateSystemType(nameof(Double));
-                case CodeAnalysis.SpecialType.System_String: return GenerateSystemType(nameof(String));
-                case CodeAnalysis.SpecialType.System_DateTime: return GenerateSystemType(nameof(DateTime));
-            }
+        //internal static INamedTypeSymbol TryGenerateSystemType(SpecialType specialType)
+        //{
+        //    switch (specialType)
+        //    {
+        //        case CodeAnalysis.SpecialType.System_Object: return GenerateSystemType(nameof(Object));
+        //        case CodeAnalysis.SpecialType.System_Boolean: return GenerateSystemType(nameof(Boolean));
+        //        case CodeAnalysis.SpecialType.System_Char: return GenerateSystemType(nameof(Char));
+        //        case CodeAnalysis.SpecialType.System_SByte: return GenerateSystemType(nameof(SByte));
+        //        case CodeAnalysis.SpecialType.System_Byte: return GenerateSystemType(nameof(Byte));
+        //        case CodeAnalysis.SpecialType.System_Int16: return GenerateSystemType(nameof(Int16));
+        //        case CodeAnalysis.SpecialType.System_UInt16: return GenerateSystemType(nameof(UInt16));
+        //        case CodeAnalysis.SpecialType.System_Int32: return GenerateSystemType(nameof(Int32));
+        //        case CodeAnalysis.SpecialType.System_UInt32: return GenerateSystemType(nameof(UInt32));
+        //        case CodeAnalysis.SpecialType.System_Int64: return GenerateSystemType(nameof(Int64));
+        //        case CodeAnalysis.SpecialType.System_UInt64: return GenerateSystemType(nameof(UInt64));
+        //        case CodeAnalysis.SpecialType.System_Decimal: return GenerateSystemType(nameof(Decimal));
+        //        case CodeAnalysis.SpecialType.System_Single: return GenerateSystemType(nameof(Single));
+        //        case CodeAnalysis.SpecialType.System_Double: return GenerateSystemType(nameof(Double));
+        //        case CodeAnalysis.SpecialType.System_String: return GenerateSystemType(nameof(String));
+        //        case CodeAnalysis.SpecialType.System_DateTime: return GenerateSystemType(nameof(DateTime));
+        //    }
 
-            return null;
+        //    return null;
 
-            static INamedTypeSymbol GenerateSystemType(string name)
-            {
-                return Class(
-                    name,
-                    containingSymbol: Namespace(
-                        nameof(System),
-                        containingSymbol: GlobalNamespace()));
-            }
-        }
+        //    static INamedTypeSymbol GenerateSystemType(string name)
+        //    {
+        //        return Class(
+        //            name,
+        //            containingSymbol: Namespace(
+        //                nameof(System),
+        //                containingSymbol: GlobalNamespace()));
+        //    }
+        //}
 
         private class NamedTypeSymbol : TypeSymbol, INamedTypeSymbol
         {
@@ -340,7 +318,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             {
                 SpecialType = specialType;
                 TypeKind = typeKind;
-                _attributes = attributes;
+                _attributes = attributes.NullToEmpty();
                 DeclaredAccessibility = declaredAccessibility;
                 Modifiers = modifiers;
                 Name = name;

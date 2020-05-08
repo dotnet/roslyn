@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
 {
     public partial class CodeGenerationTests
     {
-        private static ITypeSymbol Int32 = SpecialType(SpecialType.System_Int32);
-        private static ITypeSymbol Boolean = SpecialType(SpecialType.System_Boolean);
-        private static ITypeSymbol Void = SpecialType(SpecialType.System_Void);
+        private static ITypeSymbol Int32 = System_Int32;
+        private static ITypeSymbol Boolean = System_Boolean;
+        private static ITypeSymbol Void = System_Void;
 
-        [Fact]
-        public void TestAllGeneration()
-        {
-            var compilation = (Compilation)CSharpTestBase.CreateCompilationWithMscorlib45(new[] { "" });
-            var syntax = compilation.GlobalNamespace.GenerateSyntax();
-        }
+        //[Fact]
+        //public void TestAllGeneration()
+        //{
+        //    var compilation = (Compilation)CSharpTestBase.CreateCompilationWithMscorlib45(new[] { "" });
+        //    var syntax = compilation.GlobalNamespace.GenerateSyntax();
+        //}
     }
 }

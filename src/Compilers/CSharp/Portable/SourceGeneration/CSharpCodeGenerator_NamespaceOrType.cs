@@ -41,9 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 // skip accessors
                 if (member is IMethodSymbol method)
                 {
-                    var associatedSymbol = method.AssociatedSymbol;
-                    if (associatedSymbol is IPropertySymbol || associatedSymbol is IEventSymbol)
-                        continue;
+                    switch (method.MethodKind)
+                    {
+                        case MethodKind.EventAdd:
+                        case MethodKind.EventRaise:
+                        case MethodKind.EventRemove:
+                        case MethodKind.PropertyGet:
+                        case MethodKind.PropertySet:
+                            continue;
+                    }
                 }
 
                 builder.Add(GenerateMemberDeclaration(member));

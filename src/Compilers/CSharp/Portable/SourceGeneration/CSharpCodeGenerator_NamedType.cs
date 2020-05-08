@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             if (!symbol.TupleElements.IsDefault)
                 return GenerateTupleTypeSyntaxWithoutNullable(symbol, onlyNames);
 
-            if (symbol.SpecialType != SpecialType.None)
-                return GenerateSpecialTypeSyntaxWithoutNullable(symbol, onlyNames);
+            if (!onlyNames && symbol.SpecialType != SpecialType.None)
+                return GenerateSpecialTypeSyntaxWithoutNullable(symbol);
 
             return GenerateNormalNamedTypeSyntaxWithoutNullable(symbol);
         }
@@ -68,35 +68,26 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             return TupleType(SeparatedList(elements));
         }
 
-        private static TypeSyntax GenerateSpecialTypeSyntaxWithoutNullable(INamedTypeSymbol symbol, bool onlyNames)
+        private static TypeSyntax GenerateSpecialTypeSyntaxWithoutNullable(INamedTypeSymbol symbol)
         {
-            if (onlyNames)
+            switch (symbol.SpecialType)
             {
-                var generated = TryGenerateSystemType(symbol.SpecialType);
-                if (generated != null)
-                    return generated.GenerateNameSyntax();
-            }
-            else
-            {
-                switch (symbol.SpecialType)
-                {
-                    case SpecialType.System_Object: return PredefinedType(Token(SyntaxKind.ObjectKeyword));
-                    case SpecialType.System_Boolean: return PredefinedType(Token(SyntaxKind.BoolKeyword));
-                    case SpecialType.System_Char: return PredefinedType(Token(SyntaxKind.CharKeyword));
-                    case SpecialType.System_SByte: return PredefinedType(Token(SyntaxKind.SByteKeyword));
-                    case SpecialType.System_Byte: return PredefinedType(Token(SyntaxKind.ByteKeyword));
-                    case SpecialType.System_Int16: return PredefinedType(Token(SyntaxKind.ShortKeyword));
-                    case SpecialType.System_UInt16: return PredefinedType(Token(SyntaxKind.UShortKeyword));
-                    case SpecialType.System_Int32: return PredefinedType(Token(SyntaxKind.IntKeyword));
-                    case SpecialType.System_UInt32: return PredefinedType(Token(SyntaxKind.UIntKeyword));
-                    case SpecialType.System_Int64: return PredefinedType(Token(SyntaxKind.LongKeyword));
-                    case SpecialType.System_UInt64: return PredefinedType(Token(SyntaxKind.ULongKeyword));
-                    case SpecialType.System_Decimal: return PredefinedType(Token(SyntaxKind.DecimalKeyword));
-                    case SpecialType.System_Single: return PredefinedType(Token(SyntaxKind.FloatKeyword));
-                    case SpecialType.System_Double: return PredefinedType(Token(SyntaxKind.DoubleKeyword));
-                    case SpecialType.System_String: return PredefinedType(Token(SyntaxKind.StringKeyword));
-                    case SpecialType.System_Void: return PredefinedType(Token(SyntaxKind.VoidKeyword));
-                }
+                case SpecialType.System_Object: return PredefinedType(Token(SyntaxKind.ObjectKeyword));
+                case SpecialType.System_Boolean: return PredefinedType(Token(SyntaxKind.BoolKeyword));
+                case SpecialType.System_Char: return PredefinedType(Token(SyntaxKind.CharKeyword));
+                case SpecialType.System_SByte: return PredefinedType(Token(SyntaxKind.SByteKeyword));
+                case SpecialType.System_Byte: return PredefinedType(Token(SyntaxKind.ByteKeyword));
+                case SpecialType.System_Int16: return PredefinedType(Token(SyntaxKind.ShortKeyword));
+                case SpecialType.System_UInt16: return PredefinedType(Token(SyntaxKind.UShortKeyword));
+                case SpecialType.System_Int32: return PredefinedType(Token(SyntaxKind.IntKeyword));
+                case SpecialType.System_UInt32: return PredefinedType(Token(SyntaxKind.UIntKeyword));
+                case SpecialType.System_Int64: return PredefinedType(Token(SyntaxKind.LongKeyword));
+                case SpecialType.System_UInt64: return PredefinedType(Token(SyntaxKind.ULongKeyword));
+                case SpecialType.System_Decimal: return PredefinedType(Token(SyntaxKind.DecimalKeyword));
+                case SpecialType.System_Single: return PredefinedType(Token(SyntaxKind.FloatKeyword));
+                case SpecialType.System_Double: return PredefinedType(Token(SyntaxKind.DoubleKeyword));
+                case SpecialType.System_String: return PredefinedType(Token(SyntaxKind.StringKeyword));
+                case SpecialType.System_Void: return PredefinedType(Token(SyntaxKind.VoidKeyword));
             }
 
             // Fallback to normal generation.

@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Accessibility declaredAccessibility = Accessibility.NotApplicable,
             SymbolModifiers modifiers = SymbolModifiers.None,
             Optional<object> constantValue = default)
-            => new FieldSymbol(
+        {
+            return new FieldSymbol(
                 attributes,
                 declaredAccessibility,
                 modifiers,
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 name,
                 constantValue,
                 isFixedSizeBuffer: true);
+        }
 
         public static IFieldSymbol TupleElement(
             ITypeSymbol type,
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 Type = type;
                 DeclaredAccessibility = declaredAccessibility;
                 Modifiers = modifiers;
-                _attributes = attributes;
+                _attributes = attributes.NullToEmpty();
                 HasConstantValue = constantValue.HasValue;
                 ConstantValue = constantValue.Value;
                 IsFixedSizeBuffer = isFixedSizeBuffer;
