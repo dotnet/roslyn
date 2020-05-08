@@ -50,6 +50,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return parenthesized.WithTriviaFrom(expression);
         }
 
+#if !CODE_STYLE
+
+        public static PatternSyntax Parenthesize(
+            this PatternSyntax pattern, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
+        {
+            var withoutTrivia = pattern.WithoutTrivia();
+            var parenthesized = includeElasticTrivia
+                ? SyntaxFactory.ParenthesizedPattern(withoutTrivia)
+                : SyntaxFactory.ParenthesizedPattern(
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
+                    withoutTrivia,
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
+
+            var result = parenthesized.WithTriviaFrom(pattern);
+            return addSimplifierAnnotation
+                ? result.WithAdditionalAnnotations(Simplifier.Annotation)
+                : result;
+        }
+
+#endif
+
         public static CastExpressionSyntax Cast(
             this ExpressionSyntax expression,
             ITypeSymbol targetType)

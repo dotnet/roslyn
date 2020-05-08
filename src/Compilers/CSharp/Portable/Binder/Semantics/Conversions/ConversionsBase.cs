@@ -939,6 +939,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ThrowExpression:
                     return Conversion.ImplicitThrow;
+
+                case BoundKind.UnconvertedObjectCreationExpression:
+                    return Conversion.ObjectCreation;
             }
 
             return Conversion.NoConversion;
@@ -1136,7 +1139,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return sbyte.MinValue <= value && value <= sbyte.MaxValue;
                     case SpecialType.System_Int16:
                         return short.MinValue <= value && value <= short.MaxValue;
+                    case SpecialType.System_IntPtr when destination.IsNativeIntegerType:
+                        return true;
                     case SpecialType.System_UInt32:
+                    case SpecialType.System_UIntPtr when destination.IsNativeIntegerType:
                         return uint.MinValue <= value;
                     case SpecialType.System_UInt64:
                         return (int)ulong.MinValue <= value;
@@ -2325,7 +2331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return HasImplicitReferenceConversion(source.Type, destination.Type, ref useSiteDiagnostics);
         }
 
-        private bool HasImplicitReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal bool HasImplicitReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);

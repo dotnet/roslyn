@@ -92,12 +92,57 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 // parameter.Ordinal is the ordinal within (a,b,c) => b.
                 // For candidate symbols of (a,b,c) => b., get types of all possible b.
                 parameterTypeSymbols = GetTypeSymbols(candidateSymbols, argumentName, ordinalInInvocation, ordinalInLambda: parameter.Ordinal);
+
+                // The parameterTypeSymbols may include type parameters, and we want their substituted types if available.
+                parameterTypeSymbols = SubstituteTypeParameters(parameterTypeSymbols, invocationExpression);
             }
 
             // For each type of b., return all suitable members.
             return parameterTypeSymbols
                 .SelectMany(parameterTypeSymbol => GetSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false))
                 .ToImmutableArray();
+        }
+
+        private ImmutableArray<ITypeSymbol> SubstituteTypeParameters(ImmutableArray<ITypeSymbol> parameterTypeSymbols, SyntaxNode invocationExpression)
+        {
+            if (!parameterTypeSymbols.Any(t => t.IsKind(SymbolKind.TypeParameter)))
+            {
+                return parameterTypeSymbols;
+            }
+
+            var invocationSymbols = _context.SemanticModel.GetSymbolInfo(invocationExpression).GetAllSymbols();
+            if (invocationSymbols.Length == 0)
+            {
+                return parameterTypeSymbols;
+            }
+
+            using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var concreteTypes);
+            foreach (var invocationSymbol in invocationSymbols)
+            {
+                var typeParameters = invocationSymbol.GetTypeParameters();
+                var typeArguments = invocationSymbol.GetTypeArguments();
+
+                foreach (var parameterTypeSymbol in parameterTypeSymbols)
+                {
+                    if (parameterTypeSymbol.IsKind<ITypeParameterSymbol>(SymbolKind.TypeParameter, out var typeParameter))
+                    {
+                        // The typeParameter could be from the containing type, so it may not be
+                        // present in this method's list of typeParameters.
+                        var index = typeParameters.IndexOf(typeParameter);
+                        var concreteType = typeArguments.ElementAtOrDefault(index);
+
+                        // If we couldn't find the concrete type, still consider the typeParameter
+                        // as is to provide members of any types it is constrained to (including object)
+                        concreteTypes.Add(concreteType ?? typeParameter);
+                    }
+                    else
+                    {
+                        concreteTypes.Add(parameterTypeSymbol);
+                    }
+                }
+            }
+
+            return concreteTypes.ToImmutable();
         }
 
         /// <summary>

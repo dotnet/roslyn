@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,13 +41,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var project2 = document1.Project.Solution.AddProject("Project2", "Project2.dll", LanguageNames.VisualBasic);
             var document2 = project2.AddDocument("Document2", SourceText.From(vbCode));
 
-            project1 = document2.Project.Solution.GetRequiredProject(project1.Id).AddProjectReference(new ProjectReference(project2.Id, ImmutableArray.Create("test")));
-            project1 = project1.AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
-            project1 = project1.AddAnalyzerReference(new AnalyzerFileReference(typeof(object).Assembly.Location, new TestAnalyzerAssemblyLoader()));
+            solution = document2.Project.Solution.GetRequiredProject(project1.Id)
+                .AddProjectReference(new ProjectReference(project2.Id, ImmutableArray.Create("test")))
+                .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
+                .AddAnalyzerReference(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path1"), new TestAnalyzerAssemblyLoader()))
+                .AddAdditionalDocument("Additional", SourceText.From("hello"), ImmutableArray.Create("test"), @".\Add").Project.Solution;
 
-            project1 = project1.AddAdditionalDocument("Additional", SourceText.From("hello"), ImmutableArray.Create("test"), @".\Add").Project;
-
-            return project1.Solution.AddAnalyzerConfigDocuments(
+            return solution
+                .WithAnalyzerReferences(new[] { new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path2"), new TestAnalyzerAssemblyLoader()) })
+                .AddAnalyzerConfigDocuments(
                 ImmutableArray.Create(
                     DocumentInfo.Create(
                         DocumentId.CreateNewId(project1.Id),
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal static async Task VerifyAssetAsync(IRemotableDataService service, SolutionStateChecksums solutionObject)
         {
             await VerifyAssetSerializationAsync<SolutionInfo.SolutionAttributes>(
-                service, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes,
+                service, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes,
                 (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s)).ConfigureAwait(false);
 
             foreach (var projectChecksum in solutionObject.Projects)

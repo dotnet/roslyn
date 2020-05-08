@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' A region analysis walker that computes the set of variables whose values flow into (are used in)
     ''' the region.
-    ''' An variable assigned outside is used inside if an analysis
+    ''' A variable assigned outside is used inside if an analysis
     ''' that leaves the variable unassigned on entry to the region would cause the
     ''' generation of "unassigned" errors within the region.
     ''' </summary>

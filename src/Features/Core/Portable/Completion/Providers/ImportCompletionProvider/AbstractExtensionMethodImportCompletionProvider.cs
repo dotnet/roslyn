@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfExtensionMethodImportCompletionItem();
 
-        protected async override Task AddCompletionItemsAsync(
+        protected override async Task AddCompletionItemsAsync(
             CompletionContext completionContext,
             SyntaxContext syntaxContext,
             HashSet<string> namespaceInScope,

@@ -196,14 +196,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 originalEndColumn: column);
         }
 
-        public int ReportError(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")]VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
+        public int ReportError(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
         {
             ReportError2(bstrErrorMessage, bstrErrorId, nPriority, iLine, iColumn, iLine, iColumn, bstrFileName);
             return VSConstants.S_OK;
         }
 
         // TODO: Use PreserveSig instead of throwing these exceptions for common cases.
-        public void ReportError2(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")]VSTASKPRIORITY nPriority, int iStartLine, int iStartColumn, int iEndLine, int iEndColumn, string bstrFileName)
+        public void ReportError2(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority, int iStartLine, int iStartColumn, int iEndLine, int iEndColumn, string bstrFileName)
         {
             // first we check whether given error is something we can take care.
             if (!CanHandle(bstrErrorId))

@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return true;
                 }
 
-                var declStatement = identifier.Parent.FirstAncestorOrSelf<T>(n => true);
+                var declStatement = identifier.Parent.FirstAncestorOrSelf<T>();
                 if (declStatement == null)
                 {
                     return true;

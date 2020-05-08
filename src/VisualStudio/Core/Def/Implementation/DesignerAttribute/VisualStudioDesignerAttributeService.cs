@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
 
             // Now kick off scanning in the OOP process.
-            var success = await _keepAliveSession.TryInvokeAsync(
+            await _keepAliveSession.RunRemoteAsync(
                 nameof(IRemoteDesignerAttributeService.StartScanningForDesignerAttributesAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),

@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.TupleLiteral:
                 case BoundKind.UnconvertedSwitchExpression:
+                case BoundKind.UnconvertedObjectCreationExpression:
                 case BoundKind.UnconvertedConditionalOperator:
                 case BoundKind.DefaultLiteral:
                     return true;

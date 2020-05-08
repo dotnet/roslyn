@@ -62,7 +62,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
         private bool _snippetCompletionTriggeredIndirectly;
 
-        internal CompletionSource(ITextView textView, Lazy<IStreamingFindUsagesPresenter> streamingPresenter, IThreadingContext threadingContext)
+        internal CompletionSource(
+            ITextView textView,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
+            IThreadingContext threadingContext)
             : base(threadingContext)
         {
             _textView = textView;
@@ -357,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var description = await service.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
 
-            var elements = IntelliSense.Helpers.BuildInteractiveTextElements(description.TaggedParts, document, _streamingPresenter).ToArray();
+            var elements = IntelliSense.Helpers.BuildInteractiveTextElements(description.TaggedParts, document, ThreadingContext, _streamingPresenter).ToArray();
             if (elements.Length == 0)
             {
                 return new ClassifiedTextElement();

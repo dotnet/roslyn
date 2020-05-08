@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
 
                 case DiagnosticSeverity.Hidden:
                 default:
-                    // hidden diagnostics are not reported on the command line and therefore not currently given to 
+                    // hidden diagnostics are not reported on the command line and therefore not currently given to
                     // the error logger. We could represent it with a custom property in the SARIF log if that changes.
                     Debug.Assert(false);
                     goto case DiagnosticSeverity.Warning;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(!string.IsNullOrEmpty(path));
 
-            // Note that in general, these "paths" are opaque strings to be 
+            // Note that in general, these "paths" are opaque strings to be
             // interpreted by resolvers (see SyntaxTree.FilePath documentation).
 
             // Common case: absolute path -> absolute URI

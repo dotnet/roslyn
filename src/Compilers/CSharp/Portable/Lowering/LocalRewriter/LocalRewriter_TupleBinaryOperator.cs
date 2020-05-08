@@ -232,6 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.StackAllocToPointerType: // a stack alloc is not well-defined without an enclosing conversion
                     case ConversionKind.ConditionalExpression:   // a conditional expression must have its alternatives converted
                     case ConversionKind.StackAllocToSpanType:
+                    case ConversionKind.ObjectCreation:
                         return true;
                     default:
                         return false;
