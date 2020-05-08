@@ -10,16 +10,20 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
-    internal partial class CSharpCodeGenerator
+    internal partial class CSharpGenerator
     {
-        private static DestructorDeclarationSyntax GenerateDestructor(IMethodSymbol method)
+        private static ConversionOperatorDeclarationSyntax GenerateConversion(IMethodSymbol method)
         {
-            return DestructorDeclaration(
+            return ConversionOperatorDeclaration(
                 GenerateAttributeLists(method.GetAttributes()),
-                default,
-                Identifier(method.ContainingType?.Name ?? method.Name),
+                GenerateModifiers(method.DeclaredAccessibility, method.GetModifiers()),
+                Token(method.Name == WellKnownMemberNames.ImplicitConversionName
+                    ? SyntaxKind.ImplicitKeyword
+                    : SyntaxKind.ExplicitKeyword),
+                method.ReturnType.GenerateTypeSyntax(),
                 GenerateParameterList(method.Parameters),
-                body: Block());
+                Block(),
+                expressionBody: null);
         }
     }
 }

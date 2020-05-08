@@ -10,9 +10,9 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
-    internal partial class CSharpCodeGenerator
+    internal partial class CSharpGenerator
     {
-        private static TypeSyntax GenerateTypeSyntax(this ITypeSymbol symbol, bool onlyNames)
+        private TypeSyntax GenerateTypeSyntax(ITypeSymbol symbol, bool onlyNames)
         {
             var typeSyntax = GenerateTypeSyntaxWithoutNullable(symbol, onlyNames);
             if (onlyNames)
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 : NullableType(typeSyntax);
         }
 
-        private static TypeSyntax GenerateTypeSyntaxWithoutNullable(this ITypeSymbol symbol, bool onlyNames)
+        private static TypeSyntax GenerateTypeSyntaxWithoutNullable(ITypeSymbol symbol, bool onlyNames)
             => symbol.Kind switch
             {
                 SymbolKind.NamedType => GenerateNamedTypeSyntaxWithoutNullable((INamedTypeSymbol)symbol, onlyNames),

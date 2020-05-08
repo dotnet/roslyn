@@ -12,7 +12,7 @@ using static Microsoft.CodeAnalysis.SourceGeneration.CodeGenerator;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
-    internal partial class CSharpCodeGenerator
+    internal partial class CSharpGenerator
     {
         private static TypeSyntax GenerateNamedTypeSyntaxWithoutNullable(INamedTypeSymbol symbol, bool onlyNames)
         {
@@ -94,37 +94,47 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             return GenerateNormalNamedTypeSyntaxWithoutNullable(symbol);
         }
 
-        public static MemberDeclarationSyntax GenerateNamedTypeDeclaration(INamedTypeSymbol symbol)
+        public MemberDeclarationSyntax GenerateNamedTypeDeclaration(INamedTypeSymbol symbol)
         {
-            if (symbol.TypeKind == TypeKind.Enum)
-                return GenerateEnumDeclaration(symbol);
+            var previousNamedType = _currentNamedType;
+            _currentNamedType = symbol;
 
-            if (symbol.TypeKind == TypeKind.Delegate)
-                return GenerateDelegateDeclaration(symbol);
+            try
+            {
+                if (symbol.TypeKind == TypeKind.Enum)
+                    return GenerateEnumDeclaration(symbol);
 
-            var typeKind =
-                symbol.TypeKind == TypeKind.Struct ? SyntaxKind.StructDeclaration :
-                symbol.TypeKind == TypeKind.Interface ? SyntaxKind.InterfaceDeclaration :
-                SyntaxKind.ClassDeclaration;
+                if (symbol.TypeKind == TypeKind.Delegate)
+                    return GenerateDelegateDeclaration(symbol);
 
-            var keyword = Token(
-                symbol.TypeKind == TypeKind.Struct ? SyntaxKind.StructKeyword :
-                symbol.TypeKind == TypeKind.Interface ? SyntaxKind.InterfaceKeyword :
-                SyntaxKind.ClassKeyword);
+                var typeKind =
+                    symbol.TypeKind == TypeKind.Struct ? SyntaxKind.StructDeclaration :
+                    symbol.TypeKind == TypeKind.Interface ? SyntaxKind.InterfaceDeclaration :
+                    SyntaxKind.ClassDeclaration;
 
-            return TypeDeclaration(
-                typeKind,
-                GenerateAttributeLists(symbol.GetAttributes()),
-                GenerateModifiers(symbol.DeclaredAccessibility, symbol.GetModifiers()),
-                keyword,
-                Identifier(symbol.Name),
-                GenerateTypeParameterList(symbol.TypeArguments),
-                GenerateBaseList(symbol.BaseType, symbol.Interfaces),
-                GenerateTypeParameterConstraintClauses(symbol.TypeArguments),
-                Token(SyntaxKind.OpenBraceToken),
-                GenerateMemberDeclarations(symbol.GetMembers()),
-                Token(SyntaxKind.CloseBraceToken),
-                semicolonToken: default);
+                var keyword = Token(
+                    symbol.TypeKind == TypeKind.Struct ? SyntaxKind.StructKeyword :
+                    symbol.TypeKind == TypeKind.Interface ? SyntaxKind.InterfaceKeyword :
+                    SyntaxKind.ClassKeyword);
+
+                return TypeDeclaration(
+                    typeKind,
+                    GenerateAttributeLists(symbol.GetAttributes()),
+                    GenerateModifiers(symbol.DeclaredAccessibility, symbol.GetModifiers()),
+                    keyword,
+                    Identifier(symbol.Name),
+                    GenerateTypeParameterList(symbol.TypeArguments),
+                    GenerateBaseList(symbol.BaseType, symbol.Interfaces),
+                    GenerateTypeParameterConstraintClauses(symbol.TypeArguments),
+                    Token(SyntaxKind.OpenBraceToken),
+                    GenerateMemberDeclarations(symbol.GetMembers()),
+                    Token(SyntaxKind.CloseBraceToken),
+                    semicolonToken: default);
+            }
+            finally
+            {
+                _currentNamedType = previousNamedType;
+            }
         }
 
         private static BaseListSyntax? GenerateBaseList(

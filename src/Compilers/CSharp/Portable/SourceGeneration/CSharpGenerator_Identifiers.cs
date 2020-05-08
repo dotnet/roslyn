@@ -9,7 +9,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
-    internal partial class CSharpCodeGenerator
+    internal partial class CSharpGenerator
     {
         private static IdentifierNameSyntax IdentifierName(string text)
             => SyntaxFactory.IdentifierName(Identifier(text));

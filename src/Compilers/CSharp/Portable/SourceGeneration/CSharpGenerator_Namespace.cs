@@ -11,9 +11,9 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
-    internal partial class CSharpCodeGenerator
+    internal partial class CSharpGenerator
     {
-        private static SyntaxNode GenerateCompilationUnitOrNamespaceDeclaration(INamespaceSymbol symbol)
+        private SyntaxNode GenerateCompilationUnitOrNamespaceDeclaration(INamespaceSymbol symbol)
         {
             var usings = GenerateUsingDirectives(CodeGenerator.GetImports(symbol));
             var members = GenerateMemberDeclarations(symbol.GetMembers().ToImmutableArray<ISymbol>());

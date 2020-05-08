@@ -5,11 +5,12 @@
 #nullable enable
 
 using System;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
-    internal static partial class CSharpCodeGenerator
+    internal static class CSharpCodeGenerator
     {
         public static string GenerateString(this ISymbol symbol, string indentation = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation, string eol = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, bool elasticTrivia = false)
             => symbol.GenerateSyntax().NormalizeWhitespace(indentation, eol, elasticTrivia).ToFullString();
@@ -20,76 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         public static string GenerateTypeString(this INamespaceOrTypeSymbol symbol, string indentation = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation, string eol = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, bool elasticTrivia = false)
             => symbol.GenerateTypeSyntax().NormalizeWhitespace(indentation, eol, elasticTrivia).ToFullString();
 
+        public static NameSyntax GenerateNameSyntax(this INamespaceOrTypeSymbol symbol)
+            => (NameSyntax)GenerateTypeSyntax(symbol, onlyNames: true);
+
+        public static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol)
+            => GenerateTypeSyntax(symbol, onlyNames: false);
+
+        private static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol, bool onlyNames)
+            => new CSharpGenerator().GenerateTypeSyntax(symbol, onlyNames);
+
         public static SyntaxNode GenerateSyntax(this ISymbol symbol)
-        {
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Alias:
-                    break;
-                case SymbolKind.ArrayType:
-                    break;
-                case SymbolKind.Assembly:
-                    break;
-                case SymbolKind.DynamicType:
-                    break;
-                case SymbolKind.ErrorType:
-                    break;
-                case SymbolKind.Event:
-                    return GenerateEventDeclaration((IEventSymbol)symbol);
-                case SymbolKind.Field:
-                    return GenerateFieldDeclaration((IFieldSymbol)symbol);
-                case SymbolKind.Label:
-                    return GenerateLabelIdentifierName((ILabelSymbol)symbol);
-                case SymbolKind.Local:
-                    return GenerateLocalIdentifierName((ILocalSymbol)symbol);
-                case SymbolKind.Method:
-                    return GenerateMethodDeclaration((IMethodSymbol)symbol);
-                case SymbolKind.NetModule:
-                    break;
-                case SymbolKind.NamedType:
-                    return GenerateNamedTypeDeclaration((INamedTypeSymbol)symbol);
-                case SymbolKind.Namespace:
-                    return GenerateCompilationUnitOrNamespaceDeclaration((INamespaceSymbol)symbol);
-                case SymbolKind.Parameter:
-                    break;
-                case SymbolKind.PointerType:
-                    break;
-                case SymbolKind.Property:
-                    return GeneratePropertyOrIndexerDeclaration((IPropertySymbol)symbol);
-                case SymbolKind.RangeVariable:
-                    break;
-                case SymbolKind.TypeParameter:
-                    break;
-                case SymbolKind.Preprocessing:
-                    break;
-                case SymbolKind.Discard:
-                    break;
-                default:
-                    break;
-            }
-
-            throw new NotImplementedException();
-        }
-
-        private static BuilderDisposer<T> GetArrayBuilder<T>(out ArrayBuilder<T> builder)
-        {
-            builder = ArrayBuilder<T>.GetInstance();
-            return new BuilderDisposer<T>(builder);
-        }
-
-        private ref struct BuilderDisposer<T>
-        {
-            private readonly ArrayBuilder<T> _builder;
-
-            public BuilderDisposer(ArrayBuilder<T> builder)
-            {
-                _builder = builder;
-            }
-
-            public void Dispose()
-            {
-                _builder.Free();
-            }
-        }
+            => new CSharpGenerator().Generate(symbol);
     }
 }

@@ -11,7 +11,7 @@ using static Microsoft.CodeAnalysis.SourceGeneration.CodeGenerator;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
-    internal partial class CSharpCodeGenerator
+    internal partial class CSharpGenerator
     {
         private static IdentifierNameSyntax GenerateTypeParameterTypeSyntaxWithoutNullable(ITypeParameterSymbol symbol)
             => SyntaxFactory.IdentifierName(symbol.Name);

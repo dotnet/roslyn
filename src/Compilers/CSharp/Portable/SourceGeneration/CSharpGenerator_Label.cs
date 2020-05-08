@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
-    internal partial class CSharpCodeGenerator
+    internal partial class CSharpGenerator
     {
-        private static IdentifierNameSyntax GenerateDynamicTypeSyntaxWithoutNullable(IDynamicTypeSymbol symbol)
-            => SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("dynamic"));
+        private static IdentifierNameSyntax GenerateLabelIdentifierName(ILabelSymbol symbol)
+            => IdentifierName(symbol.Name);
     }
 }

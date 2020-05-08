@@ -4,22 +4,21 @@
 
 #nullable enable
 
-using System.Collections.Immutable;
+using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
-    internal partial class CSharpCodeGenerator
+    internal partial class CSharpGenerator
     {
-        private static TypeArgumentListSyntax GenerateTypeArgumentList(ImmutableArray<ITypeSymbol> types)
+        private static PointerTypeSyntax GeneratePointerTypeSyntaxWithoutNullable(
+            IPointerTypeSymbol symbol, bool onlyNames)
         {
-            using var _ = GetArrayBuilder<TypeSyntax>(out var builder);
+            if (onlyNames)
+                throw new ArgumentException("Pointer cannot be generated in a name-only location.");
 
-            foreach (var type in types)
-                builder.Add(type.GenerateTypeSyntax());
-
-            return TypeArgumentList(SeparatedList(builder));
+            return PointerType(symbol.PointedAtType.GenerateTypeSyntax());
         }
     }
 }

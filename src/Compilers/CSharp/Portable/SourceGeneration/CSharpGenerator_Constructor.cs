@@ -4,20 +4,24 @@
 
 #nullable enable
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
-    internal partial class CSharpCodeGenerator
+    internal partial class CSharpGenerator
     {
-        private static ConstructorDeclarationSyntax GenerateConstructor(IMethodSymbol method)
+        private ConstructorDeclarationSyntax GenerateConstructor(IMethodSymbol method)
         {
+            if (_currentNamedType == null)
+                throw new NotSupportedException("Constructors must be contained within a named type");
+
             return ConstructorDeclaration(
                 GenerateAttributeLists(method.GetAttributes()),
                 GenerateModifiers(method.DeclaredAccessibility, method.GetModifiers()),
-                Identifier(method.ContainingType?.Name ?? method.Name),
+                Identifier(_currentNamedType.Name),
                 GenerateParameterList(method.Parameters),
                 initializer: null,
                 body: Block(),

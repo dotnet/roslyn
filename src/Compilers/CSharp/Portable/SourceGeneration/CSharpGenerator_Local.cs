@@ -10,7 +10,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
-    internal partial class CSharpCodeGenerator
+    internal partial class CSharpGenerator
     {
         private static IdentifierNameSyntax GenerateLocalIdentifierName(ILocalSymbol symbol)
             => IdentifierName(symbol.Name);

@@ -11,15 +11,9 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
-    internal partial class CSharpCodeGenerator
+    internal partial class CSharpGenerator
     {
-        public static NameSyntax GenerateNameSyntax(this INamespaceOrTypeSymbol symbol)
-            => (NameSyntax)GenerateTypeSyntax(symbol, onlyNames: true);
-
-        public static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol)
-            => GenerateTypeSyntax(symbol, onlyNames: false);
-
-        private static TypeSyntax GenerateTypeSyntax(INamespaceOrTypeSymbol symbol, bool onlyNames)
+        public TypeSyntax GenerateTypeSyntax(INamespaceOrTypeSymbol symbol, bool onlyNames)
         {
             if (symbol is INamespaceSymbol nsSymbol)
                 return GenerateNameSyntax(nsSymbol);
@@ -29,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
         }
 
-        private static SyntaxList<MemberDeclarationSyntax> GenerateMemberDeclarations(ImmutableArray<ISymbol> members)
+        private SyntaxList<MemberDeclarationSyntax> GenerateMemberDeclarations(ImmutableArray<ISymbol> members)
         {
             using var _ = GetArrayBuilder<MemberDeclarationSyntax>(out var builder);
 
@@ -58,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             return List(builder);
         }
 
-        private static MemberDeclarationSyntax GenerateMemberDeclaration(ISymbol member)
-            => (MemberDeclarationSyntax)GenerateSyntax(member);
+        private MemberDeclarationSyntax GenerateMemberDeclaration(ISymbol member)
+            => (MemberDeclarationSyntax)Generate(member);
 
         private static SyntaxList<UsingDirectiveSyntax> GenerateUsingDirectives(
             ImmutableArray<INamespaceOrTypeSymbol> imports)
@@ -71,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 if (import is INamespaceSymbol nsSymbol)
                     builder.Add(UsingDirective(ParseName(nsSymbol.Name)));
                 else if (import is ITypeSymbol typeSymbol)
-                    builder.Add(UsingDirective(Token(SyntaxKind.StaticKeyword), alias: null, GenerateNameSyntax(typeSymbol)));
+                    builder.Add(UsingDirective(Token(SyntaxKind.StaticKeyword), alias: null, typeSymbol.GenerateNameSyntax()));
             }
 
             return List(builder);
