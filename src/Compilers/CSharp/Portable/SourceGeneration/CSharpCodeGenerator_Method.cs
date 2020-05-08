@@ -51,7 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
         private static DestructorDeclarationSyntax GenerateDestructor(IMethodSymbol method)
         {
-            throw new NotImplementedException();
+            return DestructorDeclaration(
+                GenerateAttributeLists(method.GetAttributes()),
+                default,
+                Identifier(method.ContainingType?.Name ?? method.Name),
+                GenerateParameterList(method.Parameters),
+                body: Block());
         }
 
         private static OperatorDeclarationSyntax GenerateOperator(IMethodSymbol method)

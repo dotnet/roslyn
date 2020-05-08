@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 return null;
 
             // TODO.
-            return LiteralExpression(SyntaxKind.NullKeyword);
+            return LiteralExpression(SyntaxKind.NullLiteralExpression);
         }
 
         private static ExpressionSyntax GenerateConstantExpression(
             TypedConstant constant)
         {
             // TODO.
-            return LiteralExpression(SyntaxKind.NullKeyword);
+            return LiteralExpression(SyntaxKind.NullLiteralExpression);
         }
     }
 }

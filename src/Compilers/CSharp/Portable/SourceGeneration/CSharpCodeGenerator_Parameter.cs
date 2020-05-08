@@ -25,7 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
         private static ParameterSyntax GenerateParameter(IParameterSymbol parameter)
         {
-            var expression = GenerateConstantExpression(parameter.Type, parameter.HasExplicitDefaultValue, parameter.ExplicitDefaultValue);
+            var expression = GenerateConstantExpression(
+                parameter.Type,
+                parameter.HasExplicitDefaultValue,
+                parameter.HasExplicitDefaultValue ? parameter.ExplicitDefaultValue : null);
             var equalsValue = expression == null ? null : EqualsValueClause(expression);
             return Parameter(
                 GenerateAttributeLists(parameter.GetAttributes()),
