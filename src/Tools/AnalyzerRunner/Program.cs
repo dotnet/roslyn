@@ -55,14 +55,6 @@ namespace AnalyzerRunner
 
             using var workspace = AnalyzerRunnerHelper.CreateWorkspace();
 
-            foreach (var workspaceDiagnostic in workspace.Diagnostics)
-            {
-                if (workspaceDiagnostic.Kind == WorkspaceDiagnosticKind.Failure)
-                {
-                    Console.WriteLine(workspaceDiagnostic.Message);
-                }
-            }
-
             var incrementalAnalyzerRunner = new IncrementalAnalyzerRunner(workspace, options);
             var diagnosticAnalyzerRunner = new DiagnosticAnalyzerRunner(workspace, options);
             var codeRefactoringRunner = new CodeRefactoringRunner(workspace, options);
@@ -82,6 +74,14 @@ namespace AnalyzerRunner
             }
 
             await workspace.OpenSolutionAsync(options.SolutionPath, progress: null, cancellationToken).ConfigureAwait(false);
+
+            foreach (var workspaceDiagnostic in workspace.Diagnostics)
+            {
+                if (workspaceDiagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+                {
+                    Console.WriteLine(workspaceDiagnostic.Message);
+                }
+            }
 
             if (options.ShowStats)
             {
