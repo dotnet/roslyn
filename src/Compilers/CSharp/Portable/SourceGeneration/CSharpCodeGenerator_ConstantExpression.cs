@@ -6,6 +6,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
@@ -17,7 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             if (!hasConstantValue)
                 return null;
 
-            throw new NotImplementedException();
+            // TODO.
+            return LiteralExpression(SyntaxKind.NullKeyword);
+        }
+
+        private static ExpressionSyntax GenerateConstantExpression(
+            TypedConstant constant)
+        {
+            // TODO.
+            return LiteralExpression(SyntaxKind.NullKeyword);
         }
     }
 }
