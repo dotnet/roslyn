@@ -10,6 +10,7 @@ using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
@@ -27,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
         {
             private readonly TestWorkspace _workspace;
             private readonly IMetadataAsSourceFileService _metadataAsSourceService;
-            private readonly ITextBufferFactoryService _textBufferFactoryService;
 
             public static TestContext Create(
                 string projectLanguage = null,
@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             {
                 _workspace = workspace;
                 _metadataAsSourceService = _workspace.GetService<IMetadataAsSourceFileService>();
-                _textBufferFactoryService = _workspace.GetService<ITextBufferFactoryService>();
             }
 
             public Solution CurrentSolution
@@ -255,12 +254,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
             internal Document GetDocument(MetadataAsSourceFile file)
             {
-                using var reader = new StreamReader(file.FilePath);
-                var textBuffer = _textBufferFactoryService.CreateTextBuffer(reader, _textBufferFactoryService.TextContentType);
+                using var reader = File.OpenRead(file.FilePath);
+                var stringText = EncodedStringText.Create(reader);
 
-                Assert.True(_metadataAsSourceService.TryAddDocumentToWorkspace(file.FilePath, textBuffer));
 
-                return textBuffer.AsTextContainer().GetRelatedDocuments().Single();
+                Assert.True(_metadataAsSourceService.TryAddDocumentToWorkspace(file.FilePath, stringText.Container));
+
+                return stringText.Container.GetRelatedDocuments().Single();
             }
 
             internal async Task<ISymbol> GetNavigationSymbolAsync()
