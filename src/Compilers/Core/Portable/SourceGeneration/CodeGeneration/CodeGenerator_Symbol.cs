@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public virtual Accessibility DeclaredAccessibility => Accessibility.NotApplicable;
             public virtual SymbolModifiers Modifiers => SymbolModifiers.None;
 
+            public bool IsImplicitlyDeclared => false;
+
             public virtual bool IsStatic => (Modifiers & SymbolModifiers.Static) != 0;
             public virtual bool IsVirtual => (Modifiers & SymbolModifiers.Virtual) != 0;
             public virtual bool IsOverride => (Modifiers & SymbolModifiers.Override) != 0;
@@ -52,7 +54,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public virtual bool Equals(ISymbol other) => throw new NotImplementedException();
             public virtual bool HasUnsupportedMetadata => throw new NotImplementedException();
             public virtual bool IsDefinition => throw new NotImplementedException();
-            public virtual bool IsImplicitlyDeclared => throw new NotImplementedException();
             public virtual ImmutableArray<AttributeData> GetAttributes() => throw new NotImplementedException();
             public virtual ImmutableArray<Location> Locations => throw new NotImplementedException();
             public virtual ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null) => throw new NotImplementedException();

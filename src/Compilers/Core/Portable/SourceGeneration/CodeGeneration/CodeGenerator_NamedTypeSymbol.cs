@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 Name = name;
                 TypeArguments = typeArguments;
                 BaseType = baseType;
-                Interfaces = interfaces;
+                Interfaces = interfaces.NullToEmpty();
                 TupleElements = tupleElements;
                 DelegateInvokeMethod = delegateInvokeMethod;
                 NullableAnnotation = nullableAnnotation;
@@ -358,22 +358,21 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             public override SymbolKind Kind => SymbolKind.NamedType;
 
-            public override INamedTypeSymbol BaseType { get; }
-            public override ISymbol ContainingSymbol { get; }
-            public override Accessibility DeclaredAccessibility { get; }
-            public override ImmutableArray<INamedTypeSymbol> Interfaces { get; }
-            public override SymbolModifiers Modifiers { get; }
-            public override string Name { get; }
-            public override NullableAnnotation NullableAnnotation { get; }
-            public override SpecialType SpecialType { get; }
-            public override TypeKind TypeKind { get; }
-
+            public IMethodSymbol DelegateInvokeMethod { get; }
+            public ImmutableArray<IFieldSymbol> TupleElements { get; }
             public ImmutableArray<ITypeSymbol> TypeArguments { get; }
 
-            public IMethodSymbol DelegateInvokeMethod { get; }
-
-            public ImmutableArray<IFieldSymbol> TupleElements { get; }
-
+            public override Accessibility DeclaredAccessibility { get; }
+            public override ImmutableArray<AttributeData> GetAttributes() => _attributes;
+            public override ImmutableArray<INamedTypeSymbol> Interfaces { get; }
+            public override ImmutableArray<ISymbol> GetMembers() => _members;
+            public override INamedTypeSymbol BaseType { get; }
+            public override ISymbol ContainingSymbol { get; }
+            public override NullableAnnotation NullableAnnotation { get; }
+            public override SpecialType SpecialType { get; }
+            public override string Name { get; }
+            public override SymbolModifiers Modifiers { get; }
+            public override TypeKind TypeKind { get; }
             public override void Accept(SymbolVisitor visitor)
                 => visitor.VisitNamedType(this);
 
