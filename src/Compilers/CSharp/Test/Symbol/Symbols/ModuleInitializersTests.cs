@@ -208,7 +208,16 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            CompileAndVerify(source, parseOptions: s_parseOptions);
+            CompileAndVerify(
+                source,
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                    var rootModuleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                    Assert.NotNull(rootModuleType.GetMember(".cctor"));
+                });
         }
 
         [Fact]
