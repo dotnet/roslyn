@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case SymbolKind.NetModule:
                     break;
                 case SymbolKind.NamedType:
-                    break;
+                    return GenerateNamedTypeDeclaration((INamedTypeSymbol)symbol);
                 case SymbolKind.Namespace:
                     return GenerateCompilationUnitOrNamespaceDeclaration((INamespaceSymbol)symbol);
                 case SymbolKind.Parameter:

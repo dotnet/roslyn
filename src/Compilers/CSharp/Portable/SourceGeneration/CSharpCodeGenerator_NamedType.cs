@@ -90,5 +90,31 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
             throw new NotImplementedException();
         }
+
+        public static MemberDeclarationSyntax GenerateNamedTypeDeclaration(INamedTypeSymbol symbol)
+        {
+            if (symbol.TypeKind == TypeKind.Enum)
+                return GenerateEnumDeclaration(symbol);
+
+            if (symbol.TypeKind == TypeKind.Delegate)
+                return GenerateDelegateDeclaration(symbol);
+
+            throw new NotImplementedException();
+        }
+
+        private static BaseListSyntax? GenerateBaseList(
+            INamedTypeSymbol? baseType,
+            ImmutableArray<INamedTypeSymbol> interfaces)
+        {
+            using var _ = GetArrayBuilder<BaseTypeSyntax>(out var types);
+
+            if (baseType != null)
+                types.Add(SimpleBaseType(baseType.GenerateTypeSyntax()));
+
+            foreach (var type in interfaces)
+                types.Add(SimpleBaseType(type.GenerateTypeSyntax()));
+
+            return types.Count == 0 ? null : BaseList(SeparatedList(types));
+        }
     }
 }
