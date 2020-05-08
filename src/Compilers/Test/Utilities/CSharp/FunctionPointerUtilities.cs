@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.False(symbol.IsAbstract);
                 Assert.False(symbol.IsSealed);
                 Assert.False(symbol.CanBeReferencedByName);
+                Assert.True(symbol.IsTypeOrTypeAlias());
 
                 Assert.True(symbol.IsValueType);
                 Assert.True(symbol.CanBeAssignedNull());
