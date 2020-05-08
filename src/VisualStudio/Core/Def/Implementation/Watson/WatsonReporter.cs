@@ -93,9 +93,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>
                 {
-                    // add current process dump
-                    faultUtility.AddProcessDump(currentProcess.Id);
-
                     // add ServiceHub log files:
                     foreach (var path in CollectServiceHubLogFilePaths())
                     {
@@ -103,7 +100,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                     }
 
                     // Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
-                    return 0;
+                    // We never want to trigger watson manually, we'll let TargetNotifications determine if a Watson should
+                    // be reported. See https://aka.ms/roslynnfwdocs for more details
+                    return 1;
                 });
 
             // add extra bucket parameters to bucket better in NFW
