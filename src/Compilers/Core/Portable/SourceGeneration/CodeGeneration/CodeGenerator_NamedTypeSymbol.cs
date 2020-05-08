@@ -261,40 +261,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                     containingSymbol: GlobalNamespace()));
         }
 
-        //internal static INamedTypeSymbol TryGenerateSystemType(SpecialType specialType)
-        //{
-        //    switch (specialType)
-        //    {
-        //        case CodeAnalysis.SpecialType.System_Object: return GenerateSystemType(nameof(Object));
-        //        case CodeAnalysis.SpecialType.System_Boolean: return GenerateSystemType(nameof(Boolean));
-        //        case CodeAnalysis.SpecialType.System_Char: return GenerateSystemType(nameof(Char));
-        //        case CodeAnalysis.SpecialType.System_SByte: return GenerateSystemType(nameof(SByte));
-        //        case CodeAnalysis.SpecialType.System_Byte: return GenerateSystemType(nameof(Byte));
-        //        case CodeAnalysis.SpecialType.System_Int16: return GenerateSystemType(nameof(Int16));
-        //        case CodeAnalysis.SpecialType.System_UInt16: return GenerateSystemType(nameof(UInt16));
-        //        case CodeAnalysis.SpecialType.System_Int32: return GenerateSystemType(nameof(Int32));
-        //        case CodeAnalysis.SpecialType.System_UInt32: return GenerateSystemType(nameof(UInt32));
-        //        case CodeAnalysis.SpecialType.System_Int64: return GenerateSystemType(nameof(Int64));
-        //        case CodeAnalysis.SpecialType.System_UInt64: return GenerateSystemType(nameof(UInt64));
-        //        case CodeAnalysis.SpecialType.System_Decimal: return GenerateSystemType(nameof(Decimal));
-        //        case CodeAnalysis.SpecialType.System_Single: return GenerateSystemType(nameof(Single));
-        //        case CodeAnalysis.SpecialType.System_Double: return GenerateSystemType(nameof(Double));
-        //        case CodeAnalysis.SpecialType.System_String: return GenerateSystemType(nameof(String));
-        //        case CodeAnalysis.SpecialType.System_DateTime: return GenerateSystemType(nameof(DateTime));
-        //    }
-
-        //    return null;
-
-        //    static INamedTypeSymbol GenerateSystemType(string name)
-        //    {
-        //        return Class(
-        //            name,
-        //            containingSymbol: Namespace(
-        //                nameof(System),
-        //                containingSymbol: GlobalNamespace()));
-        //    }
-        //}
-
         private class NamedTypeSymbol : TypeSymbol, INamedTypeSymbol
         {
             private readonly ImmutableArray<AttributeData> _attributes;
