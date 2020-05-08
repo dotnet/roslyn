@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 DeclaredAccessibility = declaredAccessibility;
                 Modifiers = modifiers;
                 Name = name;
-                TypeArguments = typeArguments;
+                TypeArguments = typeArguments.NullToEmpty();
                 BaseType = baseType;
                 Interfaces = interfaces.NullToEmpty();
                 TupleElements = tupleElements;

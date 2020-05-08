@@ -71,5 +71,206 @@ Class(
         "NS",
         containingSymbol: GlobalNamespace())).GenerateTypeString());
         }
+
+        [Fact]
+        public void TestClassDeclaration1()
+        {
+            AssertEx.AreEqual(
+@"class X
+{
+}",
+Class("X").GenerateString());
+        }
+
+        [Fact]
+        public void TestClassDeclarationWithField1()
+        {
+            AssertEx.AreEqual(
+@"class X
+{
+    int i;
+}",
+Class(
+    "X",
+    members: ImmutableArray.Create<ISymbol>(Field(Int32, "i"))).GenerateString());
+        }
+
+        [Fact]
+        public void TestClassDeclarationWithNestedClass1()
+        {
+            AssertEx.AreEqual(
+@"class X
+{
+    class Y
+    {
+    }
+}",
+Class(
+    "X",
+    members: ImmutableArray.Create<ISymbol>(Class("Y"))).GenerateString());
+        }
+
+        [Fact]
+        public void TestClassWithBaseType()
+        {
+            AssertEx.AreEqual(
+@"class X : Y
+{
+}",
+Class(
+    "X",
+    baseType: Class("Y")).GenerateString());
+        }
+
+        [Fact]
+        public void TestClassWithInterfaces()
+        {
+            AssertEx.AreEqual(
+@"class X : Y, Z
+{
+}",
+Class(
+    "X",
+    interfaces: ImmutableArray.Create(Class("Y"), Class("Z"))).GenerateString());
+        }
+
+        [Fact]
+        public void TestGenericClass()
+        {
+            AssertEx.AreEqual(
+@"class X<Y>
+{
+}",
+Class(
+    "X",
+    typeArguments: ImmutableArray.Create<ITypeSymbol>(TypeParameter("Y"))).GenerateString());
+        }
+
+        [Fact]
+        public void TestGenericClassWithInVariance()
+        {
+            AssertEx.AreEqual(
+@"class X<in Y>
+{
+}",
+Class(
+    "X",
+    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+        TypeParameter(
+            "Y",
+            variance: VarianceKind.In))).GenerateString());
+        }
+
+        [Fact]
+        public void TestGenericClassWithOutVariance()
+        {
+            AssertEx.AreEqual(
+@"class X<out Y>
+{
+}",
+Class(
+    "X",
+    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+        TypeParameter(
+            "Y",
+            variance: VarianceKind.Out))).GenerateString());
+        }
+
+        [Fact]
+        public void TestGenericClassWithConstructorConstraint()
+        {
+            AssertEx.AreEqual(
+@"class X<Y>
+    where Y : new()
+{
+}",
+Class(
+    "X",
+    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+        TypeParameter(
+            "Y",
+            hasConstructorConstraint: true))).GenerateString());
+        }
+
+        [Fact]
+        public void TestGenericClassWithNotNullConstraint()
+        {
+            AssertEx.AreEqual(
+@"class X<Y>
+    where Y : notnull
+{
+}",
+Class(
+    "X",
+    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+        TypeParameter(
+            "Y",
+            hasNotNullConstraint: true))).GenerateString());
+        }
+
+        [Fact]
+        public void TestGenericClassWithReferenceTypeConstraint()
+        {
+            AssertEx.AreEqual(
+@"class X<Y>
+    where Y : class
+{
+}",
+Class(
+    "X",
+    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+        TypeParameter(
+            "Y",
+            hasReferenceTypeConstraint: true))).GenerateString());
+        }
+
+        [Fact]
+        public void TestGenericClassWithUnmanagedConstraint()
+        {
+            AssertEx.AreEqual(
+@"class X<Y>
+    where Y : unmanaged
+{
+}",
+Class(
+    "X",
+    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+        TypeParameter(
+            "Y",
+            hasUnmanagedTypeConstraint: true))).GenerateString());
+        }
+
+        [Fact]
+        public void TestGenericClassWithValueConstraint()
+        {
+            AssertEx.AreEqual(
+@"class X<Y>
+    where Y : struct
+{
+}",
+Class(
+    "X",
+    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+        TypeParameter(
+            "Y",
+            hasValueTypeConstraint: true))).GenerateString());
+        }
+
+        [Fact]
+        public void TestGenericClassWithTypeConstraint()
+        {
+            AssertEx.AreEqual(
+@"class X<Y>
+    where Y : Z
+{
+}",
+Class(
+    "X",
+    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+        TypeParameter(
+            "Y",
+            constraintTypes: ImmutableArray.Create<ITypeSymbol>(
+                Class("Z"))))).GenerateString());
+        }
     }
 }
