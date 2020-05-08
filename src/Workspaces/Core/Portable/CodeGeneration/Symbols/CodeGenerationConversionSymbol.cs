@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                   modifiers,
                   returnType: toType,
                   refKind: RefKind.None,
+                  isInitOnly: false,
                   explicitInterfaceImplementations: default,
                   name: isImplicit ?
                       WellKnownMemberNames.ImplicitConversionName :

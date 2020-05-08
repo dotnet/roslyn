@@ -48,6 +48,9 @@ public class C
             var property = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.False(property.GetMethod.IsInitOnly);
             Assert.True(property.SetMethod.IsInitOnly);
+            IPropertySymbol publicProperty = property.GetPublicSymbol();
+            Assert.False(publicProperty.GetMethod.IsInitOnly);
+            Assert.True(publicProperty.SetMethod.IsInitOnly);
         }
 
         [Fact]
@@ -108,12 +111,15 @@ public class C
 
             var property = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.False(property.SetMethod.IsInitOnly);
+            Assert.False(property.GetPublicSymbol().SetMethod.IsInitOnly);
 
             var property2 = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property2");
             Assert.True(property2.SetMethod.IsInitOnly);
+            Assert.True(property2.GetPublicSymbol().SetMethod.IsInitOnly);
 
             var property3 = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property3");
             Assert.True(property3.SetMethod.IsInitOnly);
+            Assert.True(property3.GetPublicSymbol().SetMethod.IsInitOnly);
         }
 
         [Fact]
@@ -302,7 +308,9 @@ public class Derived : C<string>
 
             var property = (PropertySymbol)comp.GlobalNamespace.GetTypeMember("Derived").BaseTypeNoUseSiteDiagnostics.GetMember("Property");
             Assert.False(property.GetMethod.IsInitOnly);
+            Assert.False(property.GetPublicSymbol().GetMethod.IsInitOnly);
             Assert.True(property.SetMethod.IsInitOnly);
+            Assert.True(property.GetPublicSymbol().SetMethod.IsInitOnly);
         }
 
         [Fact]
@@ -331,7 +339,9 @@ public class CWithoutInit : I<string> // 1
 
             var property = (PropertySymbol)comp.GlobalNamespace.GetMember("I.Property");
             Assert.False(property.GetMethod.IsInitOnly);
+            Assert.False(property.GetPublicSymbol().GetMethod.IsInitOnly);
             Assert.True(property.SetMethod.IsInitOnly);
+            Assert.True(property.GetPublicSymbol().SetMethod.IsInitOnly);
         }
 
         [Fact]
@@ -588,7 +598,9 @@ class Derived2 : Derived
 
             var property = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.False(property.GetMethod.IsInitOnly);
+            Assert.False(property.GetPublicSymbol().GetMethod.IsInitOnly);
             Assert.True(property.SetMethod.IsInitOnly);
+            Assert.True(property.GetPublicSymbol().SetMethod.IsInitOnly);
         }
 
         [Fact]
@@ -773,8 +785,9 @@ public class C
 
             var property = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.False(property.GetMethod.IsInitOnly);
-            // PROTOTYPE(init-only): confirm during public API discussion for IsInitOnly
+            Assert.False(property.GetPublicSymbol().GetMethod.IsInitOnly);
             Assert.False(property.SetMethod.IsInitOnly);
+            Assert.False(property.GetPublicSymbol().SetMethod.IsInitOnly);
         }
 
         [Fact]
@@ -1075,6 +1088,7 @@ public class C
                 var getter = property.GetMethod;
                 Assert.Empty(property.GetMethod.ReturnTypeWithAnnotations.CustomModifiers);
                 Assert.False(getter.IsInitOnly);
+                Assert.False(getter.GetPublicSymbol().IsInitOnly);
                 var getterAttributes = getter.GetAttributes().Select(a => a.ToString());
                 if (isSource)
                 {
@@ -1087,6 +1101,7 @@ public class C
 
                 var setter = property.SetMethod;
                 Assert.True(setter.IsInitOnly);
+                Assert.True(setter.GetPublicSymbol().IsInitOnly);
                 var setterAttributes = property.SetMethod.GetAttributes().Select(a => a.ToString());
                 var modifier = property.SetMethod.ReturnTypeWithAnnotations.CustomModifiers.Single();
                 Assert.Equal("System.Runtime.CompilerServices.IsExternalInit", modifier.Modifier.ToTestDisplayString());
@@ -1984,6 +1999,86 @@ public class C
                 "event System.Action C.Event",
                 "C..ctor()"
             });
+        }
+
+        [Fact]
+        public void EventAccessorsAreNotInitOnly()
+        {
+            string source = @"
+public class C
+{
+    public event System.Action Event
+    {
+        add { }
+        remove { }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var eventSymbol = comp.GlobalNamespace.GetMember<EventSymbol>("C.Event");
+            Assert.False(eventSymbol.AddMethod.IsInitOnly);
+            Assert.False(eventSymbol.GetPublicSymbol().AddMethod.IsInitOnly);
+            Assert.False(eventSymbol.RemoveMethod.IsInitOnly);
+            Assert.False(eventSymbol.GetPublicSymbol().RemoveMethod.IsInitOnly);
+        }
+
+        [Fact]
+        public void ConstructorsAreNotInitOnly()
+        {
+            string source = @"
+public class C
+{
+    public C() { }
+    ~C() { }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var constructor = comp.GlobalNamespace.GetMember<SourceConstructorSymbol>("C..ctor");
+            Assert.False(constructor.IsInitOnly);
+            Assert.False(constructor.GetPublicSymbol().IsInitOnly);
+
+            var destructor = comp.GlobalNamespace.GetMember<SourceDestructorSymbol>("C.Finalize");
+            Assert.False(destructor.IsInitOnly);
+            Assert.False(destructor.GetPublicSymbol().IsInitOnly);
+        }
+
+        [Fact]
+        public void InitOnlyOnMembersOfRecords()
+        {
+            string source = @"
+public data class C(int i)
+{
+    void M() { }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var cMembers = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers();
+            // PROTOTYPE(init-only): expecting an 'init' setter
+            AssertEx.SetEqual(new[] {
+                "System.Int32 C.<i>k__BackingField",
+                "System.Int32 C.i.get",
+                "System.Int32 C.i { get; }",
+                "void C.M()",
+                "System.Boolean C.Equals(C? )",
+                "System.Boolean C.Equals(System.Object? )",
+                "System.Int32 C.GetHashCode()",
+                "C..ctor(System.Int32 i)" }, cMembers.ToTestDisplayStrings());
+
+            foreach (var member in cMembers)
+            {
+                if (member is MethodSymbol method)
+                {
+                    bool isSetter = method.MethodKind == MethodKind.PropertySet;
+                    Assert.Equal(isSetter, method.IsInitOnly);
+                    Assert.Equal(isSetter, method.GetPublicSymbol().IsInitOnly);
+                }
+            }
         }
 
         [Fact]
@@ -2897,6 +2992,7 @@ public class D
             // PROTOTYPE(init-only): decoding should be more restrictive
             var method = (PEMethodSymbol)comp.GlobalNamespace.GetMember("C.M");
             Assert.False(method.IsInitOnly);
+            Assert.False(method.GetPublicSymbol().IsInitOnly);
             Assert.False(method.HasUseSiteError); // PROTOTYPE(init-only): expect true
             Assert.False(method.ReturnType.IsErrorType()); // PROTOTYPE(init-only): expect true
         }
@@ -3023,6 +3119,7 @@ public class D
             Assert.False(property0.GetMethod.HasUseSiteError);
             Assert.True(property0.SetMethod.HasUseSiteError);
             Assert.False(property0.SetMethod.IsInitOnly);
+            Assert.False(property0.GetPublicSymbol().SetMethod.IsInitOnly);
         }
 
         [Fact]
@@ -3108,6 +3205,7 @@ public class D
 
             Assert.True(property0.SetMethod.HasUseSiteError);
             Assert.False(property0.SetMethod.IsInitOnly);
+            Assert.False(property0.GetPublicSymbol().SetMethod.IsInitOnly);
             Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
         }
 
@@ -3196,6 +3294,7 @@ public class D
 
             Assert.True(property0.SetMethod.HasUseSiteError);
             Assert.False(property0.SetMethod.IsInitOnly);
+            Assert.False(property0.GetPublicSymbol().SetMethod.IsInitOnly);
             Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
         }
 
@@ -3255,8 +3354,10 @@ public class Derived : C
             // PROTOTYPE(init-only): getter should have use-site error
             var property = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.False(property.GetMethod.IsInitOnly);
+            Assert.False(property.GetPublicSymbol().GetMethod.IsInitOnly);
             Assert.False(property.GetMethod.HasUseSiteError);
             Assert.False(property.SetMethod.IsInitOnly);
+            Assert.False(property.GetPublicSymbol().SetMethod.IsInitOnly);
             Assert.False(property.SetMethod.HasUseSiteError);
         }
 
@@ -3308,6 +3409,45 @@ public class D : C
                 //         base.Property = null; // 5
                 Diagnostic(ErrorCode.ERR_BaseInStaticMeth, "base").WithLocation(17, 9)
                 );
+        }
+
+        [Fact]
+        public void LocalFunctionsAreNotInitOnly()
+        {
+            var comp = CreateCompilation(new[] { @"
+public class C
+{
+    delegate void Delegate();
+
+    void M()
+    {
+        local();
+        void local() { }
+    }
+}
+", IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var localFunctionSyntax = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var localFunctionSymbol = model.GetDeclaredSymbol(localFunctionSyntax).GetSymbol<LocalFunctionSymbol>();
+            Assert.False(localFunctionSymbol.IsInitOnly);
+            Assert.False(localFunctionSymbol.GetPublicSymbol().IsInitOnly);
+
+            var delegateSyntax = tree.GetRoot().DescendantNodes().OfType<DelegateDeclarationSyntax>().Single();
+            var delegateMemberSymbols = model.GetDeclaredSymbol(delegateSyntax).GetSymbol<SourceNamedTypeSymbol>().GetMembers();
+            Assert.True(delegateMemberSymbols.All(m => m is SourceDelegateMethodSymbol));
+            foreach (var member in delegateMemberSymbols)
+            {
+                if (member is MethodSymbol method)
+                {
+                    Assert.False(method.IsInitOnly);
+                    Assert.False(method.GetPublicSymbol().IsInitOnly);
+                }
+            }
         }
     }
 }

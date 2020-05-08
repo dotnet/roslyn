@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers modifiers,
             ITypeSymbol returnType,
             RefKind refKind,
+            bool isInitOnly,
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations,
             string name,
             ImmutableArray<ITypeParameterSymbol> typeParameters,
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             this.ReturnType = returnType;
             this.RefKind = refKind;
+            this.IsInitOnly = isInitOnly;
             this.TypeParameters = typeParameters.NullToEmpty();
             this.Parameters = parameters.NullToEmpty();
             this.MethodKind = methodKind;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             var result = new CodeGenerationMethodSymbol(this.ContainingType,
                 this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
-                this.ReturnType, this.RefKind, this.ExplicitInterfaceImplementations,
+                this.ReturnType, this.RefKind, this.IsInitOnly, this.ExplicitInterfaceImplementations,
                 this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes(),
                 this.MethodKind);
 
@@ -89,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override IMethodSymbol ConstructedFrom => this;
 
         public override bool IsReadOnly => Modifiers.IsReadOnly;
+        public override bool IsInitOnly { get; }
 
         public override IMethodSymbol OverriddenMethod => null;
 
