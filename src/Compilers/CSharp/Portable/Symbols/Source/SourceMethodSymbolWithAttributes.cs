@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasError = true;
             }
 
-            if (!hasError)
+            if (!hasError && !CallsAreOmitted(arguments.AttributeSyntaxOpt.SyntaxTree))
             {
                 DeclaringCompilation.AddModuleInitializerMethod(this);
             }
