@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var newSolution = this.SetCurrentSolution(currentSolution);
-                SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
+                SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode), delayOnTextChanged: TimeSpan.Zero);
 
                 var newDoc = newSolution.GetDocument(documentId);
                 this.OnDocumentTextChanged(newDoc);
@@ -428,9 +428,9 @@ namespace Microsoft.CodeAnalysis
                 : TextAndVersion.Create(newText, version.GetNewerVersion(), filePath);
         }
 
-        private void SignupForTextChanges(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, Action<Workspace, DocumentId, SourceText, PreservationMode> onChangedHandler)
+        private void SignupForTextChanges(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, Action<Workspace, DocumentId, SourceText, PreservationMode> onChangedHandler, TimeSpan delayOnTextChanged)
         {
-            var tracker = new TextTracker(this, documentId, textContainer, onChangedHandler);
+            var tracker = new TextTracker(this, documentId, textContainer, onChangedHandler, delayOnTextChanged);
             _textTrackers.Add(documentId, tracker);
             this.UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext);
             tracker.Connect();
@@ -514,7 +514,8 @@ namespace Microsoft.CodeAnalysis
 
                 var newSolution = this.SetCurrentSolution(currentSolution);
 
-                SignupForTextChanges(documentId, textContainer, isCurrentContext, onDocumentTextChanged);
+                // PERF: Use a 5-second delay to process text changes to additional files and analyzer config files.
+                SignupForTextChanges(documentId, textContainer, isCurrentContext, onDocumentTextChanged, delayOnTextChanged: TimeSpan.FromSeconds(5));
 
                 // Fire and forget.
                 this.RaiseWorkspaceChangedEventAsync(workspaceChangeKind, oldSolution, newSolution, documentId: documentId);
