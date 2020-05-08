@@ -27,21 +27,13 @@ namespace Analyzer.Utilities
             switch (symbol.Kind)
             {
                 case SymbolKind.Assembly:
+                case SymbolKind.Namespace when ((INamespaceSymbol)symbol).IsGlobalNamespace:
                     tree = null;
                     return false;
-
-                case SymbolKind.Namespace:
-                    if (((INamespaceSymbol)symbol).IsGlobalNamespace)
-                    {
-                        tree = null;
-                        return false;
-                    }
-
-                    break;
+                default:
+                    tree = symbol.Locations[0].SourceTree;
+                    return tree != null;
             }
-
-            tree = symbol.Locations[0].SourceTree;
-            return tree != null;
         }
 
         public static SymbolVisibilityGroup GetSymbolVisibilityGroupOption(
