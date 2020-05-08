@@ -1628,6 +1628,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         type = pointerType;
                         return changed;
                     }
+                case SymbolKind.FunctionPointer:
+                    {
+                        var functionPointerType = (FunctionPointerTypeSymbol)type;
+                        var changed = NormalizeTaskTypesInFunctionPointer(compilation, ref functionPointerType);
+                        type = functionPointerType;
+                        return changed;
+                    }
             }
             return false;
         }
@@ -1720,6 +1727,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Preserve custom modifiers but without normalizing those types.
             pointerType = new PointerTypeSymbol(pointedAtType);
             return true;
+        }
+
+        private static bool NormalizeTaskTypesInFunctionPointer(CSharpCompilation compilation, ref FunctionPointerTypeSymbol funcPtrType)
+        {
+            var returnType = funcPtrType.Signature.ReturnTypeWithAnnotations;
+            var madeChanges = NormalizeTaskTypesInType(compilation, ref returnType);
+
+            var paramTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+
+            if (funcPtrType.Signature.ParameterCount > 0)
+            {
+                var paramsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(funcPtrType.Signature.ParameterCount);
+                bool madeParamChanges = false;
+                foreach (var param in funcPtrType.Signature.Parameters)
+                {
+                    var paramType = param.TypeWithAnnotations;
+                    madeParamChanges |= NormalizeTaskTypesInType(compilation, ref paramType);
+                    paramsBuilder.Add(paramType);
+                }
+
+                if (madeParamChanges)
+                {
+                    madeChanges = true;
+                    paramTypes = paramsBuilder.ToImmutableAndFree();
+                }
+                else
+                {
+                    paramTypes = funcPtrType.Signature.ParameterTypesWithAnnotations;
+                    paramsBuilder.Free();
+                }
+            }
+
+            if (madeChanges)
+            {
+                funcPtrType = funcPtrType.SubstituteTypeSymbol(returnType, paramTypes, refCustomModifiers: default, paramRefCustomModifiers: default);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         internal static Cci.TypeReferenceWithAttributes GetTypeRefWithAttributes(
