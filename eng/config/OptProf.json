@@ -603,10 +603,6 @@
               "testCases":[ "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs" ]
             },
             {
-              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/csc.exe",
-              "testCases":[ "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs" ]
-            },
-            {
               "filename": "/Contents/MSBuild/Current/Bin/Roslyn/VBCSCompiler.exe",
               "testCases":[ "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs" ]
             },
