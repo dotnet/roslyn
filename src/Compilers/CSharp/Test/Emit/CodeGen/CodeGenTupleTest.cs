@@ -27403,6 +27403,6 @@ unsafe struct Z
 
                 Assert.Equal(type, field.Type.ToTestDisplayString());
             }
-    }
+        }
     }
 }
