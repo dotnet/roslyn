@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
             Throw ExceptionUtilities.UnexpectedValue(symbol.Kind)
         End Function
 
-        Private Function GenerateMemberStatement(member As INamespaceOrTypeSymbol) As StatementSyntax
+        Private Function GenerateMemberStatement(member As ISymbol) As StatementSyntax
             Return DirectCast(GenerateSyntax(member), StatementSyntax)
         End Function
 
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
             End Using
         End Function
 
-        Private Function GenerateMemberStatements(members As IEnumerable(Of INamespaceOrTypeSymbol)) As SyntaxList(Of StatementSyntax)
+        Private Function GenerateMemberStatements(members As ImmutableArray(Of ISymbol)) As SyntaxList(Of StatementSyntax)
             Using builder = GetArrayBuilder(Of StatementSyntax)()
 
                 For Each member In members

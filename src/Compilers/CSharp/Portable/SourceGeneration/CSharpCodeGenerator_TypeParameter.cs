@@ -4,20 +4,15 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static Microsoft.CodeAnalysis.SourceGeneration.CodeGenerator;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpCodeGenerator
     {
-        private static ITypeParameterSymbol EnsureIsTypeParameter(ITypeSymbol type)
-            => type is ITypeParameterSymbol typeParameter
-                ? typeParameter
-                : throw new ArgumentException("INamedType type arguments must all be ITypeParameterSymbols");
-
         private static TypeParameterListSyntax? GenerateTypeParameterList(ImmutableArray<ITypeSymbol> typeArguments)
         {
             using var _ = GetArrayBuilder<TypeParameterSyntax>(out var typeParameters);

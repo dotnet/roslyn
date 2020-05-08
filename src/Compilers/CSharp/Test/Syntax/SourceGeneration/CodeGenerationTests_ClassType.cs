@@ -131,7 +131,7 @@ Class(
 }",
 Class(
     "X",
-    interfaces: ImmutableArray.Create(Class("Y"), Class("Z"))).GenerateString());
+    interfaces: ImmutableArray.Create(Interface("Y"), Interface("Z"))).GenerateString());
         }
 
         [Fact]

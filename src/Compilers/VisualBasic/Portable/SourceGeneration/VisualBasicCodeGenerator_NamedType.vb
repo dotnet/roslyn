@@ -112,7 +112,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
                 Return GenerateDelegateDeclaration(symbol)
             End If
 
-            Throw New NotImplementedException()
+            Dim blockKind =
+                If(symbol.TypeKind = TypeKind.Structure, SyntaxKind.StructureBlock,
+                If(symbol.TypeKind = TypeKind.Interface, SyntaxKind.InterfaceBlock,
+                   SyntaxKind.ClassBlock))
+
+            Dim statementKind =
+                If(symbol.TypeKind = TypeKind.Structure, SyntaxKind.StructureStatement,
+                If(symbol.TypeKind = TypeKind.Interface, SyntaxKind.InterfaceStatement,
+                   SyntaxKind.ClassStatement))
+
+            Dim typeKeyword = Token(
+                If(symbol.TypeKind = TypeKind.Structure, SyntaxKind.StructureKeyword,
+                If(symbol.TypeKind = TypeKind.Interface, SyntaxKind.InterfaceKeyword,
+                   SyntaxKind.ClassKeyword)))
+
+            Dim inheritsList =
+                If(symbol.TypeKind = TypeKind.Interface, GenerateInheritsList(symbol.Interfaces),
+                If(symbol.TypeKind = TypeKind.Class, GenerateInheritsList(ImmutableArray.Create(symbol.BaseType)), Nothing))
+
+            Dim implementsList =
+                If(symbol.TypeKind = TypeKind.Class OrElse symbol.TypeKind = TypeKind.Structure,
+                   GenerateImplementsList(symbol.Interfaces),
+                   Nothing)
+
+            Dim endStatement =
+                If(symbol.TypeKind = TypeKind.Structure, EndStructureStatement(),
+                If(symbol.TypeKind = TypeKind.Interface, EndInterfaceStatement(),
+                   EndClassStatement()))
+
+            Return TypeBlock(
+                blockKind,
+                TypeStatement(
+                    statementKind,
+                    GenerateAttributeLists(symbol.GetAttributes()),
+                    GenerateModifiers(isType:=True, symbol.DeclaredAccessibility, symbol.GetModifiers()),
+                    typeKeyword,
+                    Identifier(symbol.Name),
+                    GenerateTypeParameterList(symbol.TypeArguments)),
+                inheritsList,
+                implementsList,
+                GenerateMemberStatements(symbol.GetMembers()),
+                endStatement)
+        End Function
+
+        Private Function GenerateImplementsList(interfaces As ImmutableArray(Of INamedTypeSymbol)) As SyntaxList(Of ImplementsStatementSyntax)
+            Using temp = GetArrayBuilder(Of ImplementsStatementSyntax)()
+                Dim builder = temp.Builder
+
+                For Each baseType In interfaces
+                    If baseType IsNot Nothing Then
+                        builder.Add(ImplementsStatement(baseType.GenerateTypeSyntax()))
+                    End If
+                Next
+
+                Return List(builder)
+            End Using
+        End Function
+
+        Private Function GenerateInheritsList(interfaces As ImmutableArray(Of INamedTypeSymbol)) As SyntaxList(Of InheritsStatementSyntax)
+            Using temp = GetArrayBuilder(Of InheritsStatementSyntax)()
+                Dim builder = temp.Builder
+
+                For Each baseType In interfaces
+                    If baseType IsNot Nothing Then
+                        builder.Add(InheritsStatement(baseType.GenerateTypeSyntax()))
+                    End If
+                Next
+
+                Return List(builder)
+            End Using
         End Function
 
         Private Function GenerateDelegateDeclaration(symbol As INamedTypeSymbol) As DeclarationStatementSyntax
