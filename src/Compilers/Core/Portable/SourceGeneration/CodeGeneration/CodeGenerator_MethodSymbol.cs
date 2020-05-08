@@ -116,10 +116,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IMethodSymbol Operator(
             ITypeSymbol returnType,
             string name,
-            ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<AttributeData> attributes = default,
             Accessibility declaredAccessibility = default,
             SymbolModifiers modifiers = default,
+            ImmutableArray<IParameterSymbol> parameters = default,
             ISymbol containingSymbol = null)
         {
             return new MethodSymbol(
