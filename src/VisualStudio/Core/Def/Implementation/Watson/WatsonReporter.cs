@@ -99,10 +99,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                         faultUtility.AddFile(path);
                     }
 
-                    // Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
-                    // We never want to trigger watson manually, we'll let TargetNotifications determine if a Watson should
-                    // be reported. See https://aka.ms/roslynnfwdocs for more details
-                    return 1;
+                    // Returning "0" signals that, if sampled, we should send data to Watson. 
+                    // Any other value will cancel the Watson report. We never want to trigger a process dump manually, 
+                    // we'll let TargetedNotifications determine if a dump should be collected.
+                    // See https://aka.ms/roslynnfwdocs for more details
+                    return 0;
                 });
 
             // add extra bucket parameters to bucket better in NFW
