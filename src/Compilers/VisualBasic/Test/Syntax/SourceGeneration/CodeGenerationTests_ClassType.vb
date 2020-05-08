@@ -80,6 +80,16 @@ End Class",
         End Sub
 
         <Fact>
+        Public Sub TestClassWithObjectBaseType()
+            AssertEx.AreEqual(
+"Class X
+End Class",
+[Class](
+    "X",
+    baseType:=System_Object).GenerateString())
+        End Sub
+
+        <Fact>
         Public Sub TestClassWithInterfaces()
             AssertEx.AreEqual(
 "Class X

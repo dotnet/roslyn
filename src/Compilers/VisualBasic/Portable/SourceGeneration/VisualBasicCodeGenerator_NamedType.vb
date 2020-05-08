@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
                 Dim builder = temp.Builder
 
                 For Each baseType In interfaces
-                    If baseType IsNot Nothing Then
+                    If baseType IsNot Nothing AndAlso baseType.SpecialType <> SpecialType.System_Object Then
                         builder.Add(InheritsStatement(baseType.GenerateTypeSyntax()))
                     End If
                 Next

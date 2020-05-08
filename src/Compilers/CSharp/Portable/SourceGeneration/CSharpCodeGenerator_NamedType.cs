@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         {
             using var _ = GetArrayBuilder<BaseTypeSyntax>(out var types);
 
-            if (baseType != null)
+            if (baseType != null && baseType.SpecialType != SpecialType.System_Object)
                 types.Add(SimpleBaseType(baseType.GenerateTypeSyntax()));
 
             foreach (var type in interfaces)

@@ -123,6 +123,18 @@ Class(
         }
 
         [Fact]
+        public void TestClassWithObjectType()
+        {
+            AssertEx.AreEqual(
+@"class X
+{
+}",
+Class(
+    "X",
+    baseType: System_Object).GenerateString());
+        }
+
+        [Fact]
         public void TestClassWithInterfaces()
         {
             AssertEx.AreEqual(
