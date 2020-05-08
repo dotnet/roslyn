@@ -387,7 +387,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// ignoring any other overriding methods in base classes.
         /// </summary>
         /// <param name="accessingTypeOpt">The search must respect accessibility from this type.</param>
-        internal MethodSymbol GetLeastOverriddenMethod(NamedTypeSymbol accessingTypeOpt)
+        /// <param name="withSameReturnType">The returned method must have the same return type.</param>
+        internal MethodSymbol GetLeastOverriddenMethod(NamedTypeSymbol accessingTypeOpt, bool withSameReturnType = false)
         {
             var accessingType = ((object)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
 
@@ -416,7 +417,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // See InternalsVisibleToAndStrongNameTests: IvtVirtualCall1, IvtVirtualCall2, IvtVirtual_ParamsAndDynamic.
                 MethodSymbol overridden = m.OverriddenMethod;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if ((object)overridden == null || !AccessCheck.IsSymbolAccessible(overridden, accessingType, ref useSiteDiagnostics))
+                if ((object)overridden == null ||
+                    !AccessCheck.IsSymbolAccessible(overridden, accessingType, ref useSiteDiagnostics) ||
+                    (withSameReturnType && !this.ReturnType.Equals(overridden.ReturnType, TypeCompareKind.AllIgnoreOptions)))
                 {
                     break;
                 }
@@ -433,9 +436,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Also, if the given method symbol is generic then the resulting virtual or abstract method is constructed with the
         /// same type arguments as the given method.
         /// </summary>
-        internal MethodSymbol GetConstructedLeastOverriddenMethod(NamedTypeSymbol accessingTypeOpt)
+        /// <param name="withSameReturnType">The returned method must have the same return type.</param>
+        internal MethodSymbol GetConstructedLeastOverriddenMethod(NamedTypeSymbol accessingTypeOpt, bool withSameReturnType = false)
         {
-            var m = this.ConstructedFrom.GetLeastOverriddenMethod(accessingTypeOpt);
+            var m = this.ConstructedFrom.GetLeastOverriddenMethod(accessingTypeOpt, withSameReturnType);
             return m.IsGenericMethod ? m.Construct(this.TypeArgumentsWithAnnotations) : m;
         }
 

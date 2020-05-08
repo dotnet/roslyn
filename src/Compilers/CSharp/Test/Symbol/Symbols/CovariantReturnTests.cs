@@ -278,6 +278,22 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  // sequence point: object s1 = b.M();
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""object Base.M()""
+  IL_0006:  pop
+  // sequence point: string s2 = d.M();
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""string Derived.M()""
+  IL_000d:  pop
+  // sequence point: }
+  IL_000e:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -320,6 +336,22 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  // sequence point: object s1 = b.M<object, string>();
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""object Base.M<object, string>()""
+  IL_0006:  pop
+  // sequence point: string s2 = d.M<object, string>();
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""string Derived.M<object, string>()""
+  IL_000d:  pop
+  // sequence point: }
+  IL_000e:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -362,6 +394,22 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  // sequence point: object s1 = b.M();
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""object Base<object>.M()""
+  IL_0006:  pop
+  // sequence point: string s2 = d.M();
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""string Derived<object, string>.M()""
+  IL_000d:  pop
+  // sequence point: }
+  IL_000e:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -406,6 +454,22 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  // sequence point: N s1 = b.M();
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""N Base.M()""
+  IL_0006:  pop
+  // sequence point: Q s2 = d.M();
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""Q Derived<Q>.M()""
+  IL_000d:  pop
+  // sequence point: }
+  IL_000e:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -448,6 +512,22 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  // sequence point: object s1 = b.M;
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""object Base.M.get""
+  IL_0006:  pop
+  // sequence point: string s2 = d.M;
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""string Derived.M.get""
+  IL_000d:  pop
+  // sequence point: }
+  IL_000e:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -491,6 +571,22 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  // sequence point: object s1 = b.M;
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""object Base<object>.M.get""
+  IL_0006:  pop
+  // sequence point: string s2 = d.M;
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""string Derived<object, string>.M.get""
+  IL_000d:  pop
+  // sequence point: }
+  IL_000e:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -536,6 +632,22 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  // sequence point: N s1 = b.M;
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""N Base.M.get""
+  IL_0006:  pop
+  // sequence point: Q s2 = d.M;
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""Q Derived<Q>.M.get""
+  IL_000d:  pop
+  // sequence point: }
+  IL_000e:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -579,6 +691,24 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  // sequence point: object s1 = b[0];
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.0
+  IL_0002:  callvirt   ""object Base.this[int].get""
+  IL_0007:  pop
+  // sequence point: string s2 = d[0];
+  IL_0008:  ldarg.2
+  IL_0009:  ldc.i4.0
+  IL_000a:  callvirt   ""string Derived.this[int].get""
+  IL_000f:  pop
+  // sequence point: }
+  IL_0010:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -622,6 +752,24 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  // sequence point: object s1 = b[0];
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.0
+  IL_0002:  callvirt   ""object Base<object>.this[int].get""
+  IL_0007:  pop
+  // sequence point: string s2 = d[0];
+  IL_0008:  ldarg.2
+  IL_0009:  ldc.i4.0
+  IL_000a:  callvirt   ""string Derived<object, string>.this[int].get""
+  IL_000f:  pop
+  // sequence point: }
+  IL_0010:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -667,6 +815,24 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  // sequence point: N s1 = b[0];
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.0
+  IL_0002:  callvirt   ""N Base.this[int].get""
+  IL_0007:  pop
+  // sequence point: Q s2 = d[0];
+  IL_0008:  ldarg.2
+  IL_0009:  ldc.i4.0
+  IL_000a:  callvirt   ""Q Derived<Q>.this[int].get""
+  IL_000f:  pop
+  // sequence point: }
+  IL_0010:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -793,6 +959,22 @@ public class Program
             verify(CompilationReferenceView(comp, baseMetadata));
             verify(MetadataView(comp, baseMetadata));
             verify(RetargetedView(comp, baseMetadata));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  // sequence point: object s1 = b.M();
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""object Base.M()""
+  IL_0006:  pop
+  // sequence point: string s2 = d.M();
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""string Derived.M()""
+  IL_000d:  pop
+  // sequence point: }
+  IL_000e:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -838,6 +1020,22 @@ public class Program
             verify(CompilationReferenceView(comp, baseMetadata));
             verify(MetadataView(comp, baseMetadata));
             verify(RetargetedView(comp, baseMetadata));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  // sequence point: object s1 = b.M;
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""object Base.M.get""
+  IL_0006:  pop
+  // sequence point: string s2 = d.M;
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""string Derived.M.get""
+  IL_000d:  pop
+  // sequence point: }
+  IL_000e:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -884,6 +1082,24 @@ public class Program
             verify(CompilationReferenceView(comp, baseMetadata));
             verify(MetadataView(comp, baseMetadata));
             verify(RetargetedView(comp, baseMetadata));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  // sequence point: object s1 = b[0];
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.0
+  IL_0002:  callvirt   ""object Base.this[int].get""
+  IL_0007:  pop
+  // sequence point: string s2 = d[0];
+  IL_0008:  ldarg.2
+  IL_0009:  ldc.i4.0
+  IL_000a:  callvirt   ""string Derived.this[int].get""
+  IL_000f:  pop
+  // sequence point: }
+  IL_0010:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -927,6 +1143,22 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  // sequence point: object s1 = b.M();
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""object Base.M()""
+  IL_0006:  pop
+  // sequence point: string s2 = d.M();
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""string Derived.M()""
+  IL_000d:  pop
+  // sequence point: }
+  IL_000e:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -1183,6 +1415,30 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  1
+  // sequence point: IIn<string> x1 = b.M1;
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""IIn<string> Base.M1.get""
+  IL_0006:  pop
+  // sequence point: IOut<object> x2 = b.M2;
+  IL_0007:  ldarg.1
+  IL_0008:  callvirt   ""IOut<object> Base.M2.get""
+  IL_000d:  pop
+  // sequence point: IIn<object> x3 = d.M1;
+  IL_000e:  ldarg.2
+  IL_000f:  callvirt   ""IIn<object> Derived.M1.get""
+  IL_0014:  pop
+  // sequence point: IOut<string> x4 = d.M2;
+  IL_0015:  ldarg.2
+  IL_0016:  callvirt   ""IOut<string> Derived.M2.get""
+  IL_001b:  pop
+  // sequence point: }
+  IL_001c:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -1345,6 +1601,22 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  // sequence point: System.IComparable x1 = b.M;
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""System.IComparable Base.M.get""
+  IL_0006:  pop
+  // sequence point: string x2 = d.M;
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""string Derived.M.get""
+  IL_000d:  pop
+  // sequence point: }
+  IL_000e:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -1461,6 +1733,22 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  // sequence point: object x1 = b.P;
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""object Base.P.get""
+  IL_0006:  pop
+  // sequence point: string x2 = d.P;
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""string Derived.P.get""
+  IL_000d:  pop
+  // sequence point: }
+  IL_000e:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -1619,6 +1907,26 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived, Derived2)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  // sequence point: object x1 = b.P;
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""object Base.P.get""
+  IL_0006:  pop
+  // sequence point: System.IComparable x2 = d1.P;
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""System.IComparable Derived.P.get""
+  IL_000d:  pop
+  // sequence point: string x3 = d2.P;
+  IL_000e:  ldarg.3
+  IL_000f:  callvirt   ""string Derived2.P.get""
+  IL_0014:  pop
+  // sequence point: }
+  IL_0015:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
@@ -1715,6 +2023,26 @@ public class Program
             verify(CompilationReferenceView(comp));
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived, Derived2)", source: source, sequencePoints: "Program.M", expectedIL: @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  // sequence point: object x1 = b.M();
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""object Base.M()""
+  IL_0006:  pop
+  // sequence point: System.IComparable x2 = d1.M();
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""System.IComparable Derived.M()""
+  IL_000d:  pop
+  // sequence point: string x3 = d2.M();
+  IL_000e:  ldarg.3
+  IL_000f:  callvirt   ""string Derived2.M()""
+  IL_0014:  pop
+  // sequence point: }
+  IL_0015:  ret
+}
+");
 
             static void verify(CSharpCompilation comp)
             {
