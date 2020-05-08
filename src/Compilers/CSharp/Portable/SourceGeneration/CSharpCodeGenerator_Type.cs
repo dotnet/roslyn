@@ -24,25 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         }
 
         private static TypeSyntax GenerateTypeSyntaxWithoutNullable(this ITypeSymbol symbol, bool onlyNames)
-        {
-            switch (symbol.Kind)
+            => symbol.Kind switch
             {
-                case SymbolKind.NamedType:
-                    return GenerateNamedTypeSyntaxWithoutNullable((INamedTypeSymbol)symbol, onlyNames);
-                case SymbolKind.ArrayType:
-                    return GenerateArrayTypeSyntaxWithoutNullable((IArrayTypeSymbol)symbol, onlyNames);
-                case SymbolKind.DynamicType:
-                    return GenerateDynamicTypeSyntaxWithoutNullable((IDynamicTypeSymbol)symbol);
-                case SymbolKind.PointerType:
-                    return GeneratePointerTypeSyntaxWithoutNullable((IPointerTypeSymbol)symbol, onlyNames);
-                case SymbolKind.TypeParameter:
-                    return GenerateTypeParameterTypeSyntaxWithoutNullable((ITypeParameterSymbol)symbol);
-                case SymbolKind.ErrorType:
-                default:
-                    break;
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
-        }
+                SymbolKind.NamedType => GenerateNamedTypeSyntaxWithoutNullable((INamedTypeSymbol)symbol, onlyNames),
+                SymbolKind.ArrayType => GenerateArrayTypeSyntaxWithoutNullable((IArrayTypeSymbol)symbol, onlyNames),
+                SymbolKind.DynamicType => GenerateDynamicTypeSyntaxWithoutNullable((IDynamicTypeSymbol)symbol),
+                SymbolKind.PointerType => GeneratePointerTypeSyntaxWithoutNullable((IPointerTypeSymbol)symbol, onlyNames),
+                SymbolKind.TypeParameter => GenerateTypeParameterTypeSyntaxWithoutNullable((ITypeParameterSymbol)symbol),
+                _ => throw ExceptionUtilities.UnexpectedValue(symbol.Kind),
+            };
     }
 }
