@@ -648,5 +648,119 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 Assert.NotNull(moduleType.GetMember<MethodSymbol>(".cctor"));
             }
         }
+
+        [Fact]
+        public void ModuleInitializerAttributeIncludedByConditionalAttribute()
+        {
+            string source = @"
+#define INCLUDE
+
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer]
+    internal static void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [System.Diagnostics.Conditional(""INCLUDE"")]
+    class ModuleInitializerAttribute : System.Attribute { }
+}
+";
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+C.M
+Program.Main");
+        }
+
+        [Fact]
+        public void ModuleInitializerAttributeExcludedByConditionalAttribute()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer]
+    internal static void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [System.Diagnostics.Conditional(""EXCLUDE"")]
+    class ModuleInitializerAttribute : System.Attribute { }
+}
+";
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+C.M
+Program.Main");
+        }
+
+        [Fact]
+        public void ModuleInitializerMethodIncludedByConditionalAttribute()
+        {
+            string source = @"
+#define INCLUDE
+
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer, System.Diagnostics.Conditional(""INCLUDE"")]
+    internal static void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+C.M
+Program.Main");
+        }
+
+        [Fact]
+        public void ModuleInitializerMethodExcludedByConditionalAttribute()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer, System.Diagnostics.Conditional(""EXCLUDE"")]
+    internal static void M() { }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            CompileAndVerify(
+                source,
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                    var rootModuleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                    Assert.Null(rootModuleType.GetMember(".cctor"));
+                });
+        }
     }
 }
