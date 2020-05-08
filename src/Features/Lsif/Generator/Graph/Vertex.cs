@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
     /// </summary>
     internal abstract class Vertex : Element
     {
-        protected Vertex(string label)
-            : base(type: "vertex", label)
+        protected Vertex(string label, IdFactory idFactory)
+            : base(type: "vertex", label, idFactory)
         {
         }
 

@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
         private readonly Dictionary<ISymbol, TrackedResultSet> _symbolToResultSetId = new Dictionary<ISymbol, TrackedResultSet>();
         private readonly ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         private readonly ILsifJsonWriter _lsifJsonWriter;
+        private readonly IdFactory _idFactory;
 
         /// <summary>
         /// The compilation which we are analyzing. When we make ResultSets, we attach monikers to them, and those
@@ -25,10 +26,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
         /// </summary>
         private readonly Compilation _sourceCompilation;
 
-        public SymbolHoldingResultSetTracker(ILsifJsonWriter lsifJsonWriter, Compilation sourceCompilation)
+        public SymbolHoldingResultSetTracker(ILsifJsonWriter lsifJsonWriter, Compilation sourceCompilation, IdFactory idFactory)
         {
             _lsifJsonWriter = lsifJsonWriter;
             _sourceCompilation = sourceCompilation;
+            _idFactory = idFactory;
         }
 
         private TrackedResultSet GetTrackedResultSet(ISymbol symbol)
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                 // We still don't have it, so we have to start writing now
                 upgradeableReadLock.EnterWrite();
 
-                var resultSet = new ResultSet();
+                var resultSet = new ResultSet(_idFactory);
                 _lsifJsonWriter.Write(resultSet);
                 trackedResultSet = new TrackedResultSet(resultSet.GetId());
                 _symbolToResultSetId.Add(symbol, trackedResultSet);
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                 if (monikerVertex != null)
                 {
                     _lsifJsonWriter.Write(monikerVertex);
-                    _lsifJsonWriter.Write(Edge.Create("moniker", trackedResultSet.Id, monikerVertex.GetId()));
+                    _lsifJsonWriter.Write(Edge.Create("moniker", trackedResultSet.Id, monikerVertex.GetId(), _idFactory));
                 }
             }
 
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                 kind = "import";
             }
 
-            return new Moniker(moniker.Scheme, moniker.Identifier, kind);
+            return new Moniker(moniker.Scheme, moniker.Identifier, kind, _idFactory);
         }
 
         public Id<ResultSet> GetResultSetIdForSymbol(ISymbol symbol)
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
 
         public Id<T> GetResultIdForSymbol<T>(ISymbol symbol, string edgeKind, Func<T> vertexCreator) where T : Vertex
         {
-            return GetTrackedResultSet(symbol).GetResultId(edgeKind, vertexCreator, _lsifJsonWriter);
+            return GetTrackedResultSet(symbol).GetResultId(edgeKind, vertexCreator, _lsifJsonWriter, _idFactory);
         }
 
         public bool ResultSetNeedsInformationalEdgeAdded(ISymbol symbol, string edgeKind)
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                 Id = id;
             }
 
-            public Id<T> GetResultId<T>(string edgeKind, Func<T> vertexCreator, ILsifJsonWriter lsifJsonWriter) where T : Vertex
+            public Id<T> GetResultId<T>(string edgeKind, Func<T> vertexCreator, ILsifJsonWriter lsifJsonWriter, IdFactory idFactory) where T : Vertex
             {
                 lock (_edgeKindToVertexId)
                 {
@@ -173,7 +175,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                     _edgeKindToVertexId.Add(edgeKind, vertex.GetId().As<T, Vertex>());
 
                     lsifJsonWriter.Write(vertex);
-                    lsifJsonWriter.Write(Edge.Create(edgeKind, Id, vertex.GetId()));
+                    lsifJsonWriter.Write(Edge.Create(edgeKind, Id, vertex.GetId(), idFactory));
 
                     return vertex.GetId();
                 }

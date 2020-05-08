@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
         public string Type { get; }
         public string Label { get; }
 
-        protected Element(string type, string label)
+        protected Element(string type, string label, IdFactory idFactory)
         {
-            this.Id = Id<Element>.Create();
+            this.Id = idFactory.Create<Element>();
             this.Label = label;
             this.Type = type;
         }

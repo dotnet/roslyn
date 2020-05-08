@@ -15,21 +15,21 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
         public string Scope { get; }
         public Id<Element> Data { get; }
 
-        private Event(EventKind kind, string scope, Id<Element> data)
-            : base(label: "$event")
+        private Event(EventKind kind, string scope, Id<Element> data, IdFactory idFactory)
+            : base(label: "$event", idFactory)
         {
             this.Kind = kind switch { EventKind.Begin => "begin", EventKind.End => "end", _ => throw new ArgumentException(nameof(kind)) };
             this.Scope = scope;
             this.Data = data;
         }
 
-        public Event(EventKind kind, Id<Project> data)
-            : this(kind, "project", data.As<Project, Element>())
+        public Event(EventKind kind, Id<Project> data, IdFactory idFactory)
+            : this(kind, "project", data.As<Project, Element>(), idFactory)
         {
         }
 
-        public Event(EventKind kind, Id<Document> data)
-            : this(kind, "document", data.As<Document, Element>())
+        public Event(EventKind kind, Id<Document> data, IdFactory idFactory)
+            : this(kind, "document", data.As<Document, Element>(), idFactory)
         {
         }
 

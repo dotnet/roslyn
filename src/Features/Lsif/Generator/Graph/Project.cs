@@ -13,14 +13,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
     {
         public string Kind { get; }
         public Uri? Resource { get; }
-        public string? Contents { get; }
 
-        public Project(string kind, Uri? resource = null, string? contents = null)
-            : base(label: "project")
+        public Project(string kind, Uri? resource, IdFactory idFactory)
+            : base(label: "project", idFactory)
         {
             Kind = kind;
             Resource = resource;
-            Contents = contents;
         }
     }
 }

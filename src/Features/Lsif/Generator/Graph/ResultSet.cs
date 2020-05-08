@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
     /// </summary>
     internal sealed class ResultSet : Vertex
     {
-        public ResultSet()
-            : base(label: "resultSet")
+        public ResultSet(IdFactory idFactory)
+            : base(label: "resultSet", idFactory)
         {
         }
     }

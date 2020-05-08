@@ -15,21 +15,21 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
         public Position Start { get; }
         public Position End { get; }
 
-        public Range(Position start, Position end)
-            : base(label: "range")
+        public Range(Position start, Position end, IdFactory idFactory)
+            : base(label: "range", idFactory)
         {
             Start = start;
             End = end;
         }
 
-        public static Range FromTextSpan(TextSpan textSpan, SourceText sourceText)
+        public static Range FromTextSpan(TextSpan textSpan, SourceText sourceText, IdFactory idFactory)
         {
             var linePositionSpan = sourceText.Lines.GetLinePositionSpan(textSpan);
 
-            return new Range(start: FromLinePositionSpan(linePositionSpan.Start), end: FromLinePositionSpan(linePositionSpan.End));
+            return new Range(start: ConvertLinePositionToPosition(linePositionSpan.Start), end: ConvertLinePositionToPosition(linePositionSpan.End), idFactory);
         }
 
-        private static Position FromLinePositionSpan(LinePosition linePosition)
+        internal static Position ConvertLinePositionToPosition(LinePosition linePosition)
         {
             return new Position { Line = linePosition.Line, Character = linePosition.Character };
         }

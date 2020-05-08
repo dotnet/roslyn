@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
             lock (_writeGate)
             {
                 _jsonSerializer.Serialize(_jsonTextWriter, element);
-                _jsonTextWriter.WriteWhitespace(Environment.NewLine);
             }
         }
 
         public void Dispose()
         {
+            _jsonTextWriter.WriteWhitespace(Environment.NewLine);
             _jsonTextWriter.WriteEndArray();
             _jsonTextWriter.Close();
         }

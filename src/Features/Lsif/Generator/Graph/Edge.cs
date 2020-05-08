@@ -20,22 +20,22 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
         [JsonProperty("inVs")]
         public Id<Vertex>[] InVertices { get; }
 
-        public Edge(string label, Id<Vertex> outVertex, Id<Vertex>[] inVertices)
-            : base(type: "edge", label: label)
+        public Edge(string label, Id<Vertex> outVertex, Id<Vertex>[] inVertices, IdFactory idFactory)
+            : base(type: "edge", label: label, idFactory)
         {
             OutVertex = outVertex;
             InVertices = inVertices;
         }
 
-        public static Edge Create<TOutVertex, TInVertex>(string label, Id<TOutVertex> outVertex, Id<TInVertex> inVertex) where TOutVertex : Vertex where TInVertex : Vertex
+        public static Edge Create<TOutVertex, TInVertex>(string label, Id<TOutVertex> outVertex, Id<TInVertex> inVertex, IdFactory idFactory) where TOutVertex : Vertex where TInVertex : Vertex
         {
             var inVerticesArray = new Id<Vertex>[1];
             inVerticesArray[0] = inVertex.As<TInVertex, Vertex>();
 
-            return new Edge(label, outVertex.As<TOutVertex, Vertex>(), inVerticesArray);
+            return new Edge(label, outVertex.As<TOutVertex, Vertex>(), inVerticesArray, idFactory);
         }
 
-        public static Edge Create<TOutVertex, TInVertex>(string label, Id<TOutVertex> outVertex, IList<Id<TInVertex>> inVertices) where TOutVertex : Vertex where TInVertex : Vertex
+        public static Edge Create<TOutVertex, TInVertex>(string label, Id<TOutVertex> outVertex, IList<Id<TInVertex>> inVertices, IdFactory idFactory) where TOutVertex : Vertex where TInVertex : Vertex
         {
             var inVerticesArray = new Id<Vertex>[inVertices.Count];
 
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
                 inVerticesArray[i] = inVertices[i].As<TInVertex, Vertex>();
             }
 
-            return new Edge(label, outVertex.As<TOutVertex, Vertex>(), inVerticesArray);
+            return new Edge(label, outVertex.As<TOutVertex, Vertex>(), inVerticesArray, idFactory);
         }
 
         public override string ToString()

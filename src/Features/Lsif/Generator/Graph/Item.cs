@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
         public Id<Document> Document { get; }
         public string? Property { get; }
 
-        public Item(Id<Vertex> outVertex, Id<Range> range, Id<Document> document, string? property = null)
-            : base(label: "item", outVertex, new[] { range.As<Range, Vertex>() })
+        public Item(Id<Vertex> outVertex, Id<Range> range, Id<Document> document, IdFactory idFactory, string? property = null)
+            : base(label: "item", outVertex, new[] { range.As<Range, Vertex>() }, idFactory)
         {
             Document = document;
             Property = property;

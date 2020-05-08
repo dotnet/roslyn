@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
         public string Identifier { get; }
         public string? Kind { get; }
 
-        public Moniker(string scheme, string identifier, string? kind = null)
-            : base(label: "moniker")
+        public Moniker(string scheme, string identifier, string? kind, IdFactory idFactory)
+            : base(label: "moniker", idFactory)
         {
             Scheme = scheme;
             Identifier = identifier;

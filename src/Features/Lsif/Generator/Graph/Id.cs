@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
@@ -14,23 +13,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
     /// to ensure type safety in the code so we don't cross IDs of different types.</typeparam>
     internal struct Id<T> : IEquatable<Id<T>>, ISerializableId where T : Element
     {
-        /// <summary>
-        /// The next numberic ID that will be used for an object. Accessed only with Interlocked.Increment.
-        /// </summary>
-        private static int s_globalId = 0;
-
         public Id(int id)
         {
             NumericId = id;
         }
 
         public int NumericId { get; }
-
-        public static Id<T> Create()
-        {
-            var id = Interlocked.Increment(ref s_globalId);
-            return new Id<T>(id);
-        }
 
         public override bool Equals(object? obj)
         {

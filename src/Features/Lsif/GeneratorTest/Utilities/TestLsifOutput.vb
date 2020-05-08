@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
+Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.Utilities
     Friend Class TestLsifOutput
@@ -18,14 +19,19 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
 
         Public Shared Async Function GenerateForWorkspaceAsync(workspace As TestWorkspace) As Task(Of TestLsifOutput)
             Dim testLsifJsonWriter = New TestLsifJsonWriter()
-            Dim generator = New Generator(testLsifJsonWriter)
+
+            Await GenerateForWorkspaceAsync(workspace, testLsifJsonWriter)
+
+            Return New TestLsifOutput(testLsifJsonWriter, workspace)
+        End Function
+
+        Public Shared Async Function GenerateForWorkspaceAsync(workspace As TestWorkspace, jsonWriter As ILsifJsonWriter) As Task
+            Dim generator = New Generator(jsonWriter)
 
             For Each project In workspace.CurrentSolution.Projects
                 Dim compilation = Await project.GetCompilationAsync()
                 generator.GenerateForCompilation(compilation, project.FilePath, project.LanguageServices)
             Next
-
-            Return New TestLsifOutput(testLsifJsonWriter, workspace)
         End Function
 
         Public Function GetElementById(Of T As Element)(id As Id(Of T)) As T
@@ -61,10 +67,13 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
 
                 For Each selectedSpan In testDocument.SelectedSpans
                     Dim document = _workspace.CurrentSolution.GetDocument(testDocument.Id)
-                    Dim selectionRange = Range.FromTextSpan(selectedSpan, Await document.GetTextAsync())
+                    Dim text = Await document.GetTextAsync()
+                    Dim linePositionSpan = text.Lines.GetLinePositionSpan(selectedSpan)
+                    Dim positionStart = Range.ConvertLinePositionToPosition(linePositionSpan.Start)
+                    Dim positionEnd = Range.ConvertLinePositionToPosition(linePositionSpan.End)
 
-                    builder.Add(rangeVertices.Where(Function(r) r.Start = selectionRange.Start AndAlso
-                                                                r.End = selectionRange.End) _
+                    builder.Add(rangeVertices.Where(Function(r) r.Start = positionStart AndAlso
+                                                                r.End = positionEnd) _
                                              .Single())
                 Next
             Next

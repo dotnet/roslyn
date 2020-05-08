@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
     internal sealed class Generator
     {
         private readonly ILsifJsonWriter _lsifJsonWriter;
+        private readonly IdFactory _idFactory = new IdFactory();
 
         public Generator(ILsifJsonWriter lsifJsonWriter)
         {
@@ -27,9 +28,9 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
         public void GenerateForCompilation(Compilation compilation, string projectPath, HostLanguageServices languageServices)
         {
-            var projectVertex = new Graph.Project(kind: GetLanguageKind(compilation.Language), new Uri(projectPath));
+            var projectVertex = new Graph.Project(kind: GetLanguageKind(compilation.Language), new Uri(projectPath), _idFactory);
             _lsifJsonWriter.Write(projectVertex);
-            _lsifJsonWriter.Write(new Event(Event.EventKind.Begin, projectVertex.GetId()));
+            _lsifJsonWriter.Write(new Event(Event.EventKind.Begin, projectVertex.GetId(), _idFactory));
 
             var documentIds = new ConcurrentBag<Id<Graph.Document>>();
 
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             // the JSON file -- we support parallel processing, so we'll accumulate them and then apply at once to avoid a lot
             // of contention on shared locks.
             var topLevelSymbolsWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
-            var topLevelSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(topLevelSymbolsWriter, compilation);
+            var topLevelSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(topLevelSymbolsWriter, compilation, _idFactory);
 
             Parallel.ForEach(compilation.SyntaxTrees, syntaxTree =>
             {
@@ -50,16 +51,16 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
                 // is preserved.
                 var documentWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
-                var documentId = GenerateForDocument(semanticModel, languageServices, topLevelSymbolsResultSetTracker, documentWriter);
+                var documentId = GenerateForDocument(semanticModel, languageServices, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
                 topLevelSymbolsWriter.FlushToUnderlyingAndEmpty();
                 documentWriter.FlushToUnderlyingAndEmpty();
 
                 documentIds.Add(documentId);
             });
 
-            _lsifJsonWriter.Write(Edge.Create("contains", projectVertex.GetId(), documentIds.ToArray()));
+            _lsifJsonWriter.Write(Edge.Create("contains", projectVertex.GetId(), documentIds.ToArray(), _idFactory));
 
-            _lsifJsonWriter.Write(new Event(Event.EventKind.End, projectVertex.GetId()));
+            _lsifJsonWriter.Write(new Event(Event.EventKind.End, projectVertex.GetId(), _idFactory));
         }
 
         /// <summary>
@@ -77,23 +78,24 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             SemanticModel semanticModel,
             HostLanguageServices languageServices,
             IResultSetTracker topLevelSymbolsResultSetTracker,
-            ILsifJsonWriter lsifJsonWriter)
+            ILsifJsonWriter lsifJsonWriter,
+            IdFactory idFactory)
         {
             var syntaxTree = semanticModel.SyntaxTree;
             var sourceText = semanticModel.SyntaxTree.GetText();
             var syntaxFactsService = languageServices.GetRequiredService<ISyntaxFactsService>();
             var semanticFactsService = languageServices.GetRequiredService<ISemanticFactsService>();
 
-            var documentVertex = new Graph.Document(new Uri(syntaxTree.FilePath), GetLanguageKind(semanticModel.Language));
+            var documentVertex = new Graph.Document(new Uri(syntaxTree.FilePath), GetLanguageKind(semanticModel.Language), idFactory);
 
             lsifJsonWriter.Write(documentVertex);
-            lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId()));
+            lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
 
             // As we are processing this file, we are going to encounter symbols that have a shared resultSet with other documents like types
             // or methods. We're also going to encounter locals that never leave this document. We don't want those locals being held by
             // the topLevelSymbolsResultSetTracker, so we'll make another tracker for document local symbols, and then have a delegating
             // one that picks the correct one of the two.
-            var documentLocalSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(lsifJsonWriter, semanticModel.Compilation);
+            var documentLocalSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(lsifJsonWriter, semanticModel.Compilation, idFactory);
             var symbolResultsTracker = new DelegatingResultSetTracker(symbol =>
             {
                 if (symbol.Kind == SymbolKind.Local ||
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 // so we'll just make it Lazy.
                 var lazyRangeVertex = new Lazy<Graph.Range>(() =>
                 {
-                    var rangeVertex = Graph.Range.FromTextSpan(syntaxToken.Span, sourceText);
+                    var rangeVertex = Graph.Range.FromTextSpan(syntaxToken.Span, sourceText, idFactory);
 
                     lsifJsonWriter.Write(rangeVertex);
                     rangeVertices.Add(rangeVertex.GetId());
@@ -157,12 +159,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // since we show different contents for different constructed types there.
                     var symbolForLinkedResultSet = (declaredSymbol ?? referencedSymbol)!.OriginalDefinition;
                     var symbolForLinkedResultSetId = symbolResultsTracker.GetResultSetIdForSymbol(symbolForLinkedResultSet);
-                    lsifJsonWriter.Write(Edge.Create("next", lazyRangeVertex.Value.GetId(), symbolForLinkedResultSetId));
+                    lsifJsonWriter.Write(Edge.Create("next", lazyRangeVertex.Value.GetId(), symbolForLinkedResultSetId, idFactory));
 
                     if (declaredSymbol != null)
                     {
-                        var definitionResultsId = symbolResultsTracker.GetResultIdForSymbol(declaredSymbol, Methods.TextDocumentDefinitionName, () => new DefinitionResult());
-                        lsifJsonWriter.Write(new Item(definitionResultsId.As<DefinitionResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId()));
+                        var definitionResultsId = symbolResultsTracker.GetResultIdForSymbol(declaredSymbol, Methods.TextDocumentDefinitionName, () => new DefinitionResult(idFactory));
+                        lsifJsonWriter.Write(new Item(definitionResultsId.As<DefinitionResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory));
                     }
 
                     if (referencedSymbol != null)
@@ -171,14 +173,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                         // symbol but the range can point a different symbol's resultSet. This can happen if the token is
                         // both a definition of a symbol (where we will point to the definition) but also a reference to some
                         // other symbol.
-                        var referenceResultsId = symbolResultsTracker.GetResultIdForSymbol(referencedSymbol.OriginalDefinition, Methods.TextDocumentReferencesName, () => new ReferenceResult());
-                        lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), property: "references"));
+                        var referenceResultsId = symbolResultsTracker.GetResultIdForSymbol(referencedSymbol.OriginalDefinition, Methods.TextDocumentReferencesName, () => new ReferenceResult(idFactory));
+                        lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory, property: "references"));
                     }
                 }
             }
 
-            lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices));
-            lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId()));
+            lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices, idFactory));
+            lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
 
             return documentVertex.GetId();
         }
