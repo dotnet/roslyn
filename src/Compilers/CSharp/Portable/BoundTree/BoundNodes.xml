@@ -1307,31 +1307,31 @@
     <Field Name="RootNode" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>
 
-  <AbstractNode Name="BoundDecisionDagNode " Base="BoundNode">
+  <AbstractNode Name="BoundDecisionDagNode" Base="BoundNode">
   </AbstractNode>
   <!-- This node is used to indicate a point in the decision dag where an evaluation is performed, such as invoking Deconstruct. -->
-  <Node Name="BoundEvaluationDecisionDagNode" Base="BoundDecisionDagNode ">
+  <Node Name="BoundEvaluationDecisionDagNode" Base="BoundDecisionDagNode">
     <Field Name="Evaluation" Type="BoundDagEvaluation" Null="disallow"/>
-    <Field Name="Next" Type="BoundDecisionDagNode " Null="disallow"/>
+    <Field Name="Next" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>
   <!-- This node is used to indicate a point in the decision dag where a test may change the path of the decision dag. -->
-  <Node Name="BoundTestDecisionDagNode" Base="BoundDecisionDagNode ">
+  <Node Name="BoundTestDecisionDagNode" Base="BoundDecisionDagNode">
     <Field Name="Test" Type="BoundDagTest" Null="disallow"/>
-    <Field Name="WhenTrue" Type="BoundDecisionDagNode " Null="disallow"/>
-    <Field Name="WhenFalse" Type="BoundDecisionDagNode " Null="disallow"/>
+    <Field Name="WhenTrue" Type="BoundDecisionDagNode" Null="disallow"/>
+    <Field Name="WhenFalse" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>
-  <Node Name="BoundWhenDecisionDagNode" Base="BoundDecisionDagNode ">
+  <Node Name="BoundWhenDecisionDagNode" Base="BoundDecisionDagNode">
     <Field Name="Bindings" Type="ImmutableArray&lt;BoundPatternBinding&gt;" Null="disallow"/>
     <!--
     WhenExpression is null when there was no when clause in source but there are bindings.
     In that case WhenFalse is null.
     -->
     <Field Name="WhenExpression" Type="BoundExpression?"/>
-    <Field Name="WhenTrue" Type="BoundDecisionDagNode " Null="disallow"/>
-    <Field Name="WhenFalse" Type="BoundDecisionDagNode ?"/>
+    <Field Name="WhenTrue" Type="BoundDecisionDagNode" Null="disallow"/>
+    <Field Name="WhenFalse" Type="BoundDecisionDagNode?"/>
   </Node>
   <!-- This node is used to indicate a point in the decision dag where the decision has been completed. -->
-  <Node Name="BoundLeafDecisionDagNode" Base="BoundDecisionDagNode ">
+  <Node Name="BoundLeafDecisionDagNode" Base="BoundDecisionDagNode">
     <Field Name="Label" Type="LabelSymbol"/>
   </Node>
 

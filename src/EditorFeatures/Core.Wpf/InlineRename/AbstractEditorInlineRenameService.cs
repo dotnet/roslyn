@@ -197,8 +197,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var triggerText = sourceText.ToString(triggerToken.Span);
+
             return new SymbolInlineRenameInfo(
-                refactorNotifyServices, document, triggerToken.Span,
+                refactorNotifyServices, document, triggerToken.Span, triggerText,
                 symbol, forceRenameOverloads, documentSpans.ToImmutableAndFree(), cancellationToken);
         }
 

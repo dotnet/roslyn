@@ -5,9 +5,13 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -17,12 +21,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
     [UseExportProvider]
     public class F1HelpTests
     {
+        private static readonly ComposableCatalog s_catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpHelpContextService));
+        private static readonly IExportProviderFactory s_exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(s_catalog);
+
         private async Task TestAsync(string markup, string expectedText)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup);
+            using var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: s_exportProviderFactory.CreateExportProvider());
             var caret = workspace.Documents.First().CursorPosition;
 
-            var service = new CSharpHelpContextService();
+            var service = Assert.IsType<CSharpHelpContextService>(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<IHelpContextService>());
             var actualText = await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None);
             Assert.Equal(expectedText, actualText);
         }

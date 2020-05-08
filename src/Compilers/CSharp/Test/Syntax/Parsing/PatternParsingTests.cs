@@ -10942,5 +10942,128 @@ switch (e)
             }
             EOF();
         }
+
+        [Fact, WorkItem(43960, "https://github.com/dotnet/roslyn/issues/43960")]
+        public void NamespaceQualifiedEnumConstantInSwitchCase()
+        {
+            var source = @"switch (e) { case global::E.A: break; }";
+            UsingStatement(source,
+                TestOptions.RegularWithPatternCombinators
+                );
+            verifyTree();
+            UsingStatement(source,
+                TestOptions.RegularWithoutPatternCombinators
+                );
+            verifyTree();
+
+            void verifyTree()
+            {
+                N(SyntaxKind.SwitchStatement);
+                {
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SwitchSection);
+                    {
+                        N(SyntaxKind.CaseSwitchLabel);
+                        {
+                            N(SyntaxKind.CaseKeyword);
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.AliasQualifiedName);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.GlobalKeyword);
+                                    }
+                                    N(SyntaxKind.ColonColonToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "E");
+                                    }
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.BreakStatement);
+                        {
+                            N(SyntaxKind.BreakKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedEnumConstantInIsPattern()
+        {
+            var source = @"_ = e is global::E.A;";
+            UsingStatement(source,
+                TestOptions.RegularWithPatternCombinators
+                );
+            verifyTree();
+            UsingStatement(source,
+                TestOptions.RegularWithoutPatternCombinators
+                );
+            verifyTree();
+
+            void verifyTree()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.IsExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "e");
+                            }
+                            N(SyntaxKind.IsKeyword);
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.AliasQualifiedName);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.GlobalKeyword);
+                                    }
+                                    N(SyntaxKind.ColonColonToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "E");
+                                    }
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
     }
 }
