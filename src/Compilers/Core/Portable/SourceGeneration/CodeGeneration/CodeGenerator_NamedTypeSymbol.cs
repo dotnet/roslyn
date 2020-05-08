@@ -353,7 +353,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 ContainingSymbol = containingSymbol;
 
                 _members = members.NullToEmpty().SelectAsArray(
-                    m => m is INamedTypeSymbol nt ? nt.With(containingSymbol: this) : m);
+                    s => s is INamedTypeSymbol n ? n.With(containingSymbol: this) :
+                         s is IMethodSymbol m ? m.With(containingSymbol: this) : s);
             }
 
             public override SymbolKind Kind => SymbolKind.NamedType;

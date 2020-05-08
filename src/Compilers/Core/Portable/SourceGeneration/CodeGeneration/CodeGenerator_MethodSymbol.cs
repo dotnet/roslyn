@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             SymbolModifiers modifiers = default,
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations = default,
             ImmutableArray<ITypeSymbol> typeArguments = default,
-            ImmutableArray<IParameterSymbol> parameters = default)
+            ImmutableArray<IParameterSymbol> parameters = default,
+            ISymbol containingSymbol = null)
         {
             return new MethodSymbol(
                 MethodKind.Ordinary,
@@ -28,7 +29,110 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 explicitInterfaceImplementations,
                 name,
                 typeArguments,
-                parameters);
+                parameters,
+                containingSymbol);
+        }
+
+        public static IMethodSymbol Constructor(
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default,
+            ImmutableArray<IParameterSymbol> parameters = default,
+            ISymbol containingSymbol = null)
+        {
+            return new MethodSymbol(
+                MethodKind.Constructor,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                returnType: null,
+                explicitInterfaceImplementations: default,
+                name: null,
+                typeArguments: default,
+                parameters,
+                containingSymbol);
+        }
+
+        public static IMethodSymbol Destructor(
+            ImmutableArray<AttributeData> attributes = default,
+            SymbolModifiers modifiers = default,
+            ISymbol containingSymbol = null)
+        {
+            return new MethodSymbol(
+                MethodKind.Destructor,
+                attributes,
+                declaredAccessibility: default,
+                modifiers,
+                returnType: null,
+                explicitInterfaceImplementations: default,
+                name: null,
+                typeArguments: default,
+                parameters: default,
+                containingSymbol);
+        }
+
+        public static IMethodSymbol ImplicitConversion(
+            ITypeSymbol returnType,
+            IParameterSymbol parameter,
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default,
+            ISymbol containingSymbol = null)
+        {
+            return new MethodSymbol(
+                MethodKind.Conversion,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                returnType,
+                explicitInterfaceImplementations: default,
+                WellKnownMemberNames.ImplicitConversionName,
+                typeArguments: default,
+                ImmutableArray.Create(parameter),
+                containingSymbol);
+        }
+
+        public static IMethodSymbol ExplicitConversion(
+            ITypeSymbol returnType,
+            IParameterSymbol parameter,
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default,
+            ISymbol containingSymbol = null)
+        {
+            return new MethodSymbol(
+                MethodKind.Conversion,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                returnType,
+                explicitInterfaceImplementations: default,
+                WellKnownMemberNames.ExplicitConversionName,
+                typeArguments: default,
+                ImmutableArray.Create(parameter),
+                containingSymbol);
+        }
+
+        public static IMethodSymbol Operator(
+            ITypeSymbol returnType,
+            string name,
+            ImmutableArray<IParameterSymbol> parameters,
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default,
+            ISymbol containingSymbol = null)
+        {
+            return new MethodSymbol(
+                MethodKind.UserDefinedOperator,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                returnType,
+                explicitInterfaceImplementations: default,
+                name,
+                typeArguments: default,
+                parameters,
+                containingSymbol);
         }
 
         public static IMethodSymbol With(
@@ -41,7 +145,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Optional<ImmutableArray<IMethodSymbol>> explicitInterfaceImplementations = default,
             Optional<string> name = default,
             Optional<ImmutableArray<ITypeSymbol>> typeArguments = default,
-            Optional<ImmutableArray<IParameterSymbol>> parameters = default)
+            Optional<ImmutableArray<IParameterSymbol>> parameters = default,
+            Optional<ISymbol> containingSymbol = default)
         {
             return new MethodSymbol(
                 methodKind.GetValueOr(method.MethodKind),
@@ -52,7 +157,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 explicitInterfaceImplementations.GetValueOr(method.ExplicitInterfaceImplementations),
                 name.GetValueOr(method.Name),
                 typeArguments.GetValueOr(method.TypeArguments),
-                parameters.GetValueOr(method.Parameters));
+                parameters.GetValueOr(method.Parameters),
+                containingSymbol.GetValueOr(method.ContainingSymbol));
         }
 
         private class MethodSymbol : Symbol, IMethodSymbol
@@ -68,7 +174,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 ImmutableArray<IMethodSymbol> explicitInterfaceImplementations,
                 string name,
                 ImmutableArray<ITypeSymbol> typeArguments,
-                ImmutableArray<IParameterSymbol> parameters)
+                ImmutableArray<IParameterSymbol> parameters,
+                ISymbol containingSymbol)
             {
                 MethodKind = methodKind;
                 _attributes = attributes;
@@ -79,8 +186,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 Name = name;
                 TypeArguments = typeArguments;
                 Parameters = parameters;
+                ContainingSymbol = containingSymbol;
             }
 
+            public override ISymbol ContainingSymbol { get; }
             public override Accessibility DeclaredAccessibility { get; }
             public override SymbolKind Kind => SymbolKind.Method;
             public override SymbolModifiers Modifiers { get; }
