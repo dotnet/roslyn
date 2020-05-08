@@ -7045,5 +7045,26 @@ class C
                 </Workspace>, host:=host, renameTo:="Cat")
             End Using
         End Sub
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameTypeParameterFromCRef(host As TestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+class C
+{
+    /// <summary>
+    /// <see cref="Goo{$${|Complex:{|unresolved:X|}|}}(X)"/>
+    /// </summary>
+    void Goo<T>(T t) { }
+}]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="D")
+
+                result.AssertLabeledSpansAre("Complex", "C.Goo{D}(X)", RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
     End Class
 End Namespace
