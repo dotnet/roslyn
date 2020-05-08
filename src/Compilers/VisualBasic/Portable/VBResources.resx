@@ -5576,10 +5576,4 @@
   <data name="WRN_AttributeNotSupportedInVB_Title" xml:space="preserve">
     <value>Attribute is not supported in VB</value>
   </data>
-  <data name="WRN_MultipleGlobalAnalyzerKeys" xml:space="preserve">
-    <value>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</value>
-  </data>
-  <data name="WRN_MultipleGlobalAnalyzerKeys_Title" xml:space="preserve">
-    <value>Multiple global analyzer config files set the same key. It has been unset.</value>
-  </data>
 </root>

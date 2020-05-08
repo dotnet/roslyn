@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
 
-        internal AnalyzerConfig(
+        private AnalyzerConfig(
             Section globalSection,
             ImmutableArray<Section> namedSections,
             string pathToFile)

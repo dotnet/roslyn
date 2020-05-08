@@ -1669,16 +1669,6 @@
         <target state="translated">nullable 참조 형식에 대한 주석은 코드에서 '#nullable' 주석 컨텍스트 내에만 사용되어야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
-        <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
-        <target state="new">Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
-        <source>Multiple global analyzer config files set the same key. It has been unset.</source>
-        <target state="new">Multiple global analyzer config files set the same key. It has been unset.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">Null 리터럴을 null을 허용하지 않는 참조 형식으로 변환할 수 없습니다.</target>

@@ -154,7 +154,6 @@ namespace Microsoft.CodeAnalysis
 
         public abstract int ERR_FailedToCreateTempFile { get; }
         public abstract int ERR_MultipleAnalyzerConfigsInSameDir { get; }
-        public abstract int WRN_MultipleGlobalAnalyzerKeys { get; }
 
         // command line:
         public abstract int ERR_ExpectedSingleScript { get; }

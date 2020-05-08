@@ -1667,16 +1667,6 @@
         <target state="translated">A anotação para tipos de referência anuláveis deve ser usada apenas em código em um contexto de anotações '#nullable'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
-        <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
-        <target state="new">Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
-        <source>Multiple global analyzer config files set the same key. It has been unset.</source>
-        <target state="new">Multiple global analyzer config files set the same key. It has been unset.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">Não é possível converter um literal nulo em um tipo de referência não anulável.</target>

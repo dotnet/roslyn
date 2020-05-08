@@ -1,8 +1,3 @@
-Microsoft.CodeAnalysis.AnalyzerUnsetKey
-Microsoft.CodeAnalysis.AnalyzerUnsetKey.ConfigPaths.get -> System.Collections.Immutable.ImmutableArray<string>
-Microsoft.CodeAnalysis.AnalyzerUnsetKey.IsGlobalSection.get -> bool
-Microsoft.CodeAnalysis.AnalyzerUnsetKey.KeyName.get -> string
-Microsoft.CodeAnalysis.AnalyzerUnsetKey.SectionName.get -> string
 Microsoft.CodeAnalysis.Compilation.CreateNativeIntegerTypeSymbol(bool signed) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AssemblyLoader.get -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference other) -> bool
@@ -32,4 +27,3 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitNegatedPattern(Microsoft.CodeAnalysis.Operations.INegatedPatternOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitRelationalPattern(Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitTypePattern(Microsoft.CodeAnalysis.Operations.ITypePatternOperation operation, TArgument argument) -> TResult
-static Microsoft.CodeAnalysis.AnalyzerConfigSet.Create<TList>(TList analyzerConfigs, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AnalyzerUnsetKey> unsetGlobalKeys) -> Microsoft.CodeAnalysis.AnalyzerConfigSet

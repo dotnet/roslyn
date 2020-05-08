@@ -1480,7 +1480,7 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"is_global = true ", "/.editorconfig"));
 
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out _);
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, new DiagnosticBag());
 
             Assert.Empty(configs);
             Assert.NotNull(globalConfig);
@@ -1494,7 +1494,7 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
             configs.Add(Parse(@"
 [*.cs]
 is_global = true ", "/.editorconfig"));
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out _);
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, new DiagnosticBag());
 
             Assert.Single(configs);
             Assert.Null(globalConfig);
@@ -1511,9 +1511,10 @@ option1 = value1", "/.globalconfig1"));
             configs.Add(Parse(@"option2 = value2", "/.editorconfig1"));
             configs.Add(Parse(@"option3 = value3", "/.editorconfig2"));
 
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var unsetKeys);
+            DiagnosticBag diagnostics = new DiagnosticBag();
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
 
-            Assert.Empty(unsetKeys);
+            diagnostics.Verify();
             Assert.Equal(2, configs.Count);
             Assert.NotNull(globalConfig);
             Assert.Equal("value1", globalConfig.GlobalSection.Properties["option1"]);
@@ -1533,9 +1534,10 @@ option2 = value2", "/.globalconfig2"));
             configs.Add(Parse(@"option3 = value3", "/.editorconfig1"));
             configs.Add(Parse(@"option4 = value4", "/.editorconfig2"));
 
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var unsetKeys);
+            DiagnosticBag diagnostics = new DiagnosticBag();
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
 
-            Assert.Empty(unsetKeys);
+            diagnostics.Verify();
             Assert.Equal(2, configs.Count);
             Assert.NotNull(globalConfig);
             Assert.Equal("value1", globalConfig.GlobalSection.Properties["option1"]);
@@ -1567,9 +1569,10 @@ option2 = value2
 option1 = value1",
 "/.globalconfig2"));
 
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var unsetKeys);
+            DiagnosticBag diagnostics = new DiagnosticBag();
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
 
-            Assert.Empty(unsetKeys);
+            diagnostics.Verify();
             Assert.Empty(configs);
             Assert.NotNull(globalConfig);
             Assert.Equal("value1", globalConfig.GlobalSection.Properties["option1"]);
@@ -1604,15 +1607,12 @@ option1 = value1", "/.globalconfig1"));
             configs.Add(Parse(@"is_global = true
 option1 = value2", "/.globalconfig2"));
 
-            var filteredSet = AnalyzerConfigSet.Create(configs, out var unsetKeys);
+            DiagnosticBag diagnostics = new DiagnosticBag();
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
 
-            Assert.Equal(1, unsetKeys.Length);
-            Assert.Equal("option1", unsetKeys[0].KeyName);
-            Assert.True(unsetKeys[0].IsGlobalSection);
-
-            Assert.Collection(unsetKeys[0].ConfigPaths,
-                                (s) => Assert.Equal("/.globalconfig1", s),
-                                (s) => Assert.Equal("/.globalconfig2", s));
+            diagnostics.Verify(
+                Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "Global Section", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -1629,16 +1629,12 @@ option1 = value1
 option1 = value2",
 "/.globalconfig2"));
 
-            var filteredSet = AnalyzerConfigSet.Create(configs.ToImmutableAndFree(), out var unsetKeys);
+            DiagnosticBag diagnostics = new DiagnosticBag();
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
 
-            Assert.Equal(1, unsetKeys.Length);
-            Assert.Equal("option1", unsetKeys[0].KeyName);
-            Assert.False(unsetKeys[0].IsGlobalSection);
-            Assert.Equal(@"c:/path/to/file1.cs", unsetKeys[0].SectionName);
-
-            Assert.Collection(unsetKeys[0].ConfigPaths,
-                                (s) => Assert.Equal("/.globalconfig1", s),
-                                (s) => Assert.Equal("/.globalconfig2", s));
+            diagnostics.Verify(
+                Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "c:/path/to/file1.cs", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -1651,8 +1647,9 @@ option1 = value1", "/.globalconfig1"));
             configs.Add(Parse(@"
 option1 = value2", "/.globalconfig2"));
 
-            var filteredSet = AnalyzerConfigSet.Create(configs.ToImmutableAndFree(), out var unsetKeys);
-            Assert.Empty(unsetKeys);
+            DiagnosticBag diagnostics = new DiagnosticBag();
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            diagnostics.Verify();
         }
 
         [Fact]
@@ -1669,8 +1666,9 @@ option1 = value1
 option1 = value2",
 "/.globalconfig2"));
 
-            var configSet = AnalyzerConfigSet.Create(configs.ToImmutableAndFree(), out var unsetKeys);
-            Assert.Empty(unsetKeys);
+            DiagnosticBag diagnostics = new DiagnosticBag();
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            diagnostics.Verify();
         }
 
         [Fact]
@@ -1805,8 +1803,10 @@ option1 = value1
 option1 = value2",
 "/.globalconfig2"));
 
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var unsetKeys);
-            Assert.Empty(unsetKeys);
+            DiagnosticBag diagnostics = new DiagnosticBag();
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            diagnostics.Verify();
+
             Assert.Equal(2, globalConfig.NamedSections.Length);
             configs.Free();
         }
@@ -1825,10 +1825,11 @@ option1 = value1
 opTioN1 = value2",
 "/.globalconfig2"));
 
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var unsetKeys);
-            Assert.Equal(1, unsetKeys.Length);
-            Assert.Equal("option1", unsetKeys[0].KeyName);
-            Assert.Equal("c:/path/to/file1.cs", unsetKeys[0].SectionName);
+            DiagnosticBag diagnostics = new DiagnosticBag();
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            diagnostics.Verify(
+                Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "c:/path/to/file1.cs", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
+                );
             configs.Free();
         }
 
@@ -1844,9 +1845,11 @@ option1 = value1
 opTioN1 = value2",
 "/.globalconfig2"));
 
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var unsetKeys);
-            Assert.Equal(1, unsetKeys.Length);
-            Assert.Equal("option1", unsetKeys[0].KeyName);
+            DiagnosticBag diagnostics = new DiagnosticBag();
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            diagnostics.Verify(
+                Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "Global Section", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
+                );
             configs.Free();
         }
 

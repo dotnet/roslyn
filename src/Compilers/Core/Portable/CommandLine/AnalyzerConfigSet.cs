@@ -97,18 +97,27 @@ namespace Microsoft.CodeAnalysis
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
 
+        private readonly static DiagnosticDescriptor MultipleGlobalAnalyzerKeysDescriptor
+            = new DiagnosticDescriptor(
+                "MultipleGlobalAnalyzerKeys",
+                CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys_Title,
+                CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys,
+                "AnalyzerConfig",
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
         public static AnalyzerConfigSet Create<TList>(TList analyzerConfigs) where TList : IReadOnlyCollection<AnalyzerConfig>
         {
-            return Create(analyzerConfigs, out _);
+            return Create(analyzerConfigs, new DiagnosticBag());
         }
 
-        public static AnalyzerConfigSet Create<TList>(TList analyzerConfigs, out ImmutableArray<AnalyzerUnsetKey> unsetGlobalKeys) where TList : IReadOnlyCollection<AnalyzerConfig>
+        internal static AnalyzerConfigSet Create<TList>(TList analyzerConfigs, DiagnosticBag diagnostics) where TList : IReadOnlyCollection<AnalyzerConfig>
         {
             var sortedAnalyzerConfigs = ArrayBuilder<AnalyzerConfig>.GetInstance(analyzerConfigs.Count);
             sortedAnalyzerConfigs.AddRange(analyzerConfigs);
             sortedAnalyzerConfigs.Sort(AnalyzerConfig.DirectoryLengthComparer);
 
-            var globalConfig = MergeGlobalConfigs(sortedAnalyzerConfigs, out unsetGlobalKeys);
+            var globalConfig = MergeGlobalConfigs(sortedAnalyzerConfigs, diagnostics);
             return new AnalyzerConfigSet(sortedAnalyzerConfigs.ToImmutableAndFree(), globalConfig);
         }
 
@@ -409,9 +418,9 @@ namespace Microsoft.CodeAnalysis
         /// Merge any partial global configs into a single global config, and remove the partial configs
         /// </summary>
         /// <param name="analyzerConfigs">An <see cref="ArrayBuilder{T}"/> of <see cref="AnalyzerConfig"/> containing a mix of regular and unmerged partial global configs</param>
-        /// <param name="unsetAnalyzerKeys">An <see cref="ImmutableArray{T}"/> of duplicate global keys that were unset</param>
+        /// <param name="diagnostics">Diagnostics produced during merge will be added to this bag</param>
         /// <returns>A <see cref="GlobalAnalyzerConfig" /> that contains the merged partial configs, or <c>null</c> if there were no partial configs</returns>
-        internal static GlobalAnalyzerConfig? MergeGlobalConfigs(ArrayBuilder<AnalyzerConfig> analyzerConfigs, out ImmutableArray<AnalyzerUnsetKey> unsetAnalyzerKeys)
+        internal static GlobalAnalyzerConfig? MergeGlobalConfigs(ArrayBuilder<AnalyzerConfig> analyzerConfigs, DiagnosticBag diagnostics)
         {
             GlobalAnalyzerConfigBuilder globalAnalyzerConfigBuilder = new GlobalAnalyzerConfigBuilder();
             for (int i = 0; i < analyzerConfigs.Count; i++)
@@ -424,7 +433,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            var globalConfig = globalAnalyzerConfigBuilder.Build(out unsetAnalyzerKeys);
+            var globalConfig = globalAnalyzerConfigBuilder.Build(diagnostics);
             return globalConfig;
         }
 
@@ -451,16 +460,31 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal GlobalAnalyzerConfig? Build(out ImmutableArray<AnalyzerUnsetKey> unsetKeys)
+            internal GlobalAnalyzerConfig? Build(DiagnosticBag diagnostics)
             {
                 if (_values is null || _duplicates is null)
                 {
-                    unsetKeys = ImmutableArray<AnalyzerUnsetKey>.Empty;
                     return null;
                 }
 
-                unsetKeys = getUnsetKeys();
+                // issue diagnostics for any duplicate keys
+                foreach ((var section, var keys) in _duplicates)
+                {
+                    bool isGlobalSection = string.IsNullOrWhiteSpace(section);
+                    string sectionName = isGlobalSection ? "Global Section" : section;
+                    foreach ((var keyName, var configPaths) in keys)
+                    {
+                        diagnostics.Add(Diagnostic.Create(
+                             MultipleGlobalAnalyzerKeysDescriptor,
+                             Location.None,
+                             keyName,
+                             sectionName,
+                             string.Join(", ", configPaths)));
+                    }
+                }
+                _duplicates.Free();
 
+                // gather the global and named sections
                 Section globalSection = getSection(string.Empty);
                 _values.Remove(string.Empty);
 
@@ -469,26 +493,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     namedSectionBuilder.Add(getSection(sectionName));
                 }
-
+                
+                // create the global config
                 GlobalAnalyzerConfig globalConfig = new GlobalAnalyzerConfig(globalSection, namedSectionBuilder.ToImmutableAndFree());
                 _values.Free();
                 return globalConfig;
-
-                ImmutableArray<AnalyzerUnsetKey> getUnsetKeys()
-                {
-                    ArrayBuilder<AnalyzerUnsetKey> unsetKeys = ArrayBuilder<AnalyzerUnsetKey>.GetInstance();
-                    foreach ((var section, var keys) in _duplicates)
-                    {
-                        bool isGlobalSection = string.IsNullOrWhiteSpace(section);
-                        string sectionName = isGlobalSection ? "Global Section" : section;
-                        foreach ((var keyName, var configs) in keys)
-                        {
-                            unsetKeys.Add(new AnalyzerUnsetKey(keyName, sectionName, isGlobalSection, configs.ToImmutableAndFree()));
-                        }
-                    }
-                    _duplicates.Free();
-                    return unsetKeys.ToImmutableAndFree();
-                }
 
                 Section getSection(string sectionName)
                 {

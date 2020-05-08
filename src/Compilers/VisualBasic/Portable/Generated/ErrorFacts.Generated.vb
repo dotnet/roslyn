@@ -170,8 +170,7 @@
                      ERRID.WRN_UnableToLoadAnalyzer,
                      ERRID.WRN_AttributeIgnoredWhenPublicSigning,
                      ERRID.WRN_Experimental,
-                     ERRID.WRN_AttributeNotSupportedInVB,
-                     ERRID.WRN_MultipleGlobalAnalyzerKeys
+                     ERRID.WRN_AttributeNotSupportedInVB
                     Return True
                 Case Else
                     Return False

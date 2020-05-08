@@ -325,16 +325,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            analyzerConfigSet = AnalyzerConfigSet.Create(configs, out var unsetGlobalKeys);
-            foreach (var unsetKey in unsetGlobalKeys)
-            {
-                diagnostics.Add(Diagnostic.Create(
-                            MessageProvider,
-                            MessageProvider.WRN_MultipleGlobalAnalyzerKeys,
-                            unsetKey.KeyName,
-                            unsetKey.SectionName,
-                            string.Join(", ", unsetKey.ConfigPaths)));
-            }
+            analyzerConfigSet = AnalyzerConfigSet.Create(configs, diagnostics);
             return true;
         }
 

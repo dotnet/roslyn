@@ -1779,7 +1779,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_GeneratorFailedDuringInitialization = 8784,
         WRN_GeneratorFailedDuringGeneration = 8785,
-        WRN_MultipleGlobalAnalyzerKeys = 8786,
 
         ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
