@@ -34,7 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             using var _ = GetArrayBuilder<MemberDeclarationSyntax>(out var builder);
 
             foreach (var member in members)
-                builder.Add(GenerateMemberDeclaration(member));
+            {
+                if (!member.IsImplicitlyDeclared)
+                    builder.Add(GenerateMemberDeclaration(member));
+            }
 
             return List(builder);
         }
