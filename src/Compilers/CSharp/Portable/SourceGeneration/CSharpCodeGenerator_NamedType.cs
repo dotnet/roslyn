@@ -5,20 +5,23 @@
 #nullable enable
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static Microsoft.CodeAnalysis.SourceGeneration.CodeGenerator;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpCodeGenerator
     {
-        private static TypeSyntax GenerateNamedTypeSyntaxWithoutNullable(INamedTypeSymbol symbol)
+        private static TypeSyntax GenerateNamedTypeSyntaxWithoutNullable(INamedTypeSymbol symbol, bool onlyNames)
         {
             if (!symbol.TupleElements.IsDefault)
-                return GenerateTupleTypeSyntaxWithoutNullable(symbol);
+                return GenerateTupleTypeSyntaxWithoutNullable(symbol, onlyNames);
 
             if (symbol.SpecialType != SpecialType.None)
-                return GenerateSpecialTypeSyntaxWithoutNullable(symbol);
+                return GenerateSpecialTypeSyntaxWithoutNullable(symbol, onlyNames);
 
             var nameSyntax = symbol.TypeArguments.IsDefaultOrEmpty
                 ? (SimpleNameSyntax)IdentifierName(symbol.Name)
@@ -43,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             return nameSyntax;
         }
 
-        private static TypeSyntax GenerateTupleTypeSyntaxWithoutNullable(INamedTypeSymbol symbol)
+        private static TypeSyntax GenerateTupleTypeSyntaxWithoutNullable(INamedTypeSymbol symbol, bool onlyNames)
         {
-            if (symbol.TupleElements.Length < 2)
-                throw new ArgumentException("Tuples must contain at least two elements");
+            if (symbol.TupleElements.Length < 2 || onlyNames)
+                return GenerateValueTuple(symbol.TupleElements, 0, symbol.TupleElements.Length).GenerateTypeSyntax();
 
             using var _ = GetArrayBuilder<TupleElementSyntax>(out var elements);
 
@@ -61,8 +64,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             return TupleType(SeparatedList(elements));
         }
 
-        private static TypeSyntax GenerateSpecialTypeSyntaxWithoutNullable(INamedTypeSymbol symbol)
+        private static TypeSyntax GenerateSpecialTypeSyntaxWithoutNullable(INamedTypeSymbol symbol, bool onlyNames)
         {
+            if (onlyNames)
+                return GenerateSystemType(symbol.SpecialType).GenerateNameSyntax();
+
             switch (symbol.SpecialType)
             {
                 case SpecialType.System_Object: return PredefinedType(Token(SyntaxKind.ObjectKeyword));

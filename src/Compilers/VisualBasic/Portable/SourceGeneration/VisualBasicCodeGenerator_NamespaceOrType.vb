@@ -14,15 +14,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
     Partial Friend Module VisualBasicCodeGenerator
         <Extension>
         Public Function GenerateNameSyntax(symbol As INamespaceOrTypeSymbol) As NameSyntax
-            Throw New NotImplementedException()
+            Return DirectCast(GenerateTypeSyntax(symbol, onlyNames:=True), NameSyntax)
         End Function
 
         <Extension>
         Public Function GenerateTypeSyntax(symbol As INamespaceOrTypeSymbol) As TypeSyntax
+            Return GenerateTypeSyntax(symbol, onlyNames:=False)
+        End Function
+
+        <Extension>
+        Private Function GenerateTypeSyntax(symbol As INamespaceOrTypeSymbol, onlyNames As Boolean) As TypeSyntax
             If TypeOf symbol Is INamespaceSymbol Then
-                Return GenerateNameSyntax(symbol)
+                Return GenerateNameSyntax(DirectCast(symbol, INamespaceSymbol))
             ElseIf TypeOf symbol Is ITypeSymbol Then
-                Return GenerateTypeSyntax(DirectCast(symbol, ITypeSymbol))
+                Return GenerateTypeSyntax(DirectCast(symbol, ITypeSymbol), onlyNames)
             End If
 
             Throw ExceptionUtilities.UnexpectedValue(symbol.Kind)

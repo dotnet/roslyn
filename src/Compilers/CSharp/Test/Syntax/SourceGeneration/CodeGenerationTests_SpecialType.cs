@@ -19,5 +19,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
 "int",
 Int32.GenerateTypeString());
         }
+
+        [Fact]
+        public void TestSpecialNameInt32()
+        {
+            AssertEx.AreEqual(
+"global::System.Int32",
+Int32.GenerateNameString());
+        }
     }
 }

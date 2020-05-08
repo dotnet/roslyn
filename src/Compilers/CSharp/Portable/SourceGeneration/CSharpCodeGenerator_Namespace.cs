@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -20,6 +21,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 return CompilationUnit(externs: default, usings, attributeLists: default, members);
 
             return NamespaceDeclaration(ParseName(symbol.Name), externs: default, usings, members);
+        }
+
+        private static NameSyntax GenerateNameSyntax(INamespaceSymbol symbol)
+        {
+            var nameSyntax = IdentifierName(symbol.Name);
+            if (symbol.ContainingNamespace == null)
+                return nameSyntax;
+
+            if (symbol.ContainingNamespace.IsGlobalNamespace)
+                return AliasQualifiedName(SyntaxFacts.GetText(SyntaxKind.GlobalKeyword), nameSyntax);
+
+            var containingNamespace = symbol.ContainingNamespace.GenerateNameSyntax();
+            return QualifiedName(containingNamespace, nameSyntax);
         }
     }
 }

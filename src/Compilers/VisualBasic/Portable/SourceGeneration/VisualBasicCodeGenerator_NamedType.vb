@@ -12,13 +12,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
     Partial Friend Module VisualBasicCodeGenerator
-        Private Function GenerateNamedTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
+        Private Function GenerateNamedTypeSyntax(symbol As INamedTypeSymbol, onlyNames As Boolean) As TypeSyntax
             If Not symbol.TupleElements.IsDefault Then
-                Return GenerateTupleTypeSyntax(symbol)
+                Return GenerateTupleTypeSyntax(symbol, onlyNames)
             End If
 
             If symbol.SpecialType <> SpecialType.None Then
-                Return GenerateSpecialTypeSyntax(symbol)
+                Return GenerateSpecialTypeSyntax(symbol, onlyNames)
             End If
 
             Dim nameSyntax = If(symbol.TypeArguments.IsDefaultOrEmpty,
@@ -40,9 +40,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
             Return nameSyntax
         End Function
 
-        Private Function GenerateTupleTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
-            If symbol.TupleElements.Length < 2 Then
-                Throw New ArgumentException("Tuples must contain at least two elements")
+        Private Function GenerateTupleTypeSyntax(symbol As INamedTypeSymbol, onlyNames As Boolean) As TypeSyntax
+            If symbol.TupleElements.Length < 2 OrElse onlyNames Then
+                Return CodeGenerator.GenerateValueTuple(
+                    symbol.TupleElements, 0, symbol.TupleElements.Length).GenerateNameSyntax()
             End If
 
             Using temp = GetArrayBuilder(Of TupleElementSyntax)()
@@ -61,7 +62,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
             End Using
         End Function
 
-        Private Function GenerateSpecialTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
+        Private Function GenerateSpecialTypeSyntax(symbol As INamedTypeSymbol, onlyNames As Boolean) As TypeSyntax
+            If onlyNames Then
+                Return CodeGenerator.GenerateSystemType(symbol.SpecialType).GenerateNameSyntax()
+            End If
+
             Select Case symbol.SpecialType
                 Case SpecialType.System_Object
                     Return PredefinedType(Token(SyntaxKind.ObjectKeyword))

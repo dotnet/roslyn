@@ -51,5 +51,33 @@ TupleType(ImmutableArray.Create(
     TupleElement(Int32, "a"),
     TupleElement(Boolean, "b"))).GenerateTypeString());
         }
+
+        [Fact]
+        public void TestTupleNameSyntax()
+        {
+            AssertEx.AreEqual(
+"global::System.ValueTuple<int, bool>",
+TupleType(ImmutableArray.Create(
+    TupleElement(Int32),
+    TupleElement(Boolean))).GenerateNameString());
+        }
+
+        [Fact]
+        public void TestTupleNameSyntax10Elements()
+        {
+            AssertEx.AreEqual(
+"global::System.ValueTuple<int, bool, int, bool, int, bool, int, global::System.ValueTuple<bool, int, bool>>",
+TupleType(ImmutableArray.Create(
+    TupleElement(Int32),
+    TupleElement(Boolean),
+    TupleElement(Int32),
+    TupleElement(Boolean),
+    TupleElement(Int32),
+    TupleElement(Boolean),
+    TupleElement(Int32),
+    TupleElement(Boolean),
+    TupleElement(Int32),
+    TupleElement(Boolean))).GenerateNameString());
+        }
     }
 }

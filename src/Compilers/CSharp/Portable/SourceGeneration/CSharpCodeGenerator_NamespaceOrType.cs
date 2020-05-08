@@ -16,16 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
     internal partial class CSharpCodeGenerator
     {
         public static NameSyntax GenerateNameSyntax(this INamespaceOrTypeSymbol symbol)
-        {
-            throw new NotImplementedException();
-        }
+            => (NameSyntax)GenerateTypeSyntax(symbol, onlyNames: true);
 
         public static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol)
+            => GenerateTypeSyntax(symbol, onlyNames: false);
+
+        public static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol, bool onlyNames)
         {
             if (symbol is INamespaceSymbol nsSymbol)
                 return GenerateNameSyntax(nsSymbol);
             else if (symbol is ITypeSymbol type)
-                return GenerateTypeSyntax(type);
+                return GenerateTypeSyntax(type, onlyNames);
 
             throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
         }

@@ -28,5 +28,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
                 NamespaceStatement(ParseName(symbol.Name)),
                 members)
         End Function
+
+        Private Function GenerateNameSyntax(symbol As INamespaceSymbol) As NameSyntax
+            If symbol.IsGlobalNamespace Then
+                Return SyntaxFactory.IdentifierName(SyntaxFacts.GetText(SyntaxKind.GlobalKeyword))
+            End If
+
+            Dim nameSyntax = IdentifierName(symbol.Name)
+            If symbol.ContainingNamespace Is Nothing Then
+                Return nameSyntax
+            End If
+
+            Dim containingNamespace = symbol.ContainingNamespace.GenerateNameSyntax()
+            Return QualifiedName(containingNamespace, nameSyntax)
+        End Function
     End Module
 End Namespace

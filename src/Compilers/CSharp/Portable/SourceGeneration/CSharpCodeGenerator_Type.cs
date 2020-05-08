@@ -12,22 +12,25 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpCodeGenerator
     {
-        private static TypeSyntax GenerateTypeSyntax(this ITypeSymbol symbol)
+        private static TypeSyntax GenerateTypeSyntax(this ITypeSymbol symbol, bool onlyNames)
         {
-            var typeSyntax = GenerateTypeSyntaxWithoutNullable(symbol);
+            var typeSyntax = GenerateTypeSyntaxWithoutNullable(symbol, onlyNames);
+            if (onlyNames)
+                return typeSyntax;
+
             return symbol.NullableAnnotation != CodeAnalysis.NullableAnnotation.Annotated
                 ? typeSyntax
                 : NullableType(typeSyntax);
         }
 
-        private static TypeSyntax GenerateTypeSyntaxWithoutNullable(this ITypeSymbol symbol)
+        private static TypeSyntax GenerateTypeSyntaxWithoutNullable(this ITypeSymbol symbol, bool onlyNames)
         {
             switch (symbol.Kind)
             {
                 case SymbolKind.NamedType:
-                    return GenerateNamedTypeSyntaxWithoutNullable((INamedTypeSymbol)symbol);
+                    return GenerateNamedTypeSyntaxWithoutNullable((INamedTypeSymbol)symbol, onlyNames);
                 case SymbolKind.ArrayType:
-                    return GenerateArrayTypeSyntaxWithoutNullable((IArrayTypeSymbol)symbol);
+                    return GenerateArrayTypeSyntaxWithoutNullable((IArrayTypeSymbol)symbol, onlyNames);
                 case SymbolKind.DynamicType:
                     return GenerateDynamicTypeSyntaxWithoutNullable((IDynamicTypeSymbol)symbol);
                 case SymbolKind.ErrorType:

@@ -12,7 +12,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
     Partial Friend Module VisualBasicCodeGenerator
-        Private Function GenerateArrayTypeSyntax(symbol As IArrayTypeSymbol) As ArrayTypeSyntax
+        Private Function GenerateArrayTypeSyntax(symbol As IArrayTypeSymbol, onlyNames As Boolean) As ArrayTypeSyntax
+            If onlyNames Then
+                Throw New ArgumentException("Array cannot be used in a name-only location.")
+            End If
+
             Using commas = GetArrayBuilder(Of SyntaxToken)()
                 For i = 0 To symbol.Rank - 2
                     commas.Builder.Add(Token(SyntaxKind.CommaToken))

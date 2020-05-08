@@ -45,5 +45,31 @@ TupleType(ImmutableArray.Create(
     TupleElement(Int32, "a"),
     TupleElement([Boolean], "b"))).GenerateTypeString())
         End Sub
+
+        <Fact>
+        Public Sub TestTupleNameSyntax()
+            AssertEx.AreEqual(
+"Global.System.ValueTuple(Of Integer, Boolean)",
+TupleType(ImmutableArray.Create(
+    TupleElement(Int32),
+    TupleElement([Boolean]))).GenerateNameString())
+        End Sub
+
+        <Fact>
+        Public Sub TestTupleNameSyntax10Elements()
+            AssertEx.AreEqual(
+"Global.System.ValueTuple(Of Integer, Boolean, Integer, Boolean, Integer, Boolean, Integer, Global.System.ValueTuple(Of Boolean, Integer, Boolean))",
+TupleType(ImmutableArray.Create(
+    TupleElement(Int32),
+    TupleElement([Boolean]),
+    TupleElement(Int32),
+    TupleElement([Boolean]),
+    TupleElement(Int32),
+    TupleElement([Boolean]),
+    TupleElement(Int32),
+    TupleElement([Boolean]),
+    TupleElement(Int32),
+    TupleElement([Boolean]))).GenerateNameString())
+        End Sub
     End Class
 End Namespace

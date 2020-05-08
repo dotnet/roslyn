@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration
 {
@@ -255,6 +256,65 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 delegateInvokeMethod.GetValueOr(type.DelegateInvokeMethod),
                 nullableAnnotation.GetValueOr(type.NullableAnnotation),
                 containingSymbol.GetValueOr(type.ContainingSymbol));
+        }
+
+        internal static INamedTypeSymbol GenerateValueTuple(
+            ImmutableArray<IFieldSymbol> tupleElements, int start, int end)
+        {
+            var typeArguments = ArrayBuilder<ITypeSymbol>.GetInstance();
+
+            // Break up the tuple into sets of 7 elements as that's the max ValueTuple can hold before recursing.
+            for (int i = 0; i < 7; i++)
+            {
+                if (start < tupleElements.Length)
+                    typeArguments.Add(tupleElements[start].Type);
+
+                start++;
+            }
+
+            if (start < end)
+                typeArguments.Add(GenerateValueTuple(tupleElements, start, end));
+
+            return Struct(
+                nameof(ValueTuple),
+                typeArguments: typeArguments.ToImmutableAndFree(),
+                containingSymbol: Namespace(
+                    nameof(System),
+                    containingSymbol: GlobalNamespace()));
+        }
+
+        internal static INamedTypeSymbol GenerateSystemType(SpecialType specialType)
+        {
+            switch (specialType)
+            {
+                case CodeAnalysis.SpecialType.System_Object: return GenerateSystemType(nameof(Object));
+                case CodeAnalysis.SpecialType.System_Boolean: return GenerateSystemType(nameof(Boolean));
+                case CodeAnalysis.SpecialType.System_Char: return GenerateSystemType(nameof(Char));
+                case CodeAnalysis.SpecialType.System_SByte: return GenerateSystemType(nameof(SByte));
+                case CodeAnalysis.SpecialType.System_Byte: return GenerateSystemType(nameof(Byte));
+                case CodeAnalysis.SpecialType.System_Int16: return GenerateSystemType(nameof(Int16));
+                case CodeAnalysis.SpecialType.System_UInt16: return GenerateSystemType(nameof(UInt16));
+                case CodeAnalysis.SpecialType.System_Int32: return GenerateSystemType(nameof(Int32));
+                case CodeAnalysis.SpecialType.System_UInt32: return GenerateSystemType(nameof(UInt32));
+                case CodeAnalysis.SpecialType.System_Int64: return GenerateSystemType(nameof(Int64));
+                case CodeAnalysis.SpecialType.System_UInt64: return GenerateSystemType(nameof(UInt64));
+                case CodeAnalysis.SpecialType.System_Decimal: return GenerateSystemType(nameof(Decimal));
+                case CodeAnalysis.SpecialType.System_Single: return GenerateSystemType(nameof(Single));
+                case CodeAnalysis.SpecialType.System_Double: return GenerateSystemType(nameof(Double));
+                case CodeAnalysis.SpecialType.System_String: return GenerateSystemType(nameof(String));
+                case CodeAnalysis.SpecialType.System_DateTime: return GenerateSystemType(nameof(DateTime));
+            }
+
+            throw new NotImplementedException();
+
+            static INamedTypeSymbol GenerateSystemType(string name)
+            {
+                return Class(
+                    name,
+                    containingSymbol: Namespace(
+                        nameof(System),
+                        containingSymbol: GlobalNamespace()));
+            }
         }
 
         private class NamedTypeSymbol : TypeSymbol, INamedTypeSymbol

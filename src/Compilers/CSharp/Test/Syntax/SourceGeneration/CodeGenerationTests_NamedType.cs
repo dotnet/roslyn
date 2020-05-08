@@ -39,5 +39,37 @@ Class(
     "X",
     typeArguments: ImmutableArray.Create(Int32, Boolean)).GenerateTypeString());
         }
+
+        [Fact]
+        public void TestClassTypeInNamespace1()
+        {
+            AssertEx.AreEqual(
+"NS.x",
+Class(
+    "x",
+    containingSymbol: Namespace("NS")).GenerateTypeString());
+        }
+
+        [Fact]
+        public void TestClassTypeInGlobalNamespace1()
+        {
+            AssertEx.AreEqual(
+"global::x",
+Class(
+    "x",
+    containingSymbol: GlobalNamespace()).GenerateTypeString());
+        }
+
+        [Fact]
+        public void TestClassTypeInNamespaceInGlobal1()
+        {
+            AssertEx.AreEqual(
+"global::NS.x",
+Class(
+    "x",
+    containingSymbol: Namespace(
+        "NS",
+        containingSymbol: GlobalNamespace())).GenerateTypeString());
+        }
     }
 }
