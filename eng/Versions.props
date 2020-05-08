@@ -30,7 +30,7 @@
     <RoslynDiagnosticsNugetPackageVersion>3.3.0-beta1.20352.4</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>3.3.0-beta1.20352.4</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <CodeStyleLayerCodeAnalysisVersion>3.6.0-2.final</CodeStyleLayerCodeAnalysisVersion>
-    <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20210.2</MicrosoftCodeAnalysisTestingVersion>
+    <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20358.1</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.7.0-3.20271.4</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.4.248</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
@@ -102,7 +102,7 @@
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.8.27812-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
     <MicrosoftVisualStudioCodingConventionsVersion>1.1.20180503.2</MicrosoftVisualStudioCodingConventionsVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>16.0.467</MicrosoftVisualStudioComponentModelHostVersion>
-    <MicrosoftVisualStudioCompositionVersion>15.6.36</MicrosoftVisualStudioCompositionVersion>
+    <MicrosoftVisualStudioCompositionVersion>16.4.11</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>16.4.0-beta.20106.1</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
     <MicrosoftVisualStudioDebuggerEngineimplementationVersion>16.5.1122001-preview</MicrosoftVisualStudioDebuggerEngineimplementationVersion>
