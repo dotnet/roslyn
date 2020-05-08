@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 WellKnownMemberNames.AdditionOperatorName => SyntaxKind.PlusToken,
                 WellKnownMemberNames.BitwiseAndOperatorName => SyntaxKind.AmpersandToken,
                 WellKnownMemberNames.BitwiseOrOperatorName => SyntaxKind.BarToken,
+                WellKnownMemberNames.DecrementOperatorName => SyntaxKind.MinusMinusToken,
                 WellKnownMemberNames.DivisionOperatorName => SyntaxKind.SlashToken,
                 WellKnownMemberNames.EqualityOperatorName => SyntaxKind.EqualsEqualsToken,
                 WellKnownMemberNames.ExclusiveOrOperatorName => SyntaxKind.CaretToken,

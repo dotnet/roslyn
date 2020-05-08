@@ -16,14 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             ITypeSymbol type, string name, ExpressionSyntax? initializer)
         {
             var equalsValue = initializer == null
-                ? (EqualsValueClauseSyntax?)null
-                : throw new NotImplementedException();
+                ? null
+                : EqualsValueClause(initializer);
 
             return VariableDeclaration(
                 type.GenerateTypeSyntax(),
                 SingletonSeparatedList(
                     VariableDeclarator(
-                        Identifier(name), null, equalsValue)));
+                        Identifier(name), argumentList: null, equalsValue)));
         }
     }
 }

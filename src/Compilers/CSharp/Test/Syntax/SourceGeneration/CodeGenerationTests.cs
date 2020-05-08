@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
         public void TestAllGeneration()
         {
             var compilation = (Compilation)CSharpTestBase.CreateCompilationWithMscorlib45(new[] { "" });
-            var syntax = compilation.GlobalNamespace.GenerateSyntax();
+            var syntax = compilation.GlobalNamespace.GenerateString();
         }
     }
 }
