@@ -395,6 +395,7 @@ namespace Analyzer.Utilities.PooledObjects
         }
 
         internal Dictionary<K, ImmutableArray<T>> ToDictionary<K>(Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
+            where K : notnull
         {
             if (this.Count == 1)
             {
