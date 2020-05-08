@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             throw new NotImplementedException();
         }
 
-        private static MethodDeclarationSyntax GenerateOrdinaryMethod(IMethodSymbol method)
+        private MethodDeclarationSyntax GenerateOrdinaryMethod(IMethodSymbol method)
         {
             return MethodDeclaration(
                 GenerateAttributeLists(method.GetAttributes()),
-                GenerateModifiers(method.DeclaredAccessibility, method.GetModifiers()),
+                GenerateModifiers(method),
                 method.ReturnType.GenerateTypeSyntax(),
                 GenerateExplicitInterfaceSpecification(method.ExplicitInterfaceImplementations),
                 Identifier(method.Name),

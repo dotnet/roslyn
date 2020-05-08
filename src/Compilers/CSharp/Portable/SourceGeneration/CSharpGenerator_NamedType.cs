@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case SpecialType.System_Void: return PredefinedType(Token(SyntaxKind.VoidKeyword));
             }
 
-            // Fallback to normal generation.
+            // Fall back to normal generation.
             return GenerateNormalNamedTypeSyntaxWithoutNullable(symbol);
         }
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 return TypeDeclaration(
                     typeKind,
                     GenerateAttributeLists(symbol.GetAttributes()),
-                    GenerateModifiers(symbol.DeclaredAccessibility, symbol.GetModifiers()),
+                    GenerateModifiers(symbol),
                     keyword,
                     Identifier(symbol.Name),
                     GenerateTypeParameterList(symbol.TypeArguments),

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         {
             return new NamedTypeSymbol(
                 CodeAnalysis.SpecialType.None,
-                TypeKind.Struct,
+                TypeKind.Interface,
                 attributes,
                 declaredAccessibility,
                 modifiers,

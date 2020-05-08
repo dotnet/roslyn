@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
-        private static OperatorDeclarationSyntax GenerateOperator(IMethodSymbol method)
+        private OperatorDeclarationSyntax GenerateOperator(IMethodSymbol method)
         {
             var operatorToken = method.Name switch
             {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
             return OperatorDeclaration(
                 GenerateAttributeLists(method.GetAttributes()),
-                GenerateModifiers(method.DeclaredAccessibility, method.GetModifiers()),
+                GenerateModifiers(method),
                 method.ReturnType.GenerateTypeSyntax(),
                 Token(operatorToken),
                 GenerateParameterList(method.Parameters),

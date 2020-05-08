@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
             return ConstructorDeclaration(
                 GenerateAttributeLists(method.GetAttributes()),
-                GenerateModifiers(method.DeclaredAccessibility, method.GetModifiers()),
+                GenerateModifiers(method),
                 Identifier(_currentNamedType.Name),
                 GenerateParameterList(method.Parameters),
                 initializer: null,

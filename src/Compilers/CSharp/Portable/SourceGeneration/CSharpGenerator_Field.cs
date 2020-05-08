@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
-        private static FieldDeclarationSyntax GenerateFieldDeclaration(IFieldSymbol symbol)
+        private FieldDeclarationSyntax GenerateFieldDeclaration(IFieldSymbol symbol)
         {
             return FieldDeclaration(
                 GenerateAttributeLists(symbol.GetAttributes()),
-                GenerateModifiers(symbol.DeclaredAccessibility, symbol.GetModifiers()),
+                GenerateModifiers(symbol),
                 GenerateVariableDeclaration(symbol.Type, symbol.Name,
                     GenerateConstantExpression(symbol.Type, symbol.HasConstantValue, symbol.ConstantValue)),
                 Token(SyntaxKind.SemicolonToken));

@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         private static IdentifierNameSyntax GenerateLocalIdentifierName(ILocalSymbol symbol)
             => IdentifierName(symbol.Name);
 
-        private static LocalDeclarationStatementSyntax GenerateLocalDeclarationStatement(ILocalSymbol symbol)
+        private LocalDeclarationStatementSyntax GenerateLocalDeclarationStatement(ILocalSymbol symbol)
         {
             return LocalDeclarationStatement(
-                GenerateModifiers(symbol.DeclaredAccessibility, symbol.GetModifiers()),
+                GenerateModifiers(symbol),
                 GenerateVariableDeclaration(symbol.Type, symbol.Name,
                     GenerateConstantExpression(symbol.Type, symbol.HasConstantValue, symbol.ConstantValue)));
         }

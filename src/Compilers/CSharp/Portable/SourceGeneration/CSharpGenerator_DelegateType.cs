@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
-        private static DelegateDeclarationSyntax GenerateDelegateDeclaration(INamedTypeSymbol symbol)
+        private DelegateDeclarationSyntax GenerateDelegateDeclaration(INamedTypeSymbol symbol)
         {
             var invoke = symbol.DelegateInvokeMethod;
             if (invoke == null)
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
             return DelegateDeclaration(
                 GenerateAttributeLists(invoke.GetAttributes()),
-                GenerateModifiers(invoke.DeclaredAccessibility, invoke.GetModifiers()),
+                GenerateModifiers(invoke),
                 invoke.ReturnType.GenerateTypeSyntax(),
                 Identifier(invoke.Name),
                 GenerateTypeParameterList(invoke.TypeArguments),

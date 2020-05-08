@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
-        private static ParameterListSyntax GenerateParameterList(ImmutableArray<IParameterSymbol> parameters)
+        private ParameterListSyntax GenerateParameterList(ImmutableArray<IParameterSymbol> parameters)
         {
             using var _ = GetArrayBuilder<ParameterSyntax>(out var builder);
 
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             return ParameterList(SeparatedList(builder));
         }
 
-        private static BracketedParameterListSyntax GenerateBracketedParameterList(ImmutableArray<IParameterSymbol> parameters)
+        private BracketedParameterListSyntax GenerateBracketedParameterList(ImmutableArray<IParameterSymbol> parameters)
         {
             using var _ = GetArrayBuilder<ParameterSyntax>(out var builder);
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             return BracketedParameterList(SeparatedList(builder));
         }
 
-        private static ParameterSyntax GenerateParameter(IParameterSymbol parameter)
+        private ParameterSyntax GenerateParameter(IParameterSymbol parameter)
         {
             var expression = GenerateConstantExpression(
                 parameter.Type,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             var equalsValue = expression == null ? null : EqualsValueClause(expression);
             return Parameter(
                 GenerateAttributeLists(parameter.GetAttributes()),
-                GenerateModifiers(Accessibility.NotApplicable, parameter.GetModifiers()),
+                GenerateModifiers(parameter),
                 parameter.Type?.GenerateTypeSyntax(),
                 Identifier(parameter.Name),
                 equalsValue);

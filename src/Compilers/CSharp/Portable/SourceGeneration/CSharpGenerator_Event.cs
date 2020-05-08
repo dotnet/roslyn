@@ -15,21 +15,21 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
-        private static MemberDeclarationSyntax GenerateEventDeclaration(IEventSymbol symbol)
+        private MemberDeclarationSyntax GenerateEventDeclaration(IEventSymbol symbol)
         {
             if (GenerateEventField(symbol))
                 return GenerateEventFieldDeclaration(symbol);
 
             return EventDeclaration(
                 GenerateAttributeLists(symbol.GetAttributes()),
-                GenerateModifiers(symbol.DeclaredAccessibility, symbol.GetModifiers()),
+                GenerateModifiers(symbol),
                 symbol.Type.GenerateTypeSyntax(),
                 GenerateExplicitInterfaceSpecification(symbol.ExplicitInterfaceImplementations),
                 Identifier(symbol.Name),
                 GenerateEventAccessorList(symbol));
         }
 
-        private static AccessorListSyntax GenerateEventAccessorList(IEventSymbol symbol)
+        private AccessorListSyntax GenerateEventAccessorList(IEventSymbol symbol)
         {
             using var _ = GetArrayBuilder<AccessorDeclarationSyntax>(out var accessors);
 
@@ -52,11 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                        f => Equals(f.AssociatedSymbol, symbol));
         }
 
-        private static EventFieldDeclarationSyntax GenerateEventFieldDeclaration(IEventSymbol symbol)
+        private EventFieldDeclarationSyntax GenerateEventFieldDeclaration(IEventSymbol symbol)
         {
             return EventFieldDeclaration(
                 GenerateAttributeLists(symbol.GetAttributes()),
-                GenerateModifiers(symbol.DeclaredAccessibility, symbol.GetModifiers()),
+                GenerateModifiers(symbol),
                 VariableDeclaration(symbol.Type.GenerateTypeSyntax(), SingletonSeparatedList(
                     VariableDeclarator(Identifier(symbol.Name)))));
         }

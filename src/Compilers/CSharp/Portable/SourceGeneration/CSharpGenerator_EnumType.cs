@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
-        private static EnumDeclarationSyntax GenerateEnumDeclaration(INamedTypeSymbol symbol)
+        private EnumDeclarationSyntax GenerateEnumDeclaration(INamedTypeSymbol symbol)
         {
             return EnumDeclaration(
                 GenerateAttributeLists(symbol.GetAttributes()),
-                GenerateModifiers(symbol.DeclaredAccessibility, symbol.GetModifiers()),
+                GenerateModifiers(symbol),
                 Identifier(symbol.Name),
                 GenerateBaseList(symbol.BaseType, symbol.Interfaces),
                 GenerateEnumMemberDeclarations(symbol.GetMembers()));

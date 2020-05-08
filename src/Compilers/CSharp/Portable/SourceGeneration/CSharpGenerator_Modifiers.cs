@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -11,13 +12,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
-        private static SyntaxTokenList GenerateModifiers(
-            Accessibility declaredAccessibility,
-            SymbolModifiers symbolModifiers)
+        private SyntaxTokenList GenerateModifiers(ISymbol symbol)
         {
             using var _ = GetArrayBuilder<SyntaxToken>(out var result);
 
-            switch (declaredAccessibility)
+            var accessibility = GetAdjustedAccessibility(symbol);
+            var symbolModifiers = GetAdjustedSymbolModifiers(symbol);
+
+            switch (accessibility)
             {
                 case Accessibility.Private:
                     result.Add(Token(SyntaxKind.PrivateKeyword));
@@ -87,6 +89,40 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 result.Add(Token(SyntaxKind.PartialKeyword));
 
             return TokenList(result);
+        }
+
+        private Accessibility GetAdjustedAccessibility(ISymbol symbol)
+        {
+            var accessibility = symbol.DeclaredAccessibility;
+
+            // C# specific rules about what accessibility we should actually emit.
+
+            return accessibility;
+        }
+
+        private SymbolModifiers GetAdjustedSymbolModifiers(ISymbol symbol)
+        {
+            var modifiers = symbol.GetModifiers();
+
+            // C# specific rules about what modifiers we should actually emit.
+
+            if (symbol is INamedTypeSymbol namedType)
+            {
+                if (namedType.TypeKind == TypeKind.Interface)
+                {
+                    // Never emit 'abstract' on an interface itself.
+                    modifiers &= ~SymbolModifiers.Abstract;
+                }
+
+                if (_currentNamedType?.TypeKind == TypeKind.Interface)
+                {
+                    // It's redundant to declare interfaces members as abstract or virtual (even with DIM).
+                    modifiers &= ~SymbolModifiers.Abstract;
+                    modifiers &= ~SymbolModifiers.Virtual;
+                }
+            }
+
+            return modifiers;
         }
     }
 }

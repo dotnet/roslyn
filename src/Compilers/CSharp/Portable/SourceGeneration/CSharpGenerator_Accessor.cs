@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
-        private static AccessorDeclarationSyntax? GenerateAccessorDeclaration(
+        private AccessorDeclarationSyntax? GenerateAccessorDeclaration(
             SyntaxKind kind,
             IMethodSymbol? symbol)
         {
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             return AccessorDeclaration(
                 kind,
                 GenerateAttributeLists(symbol.GetAttributes()),
-                GenerateModifiers(symbol.DeclaredAccessibility, symbol.GetModifiers()),
+                GenerateModifiers(symbol),
                 Block());
         }
     }

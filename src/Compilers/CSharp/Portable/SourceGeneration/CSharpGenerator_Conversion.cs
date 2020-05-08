@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
-        private static ConversionOperatorDeclarationSyntax GenerateConversion(IMethodSymbol method)
+        private ConversionOperatorDeclarationSyntax GenerateConversion(IMethodSymbol method)
         {
             return ConversionOperatorDeclaration(
                 GenerateAttributeLists(method.GetAttributes()),
-                GenerateModifiers(method.DeclaredAccessibility, method.GetModifiers()),
+                GenerateModifiers(method),
                 Token(method.Name == WellKnownMemberNames.ImplicitConversionName
                     ? SyntaxKind.ImplicitKeyword
                     : SyntaxKind.ExplicitKeyword),

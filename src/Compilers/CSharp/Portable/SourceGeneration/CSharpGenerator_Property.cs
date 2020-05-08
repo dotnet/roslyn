@@ -13,32 +13,32 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
-        private static MemberDeclarationSyntax GeneratePropertyOrIndexerDeclaration(IPropertySymbol symbol)
+        private MemberDeclarationSyntax GeneratePropertyOrIndexerDeclaration(IPropertySymbol symbol)
         {
             if (symbol.IsIndexer)
                 return GenerateIndexerDeclaration(symbol);
 
             return PropertyDeclaration(
                 GenerateAttributeLists(symbol.GetAttributes()),
-                GenerateModifiers(symbol.DeclaredAccessibility, symbol.GetModifiers()),
+                GenerateModifiers(symbol),
                 symbol.Type.GenerateTypeSyntax(),
                 GenerateExplicitInterfaceSpecification(symbol.ExplicitInterfaceImplementations),
                 Identifier(symbol.Name),
                 GeneratePropertyAccessorList(symbol));
         }
 
-        private static IndexerDeclarationSyntax GenerateIndexerDeclaration(IPropertySymbol symbol)
+        private IndexerDeclarationSyntax GenerateIndexerDeclaration(IPropertySymbol symbol)
         {
             return IndexerDeclaration(
                 GenerateAttributeLists(symbol.GetAttributes()),
-                GenerateModifiers(symbol.DeclaredAccessibility, symbol.GetModifiers()),
+                GenerateModifiers(symbol),
                 symbol.Type.GenerateTypeSyntax(),
                 GenerateExplicitInterfaceSpecification(symbol.ExplicitInterfaceImplementations),
                 GenerateBracketedParameterList(symbol.Parameters),
                 GeneratePropertyAccessorList(symbol));
         }
 
-        private static AccessorListSyntax GeneratePropertyAccessorList(IPropertySymbol symbol)
+        private AccessorListSyntax GeneratePropertyAccessorList(IPropertySymbol symbol)
         {
             using var _ = GetArrayBuilder<AccessorDeclarationSyntax>(out var accessors);
 
