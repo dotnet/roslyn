@@ -35,7 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
         private static ConstructorDeclarationSyntax GenerateConstructor(IMethodSymbol method)
         {
-            throw new NotImplementedException();
+            return ConstructorDeclaration(
+                GenerateAttributeLists(method.GetAttributes()),
+                GenerateModifiers(method.DeclaredAccessibility, method.GetModifiers()),
+                Identifier(method.ContainingType?.Name ?? method.Name),
+                GenerateParameterList(method.Parameters),
+                initializer: null,
+                body: null,
+                semicolonToken: Token(SyntaxKind.SemicolonToken));
         }
 
         private static ConversionOperatorDeclarationSyntax GenerateConversion(IMethodSymbol method)
