@@ -708,6 +708,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 eventQueue:=eventQueue)
         End Function
 
+        Friend Overrides Function SerializeForPdb() As ImmutableDictionary(Of String, String)
+            Dim builder = ImmutableDictionary.CreateBuilder(Of String, String)()
+
+            builder.Add("checked", Options.CheckOverflow.ToString())
+            builder.Add("langversion", LanguageVersion.ToDisplayString())
+            builder.Add("optionstrict", Options.OptionStrict.ToString())
+
+            If (Options.ParseOptions IsNot Nothing) Then
+                Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
+                                                                                              If (p.Value Is Nothing) Then
+                                                                                                  Return p.Key
+                                                                                              End If
+
+                                                                                              Return p.Key + "=" + p.Value.ToString()
+                                                                                          End Function)
+                builder.Add("define", String.Join(",", preprocessorStrings))
+            End If
+
+            Return builder.ToImmutable()
+        End Function
 #End Region
 
 #Region "Submission"

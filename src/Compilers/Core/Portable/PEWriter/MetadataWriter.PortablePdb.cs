@@ -6,14 +6,17 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.InternalUtilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
@@ -830,6 +833,101 @@ namespace Microsoft.Cci
                 parent: EntityHandle.ModuleDefinition,
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.SourceLink),
                 value: _debugMetadataOpt.GetOrAddBlob(bytes));
+        }
+
+        /// <summary>
+        /// Capture the set of compilation options to allow a compilation 
+        /// to be reconstructed from the pdb
+        /// </summary>
+        private void EmbedCompilationOptions(CommonPEModuleBuilder module)
+        {
+
+            var builder = new BlobBuilder();
+
+            // compilerversion
+            var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+            WriteValue("compilerversion", compilerVersion);
+
+            foreach (var (key, value) in module.CommonCompilation.SerializeForPdb())
+            {
+                WriteValue(key, value);
+            }
+
+            _debugMetadataOpt.AddCustomDebugInformation(
+                parent: EntityHandle.ModuleDefinition,
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationOptions),
+                value: _debugMetadataOpt.GetOrAddBlob(builder));
+
+            void WriteValue(string key, string value)
+            {
+                builder.WriteUTF8(key);
+                builder.WriteByte(0);
+                builder.WriteUTF8(value);
+                builder.WriteByte(0);
+            }
+        }
+
+        /// <summary>
+        /// Writes information about metadata references to the pdb so the same
+        /// reference can be found on sourcelink to create the compilation again
+        /// </summary>
+        private void EmbedMetadataReferenceInformation(CommonPEModuleBuilder module)
+        {
+            var builder = new BlobBuilder();
+
+            // Order of information
+            // File name (null terminated string): A.exe
+            // Extern Alias (null terminated string): a1,a2,a3
+            // MetadataImageKind (byte)
+            // EmbedInteropTypes (boolean)
+            // COFF header Timestamp field (4 byte int)
+            // COFF header SizeOfImage field (4 byte int)
+            // MVID (Guid, 24 bytes)
+            foreach (var metadataReference in module.CommonCompilation.ExternalReferences)
+            {
+                if (metadataReference is PortableExecutableReference portableReference && portableReference.FilePath is object)
+                {
+                    var fileName = PathUtilities.GetFileName(portableReference.FilePath);
+                    var reference = module.CommonCompilation.GetAssemblyOrModuleSymbol(portableReference);
+                    var peReader = GetReader(reference);
+
+                    // Don't write before checking that we can get a peReader for the metadata reference
+                    if (peReader is null)
+                        continue;
+
+                    // Write file name first
+                    builder.WriteUTF8(fileName);
+
+                    // Make sure to add null terminator
+                    builder.WriteByte(0);
+
+                    // Extern alias
+                    if (portableReference.Properties.Aliases.Any())
+                        builder.WriteUTF8(string.Join(",", portableReference.Properties.Aliases));
+
+                    // Always null terminate the extern alias list
+                    builder.WriteByte(0);
+
+                    builder.WriteByte((byte)portableReference.Properties.Kind);
+                    builder.WriteBoolean(portableReference.Properties.EmbedInteropTypes);
+                    builder.WriteInt32(peReader.GetTimestamp());
+                    builder.WriteInt32(peReader.GetSizeOfImage());
+                    builder.WriteGuid(peReader.GetMvid());
+                }
+            }
+
+            _debugMetadataOpt.AddCustomDebugInformation(
+                parent: EntityHandle.ModuleDefinition,
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.MetadataReferenceInfo),
+                value: _debugMetadataOpt.GetOrAddBlob(builder));
+
+            static PEReader GetReader(ISymbol symbol)
+                => symbol switch
+                {
+                    IAssemblySymbol assemblySymbol => assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt,
+                    IModuleSymbol moduleSymbol => moduleSymbol.GetMetadata().Module.PEReaderOpt,
+                    _ => null
+                };
         }
     }
 }

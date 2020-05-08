@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -41,6 +42,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Global Nullable context options.
         /// </summary>
         public override NullableContextOptions NullableContextOptions { get; protected set; }
+
+        /// <summary>
+        /// The encoding related to the CodePage option from command line arguments. SyntaxTrees
+        /// are attempted to be parsed as UTF-8 first, then use this encoding as a fallback. This
+        /// can only be specified in the command line
+        /// </summary>
+        internal Encoding? CodePage { get; private set; }
+
+        /// <summary>
+        /// Preprocessor symbols passed in with -define
+        /// </summary>
+        internal ImmutableArray<string> PreprocessorSymbols { get; private set; }
 
         // Defaults correspond to the compiler's defaults or indicate that the user did not specify when that is significant.
         // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.
@@ -88,7 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: publicSign,
                    topLevelBinderFlags: BinderFlags.None,
-                   nullableContextOptions: nullableContextOptions)
+                   nullableContextOptions: nullableContextOptions,
+                   codePage: null,
+                   preprocessorSymbols: null)
         {
         }
 
@@ -211,7 +226,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool referencesSupersedeLowerVersions,
             bool publicSign,
             BinderFlags topLevelBinderFlags,
-            NullableContextOptions nullableContextOptions)
+            NullableContextOptions nullableContextOptions,
+            Encoding? codePage,
+            IEnumerable<string>? preprocessorSymbols)
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, publicSign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
@@ -223,6 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.AllowUnsafe = allowUnsafe;
             this.TopLevelBinderFlags = topLevelBinderFlags;
             this.NullableContextOptions = nullableContextOptions;
+            this.CodePage = codePage;
+            this.PreprocessorSymbols = preprocessorSymbols.AsImmutableOrEmpty();
         }
 
         private CSharpCompilationOptions(CSharpCompilationOptions other) : this(
@@ -256,7 +275,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             reportSuppressedDiagnostics: other.ReportSuppressedDiagnostics,
             publicSign: other.PublicSign,
             topLevelBinderFlags: other.TopLevelBinderFlags,
-            nullableContextOptions: other.NullableContextOptions)
+            nullableContextOptions: other.NullableContextOptions,
+            codePage: other.CodePage,
+            preprocessorSymbols: other.PreprocessorSymbols)
         {
         }
 
@@ -605,6 +626,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { StrongNameProvider = provider };
         }
 
+        internal CSharpCompilationOptions WithCodePage(Encoding? codePage)
+        {
+            if (ReferenceEquals(codePage, this.CodePage))
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { CodePage = codePage };
+        }
+
+        internal CSharpCompilationOptions WithPreprocessorSymbols(IEnumerable<string>? preprocessorSymbols)
+        {
+            return new CSharpCompilationOptions(this) { PreprocessorSymbols = preprocessorSymbols.ToImmutableArrayOrEmpty() };
+        }
+
         protected override CompilationOptions CommonWithConcurrentBuild(bool concurrent) => WithConcurrentBuild(concurrent);
         protected override CompilationOptions CommonWithDeterministic(bool deterministic) => WithDeterministic(deterministic);
 
@@ -723,7 +759,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.AllowUnsafe == other.AllowUnsafe &&
                    this.TopLevelBinderFlags == other.TopLevelBinderFlags &&
                    (this.Usings == null ? other.Usings == null : this.Usings.SequenceEqual(other.Usings, StringComparer.Ordinal) &&
-                   this.NullableContextOptions == other.NullableContextOptions);
+                   this.NullableContextOptions == other.NullableContextOptions &&
+                   this.CodePage == other.CodePage &&
+                   this.PreprocessorSymbols.SequenceEqual(other.PreprocessorSymbols));
         }
 
         public override bool Equals(object? obj)
@@ -736,7 +774,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Hash.Combine(base.GetHashCodeHelper(),
                    Hash.Combine(this.AllowUnsafe,
                    Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal),
-                   Hash.Combine(TopLevelBinderFlags.GetHashCode(), this.NullableContextOptions.GetHashCode()))));
+                   Hash.Combine(TopLevelBinderFlags.GetHashCode(), 
+                   Hash.Combine(this.NullableContextOptions.GetHashCode(),
+                   Hash.Combine(this.CodePage?.GetHashCode() ?? 0, this.PreprocessorSymbols.GetHashCode()))))));
         }
 
         internal override Diagnostic FilterDiagnostic(Diagnostic diagnostic)
@@ -908,7 +948,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: false,
                    topLevelBinderFlags: BinderFlags.None,
-                   nullableContextOptions: NullableContextOptions.Disable)
+                   nullableContextOptions: NullableContextOptions.Disable,
+                   codePage: null,
+                   preprocessorSymbols: null)
         {
         }
     }

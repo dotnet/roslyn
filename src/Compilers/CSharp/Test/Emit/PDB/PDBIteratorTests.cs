@@ -1571,7 +1571,10 @@ public class C
 {
     IEnumerable<int> M() { yield return 1; }
 }";
-            var compilation = CreateCompilation(src, options: TestOptions.DebugDll);
+
+            // Since metadata references are captured in pdb debug information make sure to specify
+            // the target framework so the test always has the same debug information output
+            var compilation = CreateCompilation(src, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
             compilation.VerifyDiagnostics();
 
             var peStream = new MemoryStream();
@@ -1597,7 +1600,7 @@ MethodDebugInformation (index: 0x31, size: 40):
 2: nil
 3: nil
 4: nil
-5: #22
+5: #79
 {
   Kickoff Method: 0x06000001 (MethodDef)
   Locals: 0x11000001 (StandAloneSig)
