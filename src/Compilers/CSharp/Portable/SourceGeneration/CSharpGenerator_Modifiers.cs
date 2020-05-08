@@ -97,6 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
             // C# specific rules about what accessibility we should actually emit.
 
+            if (_currentNamedType?.TypeKind == TypeKind.Interface &&
+                symbol.DeclaredAccessibility == Accessibility.Public)
+            {
+                // Members in interfaces are public by default.  So no need to emit any modifiers in that case.
+                return Accessibility.NotApplicable;
+            }
+
             return accessibility;
         }
 
@@ -106,20 +113,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
             // C# specific rules about what modifiers we should actually emit.
 
-            if (symbol is INamedTypeSymbol namedType)
+            if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Interface })
             {
-                if (namedType.TypeKind == TypeKind.Interface)
-                {
-                    // Never emit 'abstract' on an interface itself.
-                    modifiers &= ~SymbolModifiers.Abstract;
-                }
+                // Never emit 'abstract' on an interface itself.
+                modifiers &= ~SymbolModifiers.Abstract;
+            }
 
-                if (_currentNamedType?.TypeKind == TypeKind.Interface)
-                {
-                    // It's redundant to declare interfaces members as abstract or virtual (even with DIM).
-                    modifiers &= ~SymbolModifiers.Abstract;
-                    modifiers &= ~SymbolModifiers.Virtual;
-                }
+            if (_currentNamedType?.TypeKind == TypeKind.Interface &&
+                symbol.Kind != SymbolKind.NamedType)
+            {
+                // It's redundant to declare interfaces members as abstract or virtual (even with DIM).
+                modifiers &= ~SymbolModifiers.Abstract;
+                modifiers &= ~SymbolModifiers.Virtual;
             }
 
             return modifiers;
