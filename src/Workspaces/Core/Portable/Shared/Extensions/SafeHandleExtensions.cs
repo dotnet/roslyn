@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
@@ -32,8 +33,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             try
             {
                 handle.DangerousAddRef(ref success);
-                if (!success)
-                    throw new ObjectDisposedException(handle.GetType().FullName);
+                Debug.Assert(success, $"{nameof(SafeHandle.DangerousAddRef)} does not return when {nameof(success)} is false.");
 
                 return new SafeHandleLease(handle);
             }

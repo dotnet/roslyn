@@ -671,27 +671,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return style;
             }
 
-            private bool IsParameterUsedOutside(ISymbol localOrParameter)
-            {
-                if (!(localOrParameter is IParameterSymbol parameter))
-                {
-                    return false;
-                }
-
-                return parameter.RefKind != RefKind.None;
-            }
-
-            private bool IsParameterAssigned(ISymbol localOrParameter)
-            {
-                // hack for now.
-                if (!(localOrParameter is IParameterSymbol parameter))
-                {
-                    return false;
-                }
-
-                return parameter.RefKind != RefKind.Out;
-            }
-
             private static bool IsThisParameter(ISymbol localOrParameter)
             {
                 if (!(localOrParameter is IParameterSymbol parameter))

@@ -482,7 +482,16 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         Renamer_RenameSymbolAsync = 386,
         Renamer_FindRenameLocationsAsync = 387,
+        Renamer_ResolveConflictsAsync = 388,
 
-        ChangeSignature_Data = 388,
+        ChangeSignature_Data = 400,
+
+        AbstractEncapsulateFieldService_EncapsulateFieldsAsync = 410,
+
+        AbstractConvertTupleToStructCodeRefactoringProvider_ConvertToStructAsync = 420,
+
+        DependentTypeFinder_FindAndCacheDerivedClassesAsync = 430,
+        DependentTypeFinder_FindAndCacheDerivedInterfacesAsync = 431,
+        DependentTypeFinder_FindAndCacheImplementingTypesAsync = 432,
     }
 }

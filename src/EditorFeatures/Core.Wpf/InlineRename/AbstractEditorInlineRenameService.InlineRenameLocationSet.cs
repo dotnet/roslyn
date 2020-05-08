@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -43,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var conflicts = await _renameLocationSet.ResolveConflictsAsync(
                     _renameInfo.GetFinalSymbolName(replacementText), nonConflictSymbols: null, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                if (conflicts.ErrorMessage != null)
-                    throw new ArgumentException(conflicts.ErrorMessage);
+                Contract.ThrowIfTrue(conflicts.ErrorMessage != null);
 
                 return new InlineRenameReplacementInfo(conflicts);
             }

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSystemHashCode
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestDerivedClassWithFieldWithBase()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"namespace System { public struct HashCode { } }
 
 class B
@@ -63,7 +63,7 @@ class C : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestDerivedClassWithFieldWithNoBase()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"namespace System { public struct HashCode { } }
 
 class B
@@ -103,7 +103,7 @@ class C : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestDerivedClassWithNoFieldWithBase()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"namespace System { public struct HashCode { } }
 
 class B
@@ -143,7 +143,7 @@ class C : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestFieldAndProp()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -180,7 +180,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestUnchecked()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -356,7 +356,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestAcumulatorInitializedToField()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -392,7 +392,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestAcumulatorInitializedToHashedField()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -477,7 +477,7 @@ class C : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestDirectNullCheck1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -514,7 +514,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestDirectNullCheck2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -551,7 +551,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestInt64Pattern()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"namespace System { public struct HashCode { } }
 
 class C
@@ -581,7 +581,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestInt64Pattern2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"namespace System { public struct HashCode { } }
 
 class C
@@ -611,7 +611,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestTuple()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -645,7 +645,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestNullable1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -682,7 +682,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestNullable2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -719,7 +719,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestNullable3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -756,7 +756,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestNullable4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -793,7 +793,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestNullable_Enable_1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -834,7 +834,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestNullable_Enable_2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -875,7 +875,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestNullable_Enable_3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -916,7 +916,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestNullable_Enable_4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -957,7 +957,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestNullable_Disable_1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -998,7 +998,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestNullable_Disable_2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -1039,7 +1039,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestNullable_Disable_3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -1080,7 +1080,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestNullable_Disable_4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -1165,7 +1165,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestManyFields_ImplicitType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -1209,14 +1209,14 @@ class C
         hash.Add(i);
         return hash.ToHashCode();
     }
-}", options: UseVarTestExtensions.PreferImplicitTypeWithInfo(this));
+}", new TestParameters(options: UseVarTestExtensions.PreferImplicitTypeWithInfo(this)));
         }
 
         [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
         public async Task TestManyFields_ExplicitType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -1259,6 +1259,57 @@ class C
         hash.Add(h);
         hash.Add(i);
         return hash.ToHashCode();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        public async Task TestNotOnSingleReturnedMember()
+        {
+            await TestMissingAsync(
+@"namespace System { public struct HashCode { } }
+
+class C
+{
+    int j;
+
+    public override int $$GetHashCode()
+    {
+        return j;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        public async Task TestNotOnSingleMemberWithInvokedGetHashCode()
+        {
+            await TestMissingAsync(
+@"namespace System { public struct HashCode { } }
+
+class C
+{
+    int j;
+
+    public override int $$GetHashCode()
+    {
+        return j.GetHashCode();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        public async Task TestNotOnSimpleBaseReturn()
+        {
+            await TestMissingAsync(
+@"namespace System { public struct HashCode { } }
+
+class C
+{
+    int j;
+
+    public override int $$GetHashCode()
+    {
+        return base.GetHashCode();
     }
 }");
         }
