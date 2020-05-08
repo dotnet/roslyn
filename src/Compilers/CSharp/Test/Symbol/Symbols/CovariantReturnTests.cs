@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 {
                     var right = assignment.Right;
                     var typeInfo = model.GetTypeInfo(right);
-                    Assert.True(typeInfo.Type.GetSymbol<TypeSymbol>().Equals(typeInfo.ConvertedType.GetSymbol<TypeSymbol>(), TypeCompareKind.AllIgnoreOptions));
+                    Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
                 }
             }
         }
