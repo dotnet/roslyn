@@ -35,8 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                     return GenerateDynamicTypeSyntaxWithoutNullable((IDynamicTypeSymbol)symbol);
                 case SymbolKind.ErrorType:
                 case SymbolKind.PointerType:
-                case SymbolKind.TypeParameter:
                     break;
+                case SymbolKind.TypeParameter:
+                    return GenerateTypeParamterTypeSyntaxWithoutNullable((ITypeParameterSymbol)symbol);
                 default:
                     break;
             }

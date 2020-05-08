@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
         private static ITypeSymbol Boolean = System_Boolean;
         private static ITypeSymbol Void = System_Void;
 
-        //[Fact]
-        //public void TestAllGeneration()
-        //{
-        //    var compilation = (Compilation)CSharpTestBase.CreateCompilationWithMscorlib45(new[] { "" });
-        //    var syntax = compilation.GlobalNamespace.GenerateSyntax();
-        //}
+        [Fact]
+        public void TestAllGeneration()
+        {
+            var compilation = (Compilation)CSharpTestBase.CreateCompilationWithMscorlib45(new[] { "" });
+            var syntax = compilation.GlobalNamespace.GenerateSyntax();
+        }
     }
 }

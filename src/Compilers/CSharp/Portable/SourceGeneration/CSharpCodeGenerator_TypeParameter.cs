@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpCodeGenerator
     {
+        private static IdentifierNameSyntax GenerateTypeParamaterTypeSyntaxWithoutNullable(ITypeParameterSymbol symbol)
+            => SyntaxFactory.IdentifierName(symbol.Name);
+
         private static TypeParameterListSyntax? GenerateTypeParameterList(ImmutableArray<ITypeSymbol> typeArguments)
         {
             using var _ = GetArrayBuilder<TypeParameterSyntax>(out var typeParameters);
