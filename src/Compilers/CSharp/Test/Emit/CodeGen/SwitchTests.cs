@@ -2765,9 +2765,6 @@ public class Test
   IL_001b:  ret
 }"
             );
-
-            // We shouldn't generate a string hash synthesized method if we are generating non hash string switch
-            VerifySynthesizedStringHashMethod(compVerifier, expected: false);
         }
 
         [Fact]
@@ -2830,9 +2827,6 @@ public class Test
   IL_002d:  ret
 }"
             );
-
-            // We shouldn't generate a string hash synthesized method if we are generating non hash string switch
-            VerifySynthesizedStringHashMethod(compVerifier, expected: false);
         }
 
         [Fact]
@@ -3031,20 +3025,13 @@ class Test
 }"
             );
 
-            // Verify string hash synthesized method for hash table switch
-            VerifySynthesizedStringHashMethod(compVerifier, expected: true);
-
             // verify that hash method is internal:
             var reference = compVerifier.Compilation.EmitToImageReference();
             var comp = CSharpCompilation.Create("Name", references: new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
-
-            var pid = ((NamedTypeSymbol)comp.GlobalNamespace.GetMembers().Single(s => s.Name.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal)));
-            var member = pid.GetMembers(PrivateImplementationDetails.SynthesizedStringHashFunctionName).Single();
-            Assert.Equal(Accessibility.Internal, member.DeclaredAccessibility);
         }
 
         [Fact]
-        public void StringSwitch_HashTableSwitch_02()
+        public void StringSwitch_Trie_02()
         {
             var text = @"
 using System;
@@ -3242,7 +3229,7 @@ class Test
         Console.Write(status);
     }
 }";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: "PASS");
+            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "PASS");
 
             compVerifier.VerifyIL("Test.Switcheroo", @"
 {
@@ -3562,9 +3549,147 @@ class Test
   IL_045a:  ret
 }"
             );
+        }
 
-            // Verify string hash synthesized method for hash table switch
-            VerifySynthesizedStringHashMethod(compVerifier, expected: true);
+        [Fact]
+        public void StringSwitch_Trie_03()
+        {
+            var text = @"
+using System;
+using System.Text;
+
+class Test
+{
+    public const string inSwitch1 = null;
+    public const string inSwitch2 = """";
+    public const string inSwitch3 = ""a"";
+    public const string inSwitch4 = ""aa"";
+    public const string inSwitch5 = ""aaa"";
+    public const string inSwitch6 = ""aab"";
+    public const string inSwitch7 = ""aac"";
+    public const string inSwitch8 = ""aad"";
+    public const string inSwitch9 = ""ab"";
+    public const string inSwitch10 = ""ac"";
+    public const string inSwitch11 = ""ad"";
+    public const string inSwitch12 = ""ae"";
+    public const string inSwitch13 = ""aaaaaaaaaaaaaaaaaaaaaaaaa"";
+    public const string inSwitch14 = ""aaaaaaaaaaaaaaaaaaaaaaaab"";
+    public const string inSwitch15 = ""aaaaaaaaaaaaaaaaaaaaaaaac"";
+    public const string inSwitch16 = ""aaaaaaaaaaaaaaaaaaaaaaaad"";
+    public const string inSwitch17 = ""baaaaaaaaaaaaaaaaaaaaaaaa"";
+    public const string inSwitch18 = ""baaaaaaaaaaaaaaaaaaaaaaab"";
+    public const string inSwitch19 = ""baaaaaaaaaaaaaaaaaaaaaaac"";
+    public const string inSwitch20 = ""baaaaaaaaaaaaaaaaaaaaaaad"";
+    public const string inSwitch21 = ""aaaaaaaaaaaaaaaaaaaaaaaaa!@#$%^🤷¯\\_(ツ)_/¯"";
+    public const string inSwitch22 = ""aaaaaaaaaaaaaaaaaaaaaaaab!@#$%^🤷¯\\_(ツ)_/¯"";
+    public const string inSwitch23 = ""aaaaaaaaaaaaaaaaaaaaaaaac!@#$%^🤷¯\\_(ツ)_/¯"";
+    public const string inSwitch24 = ""aaaaaaaaaaaaaaaaaaaaaaaad!@#$%^🤷¯\\_(ツ)_/¯"";
+    public const string inSwitch25 = ""baaaaaaaaaaaaaaaaaaaaaaaa!@#$%^🤷¯\\_(ツ)_/¯"";
+    public const string inSwitch26 = ""baaaaaaaaaaaaaaaaaaaaaaab!@#$%^🤷¯\\_(ツ)_/¯"";
+    public const string inSwitch27 = ""baaaaaaaaaaaaaaaaaaaaaaac!@#$%^🤷¯\\_(ツ)_/¯"";
+    public const string inSwitch28 = ""baaaaaaaaaaaaaaaaaaaaaaad!@#$%^🤷¯\\_(ツ)_/¯"";
+
+    public const string outOfSwitch1 = ""b"";
+    public const string outOfSwitch2 = ""aaaa"";
+    public const string outOfSwitch3 = ""aae"";
+    public const string outOfSwitch4 = ""baaaaaaaaaaaaaaaaaaaaaaaab"";
+
+    public static bool Switcheroo(string test, bool inSwitch)
+    {
+        var switched = test switch
+        {
+            inSwitch1 => inSwitch1,
+            inSwitch2 => inSwitch2,
+            inSwitch3 => inSwitch3,
+            inSwitch4 => inSwitch4,
+            inSwitch5 => inSwitch5,
+            inSwitch6 => inSwitch6,
+            inSwitch7 => inSwitch7,
+            inSwitch8 => inSwitch8,
+            inSwitch9 => inSwitch9,
+            inSwitch10 => inSwitch10,
+            inSwitch11 => inSwitch11,
+            inSwitch12 => inSwitch12,
+            inSwitch13 => inSwitch13,
+            inSwitch14 => inSwitch14,
+            inSwitch15 => inSwitch15,
+            inSwitch16 => inSwitch16,
+            inSwitch17 => inSwitch17,
+            inSwitch18 => inSwitch18,
+            inSwitch19 => inSwitch19,
+            inSwitch20 => inSwitch20,
+            inSwitch21 => inSwitch21,
+            inSwitch22 => inSwitch22,
+            inSwitch23 => inSwitch23,
+            inSwitch24 => inSwitch24,
+            inSwitch25 => inSwitch25,
+            inSwitch26 => inSwitch26,
+            inSwitch27 => inSwitch27,
+            inSwitch28 => inSwitch28,
+            _ => ""default""
+        };
+
+        return switched == test
+            ? inSwitch
+            : switched == ""default"" && !inSwitch;
+    }
+
+    public static void Main()
+    {
+        var passed = true;
+        foreach (var test in new[]
+                 {
+                     inSwitch1,
+                     inSwitch2,
+                     inSwitch3,
+                     inSwitch4,
+                     inSwitch5,
+                     inSwitch6,
+                     inSwitch7,
+                     inSwitch8,
+                     inSwitch9,
+                     inSwitch10,
+                     inSwitch11,
+                     inSwitch12,
+                     inSwitch13,
+                     inSwitch14,
+                     inSwitch15,
+                     inSwitch16,
+                     inSwitch17,
+                     inSwitch18,
+                     inSwitch19,
+                     inSwitch20,
+                     inSwitch21,
+                     inSwitch22,
+                     inSwitch23,
+                     inSwitch24,
+                     inSwitch25,
+                     inSwitch26,
+                     inSwitch27,
+                     inSwitch28,
+                 })
+        {
+            passed = Switcheroo(test, inSwitch: true);
+        }
+
+        foreach (var test in new[]
+                 {
+                     outOfSwitch1,
+                     outOfSwitch2,
+                     outOfSwitch3,
+                     outOfSwitch4,
+                 })
+        {
+            passed = Switcheroo(test, inSwitch: false);
+        }
+
+        Console.WriteLine(passed ? ""PASS"" : ""FAIL"");
+    }
+}";
+            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "PASS");
+
+            compVerifier.VerifyIL("Test.Switcheroo", @""
+            );
         }
 
         [WorkItem(544322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544322")]
@@ -3622,53 +3747,7 @@ class Goo
   }
 }         
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1");
-
-            // Verify string hash synthesized method for hash table switch
-            VerifySynthesizedStringHashMethod(compVerifier, expected: true);
-        }
-
-        private static void VerifySynthesizedStringHashMethod(CompilationVerifier compVerifier, bool expected)
-        {
-            compVerifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected);
-
-            if (expected)
-            {
-                compVerifier.VerifyIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName,
-                    @"
-{
-  // Code size       44 (0x2c)
-  .maxstack  2
-  .locals init (uint V_0,
-  int V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_002a
-  IL_0003:  ldc.i4     0x811c9dc5
-  IL_0008:  stloc.0
-  IL_0009:  ldc.i4.0
-  IL_000a:  stloc.1
-  IL_000b:  br.s       IL_0021
-  IL_000d:  ldarg.0
-  IL_000e:  ldloc.1
-  IL_000f:  callvirt   ""char string.this[int].get""
-  IL_0014:  ldloc.0
-  IL_0015:  xor
-  IL_0016:  ldc.i4     0x1000193
-  IL_001b:  mul
-  IL_001c:  stloc.0
-  IL_001d:  ldloc.1
-  IL_001e:  ldc.i4.1
-  IL_001f:  add
-  IL_0020:  stloc.1
-  IL_0021:  ldloc.1
-  IL_0022:  ldarg.0
-  IL_0023:  callvirt   ""int string.Length.get""
-  IL_0028:  blt.s      IL_000d
-  IL_002a:  ldloc.0
-  IL_002b:  ret
-}
-");
-            }
+            CompileAndVerify(text, expectedOutput: "1");
         }
 
         #endregion

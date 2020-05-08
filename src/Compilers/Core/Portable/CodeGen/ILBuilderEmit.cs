@@ -230,23 +230,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <param name="key">Local holding the value to switch on.
         /// This value has already been loaded onto the execution stack.
         /// </param>
-        /// <param name="keyHash">Local holding the hash value of the key for emitting
-        /// hash table switch. Hash value has already been computed and loaded into keyHash.
-        /// This parameter is null if emitting non hash table switch.
-        /// </param>
         /// <param name="emitStringCondBranchDelegate">
         /// Delegate to emit string compare call and conditional branch based on the compare result.
         /// </param>
-        /// <param name="computeStringHashcodeDelegate">
-        /// Delegate to compute string hash consistent with value of keyHash.
-        /// </param>
+
         internal void EmitStringSwitchJumpTable(
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
             LocalOrParameter key,
-            LocalDefinition? keyHash,
             SwitchStringJumpTableEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate,
-            SwitchStringJumpTableEmitter.GetStringHashCode computeStringHashcodeDelegate)
+            Action? emitPushKeyLength,
+            Func<LocalDefinition>? emitStoreKeyLength,
+            Action<int>? emitPushCharAtIndex,
+            Func<int, LocalDefinition>? emitStoreCharAtIndex)
         {
             Debug.Assert(caseLabels.Length > 0);
 
@@ -255,9 +251,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 key,
                 caseLabels,
                 fallThroughLabel,
-                keyHash,
                 emitStringCondBranchDelegate,
-                computeStringHashcodeDelegate);
+                emitPushKeyLength,
+                emitStoreKeyLength,
+                emitPushCharAtIndex,
+                emitStoreCharAtIndex);
 
             emitter.EmitJumpTable();
         }

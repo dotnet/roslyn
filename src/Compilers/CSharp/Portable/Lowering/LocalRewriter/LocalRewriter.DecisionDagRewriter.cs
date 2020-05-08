@@ -728,13 +728,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (input.Type.IsValidV6SwitchGoverningType())
                 {
-                    // If we are emitting a hash table based string switch,
-                    // we need to generate a helper method for computing
-                    // string hash value in <PrivateImplementationDetails> class.
                     MethodSymbol stringEquality = null;
                     if (input.Type.SpecialType == SpecialType.System_String)
                     {
-                        EnsureStringHashFunction(node.Cases.Length, node.Syntax);
                         stringEquality = _localRewriter.UnsafeGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality);
                     }
 
@@ -804,60 +800,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-            }
-
-            /// <summary>
-            /// Checks whether we are generating a hash table based string switch and
-            /// we need to generate a new helper method for computing string hash value.
-            /// Creates the method if needed.
-            /// </summary>
-            private void EnsureStringHashFunction(int labelsCount, SyntaxNode syntaxNode)
-            {
-                var module = _localRewriter.EmitModule;
-                if (module == null)
-                {
-                    // we're not generating code, so we don't need the hash function
-                    return;
-                }
-
-                // For string switch statements, we need to determine if we are generating a hash
-                // table based jump table or a non hash jump table, i.e. linear string comparisons
-                // with each case label. We use the Dev10 Heuristic to determine this
-                // (see SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch() for details).
-                if (!CodeAnalysis.CodeGen.SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(module, labelsCount))
-                {
-                    return;
-                }
-
-                // If we are generating a hash table based jump table, we use a simple customizable
-                // hash function to hash the string constants corresponding to the case labels.
-                // See SwitchStringJumpTableEmitter.ComputeStringHash().
-                // We need to emit this function to compute the hash value into the compiler generated
-                // <PrivateImplementationDetails> class. 
-                // If we have at least one string switch statement in a module that needs a
-                // hash table based jump table, we generate a single public string hash synthesized method
-                // that is shared across the module.
-
-                // If we have already generated the helper, possibly for another switch
-                // or on another thread, we don't need to regenerate it.
-                var privateImplClass = module.GetPrivateImplClass(syntaxNode, _localRewriter._diagnostics);
-                if (privateImplClass.GetMethod(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedStringHashFunctionName) != null)
-                {
-                    return;
-                }
-
-                // cannot emit hash method if have no access to Chars.
-                var charsMember = _localRewriter._compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars);
-                if ((object)charsMember == null || charsMember.GetUseSiteDiagnostic() != null)
-                {
-                    return;
-                }
-
-                TypeSymbol returnType = _factory.SpecialType(SpecialType.System_UInt32);
-                TypeSymbol paramType = _factory.SpecialType(SpecialType.System_String);
-
-                var method = new SynthesizedStringSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType);
-                privateImplClass.TryAddSynthesizedMethod(method);
             }
 
             private void LowerWhenClause(BoundWhenDecisionDagNode whenClause)

@@ -1196,39 +1196,12 @@ oneMoreTime:
             SyntaxNode syntaxNode,
             MethodSymbol equalityMethod)
         {
-            LocalDefinition keyHash = null;
-
-            // Condition is necessary, but not sufficient (e.g. might be missing a special or well-known member).
-            if (SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(_module, switchCaseLabels.Length))
-            {
-                Debug.Assert(_module.SupportsPrivateImplClass);
-
-                var privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics);
-                Cci.IReference stringHashMethodRef = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName);
-
-                // Heuristics and well-known member availability determine the existence
-                // of this helper.  Rather than reproduce that (language-specific) logic here,
-                // we simply check for the information we really want - whether the helper is
-                // available.
-                if (stringHashMethodRef != null)
-                {
-                    // static uint ComputeStringHash(string s)
-                    // pop 1 (s)
-                    // push 1 (uint return value)
-                    // stackAdjustment = (pushCount - popCount) = 0
-
-                    _builder.EmitLoad(key);
-                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
-                    _builder.EmitToken(stringHashMethodRef, syntaxNode, _diagnostics);
-
-                    var UInt32Type = _module.Compilation.GetSpecialType(SpecialType.System_UInt32);
-                    keyHash = AllocateTemp(UInt32Type, syntaxNode);
-
-                    _builder.EmitLocalStore(keyHash);
-                }
-            }
-
-            Cci.IReference stringEqualityMethodRef = _module.Translate(equalityMethod, syntaxNode, _diagnostics);
+            Action emitPushKeyLength = null;
+            Func<LocalDefinition> emitStoreKeyLength = null;
+            Action<int> emitPushCharAtIndex = null;
+            Func<int, LocalDefinition> emitStoreCharAtIndex = null;
+ 
+             SwitchStringJumpTableEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate = null;
 
             Cci.IMethodReference stringLengthRef = null;
             var stringLengthMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
@@ -1237,54 +1210,106 @@ oneMoreTime:
                 stringLengthRef = _module.Translate(stringLengthMethod, syntaxNode, _diagnostics);
             }
 
-            SwitchStringJumpTableEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate =
-                (keyArg, stringConstant, targetLabel) =>
+            Cci.IMethodReference stringIndexRef = null;
+            var stringIndexMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars) as MethodSymbol;
+            if (stringIndexMethod != null && !stringIndexMethod.HasUseSiteError)
+            {
+                stringIndexRef = _module.Translate(stringIndexMethod, null, _diagnostics);
+            }
+
+            if (SwitchStringJumpTableEmitter.ShouldGenerateTrieSwitch(switchCaseLabels.Length) && stringLengthRef != null && stringIndexRef != null)
+            {
+                emitPushKeyLength = () =>
                 {
-                    if (stringConstant == ConstantValue.Null)
-                    {
-                        // if (key == null)
-                        //      goto targetLabel
-                        _builder.EmitLoad(keyArg);
-                        _builder.EmitBranch(ILOpCode.Brfalse, targetLabel, ILOpCode.Brtrue);
-                    }
-                    else if (stringConstant.StringValue.Length == 0 && stringLengthRef != null)
-                    {
-                        // if (key != null && key.Length == 0)
-                        //      goto targetLabel
-
-                        object skipToNext = new object();
-                        _builder.EmitLoad(keyArg);
-                        _builder.EmitBranch(ILOpCode.Brfalse, skipToNext, ILOpCode.Brtrue);
-
-                        _builder.EmitLoad(keyArg);
-                        // Stack: key --> length
-                        _builder.EmitOpCode(ILOpCode.Call, 0);
-                        var diag = DiagnosticBag.GetInstance();
-                        _builder.EmitToken(stringLengthRef, null, diag);
-                        Debug.Assert(diag.IsEmptyWithoutResolution);
-                        diag.Free();
-
-                        _builder.EmitBranch(ILOpCode.Brfalse, targetLabel, ILOpCode.Brtrue);
-                        _builder.MarkLabel(skipToNext);
-                    }
-                    else
-                    {
-                        this.EmitStringCompareAndBranch(key, syntaxNode, stringConstant, targetLabel, stringEqualityMethodRef);
-                    }
+                    _builder.EmitLoad(key);
+                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+                    _builder.EmitToken(stringLengthRef, syntaxNode, _diagnostics);
                 };
+
+                emitStoreKeyLength = () =>
+                {
+                    _builder.EmitLoad(key);
+                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+                    _builder.EmitToken(stringLengthRef, syntaxNode, _diagnostics);
+
+                    var int32type = _module.Compilation.GetSpecialType(SpecialType.System_Int32);
+                    var lengthTemp = AllocateTemp(int32type, syntaxNode);
+
+                    _builder.EmitLocalStore(lengthTemp);
+
+                    return lengthTemp;
+                };
+
+                emitPushCharAtIndex = i =>
+                {
+                    _builder.EmitLoad(key);
+                    _builder.EmitConstantValue(ConstantValue.Create(i));
+                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
+                    _builder.EmitToken(stringIndexRef, null, _diagnostics);
+                };
+
+                emitStoreCharAtIndex = i =>
+                {
+                    _builder.EmitLoad(key);
+                    _builder.EmitConstantValue(ConstantValue.Create(i));
+                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
+                    _builder.EmitToken(stringIndexRef, null, _diagnostics);
+
+                    var charType = _module.Compilation.GetSpecialType(SpecialType.System_Char);
+                    var charTemp = AllocateTemp(charType, null);
+
+                    _builder.EmitLocalStore(charTemp);
+
+                    return charTemp;
+                };
+            }
+
+            Cci.IReference stringEqualityMethodRef = _module.Translate(equalityMethod, syntaxNode, _diagnostics);
+
+            emitStringCondBranchDelegate = (keyArg, stringConstant, targetLabel) =>
+            {
+                if (stringConstant == ConstantValue.Null)
+                {
+                    // if (key == null)
+                    //      goto targetLabel
+                    _builder.EmitLoad(keyArg);
+                    _builder.EmitBranch(ILOpCode.Brfalse, targetLabel, ILOpCode.Brtrue);
+                }
+                else if (stringConstant.StringValue.Length == 0 && stringLengthRef != null)
+                {
+                    // if (key != null && key.Length == 0)
+                    //      goto targetLabel
+
+                    object skipToNext = new object();
+                    _builder.EmitLoad(keyArg);
+                    _builder.EmitBranch(ILOpCode.Brfalse, skipToNext, ILOpCode.Brtrue);
+
+                    _builder.EmitLoad(keyArg);
+                    // Stack: key --> length
+                    _builder.EmitOpCode(ILOpCode.Call, 0);
+                    var diag = DiagnosticBag.GetInstance();
+                    _builder.EmitToken(stringLengthRef, null, diag);
+                    Debug.Assert(diag.IsEmptyWithoutResolution);
+                    diag.Free();
+
+                    _builder.EmitBranch(ILOpCode.Brfalse, targetLabel, ILOpCode.Brtrue);
+                    _builder.MarkLabel(skipToNext);
+                }
+                else
+                {
+                    this.EmitStringCompareAndBranch(key, syntaxNode, stringConstant, targetLabel, stringEqualityMethodRef);
+                }
+            };
 
             _builder.EmitStringSwitchJumpTable(
                 caseLabels: switchCaseLabels,
                 fallThroughLabel: fallThroughLabel,
                 key: key,
-                keyHash: keyHash,
                 emitStringCondBranchDelegate: emitStringCondBranchDelegate,
-                computeStringHashcodeDelegate: SynthesizedStringSwitchHashMethod.ComputeStringHash);
-
-            if (keyHash != null)
-            {
-                FreeTemp(keyHash);
-            }
+                emitPushKeyLength,
+                emitStoreKeyLength,
+                emitPushCharAtIndex,
+                emitStoreCharAtIndex);
         }
 
         /// <summary>

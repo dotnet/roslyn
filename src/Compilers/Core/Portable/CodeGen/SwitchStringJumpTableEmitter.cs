@@ -4,10 +4,11 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     // HashBucket used when emitting hash table based string switch.
     // Each hash bucket contains the list of "<string constant, label>" key-value pairs
     // having identical hash value.
-    using HashBucket = List<KeyValuePair<ConstantValue, object>>;
+    using Bucket = List<KeyValuePair<ConstantValue, object>>;
 
     internal struct SwitchStringJumpTableEmitter
     {
@@ -45,34 +46,25 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public delegate void EmitStringCompareAndBranch(LocalOrParameter key, ConstantValue stringConstant, object targetLabel);
 
         /// <summary>
-        /// Delegate to compute string hash code.
-        /// This piece is language-specific because VB treats "" and null as equal while C# does not.
-        /// </summary>
-        public delegate uint GetStringHashCode(string? key);
-
-        /// <summary>
         /// Delegate to emit string compare call
         /// </summary>
         private readonly EmitStringCompareAndBranch _emitStringCondBranchDelegate;
 
-        /// <summary>
-        /// Delegate to emit string hash
-        /// </summary>
-        private readonly GetStringHashCode _computeStringHashcodeDelegate;
-
-        /// <summary>
-        /// Local storing the key hash value, used for emitting hash table based string switch.
-        /// </summary>
-        private readonly LocalDefinition? _keyHash;
+        private readonly Func<LocalDefinition>? _emitStoreKeyLength;
+        private readonly Func<int, LocalDefinition>? _emitStoreCharAtIndex;
+        private readonly Action<int>? _emitPushCharAtIndex;
+        private readonly Action? _emitPushKeyLength;
 
         internal SwitchStringJumpTableEmitter(
             ILBuilder builder,
             LocalOrParameter key,
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
-            LocalDefinition? keyHash,
             EmitStringCompareAndBranch emitStringCondBranchDelegate,
-            GetStringHashCode computeStringHashcodeDelegate)
+            Action? emitPushKeyLength,
+            Func<LocalDefinition>? emitStoreKeyLength,
+            Action<int>? emitPushCharAtIndex,
+            Func<int, LocalDefinition>? emitStoreCharAtIndex)
         {
             Debug.Assert(caseLabels.Length > 0);
             RoslynDebug.Assert(emitStringCondBranchDelegate != null);
@@ -81,91 +73,245 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _key = key;
             _caseLabels = caseLabels;
             _fallThroughLabel = fallThroughLabel;
-            _keyHash = keyHash;
             _emitStringCondBranchDelegate = emitStringCondBranchDelegate;
-            _computeStringHashcodeDelegate = computeStringHashcodeDelegate;
+            _emitStoreKeyLength = emitStoreKeyLength;
+            _emitStoreCharAtIndex = emitStoreCharAtIndex;
+            _emitPushCharAtIndex = emitPushCharAtIndex;
+            _emitPushKeyLength = emitPushKeyLength;
         }
 
         internal void EmitJumpTable()
         {
-            Debug.Assert(_keyHash == null || ShouldGenerateHashTableSwitch(_caseLabels.Length));
-
-            if (_keyHash != null)
+            if (_emitStoreKeyLength != null)
             {
-                EmitHashTableSwitch();
+                Debug.Assert(_emitStoreKeyLength != null && _emitStoreCharAtIndex != null && _emitPushCharAtIndex != null && _emitPushKeyLength != null);
+                EmitTrieSwitch();
             }
             else
             {
-                EmitNonHashTableSwitch(_caseLabels);
+                EmitNonTrieSwitch(_caseLabels);
             }
         }
 
-        private void EmitHashTableSwitch()
+        private void EmitTrieSwitch()
         {
-            // Hash value for the key must have already been computed and loaded into keyHash
-            Debug.Assert(_keyHash != null);
+            var (groupedByLength, nullCase) = GroupByLength(_caseLabels);
+            _emitStringCondBranchDelegate(_key, ConstantValue.Null, nullCase ?? _fallThroughLabel);
 
-            // Compute hash value for each case label constant and store the hash buckets
-            // into a dictionary indexed by hash value.
-            Dictionary<uint, HashBucket> stringHashMap = ComputeStringHashMap(
-                                                            _caseLabels,
-                                                            _computeStringHashcodeDelegate);
-
-            // Emit conditional jumps to hash buckets.
-            // EmitHashBucketJumpTable returns a map from hashValues to hashBucketLabels.
-            Dictionary<uint, object> hashBucketLabelsMap = EmitHashBucketJumpTable(stringHashMap);
-
-            // Emit hash buckets
-            foreach (var kvPair in stringHashMap)
+            if (groupedByLength.Count == 1)
             {
-                // hashBucketLabel:
-                //  Emit direct string comparisons for each case label in hash bucket
-
-                _builder.MarkLabel(hashBucketLabelsMap[kvPair.Key]);
-
-                HashBucket hashBucket = kvPair.Value;
-                this.EmitNonHashTableSwitch(hashBucket.ToArray());
+                Debug.Assert(_emitPushKeyLength != null);
+                _emitPushKeyLength();
+                var (length, bucket) = groupedByLength.First();
+                _builder.EmitConstantValue(ConstantValue.Create(length));
+                _builder.EmitBranch(ILOpCode.Bne_un, _fallThroughLabel);
+                if (length == 0)
+                {
+                    Debug.Assert(bucket.Count == 1);
+                    _builder.EmitBranch(ILOpCode.Br, bucket[0].Key);
+                }
+                else
+                {
+                    EmitTrieSwitchPart(bucket, 0, length);
+                }
+                return;
             }
+
+            var (lengthBucketLabelsMap, keyLengthTemp) = EmitLengthBucketJumpTable(groupedByLength);
+
+            // Emit buckets
+            foreach (var (length, bucket) in groupedByLength)
+            {
+                if (length != 0)
+                {
+                    _builder.MarkLabel(lengthBucketLabelsMap[length]);
+                    EmitTrieSwitchPart(bucket, 0, length);
+                }
+            }
+
+            FreeTemp(keyLengthTemp);
         }
 
-        // Emits conditional jumps to hash buckets, returning a map from hashValues to hashBucketLabels.
-        private Dictionary<uint, object> EmitHashBucketJumpTable(Dictionary<uint, HashBucket> stringHashMap)
+        private static (Dictionary<int, Bucket> grouped, object? nullCase) GroupByLength(KeyValuePair<ConstantValue, object>[] caseLabels)
         {
-            int count = stringHashMap.Count;
-            var hashBucketLabelsMap = new Dictionary<uint, object>(count);
+            object? nullCase = null;
+            var dictionary = new Dictionary<int, Bucket>();
+            foreach (var (constantValue, label) in caseLabels)
+            {
+                Debug.Assert(constantValue.IsNull || constantValue.IsString);
+                if (constantValue.IsNull)
+                {
+                    nullCase = label;
+                }
+                var length = ((string)constantValue.Value!).Length;
+                if (!dictionary.TryGetValue(length, out var bucket))
+                {
+                    bucket = dictionary[length] = new Bucket();
+                }
+
+                bucket.Add(new KeyValuePair<ConstantValue, object>(constantValue, label));
+            }
+            return (dictionary, nullCase);
+        }
+
+        private (Dictionary<int, object> labelsMap, LocalDefinition? temp) EmitLengthBucketJumpTable(Dictionary<int, Bucket> groupedByLength)
+        {
+            int count = groupedByLength.Count;
+            var lengthBucketLabelsMap = new Dictionary<int, object>(count);
             var jumpTableLabels = new KeyValuePair<ConstantValue, object>[count];
             int i = 0;
 
-            foreach (uint hashValue in stringHashMap.Keys)
+            foreach (var (length, bucket) in groupedByLength)
             {
-                ConstantValue hashConstant = ConstantValue.Create(hashValue);
-                object hashBucketLabel = new object();
+                object bucketLabel;
+                if (length == 0)
+                {
+                    Debug.Assert(bucket.Count == 1);
+                    bucketLabel = bucket[0].Value;
+                }
+                else
+                {
+                    bucketLabel = new object();
+                    lengthBucketLabelsMap[length] = bucketLabel;
+                }
 
-                jumpTableLabels[i] = new KeyValuePair<ConstantValue, object>(hashConstant, hashBucketLabel);
-                hashBucketLabelsMap[hashValue] = hashBucketLabel;
+                var lengthConstant = ConstantValue.Create(length);
+                jumpTableLabels[i] = new KeyValuePair<ConstantValue, object>(lengthConstant, bucketLabel);
 
                 i++;
             }
 
-            // Emit conditional jumps to hash buckets by using an integral switch jump table based on keyHash.
-            var hashBucketJumpTableEmitter = new SwitchIntegralJumpTableEmitter(
+            Debug.Assert(_emitStoreKeyLength != null);
+            var keyLength = _emitStoreKeyLength();
+
+            // Emit conditional jumps to buckets by using an integral switch jump table based on keyLength.
+            var lengthBucketJumpTableEmitter = new SwitchIntegralJumpTableEmitter(
                 builder: _builder,
                 caseLabels: jumpTableLabels,
                 fallThroughLabel: _fallThroughLabel,
-                keyTypeCode: Cci.PrimitiveTypeCode.UInt32,
-                key: _keyHash);
+                keyTypeCode: Cci.PrimitiveTypeCode.Int32,
+                key: keyLength);
 
-            hashBucketJumpTableEmitter.EmitJumpTable();
+            lengthBucketJumpTableEmitter.EmitJumpTable();
 
-            return hashBucketLabelsMap;
+            return (lengthBucketLabelsMap, keyLength);
         }
 
-        private void EmitNonHashTableSwitch(KeyValuePair<ConstantValue, object>[] labels)
+        private void EmitTrieSwitchPart(Bucket bucket, int charIndex, int length)
+        {
+            var groupedByChar = GroupByChar(bucket, charIndex);
+
+            if (groupedByChar.Count == 1)
+            {
+                Debug.Assert(_emitPushCharAtIndex != null);
+                _emitPushCharAtIndex(charIndex);
+                var (key, subBucket) = groupedByChar.First();
+                _builder.EmitConstantValue(ConstantValue.Create((int)key));
+                _builder.EmitBranch(ILOpCode.Bne_un, _fallThroughLabel);
+                if (charIndex == length - 1)
+                {
+                    Debug.Assert(subBucket.Count == 1);
+                    _builder.EmitBranch(ILOpCode.Br, subBucket[0].Value);
+                }
+                else
+                {
+                    EmitTrieSwitchPart(subBucket, charIndex + 1, length);
+                }
+                return;
+            }
+
+            var (charBucketLabelsMap, charTemp) = EmitCharJumpTable(groupedByChar, charIndex, length);
+
+            if (charIndex == length - 1)
+                return;
+
+            Debug.Assert(charBucketLabelsMap != null);
+            foreach (var (key, subBucket) in groupedByChar)
+            {
+                _builder.MarkLabel(charBucketLabelsMap[key]);
+
+                EmitTrieSwitchPart(subBucket, charIndex + 1, length);
+            }
+
+            FreeTemp(charTemp);
+        }
+
+        private static Dictionary<char, Bucket> GroupByChar(Bucket caseLabels, int charIndex)
+        {
+            var dictionary = new Dictionary<char, Bucket>();
+            foreach (var (constantValue, label) in caseLabels)
+            {
+                Debug.Assert(constantValue.IsString);
+                var character = ((string)constantValue.Value!)[charIndex];
+                if (!dictionary.TryGetValue(character, out var bucket))
+                {
+                    bucket = dictionary[character] = new Bucket();
+                }
+
+                bucket.Add(new KeyValuePair<ConstantValue, object>(constantValue, label));
+            }
+            return dictionary;
+        }
+
+        private (Dictionary<char, object>? labelsMap, LocalDefinition?) EmitCharJumpTable(Dictionary<char, Bucket> groupedByChar, int charIndex, int length)
+        {
+            int count = groupedByChar.Count;
+
+            bool finalChar = charIndex == length - 1;
+            var charBucketLabelsMap = finalChar ? null : new Dictionary<char, object>(count);
+            var jumpTableLabels = new KeyValuePair<ConstantValue, object>[count];
+            int i = 0;
+
+            foreach (var (key, bucket) in groupedByChar)
+            {
+                object bucketLabel;
+                if (finalChar)
+                {
+                    Debug.Assert(bucket.Count == 1);
+                    bucketLabel = bucket[0].Value;
+                }
+                else
+                {
+                    bucketLabel = new object();
+                    charBucketLabelsMap![key] = bucketLabel;
+                }
+
+                ConstantValue charConstant = ConstantValue.Create((short)key);
+                jumpTableLabels[i] = new KeyValuePair<ConstantValue, object>(charConstant, bucketLabel);
+
+                i++;
+            }
+
+            Debug.Assert(_emitStoreCharAtIndex != null);
+
+            var charTemp = _emitStoreCharAtIndex(charIndex);
+            // Emit conditional jumps to hash buckets by using an integral switch jump table based on keyHash.
+            var charBucketJumpTableEmitter = new SwitchIntegralJumpTableEmitter(
+                builder: _builder,
+                caseLabels: jumpTableLabels,
+                fallThroughLabel: _fallThroughLabel,
+                keyTypeCode: Cci.PrimitiveTypeCode.Char,
+                key: charTemp);
+
+            charBucketJumpTableEmitter.EmitJumpTable();
+
+            return (charBucketLabelsMap, charTemp);
+        }
+
+        private void FreeTemp(LocalDefinition? temp)
+        {
+            if (temp != null)
+            {
+                _builder.LocalSlotManager.FreeSlot(temp);
+            }
+        }
+
+        private void EmitNonTrieSwitch(KeyValuePair<ConstantValue, object>[] labels)
         {
             // Direct string comparison for each case label
             foreach (var kvPair in labels)
             {
-                this.EmitCondBranchForStringSwitch(kvPair.Key, kvPair.Value);
+                EmitCondBranchForStringSwitch(kvPair.Key, kvPair.Value);
             }
 
             _builder.EmitBranch(ILOpCode.Br, _fallThroughLabel);
@@ -180,49 +326,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _emitStringCondBranchDelegate(_key, stringConstant, targetLabel);
         }
 
-        // Compute hash value for each case label constant and store the hash buckets
-        // into a dictionary indexed by hash value.
-        private static Dictionary<uint, HashBucket> ComputeStringHashMap(
-            KeyValuePair<ConstantValue, object>[] caseLabels,
-            GetStringHashCode computeStringHashcodeDelegate)
+        internal static bool ShouldGenerateTrieSwitch(int labelsCount)
         {
-            RoslynDebug.Assert(caseLabels != null);
-            var stringHashMap = new Dictionary<uint, HashBucket>(caseLabels.Length);
-
-            foreach (var kvPair in caseLabels)
-            {
-                ConstantValue stringConstant = kvPair.Key;
-                Debug.Assert(stringConstant.IsNull || stringConstant.IsString);
-
-                uint hash = computeStringHashcodeDelegate((string?)stringConstant.Value);
-
-                HashBucket? bucket;
-                if (!stringHashMap.TryGetValue(hash, out bucket))
-                {
-                    bucket = new HashBucket();
-                    stringHashMap.Add(hash, bucket);
-                }
-
-                Debug.Assert(!bucket.Contains(kvPair));
-                bucket.Add(kvPair);
-            }
-
-            return stringHashMap;
-        }
-
-        internal static bool ShouldGenerateHashTableSwitch(CommonPEModuleBuilder module, int labelsCount)
-        {
-            return module.SupportsPrivateImplClass && ShouldGenerateHashTableSwitch(labelsCount);
-        }
-
-        private static bool ShouldGenerateHashTableSwitch(int labelsCount)
-        {
-            // Heuristic used by Dev10 compiler for emitting string switch:
-            //  Generate hash table based string switch jump table
-            //  if we have at least 7 case labels. Otherwise emit
+            // Heuristic used for emitting string switch:
+            //  Generate trie based string switch jump table
+            //  if we have at least 3 case labels. Otherwise emit
             //  direct string comparisons with each case label constant.
 
-            return labelsCount >= 7;
+            return labelsCount >= 3;
         }
     }
 }
