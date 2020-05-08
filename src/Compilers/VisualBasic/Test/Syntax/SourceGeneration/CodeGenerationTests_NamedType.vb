@@ -7,36 +7,32 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports Microsoft.CodeAnalysis.SourceGeneration.CodeGenerator
-Imports Microsoft.CodeAnalysis.SourceGeneration
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.SourceGeneration
     Partial Public Class CodeGenerationTests
         <Fact>
-        Public Sub TestArrayOfInt32()
+        Public Sub TestClassType1()
             AssertEx.AreEqual(
-"Integer()",
-ArrayType(Int32).GenerateTypeString())
+"x",
+[Class]("x").GenerateTypeString())
         End Sub
 
         <Fact>
-        Public Sub TestArrayOfInt32WithRank2()
+        Public Sub TestClassTypeWithTypeArguments1()
             AssertEx.AreEqual(
-"Integer(,)",
-ArrayType(Int32, rank:=2).GenerateTypeString())
+"X(Of Integer)",
+[Class](
+    "X",
+    typeArguments:=ImmutableArray.Create(Int32)).GenerateTypeString())
         End Sub
 
         <Fact>
-        Public Sub TestNullableArrayOfInt32()
+        Public Sub TestClassTypeWithTypeArguments2()
             AssertEx.AreEqual(
-"Integer()",
-ArrayType(Int32, nullableAnnotation:=NullableAnnotation.Annotated).GenerateTypeString())
-        End Sub
-
-        <Fact>
-        Public Sub TestNullableArrayOfInt32WithRank2()
-            AssertEx.AreEqual(
-"Integer(,)",
-ArrayType(Int32, rank:=2, nullableAnnotation:=NullableAnnotation.Annotated).GenerateTypeString())
+"X(Of Integer, Boolean)",
+[Class](
+    "X",
+    typeArguments:=ImmutableArray.Create(Int32, [Boolean])).GenerateTypeString())
         End Sub
     End Class
 End Namespace

@@ -11,12 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
 {
     public partial class CodeGenerationTests
     {
-        [Fact]
-        public void TestLocal1()
-        {
-            AssertEx.AreEqual(
-"x",
-Local(Int32, "x").GenerateString());
-        }
+        private static ITypeSymbol Int32 = SpecialType(SpecialType.System_Int32);
+        private static ITypeSymbol Boolean = SpecialType(SpecialType.System_Boolean);
     }
 }

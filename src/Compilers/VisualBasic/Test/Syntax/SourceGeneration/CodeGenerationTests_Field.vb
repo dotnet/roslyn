@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.SourceGeneration
             AssertEx.AreEqual(
 "Dim f As Integer",
 Field(
-    CodeGenerator.SpecialType(SpecialType.System_Int32),
+    Int32,
     "f").GenerateString())
         End Sub
 
@@ -25,7 +25,7 @@ Field(
             AssertEx.AreEqual(
 "Public f As Integer",
 Field(
-    CodeGenerator.SpecialType(SpecialType.System_Int32),
+    Int32,
     "f",
     declaredAccessibility:=Accessibility.Public).GenerateString())
         End Sub
@@ -35,7 +35,7 @@ Field(
             AssertEx.AreEqual(
 "Shared f As Integer",
 Field(
-    CodeGenerator.SpecialType(SpecialType.System_Int32),
+    Int32,
     "f",
     modifiers:=SymbolModifiers.Static).GenerateString())
         End Sub
@@ -45,7 +45,7 @@ Field(
             AssertEx.AreEqual(
 "Private Shared f As Integer",
 Field(
-    CodeGenerator.SpecialType(SpecialType.System_Int32),
+    Int32,
     "f",
     declaredAccessibility:=Accessibility.Private,
     modifiers:=SymbolModifiers.Static).GenerateString())
@@ -56,7 +56,7 @@ Field(
             AssertEx.AreEqual(
 "Const f As Integer",
 Field(
-    CodeGenerator.SpecialType(SpecialType.System_Int32),
+    Int32,
     "f",
     modifiers:=SymbolModifiers.Const).GenerateString())
         End Sub

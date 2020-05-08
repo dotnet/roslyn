@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
         {
             AssertEx.AreEqual(
 "int[]",
-ArrayType(SpecialType(SpecialType.System_Int32)).GenerateTypeString());
+ArrayType(Int32).GenerateTypeString());
         }
 
         [Fact]
@@ -25,7 +25,7 @@ ArrayType(SpecialType(SpecialType.System_Int32)).GenerateTypeString());
         {
             AssertEx.AreEqual(
 "int[, ]",
-ArrayType(SpecialType(SpecialType.System_Int32), rank: 2).GenerateTypeString());
+ArrayType(Int32, rank: 2).GenerateTypeString());
         }
 
         [Fact]
@@ -33,7 +33,7 @@ ArrayType(SpecialType(SpecialType.System_Int32), rank: 2).GenerateTypeString());
         {
             AssertEx.AreEqual(
 "int[]?",
-ArrayType(SpecialType(SpecialType.System_Int32), nullableAnnotation: CodeAnalysis.NullableAnnotation.Annotated).GenerateTypeString());
+ArrayType(Int32, nullableAnnotation: CodeAnalysis.NullableAnnotation.Annotated).GenerateTypeString());
         }
 
         [Fact]
@@ -41,7 +41,7 @@ ArrayType(SpecialType(SpecialType.System_Int32), nullableAnnotation: CodeAnalysi
         {
             AssertEx.AreEqual(
 "int[, ]?",
-ArrayType(SpecialType(SpecialType.System_Int32), rank: 2, nullableAnnotation: CodeAnalysis.NullableAnnotation.Annotated).GenerateTypeString());
+ArrayType(Int32, rank: 2, nullableAnnotation: CodeAnalysis.NullableAnnotation.Annotated).GenerateTypeString());
         }
     }
 }

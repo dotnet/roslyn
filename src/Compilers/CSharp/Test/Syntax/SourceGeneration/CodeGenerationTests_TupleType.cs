@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
             AssertEx.AreEqual(
 "(int, bool)",
 TupleType(ImmutableArray.Create(
-    TupleElement(SpecialType(SpecialType.System_Int32)),
-    TupleElement(SpecialType(SpecialType.System_Boolean)))).GenerateTypeString());
+    TupleElement(Int32),
+    TupleElement(Boolean))).GenerateTypeString());
         }
 
         [Fact]
@@ -28,8 +28,8 @@ TupleType(ImmutableArray.Create(
             AssertEx.AreEqual(
 "(int a, bool)",
 TupleType(ImmutableArray.Create(
-    TupleElement(SpecialType(SpecialType.System_Int32), "a"),
-    TupleElement(SpecialType(SpecialType.System_Boolean)))).GenerateTypeString());
+    TupleElement(Int32, "a"),
+    TupleElement(Boolean))).GenerateTypeString());
         }
 
         [Fact]
@@ -38,8 +38,8 @@ TupleType(ImmutableArray.Create(
             AssertEx.AreEqual(
 "(int, bool b)",
 TupleType(ImmutableArray.Create(
-    TupleElement(SpecialType(SpecialType.System_Int32)),
-    TupleElement(SpecialType(SpecialType.System_Boolean), "b"))).GenerateTypeString());
+    TupleElement(Int32),
+    TupleElement(Boolean, "b"))).GenerateTypeString());
         }
 
         [Fact]
@@ -48,8 +48,8 @@ TupleType(ImmutableArray.Create(
             AssertEx.AreEqual(
 "(int a, bool b)",
 TupleType(ImmutableArray.Create(
-    TupleElement(SpecialType(SpecialType.System_Int32), "a"),
-    TupleElement(SpecialType(SpecialType.System_Boolean), "b"))).GenerateTypeString());
+    TupleElement(Int32, "a"),
+    TupleElement(Boolean, "b"))).GenerateTypeString());
         }
     }
 }

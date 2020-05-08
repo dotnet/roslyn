@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 NullableAnnotation = nullableAnnotation;
                 ContainingSymbol = containingSymbol;
 
-                _members = members.SelectAsArray(
+                _members = members.NullToEmpty().SelectAsArray(
                     m => m is INamedTypeSymbol nt ? nt.With(containingSymbol: this) : m);
             }
 

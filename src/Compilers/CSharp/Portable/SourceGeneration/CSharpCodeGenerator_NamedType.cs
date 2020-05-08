@@ -20,12 +20,27 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             if (symbol.SpecialType != SpecialType.None)
                 return GenerateSpecialTypeSyntaxWithoutNullable(symbol);
 
-            if (symbol.DelegateInvokeMethod != null)
-                throw new NotImplementedException();
+            var nameSyntax = symbol.TypeArguments.IsDefaultOrEmpty
+                ? (SimpleNameSyntax)IdentifierName(symbol.Name)
+                : GenericName(
+                    Identifier(symbol.Name),
+                    GenerateTypeArgumentList(symbol.TypeArguments));
 
-            TypeDeclaration()
+            if (symbol.ContainingType != null)
+            {
+                var containingType = symbol.ContainingType.GenerateNameSyntax();
+                return QualifiedName(containingType, nameSyntax);
+            }
+            else if (symbol.ContainingNamespace != null)
+            {
+                if (symbol.ContainingNamespace.IsGlobalNamespace)
+                    return AliasQualifiedName(SyntaxFacts.GetText(SyntaxKind.GlobalKeyword), nameSyntax);
 
-            throw new NotImplementedException();
+                var containingNamespace = symbol.ContainingNamespace.GenerateNameSyntax();
+                return QualifiedName(containingNamespace, nameSyntax);
+            }
+
+            return nameSyntax;
         }
 
         private static TypeSyntax GenerateTupleTypeSyntaxWithoutNullable(INamedTypeSymbol symbol)

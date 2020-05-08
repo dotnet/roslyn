@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
             AssertEx.AreEqual(
 "int f;",
 Field(
-    SpecialType(SpecialType.System_Int32),
+    Int32,
     "f").GenerateString());
         }
 
@@ -29,7 +29,7 @@ Field(
             AssertEx.AreEqual(
 "public int f;",
 Field(
-    SpecialType(SpecialType.System_Int32),
+    Int32,
     "f",
     declaredAccessibility: Accessibility.Public).GenerateString());
         }
@@ -40,7 +40,7 @@ Field(
             AssertEx.AreEqual(
 "static int f;",
 Field(
-    SpecialType(SpecialType.System_Int32),
+    Int32,
     "f",
     modifiers: SymbolModifiers.Static).GenerateString());
         }
@@ -51,7 +51,7 @@ Field(
             AssertEx.AreEqual(
 "private static int f;",
 Field(
-    SpecialType(SpecialType.System_Int32),
+    Int32,
     "f",
     declaredAccessibility: Accessibility.Private,
     modifiers: SymbolModifiers.Static).GenerateString());
@@ -63,7 +63,7 @@ Field(
             AssertEx.AreEqual(
 "const int f;",
 Field(
-    SpecialType(SpecialType.System_Int32),
+    Int32,
     "f",
     modifiers: SymbolModifiers.Const).GenerateString());
         }

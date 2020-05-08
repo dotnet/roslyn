@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.SourceGeneration
             AssertEx.AreEqual(
 "(Integer, Boolean)",
 TupleType(ImmutableArray.Create(
-    TupleElement(CodeGenerator.SpecialType(SpecialType.System_Int32)),
-    TupleElement(CodeGenerator.SpecialType(SpecialType.System_Boolean)))).GenerateTypeString())
+    TupleElement(Int32),
+    TupleElement([Boolean]))).GenerateTypeString())
         End Sub
 
         <Fact>
@@ -24,8 +24,8 @@ TupleType(ImmutableArray.Create(
             AssertEx.AreEqual(
 "(a As Integer, Boolean)",
 TupleType(ImmutableArray.Create(
-    TupleElement(CodeGenerator.SpecialType(SpecialType.System_Int32), "a"),
-    TupleElement(CodeGenerator.SpecialType(SpecialType.System_Boolean)))).GenerateTypeString())
+    TupleElement(Int32, "a"),
+    TupleElement([Boolean]))).GenerateTypeString())
         End Sub
 
         <Fact>
@@ -33,8 +33,8 @@ TupleType(ImmutableArray.Create(
             AssertEx.AreEqual(
 "(Integer, b As Boolean)",
 TupleType(ImmutableArray.Create(
-    TupleElement(CodeGenerator.SpecialType(SpecialType.System_Int32)),
-    TupleElement(CodeGenerator.SpecialType(SpecialType.System_Boolean), "b"))).GenerateTypeString())
+    TupleElement(Int32),
+    TupleElement([Boolean], "b"))).GenerateTypeString())
         End Sub
 
         <Fact>
@@ -42,8 +42,8 @@ TupleType(ImmutableArray.Create(
             AssertEx.AreEqual(
 "(a As Integer, b As Boolean)",
 TupleType(ImmutableArray.Create(
-    TupleElement(CodeGenerator.SpecialType(SpecialType.System_Int32), "a"),
-    TupleElement(CodeGenerator.SpecialType(SpecialType.System_Boolean), "b"))).GenerateTypeString())
+    TupleElement(Int32, "a"),
+    TupleElement([Boolean], "b"))).GenerateTypeString())
         End Sub
     End Class
 End Namespace

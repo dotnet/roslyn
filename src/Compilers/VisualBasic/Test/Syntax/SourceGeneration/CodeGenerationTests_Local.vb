@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.SourceGeneration
         Public Sub TestLocal()
             AssertEx.AreEqual(
 "x",
-Local(CodeGenerator.SpecialType(SpecialType.System_Int32), "x").GenerateString())
+Local(Int32, "x").GenerateString())
         End Sub
     End Class
 End Namespace

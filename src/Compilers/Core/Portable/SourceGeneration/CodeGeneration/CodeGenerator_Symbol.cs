@@ -29,6 +29,22 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public virtual bool IsSealed => (Modifiers & SymbolModifiers.Sealed) != 0;
             public virtual bool IsExtern => (Modifiers & SymbolModifiers.Extern) != 0;
 
+            public IAssemblySymbol ContainingAssembly => FirstContainer<IAssemblySymbol>();
+            public IModuleSymbol ContainingModule => FirstContainer<IModuleSymbol>();
+            public INamedTypeSymbol ContainingType => FirstContainer<INamedTypeSymbol>();
+            public INamespaceSymbol ContainingNamespace => FirstContainer<INamespaceSymbol>();
+
+            private TSymbol FirstContainer<TSymbol>() where TSymbol : ISymbol
+            {
+                for (var current = this.ContainingSymbol; current != null; current = current.ContainingSymbol)
+                {
+                    if (current is TSymbol symbol)
+                        return symbol;
+                }
+
+                return default;
+            }
+
             #region default implementation
 
             public virtual bool CanBeReferencedByName => throw new NotImplementedException();
@@ -37,15 +53,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public virtual bool HasUnsupportedMetadata => throw new NotImplementedException();
             public virtual bool IsDefinition => throw new NotImplementedException();
             public virtual bool IsImplicitlyDeclared => throw new NotImplementedException();
-            public virtual IAssemblySymbol ContainingAssembly => throw new NotImplementedException();
             public virtual ImmutableArray<AttributeData> GetAttributes() => throw new NotImplementedException();
             public virtual ImmutableArray<Location> Locations => throw new NotImplementedException();
             public virtual ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null) => throw new NotImplementedException();
             public virtual ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null) => throw new NotImplementedException();
             public virtual ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => throw new NotImplementedException();
-            public virtual IModuleSymbol ContainingModule => throw new NotImplementedException();
-            public virtual INamedTypeSymbol ContainingType => throw new NotImplementedException();
-            public virtual INamespaceSymbol ContainingNamespace => throw new NotImplementedException();
             public virtual ISymbol ContainingSymbol => throw new NotImplementedException();
             public virtual ISymbol OriginalDefinition => throw new NotImplementedException();
             public virtual string GetDocumentationCommentId() => throw new NotImplementedException();

@@ -21,7 +21,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
                 Return GenerateSpecialTypeSyntax(symbol)
             End If
 
-            Throw New NotImplementedException()
+            Dim nameSyntax = If(symbol.TypeArguments.IsDefaultOrEmpty,
+                DirectCast(IdentifierName(symbol.Name), SimpleNameSyntax),
+                GenericName(Identifier(symbol.Name), GenerateTypeArgumentList(symbol.TypeArguments)))
+
+            If symbol.ContainingType IsNot Nothing Then
+                Dim containingType = symbol.ContainingType.GenerateNameSyntax()
+                Return QualifiedName(containingType, nameSyntax)
+            ElseIf symbol.ContainingNamespace IsNot Nothing Then
+                'If symbol.ContainingNamespace.IsGlobalNamespace Then
+                '    Return AliasQualifiedName(SyntaxFacts.GetText(SyntaxKind.GlobalKeyword), nameSyntax)
+                'End If
+
+                Dim containingNamespace = symbol.ContainingNamespace.GenerateNameSyntax()
+                Return QualifiedName(containingNamespace, nameSyntax)
+            End If
+
+            Return nameSyntax
         End Function
 
         Private Function GenerateTupleTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
