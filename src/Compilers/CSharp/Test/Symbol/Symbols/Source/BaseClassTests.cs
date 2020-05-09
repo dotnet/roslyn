@@ -2301,5 +2301,23 @@ class Derived : Base
                 //     class E : A<C*>.B { }
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
         }
+
+        [Fact]
+        [WorkItem(1107185, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107185")]
+        public void Tuple_MissingNestedTypeArgument()
+        {
+            var source =
+@"interface I<T>
+{
+}
+class A : I<(object, A.B)>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0146: Circular base class dependency involving 'A' and 'A'
+                // class A : I<(object, A.B)>
+                Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A", "A").WithLocation(4, 24));
+        }
     }
 }

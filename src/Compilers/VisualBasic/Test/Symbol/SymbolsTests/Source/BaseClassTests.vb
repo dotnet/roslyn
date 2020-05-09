@@ -2434,6 +2434,22 @@ BC30296: Interface 'A(Of T)' cannot inherit from itself:
 ]]></errors>)
         End Sub
 
+        <Fact>
+        Public Sub Tuple_MissingNestedTypeArgument()
+            Dim source =
+"Interface I(Of T)
+End Interface
+Class A
+    Implements I(Of (Object, A.B))
+End Class"
+            Dim comp = CreateCompilation(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30002: Type 'A.B' is not defined.
+    Implements I(Of (Object, A.B))
+                             ~~~
+]]></errors>)
+        End Sub
+
     End Class
 
 End Namespace
