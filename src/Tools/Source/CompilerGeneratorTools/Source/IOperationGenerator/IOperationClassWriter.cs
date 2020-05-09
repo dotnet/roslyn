@@ -143,6 +143,16 @@ namespace IOperationGenerator
                     }
 
                     WriteEndNamespace();
+
+                    if (@namespace == "Operations")
+                    {
+                        Blank();
+                        WriteStartNamespace("SourceGeneration");
+                        WriteUsing("Microsoft.CodeAnalysis.Operations");
+                        WriteCodeGenerators();
+                        WriteEndNamespace();
+                    }
+
                     _writer.Flush();
                 }
             }
@@ -700,6 +710,80 @@ namespace IOperationGenerator
                 }
 
                 return GetSubName(node.Name);
+            }
+        }
+
+        private void WriteCodeGenerators()
+        {
+            Blank();
+            WriteLine("internal partial class CodeGenerator");
+            Brace();
+
+            foreach (var type in _tree.Types.OfType<AbstractNode>())
+            {
+                if (type.SkipClassGeneration) continue;
+                if (type.IsAbstract) continue;
+
+                var allProps = GetAllProperties(type);
+                string typeName = type.Name[1..];
+
+                writeCodeGenerator(
+                    typeName,
+                    allProps,
+                    type,
+                    ClassType.NonLazy);
+            }
+
+            Unbrace();
+
+            return;
+
+            void writeCodeGenerator(
+                string @class,
+                IEnumerable<Property> properties,
+                AbstractNode type,
+                ClassType classType)
+            {
+                var classWithoutOpSuffix = @class.EndsWith("Operation") ? @class[0..^"Operation".Length] : @class;
+
+                Write($"public static I{@class} {classWithoutOpSuffix}(");
+
+                var argList = new List<string>();
+                foreach (var prop in properties)
+                {
+                    if (classType != ClassType.NonLazy && IsIOperationType(prop.Type)) continue;
+                    if (prop.Type == "CommonConversion")
+                    {
+                        Write($"IConvertibleConversion {prop.Name.ToCamelCase()}, ");
+                        argList.Add(prop.Name.ToCamelCase());
+                    }
+                    else
+                    {
+                        Write($"{prop.Type} {prop.Name.ToCamelCase()}, ");
+                        argList.Add(prop.Name.ToCamelCase());
+                    }
+                }
+
+                var multipleValidKinds = (type.OperationKind?.Entries?.Where(e => e.EditorBrowsable != false).Count() ?? 0) > 1;
+                if (multipleValidKinds)
+                {
+                    Write("OperationKind kind, ");
+                    argList.Add("kind");
+                }
+
+                // SemanticModel semanticModel, SyntaxNode syntax
+                argList.Add("semanticModel: null");
+                argList.Add("syntax: null");
+
+                Write("ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false");
+
+                argList.Add("type");
+                argList.Add("constantValue");
+                argList.Add("isImplicit");
+
+                WriteLine(")");
+                WriteLine($"    => new {@class}({string.Join(", ", argList)});");
+                Blank();
             }
         }
 
