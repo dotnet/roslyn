@@ -5,11 +5,13 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
 {
-    public sealed partial class ModuleInitializersTests
+    [CompilerTrait(CompilerFeature.ModuleInitializers)]
+    public sealed class IgnoredTests : CSharpTestBase
     {
         [Fact]
         public void IgnoredOnReturnValue()

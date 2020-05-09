@@ -10,10 +10,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
 {
     [CompilerTrait(CompilerFeature.ModuleInitializers)]
-    public sealed partial class ModuleInitializersTests : CSharpTestBase
+    public sealed class ModuleInitializersTests : CSharpTestBase
     {
         private static readonly CSharpParseOptions s_parseOptions = TestOptions.RegularPreview;
 
