@@ -28,16 +28,23 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         public static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol)
             => GenerateTypeSyntax(symbol, onlyNames: false);
 
-        public static BlockSyntax? GenerateBodySyntax(this IBlockOperation? block)
-            => new CSharpGenerator().GenerateBlock(block);
+        public static SyntaxNode? GenerateSyntax(this ISymbol symbol)
+            => new CSharpGenerator().TryGenerate(symbol);
 
-        public static (BlockSyntax?, ArrowExpressionClauseSyntax?, SyntaxToken) GenerateBodyParts(this IBlockOperation? block)
+        internal static (BlockSyntax?, ArrowExpressionClauseSyntax?, SyntaxToken) GenerateBodyParts(this IBlockOperation? block)
             => new CSharpGenerator().GenerateBodyParts(block);
 
         private static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol, bool onlyNames)
             => new CSharpGenerator().GenerateTypeSyntax(symbol, onlyNames);
 
-        public static SyntaxNode? GenerateSyntax(this ISymbol symbol)
-            => new CSharpGenerator().TryGenerate(symbol);
+        //public static BlockSyntax? GenerateSyntax(this IBlockOperation? block)
+        //    => new CSharpGenerator().GenerateBlock(block);
+
+        public static SyntaxNode? GenerateSyntax(this IOperation? operation)
+            => new CSharpGenerator().TryGenerate(operation);
+
+        public static string GenerateString(this IOperation? operation, string indentation = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation, string eol = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, bool elasticTrivia = false)
+            => operation.GenerateSyntax()?.NormalizeWhitespace(indentation, eol, elasticTrivia).ToFullString() ?? "";
+
     }
 }

@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -22,9 +23,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         }
 
         public BlockSyntax? GenerateBlock(IBlockOperation? block)
+            => GenerateBlock(block, SyntaxType.Statement);
+
+        private BlockSyntax? GenerateBlock(IBlockOperation? block, SyntaxType type)
         {
             if (block == null)
                 return null;
+
+            if (type == SyntaxType.Expression)
+                throw new ArgumentException("Block operation cannot be converted to an expression");
 
             using var _ = GetArrayBuilder<StatementSyntax>(out var statements);
 
