@@ -723,6 +723,7 @@ namespace IOperationGenerator
             {
                 if (type.SkipClassGeneration) continue;
                 if (type.IsAbstract) continue;
+                if (type.Namespace != null) continue;
 
                 var allProps = GetAllProperties(type);
                 string typeName = type.Name[1..];

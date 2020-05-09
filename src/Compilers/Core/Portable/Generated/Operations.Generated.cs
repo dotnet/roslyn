@@ -9051,15 +9051,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IDiscardOperation Discard(IDiscardSymbol discardSymbol, ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
             => new DiscardOperation(discardSymbol, semanticModel: null, syntax: null, type, constantValue, isImplicit);
 
-        public static IFlowCaptureReferenceOperation FlowCaptureReference(CaptureId id, ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
-            => new FlowCaptureReferenceOperation(id, semanticModel: null, syntax: null, type, constantValue, isImplicit);
-
-        public static ICaughtExceptionOperation CaughtException(ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
-            => new CaughtExceptionOperation(semanticModel: null, syntax: null, type, constantValue, isImplicit);
-
-        public static IStaticLocalInitializationSemaphoreOperation StaticLocalInitializationSemaphore(ILocalSymbol local, ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
-            => new StaticLocalInitializationSemaphoreOperation(local, semanticModel: null, syntax: null, type, constantValue, isImplicit);
-
         public static ICoalesceAssignmentOperation CoalesceAssignment(IOperation target, IOperation value, ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
             => new CoalesceAssignmentOperation(target, value, semanticModel: null, syntax: null, type, constantValue, isImplicit);
 
