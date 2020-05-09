@@ -3194,7 +3194,6 @@ class C
         { if (o is <= 10U and var i) M(i); } // System.UInt32
 
         // 6. If P is an or pattern, the narrowed type is the common type of the narrowed type of the left pattern and the narrowed type of the right pattern if such a common type exists.
-// This test blocked until https://github.com/dotnet/roslyn/pull/42109 is integrated.
         o = 1;
         { if (o is (1 or 2) and var i) M(i); } // System.Int32
 
@@ -3204,7 +3203,6 @@ class C
 
         // 8. Otherwise the narrowed type of P is P's input type.
         o = new Q();
-        // PROTOTYPE(ngafter): we need a rule that explains this.
         { if (o is (3, 4) and var i) M(i); } // System.Runtime.CompilerServices.ITuple
 
         o = null;
