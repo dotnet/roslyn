@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
                 : SpecializedCollections.EmptyEnumerable<Document>();
 
-            var documentsWithImplicitObjectCreations = IsConstructor(symbol)
+            var documentsWithImplicitObjectCreations = symbol.MethodKind == MethodKind.Constructor
                 ? await FindDocumentsWithImplicitObjectCreationExpressionAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
@@ -50,9 +50,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                                     .Distinct()
                                     .ToImmutableArray();
         }
-
-        private bool IsConstructor(IMethodSymbol methodSymbol)
-            => methodSymbol.MethodKind == MethodKind.Constructor;
 
         private static bool IsPotentialReference(
             PredefinedType predefinedType,

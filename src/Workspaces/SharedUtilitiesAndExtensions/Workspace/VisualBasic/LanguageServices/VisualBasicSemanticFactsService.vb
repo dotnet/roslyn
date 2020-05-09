@@ -360,9 +360,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ISemanticFactsService_GenerateUniqueName(baseName As String, usedNames As IEnumerable(Of String)) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueName
             Return MyBase.GenerateUniqueName(baseName, usedNames)
         End Function
-
-        Public Function GetImplicitObjectCreationConstructor(semanticModel As SemanticModel, node As SyntaxNode) As IMethodSymbol Implements ISemanticFactsService.GetImplicitObjectCreationConstructor
-            Return Nothing
-        End Function
     End Class
 End Namespace

@@ -15,10 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Private constants are used for static assertions.")]
     internal static class SyntaxKindEx
     {
-        public const SyntaxKind ImplicitObjectCreationExpression = (SyntaxKind)8659;
-
         // The code style layer does not currently need access to any syntax defined in newer versions of Roslyn. This
         // type is included as an example should this change in future updates.
+        public const SyntaxKind ImplicitObjectCreationExpression = (SyntaxKind)8659;
         public const SyntaxKind RelationalPattern = (SyntaxKind)9029;
         public const SyntaxKind ParenthesizedPattern = (SyntaxKind)9028;
         public const SyntaxKind AndPattern = (SyntaxKind)9032;
@@ -28,12 +27,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public const SyntaxKind OrKeyword = (SyntaxKind)8438;
 
 #if !CODE_STYLE
+        private const uint ImplicitObjectCreationExpressionAssertion = -(ImplicitObjectCreationExpression - SyntaxKind.ImplicitObjectCreationExpression);
+
         /// <summary>
         /// This will only compile if <see cref="RelationalPattern"/> and <see cref="SyntaxKind.RelationalPattern"/> have the same
         /// value.
         /// </summary>
         /// <remarks>
-        /// <para>The subtraction will overflow if <see cref="SyntaxKind.DotDotToken"/> is greater, and the conversion
+        /// <para>The subtraction will overflow if <see cref="SyntaxKind.RelationalPattern"/> is greater, and the conversion
         /// to an unsigned value after negation will overflow if <see cref="RelationalPattern"/> is greater.</para>
         /// </remarks>
         private const uint RelationalPatternValueAssertion = -(RelationalPattern - SyntaxKind.RelationalPattern);

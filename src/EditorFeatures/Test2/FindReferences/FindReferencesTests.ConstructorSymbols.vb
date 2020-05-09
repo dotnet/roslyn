@@ -893,6 +893,5 @@ class C
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
-
     End Class
 End Namespace
