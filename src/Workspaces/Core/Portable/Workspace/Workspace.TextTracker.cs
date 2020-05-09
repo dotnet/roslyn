@@ -21,7 +21,15 @@ namespace Microsoft.CodeAnalysis
             internal readonly SourceTextContainer TextContainer;
             private readonly EventHandler<TextChangeEventArgs> _weakOnTextChanged;
             private readonly Action<Workspace, DocumentId, SourceText, PreservationMode> _onChangedHandler;
-            private readonly TimeSpan _delayOnTextChanged;
+
+            /// <summary>
+            /// Delay between processing text changes to this document.
+            /// A non-zero delay is provided to optimize performance for typing scenarios,
+            /// where processing each text change could be very expensive.
+            /// For example typing in analyzer config documents.
+            /// </summary>
+            private readonly TimeSpan _delayBetweenProcessingTextChanges;
+
             private int _lastTextChangeTickCount;
 
             internal TextTracker(
@@ -29,13 +37,13 @@ namespace Microsoft.CodeAnalysis
                 DocumentId documentId,
                 SourceTextContainer textContainer,
                 Action<Workspace, DocumentId, SourceText, PreservationMode> onChangedHandler,
-                TimeSpan delayOnTextChanged)
+                TimeSpan delayBetweenProcessingTextChanges)
             {
                 _workspace = workspace;
                 _documentId = documentId;
                 this.TextContainer = textContainer;
                 _onChangedHandler = onChangedHandler;
-                _delayOnTextChanged = delayOnTextChanged;
+                _delayBetweenProcessingTextChanges = delayBetweenProcessingTextChanges;
 
                 // use weak event so TextContainer cannot accidentally keep workspace alive.
                 _weakOnTextChanged = WeakEventHandler<TextChangeEventArgs>.Create(this, (target, sender, args) => target.OnTextChanged(sender, args));
@@ -49,20 +57,35 @@ namespace Microsoft.CodeAnalysis
 
             private void OnTextChanged(object sender, TextChangeEventArgs e)
             {
-                if (_delayOnTextChanged == TimeSpan.Zero)
+                // Check if we require a delay between processing text changes to this document.
+                // If we do not require a delay OR the prior text change happened before this required delay,
+                // then we process this text change immediately.
+                // Otherwise, we kick off a Task.Delay to enforce this delay.
+                // After the delay, we check if there was another text change after the current one.
+                // If so, we don't process the current text change and wait for the next one to be processed.
+                // This ensures that only the last text change is processed, optimizing typing performance.
+
+                if (_delayBetweenProcessingTextChanges == TimeSpan.Zero)
                 {
                     OnTextChangedCore(e.NewText);
                     return;
                 }
 
-                var tickCount = Environment.TickCount;
-                _lastTextChangeTickCount = tickCount;
+                var lastTextChangeTickCount = _lastTextChangeTickCount;
+                var currentTickCount = Environment.TickCount;
+                _lastTextChangeTickCount = currentTickCount;
+
+                if (currentTickCount - lastTextChangeTickCount >= _delayBetweenProcessingTextChanges.Ticks)
+                {
+                    OnTextChangedCore(e.NewText);
+                    return;
+                }
 
                 Task.Run(async delegate
                 {
-                    await Task.Delay(_delayOnTextChanged).ConfigureAwait(false);
+                    await Task.Delay(_delayBetweenProcessingTextChanges).ConfigureAwait(false);
 
-                    if (_lastTextChangeTickCount != tickCount)
+                    if (_lastTextChangeTickCount != currentTickCount)
                     {
                         // There was another subsequent text change.
                         return;
