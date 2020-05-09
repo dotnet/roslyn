@@ -772,7 +772,8 @@ namespace IOperationGenerator
                 AbstractNode type,
                 ClassType classType)
             {
-                Write($"public static {interfaceName} {methodName}(");
+                WriteLine($"public static {interfaceName} {methodName}(");
+                Indent();
 
                 var argList = new List<string>();
                 foreach (var prop in properties)
@@ -780,12 +781,12 @@ namespace IOperationGenerator
                     if (classType != ClassType.NonLazy && IsIOperationType(prop.Type)) continue;
                     if (prop.Type == "CommonConversion")
                     {
-                        Write($"IConvertibleConversion {prop.Name.ToCamelCase()}, ");
+                        WriteLine($"IConvertibleConversion {prop.Name.ToCamelCase()},");
                         argList.Add(prop.Name.ToCamelCase());
                     }
                     else
                     {
-                        Write($"{prop.Type} {prop.Name.ToCamelCase()}, ");
+                        WriteLine($"{prop.Type} {prop.Name.ToCamelCase()}, ");
                         argList.Add(prop.Name.ToCamelCase());
                     }
                 }
@@ -806,7 +807,10 @@ namespace IOperationGenerator
                 argList.Add("isImplicit");
 
                 WriteLine(")");
-                WriteLine($"    => new {className}({string.Join(", ", argList)});");
+                Outdent();
+                Brace();
+                WriteLine($"return new {className}({string.Join(", ", argList)});");
+                Unbrace();
                 Blank();
             }
         }
