@@ -107,12 +107,22 @@ Namespace(
         public void TestEnumDeclarationWithBaseType1()
         {
             AssertEx.AreEqual(
+@"enum X
+{
+}",
+Enum("X").With(
+    baseType: new Optional<INamedTypeSymbol>(System_Enum)).GenerateString());
+        }
+
+        [Fact]
+        public void TestEnumDeclarationWithUnderlyingType1()
+        {
+            AssertEx.AreEqual(
 @"enum X : int
 {
 }",
-Enum(
-    "X",
-    baseType: (INamedTypeSymbol)Int32).GenerateString());
+Enum("X",
+    enumUnderlyingType: System_Int32).GenerateString());
         }
 
         [Fact]

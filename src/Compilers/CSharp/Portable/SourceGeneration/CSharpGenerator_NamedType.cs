@@ -117,6 +117,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                     symbol.TypeKind == TypeKind.Interface ? SyntaxKind.InterfaceKeyword :
                     SyntaxKind.ClassKeyword);
 
+                // Only emit the base type for classes, we don't want it for structs.
+                var baseType = symbol.TypeKind == TypeKind.Class ? symbol.BaseType : null;
+
                 return TypeDeclaration(
                     typeKind,
                     GenerateAttributeLists(symbol.GetAttributes()),
@@ -124,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                     keyword,
                     Identifier(symbol.Name),
                     GenerateTypeParameterList(symbol.TypeArguments),
-                    GenerateBaseList(symbol.BaseType, symbol.Interfaces),
+                    GenerateBaseList(baseType, symbol.Interfaces),
                     GenerateTypeParameterConstraintClauses(symbol.TypeArguments),
                     Token(SyntaxKind.OpenBraceToken),
                     GenerateMemberDeclarations(symbol.GetMembers()),

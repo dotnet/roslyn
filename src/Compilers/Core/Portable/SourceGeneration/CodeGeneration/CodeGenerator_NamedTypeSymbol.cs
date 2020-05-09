@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 members,
                 tupleElements: default,
                 delegateInvokeMethod: null,
+                enumUnderlyingType: null,
                 nullableAnnotation,
                 containingSymbol);
         }
@@ -66,6 +67,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 members,
                 tupleElements: default,
                 delegateInvokeMethod: null,
+                enumUnderlyingType: null,
                 nullableAnnotation,
                 containingSymbol);
         }
@@ -94,6 +96,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 members,
                 tupleElements: default,
                 delegateInvokeMethod: null,
+                enumUnderlyingType: null,
                 nullableAnnotation,
                 containingSymbol);
         }
@@ -122,6 +125,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 members,
                 tupleElements: default,
                 delegateInvokeMethod: null,
+                enumUnderlyingType: null,
                 nullableAnnotation,
                 containingSymbol);
         }
@@ -131,9 +135,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ImmutableArray<AttributeData> attributes = default,
             Accessibility declaredAccessibility = default,
             SymbolModifiers modifiers = default,
-            INamedTypeSymbol baseType = null,
             ImmutableArray<ISymbol> members = default,
             NullableAnnotation nullableAnnotation = default,
+            INamedTypeSymbol enumUnderlyingType = null,
             ISymbol containingSymbol = null)
         {
             return new NamedTypeSymbol(
@@ -144,11 +148,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 modifiers,
                 name,
                 typeArguments: default,
-                baseType,
+                baseType: null,
                 interfaces: default,
                 members,
                 tupleElements: default,
                 delegateInvokeMethod: null,
+                enumUnderlyingType,
                 nullableAnnotation,
                 containingSymbol);
         }
@@ -169,6 +174,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 members: default,
                 tupleElements: default,
                 delegateInvokeMethod,
+                enumUnderlyingType: null,
                 nullableAnnotation: default,
                 containingSymbol: null);
         }
@@ -190,6 +196,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 members: default,
                 tupleElements,
                 delegateInvokeMethod: null,
+                enumUnderlyingType: null,
                 nullableAnnotation,
                 containingSymbol: null);
         }
@@ -214,6 +221,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Optional<ImmutableArray<ISymbol>> members = default,
             Optional<ImmutableArray<IFieldSymbol>> tupleElements = default,
             Optional<IMethodSymbol> delegateInvokeMethod = default,
+            Optional<INamedTypeSymbol> enumUnderlyingType = default,
             Optional<NullableAnnotation> nullableAnnotation = default,
             Optional<ISymbol> containingSymbol = default)
         {
@@ -230,6 +238,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 members.GetValueOr(type.GetMembers()),
                 tupleElements.GetValueOr(type.TupleElements),
                 delegateInvokeMethod.GetValueOr(type.DelegateInvokeMethod),
+                enumUnderlyingType.GetValueOr(type.EnumUnderlyingType),
                 nullableAnnotation.GetValueOr(type.NullableAnnotation),
                 containingSymbol.GetValueOr(type.ContainingSymbol));
         }
@@ -277,6 +286,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 ImmutableArray<ISymbol> members,
                 ImmutableArray<IFieldSymbol> tupleElements,
                 IMethodSymbol delegateInvokeMethod,
+                INamedTypeSymbol enumUnderlyingType,
                 NullableAnnotation nullableAnnotation,
                 ISymbol containingSymbol)
             {
@@ -291,6 +301,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 Interfaces = interfaces.NullToEmpty();
                 TupleElements = tupleElements;
                 DelegateInvokeMethod = delegateInvokeMethod;
+                EnumUnderlyingType = enumUnderlyingType;
                 NullableAnnotation = nullableAnnotation;
                 ContainingSymbol = containingSymbol;
 
@@ -301,6 +312,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public override SymbolKind Kind => SymbolKind.NamedType;
 
             public IMethodSymbol DelegateInvokeMethod { get; }
+            public INamedTypeSymbol EnumUnderlyingType { get; }
             public ImmutableArray<IFieldSymbol> TupleElements { get; }
             public ImmutableArray<ITypeSymbol> TypeArguments { get; }
 
@@ -342,7 +354,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments) => throw new NotImplementedException();
             public INamedTypeSymbol ConstructedFrom => throw new NotImplementedException();
             public INamedTypeSymbol ConstructUnboundGenericType() => throw new NotImplementedException();
-            public INamedTypeSymbol EnumUnderlyingType => throw new NotImplementedException();
             public INamedTypeSymbol NativeIntegerUnderlyingType => throw new NotImplementedException();
             public INamedTypeSymbol TupleUnderlyingType => throw new NotImplementedException();
             public int Arity => throw new NotImplementedException();

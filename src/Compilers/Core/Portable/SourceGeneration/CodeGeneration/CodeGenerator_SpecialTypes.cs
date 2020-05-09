@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 members: default,
                 tupleElements: default,
                 delegateInvokeMethod: null,
+                enumUnderlyingType: null,
                 nullableAnnotation: default,
                 containingSymbol: GetContainingNamespace(ns.Split('.')));
         }
@@ -111,6 +112,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 members: default,
                 tupleElements: default,
                 delegateInvokeMethod: null,
+                enumUnderlyingType: null,
                 nullableAnnotation: default,
                 containingSymbol: GetContainingNamespace(type.Namespace!.Split('.')));
 

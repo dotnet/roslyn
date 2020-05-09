@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 GenerateAttributeLists(symbol.GetAttributes()),
                 GenerateModifiers(symbol),
                 Identifier(symbol.Name),
-                GenerateBaseList(symbol.BaseType, symbol.Interfaces),
+                GenerateBaseList(symbol.EnumUnderlyingType, symbol.Interfaces),
                 GenerateEnumMemberDeclarations(symbol.GetMembers()));
         }
 

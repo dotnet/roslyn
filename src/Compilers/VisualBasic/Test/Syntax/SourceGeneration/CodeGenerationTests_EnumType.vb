@@ -75,17 +75,25 @@ End Namespace",
     "N",
     members:=ImmutableArray.Create(Of INamespaceOrTypeSymbol)(
         [Enum]("X"))).GenerateString())
-        End sub
+        End Sub
 
-        <fact>
-        public sub TestEnumDeclarationWithBaseType1()
+        <Fact>
+        Public Sub TestEnumDeclarationWithUnderlyingType1()
             AssertEx.AreEqual(
 "Enum X As Integer
 End Enum",
 [Enum](
     "X",
-    baseType:=DirectCast(Int32, INamedTypeSymbol)).GenerateString())
-        End sub
+    enumUnderlyingType:=System_Int32).GenerateString())
+        End Sub
+
+        <fact>
+        Public Sub TestEnumDeclarationWithBaseType1()
+            AssertEx.AreEqual(
+"Enum X
+End Enum",
+[Enum]("X").With(baseType:=New [Optional](Of INamedTypeSymbol)(System_Enum)).GenerateString())
+        End Sub
 
         <fact>
         public sub TestEnumDeclarationWithOneMember1()

@@ -30,10 +30,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
                 Dim containingType = symbol.ContainingType.GenerateNameSyntax()
                 Return QualifiedName(containingType, nameSyntax)
             ElseIf symbol.ContainingNamespace IsNot Nothing Then
-                'If symbol.ContainingNamespace.IsGlobalNamespace Then
-                '    Return AliasQualifiedName(SyntaxFacts.GetText(SyntaxKind.GlobalKeyword), nameSyntax)
-                'End If
-
                 Dim containingNamespace = symbol.ContainingNamespace.GenerateNameSyntax()
                 Return QualifiedName(containingNamespace, nameSyntax)
             End If
@@ -103,39 +99,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
         End Function
 
         Private Function GenerateNamedTypeDeclaration(symbol As INamedTypeSymbol) As DeclarationStatementSyntax
-            If symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Enum Then
+            If symbol.TypeKind = TypeKind.Enum Then
                 Return GenerateEnumDeclaration(symbol)
-            ElseIf symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Delegate Then
+            ElseIf symbol.TypeKind = TypeKind.Delegate Then
                 Return GenerateDelegateDeclaration(symbol)
             End If
 
             Dim blockKind =
-                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Structure, SyntaxKind.StructureBlock,
-                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Interface, SyntaxKind.InterfaceBlock,
+                If(symbol.TypeKind = TypeKind.Structure, SyntaxKind.StructureBlock,
+                If(symbol.TypeKind = TypeKind.Interface, SyntaxKind.InterfaceBlock,
                    SyntaxKind.ClassBlock))
 
             Dim statementKind =
-                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Structure, SyntaxKind.StructureStatement,
-                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Interface, SyntaxKind.InterfaceStatement,
+                If(symbol.TypeKind = TypeKind.Structure, SyntaxKind.StructureStatement,
+                If(symbol.TypeKind = TypeKind.Interface, SyntaxKind.InterfaceStatement,
                    SyntaxKind.ClassStatement))
 
             Dim typeKeyword = Token(
-                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Structure, SyntaxKind.StructureKeyword,
-                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Interface, SyntaxKind.InterfaceKeyword,
+                If(symbol.TypeKind = TypeKind.Structure, SyntaxKind.StructureKeyword,
+                If(symbol.TypeKind = TypeKind.Interface, SyntaxKind.InterfaceKeyword,
                    SyntaxKind.ClassKeyword)))
 
             Dim inheritsList =
-                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Interface, GenerateInheritsList(symbol.Interfaces),
-                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Class, GenerateInheritsList(ImmutableArray.Create(symbol.BaseType)), Nothing))
+                If(symbol.TypeKind = TypeKind.Interface, GenerateInheritsList(symbol.Interfaces),
+                If(symbol.TypeKind = TypeKind.Class, GenerateInheritsList(ImmutableArray.Create(symbol.BaseType)), Nothing))
 
             Dim implementsList =
-                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Class OrElse symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Structure,
+                If(symbol.TypeKind = TypeKind.Class OrElse symbol.TypeKind = TypeKind.Structure,
                    GenerateImplementsList(symbol.Interfaces),
                    Nothing)
 
             Dim endStatement =
-                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Structure, EndStructureStatement(),
-                If(symbol.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Interface, EndInterfaceStatement(),
+                If(symbol.TypeKind = TypeKind.Structure, EndStructureStatement(),
+                If(symbol.TypeKind = TypeKind.Interface, EndInterfaceStatement(),
                    EndClassStatement()))
 
             Return TypeBlock(

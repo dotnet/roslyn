@@ -64,6 +64,17 @@ Struct("X").GenerateString());
         }
 
         [Fact]
+        public void TestStructDeclarationWithBaseType1()
+        {
+            AssertEx.AreEqual(
+@"struct X
+{
+}",
+Struct("X").With(baseType:
+    new Optional<INamedTypeSymbol>(System_ValueType)).GenerateString());
+        }
+
+        [Fact]
         public void TestPublicStructDeclaration1()
         {
             AssertEx.AreEqual(

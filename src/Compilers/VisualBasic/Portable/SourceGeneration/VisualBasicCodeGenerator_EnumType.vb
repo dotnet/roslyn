@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
                     GenerateAttributeLists(symbol.GetAttributes()),
                     GenerateModifiers(isType:=True, symbol.DeclaredAccessibility, symbol.GetModifiers()),
                     Identifier(symbol.Name),
-                    If(symbol.BaseType Is Nothing, Nothing, SimpleAsClause(symbol.BaseType.GenerateTypeSyntax()))),
+                    If(symbol.EnumUnderlyingType Is Nothing, Nothing, SimpleAsClause(symbol.EnumUnderlyingType.GenerateTypeSyntax()))),
                     List(builder))
             End Using
         End Function
