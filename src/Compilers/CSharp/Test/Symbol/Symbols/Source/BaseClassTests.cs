@@ -2304,7 +2304,7 @@ class Derived : Base
 
         [Fact]
         [WorkItem(1107185, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107185")]
-        public void Tuple_MissingNestedTypeArgument()
+        public void Tuple_MissingNestedTypeArgument_01()
         {
             var source =
 @"interface I<T>
@@ -2318,6 +2318,24 @@ class A : I<(object, A.B)>
                 // (4,24): error CS0146: Circular base class dependency involving 'A' and 'A'
                 // class A : I<(object, A.B)>
                 Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A", "A").WithLocation(4, 24));
+        }
+
+        [Fact]
+        [WorkItem(1107185, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107185")]
+        public void Tuple_MissingNestedTypeArgument_02()
+        {
+            var source =
+@"class A<T>
+{
+}
+class B : A<(object, B.C)>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0146: Circular base class dependency involving 'B' and 'B'
+                // class B : A<(object, B.C)>
+                Diagnostic(ErrorCode.ERR_CircularBase, "C").WithArguments("B", "B").WithLocation(4, 24));
         }
     }
 }
