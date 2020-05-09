@@ -28,6 +28,23 @@ Class(
         }
 
         [Fact]
+        public void TestConstructorWithBody1()
+        {
+            AssertEx.AreEqual(
+@"class C
+{
+    C()
+    {
+    }
+}",
+Class(
+    "C",
+    members: ImmutableArray.Create<ISymbol>(
+        Constructor(
+            body: Block()))).GenerateString());
+        }
+
+        [Fact]
         public void TestGenericTypeConstructor1()
         {
             AssertEx.AreEqual(

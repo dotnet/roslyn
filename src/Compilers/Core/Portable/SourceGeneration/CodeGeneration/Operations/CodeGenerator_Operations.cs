@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ImmutableArray<IOperation> operations = default,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
-            return new BlockOperation(operations, locals: default, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new BlockOperation(operations.NullToEmpty(), locals: default, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
         public static IVariableDeclarationGroupOperation VariableDeclarationGroup(
