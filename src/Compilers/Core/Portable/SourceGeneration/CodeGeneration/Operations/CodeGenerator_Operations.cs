@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static ISimpleAssignmentOperation SimpleAssignment(
             IOperation target,
             IOperation value,
-            bool isRef= false,
+            bool isRef = false,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
             return new SimpleAssignmentOperation(isRef, target, value, semanticModel: null, syntax: null, type, constantValue, isImplicit);

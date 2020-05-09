@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration
 {
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations = default,
             ImmutableArray<ITypeSymbol> typeArguments = default,
             ImmutableArray<IParameterSymbol> parameters = default,
+            IBlockOperation body = null,
             ISymbol containingSymbol = null)
         {
             return new MethodSymbol(
@@ -30,6 +32,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 name,
                 typeArguments,
                 parameters,
+                body,
                 containingSymbol);
         }
 
@@ -38,6 +41,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Accessibility declaredAccessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<IParameterSymbol> parameters = default,
+            IBlockOperation body = null,
             ISymbol containingSymbol = null)
         {
             return new MethodSymbol(
@@ -50,12 +54,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 name: null,
                 typeArguments: default,
                 parameters,
+                body,
                 containingSymbol);
         }
 
         public static IMethodSymbol Destructor(
             ImmutableArray<AttributeData> attributes = default,
             SymbolModifiers modifiers = default,
+            IBlockOperation body = null,
             ISymbol containingSymbol = null)
         {
             return new MethodSymbol(
@@ -68,6 +74,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 name: null,
                 typeArguments: default,
                 parameters: default,
+                body,
                 containingSymbol);
         }
 
@@ -77,6 +84,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ImmutableArray<AttributeData> attributes = default,
             Accessibility declaredAccessibility = default,
             SymbolModifiers modifiers = default,
+            IBlockOperation body = null,
             ISymbol containingSymbol = null)
         {
             return new MethodSymbol(
@@ -89,6 +97,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 WellKnownMemberNames.ImplicitConversionName,
                 typeArguments: default,
                 ImmutableArray.Create(parameter),
+                body,
                 containingSymbol);
         }
 
@@ -98,6 +107,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ImmutableArray<AttributeData> attributes = default,
             Accessibility declaredAccessibility = default,
             SymbolModifiers modifiers = default,
+            IBlockOperation body = null,
             ISymbol containingSymbol = null)
         {
             return new MethodSymbol(
@@ -110,6 +120,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 WellKnownMemberNames.ExplicitConversionName,
                 typeArguments: default,
                 ImmutableArray.Create(parameter),
+                body,
                 containingSymbol);
         }
 
@@ -120,6 +131,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Accessibility declaredAccessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<IParameterSymbol> parameters = default,
+            IBlockOperation body = null,
             ISymbol containingSymbol = null)
         {
             return new MethodSymbol(
@@ -132,13 +144,15 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 name,
                 typeArguments: default,
                 parameters,
+                body,
                 containingSymbol);
         }
 
         public static IMethodSymbol PropertyGet(
             ImmutableArray<AttributeData> attributes = default,
             Accessibility declaredAccessibility = default,
-            SymbolModifiers modifiers = default)
+            SymbolModifiers modifiers = default,
+            IBlockOperation body = null)
         {
             return new MethodSymbol(
                 MethodKind.PropertyGet,
@@ -150,6 +164,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 name: null,
                 typeArguments: default,
                 parameters: default,
+                body,
                 containingSymbol: null);
         }
 
@@ -157,7 +172,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ImmutableArray<AttributeData> attributes = default,
             Accessibility declaredAccessibility = default,
             SymbolModifiers modifiers = default,
-            ImmutableArray<IParameterSymbol> parameters = default)
+            ImmutableArray<IParameterSymbol> parameters = default,
+            IBlockOperation body = null)
         {
             return new MethodSymbol(
                 MethodKind.PropertySet,
@@ -169,13 +185,15 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 name: null,
                 typeArguments: default,
                 parameters,
+                body,
                 containingSymbol: null);
         }
 
         public static IMethodSymbol EventAdd(
             ImmutableArray<AttributeData> attributes = default,
             Accessibility declaredAccessibility = default,
-            SymbolModifiers modifiers = default)
+            SymbolModifiers modifiers = default,
+            IBlockOperation body = null)
         {
             return new MethodSymbol(
                 MethodKind.EventAdd,
@@ -187,13 +205,15 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 name: null,
                 typeArguments: default,
                 parameters: default,
+                body,
                 containingSymbol: null);
         }
 
         public static IMethodSymbol EventRemove(
             ImmutableArray<AttributeData> attributes = default,
             Accessibility declaredAccessibility = default,
-            SymbolModifiers modifiers = default)
+            SymbolModifiers modifiers = default,
+            IBlockOperation body = null)
         {
             return new MethodSymbol(
                 MethodKind.EventRemove,
@@ -205,13 +225,15 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 name: null,
                 typeArguments: default,
                 parameters: default,
+                body,
                 containingSymbol: null);
         }
 
         public static IMethodSymbol EventRaise(
             ImmutableArray<AttributeData> attributes = default,
             Accessibility declaredAccessibility = default,
-            SymbolModifiers modifiers = default)
+            SymbolModifiers modifiers = default,
+            IBlockOperation body = null)
         {
             return new MethodSymbol(
                 MethodKind.EventRaise,
@@ -223,6 +245,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 name: null,
                 typeArguments: default,
                 parameters: default,
+                body,
                 containingSymbol: null);
         }
 
@@ -240,6 +263,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 name: null,
                 typeArguments: default,
                 parameters,
+                body: null,
                 containingSymbol: null);
         }
 
@@ -254,6 +278,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Optional<string> name = default,
             Optional<ImmutableArray<ITypeSymbol>> typeArguments = default,
             Optional<ImmutableArray<IParameterSymbol>> parameters = default,
+            Optional<IBlockOperation> body = default,
             Optional<ISymbol> containingSymbol = default)
         {
             return new MethodSymbol(
@@ -266,8 +291,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 name.GetValueOr(method.Name),
                 typeArguments.GetValueOr(method.TypeArguments),
                 parameters.GetValueOr(method.Parameters),
+                body.GetValueOr(method.GetBody()),
                 containingSymbol.GetValueOr(method.ContainingSymbol));
         }
+
+        internal static IBlockOperation GetBody(this IMethodSymbol method)
+            => method is MethodSymbol m ? m.Body : null;
 
         private class MethodSymbol : Symbol, IMethodSymbol
         {
@@ -283,6 +312,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 string name,
                 ImmutableArray<ITypeSymbol> typeArguments,
                 ImmutableArray<IParameterSymbol> parameters,
+                IBlockOperation body,
                 ISymbol containingSymbol)
             {
                 MethodKind = methodKind;
@@ -294,10 +324,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 Name = name;
                 TypeArguments = typeArguments.NullToEmpty();
                 Parameters = parameters.NullToEmpty();
+                Body = body;
                 ContainingSymbol = containingSymbol;
             }
 
-            public ISymbol AssociatedSymbol => null;
             public override ISymbol ContainingSymbol { get; }
             public override Accessibility DeclaredAccessibility { get; }
             public override ImmutableArray<AttributeData> GetAttributes() => _attributes;
@@ -305,6 +335,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public override SymbolModifiers Modifiers { get; }
             public override string Name { get; }
 
+            public IBlockOperation Body { get; }
+            public ISymbol AssociatedSymbol => null;
             public ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations { get; }
             public ImmutableArray<IParameterSymbol> Parameters { get; }
             public ImmutableArray<ITypeSymbol> TypeArguments { get; }

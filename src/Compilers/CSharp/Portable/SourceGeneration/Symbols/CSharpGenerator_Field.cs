@@ -14,9 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
     {
         private FieldDeclarationSyntax? TryGenerateFieldDeclaration(IFieldSymbol symbol)
         {
-            if (!symbol.CanBeReferencedByName)
-                return null;
-
             if (!SyntaxFacts.IsValidIdentifier(symbol.Name))
                 return null;
 

@@ -18,12 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             if (_currentNamedType == null)
                 throw new NotSupportedException("Constructors must be contained within a named type");
 
+            var (body, arrow, semicolon) = method.GetBody().GenerateBodyParts();
             return DestructorDeclaration(
                 GenerateAttributeLists(method.GetAttributes()),
                 default,
+                Token(SyntaxKind.TildeToken),
                 Identifier(_currentNamedType.Name),
                 GenerateParameterList(method.Parameters),
-                body: Block());
+                body,
+                arrow,
+                semicolon);
         }
     }
 }

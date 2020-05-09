@@ -309,6 +309,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 DelegateInvokeMethod = delegateInvokeMethod;
                 EnumUnderlyingType = enumUnderlyingType;
                 NullableAnnotation = nullableAnnotation;
+
                 ContainingSymbol = containingSymbol;
 
                 _members = members.NullToEmpty().SelectAsArray(

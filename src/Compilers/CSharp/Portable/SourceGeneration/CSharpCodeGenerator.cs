@@ -6,6 +6,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
@@ -26,6 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
         public static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol)
             => GenerateTypeSyntax(symbol, onlyNames: false);
+
+        public static BlockSyntax? GenerateBodySyntax(this IBlockOperation? block)
+            => new CSharpGenerator().GenerateBlock(block);
+
+        public static (BlockSyntax?, ArrowExpressionClauseSyntax?, SyntaxToken) GenerateBodyParts(this IBlockOperation? block)
+            => new CSharpGenerator().GenerateBodyParts(block);
 
         private static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol, bool onlyNames)
             => new CSharpGenerator().GenerateTypeSyntax(symbol, onlyNames);

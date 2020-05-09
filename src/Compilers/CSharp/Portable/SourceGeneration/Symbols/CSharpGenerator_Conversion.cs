@@ -14,16 +14,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
     {
         private ConversionOperatorDeclarationSyntax GenerateConversion(IMethodSymbol method)
         {
+            var (body, arrow, semicolon) = method.GetBody().GenerateBodyParts();
             return ConversionOperatorDeclaration(
                 GenerateAttributeLists(method.GetAttributes()),
                 GenerateModifiers(method),
                 Token(method.Name == WellKnownMemberNames.ImplicitConversionName
                     ? SyntaxKind.ImplicitKeyword
                     : SyntaxKind.ExplicitKeyword),
+                Token(SyntaxKind.OperatorKeyword),
                 method.ReturnType.GenerateTypeSyntax(),
                 GenerateParameterList(method.Parameters),
-                Block(),
-                expressionBody: null);
+                body,
+                arrow,
+                semicolon);
         }
     }
 }

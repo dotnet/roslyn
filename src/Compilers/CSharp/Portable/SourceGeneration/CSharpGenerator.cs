@@ -14,36 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         private INamedTypeSymbol? _currentNamedType = null;
         private ISymbol? _currentAccessorParent = null;
 
-        public SyntaxNode? TryGenerate(ISymbol symbol)
-        {
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Assembly:
-                case SymbolKind.NetModule:
-                    // TODO: implement these so we can emit assembly/module attributes.
-                    throw new NotImplementedException();
-
-                case SymbolKind.Event:
-                    return GenerateEventDeclaration((IEventSymbol)symbol);
-                case SymbolKind.Field:
-                    return TryGenerateFieldDeclaration((IFieldSymbol)symbol);
-                case SymbolKind.Label:
-                    return GenerateLabelIdentifierName((ILabelSymbol)symbol);
-                case SymbolKind.Local:
-                    return GenerateLocalIdentifierName((ILocalSymbol)symbol);
-                case SymbolKind.Method:
-                    return TryGenerateMethodDeclaration((IMethodSymbol)symbol);
-                case SymbolKind.NamedType:
-                    return TryGenerateNamedTypeDeclaration((INamedTypeSymbol)symbol);
-                case SymbolKind.Namespace:
-                    return GenerateCompilationUnitOrNamespaceDeclaration((INamespaceSymbol)symbol);
-                case SymbolKind.Property:
-                    return GeneratePropertyOrIndexerDeclaration((IPropertySymbol)symbol);
-            }
-
-            throw new NotSupportedException($"Directly generating a {symbol.Kind} symbol is not supported");
-        }
-
         private static BuilderDisposer<T> GetArrayBuilder<T>(out ArrayBuilder<T> builder)
         {
             builder = ArrayBuilder<T>.GetInstance();

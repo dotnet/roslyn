@@ -44,14 +44,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 _ => throw new ArgumentException($"Operator {method.Name} not supported in C#"),
             };
 
+            var (body, arrow, semicolon) = method.GetBody().GenerateBodyParts();
             return OperatorDeclaration(
                 GenerateAttributeLists(method.GetAttributes()),
                 GenerateModifiers(method),
                 method.ReturnType.GenerateTypeSyntax(),
+                Token(SyntaxKind.OperatorKeyword),
                 Token(operatorToken),
                 GenerateParameterList(method.Parameters),
-                Block(),
-                expressionBody: null);
+                body,
+                arrow,
+                semicolon);
         }
     }
 }

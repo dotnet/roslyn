@@ -96,9 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
         public MemberDeclarationSyntax? TryGenerateNamedTypeDeclaration(INamedTypeSymbol symbol)
         {
-            if (!symbol.CanBeReferencedByName)
-                return null;
-
             if (!SyntaxFacts.IsValidIdentifier(symbol.Name))
                 return null;
 

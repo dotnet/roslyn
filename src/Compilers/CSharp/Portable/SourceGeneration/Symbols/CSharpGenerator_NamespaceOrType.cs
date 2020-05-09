@@ -32,10 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 if (member.IsImplicitlyDeclared)
                     continue;
 
-                // skip accessors
-                if (IsAnyAccessor(member))
-                    continue;
-
                 builder.AddIfNotNull(TryGenerateMemberDeclaration(member));
             }
 

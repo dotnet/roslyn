@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
             AssertEx.AreEqual(
 @"class C
 {
-    C()
-    {
-    }
+    C();
 }",
 Class(
     "C",
@@ -35,9 +33,7 @@ Class(
             AssertEx.AreEqual(
 @"class C<T>
 {
-    C()
-    {
-    }
+    C();
 }",
 Class(
     "C",
@@ -52,9 +48,7 @@ Class(
             AssertEx.AreEqual(
 @"class C
 {
-    public C()
-    {
-    }
+    public C();
 }",
 Class(
     "C",
@@ -69,9 +63,7 @@ Class(
             AssertEx.AreEqual(
 @"class C
 {
-    unsafe C()
-    {
-    }
+    unsafe C();
 }",
 Class(
     "C",
@@ -86,9 +78,7 @@ Class(
             AssertEx.AreEqual(
 @"class C
 {
-    C(int i)
-    {
-    }
+    C(int i);
 }",
 Class(
     "C",
@@ -104,9 +94,7 @@ Class(
             AssertEx.AreEqual(
 @"class C
 {
-    C(params int i)
-    {
-    }
+    C(params int i);
 }",
 Class(
     "C",
