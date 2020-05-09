@@ -317,7 +317,7 @@ Literal(ulong.MaxValue).GenerateString());
 
         #endregion
 
-        #region long
+        #region float
 
         [Fact]
         public void TestLiteralSingleMinValue()
@@ -413,6 +413,106 @@ Literal(float.PositiveInfinity).GenerateString());
             AssertEx.AreEqual(
 @"3.1415927F",
 Literal((float)Math.PI).GenerateString());
+        }
+
+        #endregion
+
+        #region double
+
+        [Fact]
+        public void TestLiteralDoubleMinValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Double.MinValue",
+Literal(double.MinValue).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDoubleNegativeOne()
+        {
+            AssertEx.AreEqual(
+@"-1D",
+Literal((double)-1).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDoubleNegativeOneHalf()
+        {
+            AssertEx.AreEqual(
+@"-0.5D",
+Literal((double)-1 / 2).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDoubleZero()
+        {
+            AssertEx.AreEqual(
+@"0D",
+Literal((double)0).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDoubleOne()
+        {
+            AssertEx.AreEqual(
+@"1D",
+Literal((double)1).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDoubleOneHalf()
+        {
+            AssertEx.AreEqual(
+@"0.5D",
+Literal((double)0.5).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDoubleMaxValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Double.MaxValue",
+Literal(double.MaxValue).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDoubleNaNValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Double.NaN",
+Literal(double.NaN).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDoubleEpsilonValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Double.Epsilon",
+Literal(double.Epsilon).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDoubleNegativeInfinityValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Double.NegativeInfinity",
+Literal(double.NegativeInfinity).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDoublePositiveInfinityValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Double.PositiveInfinity",
+Literal(double.PositiveInfinity).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDoubleMathPi()
+        {
+            AssertEx.AreEqual(
+@"3.141592653589793D",
+Literal((double)Math.PI).GenerateString());
         }
 
         #endregion
