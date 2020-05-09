@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var delegates = new MultiDictionary<Document, DeclaredSymbolInfo>();
 
                 var namedTypes = new MultiDictionary<string, (Document, DeclaredSymbolInfo)>(
-                    project.LanguageServices.GetService<ISyntaxFactsService>().StringComparer);
+                    project.LanguageServices.GetRequiredService<ISyntaxFactsService>().StringComparer);
 
                 foreach (var document in project.Documents)
                 {

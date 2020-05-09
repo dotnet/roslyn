@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _ => new ConcurrentDictionary<DefinitionProject, ImmutableArray<DependentProject>>(concurrencyLevel: 2, capacity: 20);
 
         public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, IImmutableSet<Project>? projects, CancellationToken cancellationToken)
         {
             if (symbol.Kind == SymbolKind.Namespace)
             {
