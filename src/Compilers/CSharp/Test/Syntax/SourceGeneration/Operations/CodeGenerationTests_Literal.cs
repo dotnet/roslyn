@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.SourceGeneration;
 using Roslyn.Test.Utilities;
@@ -23,7 +24,7 @@ Literal(sbyte.MinValue).GenerateString());
         }
 
         [Fact]
-        public void TestLiteralSByteNegative1()
+        public void TestLiteralSByteNegativeOne()
         {
             AssertEx.AreEqual(
 @"-1",
@@ -99,7 +100,7 @@ Literal(sbyte.MinValue).GenerateString());
         }
 
         [Fact]
-        public void TestLiteralShortNegative1()
+        public void TestLiteralShortNegativeOne()
         {
             AssertEx.AreEqual(
 @"-1",
@@ -175,7 +176,7 @@ Literal(int.MinValue).GenerateString());
         }
 
         [Fact]
-        public void TestLiteralIntNegative1()
+        public void TestLiteralIntNegativeOne()
         {
             AssertEx.AreEqual(
 @"-1",
@@ -251,7 +252,7 @@ Literal(long.MinValue).GenerateString());
         }
 
         [Fact]
-        public void TestLiteralLongNegative1()
+        public void TestLiteralLongNegativeOne()
         {
             AssertEx.AreEqual(
 @"-1L",
@@ -312,6 +313,106 @@ Literal((ulong)1).GenerateString());
             AssertEx.AreEqual(
 @"global::System.UInt64.MaxValue",
 Literal(ulong.MaxValue).GenerateString());
+        }
+
+        #endregion
+
+        #region long
+
+        [Fact]
+        public void TestLiteralSingleMinValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Single.MinValue",
+Literal(float.MinValue).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralSingleNegativeOne()
+        {
+            AssertEx.AreEqual(
+@"-1F",
+Literal((float)-1).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralSingleNegativeOneHalf()
+        {
+            AssertEx.AreEqual(
+@"-0.5F",
+Literal((float)-1 / 2).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralSingleZero()
+        {
+            AssertEx.AreEqual(
+@"0F",
+Literal((float)0).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralSingleOne()
+        {
+            AssertEx.AreEqual(
+@"1F",
+Literal((float)1).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralSingleOneHalf()
+        {
+            AssertEx.AreEqual(
+@"0.5F",
+Literal((float)0.5).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralSingleMaxValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Single.MaxValue",
+Literal(float.MaxValue).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralSingleNaNValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Single.NaN",
+Literal(float.NaN).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralSingleEpsilonValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Single.Epsilon",
+Literal(float.Epsilon).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralSingleNegativeInfinityValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Single.NegativeInfinity",
+Literal(float.NegativeInfinity).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralSinglePositiveInfinityValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Single.PositiveInfinity",
+Literal(float.PositiveInfinity).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralSingleMathPi()
+        {
+            AssertEx.AreEqual(
+@"3.1415927F",
+Literal((float)Math.PI).GenerateString());
         }
 
         #endregion
