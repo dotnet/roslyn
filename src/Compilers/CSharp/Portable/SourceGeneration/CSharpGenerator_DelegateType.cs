@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 throw new ArgumentException("Delegates must have a DelegateInvokeMethod");
 
             return DelegateDeclaration(
-                GenerateAttributeLists(invoke.GetAttributes()),
-                GenerateModifiers(invoke),
+                GenerateAttributeLists(symbol.GetAttributes()),
+                GenerateModifiers(symbol),
                 invoke.ReturnType.GenerateTypeSyntax(),
-                Identifier(invoke.Name),
-                GenerateTypeParameterList(invoke.TypeArguments),
+                Identifier(symbol.Name),
+                GenerateTypeParameterList(symbol.TypeArguments),
                 GenerateParameterList(invoke.Parameters),
-                GenerateTypeParameterConstraintClauses(invoke.TypeArguments));
+                GenerateTypeParameterConstraintClauses(symbol.TypeArguments));
         }
     }
 }

@@ -159,21 +159,27 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         }
 
         public static INamedTypeSymbol Delegate(
-            IMethodSymbol delegateInvokeMethod)
+            ITypeSymbol returnType,
+            string name,
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default,
+            ImmutableArray<ITypeSymbol> typeArguments = default,
+            ImmutableArray<IParameterSymbol> parameters = default)
         {
             return new NamedTypeSymbol(
                 CodeAnalysis.SpecialType.None,
                 TypeKind.Delegate,
-                attributes: default,
-                declaredAccessibility: default,
-                modifiers: default,
-                name: null,
-                typeArguments: default,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                name,
+                typeArguments,
                 baseType: null,
                 interfaces: default,
                 members: default,
                 tupleElements: default,
-                delegateInvokeMethod,
+                delegateInvokeMethod: DelegateInvoke(returnType, parameters),
                 enumUnderlyingType: null,
                 nullableAnnotation: default,
                 containingSymbol: null);

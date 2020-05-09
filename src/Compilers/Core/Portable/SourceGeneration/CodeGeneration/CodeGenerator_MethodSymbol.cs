@@ -226,6 +226,23 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 containingSymbol: null);
         }
 
+        public static IMethodSymbol DelegateInvoke(
+            ITypeSymbol returnType,
+            ImmutableArray<IParameterSymbol> parameters)
+        {
+            return new MethodSymbol(
+                MethodKind.DelegateInvoke,
+                attributes: default,
+                declaredAccessibility: default,
+                modifiers: default,
+                returnType,
+                explicitInterfaceImplementations: default,
+                name: null,
+                typeArguments: default,
+                parameters,
+                containingSymbol: null);
+        }
+
         public static IMethodSymbol With(
             this IMethodSymbol method,
             Optional<MethodKind> methodKind = default,
