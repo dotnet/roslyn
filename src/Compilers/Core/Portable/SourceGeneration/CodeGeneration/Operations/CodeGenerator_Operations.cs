@@ -10,10 +10,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
     internal partial class CodeGenerator
     {
         public static IBlockOperation Block(
-            ImmutableArray<IOperation> operations = default,
-            ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+            ImmutableArray<IOperation> operations = default)
         {
-            return new BlockOperation(operations.NullToEmpty(), locals: default, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new BlockOperation(operations.NullToEmpty(), locals: default, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }
 
         public static IVariableDeclarationGroupOperation VariableDeclarationGroup(
@@ -91,6 +90,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         }
 
         public static ILabeledOperation Labeled(
+            string label,
+            IOperation operation,
+            ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+        {
+            return Labeled(Label(label), operation, type, constantValue, isImplicit);
+        }
+
+        public static ILabeledOperation Labeled(
             ILabelSymbol label,
             IOperation operation,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
@@ -126,10 +133,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         }
 
         public static IReturnOperation Return(
-            IOperation returnedValue = null,
-            ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+            IOperation returnedValue = null)
         {
-            return new ReturnOperation(returnedValue, OperationKind.Return, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new ReturnOperation(returnedValue, OperationKind.Return, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }
 
         public static IReturnOperation YieldBreak(

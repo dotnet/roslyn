@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case OperationKind.Loop:
                     break;
                 case OperationKind.Labeled:
-                    break;
+                    return TryGenerateLabeledStatement((ILabeledOperation)operation, type);
                 case OperationKind.Branch:
                     break;
                 case OperationKind.Empty:
