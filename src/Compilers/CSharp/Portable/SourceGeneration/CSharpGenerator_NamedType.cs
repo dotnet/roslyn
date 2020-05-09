@@ -94,8 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             return GenerateNormalNamedTypeSyntaxWithoutNullable(symbol);
         }
 
-        public MemberDeclarationSyntax GenerateNamedTypeDeclaration(INamedTypeSymbol symbol)
+        public MemberDeclarationSyntax? TryGenerateNamedTypeDeclaration(INamedTypeSymbol symbol)
         {
+            if (!symbol.CanBeReferencedByName)
+                return null;
+
+            if (!SyntaxFacts.IsValidIdentifier(symbol.Name))
+                return null;
+
             var previousNamedType = _currentNamedType;
             _currentNamedType = symbol;
 

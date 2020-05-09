@@ -12,8 +12,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
-        private FieldDeclarationSyntax GenerateFieldDeclaration(IFieldSymbol symbol)
+        private FieldDeclarationSyntax? TryGenerateFieldDeclaration(IFieldSymbol symbol)
         {
+            if (!symbol.CanBeReferencedByName)
+                return null;
+
+            if (!SyntaxFacts.IsValidIdentifier(symbol.Name))
+                return null;
+
             return FieldDeclaration(
                 GenerateAttributeLists(symbol.GetAttributes()),
                 GenerateModifiers(symbol),

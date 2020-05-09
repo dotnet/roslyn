@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
-        private MemberDeclarationSyntax GenerateMethodDeclaration(IMethodSymbol method)
+        private MemberDeclarationSyntax? TryGenerateMethodDeclaration(IMethodSymbol method)
         {
             switch (method.MethodKind)
             {
@@ -26,8 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case MethodKind.UserDefinedOperator:
                     return GenerateOperator(method);
                 case MethodKind.Ordinary:
-                case MethodKind.ExplicitInterfaceImplementation:
                     return GenerateOrdinaryMethod(method);
+                case MethodKind.ExplicitInterfaceImplementation:
+                    return null;
             }
 
             throw new NotImplementedException();

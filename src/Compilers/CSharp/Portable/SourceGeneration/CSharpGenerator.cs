@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         private INamedTypeSymbol? _currentNamedType = null;
         private ISymbol? _currentAccessorParent = null;
 
-        public SyntaxNode Generate(ISymbol symbol)
+        public SyntaxNode? TryGenerate(ISymbol symbol)
         {
             switch (symbol.Kind)
             {
@@ -26,15 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case SymbolKind.Event:
                     return GenerateEventDeclaration((IEventSymbol)symbol);
                 case SymbolKind.Field:
-                    return GenerateFieldDeclaration((IFieldSymbol)symbol);
+                    return TryGenerateFieldDeclaration((IFieldSymbol)symbol);
                 case SymbolKind.Label:
                     return GenerateLabelIdentifierName((ILabelSymbol)symbol);
                 case SymbolKind.Local:
                     return GenerateLocalIdentifierName((ILocalSymbol)symbol);
                 case SymbolKind.Method:
-                    return GenerateMethodDeclaration((IMethodSymbol)symbol);
+                    return TryGenerateMethodDeclaration((IMethodSymbol)symbol);
                 case SymbolKind.NamedType:
-                    return GenerateNamedTypeDeclaration((INamedTypeSymbol)symbol);
+                    return TryGenerateNamedTypeDeclaration((INamedTypeSymbol)symbol);
                 case SymbolKind.Namespace:
                     return GenerateCompilationUnitOrNamespaceDeclaration((INamespaceSymbol)symbol);
                 case SymbolKind.Property:

@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
         }
 
-
-
         private SyntaxList<MemberDeclarationSyntax> GenerateMemberDeclarations(ImmutableArray<ISymbol> members)
         {
             using var _ = GetArrayBuilder<MemberDeclarationSyntax>(out var builder);
@@ -38,14 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 if (IsAnyAccessor(member))
                     continue;
 
-                builder.Add(GenerateMemberDeclaration(member));
+                builder.AddIfNotNull(TryGenerateMemberDeclaration(member));
             }
 
             return List(builder);
         }
 
-        private MemberDeclarationSyntax GenerateMemberDeclaration(ISymbol member)
-            => (MemberDeclarationSyntax)Generate(member);
+        private MemberDeclarationSyntax? TryGenerateMemberDeclaration(ISymbol member)
+            => (MemberDeclarationSyntax?)TryGenerate(member);
 
         private static SyntaxList<UsingDirectiveSyntax> GenerateUsingDirectives(
             ImmutableArray<INamespaceOrTypeSymbol> imports)
