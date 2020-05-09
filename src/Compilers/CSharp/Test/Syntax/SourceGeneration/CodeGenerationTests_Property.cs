@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.SourceGeneration;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.SourceGeneration.CodeGenerator;
@@ -91,6 +92,27 @@ Class("C",
             declaredAccessibility: Accessibility.Public,
             getMethod: PropertyGet(
                 declaredAccessibility: Accessibility.Private)))).GenerateString());
+        }
+
+        [Fact]
+        public void TestStaticPropertyAndAccessor1()
+        {
+            AssertEx.AreEqual(
+@"class C
+{
+    static int P
+    {
+        get
+        {
+        }
+    }
+}",
+Class("C",
+    members: ImmutableArray.Create<ISymbol>(
+        Property(Int32, "P",
+            modifiers: SymbolModifiers.Static,
+            getMethod: PropertyGet(
+                modifiers: SymbolModifiers.Static)))).GenerateString());
         }
     }
 }

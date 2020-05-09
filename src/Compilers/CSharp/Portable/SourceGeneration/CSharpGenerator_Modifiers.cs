@@ -151,6 +151,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 modifiers &= ~SymbolModifiers.Virtual;
             }
 
+            if (IsAnyAccessor(symbol))
+            {
+                // accessors inherit the 'static' keyword from their containing symbol
+                modifiers &= ~SymbolModifiers.Static;
+            }
+
             return modifiers;
         }
     }
