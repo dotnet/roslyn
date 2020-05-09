@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         {
             using var _ = GetArrayBuilder<AccessorDeclarationSyntax>(out var accessors);
 
-            accessors.AddIfNotNull(GenerateAccessorDeclaration(SyntaxKind.AddAccessorDeclaration, symbol.AddMethod));
-            accessors.AddIfNotNull(GenerateAccessorDeclaration(SyntaxKind.RemoveAccessorDeclaration, symbol.RemoveMethod));
+            accessors.AddIfNotNull(GenerateAccessorDeclaration(SyntaxKind.AddAccessorDeclaration, symbol, symbol.AddMethod));
+            accessors.AddIfNotNull(GenerateAccessorDeclaration(SyntaxKind.RemoveAccessorDeclaration, symbol, symbol.RemoveMethod));
 
             return AccessorList(List(accessors));
         }

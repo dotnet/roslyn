@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
         }
 
+
+
         private SyntaxList<MemberDeclarationSyntax> GenerateMemberDeclarations(ImmutableArray<ISymbol> members)
         {
             using var _ = GetArrayBuilder<MemberDeclarationSyntax>(out var builder);
@@ -33,18 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                     continue;
 
                 // skip accessors
-                if (member is IMethodSymbol method)
-                {
-                    switch (method.MethodKind)
-                    {
-                        case MethodKind.EventAdd:
-                        case MethodKind.EventRaise:
-                        case MethodKind.EventRemove:
-                        case MethodKind.PropertyGet:
-                        case MethodKind.PropertySet:
-                            continue;
-                    }
-                }
+                if (IsAnyAccessor(member))
+                    continue;
 
                 builder.Add(GenerateMemberDeclaration(member));
             }

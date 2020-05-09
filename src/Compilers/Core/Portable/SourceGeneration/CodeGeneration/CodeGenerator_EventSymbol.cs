@@ -80,11 +80,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 Type = type;
                 DeclaredAccessibility = declaredAccessibility;
                 Modifiers = modifiers;
-                _attributes = attributes;
+                _attributes = attributes.NullToEmpty();
                 AddMethod = addMethod;
                 RemoveMethod = removeMethod;
                 RaiseMethod = raiseMethod;
-                ExplicitInterfaceImplementations = explicitInterfaceImplementations;
+                ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
                 ContainingSymbol = containingSymbol;
             }
 

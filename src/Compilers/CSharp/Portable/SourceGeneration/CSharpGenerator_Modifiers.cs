@@ -113,6 +113,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 return Accessibility.NotApplicable;
             }
 
+            if (IsAnyAccessor(symbol) && symbol.DeclaredAccessibility == _currentAccessorParent?.DeclaredAccessibility)
+            {
+                // Always omit accessibility on accessors when they match their prop's accessibility
+                return Accessibility.NotApplicable;
+            }
+
             return accessibility;
         }
 

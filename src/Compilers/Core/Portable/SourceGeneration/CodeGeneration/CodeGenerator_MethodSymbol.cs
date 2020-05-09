@@ -135,6 +135,97 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 containingSymbol);
         }
 
+        public static IMethodSymbol PropertyGet(
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default)
+        {
+            return new MethodSymbol(
+                MethodKind.PropertyGet,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                returnType: null,
+                explicitInterfaceImplementations: default,
+                name: null,
+                typeArguments: default,
+                parameters: default,
+                containingSymbol: null);
+        }
+
+        public static IMethodSymbol PropertySet(
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default,
+            ImmutableArray<IParameterSymbol> parameters = default)
+        {
+            return new MethodSymbol(
+                MethodKind.PropertySet,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                returnType: null,
+                explicitInterfaceImplementations: default,
+                name: null,
+                typeArguments: default,
+                parameters,
+                containingSymbol: null);
+        }
+
+        public static IMethodSymbol EventAdd(
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default)
+        {
+            return new MethodSymbol(
+                MethodKind.EventAdd,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                returnType: null,
+                explicitInterfaceImplementations: default,
+                name: null,
+                typeArguments: default,
+                parameters: default,
+                containingSymbol: null);
+        }
+
+        public static IMethodSymbol EventRemove(
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default)
+        {
+            return new MethodSymbol(
+                MethodKind.EventRemove,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                returnType: null,
+                explicitInterfaceImplementations: default,
+                name: null,
+                typeArguments: default,
+                parameters: default,
+                containingSymbol: null);
+        }
+
+        public static IMethodSymbol EventRaise(
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
+            SymbolModifiers modifiers = default)
+        {
+            return new MethodSymbol(
+                MethodKind.EventRaise,
+                attributes,
+                declaredAccessibility,
+                modifiers,
+                returnType: null,
+                explicitInterfaceImplementations: default,
+                name: null,
+                typeArguments: default,
+                parameters: default,
+                containingSymbol: null);
+        }
+
         public static IMethodSymbol With(
             this IMethodSymbol method,
             Optional<MethodKind> methodKind = default,

@@ -10,9 +10,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
     internal static partial class CodeGenerator
     {
         public static IPropertySymbol Property(
-            string name,
             ITypeSymbol type,
+            string name,
             ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
             ImmutableArray<IParameterSymbol> parameters = default,
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         {
             return new PropertySymbol(
                 attributes,
+                declaredAccessibility,
                 modifiers,
                 type,
                 explicitInterfaceImplementations,
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol type,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<AttributeData> attributes = default,
+            Accessibility declaredAccessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
             IMethodSymbol getMethod = null,
@@ -45,6 +48,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         {
             return new PropertySymbol(
                 attributes,
+                declaredAccessibility,
                 modifiers,
                 type,
                 explicitInterfaceImplementations,
@@ -59,6 +63,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IPropertySymbol With(
             this IPropertySymbol property,
             Optional<ImmutableArray<AttributeData>> attributes = default,
+            Optional<Accessibility> declaredAccessibility = default,
             Optional<SymbolModifiers> modifiers = default,
             Optional<ITypeSymbol> type = default,
             Optional<ImmutableArray<IPropertySymbol>> explicitInterfaceImplementations = default,
@@ -70,6 +75,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         {
             return new PropertySymbol(
                 attributes.GetValueOr(property.GetAttributes()),
+                declaredAccessibility.GetValueOr(property.DeclaredAccessibility),
                 modifiers.GetValueOr(property.GetModifiers()),
                 type.GetValueOr(property.Type),
                 explicitInterfaceImplementations.GetValueOr(property.ExplicitInterfaceImplementations),
@@ -87,6 +93,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             public PropertySymbol(
                 ImmutableArray<AttributeData> attributes,
+                Accessibility declaredAccessibility,
                 SymbolModifiers modifiers,
                 ITypeSymbol type,
                 ImmutableArray<IPropertySymbol> explicitInterfaceImplementations,
@@ -99,17 +106,19 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             {
                 Name = name;
                 Type = type;
+                DeclaredAccessibility = declaredAccessibility;
                 Modifiers = modifiers;
                 IsIndexer = isIndexer;
                 Parameters = parameters;
                 GetMethod = getMethod;
                 SetMethod = setMethod;
-                ExplicitInterfaceImplementations = explicitInterfaceImplementations;
-                _attributes = attributes;
+                ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
+                _attributes = attributes.NullToEmpty();
                 ContainingSymbol = containingSymbol;
             }
 
             public override ISymbol ContainingSymbol { get; }
+            public override Accessibility DeclaredAccessibility { get; }
             public override SymbolKind Kind => SymbolKind.Property;
             public override SymbolModifiers Modifiers { get; }
             public override string Name { get; }

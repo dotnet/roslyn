@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
     internal partial class CSharpGenerator
     {
         private INamedTypeSymbol? _currentNamedType = null;
+        private ISymbol? _currentAccessorParent = null;
 
         public SyntaxNode Generate(ISymbol symbol)
         {

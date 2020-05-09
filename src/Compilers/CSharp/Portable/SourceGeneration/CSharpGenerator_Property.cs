@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         {
             using var _ = GetArrayBuilder<AccessorDeclarationSyntax>(out var accessors);
 
-            accessors.AddIfNotNull(GenerateAccessorDeclaration(SyntaxKind.GetAccessorDeclaration, symbol.GetMethod));
-            accessors.AddIfNotNull(GenerateAccessorDeclaration(SyntaxKind.SetAccessorDeclaration, symbol.SetMethod));
+            accessors.AddIfNotNull(GenerateAccessorDeclaration(SyntaxKind.GetAccessorDeclaration, symbol, symbol.GetMethod));
+            accessors.AddIfNotNull(GenerateAccessorDeclaration(SyntaxKind.SetAccessorDeclaration, symbol, symbol.SetMethod));
 
             return AccessorList(List(accessors));
         }

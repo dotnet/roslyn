@@ -12,18 +12,47 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
+        private static bool IsAnyAccessor(ISymbol symbol)
+        {
+            if (symbol is IMethodSymbol method)
+            {
+                switch (method.MethodKind)
+                {
+                    case MethodKind.EventAdd:
+                    case MethodKind.EventRaise:
+                    case MethodKind.EventRemove:
+                    case MethodKind.PropertyGet:
+                    case MethodKind.PropertySet:
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
         private AccessorDeclarationSyntax? GenerateAccessorDeclaration(
             SyntaxKind kind,
-            IMethodSymbol? symbol)
+            ISymbol parent,
+            IMethodSymbol? accessorMethod)
         {
-            if (symbol == null)
+            if (accessorMethod == null)
                 return null;
 
-            return AccessorDeclaration(
-                kind,
-                GenerateAttributeLists(symbol.GetAttributes()),
-                GenerateModifiers(symbol),
-                Block());
+            var previousAccessorParent = _currentAccessorParent;
+            _currentAccessorParent = parent;
+
+            try
+            {
+                return AccessorDeclaration(
+                    kind,
+                    GenerateAttributeLists(accessorMethod.GetAttributes()),
+                    GenerateModifiers(accessorMethod),
+                    Block());
+            }
+            finally
+            {
+                _currentAccessorParent = previousAccessorParent;
+            }
         }
     }
 }
