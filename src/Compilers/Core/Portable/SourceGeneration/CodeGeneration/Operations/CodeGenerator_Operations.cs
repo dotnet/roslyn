@@ -126,10 +126,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new BranchOperation(target, BranchKind.GoTo, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
-        public static IEmptyOperation Empty(
-            ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+        public static IEmptyOperation Empty()
         {
-            return new EmptyOperation(semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new EmptyOperation(semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }
 
         public static IReturnOperation Return(
