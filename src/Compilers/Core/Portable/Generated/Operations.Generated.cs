@@ -8820,8 +8820,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IEmptyOperation Empty(ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
             => new EmptyOperation(semanticModel: null, syntax: null, type, constantValue, isImplicit);
 
-        public static IReturnOperation Return(IOperation returnedValue, OperationKind kind, ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
-            => new ReturnOperation(returnedValue, kind, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+        public static IReturnOperation Return(IOperation returnedValue, ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+            => new ReturnOperation(returnedValue, OperationKind.Return, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+
+        public static IReturnOperation YieldBreak(IOperation returnedValue, ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+            => new ReturnOperation(returnedValue, OperationKind.YieldBreak, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+
+        public static IReturnOperation YieldReturn(IOperation returnedValue, ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+            => new ReturnOperation(returnedValue, OperationKind.YieldReturn, semanticModel: null, syntax: null, type, constantValue, isImplicit);
 
         public static ILockOperation Lock(IOperation lockedValue, IOperation body, ILocalSymbol lockTakenSymbol, ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
             => new LockOperation(lockedValue, body, lockTakenSymbol, semanticModel: null, syntax: null, type, constantValue, isImplicit);
@@ -8970,8 +8976,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IIsPatternOperation IsPattern(IOperation value, IPatternOperation pattern, ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
             => new IsPatternOperation(value, pattern, semanticModel: null, syntax: null, type, constantValue, isImplicit);
 
-        public static IIncrementOrDecrementOperation IncrementOrDecrement(bool isPostfix, bool isLifted, bool isChecked, IOperation target, IMethodSymbol operatorMethod, OperationKind kind, ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
-            => new IncrementOrDecrementOperation(isPostfix, isLifted, isChecked, target, operatorMethod, kind, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+        public static IIncrementOrDecrementOperation Increment(bool isPostfix, bool isLifted, bool isChecked, IOperation target, IMethodSymbol operatorMethod, ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+            => new IncrementOrDecrementOperation(isPostfix, isLifted, isChecked, target, operatorMethod, OperationKind.Increment, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+
+        public static IIncrementOrDecrementOperation Decrement(bool isPostfix, bool isLifted, bool isChecked, IOperation target, IMethodSymbol operatorMethod, ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+            => new IncrementOrDecrementOperation(isPostfix, isLifted, isChecked, target, operatorMethod, OperationKind.Decrement, semanticModel: null, syntax: null, type, constantValue, isImplicit);
 
         public static IThrowOperation Throw(IOperation exception, ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
             => new ThrowOperation(exception, semanticModel: null, syntax: null, type, constantValue, isImplicit);

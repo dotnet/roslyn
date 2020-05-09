@@ -726,13 +726,37 @@ namespace IOperationGenerator
                 if (type.Namespace != null) continue;
 
                 var allProps = GetAllProperties(type);
-                string typeName = type.Name[1..];
 
-                writeCodeGenerator(
-                    typeName,
-                    allProps,
-                    type,
-                    ClassType.NonLazy);
+                var interfaceName = type.Name;
+                var typeName = interfaceName[1..];
+
+                var kinds = type.OperationKind?.Entries?.Where(e => e.EditorBrowsable != false).ToList();
+                if (kinds == null || kinds.Count <= 1)
+                {
+                    var typeNameWithoutOpSuffix = typeName.EndsWith("Operation") ? typeName[0..^"Operation".Length] : typeName;
+                    writeCodeGenerator(
+                        interfaceName,
+                        typeName,
+                        typeNameWithoutOpSuffix,
+                        kind: null,
+                        allProps,
+                        type,
+                        ClassType.NonLazy);
+                }
+                else
+                {
+                    foreach (var kind in kinds)
+                    {
+                        writeCodeGenerator(
+                            interfaceName,
+                            typeName,
+                            kind.Name,
+                            kind.Name,
+                            allProps,
+                            type,
+                            ClassType.NonLazy);
+                    }
+                }
             }
 
             Unbrace();
@@ -740,14 +764,15 @@ namespace IOperationGenerator
             return;
 
             void writeCodeGenerator(
-                string @class,
+                string interfaceName,
+                string className,
+                string methodName,
+                string? kind,
                 IEnumerable<Property> properties,
                 AbstractNode type,
                 ClassType classType)
             {
-                var classWithoutOpSuffix = @class.EndsWith("Operation") ? @class[0..^"Operation".Length] : @class;
-
-                Write($"public static I{@class} {classWithoutOpSuffix}(");
+                Write($"public static {interfaceName} {methodName}(");
 
                 var argList = new List<string>();
                 foreach (var prop in properties)
@@ -765,11 +790,9 @@ namespace IOperationGenerator
                     }
                 }
 
-                var multipleValidKinds = (type.OperationKind?.Entries?.Where(e => e.EditorBrowsable != false).Count() ?? 0) > 1;
-                if (multipleValidKinds)
+                if (kind != null)
                 {
-                    Write("OperationKind kind, ");
-                    argList.Add("kind");
+                    argList.Add($"OperationKind.{kind}");
                 }
 
                 // SemanticModel semanticModel, SyntaxNode syntax
@@ -783,7 +806,7 @@ namespace IOperationGenerator
                 argList.Add("isImplicit");
 
                 WriteLine(")");
-                WriteLine($"    => new {@class}({string.Join(", ", argList)});");
+                WriteLine($"    => new {className}({string.Join(", ", argList)});");
                 Blank();
             }
         }
