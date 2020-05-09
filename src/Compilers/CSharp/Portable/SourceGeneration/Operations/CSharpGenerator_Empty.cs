@@ -13,21 +13,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
-        private LabeledStatementSyntax? TryGenerateLabeledStatement(ILabeledOperation? operation, SyntaxType type)
+        private EmptyStatementSyntax? TryGenerateEmptyStatement(IEmptyOperation? operation, SyntaxType type)
         {
             if (operation == null || operation.IsImplicit)
                 return null;
 
             if (type == SyntaxType.Expression)
-                throw new ArgumentException("Labeled operation cannot be converted to an expression");
+                throw new ArgumentException("Empty operation cannot be converted to an expression");
 
-            var statement = TryGenerateStatement(operation.Operation);
-            if (statement == null)
-                return null;
-
-            return LabeledStatement(
-                Identifier(operation.Label.Name),
-                statement);
+            return EmptyStatement();
         }
     }
 }

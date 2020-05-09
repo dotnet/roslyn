@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case OperationKind.Branch:
                     break;
                 case OperationKind.Empty:
-                    break;
+                    return TryGenerateEmptyStatement((IEmptyOperation)operation, type);
                 case OperationKind.Return:
                     return TryGenerateReturnStatement((IReturnOperation)operation, type);
                 case OperationKind.YieldBreak:
