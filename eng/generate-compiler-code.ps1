@@ -125,9 +125,9 @@ try {
   $basicErrorFactsProject = Get-ToolPath 'VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj'
   $generationTempDir = Join-Path $RepoRoot "artifacts\log\$configuration\Generated"
 
+  Run-IOperation $coreDir $operationsProject
   Run-Language "CSharp" "cs" $csharpDir $csharpTestDir $csharpSyntaxProject $csharpErrorFactsProject
   Run-Language "VB" "vb" $basicDir $basicTestDir $basicSyntaxProject $basicErrorFactsProject 
-  Run-IOperation $coreDir $operationsProject
   Run-GetText
 
   exit 0

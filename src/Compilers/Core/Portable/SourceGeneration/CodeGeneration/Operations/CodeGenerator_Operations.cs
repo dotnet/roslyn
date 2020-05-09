@@ -10,11 +10,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
     internal partial class CodeGenerator
     {
         public static IBlockOperation Block(
-            ImmutableArray<IOperation> operations,
-            ImmutableArray<ILocalSymbol> locals,
+            ImmutableArray<IOperation> operations = default,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
-            return new BlockOperation(operations, locals, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new BlockOperation(operations, locals: default, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
         public static IVariableDeclarationGroupOperation VariableDeclarationGroup(
@@ -25,13 +24,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         }
 
         public static ISwitchOperation Switch(
-            ImmutableArray<ILocalSymbol> locals,
             IOperation value,
             ImmutableArray<ISwitchCaseOperation> cases,
-            ILabelSymbol exitLabel,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
-            return new SwitchOperation(locals, value, cases, exitLabel, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new SwitchOperation(locals: default, value, cases, exitLabel: null, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
         public static IForEachLoopOperation ForEachLoop(
@@ -39,14 +36,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             IOperation collection,
             ImmutableArray<IOperation> nextVariables,
             bool isAsynchronous,
-            LoopKind loopKind,
             IOperation body,
-            ImmutableArray<ILocalSymbol> locals,
-            ILabelSymbol continueLabel,
-            ILabelSymbol exitLabel,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
-            return new ForEachLoopOperation(loopControlVariable, collection, nextVariables, isAsynchronous, loopKind, body, locals, continueLabel, exitLabel, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new ForEachLoopOperation(loopControlVariable, collection, nextVariables, isAsynchronous, LoopKind.ForEach, body, locals: default, continueLabel: null, exitLabel: null, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
         public static IForLoopOperation ForLoop(
@@ -105,12 +98,25 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new LabeledOperation(label, operation, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
-        public static IBranchOperation Branch(
+        public static IBranchOperation Break(
             ILabelSymbol target,
-            BranchKind branchKind,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
-            return new BranchOperation(target, branchKind, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new BranchOperation(target, BranchKind.Break, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+        }
+
+        public static IBranchOperation Continue(
+            ILabelSymbol target,
+            ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+        {
+            return new BranchOperation(target, BranchKind.Continue, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+        }
+
+        public static IBranchOperation GoTo(
+            ILabelSymbol target,
+            ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+        {
+            return new BranchOperation(target, BranchKind.GoTo, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
         public static IEmptyOperation Empty(
@@ -120,53 +126,49 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         }
 
         public static IReturnOperation Return(
-            IOperation returnedValue,
+            IOperation returnedValue = null,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
             return new ReturnOperation(returnedValue, OperationKind.Return, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
         public static IReturnOperation YieldBreak(
-            IOperation returnedValue,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
-            return new ReturnOperation(returnedValue, OperationKind.YieldBreak, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new ReturnOperation(returnedValue: null, OperationKind.YieldBreak, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
         public static IReturnOperation YieldReturn(
             IOperation returnedValue,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
-            return new ReturnOperation(returnedValue, OperationKind.YieldReturn, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new ReturnOperation(returnedValue: null, OperationKind.YieldReturn, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
         public static ILockOperation Lock(
             IOperation lockedValue,
             IOperation body,
-            ILocalSymbol lockTakenSymbol,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
-            return new LockOperation(lockedValue, body, lockTakenSymbol, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new LockOperation(lockedValue, body, lockTakenSymbol: null, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
         public static ITryOperation Try(
             IBlockOperation body,
             ImmutableArray<ICatchClauseOperation> catches,
             IBlockOperation @finally,
-            ILabelSymbol exitLabel,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
-            return new TryOperation(body, catches, @finally, exitLabel, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new TryOperation(body, catches, @finally, exitLabel: null, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
         public static IUsingOperation Using(
             IOperation resources,
             IOperation body,
-            ImmutableArray<ILocalSymbol> locals,
-            bool isAsynchronous,
+            bool isAsynchronous = false,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
-            return new UsingOperation(resources, body, locals, isAsynchronous, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new UsingOperation(resources, body, locals: default, isAsynchronous, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
         public static IExpressionStatementOperation ExpressionStatement(
@@ -179,10 +181,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static ILocalFunctionOperation LocalFunction(
             IMethodSymbol symbol,
             IBlockOperation body,
-            IBlockOperation ignoredBody,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
-            return new LocalFunctionOperation(symbol, body, ignoredBody, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new LocalFunctionOperation(symbol, body, ignoredBody: null, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
         public static IStopOperation Stop(
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IRaiseEventOperation RaiseEvent(
             IEventReferenceOperation eventReference,
-            ImmutableArray<IArgumentOperation> arguments,
+            ImmutableArray<IArgumentOperation> arguments = default,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
             return new RaiseEventOperation(eventReference, arguments, semanticModel: null, syntax: null, type, constantValue, isImplicit);
@@ -214,8 +215,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IConversionOperation Conversion(
             IOperation operand,
             IConvertibleConversion conversion,
-            bool isTryCast,
-            bool isChecked,
+            bool isTryCast = false,
+            bool isChecked = false,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
             return new ConversionOperation(operand, conversion, isTryCast, isChecked, semanticModel: null, syntax: null, type, constantValue, isImplicit);
@@ -223,9 +224,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IInvocationOperation Invocation(
             IMethodSymbol targetMethod,
-            IOperation instance,
-            bool isVirtual,
-            ImmutableArray<IArgumentOperation> arguments,
+            IOperation instance = null,
+            ImmutableArray<IArgumentOperation> arguments = default,
+            bool isVirtual = false,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
             return new InvocationOperation(targetMethod, instance, isVirtual, arguments, semanticModel: null, syntax: null, type, constantValue, isImplicit);
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IArrayElementReferenceOperation ArrayElementReference(
             IOperation arrayReference,
-            ImmutableArray<IOperation> indices,
+            ImmutableArray<IOperation> indices = default,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
             return new ArrayElementReferenceOperation(arrayReference, indices, semanticModel: null, syntax: null, type, constantValue, isImplicit);
@@ -265,11 +266,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IMethodReferenceOperation MethodReference(
             IMethodSymbol method,
-            bool isVirtual,
             IOperation instance,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
-            return new MethodReferenceOperation(method, isVirtual, instance, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new MethodReferenceOperation(method, isVirtual: false, instance, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
         public static IPropertyReferenceOperation PropertyReference(
@@ -292,9 +292,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IUnaryOperation Unary(
             UnaryOperatorKind operatorKind,
             IOperation operand,
-            bool isLifted,
-            bool isChecked,
-            IMethodSymbol operatorMethod,
+            bool isLifted = false,
+            bool isChecked = false,
+            IMethodSymbol operatorMethod = null,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
             return new UnaryOperation(operatorKind, operand, isLifted, isChecked, operatorMethod, semanticModel: null, syntax: null, type, constantValue, isImplicit);
@@ -304,11 +304,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             BinaryOperatorKind operatorKind,
             IOperation leftOperand,
             IOperation rightOperand,
-            bool isLifted,
-            bool isChecked,
-            bool isCompareText,
-            IMethodSymbol operatorMethod,
-            IMethodSymbol unaryOperatorMethod,
+            bool isLifted = false,
+            bool isChecked = false,
+            bool isCompareText = false,
+            IMethodSymbol operatorMethod = null,
+            IMethodSymbol unaryOperatorMethod = null,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
             return new BinaryOperation(operatorKind, leftOperand, rightOperand, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel: null, syntax: null, type, constantValue, isImplicit);
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             IOperation condition,
             IOperation whenTrue,
             IOperation whenFalse,
-            bool isRef,
+            bool isRef = false,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
             return new ConditionalOperation(condition, whenTrue, whenFalse, isRef, semanticModel: null, syntax: null, type, constantValue, isImplicit);
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static ICoalesceOperation Coalesce(
             IOperation value,
             IOperation whenNull,
-            IConvertibleConversion valueConversion,
+            IConvertibleConversion valueConversion = null,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
             return new CoalesceOperation(value, whenNull, valueConversion, semanticModel: null, syntax: null, type, constantValue, isImplicit);
@@ -343,8 +343,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IObjectCreationOperation ObjectCreation(
             IMethodSymbol constructor,
-            IObjectOrCollectionInitializerOperation initializer,
             ImmutableArray<IArgumentOperation> arguments,
+            IObjectOrCollectionInitializerOperation initializer,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
             return new ObjectCreationOperation(constructor, initializer, arguments, semanticModel: null, syntax: null, type, constantValue, isImplicit);
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IIsTypeOperation IsType(
             IOperation valueOperand,
             ITypeSymbol typeOperand,
-            bool isNegated,
+            bool isNegated = false,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
             return new IsTypeOperation(valueOperand, typeOperand, isNegated, semanticModel: null, syntax: null, type, constantValue, isImplicit);
@@ -389,9 +389,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         }
 
         public static ISimpleAssignmentOperation SimpleAssignment(
-            bool isRef,
             IOperation target,
             IOperation value,
+            bool isRef= false,
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
             return new SimpleAssignmentOperation(isRef, target, value, semanticModel: null, syntax: null, type, constantValue, isImplicit);
