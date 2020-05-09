@@ -103,7 +103,7 @@ Literal(sbyte.MinValue).GenerateString());
         {
             AssertEx.AreEqual(
 @"-1",
-Literal((short) -1).GenerateString());
+Literal((short)-1).GenerateString());
         }
 
         [Fact]
@@ -236,6 +236,82 @@ Literal((uint)1).GenerateString());
             AssertEx.AreEqual(
 @"global::System.UInt32.MaxValue",
 Literal(uint.MaxValue).GenerateString());
+        }
+
+        #endregion
+
+        #region long
+
+        [Fact]
+        public void TestLiteralLongMinValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Int64.MinValue",
+Literal(long.MinValue).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralLongNegative1()
+        {
+            AssertEx.AreEqual(
+@"-1L",
+Literal((long)-1).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralLongZero()
+        {
+            AssertEx.AreEqual(
+@"0L",
+Literal((long)0).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralLongOne()
+        {
+            AssertEx.AreEqual(
+@"1L",
+Literal((long)1).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralLongMaxValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Int64.MaxValue",
+Literal(long.MaxValue).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralULongMinValue()
+        {
+            AssertEx.AreEqual(
+@"0UL",
+Literal(ulong.MinValue).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralULongZero()
+        {
+            AssertEx.AreEqual(
+@"0UL",
+Literal((ulong)0).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralULongOne()
+        {
+            AssertEx.AreEqual(
+@"1UL",
+Literal((ulong)1).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralULongMaxValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.UInt64.MaxValue",
+Literal(ulong.MaxValue).GenerateString());
         }
 
         #endregion
