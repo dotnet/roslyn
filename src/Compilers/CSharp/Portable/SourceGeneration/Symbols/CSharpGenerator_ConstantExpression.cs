@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         {
             foreach (var constant in constants)
             {
-                if (Equals(constant, value))
+                if (Equals(constant.Item1, value))
                 {
                     var memberAccess = GenerateMemberAccess("System", typeof(T).Name);
                     var result = MemberAccessExpression(
