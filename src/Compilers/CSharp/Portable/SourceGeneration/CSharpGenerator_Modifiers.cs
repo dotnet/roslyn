@@ -98,9 +98,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             // C# specific rules about what accessibility we should actually emit.
 
             if (_currentNamedType?.TypeKind == TypeKind.Interface &&
+                symbol.Kind != SymbolKind.NamedType &&
                 symbol.DeclaredAccessibility == Accessibility.Public)
             {
                 // Members in interfaces are public by default.  So no need to emit any modifiers in that case.
+                return Accessibility.NotApplicable;
+            }
+
+            if ((symbol is IMethodSymbol method && method.ExplicitInterfaceImplementations.Length > 0) ||
+                (symbol is IEventSymbol ev && ev.ExplicitInterfaceImplementations.Length > 0) ||
+                (symbol is IPropertySymbol prop && prop.ExplicitInterfaceImplementations.Length > 0))
+            {
+                // Always omit accessibility on explicit interface impls.
                 return Accessibility.NotApplicable;
             }
 
@@ -113,10 +122,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
             // C# specific rules about what modifiers we should actually emit.
 
-            if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Interface })
+            if (symbol is INamedTypeSymbol namedType)
             {
-                // Never emit 'abstract' on an interface itself.
-                modifiers &= ~SymbolModifiers.Abstract;
+                if (namedType.TypeKind == TypeKind.Interface)
+                {
+                    // Never emit 'abstract' on an interface itself.
+                    modifiers &= ~SymbolModifiers.Abstract;
+                }
+
+                if (namedType.TypeKind == TypeKind.Enum || namedType.TypeKind == TypeKind.Struct)
+                {
+                    // Never emit 'sealed' on value types
+                    modifiers &= ~SymbolModifiers.Sealed;
+                }
             }
 
             if (_currentNamedType?.TypeKind == TypeKind.Interface &&

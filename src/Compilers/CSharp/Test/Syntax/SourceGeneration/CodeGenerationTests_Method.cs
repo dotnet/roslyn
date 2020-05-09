@@ -154,5 +154,25 @@ Class(
                 Method(Void, "M",
                     containingSymbol: Interface("I")))))).GenerateString());
         }
+
+        [Fact]
+        public void TestMethodWithPrivateExplicitImpl1()
+        {
+            AssertEx.AreEqual(
+@"class C
+{
+    void I.M();
+}",
+Class(
+    "C",
+    members: ImmutableArray.Create<ISymbol>(
+        Method(Void, "M",
+            explicitInterfaceImplementations: ImmutableArray.Create(
+                Method(
+                    Void,
+                    "M",
+                    declaredAccessibility: Accessibility.Private,
+                    containingSymbol: Interface("I")))))).GenerateString());
+        }
     }
 }

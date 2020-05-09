@@ -76,13 +76,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Accessibility declaredAccessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<ITypeSymbol> typeArguments = default,
-            INamedTypeSymbol baseType = null,
             ImmutableArray<INamedTypeSymbol> interfaces = default,
             ImmutableArray<ISymbol> members = default,
             NullableAnnotation nullableAnnotation = default,
             ISymbol containingSymbol = null)
         {
-
             return new NamedTypeSymbol(
                 CodeAnalysis.SpecialType.None,
                 TypeKind.Struct,
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 modifiers,
                 name,
                 typeArguments,
-                baseType,
+                baseType: null,
                 interfaces,
                 members,
                 tupleElements: default,

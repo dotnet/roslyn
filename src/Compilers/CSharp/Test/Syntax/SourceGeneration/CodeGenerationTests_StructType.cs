@@ -14,39 +14,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
     public partial class CodeGenerationTests
     {
         [Fact]
-        public void TestEnumType1()
+        public void TestStructType1()
         {
             AssertEx.AreEqual(
 "x",
-Enum("x").GenerateTypeString());
+Struct("x").GenerateTypeString());
         }
 
         [Fact]
-        public void TestEnumTypeInNamespace1()
+        public void TestStructTypeInNamespace1()
         {
             AssertEx.AreEqual(
 "NS.x",
-Enum(
+Struct(
     "x",
     containingSymbol: Namespace("NS")).GenerateTypeString());
         }
 
         [Fact]
-        public void TestEnumTypeInGlobalNamespace1()
+        public void TestStructTypeInGlobalNamespace1()
         {
             AssertEx.AreEqual(
 "global::x",
-Enum(
+Struct(
     "x",
     containingSymbol: GlobalNamespace()).GenerateTypeString());
         }
 
         [Fact]
-        public void TestEnumTypeInNamespaceInGlobal1()
+        public void TestStructTypeInNamespaceInGlobal1()
         {
             AssertEx.AreEqual(
 "global::NS.x",
-Enum(
+Struct(
     "x",
     containingSymbol: Namespace(
         "NS",
@@ -54,95 +54,83 @@ Enum(
         }
 
         [Fact]
-        public void TestEnumDeclaration1()
+        public void TestStructDeclaration1()
         {
             AssertEx.AreEqual(
-@"enum X
+@"struct X
 {
 }",
-Enum("X").GenerateString());
+Struct("X").GenerateString());
         }
 
         [Fact]
-        public void TestPublicEnumDeclaration1()
+        public void TestPublicStructDeclaration1()
         {
             AssertEx.AreEqual(
-@"public enum X
+@"public struct X
 {
 }",
-Enum(
+Struct(
     "X",
     declaredAccessibility: Accessibility.Public).GenerateString());
         }
 
         [Fact]
-        public void TestSealedEnumDeclaration1()
+        public void TestSealedStructDeclaration1()
         {
             AssertEx.AreEqual(
-@"enum X
+@"struct X
 {
 }",
-Enum(
+Struct(
     "X",
     modifiers: SymbolModifiers.Sealed).GenerateString());
         }
 
         [Fact]
-        public void TestEnumDeclarationInNamespace1()
+        public void TestStructDeclarationInNamespace1()
         {
             AssertEx.AreEqual(
 @"namespace N
 {
-    enum X
+    struct X
     {
     }
 }",
 Namespace(
     "N",
     members: ImmutableArray.Create<INamespaceOrTypeSymbol>(
-        Enum("X"))).GenerateString());
+        Struct("X"))).GenerateString());
         }
 
         [Fact]
-        public void TestEnumDeclarationWithBaseType1()
+        public void TestStructDeclarationWithOneMember1()
         {
             AssertEx.AreEqual(
-@"enum X : int
+@"struct X
 {
+    int A;
 }",
-Enum(
-    "X",
-    baseType: (INamedTypeSymbol)Int32).GenerateString());
-        }
-
-        [Fact]
-        public void TestEnumDeclarationWithOneMember1()
-        {
-            AssertEx.AreEqual(
-@"enum X
-{
-    A
-}",
-Enum(
+Struct(
     "X",
     members: ImmutableArray.Create<ISymbol>(
-        EnumMember("A"))).GenerateString());
+        Field(Int32, "A"))).GenerateString());
         }
 
         [Fact]
-        public void TestEnumDeclarationWithTwoMembers1()
+        public void TestStructDeclarationWithTwoMembers1()
         {
             AssertEx.AreEqual(
-@"enum X
+@"struct X
 {
-    A,
-    B
+    int A;
+    bool B;
 }",
-Enum(
+Struct(
     "X",
     members: ImmutableArray.Create<ISymbol>(
-        EnumMember("A"),
-        EnumMember("B"))).GenerateString());
+        Field(Int32, "A"),
+        Field(Boolean, "B"))).GenerateString());
         }
     }
 }
