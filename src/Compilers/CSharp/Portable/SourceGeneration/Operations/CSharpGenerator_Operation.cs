@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case OperationKind.Invalid:
                     break;
                 case OperationKind.Block:
-                    return GenerateBlock((IBlockOperation)operation, type);
+                    return TryGenerateBlock((IBlockOperation)operation, type);
                 case OperationKind.VariableDeclarationGroup:
                     break;
                 case OperationKind.Switch:
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case OperationKind.Empty:
                     break;
                 case OperationKind.Return:
-                    break;
+                    return TryGenerateReturnStatement((IReturnOperation)operation, type);
                 case OperationKind.YieldBreak:
                     break;
                 case OperationKind.Lock:

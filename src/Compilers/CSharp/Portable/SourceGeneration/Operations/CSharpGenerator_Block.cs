@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
         }
 
         public BlockSyntax? GenerateBlock(IBlockOperation? block)
-            => GenerateBlock(block, SyntaxType.Statement);
+            => TryGenerateBlock(block, SyntaxType.Statement);
 
-        private BlockSyntax? GenerateBlock(IBlockOperation? block, SyntaxType type)
+        private BlockSyntax? TryGenerateBlock(IBlockOperation? block, SyntaxType type)
         {
             if (block == null)
                 return null;
