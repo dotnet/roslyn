@@ -19,5 +19,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
 @"return;",
 Return().GenerateString());
         }
+
+        [Fact]
+        public void TestYieldBreak1()
+        {
+            AssertEx.AreEqual(
+@"yield break;",
+YieldBreak().GenerateString());
+        }
+
+        [Fact]
+        public void TestYieldReturn1()
+        {
+            AssertEx.AreEqual(
+@"yield return 0;",
+YieldReturn(Literal(0)).GenerateString());
+        }
     }
 }

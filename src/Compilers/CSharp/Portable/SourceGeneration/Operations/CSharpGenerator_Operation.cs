@@ -55,16 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case OperationKind.Empty:
                     return TryGenerateEmptyStatement((IEmptyOperation)operation, type);
                 case OperationKind.Return:
-                    return TryGenerateReturnStatement((IReturnOperation)operation, type);
                 case OperationKind.YieldBreak:
-                    break;
+                case OperationKind.YieldReturn:
+                    return TryGenerateReturnOrYieldStatement((IReturnOperation)operation, type);
                 case OperationKind.Lock:
                     break;
                 case OperationKind.Try:
                     break;
                 case OperationKind.Using:
-                    break;
-                case OperationKind.YieldReturn:
                     break;
                 case OperationKind.ExpressionStatement:
                     break;
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case OperationKind.RaiseEvent:
                     break;
                 case OperationKind.Literal:
-                    break;
+                    return TryGenerateLiteralExpression((ILiteralOperation)operation, type);
                 case OperationKind.Conversion:
                     break;
                 case OperationKind.Invocation:

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
         private ParameterSyntax GenerateParameter(IParameterSymbol parameter)
         {
-            var expression = GenerateConstantExpression(
+            var expression = TryGenerateConstantExpression(
                 parameter.Type,
                 parameter.HasExplicitDefaultValue,
                 parameter.HasExplicitDefaultValue ? parameter.ExplicitDefaultValue : null);

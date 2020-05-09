@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 GenerateAttributeLists(symbol.GetAttributes()),
                 GenerateModifiers(symbol),
                 GenerateVariableDeclaration(symbol.Type, symbol.Name,
-                    GenerateConstantExpression(symbol.Type, symbol.HasConstantValue, symbol.ConstantValue)),
+                    TryGenerateConstantExpression(symbol.Type, symbol.HasConstantValue, symbol.ConstantValue)),
                 Token(SyntaxKind.SemicolonToken));
         }
     }

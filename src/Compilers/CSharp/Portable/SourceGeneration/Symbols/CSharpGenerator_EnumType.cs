@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
         private static EnumMemberDeclarationSyntax GenerateEnumMemberDeclaration(IFieldSymbol field)
         {
-            var expression = GenerateConstantExpression(field.Type, field.HasConstantValue, field.ConstantValue);
+            var expression = TryGenerateConstantExpression(field.Type, field.HasConstantValue, field.ConstantValue);
             var equalsValue = expression == null ? null : EqualsValueClause(expression);
 
             return EnumMemberDeclaration(

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
-        private ReturnStatementSyntax? TryGenerateReturnStatement(IReturnOperation? operation, SyntaxType type)
+        private StatementSyntax? TryGenerateReturnOrYieldStatement(IReturnOperation? operation, SyntaxType type)
         {
             if (operation == null || operation.IsImplicit)
                 return null;
@@ -21,7 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             if (type == SyntaxType.Expression)
                 throw new ArgumentException("Return operation cannot be converted to an expression");
 
-            return ReturnStatement(TryGenerateExpression(operation.ReturnedValue));
+            var expression = TryGenerateExpression(operation.ReturnedValue);
+            if (operation.Kind == OperationKind.YieldBreak)
+                return YieldStatement(SyntaxKind.YieldBreakStatement, expression);
+
+            if (operation.Kind == OperationKind.YieldReturn)
+                return YieldStatement(SyntaxKind.YieldReturnStatement, expression);
+
+            return ReturnStatement(expression);
         }
     }
 }

@@ -131,23 +131,19 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new EmptyOperation(semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }
 
-        public static IReturnOperation Return(
-            IOperation returnedValue = null)
+        public static IReturnOperation Return(IOperation returnedValue = null)
         {
             return new ReturnOperation(returnedValue, OperationKind.Return, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }
 
-        public static IReturnOperation YieldBreak(
-            ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+        public static IReturnOperation YieldBreak()
         {
-            return new ReturnOperation(returnedValue: null, OperationKind.YieldBreak, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new ReturnOperation(returnedValue: null, OperationKind.YieldBreak, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }
 
-        public static IReturnOperation YieldReturn(
-            IOperation returnedValue,
-            ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+        public static IReturnOperation YieldReturn(IOperation returnedValue)
         {
-            return new ReturnOperation(returnedValue: null, OperationKind.YieldReturn, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new ReturnOperation(returnedValue: null, OperationKind.YieldReturn, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }
 
         public static ILockOperation Lock(
@@ -215,6 +211,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
         {
             return new LiteralOperation(semanticModel: null, syntax: null, type, constantValue, isImplicit);
+        }
+
+        public static ILiteralOperation Literal(object value)
+        {
+            return new LiteralOperation(semanticModel: null, syntax: null, type: null, new Optional<object>(value), isImplicit: false);
         }
 
         public static IConversionOperation Conversion(

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             return LocalDeclarationStatement(
                 GenerateModifiers(symbol),
                 GenerateVariableDeclaration(symbol.Type, symbol.Name,
-                    GenerateConstantExpression(symbol.Type, symbol.HasConstantValue, symbol.ConstantValue)));
+                    TryGenerateConstantExpression(symbol.Type, symbol.HasConstantValue, symbol.ConstantValue)));
         }
     }
 }
