@@ -110,7 +110,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract, isUnsafe: isUnsafe),
                     returnType: returnType,
                     refKind: DetermineRefKind(cancellationToken),
-                    isInitOnly: false,
                     explicitInterfaceImplementations: default,
                     name: State.IdentifierToken.ValueText,
                     typeParameters: DetermineTypeParameters(cancellationToken),

@@ -69,7 +69,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     modifiers:=CreateMethodModifiers(),
                     returnType:=Me.AnalyzerResult.ReturnType,
                     refKind:=RefKind.None,
-                    isInitOnly:=False,
                     explicitInterfaceImplementations:=Nothing,
                     name:=_methodName.ToString(),
                     typeParameters:=CreateMethodTypeParameters(),

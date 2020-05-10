@@ -469,11 +469,11 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: method.RequiresUnsafeModifier()),
                             returnType: method.ReturnType,
                             refKind: method.RefKind,
-                            isInitOnly: method.IsInitOnly,
                             explicitInterfaceImplementations: default,
                             name: method.Name,
                             typeParameters: method.TypeParameters,
-                            parameters: method.Parameters));
+                            parameters: method.Parameters,
+                            isInitOnly: method.IsInitOnly));
                         break;
                     case SymbolKind.Property:
                         var property = member as IPropertySymbol;

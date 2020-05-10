@@ -265,7 +265,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 modifiers: new DeclarationModifiers(isStatic: eventHookupExpression.IsInStaticContext()),
                 returnType: delegateInvokeMethod.ReturnType,
                 refKind: delegateInvokeMethod.RefKind,
-                isInitOnly: false,
                 explicitInterfaceImplementations: default,
                 name: eventHandlerMethodName,
                 typeParameters: default,

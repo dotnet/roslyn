@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     modifiers: default,
                     returnType: semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
                     refKind: RefKind.None,
-                    isInitOnly: false,
                     explicitInterfaceImplementations: default,
                     name: null,
                     typeParameters: default,

@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2110,6 +2111,28 @@ public class C
         }
 
         [Fact]
+        public void OperatorsAreNotInitOnly()
+        {
+            string source = @"
+public class C
+{
+    public static implicit operator int(C c) => throw null;
+    public static bool operator +(C c1, C c2) => throw null;
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var conversion = comp.GlobalNamespace.GetMember<SourceUserDefinedConversionSymbol>("C.op_Implicit");
+            Assert.False(conversion.IsInitOnly);
+            Assert.False(conversion.GetPublicSymbol().IsInitOnly);
+
+            var addition = comp.GlobalNamespace.GetMember<SourceUserDefinedConversionSymbol>("C.op_Addition");
+            Assert.False(addition.IsInitOnly);
+            Assert.False(addition.GetPublicSymbol().IsInitOnly);
+        }
+
+        [Fact]
         public void ConstructedMethodsAreNotInitOnly()
         {
             string source = @"
@@ -3536,6 +3559,40 @@ public class C
                     Assert.False(method.GetPublicSymbol().IsInitOnly);
                 }
             }
+        }
+
+        [Fact]
+        public void RetargetProperties_WithInitOnlySetter()
+        {
+            // TODO2
+            var source =
+@"interface I
+{
+    object Property { get; init; }
+}";
+            var compilation = CreateCompilation(source);
+
+            var sourceModule = compilation.SourceModule;
+            var sourceAssembly = (SourceAssemblySymbol)sourceModule.ContainingAssembly;
+
+            var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
+            retargetingAssembly.SetCorLibrary(sourceAssembly.CorLibrary);
+            var retargetingModule = retargetingAssembly.Modules[0];
+            var retargetingNamespace = retargetingModule.GlobalNamespace;
+
+            var property = retargetingNamespace.GetMember<PropertySymbol>("I.Property");
+            MethodSymbol getMethod = property.GetMethod;
+            MethodSymbol setMethod = property.SetMethod;
+
+            Assert.Equal("System.Object I.Property { get; init; }", property.ToTestDisplayString());
+            Assert.Equal("void modreq(System.Runtime.CompilerServices.IsExternalInit[missing]) I.Property.init",
+                setMethod.ToTestDisplayString());
+
+            Assert.False(getMethod.IsInitOnly);
+            Assert.False(getMethod.GetPublicSymbol().IsInitOnly);
+
+            Assert.True(setMethod.IsInitOnly);
+            Assert.True(setMethod.GetPublicSymbol().IsInitOnly);
         }
     }
 }

@@ -145,19 +145,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         internal static IMethodSymbol CreateMethodSymbol(
             INamedTypeSymbol containingType,
             ImmutableArray<AttributeData> attributes,
-            Accessibility accessibility, DeclarationModifiers modifiers,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers,
             ITypeSymbol returnType,
             RefKind refKind,
-            bool isInitOnly,
-            ImmutableArray<IMethodSymbol> explicitInterfaceImplementations, string name,
+            ImmutableArray<IMethodSymbol> explicitInterfaceImplementations,
+            string name,
             ImmutableArray<ITypeParameterSymbol> typeParameters,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<SyntaxNode> statements = default,
             ImmutableArray<SyntaxNode> handlesExpressions = default,
             ImmutableArray<AttributeData> returnTypeAttributes = default,
-            MethodKind methodKind = MethodKind.Ordinary)
+            MethodKind methodKind = MethodKind.Ordinary,
+            bool isInitOnly = false)
         {
-            var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, refKind, isInitOnly, explicitInterfaceImplementations, name, typeParameters, parameters, returnTypeAttributes, methodKind);
+            var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, returnTypeAttributes, methodKind, isInitOnly);
             CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions);
             return result;
         }
@@ -169,16 +171,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers,
             ITypeSymbol returnType,
             RefKind refKind,
-            bool isInitOnly,
-            ImmutableArray<IMethodSymbol> explicitInterfaceImplementations, string name,
-            ImmutableArray<ITypeParameterSymbol> typeParameters,
+            ImmutableArray<IMethodSymbol> explicitInterfaceImplementations,
+            string name, ImmutableArray<ITypeParameterSymbol> typeParameters,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<SyntaxNode> statements = default,
             ImmutableArray<SyntaxNode> handlesExpressions = default,
             ImmutableArray<AttributeData> returnTypeAttributes = default,
-            MethodKind methodKind = MethodKind.Ordinary)
+            MethodKind methodKind = MethodKind.Ordinary,
+            bool isInitOnly = false)
         {
-            return CreateMethodSymbol(null, attributes, accessibility, modifiers, returnType, refKind, isInitOnly, explicitInterfaceImplementations, name, typeParameters, parameters, statements, handlesExpressions, returnTypeAttributes, methodKind);
+            return CreateMethodSymbol(null, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, statements, handlesExpressions, returnTypeAttributes, methodKind, isInitOnly);
         }
 
         /// <summary>
@@ -332,14 +334,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 accessor.GetSymbolModifiers().WithIsAbstract(statements == null),
                 accessor.ReturnType,
                 accessor.RefKind,
-                isInitOnly: accessor.IsInitOnly,
                 explicitInterfaceImplementations.IsDefault ? accessor.ExplicitInterfaceImplementations : explicitInterfaceImplementations,
                 accessor.Name,
                 accessor.TypeParameters,
                 accessor.Parameters,
-                statements,
+                statements: statements,
                 returnTypeAttributes: accessor.GetReturnTypeAttributes(),
-                methodKind: accessor.MethodKind);
+                methodKind: accessor.MethodKind,
+                isInitOnly: accessor.IsInitOnly);
         }
 
         /// <summary>
@@ -356,7 +358,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 new DeclarationModifiers(isAbstract: statements == null),
                 returnType: null,
                 refKind: RefKind.None,
-                isInitOnly: false,
                 explicitInterfaceImplementations: default,
                 name: string.Empty,
                 typeParameters: default,
@@ -420,7 +421,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 modifiers: new DeclarationModifiers(),
                 returnType: returnType,
                 refKind: refKind,
-                isInitOnly: false,
                 explicitInterfaceImplementations: default,
                 name: "Invoke",
                 typeParameters: default,
@@ -473,7 +473,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 modifiers ?? method.GetSymbolModifiers(),
                 returnType ?? method.ReturnType,
                 method.RefKind,
-                isInitOnly: method.IsInitOnly,
                 explicitInterfaceImplementations,
                 name ?? method.Name,
                 method.TypeParameters,

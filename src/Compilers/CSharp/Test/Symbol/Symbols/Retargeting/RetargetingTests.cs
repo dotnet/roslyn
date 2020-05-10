@@ -121,39 +121,6 @@ class C
             RetargetingSymbolChecker.CheckSymbols(sourceNamespace.GetMember<NamedTypeSymbol>("C"), retargetingNamespace.GetMember<NamedTypeSymbol>("C"));
         }
 
-        [Fact, CompilerTrait(CompilerFeature.InitOnlySetters)]
-        public void RetargetProperties_WithInitOnlySetter()
-        {
-            var source =
-@"interface I
-{
-    object Property { get; init; }
-}";
-            var compilation = CreateCompilation(source);
-
-            var sourceModule = compilation.SourceModule;
-            var sourceAssembly = (SourceAssemblySymbol)sourceModule.ContainingAssembly;
-
-            var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
-            retargetingAssembly.SetCorLibrary(sourceAssembly.CorLibrary);
-            var retargetingModule = retargetingAssembly.Modules[0];
-            var retargetingNamespace = retargetingModule.GlobalNamespace;
-
-            var property = retargetingNamespace.GetMember<PropertySymbol>("I.Property");
-            MethodSymbol getMethod = property.GetMethod;
-            MethodSymbol setMethod = property.SetMethod;
-
-            Assert.Equal("System.Object I.Property { get; init; }", property.ToTestDisplayString());
-            Assert.Equal("void modreq(System.Runtime.CompilerServices.IsExternalInit[missing]) I.Property.init",
-                setMethod.ToTestDisplayString());
-
-            Assert.False(getMethod.IsInitOnly);
-            Assert.False(getMethod.GetPublicSymbol().IsInitOnly);
-
-            Assert.True(setMethod.IsInitOnly);
-            Assert.True(setMethod.GetPublicSymbol().IsInitOnly);
-        }
-
         [Fact]
         public void RetargetFields()
         {

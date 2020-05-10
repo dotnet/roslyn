@@ -114,7 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 modifiers: new DeclarationModifiers(isStatic, isAsync: declaredSymbol.IsAsync),
                 returnType: declaredSymbol.ReturnType,
                 refKind: default,
-                isInitOnly: false,
                 explicitInterfaceImplementations: default,
                 name: methodName,
                 typeParameters: typeParameters.ToImmutableArray(),

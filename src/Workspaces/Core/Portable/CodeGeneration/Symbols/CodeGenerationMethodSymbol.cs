@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers modifiers,
             ITypeSymbol returnType,
             RefKind refKind,
-            bool isInitOnly,
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations,
             string name,
             ImmutableArray<ITypeParameterSymbol> typeParameters,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<AttributeData> returnTypeAttributes,
-            MethodKind methodKind = MethodKind.Ordinary)
+            MethodKind methodKind = MethodKind.Ordinary,
+            bool isInitOnly = false)
             : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes)
         {
             this.ReturnType = returnType;
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             var result = new CodeGenerationMethodSymbol(this.ContainingType,
                 this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
-                this.ReturnType, this.RefKind, this.IsInitOnly, this.ExplicitInterfaceImplementations,
+                this.ReturnType, this.RefKind, this.ExplicitInterfaceImplementations,
                 this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes(),
-                this.MethodKind);
+                this.MethodKind, this.IsInitOnly);
 
             CodeGenerationMethodInfo.Attach(result,
                 CodeGenerationMethodInfo.GetIsNew(this),

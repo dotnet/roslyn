@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 modifiers: new DeclarationModifiers(isOverride: true),
                 returnType: compilation.GetSpecialType(SpecialType.System_Boolean),
                 refKind: RefKind.None,
-                isInitOnly: false,
                 explicitInterfaceImplementations: default,
                 name: EqualsName,
                 typeParameters: default,

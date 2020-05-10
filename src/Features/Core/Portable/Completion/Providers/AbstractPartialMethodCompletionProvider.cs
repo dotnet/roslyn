@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 modifiers: MemberInsertionCompletionItem.GetModifiers(item),
                 returnType: semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
                 refKind: method.RefKind,
-                isInitOnly: false,
                 explicitInterfaceImplementations: default,
                 name: member.Name,
                 typeParameters: method.TypeParameters,
