@@ -576,5 +576,97 @@ Literal((decimal)Math.PI).GenerateString());
         }
 
         #endregion
+
+        #region decimal
+
+        [Fact]
+        public void TestLiteralCharZero()
+        {
+            AssertEx.AreEqual(
+@"'\0'",
+Literal((char)0).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralCharOne()
+        {
+            AssertEx.AreEqual(
+@"'\u0001'",
+Literal((char)1).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralCharTab()
+        {
+            AssertEx.AreEqual(
+@"'\t'",
+Literal('\t').GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralCharNewLine()
+        {
+            AssertEx.AreEqual(
+@"'\n'",
+Literal('\n').GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralCharSpace()
+        {
+            AssertEx.AreEqual(
+@"' '",
+Literal(' ').GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralCharSingleQuote()
+        {
+            AssertEx.AreEqual(
+@"'\''",
+Literal('\'').GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralCharDoubleQuote()
+        {
+            AssertEx.AreEqual(
+@"'""'",
+Literal('"').GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralCharLetter()
+        {
+            AssertEx.AreEqual(
+@"'a'",
+Literal('a').GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralCharMaxValue()
+        {
+            AssertEx.AreEqual(
+@"'\uffff'",
+Literal(char.MaxValue).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralCharSurrogate1()
+        {
+            AssertEx.AreEqual(
+@"'\ud83d'",
+Literal('\ud83d').GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralCharSurrogate2()
+        {
+            AssertEx.AreEqual(
+@"'\ude0a'",
+Literal('\ude0a').GenerateString());
+        }
+
+        #endregion
     }
 }
