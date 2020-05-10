@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 return null;
 
             if (type == SyntaxType.Expression)
-                throw new ArgumentException("Return operation cannot be converted to an expression");
+                throw new ArgumentException($"{nameof(IReturnOperation)} cannot be converted to a {nameof(ExpressionSyntax)}");
 
             var expression = TryGenerateExpression(operation.ReturnedValue);
             if (operation.Kind == OperationKind.YieldBreak)

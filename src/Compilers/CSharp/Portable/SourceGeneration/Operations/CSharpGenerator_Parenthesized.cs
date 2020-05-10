@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 return null;
 
             if (type == SyntaxType.Statement)
-                throw new ArgumentException("Parenthesized operation cannot be converted to a statement");
+                throw new ArgumentException($"{nameof(IParenthesizedOperation)} cannot be converted to a {nameof(StatementSyntax)}");
 
             var expression = TryGenerateExpression(operation.Operand);
             return expression == null

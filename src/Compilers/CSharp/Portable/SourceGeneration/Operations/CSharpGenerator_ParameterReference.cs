@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 return null;
 
             if (type == SyntaxType.Statement)
-                throw new ArgumentException("Parameter reference operation cannot be converted to a statement");
+                throw new ArgumentException($"{nameof(IParameterReferenceOperation)} cannot be converted to a {nameof(StatementSyntax)}");
 
             return IdentifierName(operation.Parameter.Name);
         }

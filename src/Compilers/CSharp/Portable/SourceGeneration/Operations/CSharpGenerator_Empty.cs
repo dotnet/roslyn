@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 return null;
 
             if (type == SyntaxType.Expression)
-                throw new ArgumentException("Empty operation cannot be converted to an expression");
+                throw new ArgumentException($"{nameof(IEmptyOperation)} cannot be converted to a {nameof(ExpressionSyntax)}");
 
             return EmptyStatement();
         }

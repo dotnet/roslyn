@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 return null;
 
             if (type == SyntaxType.Statement)
-                throw new ArgumentException("Local reference operation cannot be converted to a statement");
+                throw new ArgumentException($"{nameof(ILocalReferenceOperation)} cannot be converted to a {nameof(StatementSyntax)}");
 
             return IdentifierName(operation.Local.Name);
         }

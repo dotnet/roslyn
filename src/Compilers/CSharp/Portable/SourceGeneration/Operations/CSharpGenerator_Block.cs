@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 return null;
 
             if (type == SyntaxType.Expression)
-                throw new ArgumentException("Block operation cannot be converted to an expression");
+                throw new ArgumentException($"{nameof(IBlockOperation)} cannot be converted to a {nameof(ExpressionSyntax)}");
 
             using var _ = GetArrayBuilder<StatementSyntax>(out var statements);
 

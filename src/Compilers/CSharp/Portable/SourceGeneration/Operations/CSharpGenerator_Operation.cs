@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case OperationKind.MemberInitializer:
                     break;
                 case OperationKind.NameOf:
-                    break;
+                    return TryGenerateNameOfExpression((INameOfOperation)operation, type);
                 case OperationKind.Tuple:
                     break;
                 case OperationKind.DynamicObjectCreation:

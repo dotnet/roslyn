@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 return null;
 
             if (type == SyntaxType.Statement)
-                throw new ArgumentException("Literal operation cannot be converted to a statemnet");
+                throw new ArgumentException($"{nameof(ILiteralOperation)} cannot be converted to a {nameof(StatementSyntax)}");
 
             return TryGenerateConstantExpression(operation.Type, hasConstantValue: true, operation.ConstantValue.Value);
         }
