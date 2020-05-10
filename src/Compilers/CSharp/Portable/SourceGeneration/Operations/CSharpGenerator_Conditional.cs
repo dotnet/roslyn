@@ -23,8 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             {
                 var condition = TryGenerateExpression(operation.Condition);
                 var whenTrue = TryGenerateStatement(WrapWithBlock(operation.WhenTrue));
-                if (condition == null || whenTrue == null)
-                    return null;
+
+                if (condition == null)
+                    throw new ArgumentException($"{nameof(IConditionalOperation)}.{nameof(IConditionalOperation.Condition)} could not be converted to an {nameof(ExpressionSyntax)}");
+
+                if (whenTrue == null)
+                    throw new ArgumentException($"{nameof(IConditionalOperation)}.{nameof(IConditionalOperation.WhenTrue)} could not be converted to a {nameof(StatementSyntax)}");
 
                 var whenFalse = TryGenerateStatement(WrapWithBlock(operation.WhenFalse));
                 return IfStatement(
@@ -37,13 +41,20 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 var condition = TryGenerateExpression(WrapWithParenthesized(operation.Condition));
                 var whenTrue = TryGenerateExpression(WrapWithParenthesized(operation.WhenTrue));
                 var whenFalse = TryGenerateExpression(WrapWithParenthesized(operation.WhenFalse));
-                if (condition == null || whenTrue == null || whenFalse == null)
-                    return null;
+
+                if (condition == null)
+                    throw new ArgumentException($"{nameof(IConditionalOperation)}.{nameof(IConditionalOperation.Condition)} could not be converted to an {nameof(ExpressionSyntax)}");
+
+                if (whenTrue == null)
+                    throw new ArgumentException($"{nameof(IConditionalOperation)}.{nameof(IConditionalOperation.WhenTrue)} could not be converted to an {nameof(ExpressionSyntax)}");
+
+                if (whenFalse == null)
+                    throw new ArgumentException($"{nameof(IConditionalOperation)}.{nameof(IConditionalOperation.WhenFalse)} could not be converted to an {nameof(ExpressionSyntax)}");
 
                 return ConditionalExpression(condition, whenTrue, whenFalse);
             }
 
-            throw new ArgumentException($"Conditional operation can only be converted using {nameof(TryGenerateStatement)} or {nameof(TryGenerateExpression)}");
+            throw new ArgumentException($"{nameof(IConditionalOperation)} can only be converted using {nameof(TryGenerateStatement)} or {nameof(TryGenerateExpression)}");
         }
     }
 }

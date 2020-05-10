@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             // todo: handle reordered parameters
             var expr = TryGenerateExpression(operation.Value);
             if (expr == null)
-                return null;
+                throw new ArgumentException($"{nameof(IArgumentOperation)}.{nameof(IArgumentOperation.Value)} could not be converted to an {nameof(ExpressionSyntax)}");
 
             var parameterRefKind = operation.Parameter?.RefKind ?? default;
             var refKindKeyword = parameterRefKind switch

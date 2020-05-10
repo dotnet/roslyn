@@ -577,11 +577,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new IncrementOrDecrementOperation(isPostfix, isLifted, isChecked, target, operatorMethod, OperationKind.Decrement, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
-        public static IThrowOperation Throw(
-            IOperation exception,
-            ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+        public static IThrowOperation Throw(IOperation exception = null)
         {
-            return new ThrowOperation(exception, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new ThrowOperation(exception, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }
 
         public static IDeconstructionAssignmentOperation DeconstructionAssignment(

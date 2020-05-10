@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
             var argument = TryGenerateArgument(WrapWithArgument(operation.Argument));
             if (argument == null)
-                return null;
+                throw new ArgumentException($"{nameof(INameOfOperation)}.{nameof(INameOfOperation.Argument)} could not be converted to an {nameof(ArgumentSyntax)}");
 
             return InvocationExpression(
                 SyntaxFactory.IdentifierName(ParseToken("nameof")),

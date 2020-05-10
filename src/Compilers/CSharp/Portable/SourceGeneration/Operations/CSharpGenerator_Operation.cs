@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case OperationKind.Increment:
                     break;
                 case OperationKind.Throw:
-                    break;
+                    return TryGenerateThrowStatementOrExpression((IThrowOperation)operation, type);
                 case OperationKind.Decrement:
                     break;
                 case OperationKind.DeconstructionAssignment:

@@ -21,12 +21,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
             if (type == SyntaxType.Expression)
                 throw new ArgumentException($"{nameof(IReturnOperation)} cannot be converted to a {nameof(ExpressionSyntax)}");
 
-            var expression = TryGenerateExpression(operation.ReturnedValue);
             if (operation.Kind == OperationKind.YieldBreak)
-                return YieldStatement(SyntaxKind.YieldBreakStatement, expression);
+                return YieldStatement(SyntaxKind.YieldBreakStatement);
 
+            var expression = TryGenerateExpression(operation.ReturnedValue);
             if (operation.Kind == OperationKind.YieldReturn)
+            {
+                if (expression == null)
+                    throw new ArgumentException($"{nameof(IReturnOperation)}.{nameof(IReturnOperation.ReturnedValue)} could not be converted to an {nameof(ExpressionSyntax)}");
+
                 return YieldStatement(SyntaxKind.YieldReturnStatement, expression);
+            }
 
             return ReturnStatement(expression);
         }
