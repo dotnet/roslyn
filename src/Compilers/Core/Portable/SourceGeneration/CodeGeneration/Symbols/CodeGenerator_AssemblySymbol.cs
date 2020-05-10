@@ -17,8 +17,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IAssemblySymbol WithModule(this IAssemblySymbol assembly, IModuleSymbol module)
             => With(assembly, module: ToOptional(module));
 
-        public static IAssemblySymbol WithAttributes(this IAssemblySymbol assembly, ImmutableArray<AttributeData> attributes)
-            => With(assembly, attributes: ToOptional(attributes));
+        public static IAssemblySymbol WithAttributes(this IAssemblySymbol symbol, params AttributeData[] attributes)
+            => WithAttributes(symbol, (IEnumerable<AttributeData>)attributes);
+
+        public static IAssemblySymbol WithAttributes(this IAssemblySymbol symbol, IEnumerable<AttributeData> attributes)
+            => WithAttributes(symbol, attributes.ToImmutableArray());
+
+        public static IAssemblySymbol WithAttributes(this IAssemblySymbol symbol, ImmutableArray<AttributeData> attributes)
+            => With(symbol, attributes: ToOptional(attributes));
 
         private static IAssemblySymbol With(
             this IAssemblySymbol assembly,

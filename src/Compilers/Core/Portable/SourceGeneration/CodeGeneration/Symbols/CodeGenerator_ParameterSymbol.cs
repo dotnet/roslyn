@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration
@@ -35,6 +36,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 explicitDefaultValue: default,
                 isDiscard: true);
         }
+
+        public static IParameterSymbol WithAttributes(this IParameterSymbol symbol, params AttributeData[] attributes)
+            => WithAttributes(symbol, (IEnumerable<AttributeData>)attributes);
+
+        public static IParameterSymbol WithAttributes(this IParameterSymbol symbol, IEnumerable<AttributeData> attributes)
+            => WithAttributes(symbol, attributes.ToImmutableArray());
 
         public static IParameterSymbol WithAttributes(this IParameterSymbol symbol, ImmutableArray<AttributeData> attributes)
              => With(symbol, attributes: ToOptional(attributes));

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration
@@ -19,6 +20,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         private static IModuleSymbol WithGlobalNamespaces(this IModuleSymbol symbol, INamespaceSymbol globalNamespace)
             => With(symbol, globalNamespace: ToOptional(globalNamespace));
+
+        public static IModuleSymbol WithAttributes(this IModuleSymbol symbol, params AttributeData[] attributes)
+            => WithAttributes(symbol, (IEnumerable<AttributeData>)attributes);
+
+        public static IModuleSymbol WithAttributes(this IModuleSymbol symbol, IEnumerable<AttributeData> attributes)
+            => WithAttributes(symbol, attributes.ToImmutableArray());
 
         public static IModuleSymbol WithAttributes(this IModuleSymbol symbol, ImmutableArray<AttributeData> attributes)
             => With(symbol, attributes: ToOptional(attributes));

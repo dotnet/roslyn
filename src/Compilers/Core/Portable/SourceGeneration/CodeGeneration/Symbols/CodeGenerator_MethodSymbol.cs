@@ -271,6 +271,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IMethodSymbol WithMethodKind(this IMethodSymbol symbol, MethodKind methodKind)
             => With(symbol, methodKind: ToOptional(methodKind));
 
+        public static IMethodSymbol WithAttributes(this IMethodSymbol symbol, params AttributeData[] attributes)
+            => WithAttributes(assymbolsembly, (IEnumerable<AttributeData>)attributes);
+
+        public static IMethodSymbol WithAttributes(this IMethodSymbol symbol, IEnumerable<AttributeData> attributes)
+            => WithAttributes(symbol, attributes.ToImmutableArray());
+
         public static IMethodSymbol WithAttributes(this IMethodSymbol symbol, ImmutableArray<AttributeData> attributes)
             => With(symbol, attributes: ToOptional(attributes));
 

@@ -61,6 +61,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 containingSymbol);
         }
 
+        public static IPropertySymbol WithAttributes(this IPropertySymbol symbol, params AttributeData[] attributes)
+            => WithAttributes(symbol, (IEnumerable<AttributeData>)attributes);
+
+        public static IPropertySymbol WithAttributes(this IPropertySymbol symbol, IEnumerable<AttributeData> attributes)
+            => WithAttributes(symbol, attributes.ToImmutableArray());
+
         public static IPropertySymbol WithAttributes(this IPropertySymbol symbol, ImmutableArray<AttributeData> attributes)
             => With(symbol, attributes: ToOptional(attributes));
 

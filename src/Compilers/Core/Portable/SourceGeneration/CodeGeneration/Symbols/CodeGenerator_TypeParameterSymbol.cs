@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration
@@ -13,50 +14,86 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             string name,
             ImmutableArray<AttributeData> attributes = default,
             VarianceKind variance = default,
-            bool hasReferenceTypeConstraint = default,
-            bool hasValueTypeConstraint = default,
-            bool hasUnmanagedTypeConstraint = default,
-            bool hasNotNullConstraint = default,
-            bool hasConstructorConstraint = default,
+            bool referenceTypeConstraint = default,
+            bool valueTypeConstraint = default,
+            bool unmanagedTypeConstraint = default,
+            bool notNullConstraint = default,
+            bool constructorConstraint = default,
             ImmutableArray<ITypeSymbol> constraintTypes = default,
             NullableAnnotation nullableAnnotation = NullableAnnotation.None)
         {
             return new TypeParameterSymbol(
-                name,
-                variance,
-                hasReferenceTypeConstraint,
-                hasValueTypeConstraint,
-                hasUnmanagedTypeConstraint,
-                hasNotNullConstraint,
-                hasConstructorConstraint,
-                constraintTypes,
                 attributes,
+                variance,
+                name,
+                referenceTypeConstraint,
+                valueTypeConstraint,
+                unmanagedTypeConstraint,
+                notNullConstraint,
+                constructorConstraint,
+                constraintTypes,
                 nullableAnnotation);
         }
 
+        public static ITypeParameterSymbol WithAttributes(this ITypeParameterSymbol symbol, params AttributeData[] attributes)
+            => WithAttributes(symbol, (IEnumerable<AttributeData>)attributes);
+
+        public static ITypeParameterSymbol WithAttributes(this ITypeParameterSymbol symbol, IEnumerable<AttributeData> attributes)
+            => WithAttributes(symbol, attributes.ToImmutableArray());
+
+        public static ITypeParameterSymbol WithAttributes(this ITypeParameterSymbol symbol, ImmutableArray<AttributeData> attributes)
+            => With(symbol, attributes: ToOptional(attributes));
+
+        public static ITypeParameterSymbol WithVariance(this ITypeParameterSymbol symbol, VarianceKind variance)
+            => With(symbol, variance: ToOptional(variance));
+
+        public static ITypeParameterSymbol WithName(this ITypeParameterSymbol symbol, string name)
+            => With(symbol, name: ToOptional(name));
+
+        public static ITypeParameterSymbol WithReferenceTypeConstraint(this ITypeParameterSymbol symbol, bool referenceTypeConstraint)
+            => With(symbol, referenceTypeConstraint: ToOptional(referenceTypeConstraint));
+
+        public static ITypeParameterSymbol WithValueTypeConstraint(this ITypeParameterSymbol symbol, bool valueTypeConstraint)
+            => With(symbol, valueTypeConstraint: ToOptional(valueTypeConstraint));
+
+        public static ITypeParameterSymbol WithUnmanagedTypeConstraint(this ITypeParameterSymbol symbol, bool unmanagedTypeConstraint)
+            => With(symbol, unmanagedTypeConstraint: ToOptional(unmanagedTypeConstraint));
+
+        public static ITypeParameterSymbol WithNotNullConstraint(this ITypeParameterSymbol symbol, bool notNullConstraint)
+            => With(symbol, notNullConstraint: ToOptional(notNullConstraint));
+
+        public static ITypeParameterSymbol WithConstructorConstraint(this ITypeParameterSymbol symbol, bool constructorConstraint)
+            => With(symbol, constructorConstraint: ToOptional(constructorConstraint));
+
+        public static ITypeParameterSymbol WithConstraintTypes(this ITypeParameterSymbol symbol, ImmutableArray<ITypeSymbol> constraintTypes)
+            => With(symbol, constraintTypes: ToOptional(constraintTypes));
+
+        public static ITypeParameterSymbol WithNullableAnnotation(this ITypeParameterSymbol symbol, NullableAnnotation nullableAnnotation)
+            => With(symbol, nullableAnnotation: ToOptional(nullableAnnotation));
+
         public static ITypeParameterSymbol With(
             this ITypeParameterSymbol typeParameter,
-            Optional<string> name = default,
-            Optional<VarianceKind> variance = default,
-            Optional<bool> hasReferenceTypeConstraint = default,
-            Optional<bool> hasValueTypeConstraint = default,
-            Optional<bool> hasUnmanagedTypeConstraint = default,
-            Optional<bool> hasNotNullConstraint = default,
-            Optional<bool> hasConstructorConstraint = default,
-            Optional<ImmutableArray<ITypeSymbol>> constraintTypes = default,
             Optional<ImmutableArray<AttributeData>> attributes = default,
+            Optional<VarianceKind> variance = default,
+            Optional<string> name = default,
+            Optional<bool> referenceTypeConstraint = default,
+            Optional<bool> valueTypeConstraint = default,
+            Optional<bool> unmanagedTypeConstraint = default,
+            Optional<bool> notNullConstraint = default,
+            Optional<bool> constructorConstraint = default,
+            Optional<ImmutableArray<ITypeSymbol>> constraintTypes = default,
             Optional<NullableAnnotation> nullableAnnotation = default)
         {
             return new TypeParameterSymbol(
-                name.GetValueOr(typeParameter.Name),
-                variance.GetValueOr(typeParameter.Variance),
-                hasReferenceTypeConstraint.GetValueOr(typeParameter.HasReferenceTypeConstraint),
-                hasValueTypeConstraint.GetValueOr(typeParameter.HasValueTypeConstraint),
-                hasUnmanagedTypeConstraint.GetValueOr(typeParameter.HasUnmanagedTypeConstraint),
-                hasNotNullConstraint.GetValueOr(typeParameter.HasNotNullConstraint),
-                hasConstructorConstraint.GetValueOr(typeParameter.HasConstructorConstraint),
-                constraintTypes.GetValueOr(typeParameter.ConstraintTypes),
                 attributes.GetValueOr(typeParameter.GetAttributes()),
+                variance.GetValueOr(typeParameter.Variance),
+                name.GetValueOr(typeParameter.Name),
+                referenceTypeConstraint.GetValueOr(typeParameter.HasReferenceTypeConstraint),
+                valueTypeConstraint.GetValueOr(typeParameter.HasValueTypeConstraint),
+                unmanagedTypeConstraint.GetValueOr(typeParameter.HasUnmanagedTypeConstraint),
+                notNullConstraint.GetValueOr(typeParameter.HasNotNullConstraint),
+                constructorConstraint.GetValueOr(typeParameter.HasConstructorConstraint),
+                constraintTypes.GetValueOr(typeParameter.ConstraintTypes),
                 nullableAnnotation.GetValueOr(typeParameter.NullableAnnotation));
         }
 
@@ -65,24 +102,24 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             private readonly ImmutableArray<AttributeData> _attributes;
 
             public TypeParameterSymbol(
-                string name,
-                VarianceKind variance,
-                bool hasReferenceTypeConstraint,
-                bool hasValueTypeConstraint,
-                bool hasUnmanagedTypeConstraint,
-                bool hasNotNullConstraint,
-                bool hasConstructorConstraint,
-                ImmutableArray<ITypeSymbol> constraintTypes,
                 ImmutableArray<AttributeData> attributes,
+                VarianceKind variance,
+                string name,
+                bool referenceTypeConstraint,
+                bool valueTypeConstraint,
+                bool unmanagedTypeConstraint,
+                bool notNullConstraint,
+                bool constructorConstraint,
+                ImmutableArray<ITypeSymbol> constraintTypes,
                 NullableAnnotation nullableAnnotation)
             {
                 Name = name;
                 Variance = variance;
-                HasReferenceTypeConstraint = hasReferenceTypeConstraint;
-                HasValueTypeConstraint = hasValueTypeConstraint;
-                HasUnmanagedTypeConstraint = hasUnmanagedTypeConstraint;
-                HasNotNullConstraint = hasNotNullConstraint;
-                HasConstructorConstraint = hasConstructorConstraint;
+                HasReferenceTypeConstraint = referenceTypeConstraint;
+                HasValueTypeConstraint = valueTypeConstraint;
+                HasUnmanagedTypeConstraint = unmanagedTypeConstraint;
+                HasNotNullConstraint = notNullConstraint;
+                HasConstructorConstraint = constructorConstraint;
                 ConstraintTypes = constraintTypes.NullToEmpty();
                 _attributes = attributes.NullToEmpty();
                 NullableAnnotation = nullableAnnotation;

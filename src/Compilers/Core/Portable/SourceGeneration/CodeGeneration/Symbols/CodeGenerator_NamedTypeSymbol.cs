@@ -213,6 +213,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static INamedTypeSymbol WithTypeKind(this INamedTypeSymbol symbol, TypeKind typeKind)
             => With(symbol, typeKind: ToOptional(typeKind));
 
+        public static INamedTypeSymbol WithAttributes(this INamedTypeSymbol symbol, params AttributeData[] attributes)
+            => WithAttributes(symbol, (IEnumerable<AttributeData>)attributes);
+
+        public static INamedTypeSymbol WithAttributes(this INamedTypeSymbol symbol, IEnumerable<AttributeData> attributes)
+            => WithAttributes(symbol, attributes.ToImmutableArray());
+
         public static INamedTypeSymbol WithAttributes(this INamedTypeSymbol symbol, ImmutableArray<AttributeData> attributes)
             => With(symbol, attributes: ToOptional(attributes));
 

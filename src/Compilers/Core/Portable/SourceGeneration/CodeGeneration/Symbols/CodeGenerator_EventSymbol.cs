@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration
@@ -33,6 +34,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 raiseMethod,
                 containingSymbol);
         }
+
+        public static IEventSymbol WithAttributes(this IEventSymbol symbol, params AttributeData[] attributes)
+            => WithAttributes(symbol, (IEnumerable<AttributeData>)attributes);
+
+        public static IEventSymbol WithAttributes(this IEventSymbol symbol, IEnumerable<AttributeData> attributes)
+            => WithAttributes(symbol, attributes.ToImmutableArray());
 
         public static IEventSymbol WithAttributes(this IEventSymbol symbol, ImmutableArray<AttributeData> attributes)
             => With(symbol, attributes: ToOptional(attributes));
