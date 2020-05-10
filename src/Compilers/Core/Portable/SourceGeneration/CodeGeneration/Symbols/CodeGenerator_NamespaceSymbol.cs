@@ -36,7 +36,19 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 isGlobalNamespace: false);
         }
 
-        public static INamespaceSymbol With(
+        public static INamespaceSymbol WithName(this INamespaceSymbol symbol, string name)
+            => With(symbol, name: ToOptional(name));
+
+        public static INamespaceSymbol WithImports(this INamespaceSymbol symbol, ImmutableArray<INamespaceOrTypeSymbol> imports)
+            => With(symbol, imports: ToOptional(imports));
+
+        public static INamespaceSymbol WithMembers(this INamespaceSymbol symbol, ImmutableArray<INamespaceOrTypeSymbol> members)
+            => With(symbol, members: ToOptional(members));
+
+        public static INamespaceSymbol WithContainingSymbol(this INamespaceSymbol symbol, ISymbol containingSymbol)
+            => With(symbol, containingSymbol: ToOptional(containingSymbol));
+
+        private static INamespaceSymbol With(
             this INamespaceSymbol symbol,
             Optional<string> name = default,
             Optional<ImmutableArray<INamespaceOrTypeSymbol>> imports = default,
