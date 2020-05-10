@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 // fire and forget on a background thread:
                 try
                 {
-                    _ = Task.Run(TrackActiveSpansAsync, _editSession.CancellationToken);
+                    _ = Task.Run(() => TrackActiveSpansAsync(_editSession.CancellationToken), _editSession.CancellationToken);
                 }
                 catch (TaskCanceledException)
                 {
@@ -143,21 +143,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 try
                 {
-                    var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(_editSession.CancellationToken).ConfigureAwait(false);
-                    var (baseDocument, _) = await _editSession.DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document.Id, _editSession.CancellationToken).ConfigureAwait(false);
-
-                    if (baseDocument != null &&
-                        baseActiveStatements.DocumentMap.TryGetValue(document.Id, out var documentActiveStatements) &&
-                        TryGetSnapshot(document, out var snapshot))
+                    if (!TryGetSnapshot(document, out var snapshot))
                     {
-                        lock (_trackingSpans)
-                        {
-                            TrackActiveSpansNoLock(document.Id, snapshot, documentActiveStatements);
-                        }
-
-                        var leafChanged = documentActiveStatements.Contains(s => s.IsLeaf);
-                        _service.OnTrackingSpansChanged(leafChanged);
+                        return;
                     }
+
+                    var baseActiveStatements = (await _editSession.GetBaseActiveStatementsAsync(ImmutableArray.Create(document.Id), _editSession.CancellationToken).ConfigureAwait(false)).Single();
+
+                    lock (_trackingSpans)
+                    {
+                        TrackActiveSpansNoLock(document.Id, snapshot, baseActiveStatements);
+                    }
+
+                    var leafChanged = baseActiveStatements.Contains(s => s.IsLeaf);
+                    _service.OnTrackingSpansChanged(leafChanged);
                 }
                 catch (OperationCanceledException)
                 {
@@ -169,46 +168,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 }
             }
 
-            private async Task TrackActiveSpansAsync()
+            private async Task TrackActiveSpansAsync(CancellationToken cancellationToken)
             {
                 try
                 {
-                    var cancellationToken = _editSession.CancellationToken;
-                    var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                    var lastCommittedSolution = _editSession.DebuggingSession.LastCommittedSolution;
-                    var currentSolution = _editSession.DebuggingSession.Workspace.CurrentSolution;
-                    using var _ = ArrayBuilder<(DocumentId, ITextSnapshot, ImmutableArray<ActiveStatement>)>.GetInstance(out var activeSpansToTrack);
+                    var workspace = _editSession.DebuggingSession.Workspace;
+                    var currentSolution = workspace.CurrentSolution;
 
-                    foreach (var (documentId, documentActiveStatements) in baseActiveStatements.DocumentMap)
-                    {
-                        var document = currentSolution.GetDocument(documentId);
-                        if (document == null)
-                        {
-                            // Document has been deleted.
-                            continue;
-                        }
-
-                        var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(documentId, cancellationToken).ConfigureAwait(false);
-                        if (baseDocument == null)
-                        {
-                            // Document has been added, is out-of-sync or a design-time-only document.
-                            continue;
-                        }
-
-                        if (!TryGetSnapshot(document, out var snapshot))
-                        {
-                            // Document is not open in an editor or a corresponding snapshot doesn't exist anymore.
-                            continue;
-                        }
-
-                        activeSpansToTrack.Add((documentId, snapshot, documentActiveStatements));
-                    }
+                    var openDocumentIds = workspace.GetOpenDocumentIds().ToImmutableArray();
+                    var activeSpansToTrack = await _editSession.GetBaseActiveStatementsAsync(openDocumentIds, cancellationToken).ConfigureAwait(false);
+                    Debug.Assert(openDocumentIds.Length == activeSpansToTrack.Length);
 
                     lock (_trackingSpans)
                     {
-                        foreach (var (documentId, snapshot, documentActiveStatements) in activeSpansToTrack)
+                        for (int i = 0; i < activeSpansToTrack.Length; i++)
                         {
-                            TrackActiveSpansNoLock(documentId, snapshot, documentActiveStatements);
+                            var document = currentSolution.GetDocument(openDocumentIds[i]);
+                            if (document == null)
+                            {
+                                // Document has been deleted.
+                                continue;
+                            }
+
+                            if (!TryGetSnapshot(document, out var snapshot))
+                            {
+                                // Document is not open in an editor or a corresponding snapshot doesn't exist anymore.
+                                continue;
+                            }
+
+
+                            TrackActiveSpansNoLock(document.Id, snapshot, activeSpansToTrack[i]);
                         }
                     }
 
