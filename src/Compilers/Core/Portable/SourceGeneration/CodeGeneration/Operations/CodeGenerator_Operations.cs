@@ -265,11 +265,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IFieldReferenceOperation FieldReference(
             IFieldSymbol field,
-            bool isDeclaration,
-            IOperation instance,
-            ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+            IOperation instance = null)
         {
-            return new FieldReferenceOperation(field, isDeclaration, instance, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new FieldReferenceOperation(field, isDeclaration: false, instance, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }
 
         public static IMethodReferenceOperation MethodReference(
