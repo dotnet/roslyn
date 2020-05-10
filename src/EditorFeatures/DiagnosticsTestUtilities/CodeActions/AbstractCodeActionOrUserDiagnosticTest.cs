@@ -313,13 +313,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title));
         }
 
-        internal async Task TestInRegularAndScript1Async(
+        internal Task TestInRegularAndScript1Async(
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
             TestParameters parameters = default)
         {
-            parameters = parameters.WithIndex(index);
+            return TestInRegularAndScript1Async(initialMarkup, expectedMarkup, parameters.WithIndex(index));
+        }
+
+        internal async Task TestInRegularAndScript1Async(
+            string initialMarkup,
+            string expectedMarkup,
+            TestParameters parameters)
+        {
             await TestAsync(initialMarkup, expectedMarkup, WithRegularOptions(parameters));
             await TestAsync(initialMarkup, expectedMarkup, WithScriptOptions(parameters));
         }

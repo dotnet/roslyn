@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                         placeSystemNamespaceFirst: true);
             }
 
-            private readonly static ImmutableArray<Func<Reference, Document, IComparable>> s_comparers
+            private static readonly ImmutableArray<Func<Reference, Document, IComparable>> s_comparers
                 = ImmutableArray.Create<Func<Reference, Document, IComparable>>(
                     // If references have different weights, order by the ones with lower weight (i.e.
                     // they are better matches).

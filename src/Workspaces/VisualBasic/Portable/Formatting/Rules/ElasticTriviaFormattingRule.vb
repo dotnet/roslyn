@@ -84,14 +84,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             ' if it doesn't have elastic trivia, pass it through
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
-                Return nextOperation.Invoke()
+                Return nextOperation.Invoke(previousToken, currentToken)
             End If
 
             ' if it has one, check whether there is a forced one
-            Dim operation = nextOperation.Invoke()
+            Dim operation = nextOperation.Invoke(previousToken, currentToken)
 
             If operation IsNot Nothing AndAlso operation.Option = AdjustSpacesOption.ForceSpaces Then
                 Return operation
@@ -121,17 +121,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Public Overrides Function GetAdjustNewLinesOperationSlow(
-                previousToken As SyntaxToken,
-                currentToken As SyntaxToken,
+                ByRef previousToken As SyntaxToken,
+                ByRef currentToken As SyntaxToken,
                 ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
 
             ' if it doesn't have elastic trivia, pass it through
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
-                Return nextOperation.Invoke()
+                Return nextOperation.Invoke(previousToken, currentToken)
             End If
 
             ' if it has one, check whether there is a forced one
-            Dim operation = nextOperation.Invoke()
+            Dim operation = nextOperation.Invoke(previousToken, currentToken)
 
             If operation IsNot Nothing AndAlso operation.Option = AdjustNewLinesOption.ForceLines Then
                 Return operation

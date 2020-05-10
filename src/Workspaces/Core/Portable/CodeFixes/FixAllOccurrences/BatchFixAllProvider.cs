@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return fixesBag.ToImmutableArray();
         }
 
-        protected async virtual Task AddDocumentFixesAsync(
+        protected virtual async Task AddDocumentFixesAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
         }
 
-        private static Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
+        private static readonly Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
             _ => new ConcurrentBag<(CodeAction, Document)>();
 
         private async Task GetChangedDocumentsAsync(

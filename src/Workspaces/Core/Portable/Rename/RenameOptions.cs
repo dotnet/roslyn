@@ -35,6 +35,9 @@ namespace Microsoft.CodeAnalysis.Rename
             RenameFile = renameFile;
         }
 
+        internal static RenameOptionSet From(Solution solution)
+            => From(solution, options: null);
+
         internal static RenameOptionSet From(Solution solution, OptionSet options)
         {
             options ??= solution.Options;

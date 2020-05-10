@@ -265,6 +265,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenExpression;
         }
 
+        /// <summary>
+        /// Instrument the expression of a switch arm of a switch expression.
+        /// </summary>
+        public virtual BoundExpression InstrumentSwitchExpressionArmExpression(BoundExpression original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        {
+            Debug.Assert(factory != null);
+            return rewrittenExpression;
+        }
+
         public virtual BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)
         {
             return bindings;

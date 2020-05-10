@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 
             _commandHandler = new TestInteractiveCommandHandler(
                 TestHost.Window,
+                GetExportedValue<ISendToInteractiveSubmissionProvider>(),
                 GetExportedValue<IContentTypeRegistryService>(),
                 GetExportedValue<IEditorOptionsFactoryService>(),
                 GetExportedValue<IEditorOperationsFactoryService>(),
