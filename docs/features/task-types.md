@@ -26,7 +26,7 @@ class Awaiter<T> : INotifyCompletion
 ```
 ## Builder Type
 The _builder type_ is a `class` or `struct` that corresponds to the specific _task type_.
-The _builder type_ must not be a nested type.
+The _builder type_ must not be nested in a generic type.
 The _builder type_ has the following `public` methods.
 For non-generic _builder types_, `SetResult()` has no parameters.
 ```cs
