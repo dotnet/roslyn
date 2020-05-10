@@ -407,14 +407,6 @@ Literal(float.NegativeInfinity).GenerateString());
 Literal(float.PositiveInfinity).GenerateString());
         }
 
-        [Fact]
-        public void TestLiteralSingleMathPi()
-        {
-            AssertEx.AreEqual(
-@"3.1415927F",
-Literal((float)Math.PI).GenerateString());
-        }
-
         #endregion
 
         #region double
@@ -507,12 +499,80 @@ Literal(double.NegativeInfinity).GenerateString());
 Literal(double.PositiveInfinity).GenerateString());
         }
 
+        #endregion
+
+        #region decimal
+
         [Fact]
-        public void TestLiteralDoubleMathPi()
+        public void TestLiteralDecimalMinValue()
         {
             AssertEx.AreEqual(
-@"3.141592653589793D",
-Literal((double)Math.PI).GenerateString());
+@"global::System.Decimal.MinValue",
+Literal(decimal.MinValue).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDecimalNegativeOne()
+        {
+            AssertEx.AreEqual(
+@"-1M",
+Literal((decimal)-1).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDecimalNegativeOneHalf()
+        {
+            AssertEx.AreEqual(
+@"-0.5M",
+Literal((decimal)-1 / 2).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDecimalZero()
+        {
+            AssertEx.AreEqual(
+@"0M",
+Literal((decimal)0).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDecimalOne()
+        {
+            AssertEx.AreEqual(
+@"1M",
+Literal((decimal)1).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDecimalOneHalf()
+        {
+            AssertEx.AreEqual(
+@"0.5M",
+Literal((decimal)0.5).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDecimalMaxValue()
+        {
+            AssertEx.AreEqual(
+@"global::System.Decimal.MaxValue",
+Literal(decimal.MaxValue).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDecimalEpsilonValue()
+        {
+            AssertEx.AreEqual(
+@"0M",
+Literal((decimal)double.Epsilon).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralDecimalMathPi()
+        {
+            AssertEx.AreEqual(
+@"3.14159265358979M",
+Literal((decimal)Math.PI).GenerateString());
         }
 
         #endregion
