@@ -207,13 +207,58 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 containingSymbol: null);
         }
 
-        //public static INamedTypeSymbol DelegateType(ITypeSymbol type = null)
-        //    => new DiscardSymbol(type);
+        public static INamedTypeSymbol WithSpecialType(this INamedTypeSymbol symbol, SpecialType specialType)
+            => With(symbol, specialType: ToOptional(specialType));
 
-        //public static INamedTypeSymbol AnonymousType(ITypeSymbol type = null)
-        //    => new DiscardSymbol(type);
+        public static INamedTypeSymbol WithTypeKind(this INamedTypeSymbol symbol, TypeKind typeKind)
+            => With(symbol, typeKind: ToOptional(typeKind));
 
-        public static INamedTypeSymbol With(
+        public static INamedTypeSymbol WithAttributes(this INamedTypeSymbol symbol, ImmutableArray<AttributeData> attributes)
+            => With(symbol, attributes: ToOptional(attributes));
+
+        public static INamedTypeSymbol WithDeclaredAccessibility(this INamedTypeSymbol symbol, Accessibility declaredAccessibility)
+            => With(symbol, declaredAccessibility: ToOptional(declaredAccessibility));
+
+        public static INamedTypeSymbol WithModifiers(this INamedTypeSymbol symbol, SymbolModifiers modifiers)
+            => With(symbol, modifiers: ToOptional(modifiers));
+
+        public static INamedTypeSymbol WithName(this INamedTypeSymbol symbol, string name)
+            => With(symbol, name: ToOptional(name));
+
+        public static INamedTypeSymbol WithTypeArguments(this INamedTypeSymbol symbol, params ITypeSymbol[] typeArguments)
+            => WithTypeArguments(symbol, (IEnumerable<ITypeSymbol>)typeArguments);
+
+        public static INamedTypeSymbol WithTypeArguments(this INamedTypeSymbol symbol, IEnumerable<ITypeSymbol> typeArguments)
+            => WithTypeArguments(symbol, typeArguments.ToImmutableArray());
+
+        public static INamedTypeSymbol WithTypeArguments(this INamedTypeSymbol symbol, ImmutableArray<ITypeSymbol> typeArguments)
+            => With(symbol, typeArguments: ToOptional(typeArguments));
+
+        public static INamedTypeSymbol WithBaseType(this INamedTypeSymbol symbol, INamedTypeSymbol baseType)
+            => With(symbol, baseType: ToOptional(baseType));
+
+        public static INamedTypeSymbol WithInterfaces(this INamedTypeSymbol symbol, ImmutableArray<INamedTypeSymbol> interfaces)
+            => With(symbol, interfaces: ToOptional(interfaces));
+
+        public static INamedTypeSymbol WithMembers(this INamedTypeSymbol symbol, ImmutableArray<ISymbol> members)
+            => With(symbol, members: ToOptional(members));
+
+        public static INamedTypeSymbol WithTupleElements(this INamedTypeSymbol symbol, ImmutableArray<IFieldSymbol> tupleElements)
+            => With(symbol, tupleElements: ToOptional(tupleElements));
+
+        public static INamedTypeSymbol WithDelegateInvokeMethod(this INamedTypeSymbol symbol, IMethodSymbol delegateInvokeMethod)
+            => With(symbol, delegateInvokeMethod: ToOptional(delegateInvokeMethod));
+
+        public static INamedTypeSymbol WithEnumUnderlyingType(this INamedTypeSymbol symbol, INamedTypeSymbol enumUnderlyingType)
+            => With(symbol, enumUnderlyingType: ToOptional(enumUnderlyingType));
+
+        private static INamedTypeSymbol WithNullableAnnotation(this INamedTypeSymbol arrayType, NullableAnnotation nullableAnnotation)
+            => With(arrayType, nullableAnnotation: ToOptional(nullableAnnotation));
+
+        public static INamedTypeSymbol WithContainingSymbol(this INamedTypeSymbol symbol, ISymbol containingSymbol)
+            => With(symbol, containingSymbol: ToOptional(containingSymbol));
+
+        private static INamedTypeSymbol With(
             this INamedTypeSymbol type,
             Optional<SpecialType> specialType = default,
             Optional<TypeKind> typeKind = default,
