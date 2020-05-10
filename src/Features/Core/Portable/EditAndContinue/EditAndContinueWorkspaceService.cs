@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -110,8 +111,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var previousSession = Interlocked.CompareExchange(ref _editSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New edit session can't be started until the existing one has ended.");
 
-            _trackingService.StartTracking(newSession);
-
             // clear diagnostics reported during run mode:
             ClearReportedRunModeDiagnostics();
         }
@@ -127,8 +126,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // then clear all reported rude edits:
             _diagnosticService.Reanalyze(_workspace, documentIds: session.GetDocumentsWithReportedDiagnostics());
-
-            _trackingService.EndTracking();
 
             _debuggingSessionTelemetry.LogEditSession(_editSessionTelemetry.GetDataAndClear());
 
@@ -159,6 +156,38 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal static bool IsDesignTimeOnlyDocument(Document document)
             => document.Services.GetService<DocumentPropertiesService>()?.DesignTimeOnly == true;
+
+        public async Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        {
+            var editSession = _editSession;
+            if (editSession == null)
+            {
+                return default;
+            }
+
+            var lastCommittedSolution = editSession.DebuggingSession.LastCommittedSolution;
+            var baseActiveStatements = await editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            using var _ = ArrayBuilder<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>.GetInstance(out var spans);
+
+            foreach (var documentId in documentIds)
+            {
+                if (baseActiveStatements.DocumentMap.TryGetValue(documentId, out var documentActiveStatements))
+                {
+                    var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(documentId, cancellationToken).ConfigureAwait(false);
+                    if (baseDocument != null)
+                    {
+                        spans.Add(documentActiveStatements.SelectAsArray(s => (s.Span, s.Flags)));
+                        continue;
+                    }
+                }
+
+                // Documents contains no active statements, or
+                // document has been added, is out-of-sync or a design-time-only document.
+                spans.Add(ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>.Empty);
+            }
+
+            return spans.ToImmutableAndFree();
+        }
 
         public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {

@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         #region Not Implemented
 
 #pragma warning disable 67 // unused
-        public event Action<bool> TrackingSpansChanged;
+        public event Action TrackingSpansChanged;
 #pragma warning restore 67
 
-        public void StartTracking(EditSession editSession) => throw new NotImplementedException();
+        public void StartTracking() => throw new NotImplementedException();
         public void EndTracking() => throw new NotImplementedException();
         public IEnumerable<ActiveStatementTextSpan> GetSpans(SourceText source) => throw new NotImplementedException();
 

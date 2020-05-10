@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             };
 
             _mockActiveStatementTrackingService = new Mock<IActiveStatementTrackingService>(MockBehavior.Strict);
-            _mockActiveStatementTrackingService.Setup(s => s.StartTracking(It.IsAny<EditSession>()));
+            _mockActiveStatementTrackingService.Setup(s => s.StartTracking());
             _mockActiveStatementTrackingService.Setup(s => s.EndTracking());
 
             _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.NewGuid());
@@ -185,28 +185,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             using var stream = File.OpenRead(path);
             return SourceText.From(stream, Encoding.UTF8, SourceHashAlgorithm.Sha256);
-        }
-
-        [Fact]
-        public void ActiveStatementTracking()
-        {
-            using (var workspace = new TestWorkspace())
-            {
-                var service = CreateEditAndContinueService(workspace);
-
-                StartDebuggingSession(service);
-
-                service.StartEditSession(s_noActiveStatements);
-                _mockActiveStatementTrackingService.Verify(ts => ts.StartTracking(It.IsAny<EditSession>()), Times.Once());
-
-                service.EndEditSession();
-                _mockActiveStatementTrackingService.Verify(ts => ts.EndTracking(), Times.Once());
-
-                service.EndDebuggingSession();
-
-                _mockActiveStatementTrackingService.Verify(ts => ts.StartTracking(It.IsAny<EditSession>()), Times.Once());
-                _mockActiveStatementTrackingService.Verify(ts => ts.EndTracking(), Times.Once());
-            }
         }
 
         [Fact]

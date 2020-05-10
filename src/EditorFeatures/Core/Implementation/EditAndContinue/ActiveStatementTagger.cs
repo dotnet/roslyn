@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             ConnectToWorkspace(workspace: null);
         }
 
-        private void OnTrackingSpansChanged(bool leafChanged)
+        private void OnTrackingSpansChanged()
         {
             var handler = TagsChanged;
             if (handler != null)

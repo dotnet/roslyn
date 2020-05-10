@@ -105,31 +105,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { projectDisplayName, localizedMessage }));
         }
 
-        internal async Task<ImmutableArray<ImmutableArray<ActiveStatement>>> GetBaseActiveStatementsAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
-        {
-            var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            using var _ = ArrayBuilder<ImmutableArray<ActiveStatement>>.GetInstance(out var activeSpansToTrack);
-
-            foreach (var documentId in documentIds)
-            {
-                if (baseActiveStatements.DocumentMap.TryGetValue(documentId, out var documentActiveStatements))
-                {
-                    var (baseDocument, _) = await DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(documentId, cancellationToken).ConfigureAwait(false);
-                    if (baseDocument != null)
-                    {
-                        activeSpansToTrack.Add(documentActiveStatements);
-                        continue;
-                    }
-                }
-
-                // Documents contains no active statements, or
-                // document has been added, is out-of-sync or a design-time-only document.
-                activeSpansToTrack.Add(ImmutableArray<ActiveStatement>.Empty);
-            }
-
-            return activeSpansToTrack.ToImmutableAndFree();
-        }
-
         private async Task<ActiveStatementsMap> GetBaseActiveStatementsAsync(ActiveStatementProvider activeStatementProvider, CancellationToken cancellationToken)
         {
             try

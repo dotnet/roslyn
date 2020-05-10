@@ -12,6 +12,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal interface IEditAndContinueWorkspaceService : IWorkspaceService
     {
+        /// <summary>
+        /// Returns base active statement spans contained in each specified document.
+        /// </summary>
+        /// <returns>
+        /// <see langword="default"/> if called outside of an edit session.
+        /// The length of the returned array matches the length of <paramref name="documentIds"/> otherwise.
+        /// </returns>
+        Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
+
         Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken);
         Task<bool> HasChangesAsync(string sourceFilePath, CancellationToken cancellationToken);
         Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(CancellationToken cancellationToken);
