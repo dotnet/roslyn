@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol type,
             string name,
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
             ImmutableArray<IParameterSymbol> parameters = default,
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         {
             return new PropertySymbol(
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 type,
                 explicitInterfaceImplementations,
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol type,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
             IMethodSymbol getMethod = null,
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         {
             return new PropertySymbol(
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 type,
                 explicitInterfaceImplementations,
@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IPropertySymbol WithAttributes(this IPropertySymbol symbol, ImmutableArray<AttributeData> attributes)
             => With(symbol, attributes: ToOptional(attributes));
 
-        public static IPropertySymbol WithDeclaredAccessibility(this IPropertySymbol symbol, Accessibility declaredAccessibility)
-            => With(symbol, declaredAccessibility: ToOptional(declaredAccessibility));
+        public static IPropertySymbol WithDeclaredAccessibility(this IPropertySymbol symbol, Accessibility accessibility)
+            => With(symbol, accessibility: ToOptional(accessibility));
 
         public static IPropertySymbol WithModifiers(this IPropertySymbol symbol, SymbolModifiers modifiers)
             => With(symbol, modifiers: ToOptional(modifiers));
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         private static IPropertySymbol With(
             this IPropertySymbol property,
             Optional<ImmutableArray<AttributeData>> attributes = default,
-            Optional<Accessibility> declaredAccessibility = default,
+            Optional<Accessibility> accessibility = default,
             Optional<SymbolModifiers> modifiers = default,
             Optional<ITypeSymbol> type = default,
             Optional<ImmutableArray<IPropertySymbol>> explicitInterfaceImplementations = default,
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         {
             return new PropertySymbol(
                 attributes.GetValueOr(property.GetAttributes()),
-                declaredAccessibility.GetValueOr(property.DeclaredAccessibility),
+                accessibility.GetValueOr(property.DeclaredAccessibility),
                 modifiers.GetValueOr(property.GetModifiers()),
                 type.GetValueOr(property.Type),
                 explicitInterfaceImplementations.GetValueOr(property.ExplicitInterfaceImplementations),
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             public PropertySymbol(
                 ImmutableArray<AttributeData> attributes,
-                Accessibility declaredAccessibility,
+                Accessibility accessibility,
                 SymbolModifiers modifiers,
                 ITypeSymbol type,
                 ImmutableArray<IPropertySymbol> explicitInterfaceImplementations,
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             {
                 Name = name;
                 Type = type;
-                DeclaredAccessibility = declaredAccessibility;
+                DeclaredAccessibility = accessibility;
                 Modifiers = modifiers;
                 IsIndexer = isIndexer;
                 Parameters = parameters;

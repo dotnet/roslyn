@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             TypeKind typeKind,
             string name,
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<ITypeSymbol> typeArguments = default,
             INamedTypeSymbol baseType = null,
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 CodeAnalysis.SpecialType.None,
                 typeKind,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 name,
                 typeArguments,
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static INamedTypeSymbol Class(
             string name,
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<ITypeSymbol> typeArguments = default,
             INamedTypeSymbol baseType = null,
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 CodeAnalysis.SpecialType.None,
                 TypeKind.Class,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 name,
                 typeArguments,
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static INamedTypeSymbol Struct(
             string name,
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<ITypeSymbol> typeArguments = default,
             ImmutableArray<INamedTypeSymbol> interfaces = default,
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 CodeAnalysis.SpecialType.None,
                 TypeKind.Struct,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 name,
                 typeArguments,
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static INamedTypeSymbol Interface(
             string name,
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<ITypeSymbol> typeArguments = default,
             ImmutableArray<INamedTypeSymbol> interfaces = default,
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 CodeAnalysis.SpecialType.None,
                 TypeKind.Interface,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 name,
                 typeArguments,
@@ -133,18 +133,18 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static INamedTypeSymbol Enum(
             string name,
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<ISymbol> members = default,
             NullableAnnotation nullableAnnotation = default,
-            INamedTypeSymbol enumUnderlyingType = null,
+            INamedTypeSymbol underlyingType = null,
             ISymbol containingSymbol = null)
         {
             return new NamedTypeSymbol(
                 CodeAnalysis.SpecialType.None,
                 TypeKind.Enum,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 name,
                 typeArguments: default,
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 members,
                 tupleElements: default,
                 delegateInvokeMethod: null,
-                enumUnderlyingType,
+                enumUnderlyingType: underlyingType,
                 nullableAnnotation,
                 containingSymbol);
         }
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol returnType,
             string name,
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<ITypeSymbol> typeArguments = default,
             ImmutableArray<IParameterSymbol> parameters = default)
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 CodeAnalysis.SpecialType.None,
                 TypeKind.Delegate,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 name,
                 typeArguments,
@@ -186,21 +186,21 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         }
 
         public static INamedTypeSymbol TupleType(
-            ImmutableArray<IFieldSymbol> tupleElements = default,
+            ImmutableArray<IFieldSymbol> elements = default,
             NullableAnnotation nullableAnnotation = NullableAnnotation.None)
         {
             return new NamedTypeSymbol(
                 CodeAnalysis.SpecialType.None,
                 TypeKind.Struct,
                 attributes: default,
-                declaredAccessibility: default,
+                accessibility: default,
                 modifiers: default,
                 name: null,
                 typeArguments: default,
                 baseType: null,
                 interfaces: default,
                 members: default,
-                tupleElements.NullToEmpty(),
+                tupleElements: elements.NullToEmpty(),
                 delegateInvokeMethod: null,
                 enumUnderlyingType: null,
                 nullableAnnotation,
@@ -222,8 +222,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static INamedTypeSymbol WithAttributes(this INamedTypeSymbol symbol, ImmutableArray<AttributeData> attributes)
             => With(symbol, attributes: ToOptional(attributes));
 
-        public static INamedTypeSymbol WithDeclaredAccessibility(this INamedTypeSymbol symbol, Accessibility declaredAccessibility)
-            => With(symbol, declaredAccessibility: ToOptional(declaredAccessibility));
+        public static INamedTypeSymbol WithDeclaredAccessibility(this INamedTypeSymbol symbol, Accessibility accessibility)
+            => With(symbol, accessibility: ToOptional(accessibility));
 
         public static INamedTypeSymbol WithModifiers(this INamedTypeSymbol symbol, SymbolModifiers modifiers)
             => With(symbol, modifiers: ToOptional(modifiers));
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             Optional<SpecialType> specialType = default,
             Optional<TypeKind> typeKind = default,
             Optional<ImmutableArray<AttributeData>> attributes = default,
-            Optional<Accessibility> declaredAccessibility = default,
+            Optional<Accessibility> accessibility = default,
             Optional<SymbolModifiers> modifiers = default,
             Optional<string> name = default,
             Optional<ImmutableArray<ITypeSymbol>> typeArguments = default,
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 specialType.GetValueOr(type.SpecialType),
                 typeKind.GetValueOr(type.TypeKind),
                 attributes.GetValueOr(type.GetAttributes()),
-                declaredAccessibility.GetValueOr(type.DeclaredAccessibility),
+                accessibility.GetValueOr(type.DeclaredAccessibility),
                 modifiers.GetValueOr(type.GetModifiers()),
                 name.GetValueOr(type.Name),
                 typeArguments.GetValueOr(type.TypeArguments),
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 SpecialType specialType,
                 TypeKind typeKind,
                 ImmutableArray<AttributeData> attributes,
-                Accessibility declaredAccessibility,
+                Accessibility accessibility,
                 SymbolModifiers modifiers,
                 string name,
                 ImmutableArray<ITypeSymbol> typeArguments,
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 SpecialType = specialType;
                 TypeKind = typeKind;
                 _attributes = attributes.NullToEmpty();
-                DeclaredAccessibility = declaredAccessibility;
+                DeclaredAccessibility = accessibility;
                 Modifiers = modifiers;
                 Name = name;
                 TypeArguments = typeArguments.NullToEmpty();

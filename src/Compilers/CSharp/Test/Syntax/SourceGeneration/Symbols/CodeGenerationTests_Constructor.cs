@@ -59,7 +59,7 @@ Class("C").WithTypeArguments(TypeParameter("T"))
     public C();
 }",
 Class("C").WithMembers(Constructor(
-    declaredAccessibility: Accessibility.Public)).GenerateString());
+    accessibility: Accessibility.Public)).GenerateString());
         }
 
         [Fact]

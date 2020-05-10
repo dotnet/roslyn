@@ -20,7 +20,7 @@ Field(Int32, "f").GenerateString())
         Public Sub TestFieldWithAccessibility1()
             AssertEx.AreEqual(
 "Public f As Integer",
-Field(Int32, "f", declaredAccessibility:=Accessibility.Public).GenerateString())
+Field(Int32, "f", accessibility:=Accessibility.Public).GenerateString())
         End Sub
 
         <Fact>
@@ -37,7 +37,7 @@ Field(Int32, "f", modifiers:=SymbolModifiers.Static).GenerateString())
 Field(
     Int32,
     "f",
-    declaredAccessibility:=Accessibility.Private,
+    accessibility:=Accessibility.Private,
     modifiers:=SymbolModifiers.Static).GenerateString())
         End Sub
 

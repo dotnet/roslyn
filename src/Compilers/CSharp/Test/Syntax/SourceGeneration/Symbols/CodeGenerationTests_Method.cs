@@ -36,7 +36,7 @@ Class("C").WithMembers(
     Method(
         Void,
         "M",
-        declaredAccessibility: Accessibility.Public)).GenerateString());
+        accessibility: Accessibility.Public)).GenerateString());
         }
 
         [Fact]
@@ -132,7 +132,7 @@ Class("C").WithMembers(
 Class("C").WithMembers(
     Method(Void, "M").WithExplicitInterfaceImplementations(
         Method(Void, "M",
-            declaredAccessibility: Accessibility.Private,
+            accessibility: Accessibility.Private,
             containingSymbol: Interface("I")))).GenerateString());
         }
     }

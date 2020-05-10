@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol type,
             string name,
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = Accessibility.NotApplicable,
+            Accessibility accessibility = Accessibility.NotApplicable,
             SymbolModifiers modifiers = SymbolModifiers.None,
             Optional<object> constantValue = default)
         {
             return new FieldSymbol(
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 type,
                 name,
@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol type,
             string name,
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = Accessibility.NotApplicable,
+            Accessibility accessibility = Accessibility.NotApplicable,
             SymbolModifiers modifiers = SymbolModifiers.None,
             Optional<object> constantValue = default)
         {
             return new FieldSymbol(
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 type,
                 name,
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         {
             return new FieldSymbol(
                 attributes: default,
-                declaredAccessibility: default,
+                accessibility: default,
                 modifiers: default,
                 type,
                 name,
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         {
             return new FieldSymbol(
                 attributes,
-                declaredAccessibility: default,
+                accessibility: default,
                 modifiers: default,
                 type: null,
                 name,
@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IFieldSymbol WithAttributes(this IFieldSymbol symbol, ImmutableArray<AttributeData> attributes)
              => With(symbol, attributes: ToOptional(attributes));
 
-        public static IFieldSymbol WithDeclaredAccessibility(this IFieldSymbol symbol, Accessibility declaredAccessibility)
-            => With(symbol, declaredAccessibility: ToOptional(declaredAccessibility));
+        public static IFieldSymbol WithDeclaredAccessibility(this IFieldSymbol symbol, Accessibility accessibility)
+            => With(symbol, accessibility: ToOptional(accessibility));
 
         public static IFieldSymbol WithModifiers(this IFieldSymbol symbol, SymbolModifiers modifiers)
             => With(symbol, modifiers: ToOptional(modifiers));
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         private static IFieldSymbol With(
             this IFieldSymbol field,
             Optional<ImmutableArray<AttributeData>> attributes = default,
-            Optional<Accessibility> declaredAccessibility = default,
+            Optional<Accessibility> accessibility = default,
             Optional<SymbolModifiers> modifiers = default,
             Optional<ITypeSymbol> type = default,
             Optional<string> name = default,
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         {
             return new FieldSymbol(
                 attributes.GetValueOr(field.GetAttributes()),
-                declaredAccessibility.GetValueOr(field.DeclaredAccessibility),
+                accessibility.GetValueOr(field.DeclaredAccessibility),
                 modifiers.GetValueOr(field.GetModifiers()),
                 type.GetValueOr(field.Type),
                 name.GetValueOr(field.Name),
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             public FieldSymbol(
                 ImmutableArray<AttributeData> attributes,
-                Accessibility declaredAccessibility,
+                Accessibility accessibility,
                 SymbolModifiers modifiers,
                 ITypeSymbol type,
                 string name,
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             {
                 Name = name;
                 Type = type;
-                DeclaredAccessibility = declaredAccessibility;
+                DeclaredAccessibility = accessibility;
                 Modifiers = modifiers;
                 _attributes = attributes.NullToEmpty();
                 HasConstantValue = constantValue.HasValue;

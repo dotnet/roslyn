@@ -129,7 +129,7 @@ Interface("X").WithMembers(
     Method(
         Int32,
         "M",
-        declaredAccessibility: Accessibility.Public)).GenerateString());
+        accessibility: Accessibility.Public)).GenerateString());
         }
 
         [Fact]
@@ -144,7 +144,7 @@ Interface("X").WithMembers(
     Method(
         Int32,
         "M",
-        declaredAccessibility: Accessibility.Protected)).GenerateString());
+        accessibility: Accessibility.Protected)).GenerateString());
         }
 
         [Fact]

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol returnType,
             string name,
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations = default,
             ImmutableArray<ITypeSymbol> typeArguments = default,
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new MethodSymbol(
                 MethodKind.Ordinary,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 returnType,
                 explicitInterfaceImplementations,
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IMethodSymbol Constructor(
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<IParameterSymbol> parameters = default,
             IBlockOperation body = null,
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new MethodSymbol(
                 MethodKind.Constructor,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 returnType: null,
                 explicitInterfaceImplementations: default,
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new MethodSymbol(
                 MethodKind.Destructor,
                 attributes,
-                declaredAccessibility: default,
+                accessibility: default,
                 modifiers,
                 returnType: null,
                 explicitInterfaceImplementations: default,
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol returnType,
             IParameterSymbol parameter,
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             IBlockOperation body = null,
             ISymbol containingSymbol = null)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new MethodSymbol(
                 MethodKind.Conversion,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 returnType,
                 explicitInterfaceImplementations: default,
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol returnType,
             IParameterSymbol parameter,
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             IBlockOperation body = null,
             ISymbol containingSymbol = null)
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new MethodSymbol(
                 MethodKind.Conversion,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 returnType,
                 explicitInterfaceImplementations: default,
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             ITypeSymbol returnType,
             string name,
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<IParameterSymbol> parameters = default,
             IBlockOperation body = null,
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new MethodSymbol(
                 MethodKind.UserDefinedOperator,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 returnType,
                 explicitInterfaceImplementations: default,
@@ -151,14 +151,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IMethodSymbol PropertyGet(
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             IBlockOperation body = null)
         {
             return new MethodSymbol(
                 MethodKind.PropertyGet,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 returnType: null,
                 explicitInterfaceImplementations: default,
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IMethodSymbol PropertySet(
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             ImmutableArray<IParameterSymbol> parameters = default,
             IBlockOperation body = null)
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new MethodSymbol(
                 MethodKind.PropertySet,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 returnType: null,
                 explicitInterfaceImplementations: default,
@@ -192,14 +192,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IMethodSymbol EventAdd(
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             IBlockOperation body = null)
         {
             return new MethodSymbol(
                 MethodKind.EventAdd,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 returnType: null,
                 explicitInterfaceImplementations: default,
@@ -212,14 +212,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IMethodSymbol EventRemove(
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             IBlockOperation body = null)
         {
             return new MethodSymbol(
                 MethodKind.EventRemove,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 returnType: null,
                 explicitInterfaceImplementations: default,
@@ -232,14 +232,14 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IMethodSymbol EventRaise(
             ImmutableArray<AttributeData> attributes = default,
-            Accessibility declaredAccessibility = default,
+            Accessibility accessibility = default,
             SymbolModifiers modifiers = default,
             IBlockOperation body = null)
         {
             return new MethodSymbol(
                 MethodKind.EventRaise,
                 attributes,
-                declaredAccessibility,
+                accessibility,
                 modifiers,
                 returnType: null,
                 explicitInterfaceImplementations: default,
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new MethodSymbol(
                 MethodKind.DelegateInvoke,
                 attributes: default,
-                declaredAccessibility: default,
+                accessibility: default,
                 modifiers: default,
                 returnType,
                 explicitInterfaceImplementations: default,
@@ -280,8 +280,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IMethodSymbol WithAttributes(this IMethodSymbol symbol, ImmutableArray<AttributeData> attributes)
             => With(symbol, attributes: ToOptional(attributes));
 
-        public static IMethodSymbol WithDeclaredAccessibility(this IMethodSymbol symbol, Accessibility declaredAccessibility)
-            => With(symbol, declaredAccessibility: ToOptional(declaredAccessibility));
+        public static IMethodSymbol WithDeclaredAccessibility(this IMethodSymbol symbol, Accessibility accessibility)
+            => With(symbol, accessibility: ToOptional(accessibility));
 
         public static IMethodSymbol WithModifiers(this IMethodSymbol symbol, SymbolModifiers modifiers)
             => With(symbol, modifiers: ToOptional(modifiers));
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             this IMethodSymbol method,
             Optional<MethodKind> methodKind = default,
             Optional<ImmutableArray<AttributeData>> attributes = default,
-            Optional<Accessibility> declaredAccessibility = default,
+            Optional<Accessibility> accessibility = default,
             Optional<SymbolModifiers> modifiers = default,
             Optional<ITypeSymbol> returnType = default,
             Optional<ImmutableArray<IMethodSymbol>> explicitInterfaceImplementations = default,
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new MethodSymbol(
                 methodKind.GetValueOr(method.MethodKind),
                 attributes.GetValueOr(method.GetAttributes()),
-                declaredAccessibility.GetValueOr(method.DeclaredAccessibility),
+                accessibility.GetValueOr(method.DeclaredAccessibility),
                 modifiers.GetValueOr(method.GetModifiers()),
                 returnType.GetValueOr(method.ReturnType),
                 explicitInterfaceImplementations.GetValueOr(method.ExplicitInterfaceImplementations),
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             public MethodSymbol(
                 MethodKind methodKind,
                 ImmutableArray<AttributeData> attributes,
-                Accessibility declaredAccessibility,
+                Accessibility accessibility,
                 SymbolModifiers modifiers,
                 ITypeSymbol returnType,
                 ImmutableArray<IMethodSymbol> explicitInterfaceImplementations,
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             {
                 MethodKind = methodKind;
                 _attributes = attributes.NullToEmpty();
-                DeclaredAccessibility = declaredAccessibility;
+                DeclaredAccessibility = accessibility;
                 Modifiers = modifiers;
                 ReturnType = returnType;
                 ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();

@@ -45,7 +45,7 @@ Class("C").WithMembers(
 }",
 Class("C").WithMembers(
     Property(Int32, "P",
-        declaredAccessibility: Accessibility.Public,
+        accessibility: Accessibility.Public,
         getMethod: PropertyGet())).GenerateString());
         }
 
@@ -64,9 +64,9 @@ Class("C").WithMembers(
 }",
 Class("C").WithMembers(
     Property(Int32, "P",
-    declaredAccessibility: Accessibility.Public,
+    accessibility: Accessibility.Public,
     getMethod: PropertyGet(
-        declaredAccessibility: Accessibility.Public))).GenerateString());
+        accessibility: Accessibility.Public))).GenerateString());
         }
 
         [Fact]
@@ -84,9 +84,9 @@ Class("C").WithMembers(
 }",
 Class("C").WithMembers(
     Property(Int32, "P",
-    declaredAccessibility: Accessibility.Public,
+    accessibility: Accessibility.Public,
     getMethod: PropertyGet(
-        declaredAccessibility: Accessibility.Private))).GenerateString());
+        accessibility: Accessibility.Private))).GenerateString());
         }
 
         [Fact]

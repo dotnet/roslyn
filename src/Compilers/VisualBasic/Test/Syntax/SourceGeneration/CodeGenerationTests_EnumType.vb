@@ -60,7 +60,7 @@ End Enum",
 End Enum",
 [Enum](
     "X",
-    declaredAccessibility:=Accessibility.Public).GenerateString())
+    accessibility:=Accessibility.Public).GenerateString())
         End Sub
 
         <Fact>
@@ -81,7 +81,7 @@ End Namespace",
 End Enum",
 [Enum](
     "X",
-    enumUnderlyingType:=System_Int32).GenerateString())
+    underlyingType:=System_Int32).GenerateString())
         End Sub
 
         <fact>

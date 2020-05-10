@@ -11,8 +11,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
-        public static IAssemblySymbol Assembly(IModuleSymbol module, ImmutableArray<AttributeData> attributes = default)
-            => new AssemblySymbol(module, attributes);
+        public static IAssemblySymbol Assembly(
+            IModuleSymbol module,
+            ImmutableArray<AttributeData> attributes = default)
+        {
+            return new AssemblySymbol(module, attributes);
+        }
 
         public static IAssemblySymbol WithModule(this IAssemblySymbol assembly, IModuleSymbol module)
             => With(assembly, module: ToOptional(module));

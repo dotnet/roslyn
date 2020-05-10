@@ -72,7 +72,7 @@ Enum("X").GenerateString());
 }",
 Enum(
     "X",
-    declaredAccessibility: Accessibility.Public).GenerateString());
+    accessibility: Accessibility.Public).GenerateString());
         }
 
         [Fact]
@@ -117,8 +117,7 @@ Enum("X").WithBaseType(System_Enum).GenerateString());
 @"enum X : int
 {
 }",
-Enum("X",
-    enumUnderlyingType: System_Int32).GenerateString());
+Enum("X", underlyingType: System_Int32).GenerateString());
         }
 
         [Fact]

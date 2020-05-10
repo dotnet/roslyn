@@ -38,7 +38,7 @@ End Class",
     Public Sub M()
 End Class",
 [Class]("C").WithMembers(
-    Method(Void, "M", declaredAccessibility:=Accessibility.Public)).GenerateString())
+    Method(Void, "M", accessibility:=Accessibility.Public)).GenerateString())
         End Sub
 
         <Fact>

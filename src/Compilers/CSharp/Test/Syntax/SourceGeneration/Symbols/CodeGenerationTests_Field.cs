@@ -30,7 +30,7 @@ Field(
 Field(
     Int32,
     "f",
-    declaredAccessibility: Accessibility.Public).GenerateString());
+    accessibility: Accessibility.Public).GenerateString());
         }
 
         [Fact]
@@ -52,7 +52,7 @@ Field(
 Field(
     Int32,
     "f",
-    declaredAccessibility: Accessibility.Private,
+    accessibility: Accessibility.Private,
     modifiers: SymbolModifiers.Static).GenerateString());
         }
 

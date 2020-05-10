@@ -43,7 +43,7 @@ End Class",
 End Class",
 [Class]("C").WithMembers(
     Constructor(
-        declaredAccessibility:=Accessibility.Public)).GenerateString())
+        accessibility:=Accessibility.Public)).GenerateString())
         End Sub
 
         <fact>

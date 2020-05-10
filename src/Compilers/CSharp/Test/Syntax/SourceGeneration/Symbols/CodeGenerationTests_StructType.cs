@@ -82,7 +82,7 @@ Struct("X").WithBaseType(System_ValueType).GenerateString());
 }",
 Struct(
     "X",
-    declaredAccessibility: Accessibility.Public).GenerateString());
+    accessibility: Accessibility.Public).GenerateString());
         }
 
         [Fact]
