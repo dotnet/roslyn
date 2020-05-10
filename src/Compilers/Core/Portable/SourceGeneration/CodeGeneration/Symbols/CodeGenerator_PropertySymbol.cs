@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration
@@ -60,7 +61,43 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 containingSymbol);
         }
 
-        public static IPropertySymbol With(
+        public static IPropertySymbol WithAttributes(this IPropertySymbol symbol, ImmutableArray<AttributeData> attributes)
+            => With(symbol, attributes: ToOptional(attributes));
+
+        public static IPropertySymbol WithDeclaredAccessibility(this IPropertySymbol symbol, Accessibility declaredAccessibility)
+            => With(symbol, declaredAccessibility: ToOptional(declaredAccessibility));
+
+        public static IPropertySymbol WithModifiers(this IPropertySymbol symbol, SymbolModifiers modifiers)
+            => With(symbol, modifiers: ToOptional(modifiers));
+
+        public static IPropertySymbol WithType(this IPropertySymbol symbol, ITypeSymbol type)
+            => With(symbol, type: ToOptional(type));
+
+        public static IPropertySymbol WithExplicitInterfaceImplementations(this IPropertySymbol symbol, ImmutableArray<IPropertySymbol> explicitInterfaceImplementations)
+            => With(symbol, explicitInterfaceImplementations: ToOptional(explicitInterfaceImplementations));
+
+        public static IPropertySymbol WithName(this IPropertySymbol symbol, string name)
+            => With(symbol, name: ToOptional(name));
+
+        public static IPropertySymbol WithParameters(this IPropertySymbol symbol, params IParameterSymbol[] parameters)
+            => WithParameters(symbol, (IEnumerable<IParameterSymbol>)parameters);
+
+        public static IPropertySymbol WithParameters(this IPropertySymbol symbol, IEnumerable<IParameterSymbol> parameters)
+            => WithParameters(symbol, parameters.ToImmutableArray());
+
+        public static IPropertySymbol WithParameters(this IPropertySymbol symbol, ImmutableArray<IParameterSymbol> parameters)
+            => With(symbol, parameters: ToOptional(parameters));
+
+        public static IPropertySymbol WithGetMethod(this IPropertySymbol symbol, IMethodSymbol getMethod)
+            => With(symbol, getMethod: ToOptional(getMethod));
+
+        public static IPropertySymbol WithSetMethod(this IPropertySymbol symbol, IMethodSymbol setMethod)
+            => With(symbol, setMethod: ToOptional(setMethod));
+
+        public static IPropertySymbol WithContainingSymbol(this IPropertySymbol symbol, ISymbol containingSymbol)
+            => With(symbol, containingSymbol: ToOptional(containingSymbol));
+
+        private static IPropertySymbol With(
             this IPropertySymbol property,
             Optional<ImmutableArray<AttributeData>> attributes = default,
             Optional<Accessibility> declaredAccessibility = default,
