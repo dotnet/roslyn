@@ -255,11 +255,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new LocalReferenceOperation(local, isDeclaration: false, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }
 
-        public static IParameterReferenceOperation ParameterReference(
-            IParameterSymbol parameter,
-            ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+        public static IParameterReferenceOperation ParameterReference(string parameter)
+            => ParameterReference(Parameter(null, "x"));
+
+        public static IParameterReferenceOperation ParameterReference(IParameterSymbol parameter)
         {
-            return new ParameterReferenceOperation(parameter, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new ParameterReferenceOperation(parameter, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }
 
         public static IFieldReferenceOperation FieldReference(

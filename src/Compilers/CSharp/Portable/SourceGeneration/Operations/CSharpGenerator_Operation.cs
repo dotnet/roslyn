@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case OperationKind.LocalReference:
                     return TryGenerateLocalReference((ILocalReferenceOperation)operation, type);
                 case OperationKind.ParameterReference:
-                    break;
+                    return TryGenerateParameterReference((IParameterReferenceOperation)operation, type);
                 case OperationKind.FieldReference:
                     break;
                 case OperationKind.MethodReference:
