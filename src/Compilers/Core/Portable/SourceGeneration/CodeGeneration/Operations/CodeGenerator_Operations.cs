@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -9,8 +10,13 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal partial class CodeGenerator
     {
-        public static IBlockOperation Block(
-            ImmutableArray<IOperation> operations = default)
+        public static IBlockOperation Block(params IOperation[] operations)
+            => Block((IEnumerable<IOperation>)operations);
+
+        public static IBlockOperation Block(IEnumerable<IOperation> operations)
+            => Block(operations.ToImmutableArray());
+
+        public static IBlockOperation Block(ImmutableArray<IOperation> operations)
         {
             return new BlockOperation(operations.NullToEmpty(), locals: default, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }

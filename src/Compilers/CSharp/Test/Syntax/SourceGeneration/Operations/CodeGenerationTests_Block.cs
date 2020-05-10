@@ -28,7 +28,7 @@ Block().GenerateString());
 @"{
     return;
 }",
-Block(operations: ImmutableArray.Create<IOperation>(Return())).GenerateString());
+Block(Return()).GenerateString());
         }
     }
 }

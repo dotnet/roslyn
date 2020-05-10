@@ -33,8 +33,7 @@ Conditional(Literal(true), Block()).GenerateStatementString());
     {
     }
 }",
-Block(operations: ImmutableArray.Create<IOperation>(
-    Conditional(Literal(true), Block()))).GenerateString());
+Block(Conditional(Literal(true), Block())).GenerateString());
         }
 
         [Fact]
