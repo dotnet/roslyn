@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case OperationKind.ArrayElementReference:
                     break;
                 case OperationKind.LocalReference:
-                    break;
+                    return TryGenerateLocalReference((ILocalReferenceOperation)operation, type);
                 case OperationKind.ParameterReference:
                     break;
                 case OperationKind.FieldReference:

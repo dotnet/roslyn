@@ -246,12 +246,13 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new ArrayElementReferenceOperation(arrayReference, indices, semanticModel: null, syntax: null, type, constantValue, isImplicit);
         }
 
-        public static ILocalReferenceOperation LocalReference(
-            ILocalSymbol local,
-            bool isDeclaration,
-            ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+
+        public static ILocalReferenceOperation LocalReference(string local)
+            => LocalReference(Local(null, local));
+
+        public static ILocalReferenceOperation LocalReference(ILocalSymbol local)
         {
-            return new LocalReferenceOperation(local, isDeclaration, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new LocalReferenceOperation(local, isDeclaration: false, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }
 
         public static IParameterReferenceOperation ParameterReference(
