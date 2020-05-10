@@ -26,9 +26,7 @@ Interface("x").GenerateTypeString());
         {
             AssertEx.AreEqual(
 "X<int>",
-Interface(
-    "X",
-    typeArguments: ImmutableArray.Create(Int32)).GenerateTypeString());
+Interface("X").WithTypeArguments(Int32).GenerateTypeString());
         }
 
         [Fact]
@@ -36,9 +34,7 @@ Interface(
         {
             AssertEx.AreEqual(
 "X<int, bool>",
-Interface(
-    "X",
-    typeArguments: ImmutableArray.Create(Int32, Boolean)).GenerateTypeString());
+Interface("X").WithTypeArguments(Int32, Boolean).GenerateTypeString());
         }
 
         [Fact]
@@ -103,9 +99,7 @@ Interface(
 {
     int M();
 }",
-Interface(
-    "X",
-    members: ImmutableArray.Create<ISymbol>(Method(Int32, "M"))).GenerateString());
+Interface("X").WithMembers(Method(Int32, "M")).GenerateString());
         }
 
         [Fact]
@@ -116,13 +110,11 @@ Interface(
 {
     int M();
 }",
-Interface(
-    "X",
-    members: ImmutableArray.Create<ISymbol>(
-        Method(
-            Int32,
-            "M",
-            modifiers: SymbolModifiers.Abstract))).GenerateString());
+Interface("X").WithMembers(
+    Method(
+        Int32,
+        "M",
+        modifiers: SymbolModifiers.Abstract)).GenerateString());
         }
 
         [Fact]
@@ -133,13 +125,11 @@ Interface(
 {
     int M();
 }",
-Interface(
-    "X",
-    members: ImmutableArray.Create<ISymbol>(
-        Method(
-            Int32,
-            "M",
-            declaredAccessibility: Accessibility.Public))).GenerateString());
+Interface("X").WithMembers(
+    Method(
+        Int32,
+        "M",
+        declaredAccessibility: Accessibility.Public)).GenerateString());
         }
 
         [Fact]
@@ -150,13 +140,11 @@ Interface(
 {
     protected int M();
 }",
-Interface(
-    "X",
-    members: ImmutableArray.Create<ISymbol>(
-        Method(
-            Int32,
-            "M",
-            declaredAccessibility: Accessibility.Protected))).GenerateString());
+Interface("X").WithMembers(
+    Method(
+        Int32,
+        "M",
+        declaredAccessibility: Accessibility.Protected)).GenerateString());
         }
 
         [Fact]
@@ -169,9 +157,7 @@ Interface(
     {
     }
 }",
-Interface(
-    "X",
-    members: ImmutableArray.Create<ISymbol>(Interface("Y"))).GenerateString());
+Interface("X").WithMembers(Interface("Y")).GenerateString());
         }
 
         [Fact]
@@ -181,9 +167,7 @@ Interface(
 @"interface X : Y, Z
 {
 }",
-Interface(
-    "X",
-    interfaces: ImmutableArray.Create(Interface("Y"), Interface("Z"))).GenerateString());
+Interface("X").WithInterfaces(Interface("Y"), Interface("Z")).GenerateString());
         }
 
         [Fact]
@@ -193,9 +177,7 @@ Interface(
 @"interface X<Y>
 {
 }",
-Interface(
-    "X",
-    typeArguments: ImmutableArray.Create<ITypeSymbol>(TypeParameter("Y"))).GenerateString());
+Interface("X").WithTypeArguments(TypeParameter("Y")).GenerateString());
         }
 
         [Fact]
@@ -205,12 +187,10 @@ Interface(
 @"interface X<in Y>
 {
 }",
-Interface(
-    "X",
-    typeArguments: ImmutableArray.Create<ITypeSymbol>(
-        TypeParameter(
-            "Y",
-            variance: VarianceKind.In))).GenerateString());
+Interface("X").WithTypeArguments(
+    TypeParameter(
+        "Y",
+        variance: VarianceKind.In)).GenerateString());
         }
 
         [Fact]
@@ -220,12 +200,10 @@ Interface(
 @"interface X<out Y>
 {
 }",
-Interface(
-    "X",
-    typeArguments: ImmutableArray.Create<ITypeSymbol>(
-        TypeParameter(
-            "Y",
-            variance: VarianceKind.Out))).GenerateString());
+Interface("X").WithTypeArguments(
+    TypeParameter(
+        "Y",
+        variance: VarianceKind.Out)).GenerateString());
         }
     }
 }

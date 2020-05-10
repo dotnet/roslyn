@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         }
 
         public static INamedTypeSymbol TupleType(
-            ImmutableArray<IFieldSymbol> tupleElements,
+            ImmutableArray<IFieldSymbol> tupleElements = default,
             NullableAnnotation nullableAnnotation = NullableAnnotation.None)
         {
             return new NamedTypeSymbol(
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 baseType: null,
                 interfaces: default,
                 members: default,
-                tupleElements,
+                tupleElements.NullToEmpty(),
                 delegateInvokeMethod: null,
                 enumUnderlyingType: null,
                 nullableAnnotation,
@@ -243,11 +243,29 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static INamedTypeSymbol WithBaseType(this INamedTypeSymbol symbol, INamedTypeSymbol baseType)
             => With(symbol, baseType: ToOptional(baseType));
 
+        public static INamedTypeSymbol WithInterfaces(this INamedTypeSymbol symbol, params INamedTypeSymbol[] interfaces)
+            => WithInterfaces(symbol, (IEnumerable<INamedTypeSymbol>)interfaces);
+
+        public static INamedTypeSymbol WithInterfaces(this INamedTypeSymbol symbol, IEnumerable<INamedTypeSymbol> interfaces)
+            => WithInterfaces(symbol, interfaces.ToImmutableArray());
+
         public static INamedTypeSymbol WithInterfaces(this INamedTypeSymbol symbol, ImmutableArray<INamedTypeSymbol> interfaces)
             => With(symbol, interfaces: ToOptional(interfaces));
 
+        public static INamedTypeSymbol WithMembers(this INamedTypeSymbol symbol, params ISymbol[] members)
+            => WithMembers(symbol, (IEnumerable<ISymbol>)members);
+
+        public static INamedTypeSymbol WithMembers(this INamedTypeSymbol symbol, IEnumerable<ISymbol> members)
+            => WithMembers(symbol, members.ToImmutableArray());
+
         public static INamedTypeSymbol WithMembers(this INamedTypeSymbol symbol, ImmutableArray<ISymbol> members)
             => With(symbol, members: ToOptional(members));
+
+        public static INamedTypeSymbol WithTupleElements(this INamedTypeSymbol symbol, params IFieldSymbol[] tupleElements)
+            => WithTupleElements(symbol, (IEnumerable<IFieldSymbol>)tupleElements);
+
+        public static INamedTypeSymbol WithTupleElements(this INamedTypeSymbol symbol, IEnumerable<IFieldSymbol> tupleElements)
+            => WithTupleElements(symbol, tupleElements.ToImmutableArray());
 
         public static INamedTypeSymbol WithTupleElements(this INamedTypeSymbol symbol, ImmutableArray<IFieldSymbol> tupleElements)
             => With(symbol, tupleElements: ToOptional(tupleElements));

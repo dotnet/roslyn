@@ -65,6 +65,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static ITypeParameterSymbol WithConstructorConstraint(this ITypeParameterSymbol symbol, bool constructorConstraint)
             => With(symbol, constructorConstraint: ToOptional(constructorConstraint));
 
+        public static ITypeParameterSymbol WithConstraintTypes(this ITypeParameterSymbol symbol, params ITypeSymbol[] constraintTypes)
+            => WithConstraintTypes(symbol, (IEnumerable<ITypeSymbol>)constraintTypes);
+
+        public static ITypeParameterSymbol WithConstraintTypes(this ITypeParameterSymbol symbol, IEnumerable<ITypeSymbol> constraintTypes)
+            => WithConstraintTypes(symbol, constraintTypes.ToImmutableArray());
+
         public static ITypeParameterSymbol WithConstraintTypes(this ITypeParameterSymbol symbol, ImmutableArray<ITypeSymbol> constraintTypes)
             => With(symbol, constraintTypes: ToOptional(constraintTypes));
 

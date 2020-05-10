@@ -38,8 +38,7 @@ GlobalNamespace().GenerateString());
 {
     using N2;
 }",
-Namespace("N",
-    imports: ImmutableArray.Create<INamespaceOrTypeSymbol>(Namespace("N2"))).GenerateString());
+Namespace("N").WithImports(Namespace("N2")).GenerateString());
         }
 
         [Fact]
@@ -47,8 +46,7 @@ Namespace("N",
         {
             AssertEx.AreEqual(
 @"using N2;",
-GlobalNamespace(
-    imports: ImmutableArray.Create<INamespaceOrTypeSymbol>(Namespace("N2"))).GenerateString());
+GlobalNamespace().WithImports(Namespace("N2")).GenerateString());
         }
 
         [Fact]
@@ -71,8 +69,7 @@ Namespace("N1.N2").GenerateString());
     {
     }
 }",
-Namespace("N1",
-    members: ImmutableArray.Create<INamespaceOrTypeSymbol>(Namespace("N2"))).GenerateString());
+Namespace("N1").WithMembers(Namespace("N2")).GenerateString());
         }
 
         [Fact]
@@ -82,8 +79,7 @@ Namespace("N1",
 @"namespace N2
 {
 }",
-GlobalNamespace(
-    members: ImmutableArray.Create<INamespaceOrTypeSymbol>(Namespace("N2"))).GenerateString());
+GlobalNamespace().WithMembers(Namespace("N2")).GenerateString());
         }
     }
 }

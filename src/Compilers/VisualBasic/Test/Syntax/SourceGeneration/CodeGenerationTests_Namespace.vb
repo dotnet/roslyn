@@ -32,8 +32,7 @@ End Namespace",
     Namespace N2
     End Namespace
 End Namespace",
-[Namespace]("N1",
-    members:=ImmutableArray.Create(Of INamespaceOrTypeSymbol)([Namespace]("N2"))).GenerateString())
+[Namespace]("N1").WithMembers([Namespace]("N2")).GenerateString())
         End Sub
     End Class
 End Namespace

@@ -79,6 +79,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IPropertySymbol WithType(this IPropertySymbol symbol, ITypeSymbol type)
             => With(symbol, type: ToOptional(type));
 
+        public static IPropertySymbol WithExplicitInterfaceImplementations(this IPropertySymbol symbol, params IPropertySymbol[] explicitInterfaceImplementations)
+            => WithExplicitInterfaceImplementations(symbol, (IEnumerable<IPropertySymbol>)explicitInterfaceImplementations);
+
+        public static IPropertySymbol WithExplicitInterfaceImplementations(this IPropertySymbol symbol, IEnumerable<IPropertySymbol> explicitInterfaceImplementations)
+            => WithExplicitInterfaceImplementations(symbol, explicitInterfaceImplementations.ToImmutableArray());
+
         public static IPropertySymbol WithExplicitInterfaceImplementations(this IPropertySymbol symbol, ImmutableArray<IPropertySymbol> explicitInterfaceImplementations)
             => With(symbol, explicitInterfaceImplementations: ToOptional(explicitInterfaceImplementations));
 

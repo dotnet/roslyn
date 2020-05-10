@@ -17,10 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.SourceGeneration
 
     Sub M()
 End Class",
-[Class](
-    "C",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Method(Void, "M"))).GenerateString())
+[Class]("C").WithMembers(Method(Void, "M")).GenerateString())
         End Sub
 
         <Fact>
@@ -30,10 +27,7 @@ End Class",
 
     Function M() As Integer
 End Class",
-[Class](
-    "C",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Method(Int32, "M"))).GenerateString())
+[Class]("C").WithMembers(Method(Int32, "M")).GenerateString())
         End Sub
 
         <Fact>
@@ -43,13 +37,8 @@ End Class",
 
     Public Sub M()
 End Class",
-[Class](
-    "C",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Method(
-            Void,
-            "M",
-            declaredAccessibility:=Accessibility.Public))).GenerateString())
+[Class]("C").WithMembers(
+    Method(Void, "M", declaredAccessibility:=Accessibility.Public)).GenerateString())
         End Sub
 
         <Fact>
@@ -59,13 +48,8 @@ End Class",
 
     MustOverride Sub M()
 End Class",
-[Class](
-    "C",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Method(
-            Void,
-            "M",
-            modifiers:=SymbolModifiers.Abstract))).GenerateString())
+[Class]("C").WithMembers(
+    Method(Void, "M", modifiers:=SymbolModifiers.Abstract)).GenerateString())
         End Sub
 
         <Fact>
@@ -75,14 +59,8 @@ End Class",
 
     Sub M(Of X)()
 End Class",
-[Class](
-    "C",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Method(
-            Void,
-            "M",
-            typeArguments:=ImmutableArray.Create(Of ITypeSymbol)(
-                TypeParameter("X"))))).GenerateString())
+[Class]("C").WithMembers(
+    Method(Void, "M").WithTypeArguments(TypeParameter("X"))).GenerateString())
         End Sub
 
         <Fact>
@@ -92,16 +70,9 @@ End Class",
 
     Sub M(Of X As {New})()
 End Class",
-[Class](
-    "C",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Method(
-            Void,
-            "M",
-            typeArguments:=ImmutableArray.Create(Of ITypeSymbol)(
-                TypeParameter(
-                    "X",
-                    hasConstructorConstraint:=True))))).GenerateString())
+[Class]("C").WithMembers(
+    Method(Void, "M").WithTypeArguments(
+        TypeParameter("X", constructorConstraint:=True))).GenerateString())
         End Sub
 
         <Fact>
@@ -111,14 +82,8 @@ End Class",
 
     Sub M(i As Integer)
 End Class",
-[Class](
-    "C",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Method(
-            Void,
-            "M",
-            parameters:=ImmutableArray.Create(Parameter(
-                Int32, "i"))))).GenerateString())
+[Class]("C").WithMembers(
+    Method(Void, "M").WithParameters(Parameter(Int32, "i"))).GenerateString())
         End Sub
 
         <Fact>
@@ -128,16 +93,9 @@ End Class",
 
     Sub M(ParamArray i As Integer)
 End Class",
-[Class](
-    "C",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Method(
-            Void,
-            "M",
-            parameters:=ImmutableArray.Create(Parameter(
-                Int32,
-                "i",
-                modifiers:=SymbolModifiers.Params))))).GenerateString())
+[Class]("C").WithMembers(
+    Method(Void, "M").WithParameters(
+        Parameter(Int32, "i", modifiers:=SymbolModifiers.Params))).GenerateString())
         End Sub
 
         <Fact>
@@ -147,13 +105,9 @@ End Class",
 
     Sub M() Implements I.M
 End Class",
-[Class](
-    "C",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Method(Void, "M",
-            explicitInterfaceImplementations:=ImmutableArray.Create(
-                Method(Void, "M",
-                    containingSymbol:=[Interface]("I")))))).GenerateString())
+[Class]("C").WithMembers(
+    Method(Void, "M").WithExplicitInterfaceImplementations(
+        Method(Void, "M", containingSymbol:=[Interface]("I")))).GenerateString())
         End Sub
     End Class
 End Namespace

@@ -20,18 +20,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.SourceGeneration
         Public Sub TestClassTypeWithTypeArguments1()
             AssertEx.AreEqual(
 "X(Of Integer)",
-[Class](
-    "X",
-    typeArguments:=ImmutableArray.Create(Int32)).GenerateTypeString())
+[Class]("X").WithTypeArguments(Int32).GenerateTypeString())
         End Sub
 
         <Fact>
         Public Sub TestClassTypeWithTypeArguments2()
             AssertEx.AreEqual(
 "X(Of Integer, Boolean)",
-[Class](
-    "X",
-    typeArguments:=ImmutableArray.Create(Int32, [Boolean])).GenerateTypeString())
+[Class]("X").WithTypeArguments(Int32, [Boolean]).GenerateTypeString())
         End Sub
 
         <Fact>
@@ -49,9 +45,7 @@ End Class",
 
     Dim i As Integer
 End Class",
-[Class](
-    "X",
-    members:=ImmutableArray.Create(Of ISymbol)(Field(Int32, "i"))).GenerateString())
+[Class]("X").WithMembers(Field(Int32, "i")).GenerateString())
         End Sub
 
         <Fact>
@@ -62,9 +56,7 @@ End Class",
     Class Y
     End Class
 End Class",
-[Class](
-    "X",
-    members:=ImmutableArray.Create(Of ISymbol)([Class]("Y"))).GenerateString())
+[Class]("X").WithMembers([Class]("Y")).GenerateString())
         End Sub
 
         <Fact>
@@ -97,9 +89,7 @@ End Class",
     Implements Z
 
 End Class",
-[Class](
-    "X",
-    interfaces:=ImmutableArray.Create([Class]("Y"), [Class]("Z"))).GenerateString())
+[Class]("X").WithInterfaces([Class]("Y"), [Class]("Z")).GenerateString())
         End Sub
 
         <Fact>
@@ -107,9 +97,7 @@ End Class",
             AssertEx.AreEqual(
 "Class X(Of Y)
 End Class",
-[Class](
-    "X",
-    typeArguments:=ImmutableArray.Create(Of ITypeSymbol)(TypeParameter("Y"))).GenerateString())
+[Class]("X").WithTypeArguments(TypeParameter("Y")).GenerateString())
         End Sub
 
         <Fact>
@@ -117,12 +105,10 @@ End Class",
             AssertEx.AreEqual(
 "Class X(Of In Y)
 End Class",
-[Class](
-    "X",
-    typeArguments:=ImmutableArray.Create(Of ITypeSymbol)(
-        TypeParameter(
-            "Y",
-            variance:=VarianceKind.In))).GenerateString())
+[Class]("X").WithTypeArguments(
+    TypeParameter(
+        "Y",
+        variance:=VarianceKind.In)).GenerateString())
         End Sub
 
         <Fact>
@@ -130,12 +116,10 @@ End Class",
             AssertEx.AreEqual(
 "Class X(Of Out Y)
 End Class",
-[Class](
-    "X",
-    typeArguments:=ImmutableArray.Create(Of ITypeSymbol)(
+[Class]("X").WithTypeArguments(
         TypeParameter(
             "Y",
-            variance:=VarianceKind.Out))).GenerateString())
+            variance:=VarianceKind.Out)).GenerateString())
         End Sub
 
         <Fact>
@@ -143,12 +127,10 @@ End Class",
             AssertEx.AreEqual(
 "Class X(Of Y As {New})
 End Class",
-[Class](
-    "X",
-    typeArguments:=ImmutableArray.Create(Of ITypeSymbol)(
-        TypeParameter(
-            "Y",
-            hasConstructorConstraint:=True))).GenerateString())
+[Class]("X").WithTypeArguments(
+    TypeParameter(
+        "Y",
+        constructorConstraint:=True)).GenerateString())
         End Sub
 
         <Fact>
@@ -156,12 +138,10 @@ End Class",
             AssertEx.AreEqual(
 "Class X(Of Y)
 End Class",
-[Class](
-    "X",
-    typeArguments:=ImmutableArray.Create(Of ITypeSymbol)(
-        TypeParameter(
-            "Y",
-            hasNotNullConstraint:=True))).GenerateString())
+[Class]("X").WithTypeArguments(
+    TypeParameter(
+        "Y",
+        notNullConstraint:=True)).GenerateString())
         End Sub
 
         <Fact>
@@ -169,12 +149,10 @@ End Class",
             AssertEx.AreEqual(
 "Class X(Of Y As {Class})
 End Class",
-[Class](
-    "X",
-    typeArguments:=ImmutableArray.Create(Of ITypeSymbol)(
-        TypeParameter(
-            "Y",
-            hasReferenceTypeConstraint:=True))).GenerateString())
+[Class]("X").WithTypeArguments(
+    TypeParameter(
+        "Y",
+        referenceTypeConstraint:=True)).GenerateString())
         End Sub
 
         <Fact>
@@ -182,12 +160,10 @@ End Class",
             AssertEx.AreEqual(
 "Class X(Of Y)
 End Class",
-[Class](
-    "X",
-    typeArguments:=ImmutableArray.Create(Of ITypeSymbol)(
-        TypeParameter(
-            "Y",
-            hasUnmanagedTypeConstraint:=True))).GenerateString())
+[Class]("X").WithTypeArguments(
+    TypeParameter(
+        "Y",
+        unmanagedTypeConstraint:=True)).GenerateString())
         End Sub
 
         <Fact>
@@ -195,12 +171,10 @@ End Class",
             AssertEx.AreEqual(
 "Class X(Of Y As {Structure})
 End Class",
-[Class](
-    "X",
-    typeArguments:=ImmutableArray.Create(Of ITypeSymbol)(
-        TypeParameter(
-            "Y",
-            hasValueTypeConstraint:=True))).GenerateString())
+[Class]("X").WithTypeArguments(
+    TypeParameter(
+        "Y",
+        valueTypeConstraint:=True)).GenerateString())
         End Sub
 
         <Fact>
@@ -208,13 +182,8 @@ End Class",
             AssertEx.AreEqual(
 "Class X(Of Y As {Z})
 End Class",
-[Class](
-    "X",
-    typeArguments:=ImmutableArray.Create(Of ITypeSymbol)(
-        TypeParameter(
-            "Y",
-            constraintTypes:=ImmutableArray.Create(Of ITypeSymbol)(
-                [Class]("Z"))))).GenerateString())
+[Class]("X").WithTypeArguments(
+    TypeParameter("Y").WithConstraintTypes([Class]("Z"))).GenerateString())
         End sub
     End Class
 End Namespace

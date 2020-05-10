@@ -39,8 +39,20 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static INamespaceSymbol WithName(this INamespaceSymbol symbol, string name)
             => With(symbol, name: ToOptional(name));
 
+        public static INamespaceSymbol WithImports(this INamespaceSymbol symbol, params INamespaceOrTypeSymbol[] imports)
+            => WithImports(symbol, (IEnumerable<INamespaceOrTypeSymbol>)imports);
+
+        public static INamespaceSymbol WithImports(this INamespaceSymbol symbol, IEnumerable<INamespaceOrTypeSymbol> imports)
+            => WithImports(symbol, imports.ToImmutableArray());
+
         public static INamespaceSymbol WithImports(this INamespaceSymbol symbol, ImmutableArray<INamespaceOrTypeSymbol> imports)
             => With(symbol, imports: ToOptional(imports));
+
+        public static INamespaceSymbol WithMembers(this INamespaceSymbol symbol, params INamespaceOrTypeSymbol[] members)
+            => WithMembers(symbol, (IEnumerable<INamespaceOrTypeSymbol>)members);
+
+        public static INamespaceSymbol WithMembers(this INamespaceSymbol symbol, IEnumerable<INamespaceOrTypeSymbol> members)
+            => WithMembers(symbol, members.ToImmutableArray());
 
         public static INamespaceSymbol WithMembers(this INamespaceSymbol symbol, ImmutableArray<INamespaceOrTypeSymbol> members)
             => With(symbol, members: ToOptional(members));

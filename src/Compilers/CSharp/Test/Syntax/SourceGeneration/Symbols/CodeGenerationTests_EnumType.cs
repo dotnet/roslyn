@@ -97,10 +97,7 @@ Enum(
     {
     }
 }",
-Namespace(
-    "N",
-    members: ImmutableArray.Create<INamespaceOrTypeSymbol>(
-        Enum("X"))).GenerateString());
+Namespace("N").WithMembers(Enum("X")).GenerateString());
         }
 
         [Fact]
@@ -110,8 +107,7 @@ Namespace(
 @"enum X
 {
 }",
-Enum("X").With(
-    baseType: new Optional<INamedTypeSymbol>(System_Enum)).GenerateString());
+Enum("X").WithBaseType(System_Enum).GenerateString());
         }
 
         [Fact]
@@ -133,10 +129,7 @@ Enum("X",
 {
     A
 }",
-Enum(
-    "X",
-    members: ImmutableArray.Create<ISymbol>(
-        EnumMember("A"))).GenerateString());
+Enum("X").WithMembers(EnumMember("A")).GenerateString());
         }
 
         [Fact]
@@ -148,11 +141,9 @@ Enum(
     A,
     B
 }",
-Enum(
-    "X",
-    members: ImmutableArray.Create<ISymbol>(
-        EnumMember("A"),
-        EnumMember("B"))).GenerateString());
+Enum("X").WithMembers(
+    EnumMember("A"),
+    EnumMember("B")).GenerateString());
         }
     }
 }

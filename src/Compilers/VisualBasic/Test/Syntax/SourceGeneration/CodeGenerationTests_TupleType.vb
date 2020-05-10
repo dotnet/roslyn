@@ -13,16 +13,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.SourceGeneration
         Public Sub TestTupleWithoutFieldNames()
             AssertEx.AreEqual(
 "(Integer, Boolean)",
-TupleType(ImmutableArray.Create(
+TupleType().WithTupleElements(
     TupleElement(Int32),
-    TupleElement([Boolean]))).GenerateTypeString())
+    TupleElement([Boolean])).GenerateTypeString())
         End Sub
 
         <Fact>
         Public Sub TestTupleWithFirstFieldName()
             AssertEx.AreEqual(
 "(a As Integer, Boolean)",
-TupleType(ImmutableArray.Create(
+TupleType().WithTupleElements(ImmutableArray.Create(
     TupleElement(Int32, "a"),
     TupleElement([Boolean]))).GenerateTypeString())
         End Sub
@@ -31,34 +31,34 @@ TupleType(ImmutableArray.Create(
         Public Sub TestTupleWithSecondFieldName()
             AssertEx.AreEqual(
 "(Integer, b As Boolean)",
-TupleType(ImmutableArray.Create(
+TupleType().WithTupleElements(
     TupleElement(Int32),
-    TupleElement([Boolean], "b"))).GenerateTypeString())
+    TupleElement([Boolean], "b")).GenerateTypeString())
         End Sub
 
         <Fact>
         Public Sub TestTupleWithFieldNames()
             AssertEx.AreEqual(
 "(a As Integer, b As Boolean)",
-TupleType(ImmutableArray.Create(
+TupleType().WithTupleElements(
     TupleElement(Int32, "a"),
-    TupleElement([Boolean], "b"))).GenerateTypeString())
+    TupleElement([Boolean], "b")).GenerateTypeString())
         End Sub
 
         <Fact>
         Public Sub TestTupleNameSyntax()
             AssertEx.AreEqual(
 "Global.System.ValueTuple(Of Integer, Boolean)",
-TupleType(ImmutableArray.Create(
+TupleType().WithTupleElements(
     TupleElement(Int32),
-    TupleElement([Boolean]))).GenerateNameString())
+    TupleElement([Boolean])).GenerateNameString())
         End Sub
 
         <Fact>
         Public Sub TestTupleNameSyntax10Elements()
             AssertEx.AreEqual(
 "Global.System.ValueTuple(Of Integer, Boolean, Integer, Boolean, Integer, Boolean, Integer, Global.System.ValueTuple(Of Boolean, Integer, Boolean))",
-TupleType(ImmutableArray.Create(
+TupleType().WithTupleElements(
     TupleElement(Int32),
     TupleElement([Boolean]),
     TupleElement(Int32),
@@ -68,7 +68,7 @@ TupleType(ImmutableArray.Create(
     TupleElement(Int32),
     TupleElement([Boolean]),
     TupleElement(Int32),
-    TupleElement([Boolean]))).GenerateNameString())
+    TupleElement([Boolean])).GenerateNameString())
         End Sub
     End Class
 End Namespace

@@ -70,8 +70,7 @@ Struct("X").GenerateString());
 @"struct X
 {
 }",
-Struct("X").With(baseType:
-    new Optional<INamedTypeSymbol>(System_ValueType)).GenerateString());
+Struct("X").WithBaseType(System_ValueType).GenerateString());
         }
 
         [Fact]
@@ -108,10 +107,7 @@ Struct(
     {
     }
 }",
-Namespace(
-    "N",
-    members: ImmutableArray.Create<INamespaceOrTypeSymbol>(
-        Struct("X"))).GenerateString());
+Namespace("N").WithMembers(Struct("X")).GenerateString());
         }
 
         [Fact]
@@ -122,10 +118,7 @@ Namespace(
 {
     int A;
 }",
-Struct(
-    "X",
-    members: ImmutableArray.Create<ISymbol>(
-        Field(Int32, "A"))).GenerateString());
+Struct("X").WithMembers(Field(Int32, "A")).GenerateString());
         }
 
         [Fact]
@@ -137,11 +130,9 @@ Struct(
     int A;
     bool B;
 }",
-Struct(
-    "X",
-    members: ImmutableArray.Create<ISymbol>(
-        Field(Int32, "A"),
-        Field(Boolean, "B"))).GenerateString());
+Struct("X").WithMembers(
+    Field(Int32, "A"),
+    Field(Boolean, "B")).GenerateString());
         }
     }
 }

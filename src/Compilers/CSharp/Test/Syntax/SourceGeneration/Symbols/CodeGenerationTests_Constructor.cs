@@ -21,10 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
 {
     C();
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
-        Constructor())).GenerateString());
+Class("C").WithMembers(Constructor()).GenerateString());
         }
 
         [Fact]
@@ -37,11 +34,8 @@ Class(
     {
     }
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
-        Constructor(
-            body: Block()))).GenerateString());
+Class("C").WithMembers(
+    Constructor(body: Block())).GenerateString());
         }
 
         [Fact]
@@ -52,11 +46,8 @@ Class(
 {
     C();
 }",
-Class(
-    "C",
-    typeArguments: ImmutableArray.Create<ITypeSymbol>(TypeParameter("T")),
-    members: ImmutableArray.Create<ISymbol>(
-        Constructor())).GenerateString());
+Class("C").WithTypeArguments(TypeParameter("T"))
+          .WithMembers(Constructor()).GenerateString());
         }
 
         [Fact]
@@ -67,11 +58,8 @@ Class(
 {
     public C();
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
-        Constructor(
-            declaredAccessibility: Accessibility.Public))).GenerateString());
+Class("C").WithMembers(Constructor(
+    declaredAccessibility: Accessibility.Public)).GenerateString());
         }
 
         [Fact]
@@ -82,11 +70,8 @@ Class(
 {
     unsafe C();
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
-        Constructor(
-            modifiers: SymbolModifiers.Unsafe))).GenerateString());
+Class("C").WithMembers(Constructor(
+    modifiers: SymbolModifiers.Unsafe)).GenerateString());
         }
 
         [Fact]
@@ -97,12 +82,9 @@ Class(
 {
     C(int i);
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
-        Constructor(
-            parameters: ImmutableArray.Create(Parameter(
-                Int32, "i"))))).GenerateString());
+Class("C").WithMembers(
+    Constructor().WithParameters(
+        Parameter(Int32, "i"))).GenerateString());
         }
 
         [Fact]
@@ -113,14 +95,10 @@ Class(
 {
     C(params int i);
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
-        Constructor(
-            parameters: ImmutableArray.Create(Parameter(
-                Int32,
-                "i",
-                modifiers: SymbolModifiers.Params))))).GenerateString());
+Class("C").WithMembers(
+    Constructor().WithParameters(
+        Parameter(Int32, "i",
+            modifiers: SymbolModifiers.Params))).GenerateString());
         }
     }
 }

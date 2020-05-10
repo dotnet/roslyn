@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
         {
             AssertEx.AreEqual(
 "(int, bool)",
-TupleType(ImmutableArray.Create(
+TupleType().WithTupleElements(
     TupleElement(Int32),
-    TupleElement(Boolean))).GenerateTypeString());
+    TupleElement(Boolean)).GenerateTypeString());
         }
 
         [Fact]
@@ -27,9 +27,9 @@ TupleType(ImmutableArray.Create(
         {
             AssertEx.AreEqual(
 "(int a, bool)",
-TupleType(ImmutableArray.Create(
+TupleType().WithTupleElements(
     TupleElement(Int32, "a"),
-    TupleElement(Boolean))).GenerateTypeString());
+    TupleElement(Boolean)).GenerateTypeString());
         }
 
         [Fact]
@@ -37,9 +37,9 @@ TupleType(ImmutableArray.Create(
         {
             AssertEx.AreEqual(
 "(int, bool b)",
-TupleType(ImmutableArray.Create(
+TupleType().WithTupleElements(
     TupleElement(Int32),
-    TupleElement(Boolean, "b"))).GenerateTypeString());
+    TupleElement(Boolean, "b")).GenerateTypeString());
         }
 
         [Fact]
@@ -47,9 +47,9 @@ TupleType(ImmutableArray.Create(
         {
             AssertEx.AreEqual(
 "(int a, bool b)",
-TupleType(ImmutableArray.Create(
+TupleType().WithTupleElements(
     TupleElement(Int32, "a"),
-    TupleElement(Boolean, "b"))).GenerateTypeString());
+    TupleElement(Boolean, "b")).GenerateTypeString());
         }
 
         [Fact]
@@ -57,9 +57,9 @@ TupleType(ImmutableArray.Create(
         {
             AssertEx.AreEqual(
 "global::System.ValueTuple<int, bool>",
-TupleType(ImmutableArray.Create(
+TupleType().WithTupleElements(
     TupleElement(Int32),
-    TupleElement(Boolean))).GenerateNameString());
+    TupleElement(Boolean)).GenerateNameString());
         }
 
         [Fact]
@@ -67,7 +67,7 @@ TupleType(ImmutableArray.Create(
         {
             AssertEx.AreEqual(
 "global::System.ValueTuple<int, bool, int, bool, int, bool, int, global::System.ValueTuple<bool, int, bool>>",
-TupleType(ImmutableArray.Create(
+TupleType().WithTupleElements(
     TupleElement(Int32),
     TupleElement(Boolean),
     TupleElement(Int32),
@@ -77,7 +77,7 @@ TupleType(ImmutableArray.Create(
     TupleElement(Int32),
     TupleElement(Boolean),
     TupleElement(Int32),
-    TupleElement(Boolean))).GenerateNameString());
+    TupleElement(Boolean)).GenerateNameString());
         }
     }
 }

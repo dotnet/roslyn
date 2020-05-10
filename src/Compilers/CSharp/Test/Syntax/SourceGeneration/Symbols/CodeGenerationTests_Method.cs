@@ -21,10 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
 {
     void M();
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
-        Method(Void, "M"))).GenerateString());
+Class("C").WithMembers(Method(Void, "M")).GenerateString());
         }
 
         [Fact]
@@ -35,13 +32,11 @@ Class(
 {
     public void M();
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
-        Method(
-            Void,
-            "M",
-            declaredAccessibility: Accessibility.Public))).GenerateString());
+Class("C").WithMembers(
+    Method(
+        Void,
+        "M",
+        declaredAccessibility: Accessibility.Public)).GenerateString());
         }
 
         [Fact]
@@ -52,13 +47,11 @@ Class(
 {
     unsafe void M();
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
-        Method(
-            Void,
-            "M",
-            modifiers: SymbolModifiers.Unsafe))).GenerateString());
+Class("C").WithMembers(
+    Method(
+        Void,
+        "M",
+        modifiers: SymbolModifiers.Unsafe)).GenerateString());
         }
 
         [Fact]
@@ -69,14 +62,9 @@ Class(
 {
     void M<X>();
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
-        Method(
-            Void,
-            "M",
-            typeArguments: ImmutableArray.Create<ITypeSymbol>(
-                TypeParameter("X"))))).GenerateString());
+Class("C").WithMembers(
+    Method(Void, "M").WithTypeArguments(
+        TypeParameter("X"))).GenerateString());
         }
 
         [Fact]
@@ -88,16 +76,9 @@ Class(
     void M<X>()
         where X : new();
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
-        Method(
-            Void,
-            "M",
-            typeArguments: ImmutableArray.Create<ITypeSymbol>(
-                TypeParameter(
-                    "X",
-                    hasConstructorConstraint: true))))).GenerateString());
+Class("C").WithMembers(
+    Method(Void, "M").WithTypeArguments(
+        TypeParameter("X", constructorConstraint: true))).GenerateString());
         }
 
         [Fact]
@@ -108,14 +89,9 @@ Class(
 {
     void M(int i);
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
-        Method(
-            Void,
-            "M",
-            parameters: ImmutableArray.Create(Parameter(
-                Int32, "i"))))).GenerateString());
+Class("C").WithMembers(
+    Method(Void, "M").WithParameters(
+        Parameter(Int32, "i"))).GenerateString());
         }
 
         [Fact]
@@ -126,16 +102,9 @@ Class(
 {
     void M(params int i);
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
-        Method(
-            Void,
-            "M",
-            parameters: ImmutableArray.Create(Parameter(
-                Int32,
-                "i",
-                modifiers: SymbolModifiers.Params))))).GenerateString());
+Class("C").WithMembers(
+    Method(Void, "M").WithParameters(
+        Parameter(Int32, "i", modifiers: SymbolModifiers.Params))).GenerateString());
         }
 
         [Fact]
@@ -146,13 +115,10 @@ Class(
 {
     void I.M();
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
+Class("C").WithMembers(
+    Method(Void, "M").WithExplicitInterfaceImplementations(
         Method(Void, "M",
-            explicitInterfaceImplementations: ImmutableArray.Create(
-                Method(Void, "M",
-                    containingSymbol: Interface("I")))))).GenerateString());
+            containingSymbol: Interface("I")))).GenerateString());
         }
 
         [Fact]
@@ -163,16 +129,11 @@ Class(
 {
     void I.M();
 }",
-Class(
-    "C",
-    members: ImmutableArray.Create<ISymbol>(
+Class("C").WithMembers(
+    Method(Void, "M").WithExplicitInterfaceImplementations(
         Method(Void, "M",
-            explicitInterfaceImplementations: ImmutableArray.Create(
-                Method(
-                    Void,
-                    "M",
-                    declaredAccessibility: Accessibility.Private,
-                    containingSymbol: Interface("I")))))).GenerateString());
+            declaredAccessibility: Accessibility.Private,
+            containingSymbol: Interface("I")))).GenerateString());
         }
     }
 }

@@ -13,29 +13,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.SourceGeneration
         Public Sub TestField1()
             AssertEx.AreEqual(
 "Dim f As Integer",
-Field(
-    Int32,
-    "f").GenerateString())
+Field(Int32, "f").GenerateString())
         End Sub
 
         <Fact>
         Public Sub TestFieldWithAccessibility1()
             AssertEx.AreEqual(
 "Public f As Integer",
-Field(
-    Int32,
-    "f",
-    declaredAccessibility:=Accessibility.Public).GenerateString())
+Field(Int32, "f", declaredAccessibility:=Accessibility.Public).GenerateString())
         End Sub
 
         <Fact>
         Public Sub TestFieldWithModifiers1()
             AssertEx.AreEqual(
 "Shared f As Integer",
-Field(
-    Int32,
-    "f",
-    modifiers:=SymbolModifiers.Static).GenerateString())
+Field(Int32, "f", modifiers:=SymbolModifiers.Static).GenerateString())
         End Sub
 
         <Fact>
@@ -53,10 +45,7 @@ Field(
         Public Sub TestConstantField1()
             AssertEx.AreEqual(
 "Const f As Integer",
-Field(
-    Int32,
-    "f",
-    modifiers:=SymbolModifiers.Const).GenerateString())
+Field(Int32, "f", modifiers:=SymbolModifiers.Const).GenerateString())
         End Sub
     End Class
 End Namespace

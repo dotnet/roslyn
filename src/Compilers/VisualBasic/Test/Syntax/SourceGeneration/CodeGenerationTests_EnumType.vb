@@ -71,10 +71,7 @@ End Enum",
     Enum X
     End Enum
 End Namespace",
-[Namespace](
-    "N",
-    members:=ImmutableArray.Create(Of INamespaceOrTypeSymbol)(
-        [Enum]("X"))).GenerateString())
+[Namespace]("N").WithMembers([Enum]("X")).GenerateString())
         End Sub
 
         <Fact>
@@ -92,7 +89,7 @@ End Enum",
             AssertEx.AreEqual(
 "Enum X
 End Enum",
-[Enum]("X").With(baseType:=New [Optional](Of INamedTypeSymbol)(System_Enum)).GenerateString())
+[Enum]("X").WithBaseType(System_Enum).GenerateString())
         End Sub
 
         <fact>
@@ -101,10 +98,7 @@ End Enum",
 "Enum X
     A
 End Enum",
-[Enum](
-    "X",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        EnumMember("A"))).GenerateString())
+[Enum]("X").WithMembers(EnumMember("A")).GenerateString())
         End sub
 
         <fact>
@@ -114,11 +108,9 @@ End Enum",
     A
     B
 End Enum",
-[Enum](
-    "X",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        EnumMember("A"),
-        EnumMember("B"))).GenerateString())
+[Enum]("X").WithMembers(
+    EnumMember("A"),
+    EnumMember("B")).GenerateString())
         End sub
     End Class
 End Namespace

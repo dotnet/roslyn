@@ -25,9 +25,7 @@ Class("x").GenerateTypeString());
         {
             AssertEx.AreEqual(
 "X<int>",
-Class(
-    "X",
-    typeArguments: ImmutableArray.Create(Int32)).GenerateTypeString());
+Class("X").WithTypeArguments(Int32).GenerateTypeString());
         }
 
         [Fact]
@@ -35,9 +33,7 @@ Class(
         {
             AssertEx.AreEqual(
 "X<int, bool>",
-Class(
-    "X",
-    typeArguments: ImmutableArray.Create(Int32, Boolean)).GenerateTypeString());
+Class("X").WithTypeArguments(Int32, Boolean).GenerateTypeString());
         }
 
         [Fact]
@@ -90,9 +86,7 @@ Class("X").GenerateString());
 {
     int i;
 }",
-Class(
-    "X",
-    members: ImmutableArray.Create<ISymbol>(Field(Int32, "i"))).GenerateString());
+Class("X").WithMembers(Field(Int32, "i")).GenerateString());
         }
 
         [Fact]
@@ -141,9 +135,7 @@ Class(
 @"class X : Y, Z
 {
 }",
-Class(
-    "X",
-    interfaces: ImmutableArray.Create(Interface("Y"), Interface("Z"))).GenerateString());
+Class("X").WithInterfaces(Interface("Y"), Interface("Z")).GenerateString());
         }
 
         [Fact]
@@ -153,9 +145,7 @@ Class(
 @"class X<Y>
 {
 }",
-Class(
-    "X",
-    typeArguments: ImmutableArray.Create<ITypeSymbol>(TypeParameter("Y"))).GenerateString());
+Class("X").WithTypeArguments(TypeParameter("Y")).GenerateString());
         }
 
         [Fact]
@@ -165,12 +155,10 @@ Class(
 @"class X<in Y>
 {
 }",
-Class(
-    "X",
-    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+Class("X").WithTypeArguments(
         TypeParameter(
             "Y",
-            variance: VarianceKind.In))).GenerateString());
+            variance: VarianceKind.In)).GenerateString());
         }
 
         [Fact]
@@ -180,12 +168,10 @@ Class(
 @"class X<out Y>
 {
 }",
-Class(
-    "X",
-    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+Class("X").WithTypeArguments(
         TypeParameter(
             "Y",
-            variance: VarianceKind.Out))).GenerateString());
+            variance: VarianceKind.Out)).GenerateString());
         }
 
         [Fact]
@@ -196,12 +182,10 @@ Class(
     where Y : new()
 {
 }",
-Class(
-    "X",
-    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+Class("X").WithTypeArguments(
         TypeParameter(
             "Y",
-            hasConstructorConstraint: true))).GenerateString());
+            constructorConstraint: true)).GenerateString());
         }
 
         [Fact]
@@ -212,12 +196,10 @@ Class(
     where Y : notnull
 {
 }",
-Class(
-    "X",
-    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+Class("X").WithTypeArguments(
         TypeParameter(
             "Y",
-            hasNotNullConstraint: true))).GenerateString());
+            notNullConstraint: true)).GenerateString());
         }
 
         [Fact]
@@ -228,12 +210,10 @@ Class(
     where Y : class
 {
 }",
-Class(
-    "X",
-    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+Class("X").WithTypeArguments(
         TypeParameter(
             "Y",
-            hasReferenceTypeConstraint: true))).GenerateString());
+            referenceTypeConstraint: true)).GenerateString());
         }
 
         [Fact]
@@ -244,12 +224,10 @@ Class(
     where Y : unmanaged
 {
 }",
-Class(
-    "X",
-    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+Class("X").WithTypeArguments(
         TypeParameter(
             "Y",
-            hasUnmanagedTypeConstraint: true))).GenerateString());
+            unmanagedTypeConstraint: true)).GenerateString());
         }
 
         [Fact]
@@ -260,12 +238,10 @@ Class(
     where Y : struct
 {
 }",
-Class(
-    "X",
-    typeArguments: ImmutableArray.Create<ITypeSymbol>(
+Class("X").WithTypeArguments(
         TypeParameter(
             "Y",
-            hasValueTypeConstraint: true))).GenerateString());
+            valueTypeConstraint: true)).GenerateString());
         }
 
         [Fact]
@@ -276,13 +252,8 @@ Class(
     where Y : Z
 {
 }",
-Class(
-    "X",
-    typeArguments: ImmutableArray.Create<ITypeSymbol>(
-        TypeParameter(
-            "Y",
-            constraintTypes: ImmutableArray.Create<ITypeSymbol>(
-                Class("Z"))))).GenerateString());
+Class("X").WithTypeArguments(
+    TypeParameter("Y").WithConstraintTypes(Class("Z"))).GenerateString());
         }
     }
 }

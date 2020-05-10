@@ -53,6 +53,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IEventSymbol WithType(this IEventSymbol symbol, ITypeSymbol type)
             => With(symbol, type: ToOptional(type));
 
+        public static IEventSymbol WithExplicitInterfaceImplementations(this IEventSymbol symbol, params IEventSymbol[] explicitInterfaceImplementations)
+            => WithExplicitInterfaceImplementations(symbol, (IEnumerable<IEventSymbol>)explicitInterfaceImplementations);
+
+        public static IEventSymbol WithExplicitInterfaceImplementations(this IEventSymbol symbol, IEnumerable<IEventSymbol> explicitInterfaceImplementations)
+            => WithExplicitInterfaceImplementations(symbol, explicitInterfaceImplementations.ToImmutableArray());
+
         public static IEventSymbol WithExplicitInterfaceImplementations(this IEventSymbol symbol, ImmutableArray<IEventSymbol> explicitInterfaceImplementations)
             => With(symbol, explicitInterfaceImplementations: ToOptional(explicitInterfaceImplementations));
 

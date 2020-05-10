@@ -26,10 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
         }
     }
 }",
-Class("C",
-    members: ImmutableArray.Create<ISymbol>(
-        Property(Int32, "P",
-            getMethod: PropertyGet()))).GenerateString());
+Class("C").WithMembers(
+    Property(Int32, "P", getMethod: PropertyGet())).GenerateString());
         }
 
         [Fact]
@@ -45,11 +43,10 @@ Class("C",
         }
     }
 }",
-Class("C",
-    members: ImmutableArray.Create<ISymbol>(
-        Property(Int32, "P",
-            declaredAccessibility: Accessibility.Public,
-            getMethod: PropertyGet()))).GenerateString());
+Class("C").WithMembers(
+    Property(Int32, "P",
+        declaredAccessibility: Accessibility.Public,
+        getMethod: PropertyGet())).GenerateString());
         }
 
         [Fact]
@@ -65,12 +62,11 @@ Class("C",
         }
     }
 }",
-Class("C",
-    members: ImmutableArray.Create<ISymbol>(
-        Property(Int32, "P",
-            declaredAccessibility: Accessibility.Public,
-            getMethod: PropertyGet(
-                declaredAccessibility: Accessibility.Public)))).GenerateString());
+Class("C").WithMembers(
+    Property(Int32, "P",
+    declaredAccessibility: Accessibility.Public,
+    getMethod: PropertyGet(
+        declaredAccessibility: Accessibility.Public))).GenerateString());
         }
 
         [Fact]
@@ -86,12 +82,11 @@ Class("C",
         }
     }
 }",
-Class("C",
-    members: ImmutableArray.Create<ISymbol>(
-        Property(Int32, "P",
-            declaredAccessibility: Accessibility.Public,
-            getMethod: PropertyGet(
-                declaredAccessibility: Accessibility.Private)))).GenerateString());
+Class("C").WithMembers(
+    Property(Int32, "P",
+    declaredAccessibility: Accessibility.Public,
+    getMethod: PropertyGet(
+        declaredAccessibility: Accessibility.Private))).GenerateString());
         }
 
         [Fact]
@@ -107,12 +102,11 @@ Class("C",
         }
     }
 }",
-Class("C",
-    members: ImmutableArray.Create<ISymbol>(
-        Property(Int32, "P",
-            modifiers: SymbolModifiers.Static,
-            getMethod: PropertyGet(
-                modifiers: SymbolModifiers.Static)))).GenerateString());
+Class("C").WithMembers(
+    Property(Int32, "P",
+        modifiers: SymbolModifiers.Static,
+        getMethod: PropertyGet(
+            modifiers: SymbolModifiers.Static))).GenerateString());
         }
     }
 }

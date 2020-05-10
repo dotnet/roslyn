@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             => With(symbol, methodKind: ToOptional(methodKind));
 
         public static IMethodSymbol WithAttributes(this IMethodSymbol symbol, params AttributeData[] attributes)
-            => WithAttributes(assymbolsembly, (IEnumerable<AttributeData>)attributes);
+            => WithAttributes(symbol, (IEnumerable<AttributeData>)attributes);
 
         public static IMethodSymbol WithAttributes(this IMethodSymbol symbol, IEnumerable<AttributeData> attributes)
             => WithAttributes(symbol, attributes.ToImmutableArray());
@@ -288,6 +288,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IMethodSymbol WithReturnType(this IMethodSymbol symbol, ITypeSymbol returnType)
             => With(symbol, returnType: ToOptional(returnType));
+
+        public static IMethodSymbol WithExplicitInterfaceImplementations(this IMethodSymbol symbol, params IMethodSymbol[] explicitInterfaceImplementations)
+            => WithExplicitInterfaceImplementations(symbol, (IEnumerable<IMethodSymbol>)explicitInterfaceImplementations);
+
+        public static IMethodSymbol WithExplicitInterfaceImplementations(this IMethodSymbol symbol, IEnumerable<IMethodSymbol> explicitInterfaceImplementations)
+            => WithExplicitInterfaceImplementations(symbol, explicitInterfaceImplementations.ToImmutableArray());
 
         public static IMethodSymbol WithExplicitInterfaceImplementations(this IMethodSymbol symbol, ImmutableArray<IMethodSymbol> explicitInterfaceImplementations)
             => With(symbol, explicitInterfaceImplementations: ToOptional(explicitInterfaceImplementations));

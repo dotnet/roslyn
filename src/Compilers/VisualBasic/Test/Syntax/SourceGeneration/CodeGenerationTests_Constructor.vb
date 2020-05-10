@@ -18,10 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.SourceGeneration
     Sub New()
     End Sub
 End Class",
-[Class](
-    "C",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Constructor())).GenerateString())
+[Class]("C").WithMembers(Constructor()).GenerateString())
         End Sub
 
         <fact>
@@ -32,11 +29,8 @@ End Class",
     Sub New()
     End Sub
 End Class",
-[Class](
-    "C",
-    typeArguments:=ImmutableArray.Create(Of ITypeSymbol)(TypeParameter("T")),
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Constructor())).GenerateString())
+[Class]("C").WithTypeArguments(TypeParameter("T")).
+             WithMembers(Constructor()).GenerateString())
         End Sub
 
         <fact>
@@ -47,11 +41,9 @@ End Class",
     Public Sub New()
     End Sub
 End Class",
-[Class](
-    "C",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Constructor(
-            declaredAccessibility:=Accessibility.Public))).GenerateString())
+[Class]("C").WithMembers(
+    Constructor(
+        declaredAccessibility:=Accessibility.Public)).GenerateString())
         End Sub
 
         <fact>
@@ -62,11 +54,8 @@ End Class",
     Shared Sub New()
     End Sub
 End Class",
-[Class](
-    "C",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Constructor(
-            modifiers:=SymbolModifiers.Static))).GenerateString())
+[Class]("C").WithMembers(
+    Constructor(modifiers:=SymbolModifiers.Static)).GenerateString())
         End Sub
 
         <fact>
@@ -77,12 +66,8 @@ End Class",
     Sub New(i As Integer)
     End Sub
 End Class",
-[Class](
-    "C",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Constructor(
-            parameters:=ImmutableArray.Create(Parameter(
-                Int32, "i"))))).GenerateString())
+[Class]("C").WithMembers(
+    Constructor().WithParameters(Parameter(Int32, "i"))).GenerateString())
         End Sub
 
         <fact>
@@ -93,14 +78,9 @@ End Class",
     Sub New(ParamArray i As Integer)
     End Sub
 End Class",
-[Class](
-    "C",
-    members:=ImmutableArray.Create(Of ISymbol)(
-        Constructor(
-            parameters:=ImmutableArray.Create(Parameter(
-                Int32,
-                "i",
-                modifiers:=SymbolModifiers.Params))))).GenerateString())
+[Class]("C").WithMembers(
+    Constructor().WithParameters(
+        Parameter(Int32, "i", modifiers:=SymbolModifiers.Params))).GenerateString())
         End Sub
     End Class
 End Namespace
