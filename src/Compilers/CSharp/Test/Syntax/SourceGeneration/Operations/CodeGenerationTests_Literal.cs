@@ -13,6 +13,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
 {
     public partial class CodeGenerationTests
     {
+        #region bool
+
+        [Fact]
+        public void TestLiteralTrue()
+        {
+            AssertEx.AreEqual(
+@"true",
+Literal(true).GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralFalse()
+        {
+            AssertEx.AreEqual(
+@"false",
+Literal(false).GenerateString());
+        }
+
+        #endregion
+
         #region byte
 
         [Fact]
