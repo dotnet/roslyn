@@ -577,7 +577,7 @@ Literal((decimal)Math.PI).GenerateString());
 
         #endregion
 
-        #region decimal
+        #region char
 
         [Fact]
         public void TestLiteralCharZero()
@@ -665,6 +665,114 @@ Literal('\ud83d').GenerateString());
             AssertEx.AreEqual(
 @"'\ude0a'",
 Literal('\ude0a').GenerateString());
+        }
+
+        #endregion
+
+        #region string
+
+        [Fact]
+        public void TestLiteralStringZero()
+        {
+            AssertEx.AreEqual(
+@"""\0""",
+Literal("\0").GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralStringOne()
+        {
+            AssertEx.AreEqual(
+@"""\u0001""",
+Literal("\u0001").GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralStringTab()
+        {
+            AssertEx.AreEqual(
+@"""\t""",
+Literal("\t").GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralStringNewLine()
+        {
+            AssertEx.AreEqual(
+@"""\n""",
+Literal("\n").GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralStringSpace()
+        {
+            AssertEx.AreEqual(
+@""" """,
+Literal(" ").GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralStringSingleQuote()
+        {
+            AssertEx.AreEqual(
+@"""'""",
+Literal("\'").GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralStringDoubleQuote()
+        {
+            AssertEx.AreEqual(
+@"""\""""",
+Literal("\"").GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralStringLetter()
+        {
+            AssertEx.AreEqual(
+@"""a""",
+Literal("a").GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralStringMaxValue()
+        {
+            AssertEx.AreEqual(
+@"""\uffff""",
+Literal("\uffff").GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralStringSurrogate1()
+        {
+            AssertEx.AreEqual(
+@"""\ud83d""",
+Literal("\ud83d").GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralStringSurrogate2()
+        {
+            AssertEx.AreEqual(
+@"""\ude0a""",
+Literal("\ude0a").GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralStringSurrogate3()
+        {
+            AssertEx.AreEqual(
+@"""😊""",
+Literal("😊").GenerateString());
+        }
+
+        [Fact]
+        public void TestLiteralStringMultiChar1()
+        {
+            AssertEx.AreEqual(
+@"""ab""",
+Literal("ab").GenerateString());
         }
 
         #endregion
