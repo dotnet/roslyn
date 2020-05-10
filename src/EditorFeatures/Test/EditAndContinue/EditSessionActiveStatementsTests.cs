@@ -102,20 +102,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     Workspace.ChangeSolution(adjustSolution(Workspace.CurrentSolution));
                 }
 
+                var solution = Workspace.CurrentSolution;
+
                 var mockDebuggeModuleProvider = new Mock<IDebuggeeModuleMetadataProvider>();
                 var mockCompilationOutputsProvider = new Func<Project, CompilationOutputs>(_ => new MockCompilationOutputs(Guid.NewGuid()));
 
-                var debuggingSession = new DebuggingSession(Workspace, mockCompilationOutputsProvider);
+                var debuggingSession = new DebuggingSession(solution, mockCompilationOutputsProvider);
 
                 if (initialState != CommittedSolution.DocumentState.None)
                 {
-                    EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, Workspace.CurrentSolution, initialState);
+                    EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, solution, initialState);
                 }
 
                 debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
 
+                var mockActiveStatementTrackingService = new MockActiveStatementTrackingService();
                 var telemetry = new EditSessionTelemetry();
-                EditSession = new EditSession(debuggingSession, telemetry, cancellationToken => Task.FromResult(activeStatements), mockDebuggeModuleProvider.Object);
+                EditSession = new EditSession(debuggingSession, telemetry, cancellationToken => Task.FromResult(activeStatements), mockActiveStatementTrackingService, mockDebuggeModuleProvider.Object);
             }
 
             public ImmutableArray<DocumentId> GetDocumentIds()

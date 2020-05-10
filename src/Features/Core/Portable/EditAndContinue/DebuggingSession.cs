@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </summary>
     internal sealed class DebuggingSession : IDisposable
     {
-        public readonly Workspace Workspace;
-
         private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
         private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
 
@@ -84,16 +82,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal readonly CommittedSolution LastCommittedSolution;
 
         internal DebuggingSession(
-            Workspace workspace,
+            Solution solution,
             Func<Project, CompilationOutputs> compilationOutputsProvider)
         {
-            Workspace = workspace;
             _compilationOutputsProvider = compilationOutputsProvider;
             _projectModuleIds = new Dictionary<ProjectId, (Guid, Diagnostic)>();
             _projectEmitBaselines = new Dictionary<ProjectId, EmitBaseline>();
             _modulesPreparedForUpdate = new HashSet<Guid>();
 
-            LastCommittedSolution = new CommittedSolution(this, workspace.CurrentSolution);
+            LastCommittedSolution = new CommittedSolution(this, solution);
             NonRemappableRegions = ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
         }
 

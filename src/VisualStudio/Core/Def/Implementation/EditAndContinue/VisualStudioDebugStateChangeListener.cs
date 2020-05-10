@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             if ((options & DebugSessionOptions.EditAndContinueDisabled) == 0)
             {
                 _encService = _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
-                _encService.StartDebuggingSession();
+                _encService.StartDebuggingSession(_workspace.CurrentSolution);
             }
             else
             {
