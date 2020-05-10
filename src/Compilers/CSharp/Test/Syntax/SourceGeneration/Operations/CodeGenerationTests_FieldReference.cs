@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.SourceGeneration;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.SourceGeneration.CodeGenerator;
@@ -16,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
         public void TestStaticFieldReference()
         {
             AssertEx.AreEqual(
-@"global::System.Int32.MaxValue",
-FieldReference(Field(Int32, "MaxValue"), null).GenerateString());
+@"int.MaxValue",
+FieldReference(Field(Int32, "MaxValue", modifiers: SymbolModifiers.Static), null).GenerateString());
         }
 
         [Fact]

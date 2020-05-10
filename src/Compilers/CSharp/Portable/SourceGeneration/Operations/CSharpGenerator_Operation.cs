@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case OperationKind.Binary:
                     break;
                 case OperationKind.Conditional:
-                    break;
+                    return TryGenerateConditional((IConditionalOperation)operation, type);
                 case OperationKind.Coalesce:
                     break;
                 case OperationKind.AnonymousFunction:
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case OperationKind.CompoundAssignment:
                     break;
                 case OperationKind.Parenthesized:
-                    break;
+                    return TryGenerateParenthesizedExpression((IParenthesizedOperation)operation, type);
                 case OperationKind.EventAssignment:
                     break;
                 case OperationKind.ConditionalAccess:

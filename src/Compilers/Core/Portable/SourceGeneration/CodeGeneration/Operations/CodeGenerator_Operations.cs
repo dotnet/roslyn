@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IReturnOperation YieldReturn(IOperation returnedValue)
         {
-            return new ReturnOperation(returnedValue: null, OperationKind.YieldReturn, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+            return new ReturnOperation(returnedValue, OperationKind.YieldReturn, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }
 
         public static ILockOperation Lock(
@@ -323,11 +323,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IConditionalOperation Conditional(
             IOperation condition,
             IOperation whenTrue,
-            IOperation whenFalse,
-            bool isRef = false,
-            ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+            IOperation whenFalse = null,
+            bool isRef = false)
         {
-            return new ConditionalOperation(condition, whenTrue, whenFalse, isRef, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new ConditionalOperation(condition, whenTrue, whenFalse, isRef, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         }
 
         public static ICoalesceOperation Coalesce(

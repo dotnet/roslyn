@@ -5,8 +5,10 @@
 #nullable enable
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
@@ -40,5 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 
             return Block(List(statements));
         }
+
+        private IBlockOperation? WrapWithBlock(IOperation? operation)
+            => operation == null ? null :
+               operation is IBlockOperation block ? block :
+                CodeGenerator.Block(operations: ImmutableArray.Create(operation));
     }
 }
