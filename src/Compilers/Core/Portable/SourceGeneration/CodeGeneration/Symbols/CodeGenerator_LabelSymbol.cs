@@ -9,12 +9,16 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     internal static partial class CodeGenerator
     {
-        public static ILabelSymbol Label(
-            string name)
-            => new LabelSymbol(
+        public static ILabelSymbol Label(string name)
+        {
+            return new LabelSymbol(
                 name);
+        }
 
-        public static ILabelSymbol With(
+        public static ILabelSymbol WithName(this ILabelSymbol symbol, string name)
+            => With(symbol, name: ToOptional(name));
+
+        private static ILabelSymbol With(
             this ILabelSymbol label,
             Optional<string> name = default)
         {

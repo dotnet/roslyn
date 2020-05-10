@@ -20,7 +20,16 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 nullableAnnotation);
         }
 
-        public static IArrayTypeSymbol With(
+        private static IArrayTypeSymbol WithElementType(this IArrayTypeSymbol arrayType, ITypeSymbol elementType)
+            => With(arrayType, elementType: ToOptional(elementType));
+
+        private static IArrayTypeSymbol WithRank(this IArrayTypeSymbol arrayType, int rank)
+            => With(arrayType, rank: ToOptional(rank));
+
+        private static IArrayTypeSymbol WithNullableAnnotation(this IArrayTypeSymbol arrayType, NullableAnnotation nullableAnnotation)
+            => With(arrayType, nullableAnnotation: ToOptional(nullableAnnotation));
+
+        private static IArrayTypeSymbol With(
             this IArrayTypeSymbol arrayType,
             Optional<ITypeSymbol> elementType = default,
             Optional<int> rank = default,

@@ -18,7 +18,13 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 nullableAnnotation);
         }
 
-        public static IPointerTypeSymbol With(
+        private static IPointerTypeSymbol WithPointedAtType(this IPointerTypeSymbol arrayType, ITypeSymbol pointedAtType)
+            => With(arrayType, pointedAtType: ToOptional(pointedAtType));
+
+        private static IPointerTypeSymbol WithNullableAnnotation(this IPointerTypeSymbol arrayType, NullableAnnotation nullableAnnotation)
+            => With(arrayType, nullableAnnotation: ToOptional(nullableAnnotation));
+
+        private static IPointerTypeSymbol With(
             this IPointerTypeSymbol pointer,
             Optional<ITypeSymbol> pointedAtType = default,
             Optional<NullableAnnotation> nullableAnnotation = default)

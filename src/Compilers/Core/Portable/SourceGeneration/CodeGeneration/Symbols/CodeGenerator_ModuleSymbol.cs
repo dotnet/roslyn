@@ -17,7 +17,16 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new ModuleSymbol(globalNamespace, attributes, containingSymbol);
         }
 
-        public static IModuleSymbol With(
+        private static IModuleSymbol WithGlobalNamespaces(this IModuleSymbol symbol, INamespaceSymbol globalNamespace)
+            => With(symbol, globalNamespace: ToOptional(globalNamespace));
+
+        public static IModuleSymbol WithAttributes(this IModuleSymbol symbol, ImmutableArray<AttributeData> attributes)
+            => With(symbol, attributes: ToOptional(attributes));
+
+        public static IModuleSymbol WithContainingSymbol(this IModuleSymbol symbol, ISymbol containingSymbol)
+            => With(symbol, containingSymbol: ToOptional(containingSymbol));
+
+        private static IModuleSymbol With(
             this IModuleSymbol module,
             Optional<INamespaceSymbol> globalNamespace = default,
             Optional<ImmutableArray<AttributeData>> attributes = default,

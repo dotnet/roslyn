@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -267,7 +268,52 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 containingSymbol: null);
         }
 
-        public static IMethodSymbol With(
+        public static IMethodSymbol WithMethodKind(this IMethodSymbol symbol, MethodKind methodKind)
+            => With(symbol, methodKind: ToOptional(methodKind));
+
+        public static IMethodSymbol WithAttributes(this IMethodSymbol symbol, ImmutableArray<AttributeData> attributes)
+            => With(symbol, attributes: ToOptional(attributes));
+
+        public static IMethodSymbol WithDeclaredAccessibility(this IMethodSymbol symbol, Accessibility declaredAccessibility)
+            => With(symbol, declaredAccessibility: ToOptional(declaredAccessibility));
+
+        public static IMethodSymbol WithModifiers(this IMethodSymbol symbol, SymbolModifiers modifiers)
+            => With(symbol, modifiers: ToOptional(modifiers));
+
+        public static IMethodSymbol WithReturnType(this IMethodSymbol symbol, ITypeSymbol returnType)
+            => With(symbol, returnType: ToOptional(returnType));
+
+        public static IMethodSymbol WithExplicitInterfaceImplementations(this IMethodSymbol symbol, ImmutableArray<IMethodSymbol> explicitInterfaceImplementations)
+            => With(symbol, explicitInterfaceImplementations: ToOptional(explicitInterfaceImplementations));
+
+        public static IMethodSymbol WithName(this IMethodSymbol symbol, string name)
+            => With(symbol, name: ToOptional(name));
+
+        public static IMethodSymbol WithTypeArguments(this IMethodSymbol symbol, params ITypeSymbol[] typeArguments)
+            => WithTypeArguments(symbol, (IEnumerable<ITypeSymbol>)typeArguments);
+
+        public static IMethodSymbol WithTypeArguments(this IMethodSymbol symbol, IEnumerable<ITypeSymbol> typeArguments)
+            => WithTypeArguments(symbol, typeArguments.ToImmutableArray());
+
+        public static IMethodSymbol WithTypeArguments(this IMethodSymbol symbol, ImmutableArray<ITypeSymbol> typeArguments)
+            => With(symbol, typeArguments: ToOptional(typeArguments));
+
+        public static IMethodSymbol WithParameters(this IMethodSymbol symbol, params IParameterSymbol[] parameters)
+            => WithParameters(symbol, (IEnumerable<IParameterSymbol>)parameters);
+
+        public static IMethodSymbol WithParameters(this IMethodSymbol symbol, IEnumerable<IParameterSymbol> parameters)
+            => WithParameters(symbol, parameters.ToImmutableArray());
+
+        public static IMethodSymbol WithParameters(this IMethodSymbol symbol, ImmutableArray<IParameterSymbol> parameters)
+            => With(symbol, parameters: ToOptional(parameters));
+
+        public static IMethodSymbol WithBody(this IMethodSymbol symbol, IBlockOperation body)
+            => With(symbol, body: ToOptional(body));
+
+        public static IMethodSymbol WithContainingSymbol(this IMethodSymbol symbol, ISymbol containingSymbol)
+            => With(symbol, containingSymbol: ToOptional(containingSymbol));
+
+        private static IMethodSymbol With(
             this IMethodSymbol method,
             Optional<MethodKind> methodKind = default,
             Optional<ImmutableArray<AttributeData>> attributes = default,

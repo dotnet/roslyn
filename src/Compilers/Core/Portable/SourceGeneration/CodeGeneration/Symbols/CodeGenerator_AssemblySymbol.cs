@@ -14,7 +14,13 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IAssemblySymbol Assembly(IModuleSymbol module, ImmutableArray<AttributeData> attributes = default)
             => new AssemblySymbol(module, attributes);
 
-        public static IAssemblySymbol With(
+        public static IAssemblySymbol WithModule(this IAssemblySymbol assembly, IModuleSymbol module)
+            => With(assembly, module: ToOptional(module));
+
+        public static IAssemblySymbol WithAttributes(this IAssemblySymbol assembly, ImmutableArray<AttributeData> attributes)
+            => With(assembly, attributes: ToOptional(attributes));
+
+        private static IAssemblySymbol With(
             this IAssemblySymbol assembly,
             Optional<IModuleSymbol> module = default,
             Optional<ImmutableArray<AttributeData>> attributes = default)

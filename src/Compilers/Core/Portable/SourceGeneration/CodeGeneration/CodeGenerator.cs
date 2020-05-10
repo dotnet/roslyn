@@ -66,5 +66,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             => type is ITypeParameterSymbol typeParameter
                 ? typeParameter
                 : throw new ArgumentException("INamedType type arguments must all be ITypeParameterSymbols");
+
+        private static Optional<T> ToOptional<T>(T item)
+            => new Optional<T>(item);
     }
 }

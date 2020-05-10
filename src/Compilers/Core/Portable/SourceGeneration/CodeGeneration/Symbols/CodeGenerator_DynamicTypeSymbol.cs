@@ -15,7 +15,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             return new DynamicTypeSymbol(nullableAnnotation);
         }
 
-        public static IDynamicTypeSymbol With(
+        public static IDynamicTypeSymbol WithNullableAnnotation(IDynamicTypeSymbol dynamicType, NullableAnnotation nullableAnnotation)
+            => With(dynamicType, nullableAnnotation: ToOptional(nullableAnnotation));
+
+        private static IDynamicTypeSymbol With(
             IDynamicTypeSymbol dynamicType,
             Optional<NullableAnnotation> nullableAnnotation = default)
         {

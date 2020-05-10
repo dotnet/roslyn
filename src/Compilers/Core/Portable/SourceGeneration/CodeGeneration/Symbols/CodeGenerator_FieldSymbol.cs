@@ -74,7 +74,25 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 isFixedSizeBuffer: false);
         }
 
-        public static IFieldSymbol With(
+        public static IFieldSymbol WithAttributes(this IFieldSymbol symbol, ImmutableArray<AttributeData> attributes)
+             => With(symbol, attributes: ToOptional(attributes));
+
+        public static IFieldSymbol WithDeclaredAccessibility(this IFieldSymbol symbol, Accessibility declaredAccessibility)
+            => With(symbol, declaredAccessibility: ToOptional(declaredAccessibility));
+
+        public static IFieldSymbol WithModifiers(this IFieldSymbol symbol, SymbolModifiers modifiers)
+            => With(symbol, modifiers: ToOptional(modifiers));
+
+        public static IFieldSymbol WithType(this IFieldSymbol symbol, ITypeSymbol type)
+            => With(symbol, type: ToOptional(type));
+
+        public static IFieldSymbol WithName(this IFieldSymbol symbol, string name)
+            => With(symbol, name: ToOptional(name));
+
+        public static IFieldSymbol WithConstantValue(this IFieldSymbol symbol, Optional<object> constantValue)
+            => With(symbol, constantValue: ToOptional(constantValue));
+
+        private static IFieldSymbol With(
             this IFieldSymbol field,
             Optional<ImmutableArray<AttributeData>> attributes = default,
             Optional<Accessibility> declaredAccessibility = default,

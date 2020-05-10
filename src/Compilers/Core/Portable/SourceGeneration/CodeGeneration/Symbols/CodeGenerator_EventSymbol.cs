@@ -34,7 +34,37 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 containingSymbol);
         }
 
-        public static IEventSymbol With(
+        public static IEventSymbol WithAttributes(this IEventSymbol symbol, ImmutableArray<AttributeData> attributes)
+            => With(symbol, attributes: ToOptional(attributes));
+
+        public static IEventSymbol WithDeclaredAccessibility(this IEventSymbol symbol, Accessibility declaredAccessibility)
+            => With(symbol, declaredAccessibility: ToOptional(declaredAccessibility));
+
+        public static IEventSymbol WithModifiers(this IEventSymbol symbol, SymbolModifiers modifiers)
+            => With(symbol, modifiers: ToOptional(modifiers));
+
+        public static IEventSymbol WithType(this IEventSymbol symbol, ITypeSymbol type)
+            => With(symbol, type: ToOptional(type));
+
+        public static IEventSymbol WithExplicitInterfaceImplementations(this IEventSymbol symbol, ImmutableArray<IEventSymbol> explicitInterfaceImplementations)
+            => With(symbol, explicitInterfaceImplementations: ToOptional(explicitInterfaceImplementations));
+
+        public static IEventSymbol WithName(this IEventSymbol symbol, string name)
+            => With(symbol, name: ToOptional(name));
+
+        public static IEventSymbol WithAddMethod(this IEventSymbol symbol, IMethodSymbol addMethod)
+            => With(symbol, addMethod: ToOptional(addMethod));
+
+        public static IEventSymbol WithRemoveMethod(this IEventSymbol symbol, IMethodSymbol removeMethod)
+            => With(symbol, removeMethod: ToOptional(removeMethod));
+
+        public static IEventSymbol WithRaiseMethod(this IEventSymbol symbol, IMethodSymbol raiseMethod)
+            => With(symbol, raiseMethod: ToOptional(raiseMethod));
+
+        public static IEventSymbol WithContainingSymbol(this IEventSymbol symbol, ISymbol containingSymbol)
+            => With(symbol, containingSymbol: ToOptional(containingSymbol));
+
+        private static IEventSymbol With(
             this IEventSymbol @event,
             Optional<ImmutableArray<AttributeData>> attributes = default,
             Optional<Accessibility> declaredAccessibility = default,

@@ -36,7 +36,22 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 isDiscard: true);
         }
 
-        public static IParameterSymbol With(
+        public static IParameterSymbol WithAttributes(this IParameterSymbol symbol, ImmutableArray<AttributeData> attributes)
+             => With(symbol, attributes: ToOptional(attributes));
+
+        public static IParameterSymbol WithModifiers(this IParameterSymbol symbol, SymbolModifiers modifiers)
+            => With(symbol, modifiers: ToOptional(modifiers));
+
+        public static IParameterSymbol WithType(this IParameterSymbol symbol, ITypeSymbol type)
+            => With(symbol, type: ToOptional(type));
+
+        public static IParameterSymbol WithName(this IParameterSymbol symbol, string name)
+            => With(symbol, name: ToOptional(name));
+
+        public static IParameterSymbol WithExplicitDefaultValue(this IParameterSymbol symbol, Optional<object> explicitDefaultValue)
+            => With(symbol, explicitDefaultValue: ToOptional(explicitDefaultValue));
+
+        private static IParameterSymbol With(
             this IParameterSymbol parameter,
             Optional<ImmutableArray<AttributeData>> attributes = default,
             Optional<SymbolModifiers> modifiers = default,

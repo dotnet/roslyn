@@ -11,7 +11,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public static IDiscardSymbol Discard(ITypeSymbol type = null)
             => new DiscardSymbol(type);
 
-        public static IDiscardSymbol With(
+        public static IDiscardSymbol WithType(this IDiscardSymbol discard, ITypeSymbol type)
+            => With(discard, type: ToOptional(type));
+
+        private static IDiscardSymbol With(
             this IDiscardSymbol discard,
             Optional<ITypeSymbol> type = default)
         {

@@ -22,7 +22,19 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
                 constantValue);
         }
 
-        public static ILocalSymbol With(
+        public static ILocalSymbol WithModifiers(this ILocalSymbol symbol, SymbolModifiers modifiers)
+            => With(symbol, modifiers: ToOptional(modifiers));
+
+        public static ILocalSymbol WithType(this ILocalSymbol symbol, ITypeSymbol type)
+            => With(symbol, type: ToOptional(type));
+
+        public static ILocalSymbol WithName(this ILocalSymbol symbol, string name)
+            => With(symbol, name: ToOptional(name));
+
+        public static ILocalSymbol WithConstantValue(this ILocalSymbol symbol, Optional<object> constantValue)
+            => With(symbol, constantValue: ToOptional(constantValue));
+
+        private static ILocalSymbol With(
             this ILocalSymbol local,
             Optional<SymbolModifiers> modifiers = default,
             Optional<ITypeSymbol> type = default,
