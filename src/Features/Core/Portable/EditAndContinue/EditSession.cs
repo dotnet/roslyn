@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal readonly DebuggingSession DebuggingSession;
         internal readonly EditSessionTelemetry Telemetry;
         internal readonly IDebuggeeModuleMetadataProvider DebugeeModuleMetadataProvider;
-        internal readonly IActiveStatementTrackingService ActiveStatementTrackingService;
+        internal readonly IActiveStatementSpanTracker ActiveStatementSpanTracker;
 
         private readonly ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> _nonRemappableRegions;
 
@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DebuggingSession debuggingSession,
             EditSessionTelemetry telemetry,
             ActiveStatementProvider activeStatementsProvider,
-            IActiveStatementTrackingService activeStatementTrackingService,
+            IActiveStatementSpanTracker activeStatementSpanTracker,
             IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider)
         {
             DebuggingSession = debuggingSession;
             Telemetry = telemetry;
             DebugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
-            ActiveStatementTrackingService = activeStatementTrackingService;
+            ActiveStatementSpanTracker = activeStatementSpanTracker;
 
             _nonRemappableRegions = debuggingSession.NonRemappableRegions;
 
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             documentBaseActiveStatements = ImmutableArray<ActiveStatement>.Empty;
                         }
 
-                        return await analyzer.AnalyzeDocumentAsync(baseDocument, documentBaseActiveStatements, document, ActiveStatementTrackingService, cancellationToken).ConfigureAwait(false);
+                        return await analyzer.AnalyzeDocumentAsync(baseDocument, documentBaseActiveStatements, document, ActiveStatementSpanTracker, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {

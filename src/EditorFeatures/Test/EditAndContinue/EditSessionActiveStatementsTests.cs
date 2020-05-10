@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
 
-                var mockActiveStatementTrackingService = new MockActiveStatementTrackingService();
+                var mockActiveStatementTrackingService = new TestActiveStatementSpanTracker();
                 var telemetry = new EditSessionTelemetry();
                 EditSession = new EditSession(debuggingSession, telemetry, cancellationToken => Task.FromResult(activeStatements), mockActiveStatementTrackingService, mockDebuggeModuleProvider.Object);
             }

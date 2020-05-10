@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
         private readonly Mock<IDiagnosticAnalyzerService> _mockDiagnosticService;
         private readonly MockDebuggeeModuleMetadataProvider _mockDebugeeModuleMetadataProvider;
-        private readonly MockActiveStatementTrackingService _mockActiveStatementTrackingService;
+        private readonly TestActiveStatementSpanTracker _mockActiveStatementSpanTracker;
 
         private Func<Project, CompilationOutputs> _mockCompilationOutputsProvider;
         private readonly List<DiagnosticsUpdatedArgs> _emitDiagnosticsUpdated;
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 IsEditAndContinueAvailable = _ => (0, null)
             };
 
-            _mockActiveStatementTrackingService = new MockActiveStatementTrackingService();
+            _mockActiveStatementSpanTracker = new TestActiveStatementSpanTracker();
 
             _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.NewGuid());
             _telemetryLog = new List<string>();
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         private EditAndContinueWorkspaceService CreateEditAndContinueService(Workspace workspace)
             => new EditAndContinueWorkspaceService(
                 workspace,
-                _mockActiveStatementTrackingService,
+                _mockActiveStatementSpanTracker,
                 _mockDiagnosticService.Object,
                 _diagnosticUpdateSource,
                 _mockDebugeeModuleMetadataProvider,

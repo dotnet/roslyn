@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -15,6 +16,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -31,6 +34,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     /// </remarks>
     internal sealed class ActiveStatementTrackingService : IActiveStatementTrackingService
     {
+        [ExportWorkspaceServiceFactory(typeof(IActiveStatementTrackingService), ServiceLayer.Editor), Shared]
+        internal sealed class Factory : IWorkspaceServiceFactory
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Factory() { }
+
+            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+                => new ActiveStatementTrackingService(workspaceServices.Workspace);
+        }
+
         private TrackingSession? _session;
         private readonly Workspace _workspace;
 

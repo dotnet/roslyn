@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static readonly TraceLog Log = new TraceLog(2048, "EnC");
 
         private readonly Workspace _workspace;
-        private readonly IActiveStatementTrackingService _trackingService;
+        private readonly IActiveStatementSpanTracker _activeStatementSpanTracker;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly IDebuggeeModuleMetadataProvider _debugeeModuleMetadataProvider;
         private readonly EditAndContinueDiagnosticUpdateSource _emitDiagnosticsUpdateSource;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal EditAndContinueWorkspaceService(
             Workspace workspace,
-            IActiveStatementTrackingService activeStatementTrackingService,
+            IActiveStatementSpanTracker activeStatementSpanTracker,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
             IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider,
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _diagnosticService = diagnosticService;
             _emitDiagnosticsUpdateSource = diagnosticUpdateSource;
             _debugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
-            _trackingService = activeStatementTrackingService;
+            _activeStatementSpanTracker = activeStatementSpanTracker;
             _debuggingSessionTelemetry = new DebuggingSessionTelemetry();
             _editSessionTelemetry = new EditSessionTelemetry();
             _documentsWithReportedDiagnosticsDuringRunMode = new HashSet<DocumentId>();
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var debuggingSession = _debuggingSession;
             Contract.ThrowIfNull(debuggingSession, "Edit session can only be started during debugging session");
 
-            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, activeStatementsProvider, _trackingService, _debugeeModuleMetadataProvider);
+            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, activeStatementsProvider, _activeStatementSpanTracker, _debugeeModuleMetadataProvider);
 
             var previousSession = Interlocked.CompareExchange(ref _editSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New edit session can't be started until the existing one has ended.");
