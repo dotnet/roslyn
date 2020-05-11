@@ -280,11 +280,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSpace();
                 }
 
-                if (ShouldMethodDisplayReadOnly(symbol))
-                {
-                    AddReadOnlyIfRequired();
-                }
-
                 if (symbol.ReturnsByRef)
                 {
                     AddRefIfRequired();

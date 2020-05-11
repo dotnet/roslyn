@@ -5202,7 +5202,10 @@ unsafe class C
     public delegate*<in dynamic, object> F13;
 
     public delegate*<out dynamic, object> F14;
+
+    public D<delegate*<dynamic>[], dynamic> F15;
 }
+class D<T, U> { }
 ", symbolValidator: symbolValidator);
 
             void symbolValidator(ModuleSymbol module)
@@ -5230,6 +5233,9 @@ unsafe class C
 
                 assertField("F14", "System.Runtime.CompilerServices.DynamicAttribute({false, false, false, false, true})", "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) dynamic, System.Object>");
 
+                // https://github.com/dotnet/roslyn/issues/44160 tracks fixing this. We're not encoding dynamic correctly for function pointers as type parameters
+                assertField("F15", "System.Runtime.CompilerServices.DynamicAttribute({false, false, false, true})", "D<delegate*<System.Object>[], System.Object>");
+
                 void assertField(string field, string? expectedAttribute, string expectedType)
                 {
                     var f = c.GetField(field);
@@ -5242,7 +5248,10 @@ unsafe class C
                         Assert.Equal(expectedAttribute, f.GetAttributes().Single().ToString());
                     }
 
-                    CommonVerifyFunctionPointer((FunctionPointerTypeSymbol)f.Type);
+                    if (f.Type is FunctionPointerTypeSymbol ptrType)
+                    {
+                        CommonVerifyFunctionPointer(ptrType);
+                    }
                     Assert.Equal(expectedType, f.Type.ToTestDisplayString());
                 }
             }
@@ -5264,8 +5273,6 @@ unsafe class C
   .method public hidebysig specialname rtspecialname 
     instance void .ctor () cil managed 
   {
-    .maxstack 8
-
     ldarg.0
     call instance void [mscorlib]System.Object::.ctor()
     ret
@@ -5281,7 +5288,7 @@ unsafe class B : A
 
             var verifier = CompileAndVerifyFunctionPointersWithIl(source, il, symbolValidator: symbolValidator);
 
-            void symbolValidator(ModuleSymbol module)
+            static void symbolValidator(ModuleSymbol module)
             {
                 var b = module.GlobalNamespace.GetTypeMember("B");
 
@@ -5303,66 +5310,77 @@ unsafe class B : A
   .method public hidebysig static void TooManyFlags(method class [mscorlib]System.Object *(class [mscorlib]System.Object) a)
   {
     .param [1]
+    //{false, true, true, true}
     .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 04 00 00 00 00 01 01 01 00 00 ) 
     ret
   }
   .method public hidebysig static void TooFewFlags_MissingParam(method class [mscorlib]System.Object *(class [mscorlib]System.Object) a)
   {
     .param [1]
+    //{false, true}
     .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
     ret
   }
   .method public hidebysig static void TooFewFlags_MissingReturn(method class [mscorlib]System.Object *(class [mscorlib]System.Object) a)
   {
     .param [1]
+    //{false}
     .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) 
     ret
   }
   .method public hidebysig static void PtrTypeIsTrue(method class [mscorlib]System.Object *(class [mscorlib]System.Object) a)
   {
     .param [1]
+    //{true, true, true}
     .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 01 01 01 00 00 ) 
     ret
   }
   .method public hidebysig static void NonObjectIsTrue(method class [mscorlib]System.String *(class [mscorlib]System.Object) a)
   {
     .param [1]
+    //{false, true, true}
     .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 00 01 01 00 00 ) 
     ret
   }
   .method public hidebysig static void RefIsTrue_Return(method class [mscorlib]System.Object& *(class [mscorlib]System.Object) a)
   {
     .param [1]
+    //{false, true, true, true}
     .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 04 00 00 00 00 01 01 01 00 00 ) 
     ret
   }
   .method public hidebysig static void RefIsTrue_Param(method class [mscorlib]System.Object *(class [mscorlib]System.Object&) a)
   {
     .param [1]
+    //{false, true, true, true}
     .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 04 00 00 00 00 01 01 01 00 00 ) 
     ret
   }
   .method public hidebysig static void ModIsTrue_Return(method class [mscorlib]System.Object modopt([mscorlib]System.Object) *(class [mscorlib]System.Object) a)
   {
     .param [1]
+    //{false, true, true, true}
     .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 04 00 00 00 00 01 01 01 00 00 ) 
     ret
   }
   .method public hidebysig static void ModIsTrue_Param(method class [mscorlib]System.Object *(class [mscorlib]System.Object modopt([mscorlib]System.Object)) a)
   {
     .param [1]
+    //{false, true, true, true}
     .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 04 00 00 00 00 01 01 01 00 00 ) 
     ret
   }
   .method public hidebysig static void ModIsTrue_RefReturn(method class [mscorlib]System.Object & modopt([mscorlib]System.Object) *(class [mscorlib]System.Object) a)
   {
     .param [1]
+    //{false, false, true, true, true}
     .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 05 00 00 00 00 00 01 01 01 00 00 ) 
     ret
   }
   .method public hidebysig static void ModIsTrue_RefParam(method class [mscorlib]System.Object *(class [mscorlib]System.Object & modopt([mscorlib]System.Object)) a)
   {
     .param [1]
+    //{false, true, false, true, true}
     .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 05 00 00 00 00 01 00 01 01 00 00 ) 
     ret
   }
@@ -5543,7 +5561,7 @@ unsafe class C
   IL_0012:  ret
 }
 ");
-    }
+        }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
         private static readonly BlobContentId s_contentId = new BlobContentId(s_guid, 0x04030201);

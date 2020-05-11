@@ -1034,10 +1034,12 @@ unsafe class C
     public delegate*<System.IntPtr, nint, System.IntPtr> F4;
     public delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, nint> F5;
     public delegate*<nint, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>> F6;
+    public delegate*<delegate*<System.IntPtr, System.IntPtr, nint>, System.IntPtr> F7;
+    public delegate*<System.IntPtr, delegate*<System.IntPtr, nint, System.IntPtr>> F8;
 }
 ", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview, symbolValidator: symbolValidator);
 
-            void symbolValidator(ModuleSymbol module)
+            static void symbolValidator(ModuleSymbol module)
             {
                 var expectedAttributes = @"
 C
@@ -1047,6 +1049,8 @@ C
     [NativeInteger({ False, False, False, True })] delegate*<System.IntPtr, System.IntPtr, System.IntPtr> F4
     [NativeInteger({ False, True, False, False, False, False })] delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, System.IntPtr> F5
     [NativeInteger({ False, False, False, False, False, True })] delegate*<System.IntPtr, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>> F6
+    [NativeInteger({ False, False, False, True, False, False })] delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, System.IntPtr> F7
+    [NativeInteger({ False, False, False, False, True, False })] delegate*<System.IntPtr, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>> F8
 ";
 
                 AssertNativeIntegerAttributes(module, expectedAttributes);
@@ -1058,6 +1062,8 @@ C
                 assert("delegate*<System.IntPtr, nint, System.IntPtr>", "F4");
                 assert("delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, nint>", "F5");
                 assert("delegate*<nint, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>>", "F6");
+                assert("delegate*<delegate*<System.IntPtr, System.IntPtr, nint>, System.IntPtr>", "F7");
+                assert("delegate*<System.IntPtr, delegate*<System.IntPtr, nint, System.IntPtr>>", "F8");
 
                 void assert(string expectedType, string fieldName)
                 {

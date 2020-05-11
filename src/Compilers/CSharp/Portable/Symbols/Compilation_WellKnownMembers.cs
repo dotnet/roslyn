@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static bool AddFlags(TypeSymbol type, ArrayBuilder<bool> transformFlagsBuilder, bool isNestedNamedType, bool addCustomModifierFlags)
             {
-                // Encode transforms flag for this type and it's custom modifiers (if any).
+                // Encode transforms flag for this type and its custom modifiers (if any).
                 switch (type.TypeKind)
                 {
                     case TypeKind.Dynamic:
@@ -888,10 +888,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case TypeKind.FunctionPointer:
-                        handleFunctionPointerType((FunctionPointerTypeSymbol)type, transformFlagsBuilder, isNestedNamedType, addCustomModifierFlags);
+                        Debug.Assert(!isNestedNamedType);
+                        handleFunctionPointerType((FunctionPointerTypeSymbol)type, transformFlagsBuilder, addCustomModifierFlags);
 
                         // Function pointer types have nested custom modifiers and refkinds in line with types, and visit all their nested types
                         // as part of this call.
+                        // We need a different way to indicate that we should not recurse for this type, but should continue walking for other
+                        // types. https://github.com/dotnet/roslyn/issues/44160
                         return true;
 
                     default:
@@ -914,10 +917,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Continue walking types
                 return false;
 
-                static void handleFunctionPointerType(FunctionPointerTypeSymbol funcPtr, ArrayBuilder<bool> transformFlagsBuilder, bool isNestedNamedType, bool addCustomModifierFlags)
+                static void handleFunctionPointerType(FunctionPointerTypeSymbol funcPtr, ArrayBuilder<bool> transformFlagsBuilder, bool addCustomModifierFlags)
                 {
-                    Func<TypeSymbol, (ArrayBuilder<bool>, bool), bool, bool> visitor = addFlags;
+                    Func<TypeSymbol, (ArrayBuilder<bool>, bool), bool, bool> visitor =
+                        (TypeSymbol type, (ArrayBuilder<bool> builder, bool addCustomModiferFlags) param, bool _) => AddFlags(type, param.builder, isNestedNamedType: false, param.addCustomModiferFlags);
 
+                    // The function pointer type itself gets a false
                     transformFlagsBuilder.Add(false);
 
                     var sig = funcPtr.Signature;
@@ -930,6 +935,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     void handle(RefKind refKind, ImmutableArray<CustomModifier> customModifiers, TypeWithAnnotations twa)
                     {
+                        if (addCustomModifierFlags)
+                        {
+                            HandleCustomModifiers(customModifiers.Length, transformFlagsBuilder);
+                        }
+
                         if (refKind != RefKind.None)
                         {
                             transformFlagsBuilder.Add(false);
@@ -937,16 +947,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (addCustomModifierFlags)
                         {
-                            HandleCustomModifiers(customModifiers.Length, transformFlagsBuilder);
                             HandleCustomModifiers(twa.CustomModifiers.Length, transformFlagsBuilder);
                         }
 
                         twa.Type.VisitType(visitor, (transformFlagsBuilder, addCustomModifierFlags));
-                    }
-
-                    static bool addFlags(TypeSymbol type, (ArrayBuilder<bool> builder, bool addCustomModifiers) param, bool isNestedNamedType)
-                    {
-                        return AddFlags(type, param.builder, isNestedNamedType, param.addCustomModifiers);
                     }
                 }
             }

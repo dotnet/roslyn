@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var decoder = new DynamicTypeDecoder(dynamicTransformFlags, haveCustomModifierFlags, checkLength, containingAssembly);
 
             // Native compiler encodes bools (always false) for custom modifiers and parameter ref-kinds, if ref-kind is ref or out.
-            if (decoder.HandleCustomModifiers(targetSymbolCustomModifierCount) && decoder.HandleParameterRefKind(targetSymbolRefKind))
+            if (decoder.HandleCustomModifiers(targetSymbolCustomModifierCount) && decoder.HandleRefKind(targetSymbolRefKind))
             {
                 TypeSymbol transformedType = decoder.TransformType(metadataType);
 
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         // Native compiler encodes bools (always false) for custom modifiers and parameter ref-kinds, if ref-kind is ref or out.
-        private bool HandleParameterRefKind(RefKind refKind)
+        private bool HandleRefKind(RefKind refKind)
         {
             Debug.Assert(_index >= 0);
             return refKind == RefKind.None || !ConsumeFlag();
@@ -355,10 +355,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return null;
             }
 
+            bool madeChanges = false;
+            TypeWithAnnotations transformedReturnWithAnnotations;
+
+            if (!transformedReturn.Equals(sig.ReturnType, TypeCompareKind.ConsiderEverything))
+            {
+                transformedReturnWithAnnotations = sig.ReturnTypeWithAnnotations.WithType(transformedReturn);
+                madeChanges = true;
+            }
+            else
+            {
+                transformedReturnWithAnnotations = sig.ReturnTypeWithAnnotations;
+            }
+
             var transformedParameters = ImmutableArray<TypeWithAnnotations>.Empty;
-            var paramsTransformed = false;
             if (sig.ParameterCount > 0)
             {
+                var paramsTransformed = false;
                 var paramsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(sig.ParameterCount);
                 try
                 {
@@ -382,6 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
 
                     transformedParameters = paramsTransformed ? paramsBuilder.ToImmutable() : sig.ParameterTypesWithAnnotations;
+                    madeChanges |= paramsTransformed;
                 }
                 finally
                 {
@@ -389,9 +403,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            if (paramsTransformed || !sig.ReturnType.Equals(transformedReturn, TypeCompareKind.ConsiderEverything))
+            if (madeChanges)
             {
-                return type.SubstituteTypeSymbol(sig.ReturnTypeWithAnnotations.WithType(transformedReturn), transformedParameters,
+                return type.SubstituteTypeSymbol(transformedReturnWithAnnotations, transformedParameters,
                                                  refCustomModifiers: default, paramRefCustomModifiers: default);
             }
             else
@@ -399,16 +413,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return type;
             }
 
-            static TypeSymbol? handle(ref DynamicTypeDecoder decoder, RefKind refKind, ImmutableArray<CustomModifier> customModifiers, TypeWithAnnotations twa)
+            static TypeSymbol? handle(ref DynamicTypeDecoder decoder, RefKind refKind, ImmutableArray<CustomModifier> refCustomModifiers, TypeWithAnnotations typeWithAnnotations)
             {
-                if ((refKind != RefKind.None && decoder.ConsumeFlag())
-                    || !decoder.HandleCustomModifiers(customModifiers.Length)
-                    || !decoder.HandleCustomModifiers(twa.CustomModifiers.Length))
+                if (!decoder.HandleCustomModifiers(refCustomModifiers.Length)
+                    || !decoder.HandleRefKind(refKind)
+                    || !decoder.HandleCustomModifiers(typeWithAnnotations.CustomModifiers.Length))
                 {
                     return null;
                 }
 
-                return decoder.TransformType(twa.Type);
+                return decoder.TransformType(typeWithAnnotations.Type);
             }
         }
 #nullable restore
