@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis
                                 treeOptionsBuilder,
                                 analyzerOptionsBuilder,
                                 diagnosticBuilder,
-                                GlobalAnalyzerConfig.ConfigPath,
+                                GlobalAnalyzerConfigBuilder.GlobalConfigPath,
                                 _diagnosticIdCache);
 
                     foreach (var configSection in _globalConfig.NamedSections)
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis
                                 treeOptionsBuilder,
                                 analyzerOptionsBuilder,
                                 diagnosticBuilder,
-                                GlobalAnalyzerConfig.ConfigPath,
+                                GlobalAnalyzerConfigBuilder.GlobalConfigPath,
                                 _diagnosticIdCache);
                             sectionKeyIndex++;
                             if (sectionKeyIndex == sectionKey.Count)
@@ -440,17 +440,20 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Builds a global analyzer config from a series of partial configs
         /// </summary>
-        class GlobalAnalyzerConfigBuilder
+        internal class GlobalAnalyzerConfigBuilder
         {
-            private PooledDictionary<string, ImmutableDictionary<string, (string value, string configPath)>.Builder>? _values;
-            private PooledDictionary<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>? _duplicates;
+            private ImmutableDictionary<string, ImmutableDictionary<string, (string value, string configPath)>.Builder>.Builder? _values;
+            private ImmutableDictionary<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>.Builder? _duplicates;
+            
+            internal const string GlobalConfigPath = "<Global Config>";
+            internal const string GlobalSectionName = "Global Section";
 
             internal void MergeIntoGlobalConfig(AnalyzerConfig config)
             {
                 if (_values is null)
                 {
-                    _values = PooledDictionary<string, ImmutableDictionary<string, (string, string)>.Builder>.GetInstance();
-                    _duplicates = PooledDictionary<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>.GetInstance();
+                    _values = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<string, (string, string)>.Builder>(Section.NameEqualityComparer);
+                    _duplicates = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>(Section.NameEqualityComparer);
                 }
 
                 MergeSection(config.PathToFile, config.GlobalSection);
@@ -471,7 +474,7 @@ namespace Microsoft.CodeAnalysis
                 foreach ((var section, var keys) in _duplicates)
                 {
                     bool isGlobalSection = string.IsNullOrWhiteSpace(section);
-                    string sectionName = isGlobalSection ? "Global Section" : section;
+                    string sectionName = isGlobalSection ? GlobalSectionName : section;
                     foreach ((var keyName, var configPaths) in keys)
                     {
                         diagnostics.Add(Diagnostic.Create(
@@ -482,21 +485,21 @@ namespace Microsoft.CodeAnalysis
                              string.Join(", ", configPaths)));
                     }
                 }
-                _duplicates.Free();
+                _duplicates = null;
 
                 // gather the global and named sections
                 Section globalSection = getSection(string.Empty);
                 _values.Remove(string.Empty);
 
                 ArrayBuilder<Section> namedSectionBuilder = new ArrayBuilder<Section>(_values.Count);
-                foreach (var sectionName in _values.Keys)
+                foreach (var sectionName in _values.Keys.Order())
                 {
                     namedSectionBuilder.Add(getSection(sectionName));
                 }
                 
                 // create the global config
                 GlobalAnalyzerConfig globalConfig = new GlobalAnalyzerConfig(globalSection, namedSectionBuilder.ToImmutableAndFree());
-                _values.Free();
+                _values = null;
                 return globalConfig;
 
                 Section getSection(string sectionName)
@@ -514,11 +517,11 @@ namespace Microsoft.CodeAnalysis
 
                 if (!_values.TryGetValue(section.Name, out var sectionDict))
                 {
-                    sectionDict = ImmutableDictionary.CreateBuilder<string, (string, string)>(Section.NameEqualityComparer);
+                    sectionDict = ImmutableDictionary.CreateBuilder<string, (string, string)>(Section.PropertiesKeyComparer);
                     _values.Add(section.Name, sectionDict);
                 }
 
-                var duplicateDict = _duplicates.ContainsKey(section.Name) ? _duplicates[section.Name] : null;
+                _duplicates.TryGetValue(section.Name, out var duplicateDict);
                 foreach ((var key, var value) in section.Properties)
                 {
                     if (Section.PropertiesKeyComparer.Equals(key, GlobalKey))
@@ -538,7 +541,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (duplicateDict is null)
                         {
-                            duplicateDict = ImmutableDictionary.CreateBuilder<string, ArrayBuilder<string>>(Section.NameEqualityComparer);
+                            duplicateDict = ImmutableDictionary.CreateBuilder<string, ArrayBuilder<string>>(Section.PropertiesKeyComparer);
                             _duplicates.Add(section.Name, duplicateDict);
                         }
 
