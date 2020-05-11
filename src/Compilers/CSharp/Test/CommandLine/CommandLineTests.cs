@@ -12285,8 +12285,11 @@ option1 = def");
 
             var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
 
-            // warning CS8786: Multiple global analyzer config files set the same key 'option1' in section 'Global Section'. It has been unset. Key was set by the following files: ...
-            Assert.Contains("warning CS8786", output, StringComparison.Ordinal);
+            // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'Global Section'. It has been unset. Key was set by the following files: ...
+            Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
+            Assert.Contains("'option1'", output, StringComparison.Ordinal);
+            Assert.Contains("'Global Section'", output, StringComparison.Ordinal);
+
 
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
@@ -12300,8 +12303,10 @@ option1 = def");
 
             output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
 
-            // warning CS8786: Multiple global analyzer config files set the same key 'option1' in section 'file.cs'. It has been unset. Key was set by the following files: ...
-            Assert.Contains("warning CS8786", output, StringComparison.Ordinal);
+            // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'file.cs'. It has been unset. Key was set by the following files: ...
+            Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
+            Assert.Contains("'option1'", output, StringComparison.Ordinal);
+            Assert.Contains("'file.cs'", output, StringComparison.Ordinal);
         }
     }
 
