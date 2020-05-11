@@ -36,6 +36,12 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly TraceSource Logger;
         protected readonly AssetStorage AssetStorage;
 
+        static ServiceBase()
+        {
+            // Use a TraceListener hook to intercept assertion failures and report them through FatalError.
+            WatsonTraceListener.Install();
+        }
+
         protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)
         {
             InstanceId = Interlocked.Add(ref s_instanceId, 1);

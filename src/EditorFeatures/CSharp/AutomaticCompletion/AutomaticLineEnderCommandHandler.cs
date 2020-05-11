@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
     internal class AutomaticLineEnderCommandHandler : AbstractAutomaticLineEnderCommandHandler
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations)

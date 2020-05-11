@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Host;
 
 #if DEBUG
 using System.Diagnostics;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// user can create a connection to communicate with the server (remote host) through this client
     /// </summary>
-    internal abstract partial class RemoteHostClient : IDisposable
+    internal abstract class RemoteHostClient : IDisposable
     {
         public readonly Workspace Workspace;
         public event EventHandler<bool>? StatusChanged;
@@ -52,16 +53,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public abstract Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken);
+        protected abstract Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken);
 
         public abstract bool IsRemoteHost64Bit { get; }
 
-        protected abstract void OnStarted();
-
         protected void Started()
         {
-            OnStarted();
-
             OnStatusChanged(started: true);
         }
 
@@ -85,8 +82,11 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public static Task<RemoteHostClient?> TryGetClientAsync(Workspace workspace, CancellationToken cancellationToken)
+            => TryGetClientAsync(workspace.Services, cancellationToken);
+
+        public static Task<RemoteHostClient?> TryGetClientAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
         {
-            var service = workspace.Services.GetService<IRemoteHostClientService>();
+            var service = services.GetService<IRemoteHostClientService>();
             if (service == null)
             {
                 return SpecializedTasks.Null<RemoteHostClient>();
@@ -196,13 +196,8 @@ namespace Microsoft.CodeAnalysis.Remote
             public override string ClientId => nameof(NoOpClient);
             public override bool IsRemoteHost64Bit => false;
 
-            public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+            protected override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
                 => SpecializedTasks.Null<Connection>();
-
-            protected override void OnStarted()
-            {
-                // do nothing
-            }
         }
 
         /// <summary>

@@ -115,7 +115,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 // sync
                 _ = await client.TryRunRemoteAsync(
-                    WellKnownRemoteHostServices.RemoteHostService,
+                    WellKnownServiceHubServices.RemoteHostService,
                     nameof(IRemoteHostService.SynchronizeTextAsync),
                     solution: null,
                     new object[] { oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText) },
@@ -481,7 +481,7 @@ class Test { }");
         private async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
         {
             Assert.True(await client.TryRunRemoteAsync(
-                WellKnownRemoteHostServices.RemoteHostService,
+                WellKnownServiceHubServices.RemoteHostService,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 solution,
                 new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },

@@ -1957,6 +1957,9 @@ If the "H" format specifier is used without other custom format specifiers, it's
   <data name="Create_and_assign_remaining_as_properties" xml:space="preserve">
     <value>Create and assign remaining as properties</value>
   </data>
+  <data name="Add_explicit_cast" xml:space="preserve">
+    <value>Add explicit cast</value>
+  </data>
   <data name="Example" xml:space="preserve">
     <value>Example:</value>
     <comment>Singular form when we want to show an example, but only have one to show.</comment>
@@ -2749,5 +2752,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="_0_cannot_be_null_or_whitespace" xml:space="preserve">
     <value>'{0}' cannot be null or whitespace</value>
+  </data>
+  <data name="Convert_type_to_0" xml:space="preserve">
+    <value>Convert type to '{0}'</value>
   </data>
 </root>
