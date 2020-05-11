@@ -2613,5 +2613,126 @@ public class Program : Derived
 }
 ");
         }
+
+        [Fact]
+        public void InDelegateCreation_01()
+        {
+            var source = @"
+using System;
+public class Base
+{
+    public virtual object M() => null;
+}
+public class Derived : Base
+{
+    public override string M() => null;
+    Func<string> M1() => M;
+    Func<object> M2() => base.M;
+    Func<string> M3() => new Func<string>(M);
+    Func<object> M4() => new Func<object>(base.M);
+}
+public class Program : Derived
+{
+    Func<string> M1() => M;
+    Func<string> M2() => base.M;
+    Func<string> M3() => new Func<string>(M);
+    Func<string> M4() => new Func<string>(base.M);
+}
+";
+            var comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
+                );
+            CompileAndVerify(comp).VerifyIL("Derived.M1()", source: source, sequencePoints: "Derived.M1", expectedIL: @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: M
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  ldvirtftn  ""string Derived.M()""
+  IL_0008:  newobj     ""System.Func<string>..ctor(object, System.IntPtr)""
+  IL_000d:  ret
+}
+");
+            CompileAndVerify(comp).VerifyIL("Derived.M2()", source: source, sequencePoints: "Derived.M2", expectedIL: @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  // sequence point: base.M
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      ""object Base.M()""
+  IL_0007:  newobj     ""System.Func<object>..ctor(object, System.IntPtr)""
+  IL_000c:  ret
+}
+");
+            CompileAndVerify(comp).VerifyIL("Derived.M3()", source: source, sequencePoints: "Derived.M3", expectedIL: @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: new Func<string>(M)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  ldvirtftn  ""string Derived.M()""
+  IL_0008:  newobj     ""System.Func<string>..ctor(object, System.IntPtr)""
+  IL_000d:  ret
+}
+");
+            CompileAndVerify(comp).VerifyIL("Derived.M4()", source: source, sequencePoints: "Derived.M4", expectedIL: @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  // sequence point: new Func<object>(base.M)
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      ""object Base.M()""
+  IL_0007:  newobj     ""System.Func<object>..ctor(object, System.IntPtr)""
+  IL_000c:  ret
+}
+");
+            CompileAndVerify(comp).VerifyIL("Program.M1()", source: source, sequencePoints: "Program.M1", expectedIL: @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: M
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  ldvirtftn  ""string Derived.M()""
+  IL_0008:  newobj     ""System.Func<string>..ctor(object, System.IntPtr)""
+  IL_000d:  ret
+}
+");
+            CompileAndVerify(comp).VerifyIL("Program.M2()", source: source, sequencePoints: "Program.M2", expectedIL: @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  // sequence point: base.M
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      ""string Derived.M()""
+  IL_0007:  newobj     ""System.Func<string>..ctor(object, System.IntPtr)""
+  IL_000c:  ret
+}
+");
+            CompileAndVerify(comp).VerifyIL("Program.M3()", source: source, sequencePoints: "Program.M3", expectedIL: @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: new Func<string>(M)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  ldvirtftn  ""string Derived.M()""
+  IL_0008:  newobj     ""System.Func<string>..ctor(object, System.IntPtr)""
+  IL_000d:  ret
+}
+");
+            CompileAndVerify(comp).VerifyIL("Program.M4()", source: source, sequencePoints: "Program.M4", expectedIL: @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  // sequence point: new Func<string>(base.M)
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      ""string Derived.M()""
+  IL_0007:  newobj     ""System.Func<string>..ctor(object, System.IntPtr)""
+  IL_000c:  ret
+}
+");
+        }
     }
 }
