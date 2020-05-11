@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 case OperationKind.AnonymousFunction:
                     break;
                 case OperationKind.ObjectCreation:
-                    break;
+                    return TryGenerateObjectCreation((IObjectCreationOperation)operation, type);
                 case OperationKind.TypeParameterObjectCreation:
                     break;
                 case OperationKind.ArrayCreation:

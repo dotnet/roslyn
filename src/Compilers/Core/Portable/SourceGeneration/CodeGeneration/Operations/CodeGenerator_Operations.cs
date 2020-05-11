@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration
@@ -354,11 +355,17 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public static IObjectCreationOperation ObjectCreation(
             IMethodSymbol constructor,
-            ImmutableArray<IArgumentOperation> arguments,
-            IObjectOrCollectionInitializerOperation initializer,
-            ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false)
+            ImmutableArray<IArgumentOperation> arguments = default,
+            IObjectOrCollectionInitializerOperation initializer = null)
         {
-            return new ObjectCreationOperation(constructor, initializer, arguments, semanticModel: null, syntax: null, type, constantValue, isImplicit);
+            return new ObjectCreationOperation(constructor, initializer, arguments.NullToEmpty(), semanticModel: null, syntax: null, type: constructor.ContainingType, constantValue: default, isImplicit: false);
+        }
+        public static IObjectCreationOperation ObjectCreation(
+            ITypeSymbol type,
+            ImmutableArray<IArgumentOperation> arguments = default,
+            IObjectOrCollectionInitializerOperation initializer = null)
+        {
+            return new ObjectCreationOperation(constructor: null, initializer, arguments.NullToEmpty(), semanticModel: null, syntax: null, type, constantValue: default, isImplicit: false);
         }
 
         public static ITypeParameterObjectCreationOperation TypeParameterObjectCreation(

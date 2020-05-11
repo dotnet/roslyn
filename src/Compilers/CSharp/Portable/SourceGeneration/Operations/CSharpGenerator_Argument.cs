@@ -5,6 +5,8 @@
 #nullable enable
 
 using System;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.SourceGeneration;
@@ -14,11 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
 {
     internal partial class CSharpGenerator
     {
+        [return: NotNullIfNotNull("operation")]
         private IArgumentOperation? WrapWithArgument(IOperation? operation)
             => operation == null ? null :
                operation is IArgumentOperation argument ? argument :
                     CodeGenerator.Argument(ArgumentKind.Explicit, null, operation);
 
+        [return: NotNullIfNotNull("operation")]
         private ArgumentSyntax? TryGenerateArgument(IArgumentOperation? operation)
         {
             if (operation == null)
@@ -42,6 +46,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
                 nameColon: null,
                 refKindKeyword == default ? default : Token(refKindKeyword),
                 expr);
+        }
+
+        private ArgumentListSyntax GenerateArgumentList<TOperation>(ImmutableArray<TOperation> arguments)
+            where TOperation : IOperation
+        {
+            using var _ = GetArrayBuilder<ArgumentSyntax>(out var builder);
+
+            foreach (var op in arguments)
+                builder.Add(TryGenerateArgument(WrapWithArgument(op)));
+
+            return ArgumentList(SeparatedList(builder));
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
     {
         private IdentifierNameSyntax? TryGenerateLocalReference(ILocalReferenceOperation? operation, SyntaxType type)
         {
-            if (operation == null || operation.IsImplicit)
+            if (operation == null)
                 return null;
 
             if (type == SyntaxType.Statement)

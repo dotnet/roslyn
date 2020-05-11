@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
     {
         private ExpressionSyntax? TryGenerateLiteralExpression(ILiteralOperation? operation, SyntaxType type)
         {
-            if (operation == null || operation.IsImplicit)
+            if (operation == null)
                 return null;
 
             if (type == SyntaxType.Statement)

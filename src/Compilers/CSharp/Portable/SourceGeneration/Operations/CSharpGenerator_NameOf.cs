@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.SourceGeneration;
@@ -16,19 +17,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration
     {
         private InvocationExpressionSyntax? TryGenerateNameOfExpression(INameOfOperation? operation, SyntaxType type)
         {
-            if (operation == null || operation.IsImplicit)
+            if (operation == null)
                 return null;
 
             if (type == SyntaxType.Statement)
                 throw new ArgumentException($"{nameof(INameOfOperation)} cannot be converted to a {nameof(StatementSyntax)}");
 
-            var argument = TryGenerateArgument(WrapWithArgument(operation.Argument));
-            if (argument == null)
-                throw new ArgumentException($"{nameof(INameOfOperation)}.{nameof(INameOfOperation.Argument)} could not be converted to an {nameof(ArgumentSyntax)}");
+            //var argument = TryGenerateArgument(WrapWithArgument(operation.Argument));
+            //if (argument == null)
+            //    throw new ArgumentException($"{nameof(INameOfOperation)}.{nameof(INameOfOperation.Argument)} could not be converted to an {nameof(ArgumentSyntax)}");
 
             return InvocationExpression(
                 SyntaxFactory.IdentifierName(ParseToken("nameof")),
-                ArgumentList(SingletonSeparatedList(argument)));
+                GenerateArgumentList(ImmutableArray.Create(operation.Argument)));
         }
     }
 }

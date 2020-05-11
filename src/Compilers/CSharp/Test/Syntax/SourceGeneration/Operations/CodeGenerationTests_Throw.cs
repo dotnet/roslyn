@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.SourceGeneration;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.SourceGeneration.CodeGenerator;
@@ -62,6 +65,17 @@ Block(Throw(Literal(null))).GenerateString());
             AssertEx.AreEqual(
 @"(throw null)",
 Parenthesized(Throw(Literal(null))).GenerateString());
+        }
+
+        [Fact]
+        public void TestThrowNotImplementedStatement1()
+        {
+            var compilation = (Compilation)CSharpTestBase.CreateCompilationWithMscorlib45(Array.Empty<string>());
+            var exception = compilation.GetTypeByMetadataName(typeof(NotImplementedException).FullName);
+
+            AssertEx.AreEqual(
+@"throw new global::System.NotImplementedException();",
+Throw(ObjectCreation(exception)).GenerateStatementString());
         }
     }
 }
