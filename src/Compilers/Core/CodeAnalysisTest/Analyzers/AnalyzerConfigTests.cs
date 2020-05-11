@@ -1480,7 +1480,7 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"is_global = true ", "/.editorconfig"));
 
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, new DiagnosticBag());
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out _);
 
             Assert.Empty(configs);
             Assert.NotNull(globalConfig);
@@ -1494,7 +1494,7 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
             configs.Add(Parse(@"
 [*.cs]
 is_global = true ", "/.editorconfig"));
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, new DiagnosticBag());
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out _);
 
             Assert.Single(configs);
             Assert.Null(globalConfig);
@@ -1511,8 +1511,7 @@ option1 = value1", "/.globalconfig1"));
             configs.Add(Parse(@"option2 = value2", "/.editorconfig1"));
             configs.Add(Parse(@"option3 = value3", "/.editorconfig2"));
 
-            DiagnosticBag diagnostics = new DiagnosticBag();
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
 
             diagnostics.Verify();
             Assert.Equal(2, configs.Count);
@@ -1534,8 +1533,7 @@ option2 = value2", "/.globalconfig2"));
             configs.Add(Parse(@"option3 = value3", "/.editorconfig1"));
             configs.Add(Parse(@"option4 = value4", "/.editorconfig2"));
 
-            DiagnosticBag diagnostics = new DiagnosticBag();
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
 
             diagnostics.Verify();
             Assert.Equal(2, configs.Count);
@@ -1569,8 +1567,7 @@ option2 = value2
 option1 = value1",
 "/.globalconfig2"));
 
-            DiagnosticBag diagnostics = new DiagnosticBag();
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
 
             diagnostics.Verify();
             Assert.Empty(configs);
@@ -1607,8 +1604,7 @@ option1 = value1", "/.globalconfig1"));
             configs.Add(Parse(@"is_global = true
 option1 = value2", "/.globalconfig2"));
 
-            DiagnosticBag diagnostics = new DiagnosticBag();
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
 
             diagnostics.Verify(
                 Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "Global Section", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
@@ -1629,8 +1625,7 @@ option1 = value1
 option1 = value2",
 "/.globalconfig2"));
 
-            DiagnosticBag diagnostics = new DiagnosticBag();
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
 
             diagnostics.Verify(
                 Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "c:/path/to/file1.cs", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
@@ -1647,8 +1642,7 @@ option1 = value1", "/.globalconfig1"));
             configs.Add(Parse(@"
 option1 = value2", "/.globalconfig2"));
 
-            DiagnosticBag diagnostics = new DiagnosticBag();
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
             diagnostics.Verify();
         }
 
@@ -1666,8 +1660,7 @@ option1 = value1
 option1 = value2",
 "/.globalconfig2"));
 
-            DiagnosticBag diagnostics = new DiagnosticBag();
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
             diagnostics.Verify();
         }
 
@@ -1803,8 +1796,7 @@ option1 = value1
 option1 = value2",
 "/.globalconfig2"));
 
-            DiagnosticBag diagnostics = new DiagnosticBag();
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
             diagnostics.Verify();
 
             Assert.Equal(2, globalConfig.NamedSections.Length);
@@ -1825,8 +1817,7 @@ option1 = value1
 opTioN1 = value2",
 "/.globalconfig2"));
 
-            DiagnosticBag diagnostics = new DiagnosticBag();
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
             diagnostics.Verify(
                 Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "c:/path/to/file1.cs", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
                 );
@@ -1845,8 +1836,7 @@ option1 = value1
 opTioN1 = value2",
 "/.globalconfig2"));
 
-            DiagnosticBag diagnostics = new DiagnosticBag();
-            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, diagnostics);
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
             diagnostics.Verify(
                 Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "Global Section", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
                 );

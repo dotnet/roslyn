@@ -108,16 +108,16 @@ namespace Microsoft.CodeAnalysis
 
         public static AnalyzerConfigSet Create<TList>(TList analyzerConfigs) where TList : IReadOnlyCollection<AnalyzerConfig>
         {
-            return Create(analyzerConfigs, new DiagnosticBag());
+            return Create(analyzerConfigs, out _);
         }
 
-        internal static AnalyzerConfigSet Create<TList>(TList analyzerConfigs, DiagnosticBag diagnostics) where TList : IReadOnlyCollection<AnalyzerConfig>
+        public static AnalyzerConfigSet Create<TList>(TList analyzerConfigs, out ImmutableArray<Diagnostic> diagnostics) where TList : IReadOnlyCollection<AnalyzerConfig>
         {
             var sortedAnalyzerConfigs = ArrayBuilder<AnalyzerConfig>.GetInstance(analyzerConfigs.Count);
             sortedAnalyzerConfigs.AddRange(analyzerConfigs);
             sortedAnalyzerConfigs.Sort(AnalyzerConfig.DirectoryLengthComparer);
 
-            var globalConfig = MergeGlobalConfigs(sortedAnalyzerConfigs, diagnostics);
+            var globalConfig = MergeGlobalConfigs(sortedAnalyzerConfigs, out diagnostics);
             return new AnalyzerConfigSet(sortedAnalyzerConfigs.ToImmutableAndFree(), globalConfig);
         }
 
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="analyzerConfigs">An <see cref="ArrayBuilder{T}"/> of <see cref="AnalyzerConfig"/> containing a mix of regular and unmerged partial global configs</param>
         /// <param name="diagnostics">Diagnostics produced during merge will be added to this bag</param>
         /// <returns>A <see cref="GlobalAnalyzerConfig" /> that contains the merged partial configs, or <c>null</c> if there were no partial configs</returns>
-        internal static GlobalAnalyzerConfig? MergeGlobalConfigs(ArrayBuilder<AnalyzerConfig> analyzerConfigs, DiagnosticBag diagnostics)
+        internal static GlobalAnalyzerConfig? MergeGlobalConfigs(ArrayBuilder<AnalyzerConfig> analyzerConfigs, out ImmutableArray<Diagnostic> diagnostics)
         {
             GlobalAnalyzerConfigBuilder globalAnalyzerConfigBuilder = new GlobalAnalyzerConfigBuilder();
             for (int i = 0; i < analyzerConfigs.Count; i++)
@@ -433,7 +433,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            var globalConfig = globalAnalyzerConfigBuilder.Build(diagnostics);
+            DiagnosticBag diagnosticBag = new DiagnosticBag();
+            var globalConfig = globalAnalyzerConfigBuilder.Build(diagnosticBag);
+            diagnostics = diagnosticBag.ToReadOnlyAndFree();
             return globalConfig;
         }
 
