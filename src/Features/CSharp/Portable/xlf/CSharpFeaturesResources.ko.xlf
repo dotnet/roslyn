@@ -57,6 +57,11 @@
         <target state="translated">'this.' 한정자 기본 설정 적용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_using_directive_placement_preferences">
+        <source>Apply preferred 'using' placement preferences</source>
+        <target state="new">Apply preferred 'using' placement preferences</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
         <target state="translated">'out' 매개 변수 할당</target>
