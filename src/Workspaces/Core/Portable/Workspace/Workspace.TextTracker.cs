@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private readonly TimeSpan _delayBetweenProcessingTextChanges;
 
-            private int _lastTextChangeTickCount;
+            private long _lastTextChangeTickCount;
 
             internal TextTracker(
                 Workspace workspace,
@@ -72,10 +72,11 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var lastTextChangeTickCount = _lastTextChangeTickCount;
-                var currentTickCount = Environment.TickCount;
+                var currentTickCount = DateTime.UtcNow.Ticks;
                 _lastTextChangeTickCount = currentTickCount;
 
-                if (currentTickCount - lastTextChangeTickCount >= _delayBetweenProcessingTextChanges.Ticks)
+                if (lastTextChangeTickCount == 0 ||
+                    currentTickCount - lastTextChangeTickCount >= _delayBetweenProcessingTextChanges.Ticks)
                 {
                     OnTextChangedCore(e.NewText);
                     return;
