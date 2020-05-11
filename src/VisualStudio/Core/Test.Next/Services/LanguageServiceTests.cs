@@ -41,9 +41,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43255"), Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task CSharpLanguageServiceTest_MultipleResults()
+        [Theory, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [CombinatorialData]
+        public async Task CSharpLanguageServiceTest_MultipleResults([CombinatorialRange(0, 1000)] int iteration)
         {
+            _ = iteration;
             var code = @"class Test 
 { 
     void Method() { } 
