@@ -141,8 +141,7 @@ namespace Microsoft.CodeAnalysis
         bool IsReadOnly { get; }
 
         /// <summary>
-        /// 'init' set accessors can only be invoked during construction or in the initialization phase
-        /// that follows construction.
+        /// Returns true for 'init' set accessors, and false otherwise.
         /// </summary>
         bool IsInitOnly { get; }
 
