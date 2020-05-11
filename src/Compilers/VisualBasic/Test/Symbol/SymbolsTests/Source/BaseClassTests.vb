@@ -2466,6 +2466,22 @@ BC30002: Type 'B.C' is not defined.
 ]]></errors>)
         End Sub
 
+        <Fact>
+        Public Sub Tuple_MissingNestedTypeArgument_03()
+            Dim source =
+"Interface I(Of T)
+End Interface
+Class A
+    Implements I(Of System.ValueTuple(Of Object, A.B))
+End Class"
+            Dim comp = CreateCompilation(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30002: Type 'A.B' is not defined.
+    Implements I(Of System.ValueTuple(Of Object, A.B))
+                                                 ~~~
+]]></errors>)
+        End Sub
+
     End Class
 
 End Namespace

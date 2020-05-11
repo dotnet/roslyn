@@ -2337,5 +2337,22 @@ class B : A<(object, B.C)>
                 // class B : A<(object, B.C)>
                 Diagnostic(ErrorCode.ERR_CircularBase, "C").WithArguments("B", "B").WithLocation(4, 24));
         }
+
+        [Fact]
+        public void Tuple_MissingNestedTypeArgument_03()
+        {
+            var source =
+@"interface I<T>
+{
+}
+class A : I<System.ValueTuple<object, A.B>>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,41): error CS0146: Circular base class dependency involving 'A' and 'A'
+                // class A : I<System.ValueTuple<object, A.B>>
+                Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A", "A").WithLocation(4, 41));
+        }
     }
 }
