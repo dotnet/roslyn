@@ -479,7 +479,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 parameters ?? method.Parameters,
                 statements,
                 returnTypeAttributes: returnTypeAttributes.HasValue ? returnTypeAttributes.Value : method.GetReturnTypeAttributes(),
-                methodKind: method.MethodKind);
+                methodKind: method.MethodKind,
+                isInitOnly: method.IsInitOnly);
         }
 
         internal static IPropertySymbol CreatePropertySymbol(
