@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Utils = Microsoft.CodeAnalysis.CSharp.UnitTests.CompilationUtils;
-using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 {

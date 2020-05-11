@@ -3564,35 +3564,47 @@ public class C
         [Fact]
         public void RetargetProperties_WithInitOnlySetter()
         {
-            // TODO2
-            var source =
-@"interface I
+            var source0 = @"
+public struct S
 {
-    object Property { get; init; }
-}";
-            var compilation = CreateCompilation(source);
+    public int Property { get; init; }
+}
+";
 
-            var sourceModule = compilation.SourceModule;
-            var sourceAssembly = (SourceAssemblySymbol)sourceModule.ContainingAssembly;
+            var source1 = @"
+class Program
+{
+    public static void Main()
+    {
+        var s = new S() { Property = 42 };
+        System.Console.WriteLine(s.Property);
+    }
+}
+";
 
-            var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
-            retargetingAssembly.SetCorLibrary(sourceAssembly.CorLibrary);
-            var retargetingModule = retargetingAssembly.Modules[0];
-            var retargetingNamespace = retargetingModule.GlobalNamespace;
+            var source2 = @"
+class Program
+{
+    public static void Main()
+    {
+        var s = new S() { Property = 43 };
+        System.Console.WriteLine(s.Property);
+    }
+}
+";
 
-            var property = retargetingNamespace.GetMember<PropertySymbol>("I.Property");
-            MethodSymbol getMethod = property.GetMethod;
-            MethodSymbol setMethod = property.SetMethod;
+            var comp1 = CreateCompilation(new[] { source0, source1, IsExternalInitTypeDefinition },
+                targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp1, expectedOutput: "42");
+            var comp1Ref = new[] { comp1.ToMetadataReference() };
 
-            Assert.Equal("System.Object I.Property { get; init; }", property.ToTestDisplayString());
-            Assert.Equal("void modreq(System.Runtime.CompilerServices.IsExternalInit[missing]) I.Property.init",
-                setMethod.ToTestDisplayString());
+            var comp7 = CreateCompilation(source2, references: comp1Ref,
+                targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp7, expectedOutput: "43");
 
-            Assert.False(getMethod.IsInitOnly);
-            Assert.False(getMethod.GetPublicSymbol().IsInitOnly);
-
-            Assert.True(setMethod.IsInitOnly);
-            Assert.True(setMethod.GetPublicSymbol().IsInitOnly);
+            var property = comp7.GetMember<PropertySymbol>("S.Property");
+            var setter = (RetargetingMethodSymbol)property.SetMethod;
+            Assert.True(setter.IsInitOnly);
         }
     }
 }
