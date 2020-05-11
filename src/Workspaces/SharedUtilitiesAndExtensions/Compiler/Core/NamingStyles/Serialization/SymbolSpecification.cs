@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                    MethodKind.HasValue ? new XElement(nameof(MethodKind), MethodKind) :
                    throw ExceptionUtilities.Unreachable;
 
-            public bool ShouldReuseInSerialization => throw new NotImplementedException();
+            public bool ShouldReuseInSerialization => false;
 
             public void WriteTo(ObjectWriter writer)
             {
