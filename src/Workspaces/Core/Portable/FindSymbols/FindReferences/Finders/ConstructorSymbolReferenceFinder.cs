@@ -44,9 +44,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindDocumentsWithImplicitObjectCreationExpressionAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
-            return documentsWithName.Concat(documentsWithType)
+            return documentsWithName.Concat(documentsWithType, documentsWithImplicitObjectCreations)
                                     .Concat(documentsWithAttribute)
-                                    .Concat(documentsWithImplicitObjectCreations)
                                     .Distinct()
                                     .ToImmutableArray();
         }
@@ -101,9 +100,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var ordinaryRefs = await FindOrdinaryReferencesAsync(symbol, document, semanticModel, findParentNode, cancellationToken).ConfigureAwait(false);
             var attributeRefs = await FindAttributeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
             var predefinedTypeRefs = await FindPredefinedTypeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            var implicitOjbectCreationMatches = await FindReferencesInImplicitObjectCreationExpressionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var implicitObjectCreationMatches = await FindReferencesInImplicitObjectCreationExpressionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
-            return ordinaryRefs.Concat(attributeRefs).Concat(predefinedTypeRefs).Concat(implicitOjbectCreationMatches);
+            return ordinaryRefs.Concat(attributeRefs, predefinedTypeRefs, implicitObjectCreationMatches);
         }
 
         private Task<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
