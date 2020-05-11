@@ -2074,6 +2074,8 @@ public abstract class Derived : Base
             var csRef = csComp.EmitToImageReference();
 
             var vbSource = @"
+Imports System
+Imports System.Linq.Expressions
 Public Class Derived2 : Inherits Derived
     Public Overrides Function M() As String
         Return Nothing
@@ -2099,6 +2101,12 @@ Public Class Derived2 : Inherits Derived
         Dim x7 As String = d2.M()
         Dim x8 As String = d2.P
         Dim x9 As String = d2(0)
+        Dim x10 As String = MyBase.M()
+        Dim x11 As String = MyBase.P
+        Dim x12 As Func(Of Object) = AddressOf b.M
+        Dim x13 As Func(Of String) = AddressOf MyBase.M
+        Dim x14 As Expression(Of Func(Of Derived, String)) = Function(x As Derived) x.M()
+        Dim x15 As Expression(Of Func(Of Derived, Func(Of String))) = Function(x As Derived) AddressOf x.M
     End Sub
 End Class
 ";
@@ -2114,11 +2122,177 @@ End Class
                     count++;
                     var initialValue = declarator.Initializer.Value;
                     var typeInfo = model.GetTypeInfo(initialValue);
-                    Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+                    switch (count)
+                    {
+                        case 14:
+                            Assert.Null(typeInfo.Type);
+                            Assert.Equal("System.Linq.Expressions.Expression(Of System.Func(Of Derived, String))", typeInfo.ConvertedType.ToDisplayString());
+                            break;
+                        case 15:
+                            Assert.Null(typeInfo.Type);
+                            Assert.Equal("System.Linq.Expressions.Expression(Of System.Func(Of Derived, System.Func(Of String)))", typeInfo.ConvertedType.ToDisplayString());
+                            break;
+                        default:
+                            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+                            break;
+                    }
                 }
             }
 
-            Assert.Equal(9, count);
+            Assert.Equal(15, count);
+
+            CompileAndVerify(vbComp, verify: Verification.Skipped).VerifyIL("Derived2.T(Base, Derived, Derived2)", source: vbSource, sequencePoints: "Derived2.T", expectedIL: @"
+{
+  // Code size      360 (0x168)
+  .maxstack  7
+  .locals init (Object V_0, //x1
+                Object V_1, //x2
+                Object V_2, //x3
+                String V_3, //x4
+                String V_4, //x5
+                String V_5, //x6
+                String V_6, //x7
+                String V_7, //x8
+                String V_8, //x9
+                String V_9, //x10
+                String V_10, //x11
+                System.Func(Of Object) V_11, //x12
+                System.Func(Of String) V_12, //x13
+                System.Linq.Expressions.Expression(Of System.Func(Of Derived, String)) V_13, //x14
+                System.Linq.Expressions.Expression(Of System.Func(Of Derived, System.Func(Of String))) V_14, //x15
+                System.Linq.Expressions.ParameterExpression V_15)
+  // sequence point: Public Sub T(b as Base, d as Derived, d2 as Derived2)
+  IL_0000:  nop
+  // sequence point: x1 As Object = b.M()
+  IL_0001:  ldarg.1
+  IL_0002:  callvirt   ""Function Base.M() As Object""
+  IL_0007:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
+  IL_000c:  stloc.0
+  // sequence point: x2 As Object = b.P
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""Function Base.get_P() As Object""
+  IL_0013:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
+  IL_0018:  stloc.1
+  // sequence point: x3 As Object = b(0)
+  IL_0019:  ldarg.1
+  IL_001a:  ldc.i4.0
+  IL_001b:  callvirt   ""Function Base.get_Item(Integer) As Object""
+  IL_0020:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
+  IL_0025:  stloc.2
+  // sequence point: x4 As String = d.M()
+  IL_0026:  ldarg.2
+  IL_0027:  callvirt   ""Function Derived.M() As String""
+  IL_002c:  stloc.3
+  // sequence point: x5 As String = d.P
+  IL_002d:  ldarg.2
+  IL_002e:  callvirt   ""Function Derived.get_P() As String""
+  IL_0033:  stloc.s    V_4
+  // sequence point: x6 As String = d(0)
+  IL_0035:  ldarg.2
+  IL_0036:  ldc.i4.0
+  IL_0037:  callvirt   ""Function Derived.get_Item(Integer) As String""
+  IL_003c:  stloc.s    V_5
+  // sequence point: x7 As String = d2.M()
+  IL_003e:  ldarg.3
+  IL_003f:  callvirt   ""Function Derived2.M() As String""
+  IL_0044:  stloc.s    V_6
+  // sequence point: x8 As String = d2.P
+  IL_0046:  ldarg.3
+  IL_0047:  callvirt   ""Function Derived2.get_P() As String""
+  IL_004c:  stloc.s    V_7
+  // sequence point: x9 As String = d2(0)
+  IL_004e:  ldarg.3
+  IL_004f:  ldc.i4.0
+  IL_0050:  callvirt   ""Function Derived2.get_Item(Integer) As String""
+  IL_0055:  stloc.s    V_8
+  // sequence point: x10 As String = MyBase.M()
+  IL_0057:  ldarg.0
+  IL_0058:  call       ""Function Derived.M() As String""
+  IL_005d:  stloc.s    V_9
+  // sequence point: x11 As String = MyBase.P
+  IL_005f:  ldarg.0
+  IL_0060:  call       ""Function Derived.get_P() As String""
+  IL_0065:  stloc.s    V_10
+  // sequence point: x12 As Func(Of Object) = AddressOf b.M
+  IL_0067:  ldarg.1
+  IL_0068:  dup
+  IL_0069:  ldvirtftn  ""Function Base.M() As Object""
+  IL_006f:  newobj     ""Sub System.Func(Of Object)..ctor(Object, System.IntPtr)""
+  IL_0074:  stloc.s    V_11
+  // sequence point: x13 As Func(Of String) = AddressOf MyBase.M
+  IL_0076:  ldarg.0
+  IL_0077:  ldftn      ""Function Derived.M() As String""
+  IL_007d:  newobj     ""Sub System.Func(Of String)..ctor(Object, System.IntPtr)""
+  IL_0082:  stloc.s    V_12
+  // sequence point: x14 As Expression(Of Func(Of Derived, String)) = Function(x As Derived) x.M()
+  IL_0084:  ldtoken    ""Derived""
+  IL_0089:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_008e:  ldstr      ""x""
+  IL_0093:  call       ""Function System.Linq.Expressions.Expression.Parameter(System.Type, String) As System.Linq.Expressions.ParameterExpression""
+  IL_0098:  stloc.s    V_15
+  IL_009a:  ldloc.s    V_15
+  IL_009c:  ldtoken    ""Function Derived.M() As String""
+  IL_00a1:  call       ""Function System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle) As System.Reflection.MethodBase""
+  IL_00a6:  castclass  ""System.Reflection.MethodInfo""
+  IL_00ab:  ldc.i4.0
+  IL_00ac:  newarr     ""System.Linq.Expressions.Expression""
+  IL_00b1:  call       ""Function System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, ParamArray System.Linq.Expressions.Expression()) As System.Linq.Expressions.MethodCallExpression""
+  IL_00b6:  ldc.i4.1
+  IL_00b7:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_00bc:  dup
+  IL_00bd:  ldc.i4.0
+  IL_00be:  ldloc.s    V_15
+  IL_00c0:  stelem.ref
+  IL_00c1:  call       ""Function System.Linq.Expressions.Expression.Lambda(Of System.Func(Of Derived, String))(System.Linq.Expressions.Expression, ParamArray System.Linq.Expressions.ParameterExpression()) As System.Linq.Expressions.Expression(Of System.Func(Of Derived, String))""
+  IL_00c6:  stloc.s    V_13
+  // sequence point: x15 As Expression(Of Func(Of Derived, Func(Of String))) = Function(x As Derived) AddressOf x.M
+  IL_00c8:  ldtoken    ""Derived""
+  IL_00cd:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_00d2:  ldstr      ""x""
+  IL_00d7:  call       ""Function System.Linq.Expressions.Expression.Parameter(System.Type, String) As System.Linq.Expressions.ParameterExpression""
+  IL_00dc:  stloc.s    V_15
+  IL_00de:  ldtoken    ""Function Derived.M() As String""
+  IL_00e3:  call       ""Function System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle) As System.Reflection.MethodBase""
+  IL_00e8:  castclass  ""System.Reflection.MethodInfo""
+  IL_00ed:  ldtoken    ""System.Reflection.MethodInfo""
+  IL_00f2:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_00f7:  call       ""Function System.Linq.Expressions.Expression.Constant(Object, System.Type) As System.Linq.Expressions.ConstantExpression""
+  IL_00fc:  ldtoken    ""Function System.Reflection.MethodInfo.CreateDelegate(System.Type, Object) As System.Delegate""
+  IL_0101:  call       ""Function System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle) As System.Reflection.MethodBase""
+  IL_0106:  castclass  ""System.Reflection.MethodInfo""
+  IL_010b:  ldc.i4.2
+  IL_010c:  newarr     ""System.Linq.Expressions.Expression""
+  IL_0111:  dup
+  IL_0112:  ldc.i4.0
+  IL_0113:  ldtoken    ""System.Func(Of String)""
+  IL_0118:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_011d:  ldtoken    ""System.Type""
+  IL_0122:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_0127:  call       ""Function System.Linq.Expressions.Expression.Constant(Object, System.Type) As System.Linq.Expressions.ConstantExpression""
+  IL_012c:  stelem.ref
+  IL_012d:  dup
+  IL_012e:  ldc.i4.1
+  IL_012f:  ldloc.s    V_15
+  IL_0131:  ldtoken    ""Object""
+  IL_0136:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_013b:  call       ""Function System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type) As System.Linq.Expressions.UnaryExpression""
+  IL_0140:  stelem.ref
+  IL_0141:  call       ""Function System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, ParamArray System.Linq.Expressions.Expression()) As System.Linq.Expressions.MethodCallExpression""
+  IL_0146:  ldtoken    ""System.Func(Of String)""
+  IL_014b:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_0150:  call       ""Function System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type) As System.Linq.Expressions.UnaryExpression""
+  IL_0155:  ldc.i4.1
+  IL_0156:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_015b:  dup
+  IL_015c:  ldc.i4.0
+  IL_015d:  ldloc.s    V_15
+  IL_015f:  stelem.ref
+  IL_0160:  call       ""Function System.Linq.Expressions.Expression.Lambda(Of System.Func(Of Derived, System.Func(Of String)))(System.Linq.Expressions.Expression, ParamArray System.Linq.Expressions.ParameterExpression()) As System.Linq.Expressions.Expression(Of System.Func(Of Derived, System.Func(Of String)))""
+  IL_0165:  stloc.s    V_14
+  // sequence point: End Sub
+  IL_0167:  ret
+}
+");
         }
 
         [Fact]
@@ -2479,7 +2653,8 @@ public class Program : Derived
 ";
             var comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            CompileAndVerify(comp).VerifyIL("Program.M1()", source: source, sequencePoints: "Program.M1", expectedIL: @"
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("Program.M1()", source: source, sequencePoints: "Program.M1", expectedIL: @"
 {
   // Code size       63 (0x3f)
   .maxstack  5
@@ -2506,7 +2681,7 @@ public class Program : Derived
   IL_003e:  ret
 }
 ");
-            CompileAndVerify(comp).VerifyIL("Program.M2()", source: source, sequencePoints: "Program.M2", expectedIL: @"
+            verifier.VerifyIL("Program.M2()", source: source, sequencePoints: "Program.M2", expectedIL: @"
 {
   // Code size       58 (0x3a)
   .maxstack  5
@@ -2532,7 +2707,7 @@ public class Program : Derived
   IL_0039:  ret
 }
 ");
-            CompileAndVerify(comp).VerifyIL("Program.M3()", source: source, sequencePoints: "Program.M3", expectedIL: @"
+            verifier.VerifyIL("Program.M3()", source: source, sequencePoints: "Program.M3", expectedIL: @"
 {
   // Code size      129 (0x81)
   .maxstack  7
@@ -2572,7 +2747,7 @@ public class Program : Derived
   IL_0080:  ret
 }
 ");
-            CompileAndVerify(comp).VerifyIL("Program.M4()", source: source, sequencePoints: "Program.M4", expectedIL: @"
+            verifier.VerifyIL("Program.M4()", source: source, sequencePoints: "Program.M4", expectedIL: @"
 {
   // Code size      129 (0x81)
   .maxstack  7
@@ -2641,7 +2816,8 @@ public class Program : Derived
 ";
             var comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            CompileAndVerify(comp).VerifyIL("Derived.M1()", source: source, sequencePoints: "Derived.M1", expectedIL: @"
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("Derived.M1()", source: source, sequencePoints: "Derived.M1", expectedIL: @"
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -2653,7 +2829,7 @@ public class Program : Derived
   IL_000d:  ret
 }
 ");
-            CompileAndVerify(comp).VerifyIL("Derived.M2()", source: source, sequencePoints: "Derived.M2", expectedIL: @"
+            verifier.VerifyIL("Derived.M2()", source: source, sequencePoints: "Derived.M2", expectedIL: @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -2664,7 +2840,7 @@ public class Program : Derived
   IL_000c:  ret
 }
 ");
-            CompileAndVerify(comp).VerifyIL("Derived.M3()", source: source, sequencePoints: "Derived.M3", expectedIL: @"
+            verifier.VerifyIL("Derived.M3()", source: source, sequencePoints: "Derived.M3", expectedIL: @"
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -2676,7 +2852,7 @@ public class Program : Derived
   IL_000d:  ret
 }
 ");
-            CompileAndVerify(comp).VerifyIL("Derived.M4()", source: source, sequencePoints: "Derived.M4", expectedIL: @"
+            verifier.VerifyIL("Derived.M4()", source: source, sequencePoints: "Derived.M4", expectedIL: @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -2687,7 +2863,7 @@ public class Program : Derived
   IL_000c:  ret
 }
 ");
-            CompileAndVerify(comp).VerifyIL("Program.M1()", source: source, sequencePoints: "Program.M1", expectedIL: @"
+            verifier.VerifyIL("Program.M1()", source: source, sequencePoints: "Program.M1", expectedIL: @"
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -2699,7 +2875,7 @@ public class Program : Derived
   IL_000d:  ret
 }
 ");
-            CompileAndVerify(comp).VerifyIL("Program.M2()", source: source, sequencePoints: "Program.M2", expectedIL: @"
+            verifier.VerifyIL("Program.M2()", source: source, sequencePoints: "Program.M2", expectedIL: @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -2710,7 +2886,7 @@ public class Program : Derived
   IL_000c:  ret
 }
 ");
-            CompileAndVerify(comp).VerifyIL("Program.M3()", source: source, sequencePoints: "Program.M3", expectedIL: @"
+            verifier.VerifyIL("Program.M3()", source: source, sequencePoints: "Program.M3", expectedIL: @"
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -2722,7 +2898,7 @@ public class Program : Derived
   IL_000d:  ret
 }
 ");
-            CompileAndVerify(comp).VerifyIL("Program.M4()", source: source, sequencePoints: "Program.M4", expectedIL: @"
+            verifier.VerifyIL("Program.M4()", source: source, sequencePoints: "Program.M4", expectedIL: @"
 {
   // Code size       13 (0xd)
   .maxstack  2

@@ -7213,5 +7213,63 @@ End Class
 void ValidatorBase<T>.DoValidate(T objectToValidate)")
         End Sub
 
+        <Fact>
+        Public Sub OverrideOfCSharpCovariantReturn()
+            Dim csSource = <![CDATA[
+public class Base
+{
+    public virtual object M() => null;
+    public virtual object P => null;
+    public virtual object this[int i] => null;
+}
+public abstract class Derived : Base
+{
+    public override string M() => null;
+    public override string P => null;
+    public override string this[int i] => null;
+}
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Imports System
+Public Class Derived2 : Inherits Derived
+    Public Overrides Function M() As Object
+        Return Nothing
+    End Function
+    Public Overrides ReadOnly Property P As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Public Overrides Default ReadOnly Property Item(i As Integer) As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim cSharpCompilation = CreateCSharpCompilation(csSource, CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Preview))
+            Dim reference As MetadataReference = cSharpCompilation.EmitToImageReference
+            Dim references = cSharpCompilation.References.Append(reference)
+
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, references, TestOptions.ReleaseDll)
+            compilation.AssertTheseDiagnostics(<expected>
+BC30437: 'Public Overrides Function M() As Object' cannot override 'Public Overridable Overloads Function M() As String' because they differ by their return types.
+    Public Overrides Function M() As Object
+                              ~
+BC30437: 'Public Overrides ReadOnly Property P As Object' cannot override 'Public Overridable Overloads ReadOnly Property P As String' because they differ by their return types.
+    Public Overrides ReadOnly Property P As Object
+                                       ~
+BC30437: 'Public Overrides ReadOnly Default Property Item(i As Integer) As Object' cannot override 'Public Overridable Overloads ReadOnly Default Property Item(i As Integer) As String' because they differ by their return types.
+    Public Overrides Default ReadOnly Property Item(i As Integer) As Object
+                                               ~~~~
+                                           </expected>)
+        End Sub
+
     End Class
 End Namespace
