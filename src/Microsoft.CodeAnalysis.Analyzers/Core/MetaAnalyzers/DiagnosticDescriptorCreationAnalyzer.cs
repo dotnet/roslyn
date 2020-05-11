@@ -430,14 +430,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             => s.Contains(". "); // Assumes that a string is a multi-sentences if it contains a period followed by a whitespace ('. ').
 
         private static bool EndsWithPeriod(string s)
-            => s[s.Length - 1] == '.';
+            => s[^1] == '.';
 
         private static bool ContainsLineReturn(string s)
             => s.Contains("\r") || s.Contains("\n");
 
         private static bool EndsWithPunctuation(string s)
         {
-            var lastChar = s[s.Length - 1];
+            var lastChar = s[^1];
 
             return lastChar.Equals('.') || lastChar.Equals('!') || lastChar.Equals('?');
         }

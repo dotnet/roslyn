@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
                 if (methodInfo.Parameters.Length > 0 && invocationExpression.ArgumentList != null)
                 {
-                    var lastParam = methodInfo.Parameters[methodInfo.Parameters.Length - 1];
+                    var lastParam = methodInfo.Parameters[^1];
                     if (lastParam.IsParams)
                     {
                         CheckParam(invocationExpression, methodInfo, semanticModel, reportDiagnostic, cancellationToken);

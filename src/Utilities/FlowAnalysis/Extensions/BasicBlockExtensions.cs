@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 var branchWithInfo = new BranchWithInfo(predecessorBranch);
                 if (predecessorBranch.FinallyRegions.Length > 0)
                 {
-                    var lastFinally = predecessorBranch.FinallyRegions[predecessorBranch.FinallyRegions.Length - 1];
+                    var lastFinally = predecessorBranch.FinallyRegions[^1];
                     yield return (predecessorBlock: cfg.Blocks[lastFinally.LastBlockOrdinal], branchWithInfo);
                 }
                 else
