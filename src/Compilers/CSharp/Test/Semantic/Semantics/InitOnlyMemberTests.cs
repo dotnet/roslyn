@@ -2127,7 +2127,7 @@ public class C
             Assert.False(conversion.IsInitOnly);
             Assert.False(conversion.GetPublicSymbol().IsInitOnly);
 
-            var addition = comp.GlobalNamespace.GetMember<SourceUserDefinedConversionSymbol>("C.op_Addition");
+            var addition = comp.GlobalNamespace.GetMember<SourceUserDefinedOperatorSymbol>("C.op_Addition");
             Assert.False(addition.IsInitOnly);
             Assert.False(addition.GetPublicSymbol().IsInitOnly);
         }
