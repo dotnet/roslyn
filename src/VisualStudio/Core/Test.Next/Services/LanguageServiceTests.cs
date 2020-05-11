@@ -41,11 +41,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             }
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        [CombinatorialData]
-        public async Task CSharpLanguageServiceTest_MultipleResults([CombinatorialRange(0, 1000)] int iteration)
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task CSharpLanguageServiceTest_MultipleResults()
         {
-            _ = iteration;
             var code = @"class Test 
 { 
     void Method() { } 
