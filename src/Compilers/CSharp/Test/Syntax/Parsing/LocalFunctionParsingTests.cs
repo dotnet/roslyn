@@ -17,6 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         public LocalFunctionParsingTests(ITestOutputHelper output) : base(output) { }
 
+#nullable enable
+        public void M1(string? s) { s.ToString(); }
+#nullable restore
+
         [Fact]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public void IncompleteLocalFunc()
