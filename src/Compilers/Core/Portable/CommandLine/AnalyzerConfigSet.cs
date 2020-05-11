@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis
         {
             private ImmutableDictionary<string, ImmutableDictionary<string, (string value, string configPath)>.Builder>.Builder? _values;
             private ImmutableDictionary<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>.Builder? _duplicates;
-            
+
             internal const string GlobalConfigPath = "<Global Config>";
             internal const string GlobalSectionName = "Global Section";
 
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     namedSectionBuilder.Add(getSection(sectionName));
                 }
-                
+
                 // create the global config
                 GlobalAnalyzerConfig globalConfig = new GlobalAnalyzerConfig(globalSection, namedSectionBuilder.ToImmutableAndFree());
                 _values = null;
