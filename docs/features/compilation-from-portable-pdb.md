@@ -1,22 +1,22 @@
 compilation-from-portable-pdb
 ----------------------
 
-Compilation from portable PDBs today is not completely possible, but is desirable in order to help reconstruct a compilation from source provided via source link or embedded in a pdb. Motivation is derived from [roslyn 41395](https://github.com/dotnet/roslyn/issues/41395). 
+Compilation from portable PDBs today is not completely possible, but is desirable in order to help reconstruct a compilation from source provided via source link or embedded in a pdb. Motivation is derived from [roslyn 41395](https://github.com/dotnet/roslyn/issues/41395).
 
-This document is restricted to the following assumptions: 
+This document is restricted to the following assumptions:
 
 1. Only builds using the `-deterministic` and published to the symbol server.
 2. Source generator and analyzer references are not needed for this task. They may be useful, but are out of scope for this document. 
 3. Any storage capacity used for PDBs and source should not impact this feature, such as compression algorithm. 
 4. Only Portable PDB files will be included for this spec. We can expand this feature past these once it is implemented and proven needed elsewhere. 
 
-This document will provide the expanded specification to the Portable PDB format. Any additions to that format will be ported to expand documentation provided in [dotnet-runtime](https://github.com/jnm2/dotnet-runtime/blob/26efe3467741fe2a85780b2d2cd18875af6ebd98/docs/design/specs/PortablePdb-Metadata.md#source-link-c-and-vb-compilers). 
+This document will provide the expanded specification to the Portable PDB format. Any additions to that format will be ported to expand documentation provided in [dotnet-runtime](https://github.com/jnm2/dotnet-runtime/blob/26efe3467741fe2a85780b2d2cd18875af6ebd98/docs/design/specs/PortablePdb-Metadata.md#source-link-c-and-vb-compilers).
 
 ## List of Expanded Information 
 
 #### Compiler Version
 
-This will be a full compiler version, and if possible the commit SHA for the build of the compiler. This will be used since compilations accros compiler versions are not guaranteed to be the same. 
+This will be a full compiler version, and if possible the commit SHA for the build of the compiler. This will be used since compilations accros compiler versions are not guaranteed to be the same.
 
 #### Signing Key
 
@@ -68,7 +68,13 @@ To fully support metadata references, we'll need to be able to find the exact PE
 
 #### Metadata References
 
-Metadata references can be easily stored 
+Metadata references can be easily stored as binary. The binary encoding will be as follows: 
+
+Timestamp Field: 4 byte integer
+Size of field: 4 byte integer
+Name: A UTF-16 little-endian encoded string following the PrimitiveConstant values in [Local Constants](https://github.com/jnm2/dotnet-runtime/blob/26efe3467741fe2a85780b2d2cd18875af6ebd98/docs/design/specs/PortablePdb-Metadata.md#localconstant-table-0x34)
+
+??: Does name need to be null-terminated? Does size need to be included? Is there a max size? 
 
 #### Key Value Pairs
 
