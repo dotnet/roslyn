@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public LocalFunctionParsingTests(ITestOutputHelper output) : base(output) { }
 
 #nullable enable
+        [Theory] [InlineData((string?)null)]
         public void M1(string? s) { s.ToString(); }
 #nullable restore
 
