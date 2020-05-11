@@ -112,13 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                         }
                     }
                 }
-                foreach (var assignment in tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>())
-                {
-                    var right = assignment.Right;
-                    var typeInfo = model.GetTypeInfo(right);
-                    Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
-                    foundAssignments++;
-                }
             }
 
             Assert.Equal(expectedAssignments, foundAssignments);
