@@ -93,10 +93,13 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>
                 {
-                    // add ServiceHub log files:
-                    foreach (var path in CollectServiceHubLogFilePaths())
+                    if (faultUtility is FaultEvent faultEvent && faultEvent.IsIncludedInWatsonSample == true)
                     {
-                        faultUtility.AddFile(path);
+                        // add ServiceHub log files:
+                        foreach (var path in CollectServiceHubLogFilePaths())
+                        {
+                            faultUtility.AddFile(path);
+                        }
                     }
 
                     // Returning "0" signals that, if sampled, we should send data to Watson. 
