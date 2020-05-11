@@ -209,15 +209,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
             Task.Run(async () =>
             {
-                var onProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnProjectAnalyzed : (Action<Project>)((Project _) => { });
-                await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, project?.Id, CancellationToken.None).ConfigureAwait(false);
+                try
+                {
+                    var onProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnProjectAnalyzed : (Action<Project>)((Project _) => { });
+                    await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, project?.Id, CancellationToken.None).ConfigureAwait(false);
 
-                // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
-                // then ForceAnalyzeAsync will not cause analyzers to execute.
-                // We explicitly fetch diagnostics for such projects and report these as "Host" diagnostics.
-                HandleProjectsWithDisabledAnalysis();
-
-                statusBarUpdater?.Dispose();
+                    // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
+                    // then ForceAnalyzeAsync will not cause analyzers to execute.
+                    // We explicitly fetch diagnostics for such projects and report these as "Host" diagnostics.
+                    HandleProjectsWithDisabledAnalysis();
+                }
+                finally
+                {
+                    statusBarUpdater?.Dispose();
+                }
             }).CompletesAsyncOperation(asyncToken);
 
             return;
@@ -352,6 +357,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             private readonly uint _totalProjectCount;
             private readonly string _statusMessageWhileRunning;
             private readonly string _statusMesageOnCompleted;
+            private readonly string _statusMesageOnTerminated;
             private readonly Timer _timer;
 
             private int _analyzedProjectCount;
@@ -371,6 +377,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 _statusMesageOnCompleted = projectOrSolutionName != null
                     ? string.Format(ServicesVSResources.Code_analysis_completed_for_0, projectOrSolutionName)
                     : ServicesVSResources.Code_analysis_completed_for_Solution;
+                _statusMesageOnTerminated = projectOrSolutionName != null
+                    ? string.Format(ServicesVSResources.Code_analysis_terminated_before_completion_for_0, projectOrSolutionName)
+                    : ServicesVSResources.Code_analysis_terminated_before_completion_for_Solution;
 
                 // Set the initial status bar progress and text.
                 _statusBar.Progress(ref _statusBarCookie, fInProgress: 1, _statusMessageWhileRunning, nComplete: 0, nTotal: totalProjectCount);
@@ -383,45 +392,48 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             internal void OnProjectAnalyzed(Project _)
             {
-                var analyzedProjectCount = Interlocked.Increment(ref _analyzedProjectCount);
-                UpdateStatus(isRunning: analyzedProjectCount < _totalProjectCount);
+                Interlocked.Increment(ref _analyzedProjectCount);
+                UpdateStatusCore();
             }
 
             // Add a message to VS status bar that we are running code analysis.
             private void UpdateStatusOnTimer(object state)
-                => UpdateStatus(isRunning: true);
+                => UpdateStatusCore();
 
             public void Dispose()
             {
                 _timer.Dispose();
                 _disposed = true;
-                UpdateStatus(isRunning: false);
+                UpdateStatusCore();
             }
 
-            private void UpdateStatus(bool isRunning)
+            private void UpdateStatusCore()
             {
-                Task.Run(async () =>
+                _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                     string message;
-                    uint analyzedCount;
                     int fInProgress;
-                    if (isRunning && !_disposed && _analyzedProjectCount != _totalProjectCount)
+                    var analyzedProjectCount = (uint)_analyzedProjectCount;
+                    if (analyzedProjectCount == _totalProjectCount)
                     {
-                        message = _statusMessageWhileRunning;
-                        analyzedCount = (uint)_analyzedProjectCount;
-                        fInProgress = 1;
+                        message = _statusMesageOnCompleted;
+                        fInProgress = 0;
+                    }
+                    else if (_disposed)
+                    {
+                        message = _statusMesageOnTerminated;
+                        fInProgress = 0;
                     }
                     else
                     {
-                        message = _statusMesageOnCompleted;
-                        analyzedCount = _totalProjectCount;
-                        fInProgress = 0;
+                        message = _statusMessageWhileRunning;
+                        fInProgress = 1;
                     }
 
                     // Update the status bar progress and text.
-                    _statusBar.Progress(ref _statusBarCookie, fInProgress, message, analyzedCount, _totalProjectCount);
+                    _statusBar.Progress(ref _statusBarCookie, fInProgress, message, analyzedProjectCount, _totalProjectCount);
                     _statusBar.SetText(message);
                 });
             }
