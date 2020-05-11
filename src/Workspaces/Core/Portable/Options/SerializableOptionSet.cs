@@ -254,7 +254,8 @@ namespace Microsoft.CodeAnalysis.Options
                 }
                 else if (kind == OptionValueKind.CodeStyleOption || kind == OptionValueKind.NamingStylePreferences)
                 {
-                    ((IObjectWritable)value!).WriteTo(writer);
+                    RoslynDebug.Assert(value != null);
+                    ((IObjectWritable)value).WriteTo(writer);
                 }
                 else
                 {
