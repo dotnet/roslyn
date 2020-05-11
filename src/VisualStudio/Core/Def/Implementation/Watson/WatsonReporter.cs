@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>
                 {
-                    if (faultUtility is FaultEvent faultEvent && faultEvent.IsIncludedInWatsonSample == true)
+                    if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
                     {
                         // add ServiceHub log files:
                         foreach (var path in CollectServiceHubLogFilePaths())
