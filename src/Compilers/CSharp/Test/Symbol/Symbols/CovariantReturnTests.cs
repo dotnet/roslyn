@@ -221,20 +221,20 @@ public class Program
             verify(MetadataView(comp));
             verify(RetargetedView(comp));
             CompileAndVerify(comp).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
-    {
-      // Code size       15 (0xf)
-      .maxstack  1
-      // sequence point: string s1 = b.M();
-      IL_0000:  ldarg.1
-      IL_0001:  callvirt   ""string Base.M()""
-      IL_0006:  pop
-      // sequence point: string s2 = d.M();
-      IL_0007:  ldarg.2
-      IL_0008:  callvirt   ""string Base.M()""
-      IL_000d:  pop
-      // sequence point: }
-      IL_000e:  ret
-    }
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  // sequence point: string s1 = b.M();
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""string Base.M()""
+  IL_0006:  pop
+  // sequence point: string s2 = d.M();
+  IL_0007:  ldarg.2
+  IL_0008:  callvirt   ""string Base.M()""
+  IL_000d:  pop
+  // sequence point: }
+  IL_000e:  ret
+}
 ");
 
             static void verify(CSharpCompilation comp)
@@ -2439,6 +2439,179 @@ public class C : B
                 VerifyNoOverride(comp, "B.M");
                 VerifyOverride(comp, "C.M", "System.String C.M()", "System.Object B.M()");
             }
+        }
+
+        [Fact]
+        public void InExpressionTree_01()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+public class Base
+{
+    public virtual object M() => null;
+    public virtual object P => null;
+}
+public class Derived : Base
+{
+    public override string M() => null;
+    public override string P => null;
+}
+public class Program : Derived
+{
+    Expression<Func<Derived, string>> M1()
+    {
+        return d => d.M();
+    }
+    Expression<Func<Derived, string>> M2()
+    {
+        return d => d.P;
+    }
+    Expression<Func<Func<string>>> M3()
+    {
+        return () => M;
+    }
+    Expression<Func<Func<string>>> M4()
+    {
+        return () => new Func<string>(M);
+    }
+}
+";
+            var comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
+                );
+            CompileAndVerify(comp).VerifyIL("Program.M1()", source: source, sequencePoints: "Program.M1", expectedIL: @"
+{
+  // Code size       63 (0x3f)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0)
+  // sequence point: return d => d.M();
+  IL_0000:  ldtoken    ""Derived""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""d""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0014:  stloc.0
+  IL_0015:  ldloc.0
+  IL_0016:  ldtoken    ""string Derived.M()""
+  IL_001b:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0020:  castclass  ""System.Reflection.MethodInfo""
+  IL_0025:  call       ""System.Linq.Expressions.Expression[] System.Array.Empty<System.Linq.Expressions.Expression>()""
+  IL_002a:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+  IL_002f:  ldc.i4.1
+  IL_0030:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0035:  dup
+  IL_0036:  ldc.i4.0
+  IL_0037:  ldloc.0
+  IL_0038:  stelem.ref
+  IL_0039:  call       ""System.Linq.Expressions.Expression<System.Func<Derived, string>> System.Linq.Expressions.Expression.Lambda<System.Func<Derived, string>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003e:  ret
+}
+");
+            CompileAndVerify(comp).VerifyIL("Program.M2()", source: source, sequencePoints: "Program.M2", expectedIL: @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0)
+  // sequence point: return d => d.P;
+  IL_0000:  ldtoken    ""Derived""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""d""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0014:  stloc.0
+  IL_0015:  ldloc.0
+  IL_0016:  ldtoken    ""string Derived.P.get""
+  IL_001b:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0020:  castclass  ""System.Reflection.MethodInfo""
+  IL_0025:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Property(System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+  IL_002a:  ldc.i4.1
+  IL_002b:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0030:  dup
+  IL_0031:  ldc.i4.0
+  IL_0032:  ldloc.0
+  IL_0033:  stelem.ref
+  IL_0034:  call       ""System.Linq.Expressions.Expression<System.Func<Derived, string>> System.Linq.Expressions.Expression.Lambda<System.Func<Derived, string>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0039:  ret
+}
+");
+            CompileAndVerify(comp).VerifyIL("Program.M3()", source: source, sequencePoints: "Program.M3", expectedIL: @"
+{
+  // Code size      129 (0x81)
+  .maxstack  7
+  // sequence point: return () => M;
+  IL_0000:  ldtoken    ""string Derived.M()""
+  IL_0005:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_000a:  castclass  ""System.Reflection.MethodInfo""
+  IL_000f:  ldtoken    ""System.Reflection.MethodInfo""
+  IL_0014:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0019:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_001e:  ldtoken    ""System.Delegate System.Reflection.MethodInfo.CreateDelegate(System.Type, object)""
+  IL_0023:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0028:  castclass  ""System.Reflection.MethodInfo""
+  IL_002d:  ldc.i4.2
+  IL_002e:  newarr     ""System.Linq.Expressions.Expression""
+  IL_0033:  dup
+  IL_0034:  ldc.i4.0
+  IL_0035:  ldtoken    ""System.Func<string>""
+  IL_003a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_003f:  ldtoken    ""System.Type""
+  IL_0044:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0049:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_004e:  stelem.ref
+  IL_004f:  dup
+  IL_0050:  ldc.i4.1
+  IL_0051:  ldarg.0
+  IL_0052:  ldtoken    ""Program""
+  IL_0057:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_005c:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_0061:  stelem.ref
+  IL_0062:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+  IL_0067:  ldtoken    ""System.Func<string>""
+  IL_006c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0071:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_0076:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+  IL_007b:  call       ""System.Linq.Expressions.Expression<System.Func<System.Func<string>>> System.Linq.Expressions.Expression.Lambda<System.Func<System.Func<string>>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0080:  ret
+}
+");
+            CompileAndVerify(comp).VerifyIL("Program.M4()", source: source, sequencePoints: "Program.M4", expectedIL: @"
+{
+  // Code size      129 (0x81)
+  .maxstack  7
+  // sequence point: return () => new Func<string>(M);
+  IL_0000:  ldtoken    ""string Derived.M()""
+  IL_0005:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_000a:  castclass  ""System.Reflection.MethodInfo""
+  IL_000f:  ldtoken    ""System.Reflection.MethodInfo""
+  IL_0014:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0019:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_001e:  ldtoken    ""System.Delegate System.Reflection.MethodInfo.CreateDelegate(System.Type, object)""
+  IL_0023:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0028:  castclass  ""System.Reflection.MethodInfo""
+  IL_002d:  ldc.i4.2
+  IL_002e:  newarr     ""System.Linq.Expressions.Expression""
+  IL_0033:  dup
+  IL_0034:  ldc.i4.0
+  IL_0035:  ldtoken    ""System.Func<string>""
+  IL_003a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_003f:  ldtoken    ""System.Type""
+  IL_0044:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0049:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_004e:  stelem.ref
+  IL_004f:  dup
+  IL_0050:  ldc.i4.1
+  IL_0051:  ldarg.0
+  IL_0052:  ldtoken    ""Program""
+  IL_0057:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_005c:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_0061:  stelem.ref
+  IL_0062:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+  IL_0067:  ldtoken    ""System.Func<string>""
+  IL_006c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0071:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_0076:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+  IL_007b:  call       ""System.Linq.Expressions.Expression<System.Func<System.Func<string>>> System.Linq.Expressions.Expression.Lambda<System.Func<System.Func<string>>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0080:  ret
+}
+");
         }
     }
 }
