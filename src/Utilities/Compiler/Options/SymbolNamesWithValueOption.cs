@@ -258,15 +258,32 @@ namespace Analyzer.Utilities
 
         private bool TryGetFirstWildcardMatch(ISymbol symbol, out KeyValuePair<string, TValue> firstMatch)
         {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Event:
+                case SymbolKind.Field:
+                case SymbolKind.Method:
+                case SymbolKind.NamedType:
+                case SymbolKind.Namespace:
+                case SymbolKind.Property:
+                    break;
+
+                case SymbolKind.Assembly:
+                case SymbolKind.ErrorType:
+                case SymbolKind.NetModule:
+                    firstMatch = default;
+                    return false;
+
+                default:
+                    throw new ArgumentException($"Unsupported symbol kind: {symbol.Kind} ({symbol})");
+            }
+
             firstMatch = NoWildcardMatch;
 
             if (_wildcardNamesBySymbolKind.IsEmpty)
             {
                 return false;
             }
-
-            Debug.Assert(symbol.Kind == SymbolKind.Event || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Method || symbol.Kind == SymbolKind.NamedType ||
-                symbol.Kind == SymbolKind.Namespace || symbol.Kind == SymbolKind.Property);
 
             // The matching was already processed
             if (_wildcardMatchResult.ContainsKey(symbol))
