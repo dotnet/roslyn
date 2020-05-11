@@ -13,6 +13,7 @@ namespace Analyzer.Utilities.PooledObjects
     /// <see cref="ConcurrentDictionary{TKey, TValue}"/> that can be recycled via an object pool.
     /// </summary>
     internal sealed class PooledConcurrentDictionary<K, V> : ConcurrentDictionary<K, V>, IDisposable
+        where K : notnull
     {
         private readonly ObjectPool<PooledConcurrentDictionary<K, V>>? _pool;
 
