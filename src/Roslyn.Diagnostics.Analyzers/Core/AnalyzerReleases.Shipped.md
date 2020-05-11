@@ -7,7 +7,6 @@ RS0001 | RoslyDiagnosticsPerformance | Warning | SpecializedEnumerableCreationAn
 RS0002 | RoslyDiagnosticsPerformance | Warning | SpecializedEnumerableCreationAnalyzer
 RS0005 | RoslyDiagnosticsPerformance | Warning | CodeActionCreateAnalyzer
 RS0006 | RoslyDiagnosticsReliability | Warning | DoNotMixAttributesFromDifferentVersionsOfMEFAnalyzer
-RS0013 | RoslyDiagnosticsPerformance | Disabled | DiagnosticDescriptorAccessAnalyzer
 RS0019 | RoslyDiagnosticsReliability | Disabled | SymbolDeclaredEventAnalyzer
 RS0023 | RoslyDiagnosticsReliability | Warning | PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer
 RS0032 | RoslyDiagnosticsReliability | Disabled | TestExportsShouldNotBeDiscoverable
