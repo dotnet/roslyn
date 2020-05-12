@@ -227,7 +227,7 @@ namespace Analyzer.Utilities
         /// <summary>
         /// Gets the value associated with the specified symbol in the option specification.
         /// </summary>
-        public bool TryGetValue(ISymbol symbol, [NotNullWhen(true)] out TValue value)
+        public bool TryGetValue(ISymbol symbol, [MaybeNullWhen(false)] out TValue value)
         {
             if (_symbols.TryGetValue(symbol, out value) || _names.TryGetValue(symbol.Name, out value))
             {
@@ -240,15 +240,11 @@ namespace Analyzer.Utilities
                 return true;
             }
 
-#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
-#pragma warning disable CS8601 // Possible null reference assignment.
             value = default;
-#pragma warning restore CS8601 // Possible null reference assignment.
-#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
             return false;
         }
 
-        public override bool Equals(object obj) => Equals(obj as SymbolNamesWithValueOption<TValue>);
+        public override bool Equals(object? obj) => Equals(obj as SymbolNamesWithValueOption<TValue>);
 
         public bool Equals(SymbolNamesWithValueOption<TValue>? other)
             => other != null && _names.IsEqualTo(other._names) && _symbols.IsEqualTo(other._symbols) && _wildcardNamesBySymbolKind.IsEqualTo(other._wildcardNamesBySymbolKind);
