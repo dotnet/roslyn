@@ -337,21 +337,6 @@
         <target state="needs-review-translation">Iequatable を実装するときに Object.Equals(object) をオーバーライドします</target>
         <note />
       </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
-        <source>Do not invoke 'Diagnostic.Descriptor'</source>
-        <target state="needs-review-translation">Diagnostic.Descriptor を呼び出さないでください</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
-        <source>Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.</source>
-        <target state="needs-review-translation">コンパイラ レイヤーで診断の Descriptor プロパティにアクセスすると、コマンド ライン コンパイルでは使用されない、記述子のフィールドに不要な文字列が割り当てられます。そのため、ここではコンパイラ診断の Descriptor にアクセスしないようにする必要があります。代わりに、Diagnostic 型のこれらのプロパティに直接アクセスする必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
-        <source>Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</source>
-        <target state="translated">型 '{1}' のプロパティ '{0}' を呼び出さないでください。代わりに、'{1}' の必要なメンバー {2} に直接アクセスしてください</target>
-        <note />
-      </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
         <target state="needs-review-translation">ソース シンボルに対して SymbolDeclaredEvent を生成する必要があります</target>

@@ -337,21 +337,6 @@
         <target state="needs-review-translation">当实现 IEquatable 时，重写 Object.Equals(object)</target>
         <note />
       </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
-        <source>Do not invoke 'Diagnostic.Descriptor'</source>
-        <target state="needs-review-translation">不要调用 Diagnostic.Descriptor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
-        <source>Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.</source>
-        <target state="needs-review-translation">在编译器层中访问诊断的描述符属性时，会导致在命令行编译中未使用的描述符字段发生不必要的字符串分配。因此，应避免在此处访问编译器诊断的描述符。而是直接从诊断类型访问这些属性。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
-        <source>Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</source>
-        <target state="translated">不要对类型“{1}”调用属性“{0}”，而是直接访问“{1}”上所需的成员 {2}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
         <target state="needs-review-translation">必须为源符号生成 SymbolDeclaredEvent</target>

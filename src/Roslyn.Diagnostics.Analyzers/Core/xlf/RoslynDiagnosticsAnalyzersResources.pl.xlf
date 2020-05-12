@@ -337,21 +337,6 @@
         <target state="needs-review-translation">Przesłoń metodę Object.Equals(object) przy implementowaniu interfejsu Iequatable</target>
         <note />
       </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
-        <source>Do not invoke 'Diagnostic.Descriptor'</source>
-        <target state="needs-review-translation">Nie wywołuj metody Diagnostic.Descriptor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
-        <source>Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.</source>
-        <target state="needs-review-translation">Uzyskiwanie dostępu do właściwości Descriptor elementu Diagnostic w warstwie kompilatora prowadzi do niepotrzebnych alokacji ciągów dla pól deskryptora, które nie zostały użyte w kompilacji wiersza polecenia. Dlatego należy unikać uzyskiwania dostępu do elementu Descriptor diagnostyki kompilatora w tym miejscu. Zamiast tego należy bezpośrednio uzyskiwać dostęp do tych właściwości typu Diagnostic.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
-        <source>Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</source>
-        <target state="translated">Nie wywołuj właściwości „{0}” typu „{1}”. Zamiast tego uzyskuj bezpośrednio dostęp do wymaganego elementu członkowskiego {2} w elemencie „{1}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
         <target state="needs-review-translation">Element SymbolDeclaredEvent musi być generowany dla symboli źródłowych</target>

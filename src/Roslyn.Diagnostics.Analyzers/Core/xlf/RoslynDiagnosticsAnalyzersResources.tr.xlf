@@ -337,21 +337,6 @@
         <target state="needs-review-translation">Iequatable uygularken Object.Equals(object)’i geçersiz kılın</target>
         <note />
       </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
-        <source>Do not invoke 'Diagnostic.Descriptor'</source>
-        <target state="needs-review-translation">Diagnostic.Descriptor’ı çağırmayın</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
-        <source>Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.</source>
-        <target state="needs-review-translation">Derleyici katmanında Tanılamanın Tanımlayıcı özelliğine erişmek, tanımlayıcının komut satırı derlemesinde kullanılmayan alanları için gereksiz dize ayırmalarına neden olabilir. Bu nedenle, burada derleyici tanılamalarının Tanımlayıcısına erişmekten kaçınmanız gerekir. Bunun yerine, bu özelliklere Tanılama türü dışında doğrudan erişmeniz gerekir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
-        <source>Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</source>
-        <target state="translated">'{1}' türü üzerinde '{0}' özelliğini çağırmayın, bunun yerine '{1}' üzerinde gerekli {2} üyesine doğrudan erişin</target>
-        <note />
-      </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
         <target state="needs-review-translation">Kaynak semboller için SymbolDeclaredEvent oluşturulmalıdır</target>
