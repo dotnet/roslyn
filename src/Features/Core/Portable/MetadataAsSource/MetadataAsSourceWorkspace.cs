@@ -6,7 +6,7 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
+namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal class MetadataAsSourceWorkspace : Workspace
     {
