@@ -565,5 +565,28 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+
+        /// <summary>
+        /// Represents a combined global analyzer config.
+        /// </summary>
+        /// <remarks>
+        /// We parse all <see cref="AnalyzerConfig"/>s as individual files, according to the editorconfig spec.
+        /// 
+        /// However, when viewing the configs as an <see cref="AnalyzerConfigSet"/> if multiple files have the
+        /// <c>is_global</c> property set to <c>true</c> we combine those files and treat them as a single 
+        /// 'logical' global config file. This type represents that combined file. 
+        /// </remarks>
+        internal sealed class GlobalAnalyzerConfig
+        {
+            internal AnalyzerConfig.Section GlobalSection { get; }
+
+            internal ImmutableArray<AnalyzerConfig.Section> NamedSections { get; }
+
+            public GlobalAnalyzerConfig(AnalyzerConfig.Section globalSection, ImmutableArray<AnalyzerConfig.Section> namedSections)
+            {
+                GlobalSection = globalSection;
+                NamedSections = namedSections;
+            }
+        }
     }
 }
