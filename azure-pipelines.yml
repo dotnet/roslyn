@@ -256,7 +256,8 @@ jobs:
 
 - job: RichCodeNav_Indexing
   pool:
-    name: VSEng-MicroBuildVS2019
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.VS2017.Open
   strategy:
     maxParallel: 2
     matrix:
