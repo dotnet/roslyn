@@ -6,24 +6,23 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
+namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
-    [Export(typeof(IMetadataAsSourceFileService))]
+    [Export(typeof(IMetadataAsSourceFileService)), Shared]
     internal class MetadataAsSourceFileService : IMetadataAsSourceFileService
     {
         /// <summary>
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             if (symbol.Kind == SymbolKind.Namespace)
             {
-                throw new ArgumentException(EditorFeaturesResources.symbol_cannot_be_a_namespace, nameof(symbol));
+                throw new ArgumentException(FeaturesResources.symbol_cannot_be_a_namespace, nameof(symbol));
             }
 
             symbol = symbol.GetOriginalUnreducedDefinition();
@@ -191,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             var documentName = string.Format(
                 "{0} [{1}]",
                 topLevelNamedType.Name,
-                EditorFeaturesResources.from_metadata);
+                FeaturesResources.from_metadata);
 
             var documentTooltip = topLevelNamedType.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
@@ -220,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             return await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryDocument, cancellationToken).ConfigureAwait(false);
         }
 
-        public bool TryAddDocumentToWorkspace(string filePath, ITextBuffer buffer)
+        public bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer sourceTextContainer)
         {
             using (_gate.DisposableWait())
             {
@@ -233,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     var newProjectInfoAndDocumentId = fileInfo.GetProjectInfoAndDocumentId(_workspace, loadFileFromDisk: true);
 
                     _workspace.OnProjectAdded(newProjectInfoAndDocumentId.Item1);
-                    _workspace.OnDocumentOpened(newProjectInfoAndDocumentId.Item2, buffer.AsTextContainer());
+                    _workspace.OnDocumentOpened(newProjectInfoAndDocumentId.Item2, sourceTextContainer);
 
                     _openedDocumentIds = _openedDocumentIds.Add(fileInfo, newProjectInfoAndDocumentId.Item2);
 
