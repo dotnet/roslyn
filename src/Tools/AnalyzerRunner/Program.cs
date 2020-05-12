@@ -83,14 +83,14 @@ namespace AnalyzerRunner
                 }
             }
 
+            Console.WriteLine($"Loaded solution in {stopwatch.GetSummary(preciseMemory: true)}");
+
             if (options.ShowStats)
             {
                 stopwatch = PerformanceTracker.StartNew();
                 ShowSolutionStatistics(workspace.CurrentSolution, cancellationToken);
                 Console.WriteLine($"Statistics gathered in {stopwatch.GetSummary(preciseMemory: true)}");
             }
-
-            Console.WriteLine($"Loaded solution in {stopwatch.GetSummary(preciseMemory: true)}");
 
             if (options.ShowCompilerDiagnostics)
             {
