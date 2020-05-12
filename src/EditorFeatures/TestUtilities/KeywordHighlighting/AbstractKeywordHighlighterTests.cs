@@ -13,15 +13,48 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Composition;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 {
     [UseExportProvider]
     public abstract class AbstractKeywordHighlighterTests
     {
-        internal abstract IHighlighter CreateHighlighter();
+        private static readonly Dictionary<Type, IExportProviderFactory> _specificHighlighterExportProviderFactories = new Dictionary<Type, IExportProviderFactory>();
+        private ExportProvider _exportProvider;
+
+        protected ExportProvider ExportProvider
+        {
+            get
+            {
+                return _exportProvider ??= GetExportProvider(this);
+
+                static ExportProvider GetExportProvider(AbstractKeywordHighlighterTests self)
+                {
+                    IExportProviderFactory factory;
+                    lock (_specificHighlighterExportProviderFactories)
+                    {
+                        factory = _specificHighlighterExportProviderFactories.GetOrAdd(
+                            self.GetType(),
+                            type => ExportProviderCache.GetOrCreateExportProviderFactory(self.GetExportCatalog()));
+                    }
+
+                    return factory.CreateExportProvider();
+                }
+            }
+        }
+
+        internal abstract Type GetHighlighterType();
         protected abstract IEnumerable<ParseOptions> GetOptions();
         protected abstract TestWorkspace CreateWorkspaceFromFile(string code, ParseOptions options);
+
+        protected virtual ComposableCatalog GetExportCatalog()
+        {
+            var catalogWithoutCompletion = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(typeof(IHighlighter));
+            var catalog = catalogWithoutCompletion.WithPart(GetHighlighterType());
+            return catalog;
+        }
 
         protected async Task TestAsync(
             string code)
@@ -43,11 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
             var textSnapshot = testDocument.GetTextBuffer().CurrentSnapshot;
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-            var highlighter = CreateHighlighter();
-            var service = new HighlightingService(new List<Lazy<IHighlighter, LanguageMetadata>>
-            {
-                new Lazy<IHighlighter, LanguageMetadata>(() => highlighter, new LanguageMetadata(document.Project.Language)),
-            });
+            var service = Assert.IsType<HighlightingService>(workspace.ExportProvider.GetExportedValue<IHighlightingService>());
 
             var root = await document.GetSyntaxRootAsync();
 

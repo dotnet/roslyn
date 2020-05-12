@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // This means we have to query for "third party navigation", from
             // XAML, etc. That call has to be done on the UI thread.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
 
             var solution = document.Project.Solution;
             var definitions = GoToDefinitionHelpers.GetDefinitions(symbol, solution, thirdPartyNavigationAllowed: true, cancellationToken)

@@ -487,11 +487,6 @@
         <target state="translated">指定されたワークスペースは元に戻す操作をサポートしていません</target>
         <note />
       </trans-unit>
-      <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
-        <source>Document must be contained in the workspace that created this service</source>
-        <target state="translated">このサービスを作成したワークスペースにドキュメントが含まれている必要があります</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Searching">
         <source>Searching...</source>
         <target state="translated">検索しています...</target>
@@ -655,11 +650,6 @@
       <trans-unit id="external">
         <source>(external)</source>
         <target state="new">(external)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="from_metadata">
-        <source>from metadata</source>
-        <target state="translated">メタデータから</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatic_Line_Ender">
@@ -1015,11 +1005,6 @@
       <trans-unit id="Peek">
         <source>Peek</source>
         <target state="translated">ピーク</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="symbol_cannot_be_a_namespace">
-        <source>'symbol' cannot be a namespace.</source>
-        <target state="translated">'symbol' は名前空間にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply1">

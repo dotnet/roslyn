@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
             => new InlineTemporaryCodeRefactoringProvider();
 
         private async Task TestFixOneAsync(string initial, string expected)
-            => await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected));
+            => await TestInRegularAndScript1Async(GetTreeText(initial), GetTreeText(expected));
 
         private string GetTreeText(string initial)
         {
@@ -4076,7 +4076,7 @@ class C
 {
     public void M()
     {
-        var (x1, x2) = new C();
+        {|Warning:var (x1, x2) = new C()|};
         var x3 = new C();
     }
 }";
@@ -4568,7 +4568,7 @@ class C
 {
     bool M<T>(ref T x) 
     {
-        return M(ref x) || M(ref x);
+        return {|Warning:M(ref x) || M(ref x)|};
     }
 }");
         }
@@ -4593,7 +4593,7 @@ class C
 {
     bool M<T>(out T x) 
     {
-        return M(out x) || M(out x);
+        return {|Warning:M(out x) || M(out x)|};
     }
 }");
         }
@@ -4961,6 +4961,212 @@ static class Goo
 
         if (!(awaitExpression.Expression is ParenthesizedExpressionSyntax parenthesizedExpression))
             return;
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = new C();
+        c.P = 1;
+        var c2 = c;
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:new C().P = 1|};
+        var c2 = new C();
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning_IgnoreParentheses()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = (new C());
+        c.P = 1;
+        var c2 = c;
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:(new C()).P = 1|};
+        var c2 = (new C());
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning_MethodInvocation()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = M2();
+        c.P = 1;
+        var c2 = c;
+    }
+
+    C M2()
+    {
+        return new C();
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:M2().P = 1|};
+        var c2 = M2();
+    }
+
+    C M2()
+    {
+        return new C();
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning_MethodInvocation2()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = new C();
+        c.M2();
+        var c2 = c;
+    }
+
+    void M2()
+    {
+        P = 1;
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:new C().M2()|};
+        var c2 = new C();
+    }
+
+    void M2()
+    {
+        P = 1;
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning_NestedObjectInitialization()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = new C[1] { new C() };
+        c[0].P = 1;
+        var c2 = c;
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:(new C[1] { new C() })[0].P = 1|};
+        var c2 = new C[1] { new C() };
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning_NestedMethodCall()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = new C[1] { M2() };
+        c[0].P = 1;
+        var c2 = c;
+    }
+
+    C M2()
+    {
+        P += 1;
+        return new C();
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:(new C[1] { M2() })[0].P = 1|};
+        var c2 = new C[1] { M2() };
+    }
+
+    C M2()
+    {
+        P += 1;
+        return new C();
     }
 }");
         }
