@@ -4,9 +4,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Text;
+using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal interface IMetadataAsSourceFileService
     {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <param name="cancellationToken">To cancel project and document operations</param>
         Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool allowDecompilation, CancellationToken cancellationToken = default);
 
-        bool TryAddDocumentToWorkspace(string filePath, ITextBuffer buffer);
+        bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer buffer);
 
         bool TryRemoveDocumentFromWorkspace(string filePath);
 
