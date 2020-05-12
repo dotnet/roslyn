@@ -1084,6 +1084,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (localSymbol.RefKind != RefKind.None)
                 {
+                    if (IsDirectlyInIterator)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadIteratorLocalType, localSymbol.Locations[0]);
+                    }
+
                     localSymbol.SetRefEscape(GetRefEscape(initializerOpt, currentScope));
                 }
             }
@@ -1731,14 +1736,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     Debug.Assert(!diagnostics.IsEmptyWithoutResolution);
-                }
-
-                foreach (var local in locals)
-                {
-                    if (local.RefKind != RefKind.None)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadIteratorLocalType, local.Locations[0]);
-                    }
                 }
             }
 

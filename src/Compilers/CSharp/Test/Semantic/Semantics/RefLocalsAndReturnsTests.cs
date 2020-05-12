@@ -1185,6 +1185,37 @@ class C
         }
 
         [Fact]
+        public void RefReadonlyInSwitchCaseInIterator()
+        {
+            var comp = CreateCompilation(@"
+using System.Collections.Generic;
+class C
+{
+    IEnumerable<int> M()
+    {
+        switch (this)
+        {
+            default:
+                ref readonly int x = ref (new int[1])[0]; // 1
+                int i = x;
+                yield return i;
+
+                local();
+                void local()
+                {
+                    ref readonly int z = ref (new int[1])[0];
+                }
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (10,34): error CS8176: Iterators cannot have by-reference locals
+                //                 ref readonly int x = ref (new int[1])[0]; // 1
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(10, 34));
+        }
+
+        [Fact]
         public void RefReadonlyLocalNotWritable()
         {
             var comp = CreateCompilation(@"
