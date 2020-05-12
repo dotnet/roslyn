@@ -1197,8 +1197,8 @@ class C
         {
             default:
                 ref readonly int x = ref (new int[1])[0]; // 1
-                int i = x;
-                yield return i;
+                yield return 1;
+                yield return x;
 
                 local();
                 void local()
