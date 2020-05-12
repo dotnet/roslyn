@@ -17,6 +17,11 @@
         <target state="translated">File C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_apply_action_that_is_not_in_0">
+        <source>Cannot apply action that is not in '{0}'</source>
+        <target state="new">Cannot apply action that is not in '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
         <source>Changing analyzer config documents is not supported.</source>
         <target state="translated">La modifica di documenti di configurazione dell'analizzatore non è supportata.</target>
@@ -170,6 +175,11 @@
       <trans-unit id="Adding_projects_is_not_supported">
         <source>Adding projects is not supported.</source>
         <target state="translated">L'aggiunta di progetti non è supportata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbols_project_could_not_be_found_in_the_provided_solution">
+        <source>Symbol's project could not be found in the provided solution</source>
+        <target state="new">Symbol's project could not be found in the provided solution</target>
         <note />
       </trans-unit>
       <trans-unit id="The_project_already_contains_the_specified_reference">

@@ -10319,7 +10319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     ''' <summary>
     ''' An abstract node class that represents a "With" or "From" clause used to
-    ''' initializer an new object.
+    ''' initialize a new object.
     ''' </summary>
     Public MustInherit Class ObjectCreationInitializerSyntax
         Inherits VisualBasicSyntaxNode
@@ -19488,7 +19488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     End Class
 
     ''' <summary>
-    ''' Represent an call statement (also known as a invocation statement).
+    ''' Represent a call statement (also known as a invocation statement).
     ''' </summary>
     Public NotInheritable Class CallStatementSyntax
         Inherits ExecutableStatementSyntax

@@ -142,6 +142,11 @@
         <target state="translated">Výchozí literál default není platný jako vzor. Podle potřeby použijte jiný literál (například 0 nebo null). Pokud chcete, aby odpovídalo vše, použijte vzor discard „_“.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
+        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
+        <target state="new">A variable may not be declared within a 'not' or 'or' pattern.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">Tento vzor discard není povolený jako návěstí příkazu case v příkazu switch. Použijte „case var _:“ pro vzor discard nebo „case @_:“ pro konstantu s názvem „_“.</target>
@@ -442,6 +447,11 @@
         <target state="translated">Levá strana přiřazení odkazu musí být lokální proměnná nebo parametr odkazu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RelationalPatternWithNaN">
+        <source>Relational patterns may not be used for a floating-point NaN.</source>
+        <target state="new">Relational patterns may not be used for a floating-point NaN.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Cílový modul runtime nepodporuje pro člena rozhraní přístupnost na úrovni Protected, Protected internal nebo Private protected.</target>
@@ -473,13 +483,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
-        <source>The pattern has already been handled by a previous arm of the switch expression.</source>
-        <target state="translated">Tento vzor už zpracovala předchozí větev výrazu switch.</target>
+        <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
+        <target state="needs-review-translation">Tento vzor už zpracovala předchozí větev výrazu switch.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchCaseSubsumed">
-        <source>The switch case has already been handled by a previous case.</source>
-        <target state="translated">Větev příkazu switch se už zpracovala předchozí větví.</target>
+        <source>The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.</source>
+        <target state="needs-review-translation">Větev příkazu switch se už zpracovala předchozí větví.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchExpressionNoBestType">
@@ -535,6 +545,11 @@
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
         <target state="translated">Typ {2} musí být typ, který nemůže mít hodnotu null, ani nesmí v žádné úrovni vnoření obsahovat pole, které by ji povolovalo, aby se dal použít jako parametr {1} v obecném typu nebo metodě {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForRelationalPattern">
+        <source>Relational patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">Relational patterns may not be used for a value of type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
@@ -884,6 +899,11 @@
         <target state="translated">alternativní interpolované doslovné řetězce</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAndPattern">
+        <source>and pattern</source>
+        <target state="new">and pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAsyncUsing">
         <source>asynchronous using</source>
         <target state="translated">asynchronní příkaz using</target>
@@ -964,6 +984,11 @@
         <target state="translated">omezení obecného typu notnull</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNotPattern">
+        <source>not pattern</source>
+        <target state="new">not pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
         <source>nullable reference types</source>
         <target state="translated">typy odkazů s možnou hodnotou null</target>
@@ -972,6 +997,16 @@
       <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
         <source>obsolete on property accessor</source>
         <target state="translated">zastaralé u přístupového objektu vlastnosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureOrPattern">
+        <source>or pattern</source>
+        <target state="new">or pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureParenthesizedPattern">
+        <source>parenthesized pattern</source>
+        <target state="new">parenthesized pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnable">
@@ -1014,6 +1049,11 @@
         <target state="translated">Opětovné přiřazení odkazu</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRelationalPattern">
+        <source>relational pattern</source>
+        <target state="new">relational pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
         <source>stackalloc initializer</source>
         <target state="translated">inicializátor výrazu stackalloc</target>
@@ -1037,6 +1077,11 @@
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
         <target state="translated">rovnost řazené kolekce členů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureTypePattern">
+        <source>type pattern</source>
+        <target state="new">type pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
@@ -1524,6 +1569,16 @@
         <target state="translated">Daný výraz vždy odpovídá zadané konstantě.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_GivenExpressionAlwaysMatchesPattern">
+        <source>The given expression always matches the provided pattern.</source>
+        <target state="new">The given expression always matches the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionAlwaysMatchesPattern_Title">
+        <source>The given expression always matches the provided pattern.</source>
+        <target state="new">The given expression always matches the provided pattern.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_GivenExpressionNeverMatchesPattern">
         <source>The given expression never matches the provided pattern.</source>
         <target state="translated">Daný výraz nikdy neodpovídá zadané konstantě.</target>
@@ -1542,6 +1597,16 @@
       <trans-unit id="WRN_ImplicitCopyInReadOnlyMember_Title">
         <source>Call to non-readonly member from a 'readonly' member results in an implicit copy.</source>
         <target state="translated">Volání člena, který nemá modifikátor readonly, ze člena s modifikátorem readonly má za následek implicitní kopii.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsPatternAlways">
+        <source>An expression of type '{0}' always matches the provided pattern.</source>
+        <target state="new">An expression of type '{0}' always matches the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsPatternAlways_Title">
+        <source>The input always matches the provided pattern.</source>
+        <target state="new">The input always matches the provided pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
@@ -3755,8 +3820,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
-        <source>Cannot use attribute constructor '{0}' because it is has 'in' parameters.</source>
-        <target state="translated">Nejde použít konstruktor atributu {0}, protože má parametry in.</target>
+        <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
+        <target state="needs-review-translation">Nejde použít konstruktor atributu {0}, protože má parametry in.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
@@ -8813,11 +8878,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_FeatureNotAvailableInVersion7">
         <source>Feature '{0}' is not available in C# 7.0. Please use language version {1} or greater.</source>
         <target state="translated">Funkce {0} není dostupná v jazyce C# 7.0. Použijte prosím jazyk verze {1} nebo vyšší.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FeatureIsUnimplemented">
-        <source>Feature '{0}' is not implemented in this compiler.</source>
-        <target state="translated">Funkce {0} není implementovaná v tomto kompilátoru.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_VersionExperimental">

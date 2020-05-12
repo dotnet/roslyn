@@ -115,7 +115,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 // sync
                 _ = await client.TryRunRemoteAsync(
-                    WellKnownRemoteHostServices.RemoteHostService,
+                    WellKnownServiceHubServices.RemoteHostService,
                     nameof(IRemoteHostService.SynchronizeTextAsync),
                     solution: null,
                     new object[] { oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText) },
@@ -151,12 +151,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var callback = new TodoCommentsListener();
 
             using var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
-            var session = await client.TryCreateKeepAliveSessionAsync(
+            using var session = await client.TryCreateKeepAliveSessionAsync(
                 WellKnownServiceHubServices.RemoteTodoCommentsService,
                 callback,
                 cancellationTokenSource.Token);
 
-            var invokeTask = session.TryInvokeAsync(
+            var invokeTask = session.RunRemoteAsync(
                 nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),
@@ -211,7 +211,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = 0;
             var storage = new AssetStorage();
-            _ = new SimpleAssetSource(storage, map);
+            storage.Initialize(new SimpleAssetSource(map));
             var remoteWorkspace = new RemoteWorkspace(applyStartupOptions: false);
 
             return new SolutionService(new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>()));
@@ -236,12 +236,12 @@ class Test { }");
             var callback = new DesignerAttributeListener();
 
             using var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
-            var session = await client.TryCreateKeepAliveSessionAsync(
+            using var session = await client.TryCreateKeepAliveSessionAsync(
                 WellKnownServiceHubServices.RemoteDesignerAttributeService,
                 callback,
                 cancellationTokenSource.Token);
 
-            var invokeTask = session.TryInvokeAsync(
+            var invokeTask = session.RunRemoteAsync(
                 nameof(IRemoteDesignerAttributeService.StartScanningForDesignerAttributesAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),
@@ -481,7 +481,7 @@ class Test { }");
         private async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
         {
             Assert.True(await client.TryRunRemoteAsync(
-                WellKnownRemoteHostServices.RemoteHostService,
+                WellKnownServiceHubServices.RemoteHostService,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 solution,
                 new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },

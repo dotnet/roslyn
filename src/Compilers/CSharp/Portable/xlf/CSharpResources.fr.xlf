@@ -142,6 +142,11 @@
         <target state="translated">Un littéral par défaut 'default' est non valide en tant que modèle. Utilisez un autre littéral (par exemple, '0' ou 'null') selon le cas. Pour correspondre à tout, utilisez un modèle d'abandon '_'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
+        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
+        <target state="new">A variable may not be declared within a 'not' or 'or' pattern.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">Le modèle d'abandon n'est pas autorisé en tant qu'étiquette case dans une instruction switch. Utilisez 'case var _:' pour un modèle d'abandon, ou 'case @_:' pour une constante nommée '_'.</target>
@@ -442,6 +447,11 @@
         <target state="translated">La partie gauche d'une assignation par référence doit être une variable locale ou un paramètre ref.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RelationalPatternWithNaN">
+        <source>Relational patterns may not be used for a floating-point NaN.</source>
+        <target state="new">Relational patterns may not be used for a floating-point NaN.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Le runtime cible ne prend pas en charge l'accessibilité 'protected', 'protected internal' ou 'private protected' d'un membre d'interface.</target>
@@ -473,13 +483,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
-        <source>The pattern has already been handled by a previous arm of the switch expression.</source>
-        <target state="translated">Le modèle a déjà été traité par un bras précédent de l'expression switch.</target>
+        <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
+        <target state="needs-review-translation">Le modèle a déjà été traité par un bras précédent de l'expression switch.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchCaseSubsumed">
-        <source>The switch case has already been handled by a previous case.</source>
-        <target state="translated">Le switch case a déjà été pris en charge par un case antérieur.</target>
+        <source>The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.</source>
+        <target state="needs-review-translation">Le switch case a déjà été pris en charge par un case antérieur.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchExpressionNoBestType">
@@ -535,6 +545,11 @@
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
         <target state="translated">Le type '{2}' doit être un type valeur non-nullable, ainsi que l'ensemble des champs à tous les niveaux d'imbrication, pour pouvoir être utilisé en tant que paramètre '{1}' dans le type ou la méthode générique '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForRelationalPattern">
+        <source>Relational patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">Relational patterns may not be used for a value of type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
@@ -884,6 +899,11 @@
         <target state="translated">chaînes verbatim interpolées de remplacement</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAndPattern">
+        <source>and pattern</source>
+        <target state="new">and pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAsyncUsing">
         <source>asynchronous using</source>
         <target state="translated">using asynchrone</target>
@@ -964,6 +984,11 @@
         <target state="translated">contrainte de type générique notnull</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNotPattern">
+        <source>not pattern</source>
+        <target state="new">not pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
         <source>nullable reference types</source>
         <target state="translated">types référence Nullable</target>
@@ -972,6 +997,16 @@
       <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
         <source>obsolete on property accessor</source>
         <target state="translated">obsolète sur l'accesseur de propriété</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureOrPattern">
+        <source>or pattern</source>
+        <target state="new">or pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureParenthesizedPattern">
+        <source>parenthesized pattern</source>
+        <target state="new">parenthesized pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnable">
@@ -1014,6 +1049,11 @@
         <target state="translated">réassignation de référence</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRelationalPattern">
+        <source>relational pattern</source>
+        <target state="new">relational pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
         <source>stackalloc initializer</source>
         <target state="translated">initialiseur stackalloc</target>
@@ -1037,6 +1077,11 @@
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
         <target state="translated">égalité de tuple</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureTypePattern">
+        <source>type pattern</source>
+        <target state="new">type pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
@@ -1524,6 +1569,16 @@
         <target state="translated">L'expression donnée correspond toujours à la constante fournie.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_GivenExpressionAlwaysMatchesPattern">
+        <source>The given expression always matches the provided pattern.</source>
+        <target state="new">The given expression always matches the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionAlwaysMatchesPattern_Title">
+        <source>The given expression always matches the provided pattern.</source>
+        <target state="new">The given expression always matches the provided pattern.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_GivenExpressionNeverMatchesPattern">
         <source>The given expression never matches the provided pattern.</source>
         <target state="translated">L'expression donnée ne correspond jamais au modèle fourni.</target>
@@ -1542,6 +1597,16 @@
       <trans-unit id="WRN_ImplicitCopyInReadOnlyMember_Title">
         <source>Call to non-readonly member from a 'readonly' member results in an implicit copy.</source>
         <target state="translated">L'appel au membre non readonly à partir d'un membre 'readonly' génère une copie implicite.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsPatternAlways">
+        <source>An expression of type '{0}' always matches the provided pattern.</source>
+        <target state="new">An expression of type '{0}' always matches the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsPatternAlways_Title">
+        <source>The input always matches the provided pattern.</source>
+        <target state="new">The input always matches the provided pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
@@ -3755,8 +3820,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
-        <source>Cannot use attribute constructor '{0}' because it is has 'in' parameters.</source>
-        <target state="translated">Impossible d'utiliser le constructeur d'attribut '{0}' car il contient des paramètres 'in'.</target>
+        <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
+        <target state="needs-review-translation">Impossible d'utiliser le constructeur d'attribut '{0}' car il contient des paramètres 'in'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
@@ -8813,11 +8878,6 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       <trans-unit id="ERR_FeatureNotAvailableInVersion7">
         <source>Feature '{0}' is not available in C# 7.0. Please use language version {1} or greater.</source>
         <target state="translated">La fonctionnalité '{0}' n'est pas disponible en C# 7.0. Utilisez la version de langage {1} ou une version ultérieure.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FeatureIsUnimplemented">
-        <source>Feature '{0}' is not implemented in this compiler.</source>
-        <target state="translated">La fonctionnalité '{0}' n'est pas implémentée dans ce compilateur.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_VersionExperimental">

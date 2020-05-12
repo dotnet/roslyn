@@ -134,14 +134,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             {
                 var solution = _project.Solution;
 
-                var symbolAndProjectId = SymbolAndProjectId.Create(constraintType, _project.Id);
+                var symbol = constraintType;
                 var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
-                    symbolAndProjectId, solution, projects, _cancellationToken).ConfigureAwait(false);
+                    symbol, solution, projects, _cancellationToken).ConfigureAwait(false);
 
-                var implementedTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresAndClassesAsync(
-                    symbolAndProjectId, solution, projects, _cancellationToken).ConfigureAwait(false);
+                var implementedTypes = await SymbolFinder.FindImplementationsAsync(
+                    symbol, solution, projects, _cancellationToken).ConfigureAwait(false);
 
-                return derivedClasses.Concat(implementedTypes).Select(t => t.Symbol).ToSet();
+                return derivedClasses.Concat(implementedTypes).ToSet();
             }
         }
     }

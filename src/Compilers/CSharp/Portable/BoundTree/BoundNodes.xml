@@ -169,7 +169,6 @@
   </Node>
 
   <Node Name="BoundTypeExpression" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="AliasOpt" Type="AliasSymbol?"/>
 
     <!-- 
@@ -213,6 +212,7 @@
     <Field Name="BoundDimensionsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
 
     <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="TypeWithAnnotations" Type="TypeWithAnnotations"/>
   </Node>
 
@@ -776,7 +776,37 @@
     <Field Name="StatementOpt" Type="BoundStatement?"/>
     <Field Name="Span" Type="TextSpan"/>
   </Node>
-  
+
+  <!--
+    This is used to save the debugger's idea of what the enclosing sequence
+    point is at this location in the code so that it can be restored later
+    by a BoundRestorePreviousSequencePoint node. When this statement appears,
+    the previous non-hidden sequence point is saved and associated with the
+    given Identifier.
+    -->
+  <Node Name="BoundSavePreviousSequencePoint" Base="BoundStatement">
+    <Field Name="Identifier" Type="object"/>
+  </Node>
+
+  <!--
+    This is used to restore the debugger's idea of what the enclosing statement
+    is to some previous location without introducing a place where a breakpoint
+    would cause the debugger to stop. The identifier must have
+    previously been given in a BoundSavePreviousSequencePoint statement. This is used
+    to implement breakpoints within expressions (e.g. a switch expression).
+    -->
+  <Node Name="BoundRestorePreviousSequencePoint" Base="BoundStatement">
+    <Field Name="Identifier" Type="object"/>
+  </Node>
+
+  <!--
+    This is used to set the debugger's idea of what the enclosing statement
+    is without causing the debugger to stop here when single stepping.
+    -->
+  <Node Name="BoundStepThroughSequencePoint" Base="BoundStatement">
+    <Field Name="Span" Type="TextSpan"/>
+  </Node>
+
   <!--  
   BoundBlock contains 
     a) Statements - actions performed within the scope of the block
@@ -1219,7 +1249,7 @@
   </Node>
 
   <!-- 
-  This represents a the bound form of a label reference (i.e. in a goto).
+  This represents the bound form of a label reference (i.e. in a goto).
   It is only used for the SemanticModel API.
   -->
   <Node Name="BoundLabel" Base="BoundExpression">
@@ -1277,31 +1307,31 @@
     <Field Name="RootNode" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>
 
-  <AbstractNode Name="BoundDecisionDagNode " Base="BoundNode">
+  <AbstractNode Name="BoundDecisionDagNode" Base="BoundNode">
   </AbstractNode>
   <!-- This node is used to indicate a point in the decision dag where an evaluation is performed, such as invoking Deconstruct. -->
-  <Node Name="BoundEvaluationDecisionDagNode" Base="BoundDecisionDagNode ">
+  <Node Name="BoundEvaluationDecisionDagNode" Base="BoundDecisionDagNode">
     <Field Name="Evaluation" Type="BoundDagEvaluation" Null="disallow"/>
-    <Field Name="Next" Type="BoundDecisionDagNode " Null="disallow"/>
+    <Field Name="Next" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>
   <!-- This node is used to indicate a point in the decision dag where a test may change the path of the decision dag. -->
-  <Node Name="BoundTestDecisionDagNode" Base="BoundDecisionDagNode ">
+  <Node Name="BoundTestDecisionDagNode" Base="BoundDecisionDagNode">
     <Field Name="Test" Type="BoundDagTest" Null="disallow"/>
-    <Field Name="WhenTrue" Type="BoundDecisionDagNode " Null="disallow"/>
-    <Field Name="WhenFalse" Type="BoundDecisionDagNode " Null="disallow"/>
+    <Field Name="WhenTrue" Type="BoundDecisionDagNode" Null="disallow"/>
+    <Field Name="WhenFalse" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>
-  <Node Name="BoundWhenDecisionDagNode" Base="BoundDecisionDagNode ">
+  <Node Name="BoundWhenDecisionDagNode" Base="BoundDecisionDagNode">
     <Field Name="Bindings" Type="ImmutableArray&lt;BoundPatternBinding&gt;" Null="disallow"/>
     <!--
     WhenExpression is null when there was no when clause in source but there are bindings.
     In that case WhenFalse is null.
     -->
     <Field Name="WhenExpression" Type="BoundExpression?"/>
-    <Field Name="WhenTrue" Type="BoundDecisionDagNode " Null="disallow"/>
-    <Field Name="WhenFalse" Type="BoundDecisionDagNode ?"/>
+    <Field Name="WhenTrue" Type="BoundDecisionDagNode" Null="disallow"/>
+    <Field Name="WhenFalse" Type="BoundDecisionDagNode?"/>
   </Node>
   <!-- This node is used to indicate a point in the decision dag where the decision has been completed. -->
-  <Node Name="BoundLeafDecisionDagNode" Base="BoundDecisionDagNode ">
+  <Node Name="BoundLeafDecisionDagNode" Base="BoundDecisionDagNode">
     <Field Name="Label" Type="LabelSymbol"/>
   </Node>
 
@@ -1327,6 +1357,11 @@
   </Node>
   <Node Name="BoundDagValueTest" Base="BoundDagTest">
     <!--Check that the input is the same as the given constant value (other than null).-->
+    <Field Name="Value" Type="ConstantValue" Null="disallow"/>
+  </Node>
+  <Node Name="BoundDagRelationalTest" Base="BoundDagTest">
+    <!--Check that the input is related to (equal, not equal, less, less or equal, greater, greater or equal) the given constant value (other than null).-->
+    <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="Value" Type="ConstantValue" Null="disallow"/>
   </Node>
   <!-- As a decision, an evaluation is considered to always succeed. -->
@@ -1957,6 +1992,7 @@
 
   <AbstractNode Name="BoundPattern" Base="BoundNode">
     <Field Name="InputType" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="ConvertedType" Type="TypeSymbol" Null="disallow"/>
   </AbstractNode>
 
   <Node Name="BoundConstantPattern" Base="BoundPattern">
@@ -1979,7 +2015,7 @@
          https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
          removed. -->
     <Field Name="VariableAccess" Type="BoundExpression?"/>
-    <Field Name="DeclaredType" Type="BoundTypeExpression?"/>
+    <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow"/>
     <Field Name="IsVar" Type="bool"/>
   </Node>
 
@@ -2013,6 +2049,27 @@
     <!-- The tuple element or parameter in a positional pattern, or the property or field in a property pattern. -->
     <Field Name="Symbol" Type="Symbol?"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundTypePattern" Base="BoundPattern">
+    <Field Name="DeclaredType" Type="BoundTypeExpression"/>
+    <Field Name="IsExplicitNotNullTest" Type="bool"/>
+  </Node>
+
+  <Node Name="BoundBinaryPattern" Base="BoundPattern">
+    <Field Name="Disjunction" Type="bool"/>
+    <Field Name="Left" Type="BoundPattern"/>
+    <Field Name="Right" Type="BoundPattern"/>
+  </Node>
+
+  <Node Name="BoundNegatedPattern" Base="BoundPattern">
+    <Field Name="Negated" Type="BoundPattern"/>
+  </Node>
+
+  <Node Name="BoundRelationalPattern" Base="BoundPattern">
+    <Field Name="Relation" Type="BinaryOperatorKind"/>
+    <Field Name="Value" Type="BoundExpression"/>
+    <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
   </Node>
 
   <Node Name="BoundDiscardExpression" Base="BoundExpression">

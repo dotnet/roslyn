@@ -40,6 +40,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Add 'DebuggerDisplay' attribute</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="new">Add explicit cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Ajouter le nom du membre</target>
@@ -155,6 +160,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Capture number cannot be zero</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
+        <source>TODO</source>
+        <target state="new">TODO</target>
+        <note>"TODO" is an indication that there is work still to be done.</note>
+      </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterOmitValue">
+        <source>&lt;omit&gt;</source>
+        <target state="new">&lt;omit&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_namespace_to_0">
         <source>Change namespace to '{0}'</source>
         <target state="translated">Remplacer l’espace de noms par '{0}'</target>
@@ -230,6 +245,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Convertir en struct</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="new">Convert type to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="new">Create and assign field '{0}'</target>
@@ -283,6 +303,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Le contenu actuel du fichier source '{0}' ne correspond pas à la source générée. Les changements apportés à ce fichier durant le débogage ne seront pas appliqués tant que son contenu ne correspondra pas à la source générée.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
+        <source>Document must be contained in the workspace that created this service</source>
+        <target state="new">Document must be contained in the workspace that created this service</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -703,6 +728,20 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Regex_any_character_group_short">
         <source>any character</source>
         <target state="new">any character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_atomic_group_long">
+        <source>Atomic groups (known in some other regular expression engines as a nonbacktracking subexpression, an atomic subexpression, or a once-only subexpression) disable backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+
+This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
+        <target state="new">Atomic groups (known in some other regular expression engines as a nonbacktracking subexpression, an atomic subexpression, or a once-only subexpression) disable backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+
+This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_atomic_group_short">
+        <source>atomic group</source>
+        <target state="new">atomic group</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_backspace_character_long">
@@ -1352,20 +1391,6 @@ If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]
         <target state="new">non-word character</target>
         <note />
       </trans-unit>
-      <trans-unit id="Regex_nonbacktracking_subexpression_long">
-        <source>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
-
-This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
-        <target state="new">This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
-
-This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_nonbacktracking_subexpression_short">
-        <source>nonbacktracking subexpression</source>
-        <target state="new">nonbacktracking subexpression</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regex_noncapturing_group_long">
         <source>This construct does not capture the substring that is matched by a subexpression:
 
@@ -1990,6 +2015,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Enveloppement</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_cannot_be_null_or_empty">
+        <source>'{0}' cannot be null or empty</source>
+        <target state="new">'{0}' cannot be null or empty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_cannot_be_null_or_whitespace">
+        <source>'{0}' cannot be null or whitespace</source>
+        <target state="new">'{0}' cannot be null or whitespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
         <source>10,000,000ths of a second</source>
         <target state="new">10,000,000ths of a second</target>
@@ -2291,6 +2326,11 @@ If the "d" format specifier is used without other custom format specifiers, it's
       <trans-unit id="discard">
         <source>discard</source>
         <target state="translated">discard</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="from_metadata">
+        <source>from metadata</source>
+        <target state="new">from metadata</target>
         <note />
       </trans-unit>
       <trans-unit id="full_long_date_time">
@@ -3543,6 +3583,11 @@ When this standard format specifier is used, the formatting or parsing operation
 The purpose of the "s" format specifier is to produce result strings that sort consistently in ascending or descending order based on date and time values. As a result, although the "s" standard format specifier represents a date and time value in a consistent format, the formatting operation does not modify the value of the date and time object that is being formatted to reflect its DateTime.Kind property or its DateTimeOffset.Offset value. For example, the result strings produced by formatting the date and time values 2014-11-15T18:32:17+00:00 and 2014-11-15T18:32:17+08:00 are identical.
 
 When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="symbol_cannot_be_a_namespace">
+        <source>'symbol' cannot be a namespace.</source>
+        <target state="new">'symbol' cannot be a namespace.</target>
         <note />
       </trans-unit>
       <trans-unit id="time_separator">

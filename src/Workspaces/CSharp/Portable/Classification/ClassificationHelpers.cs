@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     internal static class ClassificationHelpers
     {
         private const string FromKeyword = "from";
-        private const string ValueKeyword = "value";
         private const string VarKeyword = "var";
         private const string UnmanagedKeyword = "unmanaged";
         private const string NotNullKeyword = "notnull";

@@ -56,6 +56,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list)
             => SyntaxFactory.SeparatedList<TElement>(list);
 
+        internal override SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim)
+        {
+            const string InterpolatedVerbatimText = "$@\"";
+
+            return isVerbatim
+                ? SyntaxFactory.Token(default, SyntaxKind.InterpolatedVerbatimStringStartToken, InterpolatedVerbatimText, InterpolatedVerbatimText, default)
+                : SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken);
+        }
+
+        internal override SyntaxToken CreateInterpolatedStringEndToken()
+            => SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken);
+
         internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(IEnumerable<TElement> nodes, IEnumerable<SyntaxToken> separators)
             => SyntaxFactory.SeparatedList(nodes, separators);
 
@@ -66,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return SyntaxFactory.Trivia(structuredTriviaSyntax);
             }
 
-            return default;
+            throw ExceptionUtilities.UnexpectedValue(node.Kind());
         }
 
         internal override SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString)
@@ -82,29 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 .WithTrailingTrivia(
                 SyntaxFactory.EndOfLine(endOfLineString),
                 lastWhitespaceTrivia);
-        }
-
-        internal override bool IsNamedArgument(SyntaxNode syntaxNode)
-            => syntaxNode is ArgumentSyntax argumentSyntax && argumentSyntax.NameColon != null;
-
-        internal override bool IsWhitespaceTrivia(SyntaxTrivia trivia)
-            => trivia.IsKind(SyntaxKind.WhitespaceTrivia);
-
-        internal override bool IsDocumentationCommentTriviaSyntax(SyntaxNode node)
-            => node is DocumentationCommentTriviaSyntax;
-
-        internal override bool IsParameterNameXmlElementSyntax(SyntaxNode node)
-            => node.IsKind(SyntaxKind.XmlElement, out XmlElementSyntax xmlElement) &&
-            xmlElement.StartTag.Name.ToString() == DocumentationCommentXmlNames.ParameterElementName;
-
-        internal override SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)
-        {
-            if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationCommentTrivia)
-            {
-                return documentationCommentTrivia.Content.ToArray();
-            }
-
-            return new SyntaxNode[0];
         }
 
         internal override SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content)
@@ -2984,10 +2973,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         #region Statements and Expressions
 
         public override SyntaxNode AddEventHandler(SyntaxNode @event, SyntaxNode handler)
-            => SyntaxFactory.AssignmentExpression(SyntaxKind.AddAssignmentExpression, (ExpressionSyntax)@event, Parenthesize(handler));
+            => SyntaxFactory.AssignmentExpression(SyntaxKind.AddAssignmentExpression, (ExpressionSyntax)@event, (ExpressionSyntax)Parenthesize(handler));
 
         public override SyntaxNode RemoveEventHandler(SyntaxNode @event, SyntaxNode handler)
-            => SyntaxFactory.AssignmentExpression(SyntaxKind.SubtractAssignmentExpression, (ExpressionSyntax)@event, Parenthesize(handler));
+            => SyntaxFactory.AssignmentExpression(SyntaxKind.SubtractAssignmentExpression, (ExpressionSyntax)@event, (ExpressionSyntax)Parenthesize(handler));
 
         public override SyntaxNode AwaitExpression(SyntaxNode expression)
             => SyntaxFactory.AwaitExpression((ExpressionSyntax)expression);
@@ -3081,7 +3070,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return expression;
             }
 
-            return Parenthesize(expression);
+            return (ExpressionSyntax)Parenthesize(expression);
         }
 
         private static SeparatedSyntaxList<ExpressionSyntax> AsExpressionList(IEnumerable<SyntaxNode> expressions)
@@ -3102,6 +3091,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode ObjectCreationExpression(SyntaxNode type, IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.ObjectCreationExpression((TypeSyntax)type, CreateArgumentList(arguments), null);
+
+        internal override SyntaxNode ObjectCreationExpression(SyntaxNode type, SyntaxToken openParen, SeparatedSyntaxList<SyntaxNode> arguments, SyntaxToken closeParen)
+            => SyntaxFactory.ObjectCreationExpression(
+                (TypeSyntax)type,
+                SyntaxFactory.ArgumentList(openParen, arguments, closeParen),
+                initializer: null);
 
         private static ArgumentListSyntax CreateArgumentList(IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.ArgumentList(CreateArguments(arguments));
@@ -3159,29 +3154,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return DefaultExpression(type.GenerateTypeSyntax());
         }
 
-        private static ExpressionSyntax Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
+        private static SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
             => CSharpSyntaxGeneratorInternal.Parenthesize(expression, includeElasticTrivia, addSimplifierAnnotation);
 
         public override SyntaxNode IsTypeExpression(SyntaxNode expression, SyntaxNode type)
-            => SyntaxFactory.BinaryExpression(SyntaxKind.IsExpression, Parenthesize(expression), (TypeSyntax)type);
+            => SyntaxFactory.BinaryExpression(SyntaxKind.IsExpression, (ExpressionSyntax)Parenthesize(expression), (TypeSyntax)type);
 
         public override SyntaxNode TypeOfExpression(SyntaxNode type)
             => SyntaxFactory.TypeOfExpression((TypeSyntax)type);
 
         public override SyntaxNode TryCastExpression(SyntaxNode expression, SyntaxNode type)
-            => SyntaxFactory.BinaryExpression(SyntaxKind.AsExpression, Parenthesize(expression), (TypeSyntax)type);
+            => SyntaxFactory.BinaryExpression(SyntaxKind.AsExpression, (ExpressionSyntax)Parenthesize(expression), (TypeSyntax)type);
 
         public override SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression)
-            => SyntaxFactory.CastExpression((TypeSyntax)type, Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
+            => SyntaxFactory.CastExpression((TypeSyntax)type, (ExpressionSyntax)Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
 
         public override SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression)
-            => SyntaxFactory.CastExpression((TypeSyntax)type, Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
+            => SyntaxFactory.CastExpression((TypeSyntax)type, (ExpressionSyntax)Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
 
         public override SyntaxNode AssignmentStatement(SyntaxNode left, SyntaxNode right)
-            => SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, (ExpressionSyntax)left, Parenthesize(right));
+            => SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, (ExpressionSyntax)left, (ExpressionSyntax)Parenthesize(right));
 
         private static SyntaxNode CreateBinaryExpression(SyntaxKind syntaxKind, SyntaxNode left, SyntaxNode right)
-            => SyntaxFactory.BinaryExpression(syntaxKind, Parenthesize(left), Parenthesize(right));
+            => SyntaxFactory.BinaryExpression(syntaxKind, (ExpressionSyntax)Parenthesize(left), (ExpressionSyntax)Parenthesize(right));
 
         public override SyntaxNode ValueEqualsExpression(SyntaxNode left, SyntaxNode right)
             => CreateBinaryExpression(SyntaxKind.EqualsExpression, left, right);
@@ -3208,7 +3203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => CreateBinaryExpression(SyntaxKind.GreaterThanOrEqualExpression, left, right);
 
         public override SyntaxNode NegateExpression(SyntaxNode expression)
-            => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, Parenthesize(expression));
+            => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, (ExpressionSyntax)Parenthesize(expression));
 
         public override SyntaxNode AddExpression(SyntaxNode left, SyntaxNode right)
             => CreateBinaryExpression(SyntaxKind.AddExpression, left, right);
@@ -3232,7 +3227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => CreateBinaryExpression(SyntaxKind.BitwiseOrExpression, left, right);
 
         public override SyntaxNode BitwiseNotExpression(SyntaxNode operand)
-            => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.BitwiseNotExpression, Parenthesize(operand));
+            => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.BitwiseNotExpression, (ExpressionSyntax)Parenthesize(operand));
 
         public override SyntaxNode LogicalAndExpression(SyntaxNode left, SyntaxNode right)
             => CreateBinaryExpression(SyntaxKind.LogicalAndExpression, left, right);
@@ -3241,10 +3236,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => CreateBinaryExpression(SyntaxKind.LogicalOrExpression, left, right);
 
         public override SyntaxNode LogicalNotExpression(SyntaxNode expression)
-            => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, Parenthesize(expression));
+            => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, (ExpressionSyntax)Parenthesize(expression));
 
         public override SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse)
-            => SyntaxFactory.ConditionalExpression(Parenthesize(condition), Parenthesize(whenTrue), Parenthesize(whenFalse));
+            => SyntaxFactory.ConditionalExpression((ExpressionSyntax)Parenthesize(condition), (ExpressionSyntax)Parenthesize(whenTrue), (ExpressionSyntax)Parenthesize(whenFalse));
 
         public override SyntaxNode CoalesceExpression(SyntaxNode left, SyntaxNode right)
             => CreateBinaryExpression(SyntaxKind.CoalesceExpression, left, right);
@@ -3547,9 +3542,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode ParseExpression(string stringToParse)
             => SyntaxFactory.ParseExpression(stringToParse);
 
-        internal override SyntaxToken CommaTokenWithElasticSpace()
-            => SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace);
-
         #endregion
 
         #region Patterns
@@ -3557,8 +3549,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override bool SupportsPatterns(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
-        internal override SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern)
-            => SyntaxFactory.IsPatternExpression((ExpressionSyntax)expression, (PatternSyntax)pattern);
+        internal override SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxToken isKeyword, SyntaxNode pattern)
+            => SyntaxFactory.IsPatternExpression(
+                (ExpressionSyntax)expression,
+                isKeyword == default ? SyntaxFactory.Token(SyntaxKind.IsKeyword) : isKeyword,
+                (PatternSyntax)pattern);
 
         internal override SyntaxNode ConstantPattern(SyntaxNode expression)
             => SyntaxFactory.ConstantPattern((ExpressionSyntax)expression);
@@ -3567,6 +3562,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.DeclarationPattern(
                 type.GenerateTypeSyntax(),
                 SyntaxFactory.SingleVariableDesignation(name.ToIdentifierToken()));
+
+        internal override SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right)
+            => SyntaxFactory.BinaryPattern(SyntaxKind.AndPattern, (PatternSyntax)Parenthesize(left), (PatternSyntax)Parenthesize(right));
+
+        internal override SyntaxNode NotPattern(SyntaxNode pattern)
+            => SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), (PatternSyntax)Parenthesize(pattern));
+
+        internal override SyntaxNode OrPattern(SyntaxNode left, SyntaxNode right)
+            => SyntaxFactory.BinaryPattern(SyntaxKind.OrPattern, (PatternSyntax)Parenthesize(left), (PatternSyntax)Parenthesize(right));
+
+        internal override SyntaxNode ParenthesizedPattern(SyntaxNode pattern)
+            => Parenthesize(pattern);
+
+        internal override SyntaxNode TypePattern(SyntaxNode type)
+            => SyntaxFactory.TypePattern((TypeSyntax)type);
 
         #endregion
     }

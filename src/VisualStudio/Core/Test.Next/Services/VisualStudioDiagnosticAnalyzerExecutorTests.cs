@@ -146,15 +146,15 @@ End Class";
             {
                 var solution = workspace.CurrentSolution;
                 var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+                var service = solution.Workspace.Services.GetService<IRemotableDataService>();
 
                 var source = new CancellationTokenSource();
-                using var connection = new InvokeThrowsCancellationConnection(source);
-                var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => SessionWithSolution.CreateAsync(connection, solution, source.Token));
+                using var session = new KeepAliveSession(new InvokeThrowsCancellationConnection(source), service);
+                var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => SessionWithSolution.CreateAsync(session, solution, source.Token));
                 Assert.Equal(exception.CancellationToken, source.Token);
 
                 // make sure things that should have been cleaned up are cleaned up
-                var service = (RemotableDataServiceFactory.Service)solution.Workspace.Services.GetService<IRemotableDataService>();
-                Assert.Null(await service.TestOnly_GetRemotableDataAsync(solutionChecksum, CancellationToken.None).ConfigureAwait(false));
+                Assert.Null(await ((RemotableDataServiceFactory.Service)service).TestOnly_GetRemotableDataAsync(solutionChecksum, CancellationToken.None).ConfigureAwait(false));
             }
         }
 
@@ -217,7 +217,7 @@ End Class";
                 var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
 
                 // add host analyzer as global assets
-                var snapshotService = workspace.Services.GetService<IRemotableDataService>();
+                var remotableDataService = workspace.Services.GetService<IRemotableDataService>();
                 var serializer = workspace.Services.GetRequiredService<ISerializerService>();
 
                 // run analysis

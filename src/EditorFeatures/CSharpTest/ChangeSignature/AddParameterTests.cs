@@ -315,21 +315,21 @@ class MyClass
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                AddedParameterOrExistingIndex.CreateAdded("byte", "b", "34"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 using System;
 
 class MyClass2 : MyClass
 {
-    public MyClass2() : base(""test2"", x: 5, b: 34)
+    public MyClass2() : base(""test2"", 34, 5)
     {
     }
 }
 
 class MyClass
 {
-    public MyClass() : this(""test"", x: 2, b: 34)
+    public MyClass() : this(""test"", 34, 2)
     {
     }
 
@@ -362,7 +362,7 @@ class MyAttribute : System.Attribute
                 new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
-[My(8, x: ""test"", b: 34)]
+[My(8, 34, ""test"")]
 class MyClass
 {
 }
@@ -466,6 +466,34 @@ public static class CExt
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
                 expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 1);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddParameterWithOmittedArgument_ParamsAsArray()
+        {
+            var markup = @"
+public class C
+{
+    void $$M(int x, int y, params int[] p)
+    {
+        M(x, y, p: p);
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(0),
+                new AddedParameterOrExistingIndex(1),
+                AddedParameterOrExistingIndex.CreateAdded("int", "z", isRequired: false, defaultValue: "3", isCallsiteOmitted: true),
+                new AddedParameterOrExistingIndex(2)};
+            var updatedCode = @"
+public class C
+{
+    void M(int x, int y, int z = 3, params int[] p)
+    {
+        M(x, y, p: p);
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -603,8 +631,8 @@ class Program
 {
     void M()
     {
-        var x = new Program()[2, x: 1, b: 34];
-        new Program()[2, x: 1, b: 34] = x;
+        var x = new Program()[2, 34, 1];
+        new Program()[2, 34, 1] = x;
     }
 
     public int this[int y, byte b, int x]
@@ -1052,7 +1080,7 @@ class C
 class C
 {
     /// <summary>
-    /// See <see cref=""M(string, byte,  int)""/> and <see cref=""M""/>
+    /// See <see cref=""M(string, byte, int)""/> and <see cref=""M""/>
     /// </summary>
     void M(string y, byte b, int x)
     { }
@@ -1144,6 +1172,93 @@ class D : C, I
 {
 }";
 
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WorkItem(43664, "https://github.com/dotnet/roslyn/issues/43664")]
+        public async Task AddParameterOnUnparenthesizedLambda()
+        {
+            var markup = @"
+using System.Linq;
+
+namespace ConsoleApp426
+{
+    class Program
+    {
+        static void M(string[] args)
+        {
+            if (args.All(b$$ => Test()))
+            {
+
+            }
+        }
+
+        static bool Test() { return true; }
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(0),
+                AddedParameterOrExistingIndex.CreateAdded("byte", "bb", callSiteValue: "34") };
+
+            var updatedCode = @"
+using System.Linq;
+
+namespace ConsoleApp426
+{
+    class Program
+    {
+        static void M(string[] args)
+        {
+            if (args.All((b, byte bb) => Test()))
+            {
+
+            }
+        }
+
+        static bool Test() { return true; }
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
+        public async Task AddAndReorderImplicitObjectCreationParameter()
+        {
+            var markup = @"
+using System;
+class C
+{
+    $$C(int x, string y)
+    {
+    }
+
+    public void M()
+    {
+        _ = new(1, 2);
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+using System;
+class C
+{
+    C(string y, byte b, int x)
+    {
+    }
+
+    public void M()
+    {
+        _ = new(1, 2);
+    }
+}";
+            // Expect: _ = new(2, 34, 1);
+            // Tracked by https://github.com/dotnet/roslyn/issues/44126
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
     }

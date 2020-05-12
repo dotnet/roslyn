@@ -1396,7 +1396,7 @@
     <value>Cannot return 'this' by reference.</value>
   </data>
   <data name="ERR_AttributeCtorInParameter" xml:space="preserve">
-    <value>Cannot use attribute constructor '{0}' because it is has 'in' parameters.</value>
+    <value>Cannot use attribute constructor '{0}' because it has 'in' parameters.</value>
   </data>
   <data name="ERR_OverrideWithConstraints" xml:space="preserve">
     <value>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</value>
@@ -4518,9 +4518,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureIsExperimental" xml:space="preserve">
     <value>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</value>
   </data>
-  <data name="ERR_FeatureIsUnimplemented" xml:space="preserve">
-    <value>Feature '{0}' is not implemented in this compiler.</value>
-  </data>
   <data name="IDS_VersionExperimental" xml:space="preserve">
     <value>'experimental'</value>
   </data>
@@ -5093,13 +5090,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The switch expression must be a value; found '{0}'.</value>
   </data>
   <data name="ERR_SwitchCaseSubsumed" xml:space="preserve">
-    <value>The switch case has already been handled by a previous case.</value>
+    <value>The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.</value>
   </data>
   <data name="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected" xml:space="preserve">
     <value>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</value>
   </data>
   <data name="ERR_SwitchArmSubsumed" xml:space="preserve">
-    <value>The pattern has already been handled by a previous arm of the switch expression.</value>
+    <value>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</value>
   </data>
   <data name="ERR_PatternWrongType" xml:space="preserve">
     <value>An expression of type '{0}' cannot be handled by a pattern of type '{1}'.</value>
@@ -5866,6 +5863,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_IsPatternImpossible" xml:space="preserve">
     <value>An expression of type '{0}' can never match the provided pattern.</value>
   </data>
+  <data name="WRN_IsPatternAlways" xml:space="preserve">
+    <value>An expression of type '{0}' always matches the provided pattern.</value>
+  </data>
+  <data name="WRN_IsPatternAlways_Title" xml:space="preserve">
+    <value>The input always matches the provided pattern.</value>
+  </data>
   <data name="WRN_GivenExpressionNeverMatchesPattern" xml:space="preserve">
     <value>The given expression never matches the provided pattern.</value>
   </data>
@@ -5877,6 +5880,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_GivenExpressionAlwaysMatchesConstant_Title" xml:space="preserve">
     <value>The given expression always matches the provided constant.</value>
+  </data>
+  <data name="WRN_GivenExpressionAlwaysMatchesPattern" xml:space="preserve">
+    <value>The given expression always matches the provided pattern.</value>
+  </data>
+  <data name="WRN_GivenExpressionAlwaysMatchesPattern_Title" xml:space="preserve">
+    <value>The given expression always matches the provided pattern.</value>
   </data>
   <data name="ERR_FeatureNotAvailableInVersion8_0" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</value>
@@ -6025,6 +6034,24 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureAsyncUsing" xml:space="preserve">
     <value>asynchronous using</value>
   </data>
+  <data name="IDS_FeatureParenthesizedPattern" xml:space="preserve">
+    <value>parenthesized pattern</value>
+  </data>
+  <data name="IDS_FeatureOrPattern" xml:space="preserve">
+    <value>or pattern</value>
+  </data>
+  <data name="IDS_FeatureAndPattern" xml:space="preserve">
+    <value>and pattern</value>
+  </data>
+  <data name="IDS_FeatureNotPattern" xml:space="preserve">
+    <value>not pattern</value>
+  </data>
+  <data name="IDS_FeatureTypePattern" xml:space="preserve">
+    <value>type pattern</value>
+  </data>
+  <data name="IDS_FeatureRelationalPattern" xml:space="preserve">
+    <value>relational pattern</value>
+  </data>
   <data name="ERR_VarianceInterfaceNesting" xml:space="preserve">
     <value>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</value>
   </data>
@@ -6069,5 +6096,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
     <value>Generator failed to initialize.</value>
+  </data>
+  <data name="ERR_DesignatorBeneathPatternCombinator" xml:space="preserve">
+    <value>A variable may not be declared within a 'not' or 'or' pattern.</value>
+  </data>
+  <data name="ERR_UnsupportedTypeForRelationalPattern" xml:space="preserve">
+    <value>Relational patterns may not be used for a value of type '{0}'.</value>
+  </data>
+  <data name="ERR_RelationalPatternWithNaN" xml:space="preserve">
+    <value>Relational patterns may not be used for a floating-point NaN.</value>
   </data>
 </root>

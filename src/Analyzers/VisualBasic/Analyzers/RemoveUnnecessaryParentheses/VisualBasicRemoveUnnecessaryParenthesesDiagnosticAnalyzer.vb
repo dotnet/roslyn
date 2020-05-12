@@ -15,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
     Friend Class VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer
         Inherits AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer(Of SyntaxKind, ParenthesizedExpressionSyntax)
 
+        Protected Overrides Function GetSyntaxKind() As SyntaxKind
+            Return SyntaxKind.ParenthesizedExpression
+        End Function
+
         Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
             Return VisualBasicSyntaxFacts.Instance
         End Function

@@ -5,10 +5,10 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
 
@@ -21,28 +21,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
                     New SimplifyTypeNamesCodeFixProvider())
         End Function
 
-        Private Function PreferIntrinsicPredefinedTypeEverywhere() As IDictionary(Of OptionKey2, Object)
+        Private Function PreferIntrinsicPredefinedTypeEverywhere() As OptionsCollection
             Dim language = GetLanguage()
 
-            Return OptionsSet(
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Error),
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithError, language))
+            Return New OptionsCollection(language) From {
+                    {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Error},
+                    {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithError}
+                }
         End Function
 
-        Private Function PreferIntrinsicPredefinedTypeInDeclaration() As IDictionary(Of OptionKey2, Object)
+        Private Function PreferIntrinsicPredefinedTypeInDeclaration() As OptionsCollection
             Dim language = GetLanguage()
 
-            Return OptionsSet(
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Error),
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithSilent, language))
+            Return New OptionsCollection(language) From {
+                {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Error},
+                {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithSilent}
+                }
         End Function
 
-        Private Function PreferIntrinsicTypeInMemberAccess() As IDictionary(Of OptionKey2, Object)
+        Private Function PreferIntrinsicTypeInMemberAccess() As OptionsCollection
             Dim language = GetLanguage()
 
-            Return OptionsSet(
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, True, NotificationOption2.Error),
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithSilent, language))
+            Return New OptionsCollection(language) From {
+                {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, True, NotificationOption2.Error},
+                {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithSilent}
+                }
         End Function
 
         Private ReadOnly onWithError As New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)
