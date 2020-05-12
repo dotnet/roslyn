@@ -305,6 +305,69 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public IMethodSymbol GetElementAccessMethod(SemanticModel semanticModel, SyntaxNode node)
+        {
+            if (node is ElementAccessExpressionSyntax elementAccess)
+            {
+                var info = semanticModel.GetSymbolInfo(elementAccess);
+                if (info.Symbol != null && info.Symbol.IsKind(SymbolKind.Method))
+                {
+                    return (IMethodSymbol)info.Symbol;
+                }
+            }
+
+            return null;
+        }
+
+        public IPropertySymbol GetElementAccessCountableProperty(SemanticModel semanticModel, SyntaxNode node)
+        {
+            // This method returns the countable property associated with a given indexer, if one exists.
+            // We prioritize Length over Count if both are present in the indexer definition.
+            // See https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-8.0/ranges#implicit-index-support.
+            if (node is ElementAccessExpressionSyntax elementAccess)
+            {
+                var info = semanticModel.GetSymbolInfo(elementAccess);
+                var symbol = info.Symbol;
+
+                // If we can't find a valid symbol, compare against the first candidate symbol instead.
+                if (symbol == null)
+                {
+                    symbol = info.CandidateSymbols.FirstOrDefault();
+                }
+
+                if (symbol == null || symbol.ContainingType == null)
+                {
+                    return null;
+                }
+
+                IPropertySymbol useCountPropertySymbol = null;
+                var containingType = symbol.ContainingType;
+                foreach (var location in containingType.Locations)
+                {
+                    var propertySymbols = semanticModel.LookupSymbols(location.SourceSpan.Start, containingType)
+                        .Where(s => s.IsKind(SymbolKind.Property));
+
+                    var lengthPropertySymbol = propertySymbols.Where(s => s.Name.Equals(WellKnownMemberNames.LengthPropertyName));
+                    if (!lengthPropertySymbol.IsEmpty())
+                    {
+                        return (IPropertySymbol)lengthPropertySymbol.First();
+                    }
+
+                    var countPropertySymbol = propertySymbols.Where(s => s.Name.Equals(WellKnownMemberNames.CountPropertyName));
+                    if (!countPropertySymbol.IsEmpty())
+                    {
+                        useCountPropertySymbol = (IPropertySymbol)countPropertySymbol.First();
+                    }
+                }
+
+                // If we reach this point, we can assume that the indexer has no Length property.
+                // Return the Count property instead if it exists.
+                return useCountPropertySymbol;
+            }
+
+            return null;
+        }
+
         public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
         {
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;

@@ -2,8 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(538886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538886")>
@@ -911,6 +909,202 @@ interface IC
     </Project>
 </Workspace>
             Await TestStreamingFeature(input, host)
+        End Function
+
+        <WorkItem(41310, "https://github.com/dotnet/roslyn/issues/41310")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_ImplicitRangeLength(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            int {|Definition:Len$$gth|} => 10;
+            int Slice(int start, int length) => start + length;
+
+            void M()
+            {
+                var c = new C();
+                var o = [|c|][1..^1];
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(41310, "https://github.com/dotnet/roslyn/issues/41310")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_ImplicitRangeCount(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            int {|Definition:Cou$$nt|} => 10;
+            int Slice(int start, int length) => start + length;
+
+            void M()
+            {
+                var c = new C();
+                var o = [|c|][1..^1];
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(41310, "https://github.com/dotnet/roslyn/issues/41310")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_ImplicitIndexLength(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            int {|Definition:Len$$gth|} => 10;
+            int this[int index] => 1;
+
+            void M()
+            {
+                var c = new C();
+                var o = [|c|][^1];
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(41310, "https://github.com/dotnet/roslyn/issues/41310")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_ImplicitIndexCount(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            int {|Definition:Cou$$nt|} => 10;
+            int this[int index] => 1;
+
+            void M()
+            {
+                var c = new C();
+                var o = [|c|][^1];
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(41310, "https://github.com/dotnet/roslyn/issues/41310")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_PrioritizeLengthOverCount_ImplicitRange(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            int {|Definition:Len$$gth|} => 10;
+            int Count => 10;
+            int Slice(int start, int length) => start + length;
+
+            void M()
+            {
+                var c = new C();
+                var o = [|c|][1..^1];
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(41310, "https://github.com/dotnet/roslyn/issues/41310")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_PrioritizeLengthOverCount_ImplicitRange2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            int Length => 10;
+            int {|Definition:Cou$$nt|} => 10;
+            int Slice(int start, int length) => start + length;
+
+            void M()
+            {
+                var c = new C();
+                var o = c[1..^1];
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(41310, "https://github.com/dotnet/roslyn/issues/41310")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_PrioritizeLengthOverCount_ImplicitIndex(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            int {|Definition:Len$$gth|} => 10;
+            int Count => 10;
+            int this[int index] => 1;
+
+            void M()
+            {
+                var c = new C();
+                var o = [|c|][^1];
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(41310, "https://github.com/dotnet/roslyn/issues/41310")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_PrioritizeLengthOverCount_ImplicitIndex2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            int Length => 10;
+            int {|Definition:Cou$$nt|} => 10;
+            int this[int index] => 1;
+
+            void M()
+            {
+                var c = new C();
+                var o = c[^1];
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
         End Function
     End Class
 End Namespace

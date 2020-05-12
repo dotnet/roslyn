@@ -302,6 +302,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ImmutableArray(Of IMethodSymbol).Empty
         End Function
 
+        Public Function GetElementAccessMethod(model As SemanticModel, node As SyntaxNode) As IMethodSymbol Implements ISemanticFactsService.GetElementAccessMethod
+            Return Nothing
+        End Function
+
+        Public Function GetElementAccessCountableProperty(model As SemanticModel, node As SyntaxNode) As IPropertySymbol Implements ISemanticFactsService.GetElementAccessCountableProperty
+            Return Nothing
+        End Function
+
         Public Function IsNamespaceDeclarationNameContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsNamespaceDeclarationNameContext
             Return semanticModel.SyntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken)
         End Function

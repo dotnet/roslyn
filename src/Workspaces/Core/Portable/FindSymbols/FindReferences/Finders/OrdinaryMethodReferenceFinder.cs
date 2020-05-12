@@ -114,6 +114,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private bool IsGetAwaiterMethod(IMethodSymbol methodSymbol)
             => methodSymbol.Name == WellKnownMemberNames.GetAwaiter;
 
+        private bool IsSliceMethod(IMethodSymbol methodSymbol)
+            => methodSymbol.Name == WellKnownMemberNames.SliceMethodName;
+
+        private bool IsSubstringMethod(IMethodSymbol methodSymbol)
+            => methodSymbol.Name == nameof(string.Substring);
+
+        private bool IsSubArrayMethod(IMethodSymbol methodSymbol)
+            => methodSymbol.Name == "System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray";
+
         protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
             Document document,
@@ -129,20 +138,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             if (IsForEachMethod(symbol))
             {
-                var forEachMatches = await FindReferencesInForEachStatementsAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+                var forEachMatches = await FindReferencesInForEachStatementsAsync(
+                    symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
                 nameMatches = nameMatches.Concat(forEachMatches);
             }
 
             if (IsDeconstructMethod(symbol))
             {
-                var deconstructMatches = await FindReferencesInDeconstructionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+                var deconstructMatches = await FindReferencesInDeconstructionAsync(
+                    symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
                 nameMatches = nameMatches.Concat(deconstructMatches);
             }
 
             if (IsGetAwaiterMethod(symbol))
             {
-                var getAwaiterMatches = await FindReferencesInAwaitExpressionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+                var getAwaiterMatches = await FindReferencesInAwaitExpressionAsync(
+                    symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
                 nameMatches = nameMatches.Concat(getAwaiterMatches);
+            }
+
+            if (IsSliceMethod(symbol) || IsSubstringMethod(symbol) || IsSubArrayMethod(symbol))
+            {
+                var elementAccessMatches = await FindReferencesInElementAccessExpressionsAsync(
+                    symbol, document, semanticModel, isFindMethod: true, cancellationToken).ConfigureAwait(false);
+                nameMatches = nameMatches.Concat(elementAccessMatches);
             }
 
             return nameMatches;

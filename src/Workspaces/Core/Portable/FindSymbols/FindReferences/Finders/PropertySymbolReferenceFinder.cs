@@ -83,6 +83,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private static bool IsForEachProperty(IPropertySymbol symbol)
             => symbol.Name == WellKnownMemberNames.CurrentPropertyName;
 
+        private static bool IsLengthProperty(IPropertySymbol symbol)
+            => symbol.Name == WellKnownMemberNames.LengthPropertyName;
+
+        private static bool IsCountProperty(IPropertySymbol symbol)
+            => symbol.Name == WellKnownMemberNames.CountPropertyName;
+
         protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
@@ -114,8 +120,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindIndexerReferencesAsync(symbol, document, semanticModel, options, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<FinderLocation>.Empty;
 
+            var lengthOrCountReferences = IsLengthProperty(symbol) || IsCountProperty(symbol)
+                ? await FindReferencesInElementAccessExpressionsAsync(
+                    symbol, document, semanticModel, isFindMethod: false, cancellationToken).ConfigureAwait(false)
+                : ImmutableArray<FinderLocation>.Empty;
+
             return nameReferences.Concat(forEachReferences)
-                                 .Concat(indexerReferences);
+                                 .Concat(indexerReferences)
+                                 .Concat(lengthOrCountReferences);
         }
 
         private Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(

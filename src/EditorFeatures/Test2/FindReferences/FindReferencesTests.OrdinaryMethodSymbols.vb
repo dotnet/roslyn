@@ -3218,5 +3218,74 @@ End Class
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WorkItem(41310, "https://github.com/dotnet/roslyn/issues/41310")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function FindReferences_Slice(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            int Length => 10;
+            int {|Definition:Sli$$ce|}(int start, int length) => start + length;
+            void M()
+            {
+                var c = new C();
+                var o = [|c|][0..^1];
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(41310, "https://github.com/dotnet/roslyn/issues/41310")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function FindReferences_Substring(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class S
+        {
+            void M()
+            {
+                string s = "str";
+                var x = [|s|][0..^1];
+                s.{|Definition:Substring|}(0, 1);
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(41310, "https://github.com/dotnet/roslyn/issues/41310")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function FindReferences_SubArray(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            int {|Definition:Len$$gth|} => 10;
+            int this[int index] => 1;
+
+            void M()
+            {
+                var c = new C();
+                var o = [|c|][^1];
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

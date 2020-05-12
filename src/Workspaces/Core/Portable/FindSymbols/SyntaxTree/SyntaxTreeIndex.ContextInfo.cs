@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsIndexerMemberCref,
                 bool containsDeconstruction,
                 bool containsAwait,
-                bool containsTupleExpressionOrTupleType)
+                bool containsTupleExpressionOrTupleType,
+                bool containsRangeExpression)
                 : this(predefinedTypes, predefinedOperators,
                        ConvertToContainingNodeFlag(
                          containsForEachStatement,
@@ -42,7 +43,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                          containsIndexerMemberCref,
                          containsDeconstruction,
                          containsAwait,
-                         containsTupleExpressionOrTupleType))
+                         containsTupleExpressionOrTupleType,
+                         containsRangeExpression))
             {
             }
 
@@ -64,7 +66,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsIndexerMemberCref,
                 bool containsDeconstruction,
                 bool containsAwait,
-                bool containsTupleExpressionOrTupleType)
+                bool containsTupleExpressionOrTupleType,
+                bool containsRangeExpression)
             {
                 var containingNodes = ContainingNodes.None;
 
@@ -79,6 +82,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 containingNodes |= containsDeconstruction ? ContainingNodes.ContainsDeconstruction : 0;
                 containingNodes |= containsAwait ? ContainingNodes.ContainsAwait : 0;
                 containingNodes |= containsTupleExpressionOrTupleType ? ContainingNodes.ContainsTupleExpressionOrTupleType : 0;
+                containingNodes |= containsRangeExpression ? ContainingNodes.ContainsRangeExpression : 0;
 
                 return containingNodes;
             }
@@ -97,6 +101,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public bool ContainsAwait
                 => (_containingNodes & ContainingNodes.ContainsAwait) == ContainingNodes.ContainsAwait;
+
+            public bool ContainsRangeExpression
+                => (_containingNodes & ContainingNodes.ContainsRangeExpression) == ContainingNodes.ContainsRangeExpression;
 
             public bool ContainsLockStatement
                 => (_containingNodes & ContainingNodes.ContainsLockStatement) == ContainingNodes.ContainsLockStatement;
@@ -161,6 +168,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ContainsDeconstruction = 1 << 8,
                 ContainsAwait = 1 << 9,
                 ContainsTupleExpressionOrTupleType = 1 << 10,
+                ContainsRangeExpression = 1 << 11,
             }
         }
     }

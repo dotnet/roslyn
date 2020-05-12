@@ -98,6 +98,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node);
 
+        IMethodSymbol GetElementAccessMethod(SemanticModel semanticModel, SyntaxNode node);
+
+        IPropertySymbol GetElementAccessCountableProperty(SemanticModel semanticModel, SyntaxNode node);
+
         bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken);
 
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);

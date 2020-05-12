@@ -263,6 +263,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsDeconstructionAssignment(SyntaxNode node);
         bool IsDeconstructionForEachStatement(SyntaxNode node);
 
+        bool IsRangeExpression(SyntaxNode node);
+
         /// <summary>
         /// Returns true for nodes that represent the body of a method.
         /// 
