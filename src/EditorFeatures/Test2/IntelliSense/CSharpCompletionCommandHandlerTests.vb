@@ -5091,7 +5091,7 @@ class C
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("a")
-                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="and", isHardSelected:=False)
 
                 state.SendBackspace()
                 state.SendTypeChars("w")
