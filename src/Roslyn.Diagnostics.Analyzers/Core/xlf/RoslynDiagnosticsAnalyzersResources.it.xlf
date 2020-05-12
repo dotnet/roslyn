@@ -337,21 +337,6 @@
         <target state="needs-review-translation">Eseguire l'override di Object.Equals(object) durante l'implementazione di Iequatable</target>
         <note />
       </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
-        <source>Do not invoke 'Diagnostic.Descriptor'</source>
-        <target state="needs-review-translation">Non richiamare Diagnostic.Descriptor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
-        <source>Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.</source>
-        <target state="needs-review-translation">L'accesso alla proprietà Descriptor di Diagnostic nel livello del compilatore implica allocazioni di stringa non necessarie per i campi del descrittore non utilizzati nella compilazione da riga di comando. È quindi opportuno evitare di accedere qui alla proprietà Descriptor del tipo Diagnostic del compilatore. È invece opportuno accedere direttamente a queste proprietà all'esterno del tipo Diagnostic.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
-        <source>Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</source>
-        <target state="translated">Non richiamare la proprietà '{0}' sul tipo '{1}', ma accedere direttamente al membro richiesto {2} su '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
         <target state="needs-review-translation">È necessario generare SymbolDeclaredEvent per i simboli di origine</target>
