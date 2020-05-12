@@ -3008,5 +3008,157 @@ public class Program : Derived
 }
 ");
         }
+
+        [Fact]
+        public void NullableVariance_01()
+        {
+            var source = @"
+#nullable enable
+public class Base
+{
+    public virtual object M1() => null!;
+    public virtual object P1 => null!;
+    public virtual object? M2() => null;
+    public virtual object? P2 => null;
+    public virtual IOut<object> M3() => null!;
+    public virtual IOut<object> P3 => null!;
+    public virtual IOut<object?> M4() => null!;
+    public virtual IOut<object?> P4 => null!;
+    public virtual IIn<string> M5() => null!;
+    public virtual IIn<string> P5 => null!;
+    public virtual IIn<string?> M6() => null!;
+    public virtual IIn<string?> P6 => null!;
+}
+public class Derived : Base
+{
+    public override string? M1() => null;
+    public override string? P1 => null;
+    public override string M2() => null!;
+    public override string P2 => null!;
+    public override IOut<string?> M3() => null!;
+    public override IOut<string?> P3 => null!;
+    public override IOut<string> M4() => null!;
+    public override IOut<string> P4 => null!;
+    public override IIn<object?> M5() => null!;
+    public override IIn<object?> P5 => null!;
+    public override IIn<object> M6() => null!;
+    public override IIn<object> P6 => null!;
+}
+public class Program
+{
+    void M(Base b, Derived d)
+    {
+        object x1 = b.M1();
+        string? x2 = d.M1();
+        object x3 = b.P1;
+        string? x4 = d.P1;
+        object? x5 = b.M2();
+        string x6 = d.M2();
+        object? x7 = b.P2;
+        string x8 = d.P2;
+        IOut<object> x9 = b.M3();
+        IOut<string?> x10 = d.M3();
+        IOut<object> x11 = b.P3;
+        IOut<string?> x12 = d.P3;
+        IOut<object?> x13 = b.M4();
+        IOut<string> x14 = d.M4();
+        IOut<object?> x15 = b.P4;
+        IOut<string> x16 = d.P4;
+        IIn<string> x17 = b.M5();
+        IIn<object?> x18 = d.M5();
+        IIn<string> x19 = b.P5;
+        IIn<object?> x20 = d.P5;
+        IIn<string?> x21 = b.M6();
+        IIn<object> x22 = d.M6();
+        IIn<string?> x23 = b.P6;
+        IIn<object> x24 = d.P6;
+    }
+}
+public interface IOut<out T> { }
+public interface IIn<in T> { }
+";
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+                // (20,29): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string? M1() => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("covariant returns").WithLocation(20, 29),
+                // (21,29): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string? P1 => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("covariant returns").WithLocation(21, 29),
+                // (22,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string M2() => null!;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M2").WithArguments("covariant returns").WithLocation(22, 28),
+                // (23,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string P2 => null!;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("covariant returns").WithLocation(23, 28),
+                // (24,35): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override IOut<string?> M3() => null!;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M3").WithArguments("covariant returns").WithLocation(24, 35),
+                // (25,35): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override IOut<string?> P3 => null!;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("covariant returns").WithLocation(25, 35),
+                // (26,34): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override IOut<string> M4() => null!;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M4").WithArguments("covariant returns").WithLocation(26, 34),
+                // (27,34): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override IOut<string> P4 => null!;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P4").WithArguments("covariant returns").WithLocation(27, 34),
+                // (28,34): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override IIn<object?> M5() => null!;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M5").WithArguments("covariant returns").WithLocation(28, 34),
+                // (29,34): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override IIn<object?> P5 => null!;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P5").WithArguments("covariant returns").WithLocation(29, 34),
+                // (30,33): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override IIn<object> M6() => null!;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M6").WithArguments("covariant returns").WithLocation(30, 33),
+                // (31,33): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override IIn<object> P6 => null!;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P6").WithArguments("covariant returns").WithLocation(31, 33)
+                );
+            verify(comp);
+            VerifyAssignments(comp, 24);
+
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
+                // (20,29): warning CS8764: Nullability of return type doesn't match overridden member (possibly because of nullability attributes).
+                //     public override string? M1() => null;
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(20, 29),
+                // (21,35): warning CS8764: Nullability of return type doesn't match overridden member (possibly because of nullability attributes).
+                //     public override string? P1 => null;
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride, "null").WithLocation(21, 35),
+                // (24,35): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override IOut<string?> M3() => null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M3").WithLocation(24, 35),
+                // (25,41): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override IOut<string?> P3 => null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "null!").WithLocation(25, 41),
+                // (30,33): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override IIn<object> M6() => null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M6").WithLocation(30, 33),
+                // (31,39): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override IIn<object> P6 => null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "null!").WithLocation(31, 39)
+                );
+            verify(comp);
+            VerifyAssignments(comp, 24);
+            verify(CompilationReferenceView(comp));
+            verify(MetadataView(comp));
+            verify(RetargetedView(comp));
+
+            static void verify(CSharpCompilation comp)
+            {
+                VerifyOverride(comp, "Derived.M1", "System.String? Derived.M1()", "System.Object Base.M1()");
+                VerifyOverride(comp, "Derived.P1", "System.String? Derived.P1 { get; }", "System.Object Base.P1 { get; }");
+                VerifyOverride(comp, "Derived.M2", "System.String Derived.M2()", "System.Object? Base.M2()");
+                VerifyOverride(comp, "Derived.P2", "System.String Derived.P2 { get; }", "System.Object? Base.P2 { get; }");
+                VerifyOverride(comp, "Derived.M3", "IOut<System.String?> Derived.M3()", "IOut<System.Object> Base.M3()");
+                VerifyOverride(comp, "Derived.P3", "IOut<System.String?> Derived.P3 { get; }", "IOut<System.Object> Base.P3 { get; }");
+                VerifyOverride(comp, "Derived.M4", "IOut<System.String> Derived.M4()", "IOut<System.Object?> Base.M4()");
+                VerifyOverride(comp, "Derived.P4", "IOut<System.String> Derived.P4 { get; }", "IOut<System.Object?> Base.P4 { get; }");
+                VerifyOverride(comp, "Derived.M5", "IIn<System.Object?> Derived.M5()", "IIn<System.String> Base.M5()");
+                VerifyOverride(comp, "Derived.P5", "IIn<System.Object?> Derived.P5 { get; }", "IIn<System.String> Base.P5 { get; }");
+                VerifyOverride(comp, "Derived.M6", "IIn<System.Object> Derived.M6()", "IIn<System.String?> Base.M6()");
+                VerifyOverride(comp, "Derived.P6", "IIn<System.Object> Derived.P6 { get; }", "IIn<System.String?> Base.P6 { get; }");
+            }
+        }
     }
 }
