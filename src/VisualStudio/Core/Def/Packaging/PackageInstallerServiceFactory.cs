@@ -97,18 +97,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             // Only read from _packageSourcesAsync once, since OnSourceProviderSourcesChanged could reset it to default
             // at any time while this method is running.
-            var packageSourcesAsync = _packageSourcesAsync;
-            if (packageSourcesAsync is null)
+            JoinableTask<ImmutableArray<PackageSource>> packageSourcesAsync;
+            lock (_gate)
             {
-                lock (_gate)
+                if (_packageSourcesAsync is null)
                 {
-                    if (_packageSourcesAsync is null)
-                    {
-                        _packageSourcesAsync = ThreadingContext.JoinableTaskFactory.RunAsync(() => GetPackageSourcesImplAsync());
-                    }
-
-                    packageSourcesAsync = _packageSourcesAsync;
+                    _packageSourcesAsync = ThreadingContext.JoinableTaskFactory.RunAsync(() => GetPackageSourcesImplAsync());
                 }
+
+                packageSourcesAsync = _packageSourcesAsync;
             }
 
             if (packageSourcesAsync.IsCompleted)
@@ -136,15 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var cancellationToken = _tokenSource.Token;
                 try
                 {
-                    var result = await GetPackageSourcesImplAsync(cancellationToken).ConfigureAwait(false);
-                    if (result.IsEmpty && cancellationToken.IsCancellationRequested)
-                    {
-                        // The failure may have been caused by a workspace change; try again after a short delay
-                        await Task.Delay(TimeSpan.FromMilliseconds(250)).ConfigureAwait(false);
-                        continue;
-                    }
-
-                    return result;
+                    return await GetPackageSourcesImplAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
