@@ -261,19 +261,23 @@ namespace System
     public class String { }
     public class ValueType { }
     public class Attribute { }
+    public struct Int32 { }
     public struct Void { }
-}
-namespace System.Runtime.CompilerServices
-{
-    public static class RuntimeFeature
+    namespace Reflection
     {
-        public const string CovariantReturnsOfClasses = nameof(CovariantReturnsOfClasses);
+        public class DefaultMemberAttribute : Attribute
+        {
+            public DefaultMemberAttribute(string name) { }
+        }
     }
-    // PROTOTYPE(covariant-returns): compiler does not yet emit RequireMethodImplToRemainInEffectAttribute on covariant overrides.
-    //public sealed class RequireMethodImplToRemainInEffectAttribute : Attribute
-    //{
-    //    public RequireMethodImplToRemainInEffectAttribute() { }
-    //}
+    namespace Runtime.CompilerServices
+    {
+        public static class RuntimeFeature
+        {
+            public const string CovariantReturnsOfClasses = nameof(CovariantReturnsOfClasses);
+        }
+        public sealed class RequireMethodImplToRemainInEffectAttribute : Attribute { }
+    }
 }
 ";
             var corlibComp = CreateEmptyCompilation(new string[] { corLibSource }, assemblyName: "corlib").VerifyDiagnostics();
@@ -282,27 +286,63 @@ namespace System.Runtime.CompilerServices
             var source = @"
 public class Base
 {
-    public virtual object M() => null;
-    public virtual object P => null;
+    public virtual object M1() => null;
+    public virtual object P1 => null;
+    public virtual object M2() => null;
+    public virtual object P2 => null;
+    public virtual object this[int index] => null;
 }
 public class Derived : Base
 {
-    public override string M() => null;
-    public override string P => null;
+    public override string M1() => null;
+    public override string P1 => null;
+    public override object M2() => null;
+    public override object P2 => null;
+    public override string this[int index] => null;
+}
+public class Derived2 : Base
+{
+    public override object this[int index] => null;
 }
 ";
             CreateCompilationWithoutCovariantReturns(source, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty, pretendRuntimeSupportsCovariantReturnsFeature: false)
                 .VerifyDiagnostics(
-                // (9,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public override string M() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(9, 28),
-                // (10,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public override string P => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(10, 28)
+                // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string M1() => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("covariant returns").WithLocation(12, 28),
+                // (13,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string P1 => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("covariant returns").WithLocation(13, 28),
+                // (16,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string this[int index] => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(16, 28)
                 );
-            CreateCompilationWithCovariantReturns(source, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty, pretendRuntimeSupportsCovariantReturnsFeature: false)
+            var comp = CreateCompilationWithCovariantReturns(source, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty, pretendRuntimeSupportsCovariantReturnsFeature: false)
                 .VerifyDiagnostics(
                 );
+            verify(comp);
+            verify(CompilationReferenceView(comp));
+            verify(MetadataView(comp));
+            verify(RetargetedView(comp));
+
+            static void verify(CSharpCompilation comp)
+            {
+                verifyAttribute((MethodSymbol)comp.GlobalNamespace.GetMember("Derived.M1"), needsAttribute: true);
+                verifyAttribute((MethodSymbol)comp.GlobalNamespace.GetMember("Derived.get_P1"), needsAttribute: true);
+                verifyAttribute((MethodSymbol)comp.GlobalNamespace.GetMember("Derived.M2"), needsAttribute: false);
+                verifyAttribute((MethodSymbol)comp.GlobalNamespace.GetMember("Derived.get_P2"), needsAttribute: false);
+                verifyAttribute((MethodSymbol)comp.GlobalNamespace.GetMember("Derived.get_Item"), needsAttribute: true);
+                verifyAttribute((MethodSymbol)comp.GlobalNamespace.GetMember("Derived2.get_Item"), needsAttribute: false);
+            }
+
+            static void verifyAttribute(MethodSymbol method, bool needsAttribute)
+            {
+                var isCovariant = !method.ReturnType.Equals(method.OverriddenMethod.ReturnType);
+                Assert.Equal(needsAttribute, isCovariant);
+                var attributeExpected = isCovariant && !method.Locations[0].IsInSource;
+                var attrs = method.GetAttributes("System.Runtime.CompilerServices", "RequireMethodImplToRemainInEffectAttribute");
+                Assert.Equal(attributeExpected, !attrs.IsEmpty());
+            }
         }
 
         [Fact]

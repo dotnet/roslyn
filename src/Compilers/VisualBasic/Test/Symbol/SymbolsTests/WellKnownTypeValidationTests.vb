@@ -687,7 +687,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags
+                         WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
+                         WellKnownMember.System_Runtime_CompilerServices_RequireMethodImplToRemainInEffectAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,

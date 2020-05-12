@@ -310,6 +310,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_SwitchExpressionException,
         System_Collections_Generic_IEqualityComparer_T,
         System_Runtime_CompilerServices_NativeIntegerAttribute,
+        System_Runtime_CompilerServices_RequireMethodImplToRemainInEffectAttribute,
 
         NextAvailable,
 
@@ -613,6 +614,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.SwitchExpressionException",
             "System.Collections.Generic.IEqualityComparer`1",
             "System.Runtime.CompilerServices.NativeIntegerAttribute",
+            "System.Runtime.CompilerServices.RequireMethodImplToRemainInEffectAttribute",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

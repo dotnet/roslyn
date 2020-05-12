@@ -861,6 +861,15 @@ done:
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableContextAttribute(this, nullableContextValue));
             }
 
+            bool isCovariantOverride = this.IsOverride && !this.OverriddenMethod.ReturnType.Equals(this.ReturnType, TypeCompareKind.AllIgnoreOptions);
+            if (isCovariantOverride)
+            {
+                // If present, we add RequireMethodImplToRemainInEffectAttribute to covariant overrides.
+                // PROTOTYPE(covariant-returns): How should we behave if the attribute is not present?
+                var attr = moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequireMethodImplToRemainInEffectAttribute__ctor, isOptionalUse: true);
+                AddSynthesizedAttribute(ref attributes, attr);
+            }
+
             bool isAsync = this.IsAsync;
             bool isIterator = this.IsIterator;
 
