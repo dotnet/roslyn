@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Special comparer we need for our cache keys.  Necessary because <see cref="IImmutableSet{T}"/> uses
         /// reference equality and not value-equality semantics.
         /// </summary>
-        private class KeyEqualityComparer : IEqualityComparer<(SymbolKey, ProjectId, IImmutableSet<Project>)>
+        private class KeyEqualityComparer : IEqualityComparer<(SymbolKey, ProjectId?, IImmutableSet<Project>)>
         {
             public static readonly KeyEqualityComparer Instance = new KeyEqualityComparer();
 
@@ -22,8 +24,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
             }
 
-            public bool Equals((SymbolKey, ProjectId, IImmutableSet<Project>) x,
-                               (SymbolKey, ProjectId, IImmutableSet<Project>) y)
+            public bool Equals((SymbolKey, ProjectId?, IImmutableSet<Project>) x,
+                               (SymbolKey, ProjectId?, IImmutableSet<Project>) y)
             {
                 var (xSymbolKey, xProjectId, xProjects) = x;
                 var (ySymbolKey, yProjectId, yProjects) = y;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (!xSymbolKey.Equals(ySymbolKey))
                     return false;
 
-                if (!xProjectId.Equals(yProjectId))
+                if (!Equals(xProjectId, yProjectId))
                     return false;
 
                 if (xProjects is null)
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return xProjects.SetEquals(yProjects);
             }
 
-            public int GetHashCode((SymbolKey, ProjectId, IImmutableSet<Project>) obj)
+            public int GetHashCode((SymbolKey, ProjectId?, IImmutableSet<Project>) obj)
             {
                 var (symbolKey, projectId, projects) = obj;
 

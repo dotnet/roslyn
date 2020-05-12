@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             lock (_globalNotificationsGate)
             {
                 _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
-                    SendStartNotificationAsync, _cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
+                    SendStartNotificationAsync, _cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
             }
         }
 
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             lock (_globalNotificationsGate)
             {
                 _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
-                    previous => SendStoppedNotificationAsync(previous, e), _cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
+                    previous => SendStoppedNotificationAsync(previous, e), _cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
             }
         }
 

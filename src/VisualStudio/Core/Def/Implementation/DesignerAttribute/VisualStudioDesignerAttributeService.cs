@@ -188,7 +188,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
             // legacy project system can only be talked to on the UI thread.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
 
             AssertIsForeground();
 
@@ -287,7 +286,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (!_cpsProjects.TryGetValue(projectId, out var updateService))
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
                 this.AssertIsForeground();
 
                 updateService = ComputeUpdateService();

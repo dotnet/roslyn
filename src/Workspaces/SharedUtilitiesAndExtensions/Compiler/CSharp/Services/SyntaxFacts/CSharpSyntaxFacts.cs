@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -17,7 +18,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
@@ -152,6 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsObjectCreationExpressionType(SyntaxNode node)
             => node.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation) &&
                objectCreation.Type == node;
+
+        public bool IsDeclarationExpression(SyntaxNode node)
+            => node is DeclarationExpressionSyntax;
 
         public bool IsAttributeName(SyntaxNode node)
             => SyntaxFacts.IsAttributeName(node);
@@ -567,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.IsKind(SyntaxKind.BaseList);
 
         public SyntaxNode GetExpressionOfArgument(SyntaxNode node)
-            => ((ArgumentSyntax)node).Expression;
+            => (node as ArgumentSyntax)?.Expression;
 
         public RefKind GetRefKindOfArgument(SyntaxNode node)
             => (node as ArgumentSyntax).GetRefKind();
@@ -1197,14 +1200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public string GetNameForArgument(SyntaxNode argument)
-        {
-            if ((argument as ArgumentSyntax)?.NameColon != null)
-            {
-                return (argument as ArgumentSyntax).NameColon.Name.Identifier.ValueText;
-            }
-
-            return string.Empty;
-        }
+            => (argument as ArgumentSyntax)?.NameColon?.Name.Identifier.ValueText ?? string.Empty;
 
         public bool IsLeftSideOfDot(SyntaxNode node)
             => (node as ExpressionSyntax).IsLeftSideOfDot();
@@ -1274,7 +1270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => GetArgumentsOfArgumentList((objectCreationExpression as ObjectCreationExpressionSyntax)?.ArgumentList);
 
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
-            => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default(SeparatedSyntaxList<SyntaxNode>);
+            => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default;
 
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();
@@ -2149,5 +2145,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => ((TypePatternSyntax)node).Type;
 
 #endif
+
+        public bool IsImplicitObjectCreation(SyntaxNode node)
+        {
+#if CODE_STYLE
+            return ((CSharpSyntaxNode)node).Kind() == Formatting.SyntaxKindEx.ImplicitObjectCreationExpression;
+#else
+            return ((CSharpSyntaxNode)node).Kind() == SyntaxKind.ImplicitObjectCreationExpression;
+#endif
+        }
     }
 }
