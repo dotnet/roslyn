@@ -34,6 +34,7 @@
     <VisualStudioEditorPackagesVersion>16.4.248</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
     <MicrosoftVisualStudioLanguageServerPackagesVersion>16.3.27-develop-gdd55e997</MicrosoftVisualStudioLanguageServerPackagesVersion>
+    <ErrorProneNETAnalyzersVersion>0.3.0-beta.0</ErrorProneNETAnalyzersVersion>
   </PropertyGroup>
   <!--
     Dependency versions
@@ -46,6 +47,8 @@
     <DropAppVersion>17.144.28413-buildid7983345</DropAppVersion>
     <EnvDTEVersion>8.0.2</EnvDTEVersion>
     <EnvDTE80Version>8.0.0</EnvDTE80Version>
+    <ErrorProneNETStructsVersion>$(ErrorProneNETAnalyzersVersion)</ErrorProneNETStructsVersion>
+    <ErrorProneNETCoreAnalyzersVersion>$(ErrorProneNETAnalyzersVersion)</ErrorProneNETCoreAnalyzersVersion>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
     <ICSharpCodeDecompilerVersion>5.0.2.5153</ICSharpCodeDecompilerVersion>

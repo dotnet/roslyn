@@ -128,6 +128,8 @@
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="$(MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="$(ErrorProneNETCoreAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="ErrorProne.NET.Structs" Version="$(ErrorProneNETStructsVersion)" PrivateAssets="all" />
   </ItemGroup>
 
   <!-- 

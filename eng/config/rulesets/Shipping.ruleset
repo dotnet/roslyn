@@ -183,4 +183,33 @@
     <Rule Id="HAA0603" Action="None" />
     <Rule Id="HeapAnalyzerReadonlyMethodGroupAllocationRule" Action="None" />
   </Rules>
+  <Rules AnalyzerId="ErrorProne.Net.StructAnalyzers" RuleNamespace="ErrorProne.Net.StructAnalyzers">
+    <Rule Id="EPS01" Action="None" /> <!-- A struct can be made readonly -->
+    <Rule Id="EPS02" Action="None" /> <!-- A non-readonly struct used as in-parameter -->
+    <Rule Id="EPS03" Action="None" /> <!-- A non-readonly struct returned by readonly reference -->
+    <Rule Id="EPS04" Action="None" /> <!-- A non-readonly struct is used as a 'ref readonly' local variable -->
+    <Rule Id="EPS05" Action="None" /> <!-- Use in-modifier for a readonly struct -->
+    <Rule Id="EPS06" Action="None" /> <!-- Hidden struct copy operation -->
+    <Rule Id="EPS07" Action="None" /> <!-- A hash table "unfriendly" type is used as the key in a hash table -->
+    <Rule Id="EPS08" Action="None" /> <!-- Default 'ValueType.Equals' or 'HashCode' is used for struct equality -->
+    <Rule Id="EPS09" Action="None" /> <!-- Pass an argument for an 'in' parameter explicitly -->
+    <Rule Id="EPS10" Action="None" /> <!-- Do not construct non-defaultable struct with 'default' expression -->
+    <Rule Id="EPS11" Action="None" /> <!-- Do not embed non-defaultable structs into another structs -->
+  </Rules>
+  <Rules AnalyzerId="ErrorProne.Net.CoreAnalyzers" RuleNamespace="ErrorProne.Net.CoreAnalyzers">
+    <Rule Id="EPC11" Action="None" /> <!-- (no title) -->
+    <Rule Id="EPC11WithoutSuggestion" Action="None" /> <!-- (no title) -->
+    <Rule Id="EPC12" Action="None" /> <!-- (no title) -->
+    <Rule Id="EPC12WithoutSuggestion" Action="None" /> <!-- (no title) -->
+    <Rule Id="EPC13" Action="None" /> <!-- Suspiciously unobserved result -->
+    <Rule Id="EPC14" Action="None" /> <!-- ConfigureAwait(false) call is redundant -->
+    <Rule Id="EPC14WithoutSuggestion" Action="None" /> <!-- (no title) -->
+    <Rule Id="EPC15" Action="None" /> <!-- ConfigureAwait(false) must be used -->
+    <Rule Id="EPC15WithoutSuggestion" Action="None" /> <!-- (no title) -->
+    <Rule Id="EPC16" Action="None" /> <!-- Awaiting the result of a null-conditional expression will cause NullReferenceException -->
+    <Rule Id="EPC17" Action="None" /> <!-- Avoid async-void delegates -->
+    <Rule Id="ERP021" Action="None" /> <!-- Incorrect exception propagation -->
+    <Rule Id="ERP022" Action="None" /> <!-- Unobserved exception in a generic exception handler -->
+    <Rule Id="ERP031" Action="None" /> <!-- The API is not thread-safe -->
+  </Rules>
 </RuleSet>
