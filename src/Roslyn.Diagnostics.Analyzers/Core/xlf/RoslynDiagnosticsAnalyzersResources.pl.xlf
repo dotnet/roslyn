@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="BlankLinesMessage">
+        <source>Avoid multiple blank lines</source>
+        <target state="new">Avoid multiple blank lines</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BracePlacementMessage">
+        <source>Braces must not have blank lines between them</source>
+        <target state="new">Braces must not have blank lines between them</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
         <source>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</source>
         <target state="needs-review-translation">Jest to refaktoryzacja upraszczająca proces tworzenia testowych metod dostępu przy użyciu wzorca TestAccessor</target>
@@ -192,6 +202,11 @@
         <target state="needs-review-translation">Konstruktor importujący powinien być oznaczony jako [Obsolete]</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="new">Place statement on following line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
         <source>Use 'null' instead of 'default'</source>
         <target state="translated">Użyj wartości „null” zamiast „default”</target>
@@ -215,6 +230,16 @@
       <trans-unit id="RelaxTestNamingSuppressorJustification">
         <source>Asynchronous test methods do not require the 'Async' suffix</source>
         <target state="needs-review-translation">Asynchroniczne metody testowe nie wymagają sufiksu „Async”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_blank_lines_between_braces">
+        <source>Remove blank lines between braces</source>
+        <target state="new">Remove blank lines between braces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_extra_blank_lines">
+        <source>Remove extra blank lines</source>
+        <target state="new">Remove extra blank lines</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
@@ -370,6 +395,11 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
         <target state="needs-review-translation">Element „{0}” jest eksportowany z MEFv2, a więc musi być oznaczony jako udostępniony</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WrapStatementsMessage">
+        <source>Statements must be placed on their own line</source>
+        <target state="new">Statements must be placed on their own line</target>
         <note />
       </trans-unit>
     </body>

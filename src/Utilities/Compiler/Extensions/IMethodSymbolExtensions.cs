@@ -561,10 +561,12 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Returns true for void returning methods with two parameters, where
         /// the first parameter is of <see cref="object"/> type and the second
-        /// parameter inherits from or equals <see cref="EventArgs"/> type.
+        /// parameter inherits from or equals <see cref="EventArgs"/> type or
+        /// whose name ends with 'EventArgs'.
         /// </summary>
         public static bool HasEventHandlerSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? eventArgsType)
             => eventArgsType != null &&
+               method.ReturnsVoid &&
                method.Parameters.Length == 2 &&
                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
                // FxCop compat: Struct with name ending with "EventArgs" are allowed

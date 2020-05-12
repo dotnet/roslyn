@@ -441,6 +441,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected void UpdateValuesForAnalysisData<TKey>(
             DictionaryAnalysisData<TKey, TAbstractAnalysisValue> targetAnalysisData,
             DictionaryAnalysisData<TKey, TAbstractAnalysisValue> newAnalysisData)
+            where TKey : notnull
         {
             var builder = ArrayBuilder<TKey>.GetInstance(targetAnalysisData.Count);
             try
@@ -1861,6 +1862,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             DictionaryAnalysisData<TKey, TAbstractAnalysisValue> coreDataAtException,
             DictionaryAnalysisData<TKey, TAbstractAnalysisValue> coreCurrentAnalysisData,
             Func<TKey, bool>? predicateOpt)
+            where TKey : notnull
         {
             foreach (var (key, value) in coreCurrentAnalysisData)
             {
