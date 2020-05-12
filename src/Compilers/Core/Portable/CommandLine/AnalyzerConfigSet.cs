@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public sealed class AnalyzerConfigSet
     {
-        internal const string GlobalKey = "is_global";
-
         /// <summary>
         /// The list of <see cref="AnalyzerConfig" />s in this set. This list has been sorted per <see cref="AnalyzerConfig.DirectoryLengthComparer"/>.
         /// </summary>
@@ -412,8 +410,6 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool IsPartialGlobalConfig(AnalyzerConfig config) => config.GlobalSection.Properties.ContainsKey(GlobalKey);
-
         /// <summary>
         /// Merge any partial global configs into a single global config, and remove the partial configs
         /// </summary>
@@ -425,7 +421,7 @@ namespace Microsoft.CodeAnalysis
             GlobalAnalyzerConfigBuilder globalAnalyzerConfigBuilder = new GlobalAnalyzerConfigBuilder();
             for (int i = 0; i < analyzerConfigs.Count; i++)
             {
-                if (IsPartialGlobalConfig(analyzerConfigs[i]))
+                if (analyzerConfigs[i].IsGlobal)
                 {
                     globalAnalyzerConfigBuilder.MergeIntoGlobalConfig(analyzerConfigs[i]);
                     analyzerConfigs.RemoveAt(i);

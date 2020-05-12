@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis
                 var directory = Path.GetDirectoryName(normalizedPath) ?? normalizedPath;
                 var editorConfig = AnalyzerConfig.Parse(fileContent, normalizedPath);
 
-                if (!AnalyzerConfigSet.IsPartialGlobalConfig(editorConfig))
+                if (!editorConfig.IsGlobal)
                 {
                     if (processedDirs.Contains(directory))
                     {
