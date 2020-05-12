@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class CovariantReturnTests : CSharpTestBase
     {
+        // PROTOTYPE(covariant-returns): For testing purposes, we support a compiler "feature" flag that permits us to skip
+        // the requirement for a runtime feature indicator. We should remove it once we have a runtime that
+        // we can test against that actually supports the feature.
+        private const string s_pretendRuntimeSupportsCovariantReturnsFeature = "DoNotRequireRuntimeCovariantReturnsSupport";
+
         private static void VerifyOverride(
             CSharpCompilation comp,
             string methodName,
@@ -120,11 +125,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         private CSharpCompilation CreateCompilationWithCovariantReturns(
             string source, MetadataReference[] references = null,
             TargetFramework targetFramework = TargetFramework.Standard,
-            string assemblyName = "")
+            string assemblyName = "",
+            bool pretendRuntimeSupportsCovariantReturnsFeature = true)
         {
+            var parseOptions = TestOptions.WithCovariantReturns;
+            if (pretendRuntimeSupportsCovariantReturnsFeature)
+                parseOptions = parseOptions.WithFeature(s_pretendRuntimeSupportsCovariantReturnsFeature);
+
             return CreateCompilation(
                 source,
-                parseOptions: TestOptions.WithCovariantReturns,
+                parseOptions: parseOptions,
                 references: references,
                 targetFramework: targetFramework,
                 assemblyName: assemblyName);
@@ -134,11 +144,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             string source,
             MetadataReference[] references = null,
             TargetFramework targetFramework = TargetFramework.Standard,
-            string assemblyName = "")
+            string assemblyName = "",
+            bool pretendRuntimeSupportsCovariantReturnsFeature = true)
         {
+            var parseOptions = TestOptions.WithoutCovariantReturns;
+            if (pretendRuntimeSupportsCovariantReturnsFeature)
+                parseOptions = parseOptions.WithFeature(s_pretendRuntimeSupportsCovariantReturnsFeature);
+
             return CreateCompilation(
                 source,
-                parseOptions: TestOptions.WithoutCovariantReturns,
+                parseOptions: parseOptions,
                 references: references,
                 targetFramework: targetFramework,
                 assemblyName: assemblyName);
@@ -237,6 +252,60 @@ public class Program
         }
 
         [Fact]
+        public void CorlibWithCovariantReturnSupport()
+        {
+            var corLibSource = @"
+namespace System
+{
+    public class Object { }
+    public class String { }
+    public class ValueType { }
+    public class Attribute { }
+    public struct Void { }
+}
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeFeature
+    {
+        public const string CovariantReturnsOfClasses = nameof(CovariantReturnsOfClasses);
+    }
+    // PROTOTYPE(covariant-returns): compiler does not yet emit RequireMethodImplToRemainInEffectAttribute on covariant overrides.
+    //public sealed class RequireMethodImplToRemainInEffectAttribute : Attribute
+    //{
+    //    public RequireMethodImplToRemainInEffectAttribute() { }
+    //}
+}
+";
+            var corlibComp = CreateEmptyCompilation(new string[] { corLibSource }, assemblyName: "corlib").VerifyDiagnostics();
+            var corlibRef = corlibComp.EmitToImageReference();
+
+            var source = @"
+public class Base
+{
+    public virtual object M() => null;
+    public virtual object P => null;
+}
+public class Derived : Base
+{
+    public override string M() => null;
+    public override string P => null;
+}
+";
+            CreateCompilationWithoutCovariantReturns(source, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty, pretendRuntimeSupportsCovariantReturnsFeature: false)
+                .VerifyDiagnostics(
+                // (9,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string M() => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(9, 28),
+                // (10,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string P => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(10, 28)
+                );
+            CreateCompilationWithCovariantReturns(source, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty, pretendRuntimeSupportsCovariantReturnsFeature: false)
+                .VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
         public void CovariantReturns_01()
         {
             var source = @"
@@ -264,6 +333,24 @@ public class Program
                 );
             verify(comp);
             VerifyAssignments(comp, 2);
+
+            // Test against a runtime that does not admit support for covariant returns.
+            comp = CreateCompilationWithoutCovariantReturns(source, pretendRuntimeSupportsCovariantReturnsFeature: false).VerifyDiagnostics(
+                // (8,28): error CS8778: 'Derived.M()': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base.M()'
+                //     public override string M() => null;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M()", "Base.M()", "object").WithLocation(8, 28)
+                );
+            verify(comp);
+            VerifyAssignments(comp, 2);
+
+            comp = CreateCompilationWithCovariantReturns(source, pretendRuntimeSupportsCovariantReturnsFeature: false).VerifyDiagnostics(
+                // (8,28): error CS8778: 'Derived.M()': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base.M()'
+                //     public override string M() => null;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M()", "Base.M()", "object").WithLocation(8, 28)
+                );
+            verify(comp);
+            VerifyAssignments(comp, 2);
+
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);
@@ -498,6 +585,24 @@ public class Program
                 );
             verify(comp);
             VerifyAssignments(comp, 2);
+
+            // Test against a runtime that does not admit support for covariant returns.
+            comp = CreateCompilationWithoutCovariantReturns(source, pretendRuntimeSupportsCovariantReturnsFeature: false).VerifyDiagnostics(
+                // (8,28): error CS8779: 'Derived.M': Target runtime doesn't support covariant types in overrides. Type must be 'object' to match overridden member 'Base.M'
+                //     public override string M => null;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses, "M").WithArguments("Derived.M", "Base.M", "object").WithLocation(8, 28)
+                );
+            verify(comp);
+            VerifyAssignments(comp, 2);
+
+            comp = CreateCompilationWithCovariantReturns(source, pretendRuntimeSupportsCovariantReturnsFeature: false).VerifyDiagnostics(
+                // (8,28): error CS8779: 'Derived.M': Target runtime doesn't support covariant types in overrides. Type must be 'object' to match overridden member 'Base.M'
+                //     public override string M => null;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses, "M").WithArguments("Derived.M", "Base.M", "object").WithLocation(8, 28)
+                );
+            verify(comp);
+            VerifyAssignments(comp, 2);
+
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             verify(comp);

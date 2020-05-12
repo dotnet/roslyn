@@ -426,6 +426,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Figure out if the target runtime supports covariant returns of methods declared in classes.
+        /// </summary>
+        internal bool RuntimeSupportsCovariantReturnsOfClasses
+        {
+            get
+            {
+                // check for the runtime feature indicator.
+                if (!(GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses) is null))
+                {
+                    return true;
+                }
+
+                // PROTOTYPE(covariant-returns): For testing purposes, we support a compiler "feature" flag that permits us to skip
+                // the requirement for a runtime feature indicator. We can remove it once we have a runtime that
+                // we can test against that actually supports the feature.
+                if (this is SourceAssemblySymbol { DeclaringCompilation: CSharpCompilation compilation } &&
+                    compilation.Feature("DoNotRequireRuntimeCovariantReturnsSupport") != null)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Return an array of assemblies involved in canonical type resolution of
         /// NoPia local types defined within this assembly. In other words, all 
         /// references used by previous compilation referencing this assembly.

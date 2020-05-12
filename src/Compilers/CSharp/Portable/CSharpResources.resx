@@ -6109,4 +6109,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureCovariantReturnsForOverrides" xml:space="preserve">
     <value>covariant returns</value>
   </data>
+  <data name="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses" xml:space="preserve">
+    <value>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses" xml:space="preserve">
+    <value>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</value>
+  </data>
 </root>

@@ -7253,7 +7253,11 @@ End Class
                     </file>
                 </compilation>
 
-            Dim cSharpCompilation = CreateCSharpCompilation(csSource, CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Preview))
+            ' PROTOTYPE(covariant-returns): For testing purposes, we support a compiler "feature" flag that permits us to skip
+            ' the requirement for a runtime feature indicator. We should remove it once we have a runtime that
+            ' we can test against that actually supports the feature.
+            Dim cSharpParseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Preview).WithFeatures({New KeyValuePair(Of String, String)("DoNotRequireRuntimeCovariantReturnsSupport", "true")})
+            Dim cSharpCompilation = CreateCSharpCompilation(csSource, cSharpParseOptions)
             Dim reference As MetadataReference = cSharpCompilation.EmitToImageReference
             Dim references = cSharpCompilation.References.Append(reference)
 

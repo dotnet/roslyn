@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis
         System_Nullable_T__op_Explicit_ToT,
 
         System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces,
+        System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses,
 
         Count
     }

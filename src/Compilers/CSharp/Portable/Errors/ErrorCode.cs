@@ -1770,6 +1770,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_MemberNotNullWhen = 8775,
         WRN_MemberNotNullBadMember = 8776,
         WRN_ParameterDisallowsNull = 8777,
+        ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8778,
+        ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8779,
 
         ERR_DesignatorBeneathPatternCombinator = 8780,
         ERR_UnsupportedTypeForRelationalPattern = 8781,

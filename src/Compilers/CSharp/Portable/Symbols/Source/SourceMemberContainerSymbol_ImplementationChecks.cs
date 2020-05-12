@@ -892,9 +892,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     if (overridingProperty.SetMethod is null &&
                                         DeclaringCompilation.Conversions.HasIdentityOrImplicitReferenceConversion(overridingMemberType.Type, overriddenMemberType.Type, ref discardedUseSiteDiagnostics))
                                     {
-                                        var diagnosticInfo = MessageID.IDS_FeatureCovariantReturnsForOverrides.GetFeatureAvailabilityDiagnosticInfo(this.DeclaringCompilation);
-                                        Debug.Assert(diagnosticInfo is { });
-                                        diagnostics.Add(diagnosticInfo, overridingMemberLocation);
+                                        if (!overridingProperty.ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses)
+                                        {
+                                            diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.Type);
+                                        }
+                                        else if (MessageID.IDS_FeatureCovariantReturnsForOverrides.GetFeatureAvailabilityDiagnosticInfo(this.DeclaringCompilation) is { } diagnosticInfo)
+                                        {
+                                            diagnostics.Add(diagnosticInfo, overridingMemberLocation);
+                                        }
+                                        else
+                                        {
+                                            throw ExceptionUtilities.Unreachable;
+                                        }
                                     }
                                     else
                                     {
@@ -1012,9 +1021,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
                                     if (DeclaringCompilation.Conversions.HasIdentityOrImplicitReferenceConversion(overridingMethod.ReturnTypeWithAnnotations.Type, overriddenMethod.ReturnTypeWithAnnotations.Type, ref discardedUseSiteDiagnostics))
                                     {
-                                        var diagnosticInfo = MessageID.IDS_FeatureCovariantReturnsForOverrides.GetFeatureAvailabilityDiagnosticInfo(this.DeclaringCompilation);
-                                        Debug.Assert(diagnosticInfo is { });
-                                        diagnostics.Add(diagnosticInfo, overridingMemberLocation);
+                                        if (!overridingMethod.ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses)
+                                        {
+                                            diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType);
+                                        }
+                                        else if (MessageID.IDS_FeatureCovariantReturnsForOverrides.GetFeatureAvailabilityDiagnosticInfo(this.DeclaringCompilation) is { } diagnosticInfo)
+                                        {
+                                            diagnostics.Add(diagnosticInfo, overridingMemberLocation);
+                                        }
+                                        else
+                                        {
+                                            throw ExceptionUtilities.Unreachable;
+                                        }
                                     }
                                     else
                                     {
@@ -1099,7 +1117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private bool IsValidOverrideReturnType(Symbol overridingSymbol, TypeWithAnnotations overridingReturnType, TypeWithAnnotations overriddenReturnType, DiagnosticBag diagnostics)
         {
-            if (DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureCovariantReturnsForOverrides.RequiredVersion())
+            if (overridingSymbol.ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses &&
+                DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureCovariantReturnsForOverrides.RequiredVersion())
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 // PROTOTYPE(covariant-returns): Add a check that the platform supports covariant returns if used.
