@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsForEachStatement => _contextInfo.ContainsForEachStatement;
         public bool ContainsDeconstruction => _contextInfo.ContainsDeconstruction;
         public bool ContainsAwait => _contextInfo.ContainsAwait;
-        public bool ContainsRangeExpression => _contextInfo.ContainsRangeExpression;
         public bool ContainsLockStatement => _contextInfo.ContainsLockStatement;
         public bool ContainsUsingStatement => _contextInfo.ContainsUsingStatement;
         public bool ContainsQueryExpression => _contextInfo.ContainsQueryExpression;

@@ -114,8 +114,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsDeconstruction = containsDeconstruction || syntaxFacts.IsDeconstructionAssignment(node)
                                 || syntaxFacts.IsDeconstructionForEachStatement(node);
 
-                            containsRangeExpression = containsRangeExpression || syntaxFacts.IsRangeExpression(node);
-
                             containsAwait = containsAwait || syntaxFacts.IsAwaitExpression(node);
                             containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
                                 syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);

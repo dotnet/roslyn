@@ -224,10 +224,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Function IsRangeExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsRangeExpression
-            Return False
-        End Function
-
         Public Function IsStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsStatement
             Return TypeOf node Is StatementSyntax
         End Function

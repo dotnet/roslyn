@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                          containsIndexerMemberCref,
                          containsDeconstruction,
                          containsAwait,
-                         containsTupleExpressionOrTupleType,
-                         containsRangeExpression))
+                         containsTupleExpressionOrTupleType))
             {
             }
 
@@ -66,8 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsIndexerMemberCref,
                 bool containsDeconstruction,
                 bool containsAwait,
-                bool containsTupleExpressionOrTupleType,
-                bool containsRangeExpression)
+                bool containsTupleExpressionOrTupleType)
             {
                 var containingNodes = ContainingNodes.None;
 
@@ -82,7 +80,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 containingNodes |= containsDeconstruction ? ContainingNodes.ContainsDeconstruction : 0;
                 containingNodes |= containsAwait ? ContainingNodes.ContainsAwait : 0;
                 containingNodes |= containsTupleExpressionOrTupleType ? ContainingNodes.ContainsTupleExpressionOrTupleType : 0;
-                containingNodes |= containsRangeExpression ? ContainingNodes.ContainsRangeExpression : 0;
 
                 return containingNodes;
             }
@@ -101,9 +98,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public bool ContainsAwait
                 => (_containingNodes & ContainingNodes.ContainsAwait) == ContainingNodes.ContainsAwait;
-
-            public bool ContainsRangeExpression
-                => (_containingNodes & ContainingNodes.ContainsRangeExpression) == ContainingNodes.ContainsRangeExpression;
 
             public bool ContainsLockStatement
                 => (_containingNodes & ContainingNodes.ContainsLockStatement) == ContainingNodes.ContainsLockStatement;
@@ -167,8 +161,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ContainsIndexerMemberCref = 1 << 7,
                 ContainsDeconstruction = 1 << 8,
                 ContainsAwait = 1 << 9,
-                ContainsTupleExpressionOrTupleType = 1 << 10,
-                ContainsRangeExpression = 1 << 11,
+                ContainsTupleExpressionOrTupleType = 1 << 10
             }
         }
     }

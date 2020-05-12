@@ -211,9 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             };
         }
 
-        public bool IsRangeExpression(SyntaxNode node)
-            => node is RangeExpressionSyntax;
-
         public bool IsStatement(SyntaxNode node)
            => node is StatementSyntax;
 
