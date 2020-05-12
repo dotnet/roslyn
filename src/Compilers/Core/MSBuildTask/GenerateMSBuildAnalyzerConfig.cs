@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// 
     /// <see cref="PropertyItems"/> is expected to be a list of items whose <see cref="ITaskItem.ItemSpec"/> is the property name
     /// and have a metadata value called <c>Value</c> that contains the evaluated value of the property. Each of the ]
-    /// <see cref="PropertyItems"/> will be transformed into an <c>msbuild_property.<em>ItemSpec</em> = <em>Value</em></c> entry in the
+    /// <see cref="PropertyItems"/> will be transformed into an <c>build_property.<em>ItemSpec</em> = <em>Value</em></c> entry in the
     /// global section of the generated config file.
     /// 
     /// <see cref="MetadataItems"/> is expected to be a list of items whose <see cref="ITaskItem.ItemSpec"/> represents a file in the 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// 
     /// Each of the <see cref="MetadataItems"/> will be transformed into a new section in the generated config file. The section
     /// header will be the full path of the item (generated via its<see cref="ITaskItem.ItemSpec"/>), and each section will have a 
-    /// set of <c>msbuild_metadata.<em>ItemType</em>.<em>MetadataName</em> = <em>RetrievedMetadataValue</em></c>, one per <c>ItemType</c>
+    /// set of <c>build_metadata.<em>ItemType</em>.<em>MetadataName</em> = <em>RetrievedMetadataValue</em></c>, one per <c>ItemType</c>
     /// 
     /// The Microsoft.Managed.Core.targets calls this task with the collected results of the <c>AnalyzerProperty</c> and 
     /// <c>AnalyzerItemMetadata</c> item groups. 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // collect the properties into a global section
             foreach (var prop in PropertyItems)
             {
-                builder.Append("msbuild_property.")
+                builder.Append("build_property.")
                        .Append(prop.ItemSpec)
                        .Append(" = ")
                        .AppendLine(prop.GetMetadata("Value"));
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 foreach (var item in group)
                 {
                     string metadataName = item.GetMetadata("MetadataName");
-                    builder.Append("msbuild_item.")
+                    builder.Append("build_metadata.")
                            .Append(item.GetMetadata("ItemType"))
                            .Append(".")
                            .Append(metadataName)

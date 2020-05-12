@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var result = configTask.ConfigFileContents;
 
             Assert.Equal(@"is_global = true
-msbuild_property.Property1 = abc123
-msbuild_property.Property2 = def456
+build_property.Property1 = abc123
+build_property.Property2 = def456
 ", result);
         }
 
@@ -67,7 +67,7 @@ msbuild_property.Property2 = def456
             Assert.Equal(@"is_global = true
 
 [c:/file1.cs]
-msbuild_item.Compile.ToRetrieve = abc123
+build_metadata.Compile.ToRetrieve = abc123
 ", result);
         }
 
@@ -89,13 +89,13 @@ msbuild_item.Compile.ToRetrieve = abc123
             Assert.Equal(@"is_global = true
 
 [c:/file1.cs]
-msbuild_item.Compile.ToRetrieve = abc123
+build_metadata.Compile.ToRetrieve = abc123
 
 [c:/file2.cs]
-msbuild_item.Compile.ToRetrieve = def456
+build_metadata.Compile.ToRetrieve = def456
 
 [c:/file3.cs]
-msbuild_item.AdditionalFiles.ToRetrieve = ghi789
+build_metadata.AdditionalFiles.ToRetrieve = ghi789
 ", result);
         }
 
@@ -116,8 +116,8 @@ msbuild_item.AdditionalFiles.ToRetrieve = ghi789
             Assert.Equal(@"is_global = true
 
 [c:/file1.cs]
-msbuild_item.Compile.ToRetrieve = abc123
-msbuild_item.AdditionalFile.ToRetrieve = def456
+build_metadata.Compile.ToRetrieve = abc123
+build_metadata.AdditionalFile.ToRetrieve = def456
 ", result);
         }
 
@@ -137,7 +137,7 @@ msbuild_item.AdditionalFile.ToRetrieve = def456
             Assert.Equal(@"is_global = true
 
 [c:/file1.cs]
-msbuild_item.Compile.ToRetrieve = 
+build_metadata.Compile.ToRetrieve = 
 ", result);
         }
 
@@ -159,9 +159,9 @@ msbuild_item.Compile.ToRetrieve =
             Assert.Equal(@"is_global = true
 
 [c:/file1.cs]
-msbuild_item.. = 
-msbuild_item.Compile. = 
-msbuild_item..ToRetrieve = 
+build_metadata.. = 
+build_metadata.Compile. = 
+build_metadata..ToRetrieve = 
 ", result);
         }
 
@@ -186,18 +186,18 @@ msbuild_item..ToRetrieve =
             var result = configTask.ConfigFileContents;
 
             Assert.Equal(@"is_global = true
-msbuild_property.Property1 = abc123
-msbuild_property.Property2 = def456
+build_property.Property1 = abc123
+build_property.Property2 = def456
 
 [c:/file1.cs]
-msbuild_item.Compile.ToRetrieve = abc123
-msbuild_item.AdditionalFiles.ToRetrieve = jkl012
+build_metadata.Compile.ToRetrieve = abc123
+build_metadata.AdditionalFiles.ToRetrieve = jkl012
 
 [c:/file2.cs]
-msbuild_item.Compile.ToRetrieve = def456
+build_metadata.Compile.ToRetrieve = def456
 
 [c:/file3.cs]
-msbuild_item.AdditionalFiles.ToRetrieve = ghi789
+build_metadata.AdditionalFiles.ToRetrieve = ghi789
 ", result);
         }
 
@@ -226,13 +226,13 @@ msbuild_item.AdditionalFiles.ToRetrieve = ghi789
             Assert.Equal($@"is_global = true
 
 [{expectedPath1}]
-msbuild_item.Compile.ToRetrieve = abc123
+build_metadata.Compile.ToRetrieve = abc123
 
 [{expectedPath2}]
-msbuild_item.Compile.ToRetrieve = abc123
+build_metadata.Compile.ToRetrieve = abc123
 
 [{expectedPath3}]
-msbuild_item.Compile.ToRetrieve = abc123
+build_metadata.Compile.ToRetrieve = abc123
 ", result);
         }
 
@@ -253,8 +253,8 @@ msbuild_item.Compile.ToRetrieve = abc123
             Assert.Equal($@"is_global = true
 
 [c:/file1.cs]
-msbuild_item.Compile.ToRetrieve = abc123
-msbuild_item.AdditionalFile.ToRetrieve = def456
+build_metadata.Compile.ToRetrieve = abc123
+build_metadata.AdditionalFile.ToRetrieve = def456
 ", result);
         }
 
@@ -289,7 +289,7 @@ values
             var result = configTask.ConfigFileContents;
 
             Assert.Equal(@"is_global = true
-msbuild_property.Property1 = this is 
+build_property.Property1 = this is 
 a 
 property
 with  
@@ -299,7 +299,7 @@ and
 property = looking
 values
 
-msbuild_property.Property2 = def456
+build_property.Property2 = def456
 ", result);
         }
     }

@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public AnalyzerOptions AnalyzerOptions { get; }
 
+        public AnalyzerOptions BuildProperties { get; }
+
+        public AnalyzerOptions BuildMetadata { get; }
+
         /// <summary>
         /// Any produced diagnostics while applying analyzer configuration.
         /// </summary>
@@ -34,6 +38,8 @@ namespace Microsoft.CodeAnalysis
         internal AnalyzerConfigOptionsResult(
             TreeOptions treeOptions,
             AnalyzerOptions analyzerOptions,
+            AnalyzerOptions buildProperties,
+            AnalyzerOptions buildMetadata,
             ImmutableArray<Diagnostic> diagnostics)
         {
             Debug.Assert(treeOptions != null);
@@ -41,6 +47,8 @@ namespace Microsoft.CodeAnalysis
 
             TreeOptions = treeOptions;
             AnalyzerOptions = analyzerOptions;
+            BuildProperties = buildProperties;
+            BuildMetadata = buildMetadata;
             Diagnostics = diagnostics;
         }
     }
