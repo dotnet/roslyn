@@ -118,8 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
             else if (allowSwitchToMainThread)
             {
-                using var combinedToken = _tokenSource.Token.CombineWith(cancellationToken);
-                return await packageSourcesAsync.JoinAsync(combinedToken.Token).ConfigureAwait(false);
+                return await packageSourcesAsync.JoinAsync(cancellationToken).ConfigureAwait(false);
             }
             else
             {
