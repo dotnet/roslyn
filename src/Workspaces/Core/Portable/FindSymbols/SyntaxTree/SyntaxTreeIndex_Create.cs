@@ -88,7 +88,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsDeconstruction = false;
                 var containsAwait = false;
                 var containsTupleExpressionOrTupleType = false;
-                var containsRangeExpression = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -264,8 +263,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsIndexerMemberCref,
                             containsDeconstruction,
                             containsAwait,
-                            containsTupleExpressionOrTupleType,
-                            containsRangeExpression),
+                            containsTupleExpressionOrTupleType),
                     new DeclarationInfo(
                             declaredSymbolInfos.ToImmutable()),
                     new ExtensionMethodInfo(
