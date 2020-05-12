@@ -508,6 +508,10 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
 
+        System_MemoryExtensions__SequenceEqual_T,
+        System_MemoryExtensions__AsSpanString,
+        System_MemoryExtensions__AsSpanStringIntInt,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <param name="targetLabel">Target label to branch to if key = stringConstant</param>
         public delegate void EmitStringCompareAndBranch(LocalOrParameter key, ConstantValue stringConstant, object targetLabel);
 
+        public delegate void EmitSpanStringCompare(Range keySlice, ReadOnlySpan<char> stringConstant);
+
         /// <summary>
         /// Delegate to emit string compare call
         /// </summary>
@@ -54,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly Func<int, LocalDefinition>? _emitStoreCharAtIndex;
         private readonly Action<int>? _emitPushCharAtIndex;
         private readonly Action? _emitPushKeyLength;
+        private readonly EmitSpanStringCompare? _emitSpanStringCompare;
 
         internal SwitchStringJumpTableEmitter(
             ILBuilder builder,
@@ -64,7 +67,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Action? emitPushKeyLength,
             Func<LocalDefinition>? emitStoreKeyLength,
             Action<int>? emitPushCharAtIndex,
-            Func<int, LocalDefinition>? emitStoreCharAtIndex)
+            Func<int, LocalDefinition>? emitStoreCharAtIndex,
+            EmitSpanStringCompare? emitSpanStringCompare)
         {
             Debug.Assert(caseLabels.Length > 0);
             RoslynDebug.Assert(emitStringCondBranchDelegate != null);
@@ -78,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _emitStoreCharAtIndex = emitStoreCharAtIndex;
             _emitPushCharAtIndex = emitPushCharAtIndex;
             _emitPushKeyLength = emitPushKeyLength;
+            _emitSpanStringCompare = emitSpanStringCompare;
         }
 
         internal void EmitJumpTable()
@@ -197,25 +202,23 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return (lengthBucketLabelsMap, keyLength);
         }
 
-        private void EmitTrieSwitchPart(Bucket bucket, int charIndex, int length)
+        private void EmitTrieSwitchPart(Bucket bucket, int charIndex, int length, int lengthContinuousSequenceOfSingleValidChars = 0)
         {
             var groupedByChar = GroupByChar(bucket, charIndex);
 
             if (groupedByChar.Count == 1)
             {
-                Debug.Assert(_emitPushCharAtIndex != null);
-                _emitPushCharAtIndex(charIndex);
-                var (key, subBucket) = groupedByChar.First();
-                _builder.EmitConstantValue(ConstantValue.Create((int)key));
-                _builder.EmitBranch(ILOpCode.Bne_un, _fallThroughLabel);
                 if (charIndex == length - 1)
                 {
-                    Debug.Assert(subBucket.Count == 1);
-                    _builder.EmitBranch(ILOpCode.Br, subBucket[0].Value);
+                    EmitTestForContinuousSequenceOfSingleValidChars(
+                        bucket,
+                        (charIndex - lengthContinuousSequenceOfSingleValidChars)..(charIndex + 1));
+                    Debug.Assert(bucket.Count == 1);
+                    _builder.EmitBranch(ILOpCode.Br, bucket[0].Value);
                 }
                 else
                 {
-                    EmitTrieSwitchPart(subBucket, charIndex + 1, length);
+                    EmitTrieSwitchPart(bucket, charIndex + 1, length, lengthContinuousSequenceOfSingleValidChars + 1);
                 }
                 return;
             }
@@ -224,6 +227,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             if (charIndex == length - 1)
                 return;
+
+            if (lengthContinuousSequenceOfSingleValidChars > 0)
+            {
+                EmitTestForContinuousSequenceOfSingleValidChars(
+                    bucket,
+                    (charIndex - lengthContinuousSequenceOfSingleValidChars)..charIndex);
+            }
 
             Debug.Assert(charBucketLabelsMap != null);
             foreach (var (key, subBucket) in groupedByChar)
@@ -234,6 +244,28 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             FreeTemp(charTemp);
+        }
+
+        private void EmitTestForContinuousSequenceOfSingleValidChars(Bucket bucket, Range range)
+        {
+            var testSpan = bucket[0].Key.StringValue.AsSpan()[range];
+            // Comparing spans via SequenceEquals is faster than emitting code to test each char individually when the span is greater than 16.
+            if (testSpan.Length > 16 && _emitSpanStringCompare != null)
+            {
+                _emitSpanStringCompare(range, testSpan);
+                _builder.EmitBranch(ILOpCode.Brfalse, _fallThroughLabel);
+            }
+            else
+            {
+                Debug.Assert(_emitPushCharAtIndex != null);
+                for (var i = 0; i < testSpan.Length; i++)
+                {
+                    var testChar = testSpan[i];
+                    _emitPushCharAtIndex(i + range.Start.Value);
+                    _builder.EmitConstantValue(ConstantValue.Create((int)testChar));
+                    _builder.EmitBranch(ILOpCode.Bne_un, _fallThroughLabel);
+                }
+            }
         }
 
         private static Dictionary<char, Bucket> GroupByChar(Bucket caseLabels, int charIndex)

@@ -3035,7 +3035,6 @@ class Test
         {
             var text = @"
 using System;
-using System.Text;
 
 class Test
 {
@@ -3229,14 +3228,17 @@ class Test
         Console.Write(status);
     }
 }";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "PASS");
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(text, options: TestOptions.ReleaseExe)
+                .VerifyDiagnostics();
 
-            compVerifier.VerifyIL("Test.Switcheroo", @"
+            CompileAndVerify(compilation, expectedOutput: "PASS")
+                .VerifyIL("Test.Switcheroo", @"
 {
-  // Code size     1115 (0x45b)
+  // Code size     1374 (0x55e)
   .maxstack  3
   .locals init (string V_0, //value
-                uint V_1)
+                char V_1,
+                char V_2)
   IL_0000:  ldstr      """"
   IL_0005:  stloc.0
   IL_0006:  ldarg.0
@@ -3250,305 +3252,5296 @@ class Test
   IL_0017:  callvirt   ""string string.Remove(int, int)""
   IL_001c:  starg.s    V_0
   IL_001e:  ldarg.0
-  IL_001f:  call       ""ComputeStringHash""
-  IL_0024:  stloc.1
-  IL_0025:  ldloc.1
-  IL_0026:  ldc.i4     0xb2f29419
-  IL_002b:  bgt.un     IL_00e0
-  IL_0030:  ldloc.1
-  IL_0031:  ldc.i4     0x619348d8
-  IL_0036:  bgt.un.s   IL_008c
-  IL_0038:  ldloc.1
-  IL_0039:  ldc.i4     0x36758e37
-  IL_003e:  bgt.un.s   IL_0066
-  IL_0040:  ldloc.1
-  IL_0041:  ldc.i4     0x144fd20d
-  IL_0046:  beq        IL_02ae
+  IL_001f:  brfalse    IL_0556
+  IL_0024:  ldarg.0
+  IL_0025:  call       ""int string.Length.get""
+  IL_002a:  ldc.i4.s   40
+  IL_002c:  bne.un     IL_0556
+  IL_0031:  ldarg.0
+  IL_0032:  ldc.i4.0
+  IL_0033:  call       ""char string.this[int].get""
+  IL_0038:  stloc.1
+  IL_0039:  ldloc.1
+  IL_003a:  ldc.i4.s   69
+  IL_003c:  bgt.un.s   IL_0092
+  IL_003e:  ldloc.1
+  IL_003f:  ldc.i4.s   52
+  IL_0041:  bgt.un.s   IL_0058
+  IL_0043:  ldloc.1
+  IL_0044:  ldc.i4.s   48
+  IL_0046:  beq        IL_0395
   IL_004b:  ldloc.1
-  IL_004c:  ldc.i4     0x14ca99e2
-  IL_0051:  beq        IL_025a
-  IL_0056:  ldloc.1
-  IL_0057:  ldc.i4     0x36758e37
-  IL_005c:  beq        IL_0206
-  IL_0061:  br         IL_0453
-  IL_0066:  ldloc.1
-  IL_0067:  ldc.i4     0x5398a778
-  IL_006c:  beq        IL_021b
-  IL_0071:  ldloc.1
-  IL_0072:  ldc.i4     0x616477cf
-  IL_0077:  beq        IL_01b2
-  IL_007c:  ldloc.1
-  IL_007d:  ldc.i4     0x619348d8
-  IL_0082:  beq        IL_02ed
-  IL_0087:  br         IL_0453
-  IL_008c:  ldloc.1
-  IL_008d:  ldc.i4     0x78a826a8
-  IL_0092:  bgt.un.s   IL_00ba
-  IL_0094:  ldloc.1
-  IL_0095:  ldc.i4     0x65b3e3e5
-  IL_009a:  beq        IL_02c3
-  IL_009f:  ldloc.1
-  IL_00a0:  ldc.i4     0x7822b5bc
-  IL_00a5:  beq        IL_0284
-  IL_00aa:  ldloc.1
-  IL_00ab:  ldc.i4     0x78a826a8
-  IL_00b0:  beq        IL_01dc
-  IL_00b5:  br         IL_0453
-  IL_00ba:  ldloc.1
-  IL_00bb:  ldc.i4     0x7f66da4e
-  IL_00c0:  beq        IL_0356
-  IL_00c5:  ldloc.1
-  IL_00c6:  ldc.i4     0xb13d374d
-  IL_00cb:  beq        IL_032c
-  IL_00d0:  ldloc.1
-  IL_00d1:  ldc.i4     0xb2f29419
-  IL_00d6:  beq        IL_0302
-  IL_00db:  br         IL_0453
-  IL_00e0:  ldloc.1
-  IL_00e1:  ldc.i4     0xd59864f4
-  IL_00e6:  bgt.un.s   IL_013c
-  IL_00e8:  ldloc.1
-  IL_00e9:  ldc.i4     0xbf4a9f8e
-  IL_00ee:  bgt.un.s   IL_0116
-  IL_00f0:  ldloc.1
-  IL_00f1:  ldc.i4     0xb6e02d3a
-  IL_00f6:  beq        IL_0299
-  IL_00fb:  ldloc.1
-  IL_00fc:  ldc.i4     0xbaed3db3
-  IL_0101:  beq        IL_0317
-  IL_0106:  ldloc.1
-  IL_0107:  ldc.i4     0xbf4a9f8e
-  IL_010c:  beq        IL_0230
-  IL_0111:  br         IL_0453
-  IL_0116:  ldloc.1
-  IL_0117:  ldc.i4     0xc6284d42
-  IL_011c:  beq        IL_01f1
-  IL_0121:  ldloc.1
-  IL_0122:  ldc.i4     0xd1761402
-  IL_0127:  beq        IL_01c7
-  IL_012c:  ldloc.1
-  IL_012d:  ldc.i4     0xd59864f4
-  IL_0132:  beq        IL_026f
-  IL_0137:  br         IL_0453
-  IL_013c:  ldloc.1
-  IL_013d:  ldc.i4     0xeb323c73
-  IL_0142:  bgt.un.s   IL_016a
-  IL_0144:  ldloc.1
-  IL_0145:  ldc.i4     0xdca4b248
-  IL_014a:  beq        IL_0245
-  IL_014f:  ldloc.1
-  IL_0150:  ldc.i4     0xe926f470
-  IL_0155:  beq        IL_036b
-  IL_015a:  ldloc.1
-  IL_015b:  ldc.i4     0xeb323c73
-  IL_0160:  beq        IL_02d8
-  IL_0165:  br         IL_0453
-  IL_016a:  ldloc.1
-  IL_016b:  ldc.i4     0xf1ea0ad5
-  IL_0170:  beq        IL_0341
-  IL_0175:  ldloc.1
-  IL_0176:  ldc.i4     0xfa67b44d
-  IL_017b:  beq.s      IL_019d
-  IL_017d:  ldloc.1
-  IL_017e:  ldc.i4     0xfea21584
-  IL_0183:  bne.un     IL_0453
-  IL_0188:  ldarg.0
-  IL_0189:  ldstr      ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9""
-  IL_018e:  call       ""bool string.op_Equality(string, string)""
-  IL_0193:  brtrue     IL_0380
-  IL_0198:  br         IL_0453
-  IL_019d:  ldarg.0
-  IL_019e:  ldstr      ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I""
-  IL_01a3:  call       ""bool string.op_Equality(string, string)""
-  IL_01a8:  brtrue     IL_038b
-  IL_01ad:  br         IL_0453
-  IL_01b2:  ldarg.0
-  IL_01b3:  ldstr      ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m""
-  IL_01b8:  call       ""bool string.op_Equality(string, string)""
-  IL_01bd:  brtrue     IL_0396
-  IL_01c2:  br         IL_0453
-  IL_01c7:  ldarg.0
-  IL_01c8:  ldstr      ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD""
-  IL_01cd:  call       ""bool string.op_Equality(string, string)""
-  IL_01d2:  brtrue     IL_03a1
-  IL_01d7:  br         IL_0453
-  IL_01dc:  ldarg.0
-  IL_01dd:  ldstr      ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]""
-  IL_01e2:  call       ""bool string.op_Equality(string, string)""
-  IL_01e7:  brtrue     IL_03ac
-  IL_01ec:  br         IL_0453
-  IL_01f1:  ldarg.0
-  IL_01f2:  ldstr      ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c""
-  IL_01f7:  call       ""bool string.op_Equality(string, string)""
-  IL_01fc:  brtrue     IL_03b7
-  IL_0201:  br         IL_0453
-  IL_0206:  ldarg.0
-  IL_0207:  ldstr      ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0""
-  IL_020c:  call       ""bool string.op_Equality(string, string)""
-  IL_0211:  brtrue     IL_03c2
-  IL_0216:  br         IL_0453
-  IL_021b:  ldarg.0
-  IL_021c:  ldstr      ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>""
-  IL_0221:  call       ""bool string.op_Equality(string, string)""
-  IL_0226:  brtrue     IL_03cd
-  IL_022b:  br         IL_0453
-  IL_0230:  ldarg.0
-  IL_0231:  ldstr      ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF""
-  IL_0236:  call       ""bool string.op_Equality(string, string)""
-  IL_023b:  brtrue     IL_03d5
-  IL_0240:  br         IL_0453
-  IL_0245:  ldarg.0
-  IL_0246:  ldstr      ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:""
-  IL_024b:  call       ""bool string.op_Equality(string, string)""
-  IL_0250:  brtrue     IL_03dd
-  IL_0255:  br         IL_0453
-  IL_025a:  ldarg.0
-  IL_025b:  ldstr      "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj""
-  IL_0260:  call       ""bool string.op_Equality(string, string)""
-  IL_0265:  brtrue     IL_03e5
-  IL_026a:  br         IL_0453
-  IL_026f:  ldarg.0
-  IL_0270:  ldstr      ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:""
-  IL_0275:  call       ""bool string.op_Equality(string, string)""
-  IL_027a:  brtrue     IL_03ed
-  IL_027f:  br         IL_0453
-  IL_0284:  ldarg.0
-  IL_0285:  ldstr      ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU""
-  IL_028a:  call       ""bool string.op_Equality(string, string)""
-  IL_028f:  brtrue     IL_03f5
-  IL_0294:  br         IL_0453
-  IL_0299:  ldarg.0
-  IL_029a:  ldstr      ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR""
-  IL_029f:  call       ""bool string.op_Equality(string, string)""
-  IL_02a4:  brtrue     IL_03fd
-  IL_02a9:  br         IL_0453
-  IL_02ae:  ldarg.0
-  IL_02af:  ldstr      ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj""
-  IL_02b4:  call       ""bool string.op_Equality(string, string)""
-  IL_02b9:  brtrue     IL_0405
-  IL_02be:  br         IL_0453
-  IL_02c3:  ldarg.0
-  IL_02c4:  ldstr      ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k""
-  IL_02c9:  call       ""bool string.op_Equality(string, string)""
-  IL_02ce:  brtrue     IL_040d
-  IL_02d3:  br         IL_0453
-  IL_02d8:  ldarg.0
-  IL_02d9:  ldstr      ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4""
-  IL_02de:  call       ""bool string.op_Equality(string, string)""
-  IL_02e3:  brtrue     IL_0415
-  IL_02e8:  br         IL_0453
-  IL_02ed:  ldarg.0
-  IL_02ee:  ldstr      ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O""
-  IL_02f3:  call       ""bool string.op_Equality(string, string)""
-  IL_02f8:  brtrue     IL_041d
-  IL_02fd:  br         IL_0453
-  IL_0302:  ldarg.0
-  IL_0303:  ldstr      ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe""
-  IL_0308:  call       ""bool string.op_Equality(string, string)""
-  IL_030d:  brtrue     IL_0425
-  IL_0312:  br         IL_0453
-  IL_0317:  ldarg.0
-  IL_0318:  ldstr      ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM""
-  IL_031d:  call       ""bool string.op_Equality(string, string)""
-  IL_0322:  brtrue     IL_042d
-  IL_0327:  br         IL_0453
-  IL_032c:  ldarg.0
-  IL_032d:  ldstr      ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W""
-  IL_0332:  call       ""bool string.op_Equality(string, string)""
-  IL_0337:  brtrue     IL_0435
-  IL_033c:  br         IL_0453
-  IL_0341:  ldarg.0
-  IL_0342:  ldstr      ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D""
-  IL_0347:  call       ""bool string.op_Equality(string, string)""
-  IL_034c:  brtrue     IL_043d
-  IL_0351:  br         IL_0453
-  IL_0356:  ldarg.0
-  IL_0357:  ldstr      ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9""
-  IL_035c:  call       ""bool string.op_Equality(string, string)""
-  IL_0361:  brtrue     IL_0445
-  IL_0366:  br         IL_0453
-  IL_036b:  ldarg.0
-  IL_036c:  ldstr      ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4""
-  IL_0371:  call       ""bool string.op_Equality(string, string)""
-  IL_0376:  brtrue     IL_044d
-  IL_037b:  br         IL_0453
-  IL_0380:  ldstr      ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9""
-  IL_0385:  stloc.0
-  IL_0386:  br         IL_0453
-  IL_038b:  ldstr      ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I""
-  IL_0390:  stloc.0
-  IL_0391:  br         IL_0453
-  IL_0396:  ldstr      ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m""
-  IL_039b:  stloc.0
-  IL_039c:  br         IL_0453
-  IL_03a1:  ldstr      ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD""
-  IL_03a6:  stloc.0
-  IL_03a7:  br         IL_0453
-  IL_03ac:  ldstr      ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]""
-  IL_03b1:  stloc.0
-  IL_03b2:  br         IL_0453
-  IL_03b7:  ldstr      ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c""
-  IL_03bc:  stloc.0
-  IL_03bd:  br         IL_0453
-  IL_03c2:  ldstr      ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0""
-  IL_03c7:  stloc.0
-  IL_03c8:  br         IL_0453
-  IL_03cd:  ldstr      ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>""
-  IL_03d2:  stloc.0
-  IL_03d3:  br.s       IL_0453
-  IL_03d5:  ldstr      ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF""
-  IL_03da:  stloc.0
-  IL_03db:  br.s       IL_0453
-  IL_03dd:  ldstr      ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:""
-  IL_03e2:  stloc.0
-  IL_03e3:  br.s       IL_0453
-  IL_03e5:  ldstr      "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj""
-  IL_03ea:  stloc.0
-  IL_03eb:  br.s       IL_0453
-  IL_03ed:  ldstr      ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:""
-  IL_03f2:  stloc.0
-  IL_03f3:  br.s       IL_0453
-  IL_03f5:  ldstr      ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU""
-  IL_03fa:  stloc.0
-  IL_03fb:  br.s       IL_0453
-  IL_03fd:  ldstr      ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR""
-  IL_0402:  stloc.0
-  IL_0403:  br.s       IL_0453
-  IL_0405:  ldstr      ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj""
-  IL_040a:  stloc.0
-  IL_040b:  br.s       IL_0453
-  IL_040d:  ldstr      ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k""
-  IL_0412:  stloc.0
-  IL_0413:  br.s       IL_0453
-  IL_0415:  ldstr      ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4""
-  IL_041a:  stloc.0
-  IL_041b:  br.s       IL_0453
-  IL_041d:  ldstr      ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O""
-  IL_0422:  stloc.0
-  IL_0423:  br.s       IL_0453
-  IL_0425:  ldstr      ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe""
-  IL_042a:  stloc.0
-  IL_042b:  br.s       IL_0453
-  IL_042d:  ldstr      ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM""
-  IL_0432:  stloc.0
-  IL_0433:  br.s       IL_0453
-  IL_0435:  ldstr      ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W""
-  IL_043a:  stloc.0
-  IL_043b:  br.s       IL_0453
-  IL_043d:  ldstr      ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D""
-  IL_0442:  stloc.0
-  IL_0443:  br.s       IL_0453
-  IL_0445:  ldstr      ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9""
-  IL_044a:  stloc.0
-  IL_044b:  br.s       IL_0453
-  IL_044d:  ldstr      ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4""
-  IL_0452:  stloc.0
-  IL_0453:  ldloc.0
-  IL_0454:  ldarg.0
-  IL_0455:  call       ""bool string.op_Equality(string, string)""
-  IL_045a:  ret
-}"
-            );
+  IL_004c:  ldc.i4.s   52
+  IL_004e:  beq        IL_03b7
+  IL_0053:  br         IL_0556
+  IL_0058:  ldloc.1
+  IL_0059:  ldc.i4.s   57
+  IL_005b:  sub
+  IL_005c:  switch    (
+        IL_032f,
+        IL_0556,
+        IL_0556,
+        IL_01d1,
+        IL_0556,
+        IL_02eb,
+        IL_03fb,
+        IL_0556,
+        IL_0351)
+  IL_0085:  ldloc.1
+  IL_0086:  ldc.i4.s   69
+  IL_0088:  beq        IL_03d9
+  IL_008d:  br         IL_0556
+  IL_0092:  ldloc.1
+  IL_0093:  ldc.i4.s   83
+  IL_0095:  bgt.un.s   IL_00c9
+  IL_0097:  ldloc.1
+  IL_0098:  ldc.i4.s   72
+  IL_009a:  sub
+  IL_009b:  switch    (
+        IL_026e,
+        IL_0556,
+        IL_0556,
+        IL_0556,
+        IL_0461,
+        IL_043f,
+        IL_0110)
+  IL_00bc:  ldloc.1
+  IL_00bd:  ldc.i4.s   83
+  IL_00bf:  beq        IL_0373
+  IL_00c4:  br         IL_0556
+  IL_00c9:  ldloc.1
+  IL_00ca:  ldc.i4.s   88
+  IL_00cc:  sub
+  IL_00cd:  switch    (
+        IL_041d,
+        IL_0154,
+        IL_0556,
+        IL_0176)
+  IL_00e2:  ldloc.1
+  IL_00e3:  ldc.i4.s   100
+  IL_00e5:  sub
+  IL_00e6:  switch    (
+        IL_01f3,
+        IL_0132,
+        IL_030d,
+        IL_0556,
+        IL_0556,
+        IL_02c9)
+  IL_0103:  ldloc.1
+  IL_0104:  ldc.i4.s   110
+  IL_0106:  beq        IL_024c
+  IL_010b:  br         IL_0556
+  IL_0110:  ldarg.0
+  IL_0111:  ldc.i4.1
+  IL_0112:  ldc.i4.s   39
+  IL_0114:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_0119:  ldstr      ""?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9""
+  IL_011e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0123:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0128:  brfalse    IL_0556
+  IL_012d:  br         IL_0483
+  IL_0132:  ldarg.0
+  IL_0133:  ldc.i4.1
+  IL_0134:  ldc.i4.s   39
+  IL_0136:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_013b:  ldstr      ""moYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I""
+  IL_0140:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0145:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_014a:  brfalse    IL_0556
+  IL_014f:  br         IL_048e
+  IL_0154:  ldarg.0
+  IL_0155:  ldc.i4.1
+  IL_0156:  ldc.i4.s   39
+  IL_0158:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_015d:  ldstr      ""e]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m""
+  IL_0162:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0167:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_016c:  brfalse    IL_0556
+  IL_0171:  br         IL_0499
+  IL_0176:  ldarg.0
+  IL_0177:  ldc.i4.1
+  IL_0178:  call       ""char string.this[int].get""
+  IL_017d:  stloc.2
+  IL_017e:  ldloc.2
+  IL_017f:  ldc.i4.s   81
+  IL_0181:  beq.s      IL_018d
+  IL_0183:  ldloc.2
+  IL_0184:  ldc.i4.s   90
+  IL_0186:  beq.s      IL_01af
+  IL_0188:  br         IL_0556
+  IL_018d:  ldarg.0
+  IL_018e:  ldc.i4.2
+  IL_018f:  ldc.i4.s   38
+  IL_0191:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_0196:  ldstr      ""0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD""
+  IL_019b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_01a0:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_01a5:  brfalse    IL_0556
+  IL_01aa:  br         IL_04a4
+  IL_01af:  ldarg.0
+  IL_01b0:  ldc.i4.2
+  IL_01b1:  ldc.i4.s   38
+  IL_01b3:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_01b8:  ldstr      ""`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c""
+  IL_01bd:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_01c2:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_01c7:  brfalse    IL_0556
+  IL_01cc:  br         IL_04ba
+  IL_01d1:  ldarg.0
+  IL_01d2:  ldc.i4.1
+  IL_01d3:  ldc.i4.s   39
+  IL_01d5:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_01da:  ldstr      ""9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]""
+  IL_01df:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_01e4:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_01e9:  brfalse    IL_0556
+  IL_01ee:  br         IL_04af
+  IL_01f3:  ldarg.0
+  IL_01f4:  ldc.i4.1
+  IL_01f5:  call       ""char string.this[int].get""
+  IL_01fa:  stloc.2
+  IL_01fb:  ldloc.2
+  IL_01fc:  ldc.i4.s   49
+  IL_01fe:  beq.s      IL_022a
+  IL_0200:  ldloc.2
+  IL_0201:  ldc.i4.s   50
+  IL_0203:  bne.un     IL_0556
+  IL_0208:  ldarg.0
+  IL_0209:  ldc.i4.2
+  IL_020a:  ldc.i4.s   38
+  IL_020c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_0211:  ldstr      ""U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0""
+  IL_0216:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_021b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0220:  brfalse    IL_0556
+  IL_0225:  br         IL_04c5
+  IL_022a:  ldarg.0
+  IL_022b:  ldc.i4.2
+  IL_022c:  ldc.i4.s   38
+  IL_022e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_0233:  ldstr      ""QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:""
+  IL_0238:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_023d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0242:  brfalse    IL_0556
+  IL_0247:  br         IL_04f0
+  IL_024c:  ldarg.0
+  IL_024d:  ldc.i4.1
+  IL_024e:  ldc.i4.s   39
+  IL_0250:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_0255:  ldstr      ""7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>""
+  IL_025a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_025f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0264:  brfalse    IL_0556
+  IL_0269:  br         IL_04d0
+  IL_026e:  ldarg.0
+  IL_026f:  ldc.i4.1
+  IL_0270:  call       ""char string.this[int].get""
+  IL_0275:  stloc.2
+  IL_0276:  ldloc.2
+  IL_0277:  ldc.i4.s   61
+  IL_0279:  beq.s      IL_0285
+  IL_027b:  ldloc.2
+  IL_027c:  ldc.i4.s   82
+  IL_027e:  beq.s      IL_02a7
+  IL_0280:  br         IL_0556
+  IL_0285:  ldarg.0
+  IL_0286:  ldc.i4.2
+  IL_0287:  ldc.i4.s   38
+  IL_0289:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_028e:  ldstr      ""=7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF""
+  IL_0293:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0298:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_029d:  brfalse    IL_0556
+  IL_02a2:  br         IL_04d8
+  IL_02a7:  ldarg.0
+  IL_02a8:  ldc.i4.2
+  IL_02a9:  ldc.i4.s   38
+  IL_02ab:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_02b0:  ldstr      ""9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W""
+  IL_02b5:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_02ba:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_02bf:  brfalse    IL_0556
+  IL_02c4:  br         IL_0538
+  IL_02c9:  ldarg.0
+  IL_02ca:  ldc.i4.1
+  IL_02cb:  ldc.i4.s   39
+  IL_02cd:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_02d2:  ldstr      ""Ej07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:""
+  IL_02d7:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_02dc:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_02e1:  brfalse    IL_0556
+  IL_02e6:  br         IL_04e0
+  IL_02eb:  ldarg.0
+  IL_02ec:  ldc.i4.1
+  IL_02ed:  ldc.i4.s   39
+  IL_02ef:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_02f4:  ldstr      ""AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj""
+  IL_02f9:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_02fe:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0303:  brfalse    IL_0556
+  IL_0308:  br         IL_04e8
+  IL_030d:  ldarg.0
+  IL_030e:  ldc.i4.1
+  IL_030f:  ldc.i4.s   39
+  IL_0311:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_0316:  ldstr      ""VObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU""
+  IL_031b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0320:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0325:  brfalse    IL_0556
+  IL_032a:  br         IL_04f8
+  IL_032f:  ldarg.0
+  IL_0330:  ldc.i4.1
+  IL_0331:  ldc.i4.s   39
+  IL_0333:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_0338:  ldstr      ""o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR""
+  IL_033d:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0342:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0347:  brfalse    IL_0556
+  IL_034c:  br         IL_0500
+  IL_0351:  ldarg.0
+  IL_0352:  ldc.i4.1
+  IL_0353:  ldc.i4.s   39
+  IL_0355:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_035a:  ldstr      ""1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj""
+  IL_035f:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0364:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0369:  brfalse    IL_0556
+  IL_036e:  br         IL_0508
+  IL_0373:  ldarg.0
+  IL_0374:  ldc.i4.1
+  IL_0375:  ldc.i4.s   39
+  IL_0377:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_037c:  ldstr      ""K`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k""
+  IL_0381:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0386:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_038b:  brfalse    IL_0556
+  IL_0390:  br         IL_0510
+  IL_0395:  ldarg.0
+  IL_0396:  ldc.i4.1
+  IL_0397:  ldc.i4.s   39
+  IL_0399:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_039e:  ldstr      ""@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4""
+  IL_03a3:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_03a8:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_03ad:  brfalse    IL_0556
+  IL_03b2:  br         IL_0518
+  IL_03b7:  ldarg.0
+  IL_03b8:  ldc.i4.1
+  IL_03b9:  ldc.i4.s   39
+  IL_03bb:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_03c0:  ldstr      ""g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O""
+  IL_03c5:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_03ca:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_03cf:  brfalse    IL_0556
+  IL_03d4:  br         IL_0520
+  IL_03d9:  ldarg.0
+  IL_03da:  ldc.i4.1
+  IL_03db:  ldc.i4.s   39
+  IL_03dd:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_03e2:  ldstr      ""H=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe""
+  IL_03e7:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_03ec:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_03f1:  brfalse    IL_0556
+  IL_03f6:  br         IL_0528
+  IL_03fb:  ldarg.0
+  IL_03fc:  ldc.i4.1
+  IL_03fd:  ldc.i4.s   39
+  IL_03ff:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_0404:  ldstr      ""k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM""
+  IL_0409:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_040e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0413:  brfalse    IL_0556
+  IL_0418:  br         IL_0530
+  IL_041d:  ldarg.0
+  IL_041e:  ldc.i4.1
+  IL_041f:  ldc.i4.s   39
+  IL_0421:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_0426:  ldstr      ""PTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D""
+  IL_042b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0430:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0435:  brfalse    IL_0556
+  IL_043a:  br         IL_0540
+  IL_043f:  ldarg.0
+  IL_0440:  ldc.i4.1
+  IL_0441:  ldc.i4.s   39
+  IL_0443:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_0448:  ldstr      ""XO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9""
+  IL_044d:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0452:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0457:  brfalse    IL_0556
+  IL_045c:  br         IL_0548
+  IL_0461:  ldarg.0
+  IL_0462:  ldc.i4.1
+  IL_0463:  ldc.i4.s   39
+  IL_0465:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string, int, int)""
+  IL_046a:  ldstr      ""=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4""
+  IL_046f:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0474:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0479:  brfalse    IL_0556
+  IL_047e:  br         IL_0550
+  IL_0483:  ldstr      ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9""
+  IL_0488:  stloc.0
+  IL_0489:  br         IL_0556
+  IL_048e:  ldstr      ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I""
+  IL_0493:  stloc.0
+  IL_0494:  br         IL_0556
+  IL_0499:  ldstr      ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m""
+  IL_049e:  stloc.0
+  IL_049f:  br         IL_0556
+  IL_04a4:  ldstr      ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD""
+  IL_04a9:  stloc.0
+  IL_04aa:  br         IL_0556
+  IL_04af:  ldstr      ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]""
+  IL_04b4:  stloc.0
+  IL_04b5:  br         IL_0556
+  IL_04ba:  ldstr      ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c""
+  IL_04bf:  stloc.0
+  IL_04c0:  br         IL_0556
+  IL_04c5:  ldstr      ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0""
+  IL_04ca:  stloc.0
+  IL_04cb:  br         IL_0556
+  IL_04d0:  ldstr      ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>""
+  IL_04d5:  stloc.0
+  IL_04d6:  br.s       IL_0556
+  IL_04d8:  ldstr      ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF""
+  IL_04dd:  stloc.0
+  IL_04de:  br.s       IL_0556
+  IL_04e0:  ldstr      ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:""
+  IL_04e5:  stloc.0
+  IL_04e6:  br.s       IL_0556
+  IL_04e8:  ldstr      "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj""
+  IL_04ed:  stloc.0
+  IL_04ee:  br.s       IL_0556
+  IL_04f0:  ldstr      ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:""
+  IL_04f5:  stloc.0
+  IL_04f6:  br.s       IL_0556
+  IL_04f8:  ldstr      ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU""
+  IL_04fd:  stloc.0
+  IL_04fe:  br.s       IL_0556
+  IL_0500:  ldstr      ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR""
+  IL_0505:  stloc.0
+  IL_0506:  br.s       IL_0556
+  IL_0508:  ldstr      ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj""
+  IL_050d:  stloc.0
+  IL_050e:  br.s       IL_0556
+  IL_0510:  ldstr      ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k""
+  IL_0515:  stloc.0
+  IL_0516:  br.s       IL_0556
+  IL_0518:  ldstr      ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4""
+  IL_051d:  stloc.0
+  IL_051e:  br.s       IL_0556
+  IL_0520:  ldstr      ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O""
+  IL_0525:  stloc.0
+  IL_0526:  br.s       IL_0556
+  IL_0528:  ldstr      ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe""
+  IL_052d:  stloc.0
+  IL_052e:  br.s       IL_0556
+  IL_0530:  ldstr      ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM""
+  IL_0535:  stloc.0
+  IL_0536:  br.s       IL_0556
+  IL_0538:  ldstr      ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W""
+  IL_053d:  stloc.0
+  IL_053e:  br.s       IL_0556
+  IL_0540:  ldstr      ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D""
+  IL_0545:  stloc.0
+  IL_0546:  br.s       IL_0556
+  IL_0548:  ldstr      ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9""
+  IL_054d:  stloc.0
+  IL_054e:  br.s       IL_0556
+  IL_0550:  ldstr      ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4""
+  IL_0555:  stloc.0
+  IL_0556:  ldloc.0
+  IL_0557:  ldarg.0
+  IL_0558:  call       ""bool string.op_Equality(string, string)""
+  IL_055d:  ret
+}");
+
+            compilation = CreateCompilation(text, options: TestOptions.ReleaseExe)
+                .VerifyDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: "PASS")
+                .VerifyIL("Test.Switcheroo", @"
+
+{
+    // Code size    14451 (0x3873)
+    .maxstack  3
+    .locals init (string V_0, //value
+                char V_1,
+                char V_2)
+    IL_0000:  ldstr      """"
+    IL_0005:  stloc.0
+    IL_0006:  ldarg.0
+    IL_0007:  ldstr      ""C#""
+    IL_000c:  callvirt   ""int string.IndexOf(string)""
+    IL_0011:  ldc.i4.m1
+    IL_0012:  beq.s      IL_001e
+    IL_0014:  ldarg.0
+    IL_0015:  ldc.i4.0
+    IL_0016:  ldc.i4.2
+    IL_0017:  callvirt   ""string string.Remove(int, int)""
+    IL_001c:  starg.s    V_0
+    IL_001e:  ldarg.0
+    IL_001f:  brfalse    IL_386b
+    IL_0024:  ldarg.0
+    IL_0025:  call       ""int string.Length.get""
+    IL_002a:  ldc.i4.s   40
+    IL_002c:  bne.un     IL_386b
+    IL_0031:  ldarg.0
+    IL_0032:  ldc.i4.0
+    IL_0033:  call       ""char string.this[int].get""
+    IL_0038:  stloc.1
+    IL_0039:  ldloc.1
+    IL_003a:  ldc.i4.s   69
+    IL_003c:  bgt.un.s   IL_0092
+    IL_003e:  ldloc.1
+    IL_003f:  ldc.i4.s   52
+    IL_0041:  bgt.un.s   IL_0058
+    IL_0043:  ldloc.1
+    IL_0044:  ldc.i4.s   48
+    IL_0046:  beq        IL_27ae
+    IL_004b:  ldloc.1
+    IL_004c:  ldc.i4.s   52
+    IL_004e:  beq        IL_29f4
+    IL_0053:  br         IL_386b
+    IL_0058:  ldloc.1
+    IL_0059:  ldc.i4.s   57
+    IL_005b:  sub
+    IL_005c:  switch    (
+        IL_20dc,
+        IL_386b,
+        IL_386b,
+        IL_0c6c,
+        IL_386b,
+        IL_1c50,
+        IL_2e80,
+        IL_386b,
+        IL_2322)
+    IL_0085:  ldloc.1
+    IL_0086:  ldc.i4.s   69
+    IL_0088:  beq        IL_2c3a
+    IL_008d:  br         IL_386b
+    IL_0092:  ldloc.1
+    IL_0093:  ldc.i4.s   83
+    IL_0095:  bgt.un.s   IL_00c9
+    IL_0097:  ldloc.1
+    IL_0098:  ldc.i4.s   72
+    IL_009a:  sub
+    IL_009b:  switch    (
+        IL_1580,
+        IL_386b,
+        IL_386b,
+        IL_386b,
+        IL_3552,
+        IL_330c,
+        IL_0110)
+    IL_00bc:  ldloc.1
+    IL_00bd:  ldc.i4.s   83
+    IL_00bf:  beq        IL_2568
+    IL_00c4:  br         IL_386b
+    IL_00c9:  ldloc.1
+    IL_00ca:  ldc.i4.s   88
+    IL_00cc:  sub
+    IL_00cd:  switch    (
+        IL_30c6,
+        IL_059c,
+        IL_386b,
+        IL_07e2)
+    IL_00e2:  ldloc.1
+    IL_00e3:  ldc.i4.s   100
+    IL_00e5:  sub
+    IL_00e6:  switch    (
+        IL_0eb2,
+        IL_0356,
+        IL_1e96,
+        IL_386b,
+        IL_386b,
+        IL_1a0a)
+    IL_0103:  ldloc.1
+    IL_0104:  ldc.i4.s   110
+    IL_0106:  beq        IL_133a
+    IL_010b:  br         IL_386b
+    IL_0110:  ldarg.0
+    IL_0111:  ldc.i4.1
+    IL_0112:  call       ""char string.this[int].get""
+    IL_0117:  ldc.i4.s   63
+    IL_0119:  bne.un     IL_386b
+    IL_011e:  ldarg.0
+    IL_011f:  ldc.i4.2
+    IL_0120:  call       ""char string.this[int].get""
+    IL_0125:  ldc.i4.s   95
+    IL_0127:  bne.un     IL_386b
+    IL_012c:  ldarg.0
+    IL_012d:  ldc.i4.3
+    IL_012e:  call       ""char string.this[int].get""
+    IL_0133:  ldc.i4.s   50
+    IL_0135:  bne.un     IL_386b
+    IL_013a:  ldarg.0
+    IL_013b:  ldc.i4.4
+    IL_013c:  call       ""char string.this[int].get""
+    IL_0141:  ldc.i4.s   104
+    IL_0143:  bne.un     IL_386b
+    IL_0148:  ldarg.0
+    IL_0149:  ldc.i4.5
+    IL_014a:  call       ""char string.this[int].get""
+    IL_014f:  ldc.i4.s   66
+    IL_0151:  bne.un     IL_386b
+    IL_0156:  ldarg.0
+    IL_0157:  ldc.i4.6
+    IL_0158:  call       ""char string.this[int].get""
+    IL_015d:  ldc.i4.s   69
+    IL_015f:  bne.un     IL_386b
+    IL_0164:  ldarg.0
+    IL_0165:  ldc.i4.7
+    IL_0166:  call       ""char string.this[int].get""
+    IL_016b:  ldc.i4.s   74
+    IL_016d:  bne.un     IL_386b
+    IL_0172:  ldarg.0
+    IL_0173:  ldc.i4.8
+    IL_0174:  call       ""char string.this[int].get""
+    IL_0179:  ldc.i4.s   97
+    IL_017b:  bne.un     IL_386b
+    IL_0180:  ldarg.0
+    IL_0181:  ldc.i4.s   9
+    IL_0183:  call       ""char string.this[int].get""
+    IL_0188:  ldc.i4.s   95
+    IL_018a:  bne.un     IL_386b
+    IL_018f:  ldarg.0
+    IL_0190:  ldc.i4.s   10
+    IL_0192:  call       ""char string.this[int].get""
+    IL_0197:  ldc.i4.s   107
+    IL_0199:  bne.un     IL_386b
+    IL_019e:  ldarg.0
+    IL_019f:  ldc.i4.s   11
+    IL_01a1:  call       ""char string.this[int].get""
+    IL_01a6:  ldc.i4.s   108
+    IL_01a8:  bne.un     IL_386b
+    IL_01ad:  ldarg.0
+    IL_01ae:  ldc.i4.s   12
+    IL_01b0:  call       ""char string.this[int].get""
+    IL_01b5:  ldc.i4.s   109
+    IL_01b7:  bne.un     IL_386b
+    IL_01bc:  ldarg.0
+    IL_01bd:  ldc.i4.s   13
+    IL_01bf:  call       ""char string.this[int].get""
+    IL_01c4:  ldc.i4.s   48
+    IL_01c6:  bne.un     IL_386b
+    IL_01cb:  ldarg.0
+    IL_01cc:  ldc.i4.s   14
+    IL_01ce:  call       ""char string.this[int].get""
+    IL_01d3:  ldc.i4.s   61
+    IL_01d5:  bne.un     IL_386b
+    IL_01da:  ldarg.0
+    IL_01db:  ldc.i4.s   15
+    IL_01dd:  call       ""char string.this[int].get""
+    IL_01e2:  ldc.i4.s   66
+    IL_01e4:  bne.un     IL_386b
+    IL_01e9:  ldarg.0
+    IL_01ea:  ldc.i4.s   16
+    IL_01ec:  call       ""char string.this[int].get""
+    IL_01f1:  ldc.i4.s   82
+    IL_01f3:  bne.un     IL_386b
+    IL_01f8:  ldarg.0
+    IL_01f9:  ldc.i4.s   17
+    IL_01fb:  call       ""char string.this[int].get""
+    IL_0200:  ldc.i4.s   111
+    IL_0202:  bne.un     IL_386b
+    IL_0207:  ldarg.0
+    IL_0208:  ldc.i4.s   18
+    IL_020a:  call       ""char string.this[int].get""
+    IL_020f:  ldc.i4.s   77
+    IL_0211:  bne.un     IL_386b
+    IL_0216:  ldarg.0
+    IL_0217:  ldc.i4.s   19
+    IL_0219:  call       ""char string.this[int].get""
+    IL_021e:  ldc.i4.s   93
+    IL_0220:  bne.un     IL_386b
+    IL_0225:  ldarg.0
+    IL_0226:  ldc.i4.s   20
+    IL_0228:  call       ""char string.this[int].get""
+    IL_022d:  ldc.i4.s   109
+    IL_022f:  bne.un     IL_386b
+    IL_0234:  ldarg.0
+    IL_0235:  ldc.i4.s   21
+    IL_0237:  call       ""char string.this[int].get""
+    IL_023c:  ldc.i4.s   66
+    IL_023e:  bne.un     IL_386b
+    IL_0243:  ldarg.0
+    IL_0244:  ldc.i4.s   22
+    IL_0246:  call       ""char string.this[int].get""
+    IL_024b:  ldc.i4.s   83
+    IL_024d:  bne.un     IL_386b
+    IL_0252:  ldarg.0
+    IL_0253:  ldc.i4.s   23
+    IL_0255:  call       ""char string.this[int].get""
+    IL_025a:  ldc.i4.s   89
+    IL_025c:  bne.un     IL_386b
+    IL_0261:  ldarg.0
+    IL_0262:  ldc.i4.s   24
+    IL_0264:  call       ""char string.this[int].get""
+    IL_0269:  ldc.i4.s   51
+    IL_026b:  bne.un     IL_386b
+    IL_0270:  ldarg.0
+    IL_0271:  ldc.i4.s   25
+    IL_0273:  call       ""char string.this[int].get""
+    IL_0278:  ldc.i4.s   108
+    IL_027a:  bne.un     IL_386b
+    IL_027f:  ldarg.0
+    IL_0280:  ldc.i4.s   26
+    IL_0282:  call       ""char string.this[int].get""
+    IL_0287:  ldc.i4.s   61
+    IL_0289:  bne.un     IL_386b
+    IL_028e:  ldarg.0
+    IL_028f:  ldc.i4.s   27
+    IL_0291:  call       ""char string.this[int].get""
+    IL_0296:  ldc.i4.s   90
+    IL_0298:  bne.un     IL_386b
+    IL_029d:  ldarg.0
+    IL_029e:  ldc.i4.s   28
+    IL_02a0:  call       ""char string.this[int].get""
+    IL_02a5:  ldc.i4.s   109
+    IL_02a7:  bne.un     IL_386b
+    IL_02ac:  ldarg.0
+    IL_02ad:  ldc.i4.s   29
+    IL_02af:  call       ""char string.this[int].get""
+    IL_02b4:  ldc.i4.s   60
+    IL_02b6:  bne.un     IL_386b
+    IL_02bb:  ldarg.0
+    IL_02bc:  ldc.i4.s   30
+    IL_02be:  call       ""char string.this[int].get""
+    IL_02c3:  ldc.i4.s   65
+    IL_02c5:  bne.un     IL_386b
+    IL_02ca:  ldarg.0
+    IL_02cb:  ldc.i4.s   31
+    IL_02cd:  call       ""char string.this[int].get""
+    IL_02d2:  ldc.i4.s   106
+    IL_02d4:  bne.un     IL_386b
+    IL_02d9:  ldarg.0
+    IL_02da:  ldc.i4.s   32
+    IL_02dc:  call       ""char string.this[int].get""
+    IL_02e1:  ldc.i4.s   58
+    IL_02e3:  bne.un     IL_386b
+    IL_02e8:  ldarg.0
+    IL_02e9:  ldc.i4.s   33
+    IL_02eb:  call       ""char string.this[int].get""
+    IL_02f0:  ldc.i4.s   109
+    IL_02f2:  bne.un     IL_386b
+    IL_02f7:  ldarg.0
+    IL_02f8:  ldc.i4.s   34
+    IL_02fa:  call       ""char string.this[int].get""
+    IL_02ff:  ldc.i4.s   66
+    IL_0301:  bne.un     IL_386b
+    IL_0306:  ldarg.0
+    IL_0307:  ldc.i4.s   35
+    IL_0309:  call       ""char string.this[int].get""
+    IL_030e:  ldc.i4.s   78
+    IL_0310:  bne.un     IL_386b
+    IL_0315:  ldarg.0
+    IL_0316:  ldc.i4.s   36
+    IL_0318:  call       ""char string.this[int].get""
+    IL_031d:  ldc.i4.s   109
+    IL_031f:  bne.un     IL_386b
+    IL_0324:  ldarg.0
+    IL_0325:  ldc.i4.s   37
+    IL_0327:  call       ""char string.this[int].get""
+    IL_032c:  ldc.i4.s   57
+    IL_032e:  bne.un     IL_386b
+    IL_0333:  ldarg.0
+    IL_0334:  ldc.i4.s   38
+    IL_0336:  call       ""char string.this[int].get""
+    IL_033b:  ldc.i4.s   91
+    IL_033d:  bne.un     IL_386b
+    IL_0342:  ldarg.0
+    IL_0343:  ldc.i4.s   39
+    IL_0345:  call       ""char string.this[int].get""
+    IL_034a:  ldc.i4.s   57
+    IL_034c:  bne.un     IL_386b
+    IL_0351:  br         IL_3798
+    IL_0356:  ldarg.0
+    IL_0357:  ldc.i4.1
+    IL_0358:  call       ""char string.this[int].get""
+    IL_035d:  ldc.i4.s   109
+    IL_035f:  bne.un     IL_386b
+    IL_0364:  ldarg.0
+    IL_0365:  ldc.i4.2
+    IL_0366:  call       ""char string.this[int].get""
+    IL_036b:  ldc.i4.s   111
+    IL_036d:  bne.un     IL_386b
+    IL_0372:  ldarg.0
+    IL_0373:  ldc.i4.3
+    IL_0374:  call       ""char string.this[int].get""
+    IL_0379:  ldc.i4.s   89
+    IL_037b:  bne.un     IL_386b
+    IL_0380:  ldarg.0
+    IL_0381:  ldc.i4.4
+    IL_0382:  call       ""char string.this[int].get""
+    IL_0387:  ldc.i4.s   68
+    IL_0389:  bne.un     IL_386b
+    IL_038e:  ldarg.0
+    IL_038f:  ldc.i4.5
+    IL_0390:  call       ""char string.this[int].get""
+    IL_0395:  ldc.i4.s   67
+    IL_0397:  bne.un     IL_386b
+    IL_039c:  ldarg.0
+    IL_039d:  ldc.i4.6
+    IL_039e:  call       ""char string.this[int].get""
+    IL_03a3:  ldc.i4.s   96
+    IL_03a5:  bne.un     IL_386b
+    IL_03aa:  ldarg.0
+    IL_03ab:  ldc.i4.7
+    IL_03ac:  call       ""char string.this[int].get""
+    IL_03b1:  ldc.i4.s   69
+    IL_03b3:  bne.un     IL_386b
+    IL_03b8:  ldarg.0
+    IL_03b9:  ldc.i4.8
+    IL_03ba:  call       ""char string.this[int].get""
+    IL_03bf:  ldc.i4.s   51
+    IL_03c1:  bne.un     IL_386b
+    IL_03c6:  ldarg.0
+    IL_03c7:  ldc.i4.s   9
+    IL_03c9:  call       ""char string.this[int].get""
+    IL_03ce:  ldc.i4.s   74
+    IL_03d0:  bne.un     IL_386b
+    IL_03d5:  ldarg.0
+    IL_03d6:  ldc.i4.s   10
+    IL_03d8:  call       ""char string.this[int].get""
+    IL_03dd:  ldc.i4.s   83
+    IL_03df:  bne.un     IL_386b
+    IL_03e4:  ldarg.0
+    IL_03e5:  ldc.i4.s   11
+    IL_03e7:  call       ""char string.this[int].get""
+    IL_03ec:  ldc.i4.s   93
+    IL_03ee:  bne.un     IL_386b
+    IL_03f3:  ldarg.0
+    IL_03f4:  ldc.i4.s   12
+    IL_03f6:  call       ""char string.this[int].get""
+    IL_03fb:  ldc.i4.s   73
+    IL_03fd:  bne.un     IL_386b
+    IL_0402:  ldarg.0
+    IL_0403:  ldc.i4.s   13
+    IL_0405:  call       ""char string.this[int].get""
+    IL_040a:  ldc.i4.s   85
+    IL_040c:  bne.un     IL_386b
+    IL_0411:  ldarg.0
+    IL_0412:  ldc.i4.s   14
+    IL_0414:  call       ""char string.this[int].get""
+    IL_0419:  ldc.i4.s   91
+    IL_041b:  bne.un     IL_386b
+    IL_0420:  ldarg.0
+    IL_0421:  ldc.i4.s   15
+    IL_0423:  call       ""char string.this[int].get""
+    IL_0428:  ldc.i4.s   88
+    IL_042a:  bne.un     IL_386b
+    IL_042f:  ldarg.0
+    IL_0430:  ldc.i4.s   16
+    IL_0432:  call       ""char string.this[int].get""
+    IL_0437:  ldc.i4.s   53
+    IL_0439:  bne.un     IL_386b
+    IL_043e:  ldarg.0
+    IL_043f:  ldc.i4.s   17
+    IL_0441:  call       ""char string.this[int].get""
+    IL_0446:  ldc.i4.s   53
+    IL_0448:  bne.un     IL_386b
+    IL_044d:  ldarg.0
+    IL_044e:  ldc.i4.s   18
+    IL_0450:  call       ""char string.this[int].get""
+    IL_0455:  ldc.i4.s   86
+    IL_0457:  bne.un     IL_386b
+    IL_045c:  ldarg.0
+    IL_045d:  ldc.i4.s   19
+    IL_045f:  call       ""char string.this[int].get""
+    IL_0464:  ldc.i4.s   75
+    IL_0466:  bne.un     IL_386b
+    IL_046b:  ldarg.0
+    IL_046c:  ldc.i4.s   20
+    IL_046e:  call       ""char string.this[int].get""
+    IL_0473:  ldc.i4.s   70
+    IL_0475:  bne.un     IL_386b
+    IL_047a:  ldarg.0
+    IL_047b:  ldc.i4.s   21
+    IL_047d:  call       ""char string.this[int].get""
+    IL_0482:  ldc.i4.s   60
+    IL_0484:  bne.un     IL_386b
+    IL_0489:  ldarg.0
+    IL_048a:  ldc.i4.s   22
+    IL_048c:  call       ""char string.this[int].get""
+    IL_0491:  ldc.i4.s   101
+    IL_0493:  bne.un     IL_386b
+    IL_0498:  ldarg.0
+    IL_0499:  ldc.i4.s   23
+    IL_049b:  call       ""char string.this[int].get""
+    IL_04a0:  ldc.i4.s   53
+    IL_04a2:  bne.un     IL_386b
+    IL_04a7:  ldarg.0
+    IL_04a8:  ldc.i4.s   24
+    IL_04aa:  call       ""char string.this[int].get""
+    IL_04af:  ldc.i4.s   67
+    IL_04b1:  bne.un     IL_386b
+    IL_04b6:  ldarg.0
+    IL_04b7:  ldc.i4.s   25
+    IL_04b9:  call       ""char string.this[int].get""
+    IL_04be:  ldc.i4.s   106
+    IL_04c0:  bne.un     IL_386b
+    IL_04c5:  ldarg.0
+    IL_04c6:  ldc.i4.s   26
+    IL_04c8:  call       ""char string.this[int].get""
+    IL_04cd:  ldc.i4.s   107
+    IL_04cf:  bne.un     IL_386b
+    IL_04d4:  ldarg.0
+    IL_04d5:  ldc.i4.s   27
+    IL_04d7:  call       ""char string.this[int].get""
+    IL_04dc:  ldc.i4.s   90
+    IL_04de:  bne.un     IL_386b
+    IL_04e3:  ldarg.0
+    IL_04e4:  ldc.i4.s   28
+    IL_04e6:  call       ""char string.this[int].get""
+    IL_04eb:  ldc.i4.s   98
+    IL_04ed:  bne.un     IL_386b
+    IL_04f2:  ldarg.0
+    IL_04f3:  ldc.i4.s   29
+    IL_04f5:  call       ""char string.this[int].get""
+    IL_04fa:  ldc.i4.s   48
+    IL_04fc:  bne.un     IL_386b
+    IL_0501:  ldarg.0
+    IL_0502:  ldc.i4.s   30
+    IL_0504:  call       ""char string.this[int].get""
+    IL_0509:  ldc.i4.s   83
+    IL_050b:  bne.un     IL_386b
+    IL_0510:  ldarg.0
+    IL_0511:  ldc.i4.s   31
+    IL_0513:  call       ""char string.this[int].get""
+    IL_0518:  ldc.i4.s   48
+    IL_051a:  bne.un     IL_386b
+    IL_051f:  ldarg.0
+    IL_0520:  ldc.i4.s   32
+    IL_0522:  call       ""char string.this[int].get""
+    IL_0527:  ldc.i4.s   86
+    IL_0529:  bne.un     IL_386b
+    IL_052e:  ldarg.0
+    IL_052f:  ldc.i4.s   33
+    IL_0531:  call       ""char string.this[int].get""
+    IL_0536:  ldc.i4.s   89
+    IL_0538:  bne.un     IL_386b
+    IL_053d:  ldarg.0
+    IL_053e:  ldc.i4.s   34
+    IL_0540:  call       ""char string.this[int].get""
+    IL_0545:  ldc.i4.s   81
+    IL_0547:  bne.un     IL_386b
+    IL_054c:  ldarg.0
+    IL_054d:  ldc.i4.s   35
+    IL_054f:  call       ""char string.this[int].get""
+    IL_0554:  ldc.i4.s   108
+    IL_0556:  bne.un     IL_386b
+    IL_055b:  ldarg.0
+    IL_055c:  ldc.i4.s   36
+    IL_055e:  call       ""char string.this[int].get""
+    IL_0563:  ldc.i4.s   99
+    IL_0565:  bne.un     IL_386b
+    IL_056a:  ldarg.0
+    IL_056b:  ldc.i4.s   37
+    IL_056d:  call       ""char string.this[int].get""
+    IL_0572:  ldc.i4.s   83
+    IL_0574:  bne.un     IL_386b
+    IL_0579:  ldarg.0
+    IL_057a:  ldc.i4.s   38
+    IL_057c:  call       ""char string.this[int].get""
+    IL_0581:  ldc.i4.s   93
+    IL_0583:  bne.un     IL_386b
+    IL_0588:  ldarg.0
+    IL_0589:  ldc.i4.s   39
+    IL_058b:  call       ""char string.this[int].get""
+    IL_0590:  ldc.i4.s   73
+    IL_0592:  bne.un     IL_386b
+    IL_0597:  br         IL_37a3
+    IL_059c:  ldarg.0
+    IL_059d:  ldc.i4.1
+    IL_059e:  call       ""char string.this[int].get""
+    IL_05a3:  ldc.i4.s   101
+    IL_05a5:  bne.un     IL_386b
+    IL_05aa:  ldarg.0
+    IL_05ab:  ldc.i4.2
+    IL_05ac:  call       ""char string.this[int].get""
+    IL_05b1:  ldc.i4.s   93
+    IL_05b3:  bne.un     IL_386b
+    IL_05b8:  ldarg.0
+    IL_05b9:  ldc.i4.3
+    IL_05ba:  call       ""char string.this[int].get""
+    IL_05bf:  ldc.i4.s   64
+    IL_05c1:  bne.un     IL_386b
+    IL_05c6:  ldarg.0
+    IL_05c7:  ldc.i4.4
+    IL_05c8:  call       ""char string.this[int].get""
+    IL_05cd:  ldc.i4.s   70
+    IL_05cf:  bne.un     IL_386b
+    IL_05d4:  ldarg.0
+    IL_05d5:  ldc.i4.5
+    IL_05d6:  call       ""char string.this[int].get""
+    IL_05db:  ldc.i4.s   82
+    IL_05dd:  bne.un     IL_386b
+    IL_05e2:  ldarg.0
+    IL_05e3:  ldc.i4.6
+    IL_05e4:  call       ""char string.this[int].get""
+    IL_05e9:  ldc.i4.s   86
+    IL_05eb:  bne.un     IL_386b
+    IL_05f0:  ldarg.0
+    IL_05f1:  ldc.i4.7
+    IL_05f2:  call       ""char string.this[int].get""
+    IL_05f7:  ldc.i4.s   90
+    IL_05f9:  bne.un     IL_386b
+    IL_05fe:  ldarg.0
+    IL_05ff:  ldc.i4.8
+    IL_0600:  call       ""char string.this[int].get""
+    IL_0605:  ldc.i4.s   105
+    IL_0607:  bne.un     IL_386b
+    IL_060c:  ldarg.0
+    IL_060d:  ldc.i4.s   9
+    IL_060f:  call       ""char string.this[int].get""
+    IL_0614:  ldc.i4.s   56
+    IL_0616:  bne.un     IL_386b
+    IL_061b:  ldarg.0
+    IL_061c:  ldc.i4.s   10
+    IL_061e:  call       ""char string.this[int].get""
+    IL_0623:  ldc.i4.s   82
+    IL_0625:  bne.un     IL_386b
+    IL_062a:  ldarg.0
+    IL_062b:  ldc.i4.s   11
+    IL_062d:  call       ""char string.this[int].get""
+    IL_0632:  ldc.i4.s   98
+    IL_0634:  bne.un     IL_386b
+    IL_0639:  ldarg.0
+    IL_063a:  ldc.i4.s   12
+    IL_063c:  call       ""char string.this[int].get""
+    IL_0641:  ldc.i4.s   110
+    IL_0643:  bne.un     IL_386b
+    IL_0648:  ldarg.0
+    IL_0649:  ldc.i4.s   13
+    IL_064b:  call       ""char string.this[int].get""
+    IL_0650:  ldc.i4.s   48
+    IL_0652:  bne.un     IL_386b
+    IL_0657:  ldarg.0
+    IL_0658:  ldc.i4.s   14
+    IL_065a:  call       ""char string.this[int].get""
+    IL_065f:  ldc.i4.s   59
+    IL_0661:  bne.un     IL_386b
+    IL_0666:  ldarg.0
+    IL_0667:  ldc.i4.s   15
+    IL_0669:  call       ""char string.this[int].get""
+    IL_066e:  ldc.i4.s   52
+    IL_0670:  bne.un     IL_386b
+    IL_0675:  ldarg.0
+    IL_0676:  ldc.i4.s   16
+    IL_0678:  call       ""char string.this[int].get""
+    IL_067d:  ldc.i4.s   51
+    IL_067f:  bne.un     IL_386b
+    IL_0684:  ldarg.0
+    IL_0685:  ldc.i4.s   17
+    IL_0687:  call       ""char string.this[int].get""
+    IL_068c:  ldc.i4.s   99
+    IL_068e:  bne.un     IL_386b
+    IL_0693:  ldarg.0
+    IL_0694:  ldc.i4.s   18
+    IL_0696:  call       ""char string.this[int].get""
+    IL_069b:  ldc.i4.s   56
+    IL_069d:  bne.un     IL_386b
+    IL_06a2:  ldarg.0
+    IL_06a3:  ldc.i4.s   19
+    IL_06a5:  call       ""char string.this[int].get""
+    IL_06aa:  ldc.i4.s   108
+    IL_06ac:  bne.un     IL_386b
+    IL_06b1:  ldarg.0
+    IL_06b2:  ldc.i4.s   20
+    IL_06b4:  call       ""char string.this[int].get""
+    IL_06b9:  ldc.i4.s   111
+    IL_06bb:  bne.un     IL_386b
+    IL_06c0:  ldarg.0
+    IL_06c1:  ldc.i4.s   21
+    IL_06c3:  call       ""char string.this[int].get""
+    IL_06c8:  ldc.i4.s   53
+    IL_06ca:  bne.un     IL_386b
+    IL_06cf:  ldarg.0
+    IL_06d0:  ldc.i4.s   22
+    IL_06d2:  call       ""char string.this[int].get""
+    IL_06d7:  ldc.i4.s   96
+    IL_06d9:  bne.un     IL_386b
+    IL_06de:  ldarg.0
+    IL_06df:  ldc.i4.s   23
+    IL_06e1:  call       ""char string.this[int].get""
+    IL_06e6:  ldc.i4.s   87
+    IL_06e8:  bne.un     IL_386b
+    IL_06ed:  ldarg.0
+    IL_06ee:  ldc.i4.s   24
+    IL_06f0:  call       ""char string.this[int].get""
+    IL_06f5:  ldc.i4.s   93
+    IL_06f7:  bne.un     IL_386b
+    IL_06fc:  ldarg.0
+    IL_06fd:  ldc.i4.s   25
+    IL_06ff:  call       ""char string.this[int].get""
+    IL_0704:  ldc.i4.s   49
+    IL_0706:  bne.un     IL_386b
+    IL_070b:  ldarg.0
+    IL_070c:  ldc.i4.s   26
+    IL_070e:  call       ""char string.this[int].get""
+    IL_0713:  ldc.i4.s   67
+    IL_0715:  bne.un     IL_386b
+    IL_071a:  ldarg.0
+    IL_071b:  ldc.i4.s   27
+    IL_071d:  call       ""char string.this[int].get""
+    IL_0722:  ldc.i4.s   75
+    IL_0724:  bne.un     IL_386b
+    IL_0729:  ldarg.0
+    IL_072a:  ldc.i4.s   28
+    IL_072c:  call       ""char string.this[int].get""
+    IL_0731:  ldc.i4.s   59
+    IL_0733:  bne.un     IL_386b
+    IL_0738:  ldarg.0
+    IL_0739:  ldc.i4.s   29
+    IL_073b:  call       ""char string.this[int].get""
+    IL_0740:  ldc.i4.s   99
+    IL_0742:  bne.un     IL_386b
+    IL_0747:  ldarg.0
+    IL_0748:  ldc.i4.s   30
+    IL_074a:  call       ""char string.this[int].get""
+    IL_074f:  ldc.i4.s   102
+    IL_0751:  bne.un     IL_386b
+    IL_0756:  ldarg.0
+    IL_0757:  ldc.i4.s   31
+    IL_0759:  call       ""char string.this[int].get""
+    IL_075e:  ldc.i4.s   97
+    IL_0760:  bne.un     IL_386b
+    IL_0765:  ldarg.0
+    IL_0766:  ldc.i4.s   32
+    IL_0768:  call       ""char string.this[int].get""
+    IL_076d:  ldc.i4.s   50
+    IL_076f:  bne.un     IL_386b
+    IL_0774:  ldarg.0
+    IL_0775:  ldc.i4.s   33
+    IL_0777:  call       ""char string.this[int].get""
+    IL_077c:  ldc.i4.s   52
+    IL_077e:  bne.un     IL_386b
+    IL_0783:  ldarg.0
+    IL_0784:  ldc.i4.s   34
+    IL_0786:  call       ""char string.this[int].get""
+    IL_078b:  ldc.i4.s   56
+    IL_078d:  bne.un     IL_386b
+    IL_0792:  ldarg.0
+    IL_0793:  ldc.i4.s   35
+    IL_0795:  call       ""char string.this[int].get""
+    IL_079a:  ldc.i4.s   53
+    IL_079c:  bne.un     IL_386b
+    IL_07a1:  ldarg.0
+    IL_07a2:  ldc.i4.s   36
+    IL_07a4:  call       ""char string.this[int].get""
+    IL_07a9:  ldc.i4.s   78
+    IL_07ab:  bne.un     IL_386b
+    IL_07b0:  ldarg.0
+    IL_07b1:  ldc.i4.s   37
+    IL_07b3:  call       ""char string.this[int].get""
+    IL_07b8:  ldc.i4.s   52
+    IL_07ba:  bne.un     IL_386b
+    IL_07bf:  ldarg.0
+    IL_07c0:  ldc.i4.s   38
+    IL_07c2:  call       ""char string.this[int].get""
+    IL_07c7:  ldc.i4.s   53
+    IL_07c9:  bne.un     IL_386b
+    IL_07ce:  ldarg.0
+    IL_07cf:  ldc.i4.s   39
+    IL_07d1:  call       ""char string.this[int].get""
+    IL_07d6:  ldc.i4.s   109
+    IL_07d8:  bne.un     IL_386b
+    IL_07dd:  br         IL_37ae
+    IL_07e2:  ldarg.0
+    IL_07e3:  ldc.i4.1
+    IL_07e4:  call       ""char string.this[int].get""
+    IL_07e9:  stloc.2
+    IL_07ea:  ldloc.2
+    IL_07eb:  ldc.i4.s   81
+    IL_07ed:  beq.s      IL_07fc
+    IL_07ef:  ldloc.2
+    IL_07f0:  ldc.i4.s   90
+    IL_07f2:  beq        IL_0a34
+    IL_07f7:  br         IL_386b
+    IL_07fc:  ldarg.0
+    IL_07fd:  ldc.i4.2
+    IL_07fe:  call       ""char string.this[int].get""
+    IL_0803:  ldc.i4.s   48
+    IL_0805:  bne.un     IL_386b
+    IL_080a:  ldarg.0
+    IL_080b:  ldc.i4.3
+    IL_080c:  call       ""char string.this[int].get""
+    IL_0811:  ldc.i4.s   86
+    IL_0813:  bne.un     IL_386b
+    IL_0818:  ldarg.0
+    IL_0819:  ldc.i4.4
+    IL_081a:  call       ""char string.this[int].get""
+    IL_081f:  ldc.i4.s   51
+    IL_0821:  bne.un     IL_386b
+    IL_0826:  ldarg.0
+    IL_0827:  ldc.i4.5
+    IL_0828:  call       ""char string.this[int].get""
+    IL_082d:  ldc.i4.s   77
+    IL_082f:  bne.un     IL_386b
+    IL_0834:  ldarg.0
+    IL_0835:  ldc.i4.6
+    IL_0836:  call       ""char string.this[int].get""
+    IL_083b:  ldc.i4.s   95
+    IL_083d:  bne.un     IL_386b
+    IL_0842:  ldarg.0
+    IL_0843:  ldc.i4.7
+    IL_0844:  call       ""char string.this[int].get""
+    IL_0849:  ldc.i4.s   78
+    IL_084b:  bne.un     IL_386b
+    IL_0850:  ldarg.0
+    IL_0851:  ldc.i4.8
+    IL_0852:  call       ""char string.this[int].get""
+    IL_0857:  ldc.i4.s   50
+    IL_0859:  bne.un     IL_386b
+    IL_085e:  ldarg.0
+    IL_085f:  ldc.i4.s   9
+    IL_0861:  call       ""char string.this[int].get""
+    IL_0866:  ldc.i4.s   59
+    IL_0868:  bne.un     IL_386b
+    IL_086d:  ldarg.0
+    IL_086e:  ldc.i4.s   10
+    IL_0870:  call       ""char string.this[int].get""
+    IL_0875:  ldc.i4.s   57
+    IL_0877:  bne.un     IL_386b
+    IL_087c:  ldarg.0
+    IL_087d:  ldc.i4.s   11
+    IL_087f:  call       ""char string.this[int].get""
+    IL_0884:  ldc.i4.s   106
+    IL_0886:  bne.un     IL_386b
+    IL_088b:  ldarg.0
+    IL_088c:  ldc.i4.s   12
+    IL_088e:  call       ""char string.this[int].get""
+    IL_0893:  ldc.i4.s   84
+    IL_0895:  bne.un     IL_386b
+    IL_089a:  ldarg.0
+    IL_089b:  ldc.i4.s   13
+    IL_089d:  call       ""char string.this[int].get""
+    IL_08a2:  ldc.i4.s   80
+    IL_08a4:  bne.un     IL_386b
+    IL_08a9:  ldarg.0
+    IL_08aa:  ldc.i4.s   14
+    IL_08ac:  call       ""char string.this[int].get""
+    IL_08b1:  ldc.i4.s   61
+    IL_08b3:  bne.un     IL_386b
+    IL_08b8:  ldarg.0
+    IL_08b9:  ldc.i4.s   15
+    IL_08bb:  call       ""char string.this[int].get""
+    IL_08c0:  ldc.i4.s   55
+    IL_08c2:  bne.un     IL_386b
+    IL_08c7:  ldarg.0
+    IL_08c8:  ldc.i4.s   16
+    IL_08ca:  call       ""char string.this[int].get""
+    IL_08cf:  ldc.i4.s   57
+    IL_08d1:  bne.un     IL_386b
+    IL_08d6:  ldarg.0
+    IL_08d7:  ldc.i4.s   17
+    IL_08d9:  call       ""char string.this[int].get""
+    IL_08de:  ldc.i4.s   105
+    IL_08e0:  bne.un     IL_386b
+    IL_08e5:  ldarg.0
+    IL_08e6:  ldc.i4.s   18
+    IL_08e8:  call       ""char string.this[int].get""
+    IL_08ed:  ldc.i4.s   66
+    IL_08ef:  bne.un     IL_386b
+    IL_08f4:  ldarg.0
+    IL_08f5:  ldc.i4.s   19
+    IL_08f7:  call       ""char string.this[int].get""
+    IL_08fc:  ldc.i4.s   75
+    IL_08fe:  bne.un     IL_386b
+    IL_0903:  ldarg.0
+    IL_0904:  ldc.i4.s   20
+    IL_0906:  call       ""char string.this[int].get""
+    IL_090b:  ldc.i4.s   54
+    IL_090d:  bne.un     IL_386b
+    IL_0912:  ldarg.0
+    IL_0913:  ldc.i4.s   21
+    IL_0915:  call       ""char string.this[int].get""
+    IL_091a:  ldc.i4.s   60
+    IL_091c:  bne.un     IL_386b
+    IL_0921:  ldarg.0
+    IL_0922:  ldc.i4.s   22
+    IL_0924:  call       ""char string.this[int].get""
+    IL_0929:  ldc.i4.s   101
+    IL_092b:  bne.un     IL_386b
+    IL_0930:  ldarg.0
+    IL_0931:  ldc.i4.s   23
+    IL_0933:  call       ""char string.this[int].get""
+    IL_0938:  ldc.i4.s   100
+    IL_093a:  bne.un     IL_386b
+    IL_093f:  ldarg.0
+    IL_0940:  ldc.i4.s   24
+    IL_0942:  call       ""char string.this[int].get""
+    IL_0947:  ldc.i4.s   98
+    IL_0949:  bne.un     IL_386b
+    IL_094e:  ldarg.0
+    IL_094f:  ldc.i4.s   25
+    IL_0951:  call       ""char string.this[int].get""
+    IL_0956:  ldc.i4.s   89
+    IL_0958:  bne.un     IL_386b
+    IL_095d:  ldarg.0
+    IL_095e:  ldc.i4.s   26
+    IL_0960:  call       ""char string.this[int].get""
+    IL_0965:  ldc.i4.s   88
+    IL_0967:  bne.un     IL_386b
+    IL_096c:  ldarg.0
+    IL_096d:  ldc.i4.s   27
+    IL_096f:  call       ""char string.this[int].get""
+    IL_0974:  ldc.i4.s   104
+    IL_0976:  bne.un     IL_386b
+    IL_097b:  ldarg.0
+    IL_097c:  ldc.i4.s   28
+    IL_097e:  call       ""char string.this[int].get""
+    IL_0983:  ldc.i4.s   59
+    IL_0985:  bne.un     IL_386b
+    IL_098a:  ldarg.0
+    IL_098b:  ldc.i4.s   29
+    IL_098d:  call       ""char string.this[int].get""
+    IL_0992:  ldc.i4.s   96
+    IL_0994:  bne.un     IL_386b
+    IL_0999:  ldarg.0
+    IL_099a:  ldc.i4.s   30
+    IL_099c:  call       ""char string.this[int].get""
+    IL_09a1:  ldc.i4.s   70
+    IL_09a3:  bne.un     IL_386b
+    IL_09a8:  ldarg.0
+    IL_09a9:  ldc.i4.s   31
+    IL_09ab:  call       ""char string.this[int].get""
+    IL_09b0:  ldc.i4.s   99
+    IL_09b2:  bne.un     IL_386b
+    IL_09b7:  ldarg.0
+    IL_09b8:  ldc.i4.s   32
+    IL_09ba:  call       ""char string.this[int].get""
+    IL_09bf:  ldc.i4.s   97
+    IL_09c1:  bne.un     IL_386b
+    IL_09c6:  ldarg.0
+    IL_09c7:  ldc.i4.s   33
+    IL_09c9:  call       ""char string.this[int].get""
+    IL_09ce:  ldc.i4.s   69
+    IL_09d0:  bne.un     IL_386b
+    IL_09d5:  ldarg.0
+    IL_09d6:  ldc.i4.s   34
+    IL_09d8:  call       ""char string.this[int].get""
+    IL_09dd:  ldc.i4.s   71
+    IL_09df:  bne.un     IL_386b
+    IL_09e4:  ldarg.0
+    IL_09e5:  ldc.i4.s   35
+    IL_09e7:  call       ""char string.this[int].get""
+    IL_09ec:  ldc.i4.s   68
+    IL_09ee:  bne.un     IL_386b
+    IL_09f3:  ldarg.0
+    IL_09f4:  ldc.i4.s   36
+    IL_09f6:  call       ""char string.this[int].get""
+    IL_09fb:  ldc.i4.s   48
+    IL_09fd:  bne.un     IL_386b
+    IL_0a02:  ldarg.0
+    IL_0a03:  ldc.i4.s   37
+    IL_0a05:  call       ""char string.this[int].get""
+    IL_0a0a:  ldc.i4.s   82
+    IL_0a0c:  bne.un     IL_386b
+    IL_0a11:  ldarg.0
+    IL_0a12:  ldc.i4.s   38
+    IL_0a14:  call       ""char string.this[int].get""
+    IL_0a19:  ldc.i4.s   104
+    IL_0a1b:  bne.un     IL_386b
+    IL_0a20:  ldarg.0
+    IL_0a21:  ldc.i4.s   39
+    IL_0a23:  call       ""char string.this[int].get""
+    IL_0a28:  ldc.i4.s   68
+    IL_0a2a:  bne.un     IL_386b
+    IL_0a2f:  br         IL_37b9
+    IL_0a34:  ldarg.0
+    IL_0a35:  ldc.i4.2
+    IL_0a36:  call       ""char string.this[int].get""
+    IL_0a3b:  ldc.i4.s   96
+    IL_0a3d:  bne.un     IL_386b
+    IL_0a42:  ldarg.0
+    IL_0a43:  ldc.i4.3
+    IL_0a44:  call       ""char string.this[int].get""
+    IL_0a49:  ldc.i4.s   106
+    IL_0a4b:  bne.un     IL_386b
+    IL_0a50:  ldarg.0
+    IL_0a51:  ldc.i4.4
+    IL_0a52:  call       ""char string.this[int].get""
+    IL_0a57:  ldc.i4.s   58
+    IL_0a59:  bne.un     IL_386b
+    IL_0a5e:  ldarg.0
+    IL_0a5f:  ldc.i4.5
+    IL_0a60:  call       ""char string.this[int].get""
+    IL_0a65:  ldc.i4.s   99
+    IL_0a67:  bne.un     IL_386b
+    IL_0a6c:  ldarg.0
+    IL_0a6d:  ldc.i4.6
+    IL_0a6e:  call       ""char string.this[int].get""
+    IL_0a73:  ldc.i4.s   67
+    IL_0a75:  bne.un     IL_386b
+    IL_0a7a:  ldarg.0
+    IL_0a7b:  ldc.i4.7
+    IL_0a7c:  call       ""char string.this[int].get""
+    IL_0a81:  ldc.i4.s   70
+    IL_0a83:  bne.un     IL_386b
+    IL_0a88:  ldarg.0
+    IL_0a89:  ldc.i4.8
+    IL_0a8a:  call       ""char string.this[int].get""
+    IL_0a8f:  ldc.i4.s   103
+    IL_0a91:  bne.un     IL_386b
+    IL_0a96:  ldarg.0
+    IL_0a97:  ldc.i4.s   9
+    IL_0a99:  call       ""char string.this[int].get""
+    IL_0a9e:  ldc.i4.s   104
+    IL_0aa0:  bne.un     IL_386b
+    IL_0aa5:  ldarg.0
+    IL_0aa6:  ldc.i4.s   10
+    IL_0aa8:  call       ""char string.this[int].get""
+    IL_0aad:  ldc.i4.s   50
+    IL_0aaf:  bne.un     IL_386b
+    IL_0ab4:  ldarg.0
+    IL_0ab5:  ldc.i4.s   11
+    IL_0ab7:  call       ""char string.this[int].get""
+    IL_0abc:  ldc.i4.s   99
+    IL_0abe:  bne.un     IL_386b
+    IL_0ac3:  ldarg.0
+    IL_0ac4:  ldc.i4.s   12
+    IL_0ac6:  call       ""char string.this[int].get""
+    IL_0acb:  ldc.i4.s   100
+    IL_0acd:  bne.un     IL_386b
+    IL_0ad2:  ldarg.0
+    IL_0ad3:  ldc.i4.s   13
+    IL_0ad5:  call       ""char string.this[int].get""
+    IL_0ada:  ldc.i4.s   51
+    IL_0adc:  bne.un     IL_386b
+    IL_0ae1:  ldarg.0
+    IL_0ae2:  ldc.i4.s   14
+    IL_0ae4:  call       ""char string.this[int].get""
+    IL_0ae9:  ldc.i4.s   58
+    IL_0aeb:  bne.un     IL_386b
+    IL_0af0:  ldarg.0
+    IL_0af1:  ldc.i4.s   15
+    IL_0af3:  call       ""char string.this[int].get""
+    IL_0af8:  ldc.i4.s   62
+    IL_0afa:  bne.un     IL_386b
+    IL_0aff:  ldarg.0
+    IL_0b00:  ldc.i4.s   16
+    IL_0b02:  call       ""char string.this[int].get""
+    IL_0b07:  ldc.i4.s   49
+    IL_0b09:  bne.un     IL_386b
+    IL_0b0e:  ldarg.0
+    IL_0b0f:  ldc.i4.s   17
+    IL_0b11:  call       ""char string.this[int].get""
+    IL_0b16:  ldc.i4.s   90
+    IL_0b18:  bne.un     IL_386b
+    IL_0b1d:  ldarg.0
+    IL_0b1e:  ldc.i4.s   18
+    IL_0b20:  call       ""char string.this[int].get""
+    IL_0b25:  ldc.i4.s   64
+    IL_0b27:  bne.un     IL_386b
+    IL_0b2c:  ldarg.0
+    IL_0b2d:  ldc.i4.s   19
+    IL_0b2f:  call       ""char string.this[int].get""
+    IL_0b34:  ldc.i4.s   84
+    IL_0b36:  bne.un     IL_386b
+    IL_0b3b:  ldarg.0
+    IL_0b3c:  ldc.i4.s   20
+    IL_0b3e:  call       ""char string.this[int].get""
+    IL_0b43:  ldc.i4.s   48
+    IL_0b45:  bne.un     IL_386b
+    IL_0b4a:  ldarg.0
+    IL_0b4b:  ldc.i4.s   21
+    IL_0b4d:  call       ""char string.this[int].get""
+    IL_0b52:  ldc.i4.s   111
+    IL_0b54:  bne.un     IL_386b
+    IL_0b59:  ldarg.0
+    IL_0b5a:  ldc.i4.s   22
+    IL_0b5c:  call       ""char string.this[int].get""
+    IL_0b61:  ldc.i4.s   60
+    IL_0b63:  bne.un     IL_386b
+    IL_0b68:  ldarg.0
+    IL_0b69:  ldc.i4.s   23
+    IL_0b6b:  call       ""char string.this[int].get""
+    IL_0b70:  ldc.i4.s   81
+    IL_0b72:  bne.un     IL_386b
+    IL_0b77:  ldarg.0
+    IL_0b78:  ldc.i4.s   24
+    IL_0b7a:  call       ""char string.this[int].get""
+    IL_0b7f:  ldc.i4.s   60
+    IL_0b81:  bne.un     IL_386b
+    IL_0b86:  ldarg.0
+    IL_0b87:  ldc.i4.s   25
+    IL_0b89:  call       ""char string.this[int].get""
+    IL_0b8e:  ldc.i4.s   48
+    IL_0b90:  bne.un     IL_386b
+    IL_0b95:  ldarg.0
+    IL_0b96:  ldc.i4.s   26
+    IL_0b98:  call       ""char string.this[int].get""
+    IL_0b9d:  ldc.i4.s   111
+    IL_0b9f:  bne.un     IL_386b
+    IL_0ba4:  ldarg.0
+    IL_0ba5:  ldc.i4.s   27
+    IL_0ba7:  call       ""char string.this[int].get""
+    IL_0bac:  ldc.i4.s   95
+    IL_0bae:  bne.un     IL_386b
+    IL_0bb3:  ldarg.0
+    IL_0bb4:  ldc.i4.s   28
+    IL_0bb6:  call       ""char string.this[int].get""
+    IL_0bbb:  ldc.i4.s   59
+    IL_0bbd:  bne.un     IL_386b
+    IL_0bc2:  ldarg.0
+    IL_0bc3:  ldc.i4.s   29
+    IL_0bc5:  call       ""char string.this[int].get""
+    IL_0bca:  ldc.i4.s   49
+    IL_0bcc:  bne.un     IL_386b
+    IL_0bd1:  ldarg.0
+    IL_0bd2:  ldc.i4.s   30
+    IL_0bd4:  call       ""char string.this[int].get""
+    IL_0bd9:  ldc.i4.s   49
+    IL_0bdb:  bne.un     IL_386b
+    IL_0be0:  ldarg.0
+    IL_0be1:  ldc.i4.s   31
+    IL_0be3:  call       ""char string.this[int].get""
+    IL_0be8:  ldc.i4.s   93
+    IL_0bea:  bne.un     IL_386b
+    IL_0bef:  ldarg.0
+    IL_0bf0:  ldc.i4.s   32
+    IL_0bf2:  call       ""char string.this[int].get""
+    IL_0bf7:  ldc.i4.s   110
+    IL_0bf9:  bne.un     IL_386b
+    IL_0bfe:  ldarg.0
+    IL_0bff:  ldc.i4.s   33
+    IL_0c01:  call       ""char string.this[int].get""
+    IL_0c06:  ldc.i4.s   77
+    IL_0c08:  bne.un     IL_386b
+    IL_0c0d:  ldarg.0
+    IL_0c0e:  ldc.i4.s   34
+    IL_0c10:  call       ""char string.this[int].get""
+    IL_0c15:  ldc.i4.s   100
+    IL_0c17:  bne.un     IL_386b
+    IL_0c1c:  ldarg.0
+    IL_0c1d:  ldc.i4.s   35
+    IL_0c1f:  call       ""char string.this[int].get""
+    IL_0c24:  ldc.i4.s   51
+    IL_0c26:  bne.un     IL_386b
+    IL_0c2b:  ldarg.0
+    IL_0c2c:  ldc.i4.s   36
+    IL_0c2e:  call       ""char string.this[int].get""
+    IL_0c33:  ldc.i4.s   98
+    IL_0c35:  bne.un     IL_386b
+    IL_0c3a:  ldarg.0
+    IL_0c3b:  ldc.i4.s   37
+    IL_0c3d:  call       ""char string.this[int].get""
+    IL_0c42:  ldc.i4.s   80
+    IL_0c44:  bne.un     IL_386b
+    IL_0c49:  ldarg.0
+    IL_0c4a:  ldc.i4.s   38
+    IL_0c4c:  call       ""char string.this[int].get""
+    IL_0c51:  ldc.i4.s   57
+    IL_0c53:  bne.un     IL_386b
+    IL_0c58:  ldarg.0
+    IL_0c59:  ldc.i4.s   39
+    IL_0c5b:  call       ""char string.this[int].get""
+    IL_0c60:  ldc.i4.s   99
+    IL_0c62:  bne.un     IL_386b
+    IL_0c67:  br         IL_37cf
+    IL_0c6c:  ldarg.0
+    IL_0c6d:  ldc.i4.1
+    IL_0c6e:  call       ""char string.this[int].get""
+    IL_0c73:  ldc.i4.s   57
+    IL_0c75:  bne.un     IL_386b
+    IL_0c7a:  ldarg.0
+    IL_0c7b:  ldc.i4.2
+    IL_0c7c:  call       ""char string.this[int].get""
+    IL_0c81:  ldc.i4.s   82
+    IL_0c83:  bne.un     IL_386b
+    IL_0c88:  ldarg.0
+    IL_0c89:  ldc.i4.3
+    IL_0c8a:  call       ""char string.this[int].get""
+    IL_0c8f:  ldc.i4.s   105
+    IL_0c91:  bne.un     IL_386b
+    IL_0c96:  ldarg.0
+    IL_0c97:  ldc.i4.4
+    IL_0c98:  call       ""char string.this[int].get""
+    IL_0c9d:  ldc.i4.s   97
+    IL_0c9f:  bne.un     IL_386b
+    IL_0ca4:  ldarg.0
+    IL_0ca5:  ldc.i4.5
+    IL_0ca6:  call       ""char string.this[int].get""
+    IL_0cab:  ldc.i4.s   57
+    IL_0cad:  bne.un     IL_386b
+    IL_0cb2:  ldarg.0
+    IL_0cb3:  ldc.i4.6
+    IL_0cb4:  call       ""char string.this[int].get""
+    IL_0cb9:  ldc.i4.s   57
+    IL_0cbb:  bne.un     IL_386b
+    IL_0cc0:  ldarg.0
+    IL_0cc1:  ldc.i4.7
+    IL_0cc2:  call       ""char string.this[int].get""
+    IL_0cc7:  ldc.i4.s   50
+    IL_0cc9:  bne.un     IL_386b
+    IL_0cce:  ldarg.0
+    IL_0ccf:  ldc.i4.8
+    IL_0cd0:  call       ""char string.this[int].get""
+    IL_0cd5:  ldc.i4.s   72
+    IL_0cd7:  bne.un     IL_386b
+    IL_0cdc:  ldarg.0
+    IL_0cdd:  ldc.i4.s   9
+    IL_0cdf:  call       ""char string.this[int].get""
+    IL_0ce4:  ldc.i4.s   96
+    IL_0ce6:  bne.un     IL_386b
+    IL_0ceb:  ldarg.0
+    IL_0cec:  ldc.i4.s   10
+    IL_0cee:  call       ""char string.this[int].get""
+    IL_0cf3:  ldc.i4.s   87
+    IL_0cf5:  bne.un     IL_386b
+    IL_0cfa:  ldarg.0
+    IL_0cfb:  ldc.i4.s   11
+    IL_0cfd:  call       ""char string.this[int].get""
+    IL_0d02:  ldc.i4.s   58
+    IL_0d04:  bne.un     IL_386b
+    IL_0d09:  ldarg.0
+    IL_0d0a:  ldc.i4.s   12
+    IL_0d0c:  call       ""char string.this[int].get""
+    IL_0d11:  ldc.i4.s   68
+    IL_0d13:  bne.un     IL_386b
+    IL_0d18:  ldarg.0
+    IL_0d19:  ldc.i4.s   13
+    IL_0d1b:  call       ""char string.this[int].get""
+    IL_0d20:  ldc.i4.s   78
+    IL_0d22:  bne.un     IL_386b
+    IL_0d27:  ldarg.0
+    IL_0d28:  ldc.i4.s   14
+    IL_0d2a:  call       ""char string.this[int].get""
+    IL_0d2f:  ldc.i4.s   88
+    IL_0d31:  bne.un     IL_386b
+    IL_0d36:  ldarg.0
+    IL_0d37:  ldc.i4.s   15
+    IL_0d39:  call       ""char string.this[int].get""
+    IL_0d3e:  ldc.i4.s   55
+    IL_0d40:  bne.un     IL_386b
+    IL_0d45:  ldarg.0
+    IL_0d46:  ldc.i4.s   16
+    IL_0d48:  call       ""char string.this[int].get""
+    IL_0d4d:  ldc.i4.s   108
+    IL_0d4f:  bne.un     IL_386b
+    IL_0d54:  ldarg.0
+    IL_0d55:  ldc.i4.s   17
+    IL_0d57:  call       ""char string.this[int].get""
+    IL_0d5c:  ldc.i4.s   109
+    IL_0d5e:  bne.un     IL_386b
+    IL_0d63:  ldarg.0
+    IL_0d64:  ldc.i4.s   18
+    IL_0d66:  call       ""char string.this[int].get""
+    IL_0d6b:  ldc.i4.s   93
+    IL_0d6d:  bne.un     IL_386b
+    IL_0d72:  ldarg.0
+    IL_0d73:  ldc.i4.s   19
+    IL_0d75:  call       ""char string.this[int].get""
+    IL_0d7a:  ldc.i4.s   76
+    IL_0d7c:  bne.un     IL_386b
+    IL_0d81:  ldarg.0
+    IL_0d82:  ldc.i4.s   20
+    IL_0d84:  call       ""char string.this[int].get""
+    IL_0d89:  ldc.i4.s   86
+    IL_0d8b:  bne.un     IL_386b
+    IL_0d90:  ldarg.0
+    IL_0d91:  ldc.i4.s   21
+    IL_0d93:  call       ""char string.this[int].get""
+    IL_0d98:  ldc.i4.s   93
+    IL_0d9a:  bne.un     IL_386b
+    IL_0d9f:  ldarg.0
+    IL_0da0:  ldc.i4.s   22
+    IL_0da2:  call       ""char string.this[int].get""
+    IL_0da7:  ldc.i4.s   57
+    IL_0da9:  bne.un     IL_386b
+    IL_0dae:  ldarg.0
+    IL_0daf:  ldc.i4.s   23
+    IL_0db1:  call       ""char string.this[int].get""
+    IL_0db6:  ldc.i4.s   76
+    IL_0db8:  bne.un     IL_386b
+    IL_0dbd:  ldarg.0
+    IL_0dbe:  ldc.i4.s   24
+    IL_0dc0:  call       ""char string.this[int].get""
+    IL_0dc5:  ldc.i4.s   85
+    IL_0dc7:  bne.un     IL_386b
+    IL_0dcc:  ldarg.0
+    IL_0dcd:  ldc.i4.s   25
+    IL_0dcf:  call       ""char string.this[int].get""
+    IL_0dd4:  ldc.i4.s   110
+    IL_0dd6:  bne.un     IL_386b
+    IL_0ddb:  ldarg.0
+    IL_0ddc:  ldc.i4.s   26
+    IL_0dde:  call       ""char string.this[int].get""
+    IL_0de3:  ldc.i4.s   74
+    IL_0de5:  bne.un     IL_386b
+    IL_0dea:  ldarg.0
+    IL_0deb:  ldc.i4.s   27
+    IL_0ded:  call       ""char string.this[int].get""
+    IL_0df2:  ldc.i4.s   75
+    IL_0df4:  bne.un     IL_386b
+    IL_0df9:  ldarg.0
+    IL_0dfa:  ldc.i4.s   28
+    IL_0dfc:  call       ""char string.this[int].get""
+    IL_0e01:  ldc.i4.s   68
+    IL_0e03:  bne.un     IL_386b
+    IL_0e08:  ldarg.0
+    IL_0e09:  ldc.i4.s   29
+    IL_0e0b:  call       ""char string.this[int].get""
+    IL_0e10:  ldc.i4.s   88
+    IL_0e12:  bne.un     IL_386b
+    IL_0e17:  ldarg.0
+    IL_0e18:  ldc.i4.s   30
+    IL_0e1a:  call       ""char string.this[int].get""
+    IL_0e1f:  ldc.i4.s   99
+    IL_0e21:  bne.un     IL_386b
+    IL_0e26:  ldarg.0
+    IL_0e27:  ldc.i4.s   31
+    IL_0e29:  call       ""char string.this[int].get""
+    IL_0e2e:  ldc.i4.s   67
+    IL_0e30:  bne.un     IL_386b
+    IL_0e35:  ldarg.0
+    IL_0e36:  ldc.i4.s   32
+    IL_0e38:  call       ""char string.this[int].get""
+    IL_0e3d:  ldc.i4.s   111
+    IL_0e3f:  bne.un     IL_386b
+    IL_0e44:  ldarg.0
+    IL_0e45:  ldc.i4.s   33
+    IL_0e47:  call       ""char string.this[int].get""
+    IL_0e4c:  ldc.i4.s   54
+    IL_0e4e:  bne.un     IL_386b
+    IL_0e53:  ldarg.0
+    IL_0e54:  ldc.i4.s   34
+    IL_0e56:  call       ""char string.this[int].get""
+    IL_0e5b:  ldc.i4.s   90
+    IL_0e5d:  bne.un     IL_386b
+    IL_0e62:  ldarg.0
+    IL_0e63:  ldc.i4.s   35
+    IL_0e65:  call       ""char string.this[int].get""
+    IL_0e6a:  ldc.i4.s   100
+    IL_0e6c:  bne.un     IL_386b
+    IL_0e71:  ldarg.0
+    IL_0e72:  ldc.i4.s   36
+    IL_0e74:  call       ""char string.this[int].get""
+    IL_0e79:  ldc.i4.s   95
+    IL_0e7b:  bne.un     IL_386b
+    IL_0e80:  ldarg.0
+    IL_0e81:  ldc.i4.s   37
+    IL_0e83:  call       ""char string.this[int].get""
+    IL_0e88:  ldc.i4.s   70
+    IL_0e8a:  bne.un     IL_386b
+    IL_0e8f:  ldarg.0
+    IL_0e90:  ldc.i4.s   38
+    IL_0e92:  call       ""char string.this[int].get""
+    IL_0e97:  ldc.i4.s   77
+    IL_0e99:  bne.un     IL_386b
+    IL_0e9e:  ldarg.0
+    IL_0e9f:  ldc.i4.s   39
+    IL_0ea1:  call       ""char string.this[int].get""
+    IL_0ea6:  ldc.i4.s   93
+    IL_0ea8:  bne.un     IL_386b
+    IL_0ead:  br         IL_37c4
+    IL_0eb2:  ldarg.0
+    IL_0eb3:  ldc.i4.1
+    IL_0eb4:  call       ""char string.this[int].get""
+    IL_0eb9:  stloc.2
+    IL_0eba:  ldloc.2
+    IL_0ebb:  ldc.i4.s   49
+    IL_0ebd:  beq        IL_1102
+    IL_0ec2:  ldloc.2
+    IL_0ec3:  ldc.i4.s   50
+    IL_0ec5:  bne.un     IL_386b
+    IL_0eca:  ldarg.0
+    IL_0ecb:  ldc.i4.2
+    IL_0ecc:  call       ""char string.this[int].get""
+    IL_0ed1:  ldc.i4.s   85
+    IL_0ed3:  bne.un     IL_386b
+    IL_0ed8:  ldarg.0
+    IL_0ed9:  ldc.i4.3
+    IL_0eda:  call       ""char string.this[int].get""
+    IL_0edf:  ldc.i4.s   53
+    IL_0ee1:  bne.un     IL_386b
+    IL_0ee6:  ldarg.0
+    IL_0ee7:  ldc.i4.4
+    IL_0ee8:  call       ""char string.this[int].get""
+    IL_0eed:  ldc.i4.s   82
+    IL_0eef:  bne.un     IL_386b
+    IL_0ef4:  ldarg.0
+    IL_0ef5:  ldc.i4.5
+    IL_0ef6:  call       ""char string.this[int].get""
+    IL_0efb:  ldc.i4.s   87
+    IL_0efd:  bne.un     IL_386b
+    IL_0f02:  ldarg.0
+    IL_0f03:  ldc.i4.6
+    IL_0f04:  call       ""char string.this[int].get""
+    IL_0f09:  ldc.i4.s   82
+    IL_0f0b:  bne.un     IL_386b
+    IL_0f10:  ldarg.0
+    IL_0f11:  ldc.i4.7
+    IL_0f12:  call       ""char string.this[int].get""
+    IL_0f17:  ldc.i4.s   58
+    IL_0f19:  bne.un     IL_386b
+    IL_0f1e:  ldarg.0
+    IL_0f1f:  ldc.i4.8
+    IL_0f20:  call       ""char string.this[int].get""
+    IL_0f25:  ldc.i4.s   106
+    IL_0f27:  bne.un     IL_386b
+    IL_0f2c:  ldarg.0
+    IL_0f2d:  ldc.i4.s   9
+    IL_0f2f:  call       ""char string.this[int].get""
+    IL_0f34:  ldc.i4.s   48
+    IL_0f36:  bne.un     IL_386b
+    IL_0f3b:  ldarg.0
+    IL_0f3c:  ldc.i4.s   10
+    IL_0f3e:  call       ""char string.this[int].get""
+    IL_0f43:  ldc.i4.s   82
+    IL_0f45:  bne.un     IL_386b
+    IL_0f4a:  ldarg.0
+    IL_0f4b:  ldc.i4.s   11
+    IL_0f4d:  call       ""char string.this[int].get""
+    IL_0f52:  ldc.i4.s   83
+    IL_0f54:  bne.un     IL_386b
+    IL_0f59:  ldarg.0
+    IL_0f5a:  ldc.i4.s   12
+    IL_0f5c:  call       ""char string.this[int].get""
+    IL_0f61:  ldc.i4.s   57
+    IL_0f63:  bne.un     IL_386b
+    IL_0f68:  ldarg.0
+    IL_0f69:  ldc.i4.s   13
+    IL_0f6b:  call       ""char string.this[int].get""
+    IL_0f70:  ldc.i4.s   77
+    IL_0f72:  bne.un     IL_386b
+    IL_0f77:  ldarg.0
+    IL_0f78:  ldc.i4.s   14
+    IL_0f7a:  call       ""char string.this[int].get""
+    IL_0f7f:  ldc.i4.s   90
+    IL_0f81:  bne.un     IL_386b
+    IL_0f86:  ldarg.0
+    IL_0f87:  ldc.i4.s   15
+    IL_0f89:  call       ""char string.this[int].get""
+    IL_0f8e:  ldc.i4.s   90
+    IL_0f90:  bne.un     IL_386b
+    IL_0f95:  ldarg.0
+    IL_0f96:  ldc.i4.s   16
+    IL_0f98:  call       ""char string.this[int].get""
+    IL_0f9d:  ldc.i4.s   80
+    IL_0f9f:  bne.un     IL_386b
+    IL_0fa4:  ldarg.0
+    IL_0fa5:  ldc.i4.s   17
+    IL_0fa7:  call       ""char string.this[int].get""
+    IL_0fac:  ldc.i4.s   51
+    IL_0fae:  bne.un     IL_386b
+    IL_0fb3:  ldarg.0
+    IL_0fb4:  ldc.i4.s   18
+    IL_0fb6:  call       ""char string.this[int].get""
+    IL_0fbb:  ldc.i4.s   91
+    IL_0fbd:  bne.un     IL_386b
+    IL_0fc2:  ldarg.0
+    IL_0fc3:  ldc.i4.s   19
+    IL_0fc5:  call       ""char string.this[int].get""
+    IL_0fca:  ldc.i4.s   102
+    IL_0fcc:  bne.un     IL_386b
+    IL_0fd1:  ldarg.0
+    IL_0fd2:  ldc.i4.s   20
+    IL_0fd4:  call       ""char string.this[int].get""
+    IL_0fd9:  ldc.i4.s   64
+    IL_0fdb:  bne.un     IL_386b
+    IL_0fe0:  ldarg.0
+    IL_0fe1:  ldc.i4.s   21
+    IL_0fe3:  call       ""char string.this[int].get""
+    IL_0fe8:  ldc.i4.s   78
+    IL_0fea:  bne.un     IL_386b
+    IL_0fef:  ldarg.0
+    IL_0ff0:  ldc.i4.s   22
+    IL_0ff2:  call       ""char string.this[int].get""
+    IL_0ff7:  ldc.i4.s   80
+    IL_0ff9:  bne.un     IL_386b
+    IL_0ffe:  ldarg.0
+    IL_0fff:  ldc.i4.s   23
+    IL_1001:  call       ""char string.this[int].get""
+    IL_1006:  ldc.i4.s   103
+    IL_1008:  bne.un     IL_386b
+    IL_100d:  ldarg.0
+    IL_100e:  ldc.i4.s   24
+    IL_1010:  call       ""char string.this[int].get""
+    IL_1015:  ldc.i4.s   75
+    IL_1017:  bne.un     IL_386b
+    IL_101c:  ldarg.0
+    IL_101d:  ldc.i4.s   25
+    IL_101f:  call       ""char string.this[int].get""
+    IL_1024:  ldc.i4.s   70
+    IL_1026:  bne.un     IL_386b
+    IL_102b:  ldarg.0
+    IL_102c:  ldc.i4.s   26
+    IL_102e:  call       ""char string.this[int].get""
+    IL_1033:  ldc.i4.s   83
+    IL_1035:  bne.un     IL_386b
+    IL_103a:  ldarg.0
+    IL_103b:  ldc.i4.s   27
+    IL_103d:  call       ""char string.this[int].get""
+    IL_1042:  ldc.i4.s   57
+    IL_1044:  bne.un     IL_386b
+    IL_1049:  ldarg.0
+    IL_104a:  ldc.i4.s   28
+    IL_104c:  call       ""char string.this[int].get""
+    IL_1051:  ldc.i4.s   109
+    IL_1053:  bne.un     IL_386b
+    IL_1058:  ldarg.0
+    IL_1059:  ldc.i4.s   29
+    IL_105b:  call       ""char string.this[int].get""
+    IL_1060:  ldc.i4.s   81
+    IL_1062:  bne.un     IL_386b
+    IL_1067:  ldarg.0
+    IL_1068:  ldc.i4.s   30
+    IL_106a:  call       ""char string.this[int].get""
+    IL_106f:  ldc.i4.s   105
+    IL_1071:  bne.un     IL_386b
+    IL_1076:  ldarg.0
+    IL_1077:  ldc.i4.s   31
+    IL_1079:  call       ""char string.this[int].get""
+    IL_107e:  ldc.i4.s   58
+    IL_1080:  bne.un     IL_386b
+    IL_1085:  ldarg.0
+    IL_1086:  ldc.i4.s   32
+    IL_1088:  call       ""char string.this[int].get""
+    IL_108d:  ldc.i4.s   110
+    IL_108f:  bne.un     IL_386b
+    IL_1094:  ldarg.0
+    IL_1095:  ldc.i4.s   33
+    IL_1097:  call       ""char string.this[int].get""
+    IL_109c:  ldc.i4.s   97
+    IL_109e:  bne.un     IL_386b
+    IL_10a3:  ldarg.0
+    IL_10a4:  ldc.i4.s   34
+    IL_10a6:  call       ""char string.this[int].get""
+    IL_10ab:  ldc.i4.s   64
+    IL_10ad:  bne.un     IL_386b
+    IL_10b2:  ldarg.0
+    IL_10b3:  ldc.i4.s   35
+    IL_10b5:  call       ""char string.this[int].get""
+    IL_10ba:  ldc.i4.s   52
+    IL_10bc:  bne.un     IL_386b
+    IL_10c1:  ldarg.0
+    IL_10c2:  ldc.i4.s   36
+    IL_10c4:  call       ""char string.this[int].get""
+    IL_10c9:  ldc.i4.s   90
+    IL_10cb:  bne.un     IL_386b
+    IL_10d0:  ldarg.0
+    IL_10d1:  ldc.i4.s   37
+    IL_10d3:  call       ""char string.this[int].get""
+    IL_10d8:  ldc.i4.s   95
+    IL_10da:  bne.un     IL_386b
+    IL_10df:  ldarg.0
+    IL_10e0:  ldc.i4.s   38
+    IL_10e2:  call       ""char string.this[int].get""
+    IL_10e7:  ldc.i4.s   71
+    IL_10e9:  bne.un     IL_386b
+    IL_10ee:  ldarg.0
+    IL_10ef:  ldc.i4.s   39
+    IL_10f1:  call       ""char string.this[int].get""
+    IL_10f6:  ldc.i4.s   48
+    IL_10f8:  bne.un     IL_386b
+    IL_10fd:  br         IL_37da
+    IL_1102:  ldarg.0
+    IL_1103:  ldc.i4.2
+    IL_1104:  call       ""char string.this[int].get""
+    IL_1109:  ldc.i4.s   81
+    IL_110b:  bne.un     IL_386b
+    IL_1110:  ldarg.0
+    IL_1111:  ldc.i4.3
+    IL_1112:  call       ""char string.this[int].get""
+    IL_1117:  ldc.i4.s   90
+    IL_1119:  bne.un     IL_386b
+    IL_111e:  ldarg.0
+    IL_111f:  ldc.i4.4
+    IL_1120:  call       ""char string.this[int].get""
+    IL_1125:  ldc.i4.s   103
+    IL_1127:  bne.un     IL_386b
+    IL_112c:  ldarg.0
+    IL_112d:  ldc.i4.5
+    IL_112e:  call       ""char string.this[int].get""
+    IL_1133:  ldc.i4.s   74
+    IL_1135:  bne.un     IL_386b
+    IL_113a:  ldarg.0
+    IL_113b:  ldc.i4.6
+    IL_113c:  call       ""char string.this[int].get""
+    IL_1141:  ldc.i4.s   95
+    IL_1143:  bne.un     IL_386b
+    IL_1148:  ldarg.0
+    IL_1149:  ldc.i4.7
+    IL_114a:  call       ""char string.this[int].get""
+    IL_114f:  ldc.i4.s   106
+    IL_1151:  bne.un     IL_386b
+    IL_1156:  ldarg.0
+    IL_1157:  ldc.i4.8
+    IL_1158:  call       ""char string.this[int].get""
+    IL_115d:  ldc.i4.s   84
+    IL_115f:  bne.un     IL_386b
+    IL_1164:  ldarg.0
+    IL_1165:  ldc.i4.s   9
+    IL_1167:  call       ""char string.this[int].get""
+    IL_116c:  ldc.i4.s   93
+    IL_116e:  bne.un     IL_386b
+    IL_1173:  ldarg.0
+    IL_1174:  ldc.i4.s   10
+    IL_1176:  call       ""char string.this[int].get""
+    IL_117b:  ldc.i4.s   85
+    IL_117d:  bne.un     IL_386b
+    IL_1182:  ldarg.0
+    IL_1183:  ldc.i4.s   11
+    IL_1185:  call       ""char string.this[int].get""
+    IL_118a:  ldc.i4.s   101
+    IL_118c:  bne.un     IL_386b
+    IL_1191:  ldarg.0
+    IL_1192:  ldc.i4.s   12
+    IL_1194:  call       ""char string.this[int].get""
+    IL_1199:  ldc.i4.s   76
+    IL_119b:  bne.un     IL_386b
+    IL_11a0:  ldarg.0
+    IL_11a1:  ldc.i4.s   13
+    IL_11a3:  call       ""char string.this[int].get""
+    IL_11a8:  ldc.i4.s   94
+    IL_11aa:  bne.un     IL_386b
+    IL_11af:  ldarg.0
+    IL_11b0:  ldc.i4.s   14
+    IL_11b2:  call       ""char string.this[int].get""
+    IL_11b7:  ldc.i4.s   85
+    IL_11b9:  bne.un     IL_386b
+    IL_11be:  ldarg.0
+    IL_11bf:  ldc.i4.s   15
+    IL_11c1:  call       ""char string.this[int].get""
+    IL_11c6:  ldc.i4.s   70
+    IL_11c8:  bne.un     IL_386b
+    IL_11cd:  ldarg.0
+    IL_11ce:  ldc.i4.s   16
+    IL_11d0:  call       ""char string.this[int].get""
+    IL_11d5:  ldc.i4.s   50
+    IL_11d7:  bne.un     IL_386b
+    IL_11dc:  ldarg.0
+    IL_11dd:  ldc.i4.s   17
+    IL_11df:  call       ""char string.this[int].get""
+    IL_11e4:  ldc.i4.s   88
+    IL_11e6:  bne.un     IL_386b
+    IL_11eb:  ldarg.0
+    IL_11ec:  ldc.i4.s   18
+    IL_11ee:  call       ""char string.this[int].get""
+    IL_11f3:  ldc.i4.s   87
+    IL_11f5:  bne.un     IL_386b
+    IL_11fa:  ldarg.0
+    IL_11fb:  ldc.i4.s   19
+    IL_11fd:  call       ""char string.this[int].get""
+    IL_1202:  ldc.i4.s   83
+    IL_1204:  bne.un     IL_386b
+    IL_1209:  ldarg.0
+    IL_120a:  ldc.i4.s   20
+    IL_120c:  call       ""char string.this[int].get""
+    IL_1211:  ldc.i4.s   64
+    IL_1213:  bne.un     IL_386b
+    IL_1218:  ldarg.0
+    IL_1219:  ldc.i4.s   21
+    IL_121b:  call       ""char string.this[int].get""
+    IL_1220:  ldc.i4.s   73
+    IL_1222:  bne.un     IL_386b
+    IL_1227:  ldarg.0
+    IL_1228:  ldc.i4.s   22
+    IL_122a:  call       ""char string.this[int].get""
+    IL_122f:  ldc.i4.s   63
+    IL_1231:  bne.un     IL_386b
+    IL_1236:  ldarg.0
+    IL_1237:  ldc.i4.s   23
+    IL_1239:  call       ""char string.this[int].get""
+    IL_123e:  ldc.i4.s   72
+    IL_1240:  bne.un     IL_386b
+    IL_1245:  ldarg.0
+    IL_1246:  ldc.i4.s   24
+    IL_1248:  call       ""char string.this[int].get""
+    IL_124d:  ldc.i4.s   100
+    IL_124f:  bne.un     IL_386b
+    IL_1254:  ldarg.0
+    IL_1255:  ldc.i4.s   25
+    IL_1257:  call       ""char string.this[int].get""
+    IL_125c:  ldc.i4.s   105
+    IL_125e:  bne.un     IL_386b
+    IL_1263:  ldarg.0
+    IL_1264:  ldc.i4.s   26
+    IL_1266:  call       ""char string.this[int].get""
+    IL_126b:  ldc.i4.s   49
+    IL_126d:  bne.un     IL_386b
+    IL_1272:  ldarg.0
+    IL_1273:  ldc.i4.s   27
+    IL_1275:  call       ""char string.this[int].get""
+    IL_127a:  ldc.i4.s   77
+    IL_127c:  bne.un     IL_386b
+    IL_1281:  ldarg.0
+    IL_1282:  ldc.i4.s   28
+    IL_1284:  call       ""char string.this[int].get""
+    IL_1289:  ldc.i4.s   84
+    IL_128b:  bne.un     IL_386b
+    IL_1290:  ldarg.0
+    IL_1291:  ldc.i4.s   29
+    IL_1293:  call       ""char string.this[int].get""
+    IL_1298:  ldc.i4.s   109
+    IL_129a:  bne.un     IL_386b
+    IL_129f:  ldarg.0
+    IL_12a0:  ldc.i4.s   30
+    IL_12a2:  call       ""char string.this[int].get""
+    IL_12a7:  ldc.i4.s   57
+    IL_12a9:  bne.un     IL_386b
+    IL_12ae:  ldarg.0
+    IL_12af:  ldc.i4.s   31
+    IL_12b1:  call       ""char string.this[int].get""
+    IL_12b6:  ldc.i4.s   90
+    IL_12b8:  bne.un     IL_386b
+    IL_12bd:  ldarg.0
+    IL_12be:  ldc.i4.s   32
+    IL_12c0:  call       ""char string.this[int].get""
+    IL_12c5:  ldc.i4.s   51
+    IL_12c7:  bne.un     IL_386b
+    IL_12cc:  ldarg.0
+    IL_12cd:  ldc.i4.s   33
+    IL_12cf:  call       ""char string.this[int].get""
+    IL_12d4:  ldc.i4.s   109
+    IL_12d6:  bne.un     IL_386b
+    IL_12db:  ldarg.0
+    IL_12dc:  ldc.i4.s   34
+    IL_12de:  call       ""char string.this[int].get""
+    IL_12e3:  ldc.i4.s   100
+    IL_12e5:  bne.un     IL_386b
+    IL_12ea:  ldarg.0
+    IL_12eb:  ldc.i4.s   35
+    IL_12ed:  call       ""char string.this[int].get""
+    IL_12f2:  ldc.i4.s   86
+    IL_12f4:  bne.un     IL_386b
+    IL_12f9:  ldarg.0
+    IL_12fa:  ldc.i4.s   36
+    IL_12fc:  call       ""char string.this[int].get""
+    IL_1301:  ldc.i4.s   55
+    IL_1303:  bne.un     IL_386b
+    IL_1308:  ldarg.0
+    IL_1309:  ldc.i4.s   37
+    IL_130b:  call       ""char string.this[int].get""
+    IL_1310:  ldc.i4.s   93
+    IL_1312:  bne.un     IL_386b
+    IL_1317:  ldarg.0
+    IL_1318:  ldc.i4.s   38
+    IL_131a:  call       ""char string.this[int].get""
+    IL_131f:  ldc.i4.s   48
+    IL_1321:  bne.un     IL_386b
+    IL_1326:  ldarg.0
+    IL_1327:  ldc.i4.s   39
+    IL_1329:  call       ""char string.this[int].get""
+    IL_132e:  ldc.i4.s   58
+    IL_1330:  bne.un     IL_386b
+    IL_1335:  br         IL_3805
+    IL_133a:  ldarg.0
+    IL_133b:  ldc.i4.1
+    IL_133c:  call       ""char string.this[int].get""
+    IL_1341:  ldc.i4.s   55
+    IL_1343:  bne.un     IL_386b
+    IL_1348:  ldarg.0
+    IL_1349:  ldc.i4.2
+    IL_134a:  call       ""char string.this[int].get""
+    IL_134f:  ldc.i4.s   65
+    IL_1351:  bne.un     IL_386b
+    IL_1356:  ldarg.0
+    IL_1357:  ldc.i4.3
+    IL_1358:  call       ""char string.this[int].get""
+    IL_135d:  ldc.i4.s   79
+    IL_135f:  bne.un     IL_386b
+    IL_1364:  ldarg.0
+    IL_1365:  ldc.i4.4
+    IL_1366:  call       ""char string.this[int].get""
+    IL_136b:  ldc.i4.s   108
+    IL_136d:  bne.un     IL_386b
+    IL_1372:  ldarg.0
+    IL_1373:  ldc.i4.5
+    IL_1374:  call       ""char string.this[int].get""
+    IL_1379:  ldc.i4.s   60
+    IL_137b:  bne.un     IL_386b
+    IL_1380:  ldarg.0
+    IL_1381:  ldc.i4.6
+    IL_1382:  call       ""char string.this[int].get""
+    IL_1387:  ldc.i4.s   68
+    IL_1389:  bne.un     IL_386b
+    IL_138e:  ldarg.0
+    IL_138f:  ldc.i4.7
+    IL_1390:  call       ""char string.this[int].get""
+    IL_1395:  ldc.i4.s   89
+    IL_1397:  bne.un     IL_386b
+    IL_139c:  ldarg.0
+    IL_139d:  ldc.i4.8
+    IL_139e:  call       ""char string.this[int].get""
+    IL_13a3:  ldc.i4.s   106
+    IL_13a5:  bne.un     IL_386b
+    IL_13aa:  ldarg.0
+    IL_13ab:  ldc.i4.s   9
+    IL_13ad:  call       ""char string.this[int].get""
+    IL_13b2:  ldc.i4.s   49
+    IL_13b4:  bne.un     IL_386b
+    IL_13b9:  ldarg.0
+    IL_13ba:  ldc.i4.s   10
+    IL_13bc:  call       ""char string.this[int].get""
+    IL_13c1:  ldc.i4.s   93
+    IL_13c3:  bne.un     IL_386b
+    IL_13c8:  ldarg.0
+    IL_13c9:  ldc.i4.s   11
+    IL_13cb:  call       ""char string.this[int].get""
+    IL_13d0:  ldc.i4.s   107
+    IL_13d2:  bne.un     IL_386b
+    IL_13d7:  ldarg.0
+    IL_13d8:  ldc.i4.s   12
+    IL_13da:  call       ""char string.this[int].get""
+    IL_13df:  ldc.i4.s   62
+    IL_13e1:  bne.un     IL_386b
+    IL_13e6:  ldarg.0
+    IL_13e7:  ldc.i4.s   13
+    IL_13e9:  call       ""char string.this[int].get""
+    IL_13ee:  ldc.i4.s   70
+    IL_13f0:  bne.un     IL_386b
+    IL_13f5:  ldarg.0
+    IL_13f6:  ldc.i4.s   14
+    IL_13f8:  call       ""char string.this[int].get""
+    IL_13fd:  ldc.i4.s   55
+    IL_13ff:  bne.un     IL_386b
+    IL_1404:  ldarg.0
+    IL_1405:  ldc.i4.s   15
+    IL_1407:  call       ""char string.this[int].get""
+    IL_140c:  ldc.i4.s   70
+    IL_140e:  bne.un     IL_386b
+    IL_1413:  ldarg.0
+    IL_1414:  ldc.i4.s   16
+    IL_1416:  call       ""char string.this[int].get""
+    IL_141b:  ldc.i4.s   97
+    IL_141d:  bne.un     IL_386b
+    IL_1422:  ldarg.0
+    IL_1423:  ldc.i4.s   17
+    IL_1425:  call       ""char string.this[int].get""
+    IL_142a:  ldc.i4.s   87
+    IL_142c:  bne.un     IL_386b
+    IL_1431:  ldarg.0
+    IL_1432:  ldc.i4.s   18
+    IL_1434:  call       ""char string.this[int].get""
+    IL_1439:  ldc.i4.s   94
+    IL_143b:  bne.un     IL_386b
+    IL_1440:  ldarg.0
+    IL_1441:  ldc.i4.s   19
+    IL_1443:  call       ""char string.this[int].get""
+    IL_1448:  ldc.i4.s   53
+    IL_144a:  bne.un     IL_386b
+    IL_144f:  ldarg.0
+    IL_1450:  ldc.i4.s   20
+    IL_1452:  call       ""char string.this[int].get""
+    IL_1457:  ldc.i4.s   98
+    IL_1459:  bne.un     IL_386b
+    IL_145e:  ldarg.0
+    IL_145f:  ldc.i4.s   21
+    IL_1461:  call       ""char string.this[int].get""
+    IL_1466:  ldc.i4.s   50
+    IL_1468:  bne.un     IL_386b
+    IL_146d:  ldarg.0
+    IL_146e:  ldc.i4.s   22
+    IL_1470:  call       ""char string.this[int].get""
+    IL_1475:  ldc.i4.s   75
+    IL_1477:  bne.un     IL_386b
+    IL_147c:  ldarg.0
+    IL_147d:  ldc.i4.s   23
+    IL_147f:  call       ""char string.this[int].get""
+    IL_1484:  ldc.i4.s   105
+    IL_1486:  bne.un     IL_386b
+    IL_148b:  ldarg.0
+    IL_148c:  ldc.i4.s   24
+    IL_148e:  call       ""char string.this[int].get""
+    IL_1493:  ldc.i4.s   54
+    IL_1495:  bne.un     IL_386b
+    IL_149a:  ldarg.0
+    IL_149b:  ldc.i4.s   25
+    IL_149d:  call       ""char string.this[int].get""
+    IL_14a2:  ldc.i4.s   85
+    IL_14a4:  bne.un     IL_386b
+    IL_14a9:  ldarg.0
+    IL_14aa:  ldc.i4.s   26
+    IL_14ac:  call       ""char string.this[int].get""
+    IL_14b1:  ldc.i4.s   80
+    IL_14b3:  bne.un     IL_386b
+    IL_14b8:  ldarg.0
+    IL_14b9:  ldc.i4.s   27
+    IL_14bb:  call       ""char string.this[int].get""
+    IL_14c0:  ldc.i4.s   48
+    IL_14c2:  bne.un     IL_386b
+    IL_14c7:  ldarg.0
+    IL_14c8:  ldc.i4.s   28
+    IL_14ca:  call       ""char string.this[int].get""
+    IL_14cf:  ldc.i4.s   64
+    IL_14d1:  bne.un     IL_386b
+    IL_14d6:  ldarg.0
+    IL_14d7:  ldc.i4.s   29
+    IL_14d9:  call       ""char string.this[int].get""
+    IL_14de:  ldc.i4.s   61
+    IL_14e0:  bne.un     IL_386b
+    IL_14e5:  ldarg.0
+    IL_14e6:  ldc.i4.s   30
+    IL_14e8:  call       ""char string.this[int].get""
+    IL_14ed:  ldc.i4.s   103
+    IL_14ef:  bne.un     IL_386b
+    IL_14f4:  ldarg.0
+    IL_14f5:  ldc.i4.s   31
+    IL_14f7:  call       ""char string.this[int].get""
+    IL_14fc:  ldc.i4.s   108
+    IL_14fe:  bne.un     IL_386b
+    IL_1503:  ldarg.0
+    IL_1504:  ldc.i4.s   32
+    IL_1506:  call       ""char string.this[int].get""
+    IL_150b:  ldc.i4.s   73
+    IL_150d:  bne.un     IL_386b
+    IL_1512:  ldarg.0
+    IL_1513:  ldc.i4.s   33
+    IL_1515:  call       ""char string.this[int].get""
+    IL_151a:  ldc.i4.s   99
+    IL_151c:  bne.un     IL_386b
+    IL_1521:  ldarg.0
+    IL_1522:  ldc.i4.s   34
+    IL_1524:  call       ""char string.this[int].get""
+    IL_1529:  ldc.i4.s   64
+    IL_152b:  bne.un     IL_386b
+    IL_1530:  ldarg.0
+    IL_1531:  ldc.i4.s   35
+    IL_1533:  call       ""char string.this[int].get""
+    IL_1538:  ldc.i4.s   82
+    IL_153a:  bne.un     IL_386b
+    IL_153f:  ldarg.0
+    IL_1540:  ldc.i4.s   36
+    IL_1542:  call       ""char string.this[int].get""
+    IL_1547:  ldc.i4.s   69
+    IL_1549:  bne.un     IL_386b
+    IL_154e:  ldarg.0
+    IL_154f:  ldc.i4.s   37
+    IL_1551:  call       ""char string.this[int].get""
+    IL_1556:  ldc.i4.s   93
+    IL_1558:  bne.un     IL_386b
+    IL_155d:  ldarg.0
+    IL_155e:  ldc.i4.s   38
+    IL_1560:  call       ""char string.this[int].get""
+    IL_1565:  ldc.i4.s   51
+    IL_1567:  bne.un     IL_386b
+    IL_156c:  ldarg.0
+    IL_156d:  ldc.i4.s   39
+    IL_156f:  call       ""char string.this[int].get""
+    IL_1574:  ldc.i4.s   62
+    IL_1576:  bne.un     IL_386b
+    IL_157b:  br         IL_37e5
+    IL_1580:  ldarg.0
+    IL_1581:  ldc.i4.1
+    IL_1582:  call       ""char string.this[int].get""
+    IL_1587:  stloc.2
+    IL_1588:  ldloc.2
+    IL_1589:  ldc.i4.s   61
+    IL_158b:  beq.s      IL_159a
+    IL_158d:  ldloc.2
+    IL_158e:  ldc.i4.s   82
+    IL_1590:  beq        IL_17d2
+    IL_1595:  br         IL_386b
+    IL_159a:  ldarg.0
+    IL_159b:  ldc.i4.2
+    IL_159c:  call       ""char string.this[int].get""
+    IL_15a1:  ldc.i4.s   61
+    IL_15a3:  bne.un     IL_386b
+    IL_15a8:  ldarg.0
+    IL_15a9:  ldc.i4.3
+    IL_15aa:  call       ""char string.this[int].get""
+    IL_15af:  ldc.i4.s   55
+    IL_15b1:  bne.un     IL_386b
+    IL_15b6:  ldarg.0
+    IL_15b7:  ldc.i4.4
+    IL_15b8:  call       ""char string.this[int].get""
+    IL_15bd:  ldc.i4.s   68
+    IL_15bf:  bne.un     IL_386b
+    IL_15c4:  ldarg.0
+    IL_15c5:  ldc.i4.5
+    IL_15c6:  call       ""char string.this[int].get""
+    IL_15cb:  ldc.i4.s   84
+    IL_15cd:  bne.un     IL_386b
+    IL_15d2:  ldarg.0
+    IL_15d3:  ldc.i4.6
+    IL_15d4:  call       ""char string.this[int].get""
+    IL_15d9:  ldc.i4.s   95
+    IL_15db:  bne.un     IL_386b
+    IL_15e0:  ldarg.0
+    IL_15e1:  ldc.i4.7
+    IL_15e2:  call       ""char string.this[int].get""
+    IL_15e7:  ldc.i4.s   77
+    IL_15e9:  bne.un     IL_386b
+    IL_15ee:  ldarg.0
+    IL_15ef:  ldc.i4.8
+    IL_15f0:  call       ""char string.this[int].get""
+    IL_15f5:  ldc.i4.s   53
+    IL_15f7:  bne.un     IL_386b
+    IL_15fc:  ldarg.0
+    IL_15fd:  ldc.i4.s   9
+    IL_15ff:  call       ""char string.this[int].get""
+    IL_1604:  ldc.i4.s   49
+    IL_1606:  bne.un     IL_386b
+    IL_160b:  ldarg.0
+    IL_160c:  ldc.i4.s   10
+    IL_160e:  call       ""char string.this[int].get""
+    IL_1613:  ldc.i4.s   50
+    IL_1615:  bne.un     IL_386b
+    IL_161a:  ldarg.0
+    IL_161b:  ldc.i4.s   11
+    IL_161d:  call       ""char string.this[int].get""
+    IL_1622:  ldc.i4.s   53
+    IL_1624:  bne.un     IL_386b
+    IL_1629:  ldarg.0
+    IL_162a:  ldc.i4.s   12
+    IL_162c:  call       ""char string.this[int].get""
+    IL_1631:  ldc.i4.s   72
+    IL_1633:  bne.un     IL_386b
+    IL_1638:  ldarg.0
+    IL_1639:  ldc.i4.s   13
+    IL_163b:  call       ""char string.this[int].get""
+    IL_1640:  ldc.i4.s   84
+    IL_1642:  bne.un     IL_386b
+    IL_1647:  ldarg.0
+    IL_1648:  ldc.i4.s   14
+    IL_164a:  call       ""char string.this[int].get""
+    IL_164f:  ldc.i4.s   58
+    IL_1651:  bne.un     IL_386b
+    IL_1656:  ldarg.0
+    IL_1657:  ldc.i4.s   15
+    IL_1659:  call       ""char string.this[int].get""
+    IL_165e:  ldc.i4.s   109
+    IL_1660:  bne.un     IL_386b
+    IL_1665:  ldarg.0
+    IL_1666:  ldc.i4.s   16
+    IL_1668:  call       ""char string.this[int].get""
+    IL_166d:  ldc.i4.s   64
+    IL_166f:  bne.un     IL_386b
+    IL_1674:  ldarg.0
+    IL_1675:  ldc.i4.s   17
+    IL_1677:  call       ""char string.this[int].get""
+    IL_167c:  ldc.i4.s   96
+    IL_167e:  bne.un     IL_386b
+    IL_1683:  ldarg.0
+    IL_1684:  ldc.i4.s   18
+    IL_1686:  call       ""char string.this[int].get""
+    IL_168b:  ldc.i4.s   55
+    IL_168d:  bne.un     IL_386b
+    IL_1692:  ldarg.0
+    IL_1693:  ldc.i4.s   19
+    IL_1695:  call       ""char string.this[int].get""
+    IL_169a:  ldc.i4.s   99
+    IL_169c:  bne.un     IL_386b
+    IL_16a1:  ldarg.0
+    IL_16a2:  ldc.i4.s   20
+    IL_16a4:  call       ""char string.this[int].get""
+    IL_16a9:  ldc.i4.s   103
+    IL_16ab:  bne.un     IL_386b
+    IL_16b0:  ldarg.0
+    IL_16b1:  ldc.i4.s   21
+    IL_16b3:  call       ""char string.this[int].get""
+    IL_16b8:  ldc.i4.s   103
+    IL_16ba:  bne.un     IL_386b
+    IL_16bf:  ldarg.0
+    IL_16c0:  ldc.i4.s   22
+    IL_16c2:  call       ""char string.this[int].get""
+    IL_16c7:  ldc.i4.s   62
+    IL_16c9:  bne.un     IL_386b
+    IL_16ce:  ldarg.0
+    IL_16cf:  ldc.i4.s   23
+    IL_16d1:  call       ""char string.this[int].get""
+    IL_16d6:  ldc.i4.s   87
+    IL_16d8:  bne.un     IL_386b
+    IL_16dd:  ldarg.0
+    IL_16de:  ldc.i4.s   24
+    IL_16e0:  call       ""char string.this[int].get""
+    IL_16e5:  ldc.i4.s   98
+    IL_16e7:  bne.un     IL_386b
+    IL_16ec:  ldarg.0
+    IL_16ed:  ldc.i4.s   25
+    IL_16ef:  call       ""char string.this[int].get""
+    IL_16f4:  ldc.i4.s   90
+    IL_16f6:  bne.un     IL_386b
+    IL_16fb:  ldarg.0
+    IL_16fc:  ldc.i4.s   26
+    IL_16fe:  call       ""char string.this[int].get""
+    IL_1703:  ldc.i4.s   52
+    IL_1705:  bne.un     IL_386b
+    IL_170a:  ldarg.0
+    IL_170b:  ldc.i4.s   27
+    IL_170d:  call       ""char string.this[int].get""
+    IL_1712:  ldc.i4.s   72
+    IL_1714:  bne.un     IL_386b
+    IL_1719:  ldarg.0
+    IL_171a:  ldc.i4.s   28
+    IL_171c:  call       ""char string.this[int].get""
+    IL_1721:  ldc.i4.s   65
+    IL_1723:  bne.un     IL_386b
+    IL_1728:  ldarg.0
+    IL_1729:  ldc.i4.s   29
+    IL_172b:  call       ""char string.this[int].get""
+    IL_1730:  ldc.i4.s   70
+    IL_1732:  bne.un     IL_386b
+    IL_1737:  ldarg.0
+    IL_1738:  ldc.i4.s   30
+    IL_173a:  call       ""char string.this[int].get""
+    IL_173f:  ldc.i4.s   103
+    IL_1741:  bne.un     IL_386b
+    IL_1746:  ldarg.0
+    IL_1747:  ldc.i4.s   31
+    IL_1749:  call       ""char string.this[int].get""
+    IL_174e:  ldc.i4.s   96
+    IL_1750:  bne.un     IL_386b
+    IL_1755:  ldarg.0
+    IL_1756:  ldc.i4.s   32
+    IL_1758:  call       ""char string.this[int].get""
+    IL_175d:  ldc.i4.s   65
+    IL_175f:  bne.un     IL_386b
+    IL_1764:  ldarg.0
+    IL_1765:  ldc.i4.s   33
+    IL_1767:  call       ""char string.this[int].get""
+    IL_176c:  ldc.i4.s   109
+    IL_176e:  bne.un     IL_386b
+    IL_1773:  ldarg.0
+    IL_1774:  ldc.i4.s   34
+    IL_1776:  call       ""char string.this[int].get""
+    IL_177b:  ldc.i4.s   58
+    IL_177d:  bne.un     IL_386b
+    IL_1782:  ldarg.0
+    IL_1783:  ldc.i4.s   35
+    IL_1785:  call       ""char string.this[int].get""
+    IL_178a:  ldc.i4.s   66
+    IL_178c:  bne.un     IL_386b
+    IL_1791:  ldarg.0
+    IL_1792:  ldc.i4.s   36
+    IL_1794:  call       ""char string.this[int].get""
+    IL_1799:  ldc.i4.s   97
+    IL_179b:  bne.un     IL_386b
+    IL_17a0:  ldarg.0
+    IL_17a1:  ldc.i4.s   37
+    IL_17a3:  call       ""char string.this[int].get""
+    IL_17a8:  ldc.i4.s   58
+    IL_17aa:  bne.un     IL_386b
+    IL_17af:  ldarg.0
+    IL_17b0:  ldc.i4.s   38
+    IL_17b2:  call       ""char string.this[int].get""
+    IL_17b7:  ldc.i4.s   102
+    IL_17b9:  bne.un     IL_386b
+    IL_17be:  ldarg.0
+    IL_17bf:  ldc.i4.s   39
+    IL_17c1:  call       ""char string.this[int].get""
+    IL_17c6:  ldc.i4.s   70
+    IL_17c8:  bne.un     IL_386b
+    IL_17cd:  br         IL_37ed
+    IL_17d2:  ldarg.0
+    IL_17d3:  ldc.i4.2
+    IL_17d4:  call       ""char string.this[int].get""
+    IL_17d9:  ldc.i4.s   57
+    IL_17db:  bne.un     IL_386b
+    IL_17e0:  ldarg.0
+    IL_17e1:  ldc.i4.3
+    IL_17e2:  call       ""char string.this[int].get""
+    IL_17e7:  ldc.i4.s   110
+    IL_17e9:  bne.un     IL_386b
+    IL_17ee:  ldarg.0
+    IL_17ef:  ldc.i4.4
+    IL_17f0:  call       ""char string.this[int].get""
+    IL_17f5:  ldc.i4.s   65
+    IL_17f7:  bne.un     IL_386b
+    IL_17fc:  ldarg.0
+    IL_17fd:  ldc.i4.5
+    IL_17fe:  call       ""char string.this[int].get""
+    IL_1803:  ldc.i4.s   84
+    IL_1805:  bne.un     IL_386b
+    IL_180a:  ldarg.0
+    IL_180b:  ldc.i4.6
+    IL_180c:  call       ""char string.this[int].get""
+    IL_1811:  ldc.i4.s   66
+    IL_1813:  bne.un     IL_386b
+    IL_1818:  ldarg.0
+    IL_1819:  ldc.i4.7
+    IL_181a:  call       ""char string.this[int].get""
+    IL_181f:  ldc.i4.s   57
+    IL_1821:  bne.un     IL_386b
+    IL_1826:  ldarg.0
+    IL_1827:  ldc.i4.8
+    IL_1828:  call       ""char string.this[int].get""
+    IL_182d:  ldc.i4.s   67
+    IL_182f:  bne.un     IL_386b
+    IL_1834:  ldarg.0
+    IL_1835:  ldc.i4.s   9
+    IL_1837:  call       ""char string.this[int].get""
+    IL_183c:  ldc.i4.s   91
+    IL_183e:  bne.un     IL_386b
+    IL_1843:  ldarg.0
+    IL_1844:  ldc.i4.s   10
+    IL_1846:  call       ""char string.this[int].get""
+    IL_184b:  ldc.i4.s   70
+    IL_184d:  bne.un     IL_386b
+    IL_1852:  ldarg.0
+    IL_1853:  ldc.i4.s   11
+    IL_1855:  call       ""char string.this[int].get""
+    IL_185a:  ldc.i4.s   89
+    IL_185c:  bne.un     IL_386b
+    IL_1861:  ldarg.0
+    IL_1862:  ldc.i4.s   12
+    IL_1864:  call       ""char string.this[int].get""
+    IL_1869:  ldc.i4.s   55
+    IL_186b:  bne.un     IL_386b
+    IL_1870:  ldarg.0
+    IL_1871:  ldc.i4.s   13
+    IL_1873:  call       ""char string.this[int].get""
+    IL_1878:  ldc.i4.s   66
+    IL_187a:  bne.un     IL_386b
+    IL_187f:  ldarg.0
+    IL_1880:  ldc.i4.s   14
+    IL_1882:  call       ""char string.this[int].get""
+    IL_1887:  ldc.i4.s   93
+    IL_1889:  bne.un     IL_386b
+    IL_188e:  ldarg.0
+    IL_188f:  ldc.i4.s   15
+    IL_1891:  call       ""char string.this[int].get""
+    IL_1896:  ldc.i4.s   57
+    IL_1898:  bne.un     IL_386b
+    IL_189d:  ldarg.0
+    IL_189e:  ldc.i4.s   16
+    IL_18a0:  call       ""char string.this[int].get""
+    IL_18a5:  ldc.i4.s   105
+    IL_18a7:  bne.un     IL_386b
+    IL_18ac:  ldarg.0
+    IL_18ad:  ldc.i4.s   17
+    IL_18af:  call       ""char string.this[int].get""
+    IL_18b4:  ldc.i4.s   73
+    IL_18b6:  bne.un     IL_386b
+    IL_18bb:  ldarg.0
+    IL_18bc:  ldc.i4.s   18
+    IL_18be:  call       ""char string.this[int].get""
+    IL_18c3:  ldc.i4.s   54
+    IL_18c5:  bne.un     IL_386b
+    IL_18ca:  ldarg.0
+    IL_18cb:  ldc.i4.s   19
+    IL_18cd:  call       ""char string.this[int].get""
+    IL_18d2:  ldc.i4.s   73
+    IL_18d4:  bne.un     IL_386b
+    IL_18d9:  ldarg.0
+    IL_18da:  ldc.i4.s   20
+    IL_18dc:  call       ""char string.this[int].get""
+    IL_18e1:  ldc.i4.s   98
+    IL_18e3:  bne.un     IL_386b
+    IL_18e8:  ldarg.0
+    IL_18e9:  ldc.i4.s   21
+    IL_18eb:  call       ""char string.this[int].get""
+    IL_18f0:  ldc.i4.s   111
+    IL_18f2:  bne.un     IL_386b
+    IL_18f7:  ldarg.0
+    IL_18f8:  ldc.i4.s   22
+    IL_18fa:  call       ""char string.this[int].get""
+    IL_18ff:  ldc.i4.s   100
+    IL_1901:  bne.un     IL_386b
+    IL_1906:  ldarg.0
+    IL_1907:  ldc.i4.s   23
+    IL_1909:  call       ""char string.this[int].get""
+    IL_190e:  ldc.i4.s   83
+    IL_1910:  bne.un     IL_386b
+    IL_1915:  ldarg.0
+    IL_1916:  ldc.i4.s   24
+    IL_1918:  call       ""char string.this[int].get""
+    IL_191d:  ldc.i4.s   101
+    IL_191f:  bne.un     IL_386b
+    IL_1924:  ldarg.0
+    IL_1925:  ldc.i4.s   25
+    IL_1927:  call       ""char string.this[int].get""
+    IL_192c:  ldc.i4.s   110
+    IL_192e:  bne.un     IL_386b
+    IL_1933:  ldarg.0
+    IL_1934:  ldc.i4.s   26
+    IL_1936:  call       ""char string.this[int].get""
+    IL_193b:  ldc.i4.s   99
+    IL_193d:  bne.un     IL_386b
+    IL_1942:  ldarg.0
+    IL_1943:  ldc.i4.s   27
+    IL_1945:  call       ""char string.this[int].get""
+    IL_194a:  ldc.i4.s   70
+    IL_194c:  bne.un     IL_386b
+    IL_1951:  ldarg.0
+    IL_1952:  ldc.i4.s   28
+    IL_1954:  call       ""char string.this[int].get""
+    IL_1959:  ldc.i4.s   87
+    IL_195b:  bne.un     IL_386b
+    IL_1960:  ldarg.0
+    IL_1961:  ldc.i4.s   29
+    IL_1963:  call       ""char string.this[int].get""
+    IL_1968:  ldc.i4.s   83
+    IL_196a:  bne.un     IL_386b
+    IL_196f:  ldarg.0
+    IL_1970:  ldc.i4.s   30
+    IL_1972:  call       ""char string.this[int].get""
+    IL_1977:  ldc.i4.s   86
+    IL_1979:  bne.un     IL_386b
+    IL_197e:  ldarg.0
+    IL_197f:  ldc.i4.s   31
+    IL_1981:  call       ""char string.this[int].get""
+    IL_1986:  ldc.i4.s   108
+    IL_1988:  bne.un     IL_386b
+    IL_198d:  ldarg.0
+    IL_198e:  ldc.i4.s   32
+    IL_1990:  call       ""char string.this[int].get""
+    IL_1995:  ldc.i4.s   104
+    IL_1997:  bne.un     IL_386b
+    IL_199c:  ldarg.0
+    IL_199d:  ldc.i4.s   33
+    IL_199f:  call       ""char string.this[int].get""
+    IL_19a4:  ldc.i4.s   76
+    IL_19a6:  bne.un     IL_386b
+    IL_19ab:  ldarg.0
+    IL_19ac:  ldc.i4.s   34
+    IL_19ae:  call       ""char string.this[int].get""
+    IL_19b3:  ldc.i4.s   56
+    IL_19b5:  bne.un     IL_386b
+    IL_19ba:  ldarg.0
+    IL_19bb:  ldc.i4.s   35
+    IL_19bd:  call       ""char string.this[int].get""
+    IL_19c2:  ldc.i4.s   55
+    IL_19c4:  bne.un     IL_386b
+    IL_19c9:  ldarg.0
+    IL_19ca:  ldc.i4.s   36
+    IL_19cc:  call       ""char string.this[int].get""
+    IL_19d1:  ldc.i4.s   57
+    IL_19d3:  bne.un     IL_386b
+    IL_19d8:  ldarg.0
+    IL_19d9:  ldc.i4.s   37
+    IL_19db:  call       ""char string.this[int].get""
+    IL_19e0:  ldc.i4.s   67
+    IL_19e2:  bne.un     IL_386b
+    IL_19e7:  ldarg.0
+    IL_19e8:  ldc.i4.s   38
+    IL_19ea:  call       ""char string.this[int].get""
+    IL_19ef:  ldc.i4.s   58
+    IL_19f1:  bne.un     IL_386b
+    IL_19f6:  ldarg.0
+    IL_19f7:  ldc.i4.s   39
+    IL_19f9:  call       ""char string.this[int].get""
+    IL_19fe:  ldc.i4.s   87
+    IL_1a00:  bne.un     IL_386b
+    IL_1a05:  br         IL_384d
+    IL_1a0a:  ldarg.0
+    IL_1a0b:  ldc.i4.1
+    IL_1a0c:  call       ""char string.this[int].get""
+    IL_1a11:  ldc.i4.s   69
+    IL_1a13:  bne.un     IL_386b
+    IL_1a18:  ldarg.0
+    IL_1a19:  ldc.i4.2
+    IL_1a1a:  call       ""char string.this[int].get""
+    IL_1a1f:  ldc.i4.s   106
+    IL_1a21:  bne.un     IL_386b
+    IL_1a26:  ldarg.0
+    IL_1a27:  ldc.i4.3
+    IL_1a28:  call       ""char string.this[int].get""
+    IL_1a2d:  ldc.i4.s   48
+    IL_1a2f:  bne.un     IL_386b
+    IL_1a34:  ldarg.0
+    IL_1a35:  ldc.i4.4
+    IL_1a36:  call       ""char string.this[int].get""
+    IL_1a3b:  ldc.i4.s   55
+    IL_1a3d:  bne.un     IL_386b
+    IL_1a42:  ldarg.0
+    IL_1a43:  ldc.i4.5
+    IL_1a44:  call       ""char string.this[int].get""
+    IL_1a49:  ldc.i4.s   73
+    IL_1a4b:  bne.un     IL_386b
+    IL_1a50:  ldarg.0
+    IL_1a51:  ldc.i4.6
+    IL_1a52:  call       ""char string.this[int].get""
+    IL_1a57:  ldc.i4.s   107
+    IL_1a59:  bne.un     IL_386b
+    IL_1a5e:  ldarg.0
+    IL_1a5f:  ldc.i4.7
+    IL_1a60:  call       ""char string.this[int].get""
+    IL_1a65:  ldc.i4.s   61
+    IL_1a67:  bne.un     IL_386b
+    IL_1a6c:  ldarg.0
+    IL_1a6d:  ldc.i4.8
+    IL_1a6e:  call       ""char string.this[int].get""
+    IL_1a73:  ldc.i4.s   63
+    IL_1a75:  bne.un     IL_386b
+    IL_1a7a:  ldarg.0
+    IL_1a7b:  ldc.i4.s   9
+    IL_1a7d:  call       ""char string.this[int].get""
+    IL_1a82:  ldc.i4.s   71
+    IL_1a84:  bne.un     IL_386b
+    IL_1a89:  ldarg.0
+    IL_1a8a:  ldc.i4.s   10
+    IL_1a8c:  call       ""char string.this[int].get""
+    IL_1a91:  ldc.i4.s   51
+    IL_1a93:  bne.un     IL_386b
+    IL_1a98:  ldarg.0
+    IL_1a99:  ldc.i4.s   11
+    IL_1a9b:  call       ""char string.this[int].get""
+    IL_1aa0:  ldc.i4.s   53
+    IL_1aa2:  bne.un     IL_386b
+    IL_1aa7:  ldarg.0
+    IL_1aa8:  ldc.i4.s   12
+    IL_1aaa:  call       ""char string.this[int].get""
+    IL_1aaf:  ldc.i4.s   65
+    IL_1ab1:  bne.un     IL_386b
+    IL_1ab6:  ldarg.0
+    IL_1ab7:  ldc.i4.s   13
+    IL_1ab9:  call       ""char string.this[int].get""
+    IL_1abe:  ldc.i4.s   102
+    IL_1ac0:  bne.un     IL_386b
+    IL_1ac5:  ldarg.0
+    IL_1ac6:  ldc.i4.s   14
+    IL_1ac8:  call       ""char string.this[int].get""
+    IL_1acd:  ldc.i4.s   69
+    IL_1acf:  bne.un     IL_386b
+    IL_1ad4:  ldarg.0
+    IL_1ad5:  ldc.i4.s   15
+    IL_1ad7:  call       ""char string.this[int].get""
+    IL_1adc:  ldc.i4.s   102
+    IL_1ade:  bne.un     IL_386b
+    IL_1ae3:  ldarg.0
+    IL_1ae4:  ldc.i4.s   16
+    IL_1ae6:  call       ""char string.this[int].get""
+    IL_1aeb:  ldc.i4.s   63
+    IL_1aed:  bne.un     IL_386b
+    IL_1af2:  ldarg.0
+    IL_1af3:  ldc.i4.s   17
+    IL_1af5:  call       ""char string.this[int].get""
+    IL_1afa:  ldc.i4.s   56
+    IL_1afc:  bne.un     IL_386b
+    IL_1b01:  ldarg.0
+    IL_1b02:  ldc.i4.s   18
+    IL_1b04:  call       ""char string.this[int].get""
+    IL_1b09:  ldc.i4.s   64
+    IL_1b0b:  bne.un     IL_386b
+    IL_1b10:  ldarg.0
+    IL_1b11:  ldc.i4.s   19
+    IL_1b13:  call       ""char string.this[int].get""
+    IL_1b18:  ldc.i4.s   53
+    IL_1b1a:  bne.un     IL_386b
+    IL_1b1f:  ldarg.0
+    IL_1b20:  ldc.i4.s   20
+    IL_1b22:  call       ""char string.this[int].get""
+    IL_1b27:  ldc.i4.s   91
+    IL_1b29:  bne.un     IL_386b
+    IL_1b2e:  ldarg.0
+    IL_1b2f:  ldc.i4.s   21
+    IL_1b31:  call       ""char string.this[int].get""
+    IL_1b36:  ldc.i4.s   64
+    IL_1b38:  bne.un     IL_386b
+    IL_1b3d:  ldarg.0
+    IL_1b3e:  ldc.i4.s   22
+    IL_1b40:  call       ""char string.this[int].get""
+    IL_1b45:  ldc.i4.s   52
+    IL_1b47:  bne.un     IL_386b
+    IL_1b4c:  ldarg.0
+    IL_1b4d:  ldc.i4.s   23
+    IL_1b4f:  call       ""char string.this[int].get""
+    IL_1b54:  ldc.i4.s   79
+    IL_1b56:  bne.un     IL_386b
+    IL_1b5b:  ldarg.0
+    IL_1b5c:  ldc.i4.s   24
+    IL_1b5e:  call       ""char string.this[int].get""
+    IL_1b63:  ldc.i4.s   71
+    IL_1b65:  bne.un     IL_386b
+    IL_1b6a:  ldarg.0
+    IL_1b6b:  ldc.i4.s   25
+    IL_1b6d:  call       ""char string.this[int].get""
+    IL_1b72:  ldc.i4.s   89
+    IL_1b74:  bne.un     IL_386b
+    IL_1b79:  ldarg.0
+    IL_1b7a:  ldc.i4.s   26
+    IL_1b7c:  call       ""char string.this[int].get""
+    IL_1b81:  ldc.i4.s   101
+    IL_1b83:  bne.un     IL_386b
+    IL_1b88:  ldarg.0
+    IL_1b89:  ldc.i4.s   27
+    IL_1b8b:  call       ""char string.this[int].get""
+    IL_1b90:  ldc.i4.s   88
+    IL_1b92:  bne.un     IL_386b
+    IL_1b97:  ldarg.0
+    IL_1b98:  ldc.i4.s   28
+    IL_1b9a:  call       ""char string.this[int].get""
+    IL_1b9f:  ldc.i4.s   73
+    IL_1ba1:  bne.un     IL_386b
+    IL_1ba6:  ldarg.0
+    IL_1ba7:  ldc.i4.s   29
+    IL_1ba9:  call       ""char string.this[int].get""
+    IL_1bae:  ldc.i4.s   72
+    IL_1bb0:  bne.un     IL_386b
+    IL_1bb5:  ldarg.0
+    IL_1bb6:  ldc.i4.s   30
+    IL_1bb8:  call       ""char string.this[int].get""
+    IL_1bbd:  ldc.i4.s   89
+    IL_1bbf:  bne.un     IL_386b
+    IL_1bc4:  ldarg.0
+    IL_1bc5:  ldc.i4.s   31
+    IL_1bc7:  call       ""char string.this[int].get""
+    IL_1bcc:  ldc.i4.s   72
+    IL_1bce:  bne.un     IL_386b
+    IL_1bd3:  ldarg.0
+    IL_1bd4:  ldc.i4.s   32
+    IL_1bd6:  call       ""char string.this[int].get""
+    IL_1bdb:  ldc.i4.s   93
+    IL_1bdd:  bne.un     IL_386b
+    IL_1be2:  ldarg.0
+    IL_1be3:  ldc.i4.s   33
+    IL_1be5:  call       ""char string.this[int].get""
+    IL_1bea:  ldc.i4.s   67
+    IL_1bec:  bne.un     IL_386b
+    IL_1bf1:  ldarg.0
+    IL_1bf2:  ldc.i4.s   34
+    IL_1bf4:  call       ""char string.this[int].get""
+    IL_1bf9:  ldc.i4.s   90
+    IL_1bfb:  bne.un     IL_386b
+    IL_1c00:  ldarg.0
+    IL_1c01:  ldc.i4.s   35
+    IL_1c03:  call       ""char string.this[int].get""
+    IL_1c08:  ldc.i4.s   108
+    IL_1c0a:  bne.un     IL_386b
+    IL_1c0f:  ldarg.0
+    IL_1c10:  ldc.i4.s   36
+    IL_1c12:  call       ""char string.this[int].get""
+    IL_1c17:  ldc.i4.s   72
+    IL_1c19:  bne.un     IL_386b
+    IL_1c1e:  ldarg.0
+    IL_1c1f:  ldc.i4.s   37
+    IL_1c21:  call       ""char string.this[int].get""
+    IL_1c26:  ldc.i4.s   89
+    IL_1c28:  bne.un     IL_386b
+    IL_1c2d:  ldarg.0
+    IL_1c2e:  ldc.i4.s   38
+    IL_1c30:  call       ""char string.this[int].get""
+    IL_1c35:  ldc.i4.s   55
+    IL_1c37:  bne.un     IL_386b
+    IL_1c3c:  ldarg.0
+    IL_1c3d:  ldc.i4.s   39
+    IL_1c3f:  call       ""char string.this[int].get""
+    IL_1c44:  ldc.i4.s   58
+    IL_1c46:  bne.un     IL_386b
+    IL_1c4b:  br         IL_37f5
+    IL_1c50:  ldarg.0
+    IL_1c51:  ldc.i4.1
+    IL_1c52:  call       ""char string.this[int].get""
+    IL_1c57:  ldc.i4.s   65
+    IL_1c59:  bne.un     IL_386b
+    IL_1c5e:  ldarg.0
+    IL_1c5f:  ldc.i4.2
+    IL_1c60:  call       ""char string.this[int].get""
+    IL_1c65:  ldc.i4.s   99
+    IL_1c67:  bne.un     IL_386b
+    IL_1c6c:  ldarg.0
+    IL_1c6d:  ldc.i4.3
+    IL_1c6e:  call       ""char string.this[int].get""
+    IL_1c73:  ldc.i4.s   70
+    IL_1c75:  bne.un     IL_386b
+    IL_1c7a:  ldarg.0
+    IL_1c7b:  ldc.i4.4
+    IL_1c7c:  call       ""char string.this[int].get""
+    IL_1c81:  ldc.i4.s   83
+    IL_1c83:  bne.un     IL_386b
+    IL_1c88:  ldarg.0
+    IL_1c89:  ldc.i4.5
+    IL_1c8a:  call       ""char string.this[int].get""
+    IL_1c8f:  ldc.i4.s   51
+    IL_1c91:  bne.un     IL_386b
+    IL_1c96:  ldarg.0
+    IL_1c97:  ldc.i4.6
+    IL_1c98:  call       ""char string.this[int].get""
+    IL_1c9d:  ldc.i4.s   86
+    IL_1c9f:  bne.un     IL_386b
+    IL_1ca4:  ldarg.0
+    IL_1ca5:  ldc.i4.7
+    IL_1ca6:  call       ""char string.this[int].get""
+    IL_1cab:  ldc.i4.s   57
+    IL_1cad:  bne.un     IL_386b
+    IL_1cb2:  ldarg.0
+    IL_1cb3:  ldc.i4.8
+    IL_1cb4:  call       ""char string.this[int].get""
+    IL_1cb9:  ldc.i4.s   89
+    IL_1cbb:  bne.un     IL_386b
+    IL_1cc0:  ldarg.0
+    IL_1cc1:  ldc.i4.s   9
+    IL_1cc3:  call       ""char string.this[int].get""
+    IL_1cc8:  ldc.i4.s   64
+    IL_1cca:  bne.un     IL_386b
+    IL_1ccf:  ldarg.0
+    IL_1cd0:  ldc.i4.s   10
+    IL_1cd2:  call       ""char string.this[int].get""
+    IL_1cd7:  ldc.i4.s   103
+    IL_1cd9:  bne.un     IL_386b
+    IL_1cde:  ldarg.0
+    IL_1cdf:  ldc.i4.s   11
+    IL_1ce1:  call       ""char string.this[int].get""
+    IL_1ce6:  ldc.i4.s   60
+    IL_1ce8:  bne.un     IL_386b
+    IL_1ced:  ldarg.0
+    IL_1cee:  ldc.i4.s   12
+    IL_1cf0:  call       ""char string.this[int].get""
+    IL_1cf5:  ldc.i4.s   53
+    IL_1cf7:  bne.un     IL_386b
+    IL_1cfc:  ldarg.0
+    IL_1cfd:  ldc.i4.s   13
+    IL_1cff:  call       ""char string.this[int].get""
+    IL_1d04:  ldc.i4.s   53
+    IL_1d06:  bne.un     IL_386b
+    IL_1d0b:  ldarg.0
+    IL_1d0c:  ldc.i4.s   14
+    IL_1d0e:  call       ""char string.this[int].get""
+    IL_1d13:  ldc.i4.s   75
+    IL_1d15:  bne.un     IL_386b
+    IL_1d1a:  ldarg.0
+    IL_1d1b:  ldc.i4.s   15
+    IL_1d1d:  call       ""char string.this[int].get""
+    IL_1d22:  ldc.i4.s   96
+    IL_1d24:  bne.un     IL_386b
+    IL_1d29:  ldarg.0
+    IL_1d2a:  ldc.i4.s   16
+    IL_1d2c:  call       ""char string.this[int].get""
+    IL_1d31:  ldc.i4.s   61
+    IL_1d33:  bne.un     IL_386b
+    IL_1d38:  ldarg.0
+    IL_1d39:  ldc.i4.s   17
+    IL_1d3b:  call       ""char string.this[int].get""
+    IL_1d40:  ldc.i4.s   81
+    IL_1d42:  bne.un     IL_386b
+    IL_1d47:  ldarg.0
+    IL_1d48:  ldc.i4.s   18
+    IL_1d4a:  call       ""char string.this[int].get""
+    IL_1d4f:  ldc.i4.s   110
+    IL_1d51:  bne.un     IL_386b
+    IL_1d56:  ldarg.0
+    IL_1d57:  ldc.i4.s   19
+    IL_1d59:  call       ""char string.this[int].get""
+    IL_1d5e:  ldc.i4.s   89
+    IL_1d60:  bne.un     IL_386b
+    IL_1d65:  ldarg.0
+    IL_1d66:  ldc.i4.s   20
+    IL_1d68:  call       ""char string.this[int].get""
+    IL_1d6d:  ldc.i4.s   84
+    IL_1d6f:  bne.un     IL_386b
+    IL_1d74:  ldarg.0
+    IL_1d75:  ldc.i4.s   21
+    IL_1d77:  call       ""char string.this[int].get""
+    IL_1d7c:  ldc.i4.s   83
+    IL_1d7e:  bne.un     IL_386b
+    IL_1d83:  ldarg.0
+    IL_1d84:  ldc.i4.s   22
+    IL_1d86:  call       ""char string.this[int].get""
+    IL_1d8b:  ldc.i4.s   61
+    IL_1d8d:  bne.un     IL_386b
+    IL_1d92:  ldarg.0
+    IL_1d93:  ldc.i4.s   23
+    IL_1d95:  call       ""char string.this[int].get""
+    IL_1d9a:  ldc.i4.s   66
+    IL_1d9c:  bne.un     IL_386b
+    IL_1da1:  ldarg.0
+    IL_1da2:  ldc.i4.s   24
+    IL_1da4:  call       ""char string.this[int].get""
+    IL_1da9:  ldc.i4.s   94
+    IL_1dab:  bne.un     IL_386b
+    IL_1db0:  ldarg.0
+    IL_1db1:  ldc.i4.s   25
+    IL_1db3:  call       ""char string.this[int].get""
+    IL_1db8:  ldc.i4.s   67
+    IL_1dba:  bne.un     IL_386b
+    IL_1dbf:  ldarg.0
+    IL_1dc0:  ldc.i4.s   26
+    IL_1dc2:  call       ""char string.this[int].get""
+    IL_1dc7:  ldc.i4.s   83
+    IL_1dc9:  bne.un     IL_386b
+    IL_1dce:  ldarg.0
+    IL_1dcf:  ldc.i4.s   27
+    IL_1dd1:  call       ""char string.this[int].get""
+    IL_1dd6:  ldc.i4.s   64
+    IL_1dd8:  bne.un     IL_386b
+    IL_1ddd:  ldarg.0
+    IL_1dde:  ldc.i4.s   28
+    IL_1de0:  call       ""char string.this[int].get""
+    IL_1de5:  ldc.i4.s   107
+    IL_1de7:  bne.un     IL_386b
+    IL_1dec:  ldarg.0
+    IL_1ded:  ldc.i4.s   29
+    IL_1def:  call       ""char string.this[int].get""
+    IL_1df4:  ldc.i4.s   103
+    IL_1df6:  bne.un     IL_386b
+    IL_1dfb:  ldarg.0
+    IL_1dfc:  ldc.i4.s   30
+    IL_1dfe:  call       ""char string.this[int].get""
+    IL_1e03:  ldc.i4.s   54
+    IL_1e05:  bne.un     IL_386b
+    IL_1e0a:  ldarg.0
+    IL_1e0b:  ldc.i4.s   31
+    IL_1e0d:  call       ""char string.this[int].get""
+    IL_1e12:  ldc.i4.s   58
+    IL_1e14:  bne.un     IL_386b
+    IL_1e19:  ldarg.0
+    IL_1e1a:  ldc.i4.s   32
+    IL_1e1c:  call       ""char string.this[int].get""
+    IL_1e21:  ldc.i4.s   72
+    IL_1e23:  bne.un     IL_386b
+    IL_1e28:  ldarg.0
+    IL_1e29:  ldc.i4.s   33
+    IL_1e2b:  call       ""char string.this[int].get""
+    IL_1e30:  ldc.i4.s   99
+    IL_1e32:  bne.un     IL_386b
+    IL_1e37:  ldarg.0
+    IL_1e38:  ldc.i4.s   34
+    IL_1e3a:  call       ""char string.this[int].get""
+    IL_1e3f:  ldc.i4.s   95
+    IL_1e41:  bne.un     IL_386b
+    IL_1e46:  ldarg.0
+    IL_1e47:  ldc.i4.s   35
+    IL_1e49:  call       ""char string.this[int].get""
+    IL_1e4e:  ldc.i4.s   85
+    IL_1e50:  bne.un     IL_386b
+    IL_1e55:  ldarg.0
+    IL_1e56:  ldc.i4.s   36
+    IL_1e58:  call       ""char string.this[int].get""
+    IL_1e5d:  ldc.i4.s   97
+    IL_1e5f:  bne.un     IL_386b
+    IL_1e64:  ldarg.0
+    IL_1e65:  ldc.i4.s   37
+    IL_1e67:  call       ""char string.this[int].get""
+    IL_1e6c:  ldc.i4.s   82
+    IL_1e6e:  bne.un     IL_386b
+    IL_1e73:  ldarg.0
+    IL_1e74:  ldc.i4.s   38
+    IL_1e76:  call       ""char string.this[int].get""
+    IL_1e7b:  ldc.i4.s   84
+    IL_1e7d:  bne.un     IL_386b
+    IL_1e82:  ldarg.0
+    IL_1e83:  ldc.i4.s   39
+    IL_1e85:  call       ""char string.this[int].get""
+    IL_1e8a:  ldc.i4.s   106
+    IL_1e8c:  bne.un     IL_386b
+    IL_1e91:  br         IL_37fd
+    IL_1e96:  ldarg.0
+    IL_1e97:  ldc.i4.1
+    IL_1e98:  call       ""char string.this[int].get""
+    IL_1e9d:  ldc.i4.s   86
+    IL_1e9f:  bne.un     IL_386b
+    IL_1ea4:  ldarg.0
+    IL_1ea5:  ldc.i4.2
+    IL_1ea6:  call       ""char string.this[int].get""
+    IL_1eab:  ldc.i4.s   79
+    IL_1ead:  bne.un     IL_386b
+    IL_1eb2:  ldarg.0
+    IL_1eb3:  ldc.i4.3
+    IL_1eb4:  call       ""char string.this[int].get""
+    IL_1eb9:  ldc.i4.s   98
+    IL_1ebb:  bne.un     IL_386b
+    IL_1ec0:  ldarg.0
+    IL_1ec1:  ldc.i4.4
+    IL_1ec2:  call       ""char string.this[int].get""
+    IL_1ec7:  ldc.i4.s   77
+    IL_1ec9:  bne.un     IL_386b
+    IL_1ece:  ldarg.0
+    IL_1ecf:  ldc.i4.5
+    IL_1ed0:  call       ""char string.this[int].get""
+    IL_1ed5:  ldc.i4.s   107
+    IL_1ed7:  bne.un     IL_386b
+    IL_1edc:  ldarg.0
+    IL_1edd:  ldc.i4.6
+    IL_1ede:  call       ""char string.this[int].get""
+    IL_1ee3:  ldc.i4.s   99
+    IL_1ee5:  bne.un     IL_386b
+    IL_1eea:  ldarg.0
+    IL_1eeb:  ldc.i4.7
+    IL_1eec:  call       ""char string.this[int].get""
+    IL_1ef1:  ldc.i4.s   75
+    IL_1ef3:  bne.un     IL_386b
+    IL_1ef8:  ldarg.0
+    IL_1ef9:  ldc.i4.8
+    IL_1efa:  call       ""char string.this[int].get""
+    IL_1eff:  ldc.i4.s   58
+    IL_1f01:  bne.un     IL_386b
+    IL_1f06:  ldarg.0
+    IL_1f07:  ldc.i4.s   9
+    IL_1f09:  call       ""char string.this[int].get""
+    IL_1f0e:  ldc.i4.s   95
+    IL_1f10:  bne.un     IL_386b
+    IL_1f15:  ldarg.0
+    IL_1f16:  ldc.i4.s   10
+    IL_1f18:  call       ""char string.this[int].get""
+    IL_1f1d:  ldc.i4.s   65
+    IL_1f1f:  bne.un     IL_386b
+    IL_1f24:  ldarg.0
+    IL_1f25:  ldc.i4.s   11
+    IL_1f27:  call       ""char string.this[int].get""
+    IL_1f2c:  ldc.i4.s   81
+    IL_1f2e:  bne.un     IL_386b
+    IL_1f33:  ldarg.0
+    IL_1f34:  ldc.i4.s   12
+    IL_1f36:  call       ""char string.this[int].get""
+    IL_1f3b:  ldc.i4.s   97
+    IL_1f3d:  bne.un     IL_386b
+    IL_1f42:  ldarg.0
+    IL_1f43:  ldc.i4.s   13
+    IL_1f45:  call       ""char string.this[int].get""
+    IL_1f4a:  ldc.i4.s   101
+    IL_1f4c:  bne.un     IL_386b
+    IL_1f51:  ldarg.0
+    IL_1f52:  ldc.i4.s   14
+    IL_1f54:  call       ""char string.this[int].get""
+    IL_1f59:  ldc.i4.s   48
+    IL_1f5b:  bne.un     IL_386b
+    IL_1f60:  ldarg.0
+    IL_1f61:  ldc.i4.s   15
+    IL_1f63:  call       ""char string.this[int].get""
+    IL_1f68:  ldc.i4.s   86
+    IL_1f6a:  bne.un     IL_386b
+    IL_1f6f:  ldarg.0
+    IL_1f70:  ldc.i4.s   16
+    IL_1f72:  call       ""char string.this[int].get""
+    IL_1f77:  ldc.i4.s   89
+    IL_1f79:  bne.un     IL_386b
+    IL_1f7e:  ldarg.0
+    IL_1f7f:  ldc.i4.s   17
+    IL_1f81:  call       ""char string.this[int].get""
+    IL_1f86:  ldc.i4.s   52
+    IL_1f88:  bne.un     IL_386b
+    IL_1f8d:  ldarg.0
+    IL_1f8e:  ldc.i4.s   18
+    IL_1f90:  call       ""char string.this[int].get""
+    IL_1f95:  ldc.i4.s   78
+    IL_1f97:  bne.un     IL_386b
+    IL_1f9c:  ldarg.0
+    IL_1f9d:  ldc.i4.s   19
+    IL_1f9f:  call       ""char string.this[int].get""
+    IL_1fa4:  ldc.i4.s   93
+    IL_1fa6:  bne.un     IL_386b
+    IL_1fab:  ldarg.0
+    IL_1fac:  ldc.i4.s   20
+    IL_1fae:  call       ""char string.this[int].get""
+    IL_1fb3:  ldc.i4.s   98
+    IL_1fb5:  bne.un     IL_386b
+    IL_1fba:  ldarg.0
+    IL_1fbb:  ldc.i4.s   21
+    IL_1fbd:  call       ""char string.this[int].get""
+    IL_1fc2:  ldc.i4.s   68
+    IL_1fc4:  bne.un     IL_386b
+    IL_1fc9:  ldarg.0
+    IL_1fca:  ldc.i4.s   22
+    IL_1fcc:  call       ""char string.this[int].get""
+    IL_1fd1:  ldc.i4.s   88
+    IL_1fd3:  bne.un     IL_386b
+    IL_1fd8:  ldarg.0
+    IL_1fd9:  ldc.i4.s   23
+    IL_1fdb:  call       ""char string.this[int].get""
+    IL_1fe0:  ldc.i4.s   88
+    IL_1fe2:  bne.un     IL_386b
+    IL_1fe7:  ldarg.0
+    IL_1fe8:  ldc.i4.s   24
+    IL_1fea:  call       ""char string.this[int].get""
+    IL_1fef:  ldc.i4.s   73
+    IL_1ff1:  bne.un     IL_386b
+    IL_1ff6:  ldarg.0
+    IL_1ff7:  ldc.i4.s   25
+    IL_1ff9:  call       ""char string.this[int].get""
+    IL_1ffe:  ldc.i4.s   95
+    IL_2000:  bne.un     IL_386b
+    IL_2005:  ldarg.0
+    IL_2006:  ldc.i4.s   26
+    IL_2008:  call       ""char string.this[int].get""
+    IL_200d:  ldc.i4.s   75
+    IL_200f:  bne.un     IL_386b
+    IL_2014:  ldarg.0
+    IL_2015:  ldc.i4.s   27
+    IL_2017:  call       ""char string.this[int].get""
+    IL_201c:  ldc.i4.s   107
+    IL_201e:  bne.un     IL_386b
+    IL_2023:  ldarg.0
+    IL_2024:  ldc.i4.s   28
+    IL_2026:  call       ""char string.this[int].get""
+    IL_202b:  ldc.i4.s   111
+    IL_202d:  bne.un     IL_386b
+    IL_2032:  ldarg.0
+    IL_2033:  ldc.i4.s   29
+    IL_2035:  call       ""char string.this[int].get""
+    IL_203a:  ldc.i4.s   101
+    IL_203c:  bne.un     IL_386b
+    IL_2041:  ldarg.0
+    IL_2042:  ldc.i4.s   30
+    IL_2044:  call       ""char string.this[int].get""
+    IL_2049:  ldc.i4.s   78
+    IL_204b:  bne.un     IL_386b
+    IL_2050:  ldarg.0
+    IL_2051:  ldc.i4.s   31
+    IL_2053:  call       ""char string.this[int].get""
+    IL_2058:  ldc.i4.s   90
+    IL_205a:  bne.un     IL_386b
+    IL_205f:  ldarg.0
+    IL_2060:  ldc.i4.s   32
+    IL_2062:  call       ""char string.this[int].get""
+    IL_2067:  ldc.i4.s   57
+    IL_2069:  bne.un     IL_386b
+    IL_206e:  ldarg.0
+    IL_206f:  ldc.i4.s   33
+    IL_2071:  call       ""char string.this[int].get""
+    IL_2076:  ldc.i4.s   111
+    IL_2078:  bne.un     IL_386b
+    IL_207d:  ldarg.0
+    IL_207e:  ldc.i4.s   34
+    IL_2080:  call       ""char string.this[int].get""
+    IL_2085:  ldc.i4.s   104
+    IL_2087:  bne.un     IL_386b
+    IL_208c:  ldarg.0
+    IL_208d:  ldc.i4.s   35
+    IL_208f:  call       ""char string.this[int].get""
+    IL_2094:  ldc.i4.s   84
+    IL_2096:  bne.un     IL_386b
+    IL_209b:  ldarg.0
+    IL_209c:  ldc.i4.s   36
+    IL_209e:  call       ""char string.this[int].get""
+    IL_20a3:  ldc.i4.s   63
+    IL_20a5:  bne.un     IL_386b
+    IL_20aa:  ldarg.0
+    IL_20ab:  ldc.i4.s   37
+    IL_20ad:  call       ""char string.this[int].get""
+    IL_20b2:  ldc.i4.s   103
+    IL_20b4:  bne.un     IL_386b
+    IL_20b9:  ldarg.0
+    IL_20ba:  ldc.i4.s   38
+    IL_20bc:  call       ""char string.this[int].get""
+    IL_20c1:  ldc.i4.s   102
+    IL_20c3:  bne.un     IL_386b
+    IL_20c8:  ldarg.0
+    IL_20c9:  ldc.i4.s   39
+    IL_20cb:  call       ""char string.this[int].get""
+    IL_20d0:  ldc.i4.s   85
+    IL_20d2:  bne.un     IL_386b
+    IL_20d7:  br         IL_380d
+    IL_20dc:  ldarg.0
+    IL_20dd:  ldc.i4.1
+    IL_20de:  call       ""char string.this[int].get""
+    IL_20e3:  ldc.i4.s   111
+    IL_20e5:  bne.un     IL_386b
+    IL_20ea:  ldarg.0
+    IL_20eb:  ldc.i4.2
+    IL_20ec:  call       ""char string.this[int].get""
+    IL_20f1:  ldc.i4.s   52
+    IL_20f3:  bne.un     IL_386b
+    IL_20f8:  ldarg.0
+    IL_20f9:  ldc.i4.3
+    IL_20fa:  call       ""char string.this[int].get""
+    IL_20ff:  ldc.i4.s   105
+    IL_2101:  bne.un     IL_386b
+    IL_2106:  ldarg.0
+    IL_2107:  ldc.i4.4
+    IL_2108:  call       ""char string.this[int].get""
+    IL_210d:  ldc.i4.s   48
+    IL_210f:  bne.un     IL_386b
+    IL_2114:  ldarg.0
+    IL_2115:  ldc.i4.5
+    IL_2116:  call       ""char string.this[int].get""
+    IL_211b:  ldc.i4.s   52
+    IL_211d:  bne.un     IL_386b
+    IL_2122:  ldarg.0
+    IL_2123:  ldc.i4.6
+    IL_2124:  call       ""char string.this[int].get""
+    IL_2129:  ldc.i4.s   93
+    IL_212b:  bne.un     IL_386b
+    IL_2130:  ldarg.0
+    IL_2131:  ldc.i4.7
+    IL_2132:  call       ""char string.this[int].get""
+    IL_2137:  ldc.i4.s   97
+    IL_2139:  bne.un     IL_386b
+    IL_213e:  ldarg.0
+    IL_213f:  ldc.i4.8
+    IL_2140:  call       ""char string.this[int].get""
+    IL_2145:  ldc.i4.s   52
+    IL_2147:  bne.un     IL_386b
+    IL_214c:  ldarg.0
+    IL_214d:  ldc.i4.s   9
+    IL_214f:  call       ""char string.this[int].get""
+    IL_2154:  ldc.i4.s   103
+    IL_2156:  bne.un     IL_386b
+    IL_215b:  ldarg.0
+    IL_215c:  ldc.i4.s   10
+    IL_215e:  call       ""char string.this[int].get""
+    IL_2163:  ldc.i4.s   50
+    IL_2165:  bne.un     IL_386b
+    IL_216a:  ldarg.0
+    IL_216b:  ldc.i4.s   11
+    IL_216d:  call       ""char string.this[int].get""
+    IL_2172:  ldc.i4.s   80
+    IL_2174:  bne.un     IL_386b
+    IL_2179:  ldarg.0
+    IL_217a:  ldc.i4.s   12
+    IL_217c:  call       ""char string.this[int].get""
+    IL_2181:  ldc.i4.s   82
+    IL_2183:  bne.un     IL_386b
+    IL_2188:  ldarg.0
+    IL_2189:  ldc.i4.s   13
+    IL_218b:  call       ""char string.this[int].get""
+    IL_2190:  ldc.i4.s   76
+    IL_2192:  bne.un     IL_386b
+    IL_2197:  ldarg.0
+    IL_2198:  ldc.i4.s   14
+    IL_219a:  call       ""char string.this[int].get""
+    IL_219f:  ldc.i4.s   66
+    IL_21a1:  bne.un     IL_386b
+    IL_21a6:  ldarg.0
+    IL_21a7:  ldc.i4.s   15
+    IL_21a9:  call       ""char string.this[int].get""
+    IL_21ae:  ldc.i4.s   108
+    IL_21b0:  bne.un     IL_386b
+    IL_21b5:  ldarg.0
+    IL_21b6:  ldc.i4.s   16
+    IL_21b8:  call       ""char string.this[int].get""
+    IL_21bd:  ldc.i4.s   64
+    IL_21bf:  bne.un     IL_386b
+    IL_21c4:  ldarg.0
+    IL_21c5:  ldc.i4.s   17
+    IL_21c7:  call       ""char string.this[int].get""
+    IL_21cc:  ldc.i4.s   96
+    IL_21ce:  bne.un     IL_386b
+    IL_21d3:  ldarg.0
+    IL_21d4:  ldc.i4.s   18
+    IL_21d6:  call       ""char string.this[int].get""
+    IL_21db:  ldc.i4.s   93
+    IL_21dd:  bne.un     IL_386b
+    IL_21e2:  ldarg.0
+    IL_21e3:  ldc.i4.s   19
+    IL_21e5:  call       ""char string.this[int].get""
+    IL_21ea:  ldc.i4.s   79
+    IL_21ec:  bne.un     IL_386b
+    IL_21f1:  ldarg.0
+    IL_21f2:  ldc.i4.s   20
+    IL_21f4:  call       ""char string.this[int].get""
+    IL_21f9:  ldc.i4.s   97
+    IL_21fb:  bne.un     IL_386b
+    IL_2200:  ldarg.0
+    IL_2201:  ldc.i4.s   21
+    IL_2203:  call       ""char string.this[int].get""
+    IL_2208:  ldc.i4.s   111
+    IL_220a:  bne.un     IL_386b
+    IL_220f:  ldarg.0
+    IL_2210:  ldc.i4.s   22
+    IL_2212:  call       ""char string.this[int].get""
+    IL_2217:  ldc.i4.s   89
+    IL_2219:  bne.un     IL_386b
+    IL_221e:  ldarg.0
+    IL_221f:  ldc.i4.s   23
+    IL_2221:  call       ""char string.this[int].get""
+    IL_2226:  ldc.i4.s   93
+    IL_2228:  bne.un     IL_386b
+    IL_222d:  ldarg.0
+    IL_222e:  ldc.i4.s   24
+    IL_2230:  call       ""char string.this[int].get""
+    IL_2235:  ldc.i4.s   49
+    IL_2237:  bne.un     IL_386b
+    IL_223c:  ldarg.0
+    IL_223d:  ldc.i4.s   25
+    IL_223f:  call       ""char string.this[int].get""
+    IL_2244:  ldc.i4.s   60
+    IL_2246:  bne.un     IL_386b
+    IL_224b:  ldarg.0
+    IL_224c:  ldc.i4.s   26
+    IL_224e:  call       ""char string.this[int].get""
+    IL_2253:  ldc.i4.s   104
+    IL_2255:  bne.un     IL_386b
+    IL_225a:  ldarg.0
+    IL_225b:  ldc.i4.s   27
+    IL_225d:  call       ""char string.this[int].get""
+    IL_2262:  ldc.i4.s   51
+    IL_2264:  bne.un     IL_386b
+    IL_2269:  ldarg.0
+    IL_226a:  ldc.i4.s   28
+    IL_226c:  call       ""char string.this[int].get""
+    IL_2271:  ldc.i4.s   111
+    IL_2273:  bne.un     IL_386b
+    IL_2278:  ldarg.0
+    IL_2279:  ldc.i4.s   29
+    IL_227b:  call       ""char string.this[int].get""
+    IL_2280:  ldc.i4.s   110
+    IL_2282:  bne.un     IL_386b
+    IL_2287:  ldarg.0
+    IL_2288:  ldc.i4.s   30
+    IL_228a:  call       ""char string.this[int].get""
+    IL_228f:  ldc.i4.s   91
+    IL_2291:  bne.un     IL_386b
+    IL_2296:  ldarg.0
+    IL_2297:  ldc.i4.s   31
+    IL_2299:  call       ""char string.this[int].get""
+    IL_229e:  ldc.i4.s   53
+    IL_22a0:  bne.un     IL_386b
+    IL_22a5:  ldarg.0
+    IL_22a6:  ldc.i4.s   32
+    IL_22a8:  call       ""char string.this[int].get""
+    IL_22ad:  ldc.i4.s   61
+    IL_22af:  bne.un     IL_386b
+    IL_22b4:  ldarg.0
+    IL_22b5:  ldc.i4.s   33
+    IL_22b7:  call       ""char string.this[int].get""
+    IL_22bc:  ldc.i4.s   73
+    IL_22be:  bne.un     IL_386b
+    IL_22c3:  ldarg.0
+    IL_22c4:  ldc.i4.s   34
+    IL_22c6:  call       ""char string.this[int].get""
+    IL_22cb:  ldc.i4.s   51
+    IL_22cd:  bne.un     IL_386b
+    IL_22d2:  ldarg.0
+    IL_22d3:  ldc.i4.s   35
+    IL_22d5:  call       ""char string.this[int].get""
+    IL_22da:  ldc.i4.s   85
+    IL_22dc:  bne.un     IL_386b
+    IL_22e1:  ldarg.0
+    IL_22e2:  ldc.i4.s   36
+    IL_22e4:  call       ""char string.this[int].get""
+    IL_22e9:  ldc.i4.s   91
+    IL_22eb:  bne.un     IL_386b
+    IL_22f0:  ldarg.0
+    IL_22f1:  ldc.i4.s   37
+    IL_22f3:  call       ""char string.this[int].get""
+    IL_22f8:  ldc.i4.s   57
+    IL_22fa:  bne.un     IL_386b
+    IL_22ff:  ldarg.0
+    IL_2300:  ldc.i4.s   38
+    IL_2302:  call       ""char string.this[int].get""
+    IL_2307:  ldc.i4.s   82
+    IL_2309:  bne.un     IL_386b
+    IL_230e:  ldarg.0
+    IL_230f:  ldc.i4.s   39
+    IL_2311:  call       ""char string.this[int].get""
+    IL_2316:  ldc.i4.s   82
+    IL_2318:  bne.un     IL_386b
+    IL_231d:  br         IL_3815
+    IL_2322:  ldarg.0
+    IL_2323:  ldc.i4.1
+    IL_2324:  call       ""char string.this[int].get""
+    IL_2329:  ldc.i4.s   49
+    IL_232b:  bne.un     IL_386b
+    IL_2330:  ldarg.0
+    IL_2331:  ldc.i4.2
+    IL_2332:  call       ""char string.this[int].get""
+    IL_2337:  ldc.i4.s   62
+    IL_2339:  bne.un     IL_386b
+    IL_233e:  ldarg.0
+    IL_233f:  ldc.i4.3
+    IL_2340:  call       ""char string.this[int].get""
+    IL_2345:  ldc.i4.s   67
+    IL_2347:  bne.un     IL_386b
+    IL_234c:  ldarg.0
+    IL_234d:  ldc.i4.4
+    IL_234e:  call       ""char string.this[int].get""
+    IL_2353:  ldc.i4.s   78
+    IL_2355:  bne.un     IL_386b
+    IL_235a:  ldarg.0
+    IL_235b:  ldc.i4.5
+    IL_235c:  call       ""char string.this[int].get""
+    IL_2361:  ldc.i4.s   103
+    IL_2363:  bne.un     IL_386b
+    IL_2368:  ldarg.0
+    IL_2369:  ldc.i4.6
+    IL_236a:  call       ""char string.this[int].get""
+    IL_236f:  ldc.i4.s   49
+    IL_2371:  bne.un     IL_386b
+    IL_2376:  ldarg.0
+    IL_2377:  ldc.i4.7
+    IL_2378:  call       ""char string.this[int].get""
+    IL_237d:  ldc.i4.s   98
+    IL_237f:  bne.un     IL_386b
+    IL_2384:  ldarg.0
+    IL_2385:  ldc.i4.8
+    IL_2386:  call       ""char string.this[int].get""
+    IL_238b:  ldc.i4.s   90
+    IL_238d:  bne.un     IL_386b
+    IL_2392:  ldarg.0
+    IL_2393:  ldc.i4.s   9
+    IL_2395:  call       ""char string.this[int].get""
+    IL_239a:  ldc.i4.s   84
+    IL_239c:  bne.un     IL_386b
+    IL_23a1:  ldarg.0
+    IL_23a2:  ldc.i4.s   10
+    IL_23a4:  call       ""char string.this[int].get""
+    IL_23a9:  ldc.i4.s   89
+    IL_23ab:  bne.un     IL_386b
+    IL_23b0:  ldarg.0
+    IL_23b1:  ldc.i4.s   11
+    IL_23b3:  call       ""char string.this[int].get""
+    IL_23b8:  ldc.i4.s   69
+    IL_23ba:  bne.un     IL_386b
+    IL_23bf:  ldarg.0
+    IL_23c0:  ldc.i4.s   12
+    IL_23c2:  call       ""char string.this[int].get""
+    IL_23c7:  ldc.i4.s   54
+    IL_23c9:  bne.un     IL_386b
+    IL_23ce:  ldarg.0
+    IL_23cf:  ldc.i4.s   13
+    IL_23d1:  call       ""char string.this[int].get""
+    IL_23d6:  ldc.i4.s   52
+    IL_23d8:  bne.un     IL_386b
+    IL_23dd:  ldarg.0
+    IL_23de:  ldc.i4.s   14
+    IL_23e0:  call       ""char string.this[int].get""
+    IL_23e5:  ldc.i4.s   71
+    IL_23e7:  bne.un     IL_386b
+    IL_23ec:  ldarg.0
+    IL_23ed:  ldc.i4.s   15
+    IL_23ef:  call       ""char string.this[int].get""
+    IL_23f4:  ldc.i4.s   60
+    IL_23f6:  bne.un     IL_386b
+    IL_23fb:  ldarg.0
+    IL_23fc:  ldc.i4.s   16
+    IL_23fe:  call       ""char string.this[int].get""
+    IL_2403:  ldc.i4.s   65
+    IL_2405:  bne.un     IL_386b
+    IL_240a:  ldarg.0
+    IL_240b:  ldc.i4.s   17
+    IL_240d:  call       ""char string.this[int].get""
+    IL_2412:  ldc.i4.s   100
+    IL_2414:  bne.un     IL_386b
+    IL_2419:  ldarg.0
+    IL_241a:  ldc.i4.s   18
+    IL_241c:  call       ""char string.this[int].get""
+    IL_2421:  ldc.i4.s   110
+    IL_2423:  bne.un     IL_386b
+    IL_2428:  ldarg.0
+    IL_2429:  ldc.i4.s   19
+    IL_242b:  call       ""char string.this[int].get""
+    IL_2430:  ldc.i4.s   59
+    IL_2432:  bne.un     IL_386b
+    IL_2437:  ldarg.0
+    IL_2438:  ldc.i4.s   20
+    IL_243a:  call       ""char string.this[int].get""
+    IL_243f:  ldc.i4.s   97
+    IL_2441:  bne.un     IL_386b
+    IL_2446:  ldarg.0
+    IL_2447:  ldc.i4.s   21
+    IL_2449:  call       ""char string.this[int].get""
+    IL_244e:  ldc.i4.s   69
+    IL_2450:  bne.un     IL_386b
+    IL_2455:  ldarg.0
+    IL_2456:  ldc.i4.s   22
+    IL_2458:  call       ""char string.this[int].get""
+    IL_245d:  ldc.i4.s   57
+    IL_245f:  bne.un     IL_386b
+    IL_2464:  ldarg.0
+    IL_2465:  ldc.i4.s   23
+    IL_2467:  call       ""char string.this[int].get""
+    IL_246c:  ldc.i4.s   53
+    IL_246e:  bne.un     IL_386b
+    IL_2473:  ldarg.0
+    IL_2474:  ldc.i4.s   24
+    IL_2476:  call       ""char string.this[int].get""
+    IL_247b:  ldc.i4.s   55
+    IL_247d:  bne.un     IL_386b
+    IL_2482:  ldarg.0
+    IL_2483:  ldc.i4.s   25
+    IL_2485:  call       ""char string.this[int].get""
+    IL_248a:  ldc.i4.s   101
+    IL_248c:  bne.un     IL_386b
+    IL_2491:  ldarg.0
+    IL_2492:  ldc.i4.s   26
+    IL_2494:  call       ""char string.this[int].get""
+    IL_2499:  ldc.i4.s   87
+    IL_249b:  bne.un     IL_386b
+    IL_24a0:  ldarg.0
+    IL_24a1:  ldc.i4.s   27
+    IL_24a3:  call       ""char string.this[int].get""
+    IL_24a8:  ldc.i4.s   106
+    IL_24aa:  bne.un     IL_386b
+    IL_24af:  ldarg.0
+    IL_24b0:  ldc.i4.s   28
+    IL_24b2:  call       ""char string.this[int].get""
+    IL_24b7:  ldc.i4.s   69
+    IL_24b9:  bne.un     IL_386b
+    IL_24be:  ldarg.0
+    IL_24bf:  ldc.i4.s   29
+    IL_24c1:  call       ""char string.this[int].get""
+    IL_24c6:  ldc.i4.s   99
+    IL_24c8:  bne.un     IL_386b
+    IL_24cd:  ldarg.0
+    IL_24ce:  ldc.i4.s   30
+    IL_24d0:  call       ""char string.this[int].get""
+    IL_24d5:  ldc.i4.s   97
+    IL_24d7:  bne.un     IL_386b
+    IL_24dc:  ldarg.0
+    IL_24dd:  ldc.i4.s   31
+    IL_24df:  call       ""char string.this[int].get""
+    IL_24e4:  ldc.i4.s   88
+    IL_24e6:  bne.un     IL_386b
+    IL_24eb:  ldarg.0
+    IL_24ec:  ldc.i4.s   32
+    IL_24ee:  call       ""char string.this[int].get""
+    IL_24f3:  ldc.i4.s   90
+    IL_24f5:  bne.un     IL_386b
+    IL_24fa:  ldarg.0
+    IL_24fb:  ldc.i4.s   33
+    IL_24fd:  call       ""char string.this[int].get""
+    IL_2502:  ldc.i4.s   85
+    IL_2504:  bne.un     IL_386b
+    IL_2509:  ldarg.0
+    IL_250a:  ldc.i4.s   34
+    IL_250c:  call       ""char string.this[int].get""
+    IL_2511:  ldc.i4.s   102
+    IL_2513:  bne.un     IL_386b
+    IL_2518:  ldarg.0
+    IL_2519:  ldc.i4.s   35
+    IL_251b:  call       ""char string.this[int].get""
+    IL_2520:  ldc.i4.s   60
+    IL_2522:  bne.un     IL_386b
+    IL_2527:  ldarg.0
+    IL_2528:  ldc.i4.s   36
+    IL_252a:  call       ""char string.this[int].get""
+    IL_252f:  ldc.i4.s   84
+    IL_2531:  bne.un     IL_386b
+    IL_2536:  ldarg.0
+    IL_2537:  ldc.i4.s   37
+    IL_2539:  call       ""char string.this[int].get""
+    IL_253e:  ldc.i4.s   108
+    IL_2540:  bne.un     IL_386b
+    IL_2545:  ldarg.0
+    IL_2546:  ldc.i4.s   38
+    IL_2548:  call       ""char string.this[int].get""
+    IL_254d:  ldc.i4.s   71
+    IL_254f:  bne.un     IL_386b
+    IL_2554:  ldarg.0
+    IL_2555:  ldc.i4.s   39
+    IL_2557:  call       ""char string.this[int].get""
+    IL_255c:  ldc.i4.s   106
+    IL_255e:  bne.un     IL_386b
+    IL_2563:  br         IL_381d
+    IL_2568:  ldarg.0
+    IL_2569:  ldc.i4.1
+    IL_256a:  call       ""char string.this[int].get""
+    IL_256f:  ldc.i4.s   75
+    IL_2571:  bne.un     IL_386b
+    IL_2576:  ldarg.0
+    IL_2577:  ldc.i4.2
+    IL_2578:  call       ""char string.this[int].get""
+    IL_257d:  ldc.i4.s   96
+    IL_257f:  bne.un     IL_386b
+    IL_2584:  ldarg.0
+    IL_2585:  ldc.i4.3
+    IL_2586:  call       ""char string.this[int].get""
+    IL_258b:  ldc.i4.s   49
+    IL_258d:  bne.un     IL_386b
+    IL_2592:  ldarg.0
+    IL_2593:  ldc.i4.4
+    IL_2594:  call       ""char string.this[int].get""
+    IL_2599:  ldc.i4.s   84
+    IL_259b:  bne.un     IL_386b
+    IL_25a0:  ldarg.0
+    IL_25a1:  ldc.i4.5
+    IL_25a2:  call       ""char string.this[int].get""
+    IL_25a7:  ldc.i4.s   55
+    IL_25a9:  bne.un     IL_386b
+    IL_25ae:  ldarg.0
+    IL_25af:  ldc.i4.6
+    IL_25b0:  call       ""char string.this[int].get""
+    IL_25b5:  ldc.i4.s   93
+    IL_25b7:  bne.un     IL_386b
+    IL_25bc:  ldarg.0
+    IL_25bd:  ldc.i4.7
+    IL_25be:  call       ""char string.this[int].get""
+    IL_25c3:  ldc.i4.s   82
+    IL_25c5:  bne.un     IL_386b
+    IL_25ca:  ldarg.0
+    IL_25cb:  ldc.i4.8
+    IL_25cc:  call       ""char string.this[int].get""
+    IL_25d1:  ldc.i4.s   90
+    IL_25d3:  bne.un     IL_386b
+    IL_25d8:  ldarg.0
+    IL_25d9:  ldc.i4.s   9
+    IL_25db:  call       ""char string.this[int].get""
+    IL_25e0:  ldc.i4.s   90
+    IL_25e2:  bne.un     IL_386b
+    IL_25e7:  ldarg.0
+    IL_25e8:  ldc.i4.s   10
+    IL_25ea:  call       ""char string.this[int].get""
+    IL_25ef:  ldc.i4.s   82
+    IL_25f1:  bne.un     IL_386b
+    IL_25f6:  ldarg.0
+    IL_25f7:  ldc.i4.s   11
+    IL_25f9:  call       ""char string.this[int].get""
+    IL_25fe:  ldc.i4.s   93
+    IL_2600:  bne.un     IL_386b
+    IL_2605:  ldarg.0
+    IL_2606:  ldc.i4.s   12
+    IL_2608:  call       ""char string.this[int].get""
+    IL_260d:  ldc.i4.s   108
+    IL_260f:  bne.un     IL_386b
+    IL_2614:  ldarg.0
+    IL_2615:  ldc.i4.s   13
+    IL_2617:  call       ""char string.this[int].get""
+    IL_261c:  ldc.i4.s   107
+    IL_261e:  bne.un     IL_386b
+    IL_2623:  ldarg.0
+    IL_2624:  ldc.i4.s   14
+    IL_2626:  call       ""char string.this[int].get""
+    IL_262b:  ldc.i4.s   90
+    IL_262d:  bne.un     IL_386b
+    IL_2632:  ldarg.0
+    IL_2633:  ldc.i4.s   15
+    IL_2635:  call       ""char string.this[int].get""
+    IL_263a:  ldc.i4.s   96
+    IL_263c:  bne.un     IL_386b
+    IL_2641:  ldarg.0
+    IL_2642:  ldc.i4.s   16
+    IL_2644:  call       ""char string.this[int].get""
+    IL_2649:  ldc.i4.s   110
+    IL_264b:  bne.un     IL_386b
+    IL_2650:  ldarg.0
+    IL_2651:  ldc.i4.s   17
+    IL_2653:  call       ""char string.this[int].get""
+    IL_2658:  ldc.i4.s   70
+    IL_265a:  bne.un     IL_386b
+    IL_265f:  ldarg.0
+    IL_2660:  ldc.i4.s   18
+    IL_2662:  call       ""char string.this[int].get""
+    IL_2667:  ldc.i4.s   99
+    IL_2669:  bne.un     IL_386b
+    IL_266e:  ldarg.0
+    IL_266f:  ldc.i4.s   19
+    IL_2671:  call       ""char string.this[int].get""
+    IL_2676:  ldc.i4.s   109
+    IL_2678:  bne.un     IL_386b
+    IL_267d:  ldarg.0
+    IL_267e:  ldc.i4.s   20
+    IL_2680:  call       ""char string.this[int].get""
+    IL_2685:  ldc.i4.s   93
+    IL_2687:  bne.un     IL_386b
+    IL_268c:  ldarg.0
+    IL_268d:  ldc.i4.s   21
+    IL_268f:  call       ""char string.this[int].get""
+    IL_2694:  ldc.i4.s   107
+    IL_2696:  bne.un     IL_386b
+    IL_269b:  ldarg.0
+    IL_269c:  ldc.i4.s   22
+    IL_269e:  call       ""char string.this[int].get""
+    IL_26a3:  ldc.i4.s   48
+    IL_26a5:  bne.un     IL_386b
+    IL_26aa:  ldarg.0
+    IL_26ab:  ldc.i4.s   23
+    IL_26ad:  call       ""char string.this[int].get""
+    IL_26b2:  ldc.i4.s   82
+    IL_26b4:  bne.un     IL_386b
+    IL_26b9:  ldarg.0
+    IL_26ba:  ldc.i4.s   24
+    IL_26bc:  call       ""char string.this[int].get""
+    IL_26c1:  ldc.i4.s   74
+    IL_26c3:  bne.un     IL_386b
+    IL_26c8:  ldarg.0
+    IL_26c9:  ldc.i4.s   25
+    IL_26cb:  call       ""char string.this[int].get""
+    IL_26d0:  ldc.i4.s   108
+    IL_26d2:  bne.un     IL_386b
+    IL_26d7:  ldarg.0
+    IL_26d8:  ldc.i4.s   26
+    IL_26da:  call       ""char string.this[int].get""
+    IL_26df:  ldc.i4.s   99
+    IL_26e1:  bne.un     IL_386b
+    IL_26e6:  ldarg.0
+    IL_26e7:  ldc.i4.s   27
+    IL_26e9:  call       ""char string.this[int].get""
+    IL_26ee:  ldc.i4.s   70
+    IL_26f0:  bne.un     IL_386b
+    IL_26f5:  ldarg.0
+    IL_26f6:  ldc.i4.s   28
+    IL_26f8:  call       ""char string.this[int].get""
+    IL_26fd:  ldc.i4.s   62
+    IL_26ff:  bne.un     IL_386b
+    IL_2704:  ldarg.0
+    IL_2705:  ldc.i4.s   29
+    IL_2707:  call       ""char string.this[int].get""
+    IL_270c:  ldc.i4.s   101
+    IL_270e:  bne.un     IL_386b
+    IL_2713:  ldarg.0
+    IL_2714:  ldc.i4.s   30
+    IL_2716:  call       ""char string.this[int].get""
+    IL_271b:  ldc.i4.s   78
+    IL_271d:  bne.un     IL_386b
+    IL_2722:  ldarg.0
+    IL_2723:  ldc.i4.s   31
+    IL_2725:  call       ""char string.this[int].get""
+    IL_272a:  ldc.i4.s   53
+    IL_272c:  bne.un     IL_386b
+    IL_2731:  ldarg.0
+    IL_2732:  ldc.i4.s   32
+    IL_2734:  call       ""char string.this[int].get""
+    IL_2739:  ldc.i4.s   61
+    IL_273b:  bne.un     IL_386b
+    IL_2740:  ldarg.0
+    IL_2741:  ldc.i4.s   33
+    IL_2743:  call       ""char string.this[int].get""
+    IL_2748:  ldc.i4.s   106
+    IL_274a:  bne.un     IL_386b
+    IL_274f:  ldarg.0
+    IL_2750:  ldc.i4.s   34
+    IL_2752:  call       ""char string.this[int].get""
+    IL_2757:  ldc.i4.s   69
+    IL_2759:  bne.un     IL_386b
+    IL_275e:  ldarg.0
+    IL_275f:  ldc.i4.s   35
+    IL_2761:  call       ""char string.this[int].get""
+    IL_2766:  ldc.i4.s   105
+    IL_2768:  bne.un     IL_386b
+    IL_276d:  ldarg.0
+    IL_276e:  ldc.i4.s   36
+    IL_2770:  call       ""char string.this[int].get""
+    IL_2775:  ldc.i4.s   61
+    IL_2777:  bne.un     IL_386b
+    IL_277c:  ldarg.0
+    IL_277d:  ldc.i4.s   37
+    IL_277f:  call       ""char string.this[int].get""
+    IL_2784:  ldc.i4.s   65
+    IL_2786:  bne.un     IL_386b
+    IL_278b:  ldarg.0
+    IL_278c:  ldc.i4.s   38
+    IL_278e:  call       ""char string.this[int].get""
+    IL_2793:  ldc.i4.s   94
+    IL_2795:  bne.un     IL_386b
+    IL_279a:  ldarg.0
+    IL_279b:  ldc.i4.s   39
+    IL_279d:  call       ""char string.this[int].get""
+    IL_27a2:  ldc.i4.s   107
+    IL_27a4:  bne.un     IL_386b
+    IL_27a9:  br         IL_3825
+    IL_27ae:  ldarg.0
+    IL_27af:  ldc.i4.1
+    IL_27b0:  call       ""char string.this[int].get""
+    IL_27b5:  ldc.i4.s   64
+    IL_27b7:  bne.un     IL_386b
+    IL_27bc:  ldarg.0
+    IL_27bd:  ldc.i4.2
+    IL_27be:  call       ""char string.this[int].get""
+    IL_27c3:  ldc.i4.s   85
+    IL_27c5:  bne.un     IL_386b
+    IL_27ca:  ldarg.0
+    IL_27cb:  ldc.i4.3
+    IL_27cc:  call       ""char string.this[int].get""
+    IL_27d1:  ldc.i4.s   61
+    IL_27d3:  bne.un     IL_386b
+    IL_27d8:  ldarg.0
+    IL_27d9:  ldc.i4.4
+    IL_27da:  call       ""char string.this[int].get""
+    IL_27df:  ldc.i4.s   77
+    IL_27e1:  bne.un     IL_386b
+    IL_27e6:  ldarg.0
+    IL_27e7:  ldc.i4.5
+    IL_27e8:  call       ""char string.this[int].get""
+    IL_27ed:  ldc.i4.s   107
+    IL_27ef:  bne.un     IL_386b
+    IL_27f4:  ldarg.0
+    IL_27f5:  ldc.i4.6
+    IL_27f6:  call       ""char string.this[int].get""
+    IL_27fb:  ldc.i4.s   83
+    IL_27fd:  bne.un     IL_386b
+    IL_2802:  ldarg.0
+    IL_2803:  ldc.i4.7
+    IL_2804:  call       ""char string.this[int].get""
+    IL_2809:  ldc.i4.s   102
+    IL_280b:  bne.un     IL_386b
+    IL_2810:  ldarg.0
+    IL_2811:  ldc.i4.8
+    IL_2812:  call       ""char string.this[int].get""
+    IL_2817:  ldc.i4.s   51
+    IL_2819:  bne.un     IL_386b
+    IL_281e:  ldarg.0
+    IL_281f:  ldc.i4.s   9
+    IL_2821:  call       ""char string.this[int].get""
+    IL_2826:  ldc.i4.s   110
+    IL_2828:  bne.un     IL_386b
+    IL_282d:  ldarg.0
+    IL_282e:  ldc.i4.s   10
+    IL_2830:  call       ""char string.this[int].get""
+    IL_2835:  ldc.i4.s   105
+    IL_2837:  bne.un     IL_386b
+    IL_283c:  ldarg.0
+    IL_283d:  ldc.i4.s   11
+    IL_283f:  call       ""char string.this[int].get""
+    IL_2844:  ldc.i4.s   89
+    IL_2846:  bne.un     IL_386b
+    IL_284b:  ldarg.0
+    IL_284c:  ldc.i4.s   12
+    IL_284e:  call       ""char string.this[int].get""
+    IL_2853:  ldc.i4.s   70
+    IL_2855:  bne.un     IL_386b
+    IL_285a:  ldarg.0
+    IL_285b:  ldc.i4.s   13
+    IL_285d:  call       ""char string.this[int].get""
+    IL_2862:  ldc.i4.s   59
+    IL_2864:  bne.un     IL_386b
+    IL_2869:  ldarg.0
+    IL_286a:  ldc.i4.s   14
+    IL_286c:  call       ""char string.this[int].get""
+    IL_2871:  ldc.i4.s   56
+    IL_2873:  bne.un     IL_386b
+    IL_2878:  ldarg.0
+    IL_2879:  ldc.i4.s   15
+    IL_287b:  call       ""char string.this[int].get""
+    IL_2880:  ldc.i4.s   97
+    IL_2882:  bne.un     IL_386b
+    IL_2887:  ldarg.0
+    IL_2888:  ldc.i4.s   16
+    IL_288a:  call       ""char string.this[int].get""
+    IL_288f:  ldc.i4.s   67
+    IL_2891:  bne.un     IL_386b
+    IL_2896:  ldarg.0
+    IL_2897:  ldc.i4.s   17
+    IL_2899:  call       ""char string.this[int].get""
+    IL_289e:  ldc.i4.s   48
+    IL_28a0:  bne.un     IL_386b
+    IL_28a5:  ldarg.0
+    IL_28a6:  ldc.i4.s   18
+    IL_28a8:  call       ""char string.this[int].get""
+    IL_28ad:  ldc.i4.s   85
+    IL_28af:  bne.un     IL_386b
+    IL_28b4:  ldarg.0
+    IL_28b5:  ldc.i4.s   19
+    IL_28b7:  call       ""char string.this[int].get""
+    IL_28bc:  ldc.i4.s   93
+    IL_28be:  bne.un     IL_386b
+    IL_28c3:  ldarg.0
+    IL_28c4:  ldc.i4.s   20
+    IL_28c6:  call       ""char string.this[int].get""
+    IL_28cb:  ldc.i4.s   73
+    IL_28cd:  bne.un     IL_386b
+    IL_28d2:  ldarg.0
+    IL_28d3:  ldc.i4.s   21
+    IL_28d5:  call       ""char string.this[int].get""
+    IL_28da:  ldc.i4.s   88
+    IL_28dc:  bne.un     IL_386b
+    IL_28e1:  ldarg.0
+    IL_28e2:  ldc.i4.s   22
+    IL_28e4:  call       ""char string.this[int].get""
+    IL_28e9:  ldc.i4.s   61
+    IL_28eb:  bne.un     IL_386b
+    IL_28f0:  ldarg.0
+    IL_28f1:  ldc.i4.s   23
+    IL_28f3:  call       ""char string.this[int].get""
+    IL_28f8:  ldc.i4.s   88
+    IL_28fa:  bne.un     IL_386b
+    IL_28ff:  ldarg.0
+    IL_2900:  ldc.i4.s   24
+    IL_2902:  call       ""char string.this[int].get""
+    IL_2907:  ldc.i4.s   91
+    IL_2909:  bne.un     IL_386b
+    IL_290e:  ldarg.0
+    IL_290f:  ldc.i4.s   25
+    IL_2911:  call       ""char string.this[int].get""
+    IL_2916:  ldc.i4.s   89
+    IL_2918:  bne.un     IL_386b
+    IL_291d:  ldarg.0
+    IL_291e:  ldc.i4.s   26
+    IL_2920:  call       ""char string.this[int].get""
+    IL_2925:  ldc.i4.s   93
+    IL_2927:  bne.un     IL_386b
+    IL_292c:  ldarg.0
+    IL_292d:  ldc.i4.s   27
+    IL_292f:  call       ""char string.this[int].get""
+    IL_2934:  ldc.i4.s   75
+    IL_2936:  bne.un     IL_386b
+    IL_293b:  ldarg.0
+    IL_293c:  ldc.i4.s   28
+    IL_293e:  call       ""char string.this[int].get""
+    IL_2943:  ldc.i4.s   106
+    IL_2945:  bne.un     IL_386b
+    IL_294a:  ldarg.0
+    IL_294b:  ldc.i4.s   29
+    IL_294d:  call       ""char string.this[int].get""
+    IL_2952:  ldc.i4.s   109
+    IL_2954:  bne.un     IL_386b
+    IL_2959:  ldarg.0
+    IL_295a:  ldc.i4.s   30
+    IL_295c:  call       ""char string.this[int].get""
+    IL_2961:  ldc.i4.s   106
+    IL_2963:  bne.un     IL_386b
+    IL_2968:  ldarg.0
+    IL_2969:  ldc.i4.s   31
+    IL_296b:  call       ""char string.this[int].get""
+    IL_2970:  ldc.i4.s   60
+    IL_2972:  bne.un     IL_386b
+    IL_2977:  ldarg.0
+    IL_2978:  ldc.i4.s   32
+    IL_297a:  call       ""char string.this[int].get""
+    IL_297f:  ldc.i4.s   52
+    IL_2981:  bne.un     IL_386b
+    IL_2986:  ldarg.0
+    IL_2987:  ldc.i4.s   33
+    IL_2989:  call       ""char string.this[int].get""
+    IL_298e:  ldc.i4.s   67
+    IL_2990:  bne.un     IL_386b
+    IL_2995:  ldarg.0
+    IL_2996:  ldc.i4.s   34
+    IL_2998:  call       ""char string.this[int].get""
+    IL_299d:  ldc.i4.s   82
+    IL_299f:  bne.un     IL_386b
+    IL_29a4:  ldarg.0
+    IL_29a5:  ldc.i4.s   35
+    IL_29a7:  call       ""char string.this[int].get""
+    IL_29ac:  ldc.i4.s   53
+    IL_29ae:  bne.un     IL_386b
+    IL_29b3:  ldarg.0
+    IL_29b4:  ldc.i4.s   36
+    IL_29b6:  call       ""char string.this[int].get""
+    IL_29bb:  ldc.i4.s   58
+    IL_29bd:  bne.un     IL_386b
+    IL_29c2:  ldarg.0
+    IL_29c3:  ldc.i4.s   37
+    IL_29c5:  call       ""char string.this[int].get""
+    IL_29ca:  ldc.i4.s   52
+    IL_29cc:  bne.un     IL_386b
+    IL_29d1:  ldarg.0
+    IL_29d2:  ldc.i4.s   38
+    IL_29d4:  call       ""char string.this[int].get""
+    IL_29d9:  ldc.i4.s   82
+    IL_29db:  bne.un     IL_386b
+    IL_29e0:  ldarg.0
+    IL_29e1:  ldc.i4.s   39
+    IL_29e3:  call       ""char string.this[int].get""
+    IL_29e8:  ldc.i4.s   52
+    IL_29ea:  bne.un     IL_386b
+    IL_29ef:  br         IL_382d
+    IL_29f4:  ldarg.0
+    IL_29f5:  ldc.i4.1
+    IL_29f6:  call       ""char string.this[int].get""
+    IL_29fb:  ldc.i4.s   103
+    IL_29fd:  bne.un     IL_386b
+    IL_2a02:  ldarg.0
+    IL_2a03:  ldc.i4.2
+    IL_2a04:  call       ""char string.this[int].get""
+    IL_2a09:  ldc.i4.s   49
+    IL_2a0b:  bne.un     IL_386b
+    IL_2a10:  ldarg.0
+    IL_2a11:  ldc.i4.3
+    IL_2a12:  call       ""char string.this[int].get""
+    IL_2a17:  ldc.i4.s   74
+    IL_2a19:  bne.un     IL_386b
+    IL_2a1e:  ldarg.0
+    IL_2a1f:  ldc.i4.4
+    IL_2a20:  call       ""char string.this[int].get""
+    IL_2a25:  ldc.i4.s   89
+    IL_2a27:  bne.un     IL_386b
+    IL_2a2c:  ldarg.0
+    IL_2a2d:  ldc.i4.5
+    IL_2a2e:  call       ""char string.this[int].get""
+    IL_2a33:  ldc.i4.s   63
+    IL_2a35:  bne.un     IL_386b
+    IL_2a3a:  ldarg.0
+    IL_2a3b:  ldc.i4.6
+    IL_2a3c:  call       ""char string.this[int].get""
+    IL_2a41:  ldc.i4.s   86
+    IL_2a43:  bne.un     IL_386b
+    IL_2a48:  ldarg.0
+    IL_2a49:  ldc.i4.7
+    IL_2a4a:  call       ""char string.this[int].get""
+    IL_2a4f:  ldc.i4.s   82
+    IL_2a51:  bne.un     IL_386b
+    IL_2a56:  ldarg.0
+    IL_2a57:  ldc.i4.8
+    IL_2a58:  call       ""char string.this[int].get""
+    IL_2a5d:  ldc.i4.s   100
+    IL_2a5f:  bne.un     IL_386b
+    IL_2a64:  ldarg.0
+    IL_2a65:  ldc.i4.s   9
+    IL_2a67:  call       ""char string.this[int].get""
+    IL_2a6c:  ldc.i4.s   104
+    IL_2a6e:  bne.un     IL_386b
+    IL_2a73:  ldarg.0
+    IL_2a74:  ldc.i4.s   10
+    IL_2a76:  call       ""char string.this[int].get""
+    IL_2a7b:  ldc.i4.s   53
+    IL_2a7d:  bne.un     IL_386b
+    IL_2a82:  ldarg.0
+    IL_2a83:  ldc.i4.s   11
+    IL_2a85:  call       ""char string.this[int].get""
+    IL_2a8a:  ldc.i4.s   82
+    IL_2a8c:  bne.un     IL_386b
+    IL_2a91:  ldarg.0
+    IL_2a92:  ldc.i4.s   12
+    IL_2a94:  call       ""char string.this[int].get""
+    IL_2a99:  ldc.i4.s   89
+    IL_2a9b:  bne.un     IL_386b
+    IL_2aa0:  ldarg.0
+    IL_2aa1:  ldc.i4.s   13
+    IL_2aa3:  call       ""char string.this[int].get""
+    IL_2aa8:  ldc.i4.s   83
+    IL_2aaa:  bne.un     IL_386b
+    IL_2aaf:  ldarg.0
+    IL_2ab0:  ldc.i4.s   14
+    IL_2ab2:  call       ""char string.this[int].get""
+    IL_2ab7:  ldc.i4.s   91
+    IL_2ab9:  bne.un     IL_386b
+    IL_2abe:  ldarg.0
+    IL_2abf:  ldc.i4.s   15
+    IL_2ac1:  call       ""char string.this[int].get""
+    IL_2ac6:  ldc.i4.s   90
+    IL_2ac8:  bne.un     IL_386b
+    IL_2acd:  ldarg.0
+    IL_2ace:  ldc.i4.s   16
+    IL_2ad0:  call       ""char string.this[int].get""
+    IL_2ad5:  ldc.i4.s   59
+    IL_2ad7:  bne.un     IL_386b
+    IL_2adc:  ldarg.0
+    IL_2add:  ldc.i4.s   17
+    IL_2adf:  call       ""char string.this[int].get""
+    IL_2ae4:  ldc.i4.s   69
+    IL_2ae6:  bne.un     IL_386b
+    IL_2aeb:  ldarg.0
+    IL_2aec:  ldc.i4.s   18
+    IL_2aee:  call       ""char string.this[int].get""
+    IL_2af3:  ldc.i4.s   108
+    IL_2af5:  bne.un     IL_386b
+    IL_2afa:  ldarg.0
+    IL_2afb:  ldc.i4.s   19
+    IL_2afd:  call       ""char string.this[int].get""
+    IL_2b02:  ldc.i4.s   83
+    IL_2b04:  bne.un     IL_386b
+    IL_2b09:  ldarg.0
+    IL_2b0a:  ldc.i4.s   20
+    IL_2b0c:  call       ""char string.this[int].get""
+    IL_2b11:  ldc.i4.s   61
+    IL_2b13:  bne.un     IL_386b
+    IL_2b18:  ldarg.0
+    IL_2b19:  ldc.i4.s   21
+    IL_2b1b:  call       ""char string.this[int].get""
+    IL_2b20:  ldc.i4.s   53
+    IL_2b22:  bne.un     IL_386b
+    IL_2b27:  ldarg.0
+    IL_2b28:  ldc.i4.s   22
+    IL_2b2a:  call       ""char string.this[int].get""
+    IL_2b2f:  ldc.i4.s   73
+    IL_2b31:  bne.un     IL_386b
+    IL_2b36:  ldarg.0
+    IL_2b37:  ldc.i4.s   23
+    IL_2b39:  call       ""char string.this[int].get""
+    IL_2b3e:  ldc.i4.s   96
+    IL_2b40:  bne.un     IL_386b
+    IL_2b45:  ldarg.0
+    IL_2b46:  ldc.i4.s   24
+    IL_2b48:  call       ""char string.this[int].get""
+    IL_2b4d:  ldc.i4.s   55
+    IL_2b4f:  bne.un     IL_386b
+    IL_2b54:  ldarg.0
+    IL_2b55:  ldc.i4.s   25
+    IL_2b57:  call       ""char string.this[int].get""
+    IL_2b5c:  ldc.i4.s   63
+    IL_2b5e:  bne.un     IL_386b
+    IL_2b63:  ldarg.0
+    IL_2b64:  ldc.i4.s   26
+    IL_2b66:  call       ""char string.this[int].get""
+    IL_2b6b:  ldc.i4.s   62
+    IL_2b6d:  bne.un     IL_386b
+    IL_2b72:  ldarg.0
+    IL_2b73:  ldc.i4.s   27
+    IL_2b75:  call       ""char string.this[int].get""
+    IL_2b7a:  ldc.i4.s   79
+    IL_2b7c:  bne.un     IL_386b
+    IL_2b81:  ldarg.0
+    IL_2b82:  ldc.i4.s   28
+    IL_2b84:  call       ""char string.this[int].get""
+    IL_2b89:  ldc.i4.s   75
+    IL_2b8b:  bne.un     IL_386b
+    IL_2b90:  ldarg.0
+    IL_2b91:  ldc.i4.s   29
+    IL_2b93:  call       ""char string.this[int].get""
+    IL_2b98:  ldc.i4.s   108
+    IL_2b9a:  bne.un     IL_386b
+    IL_2b9f:  ldarg.0
+    IL_2ba0:  ldc.i4.s   30
+    IL_2ba2:  call       ""char string.this[int].get""
+    IL_2ba7:  ldc.i4.s   68
+    IL_2ba9:  bne.un     IL_386b
+    IL_2bae:  ldarg.0
+    IL_2baf:  ldc.i4.s   31
+    IL_2bb1:  call       ""char string.this[int].get""
+    IL_2bb6:  ldc.i4.s   51
+    IL_2bb8:  bne.un     IL_386b
+    IL_2bbd:  ldarg.0
+    IL_2bbe:  ldc.i4.s   32
+    IL_2bc0:  call       ""char string.this[int].get""
+    IL_2bc5:  ldc.i4.s   109
+    IL_2bc7:  bne.un     IL_386b
+    IL_2bcc:  ldarg.0
+    IL_2bcd:  ldc.i4.s   33
+    IL_2bcf:  call       ""char string.this[int].get""
+    IL_2bd4:  ldc.i4.s   70
+    IL_2bd6:  bne.un     IL_386b
+    IL_2bdb:  ldarg.0
+    IL_2bdc:  ldc.i4.s   34
+    IL_2bde:  call       ""char string.this[int].get""
+    IL_2be3:  ldc.i4.s   49
+    IL_2be5:  bne.un     IL_386b
+    IL_2bea:  ldarg.0
+    IL_2beb:  ldc.i4.s   35
+    IL_2bed:  call       ""char string.this[int].get""
+    IL_2bf2:  ldc.i4.s   59
+    IL_2bf4:  bne.un     IL_386b
+    IL_2bf9:  ldarg.0
+    IL_2bfa:  ldc.i4.s   36
+    IL_2bfc:  call       ""char string.this[int].get""
+    IL_2c01:  ldc.i4.s   93
+    IL_2c03:  bne.un     IL_386b
+    IL_2c08:  ldarg.0
+    IL_2c09:  ldc.i4.s   37
+    IL_2c0b:  call       ""char string.this[int].get""
+    IL_2c10:  ldc.i4.s   77
+    IL_2c12:  bne.un     IL_386b
+    IL_2c17:  ldarg.0
+    IL_2c18:  ldc.i4.s   38
+    IL_2c1a:  call       ""char string.this[int].get""
+    IL_2c1f:  ldc.i4.s   60
+    IL_2c21:  bne.un     IL_386b
+    IL_2c26:  ldarg.0
+    IL_2c27:  ldc.i4.s   39
+    IL_2c29:  call       ""char string.this[int].get""
+    IL_2c2e:  ldc.i4.s   79
+    IL_2c30:  bne.un     IL_386b
+    IL_2c35:  br         IL_3835
+    IL_2c3a:  ldarg.0
+    IL_2c3b:  ldc.i4.1
+    IL_2c3c:  call       ""char string.this[int].get""
+    IL_2c41:  ldc.i4.s   72
+    IL_2c43:  bne.un     IL_386b
+    IL_2c48:  ldarg.0
+    IL_2c49:  ldc.i4.2
+    IL_2c4a:  call       ""char string.this[int].get""
+    IL_2c4f:  ldc.i4.s   61
+    IL_2c51:  bne.un     IL_386b
+    IL_2c56:  ldarg.0
+    IL_2c57:  ldc.i4.3
+    IL_2c58:  call       ""char string.this[int].get""
+    IL_2c5d:  ldc.i4.s   110
+    IL_2c5f:  bne.un     IL_386b
+    IL_2c64:  ldarg.0
+    IL_2c65:  ldc.i4.4
+    IL_2c66:  call       ""char string.this[int].get""
+    IL_2c6b:  ldc.i4.s   111
+    IL_2c6d:  bne.un     IL_386b
+    IL_2c72:  ldarg.0
+    IL_2c73:  ldc.i4.5
+    IL_2c74:  call       ""char string.this[int].get""
+    IL_2c79:  ldc.i4.s   81
+    IL_2c7b:  bne.un     IL_386b
+    IL_2c80:  ldarg.0
+    IL_2c81:  ldc.i4.6
+    IL_2c82:  call       ""char string.this[int].get""
+    IL_2c87:  ldc.i4.s   54
+    IL_2c89:  bne.un     IL_386b
+    IL_2c8e:  ldarg.0
+    IL_2c8f:  ldc.i4.7
+    IL_2c90:  call       ""char string.this[int].get""
+    IL_2c95:  ldc.i4.s   93
+    IL_2c97:  bne.un     IL_386b
+    IL_2c9c:  ldarg.0
+    IL_2c9d:  ldc.i4.8
+    IL_2c9e:  call       ""char string.this[int].get""
+    IL_2ca3:  ldc.i4.s   93
+    IL_2ca5:  bne.un     IL_386b
+    IL_2caa:  ldarg.0
+    IL_2cab:  ldc.i4.s   9
+    IL_2cad:  call       ""char string.this[int].get""
+    IL_2cb2:  ldc.i4.s   64
+    IL_2cb4:  bne.un     IL_386b
+    IL_2cb9:  ldarg.0
+    IL_2cba:  ldc.i4.s   10
+    IL_2cbc:  call       ""char string.this[int].get""
+    IL_2cc1:  ldc.i4.s   86
+    IL_2cc3:  bne.un     IL_386b
+    IL_2cc8:  ldarg.0
+    IL_2cc9:  ldc.i4.s   11
+    IL_2ccb:  call       ""char string.this[int].get""
+    IL_2cd0:  ldc.i4.s   106
+    IL_2cd2:  bne.un     IL_386b
+    IL_2cd7:  ldarg.0
+    IL_2cd8:  ldc.i4.s   12
+    IL_2cda:  call       ""char string.this[int].get""
+    IL_2cdf:  ldc.i4.s   53
+    IL_2ce1:  bne.un     IL_386b
+    IL_2ce6:  ldarg.0
+    IL_2ce7:  ldc.i4.s   13
+    IL_2ce9:  call       ""char string.this[int].get""
+    IL_2cee:  ldc.i4.s   80
+    IL_2cf0:  bne.un     IL_386b
+    IL_2cf5:  ldarg.0
+    IL_2cf6:  ldc.i4.s   14
+    IL_2cf8:  call       ""char string.this[int].get""
+    IL_2cfd:  ldc.i4.s   68
+    IL_2cff:  bne.un     IL_386b
+    IL_2d04:  ldarg.0
+    IL_2d05:  ldc.i4.s   15
+    IL_2d07:  call       ""char string.this[int].get""
+    IL_2d0c:  ldc.i4.s   87
+    IL_2d0e:  bne.un     IL_386b
+    IL_2d13:  ldarg.0
+    IL_2d14:  ldc.i4.s   16
+    IL_2d16:  call       ""char string.this[int].get""
+    IL_2d1b:  ldc.i4.s   59
+    IL_2d1d:  bne.un     IL_386b
+    IL_2d22:  ldarg.0
+    IL_2d23:  ldc.i4.s   17
+    IL_2d25:  call       ""char string.this[int].get""
+    IL_2d2a:  ldc.i4.s   75
+    IL_2d2c:  bne.un     IL_386b
+    IL_2d31:  ldarg.0
+    IL_2d32:  ldc.i4.s   18
+    IL_2d34:  call       ""char string.this[int].get""
+    IL_2d39:  ldc.i4.s   70
+    IL_2d3b:  bne.un     IL_386b
+    IL_2d40:  ldarg.0
+    IL_2d41:  ldc.i4.s   19
+    IL_2d43:  call       ""char string.this[int].get""
+    IL_2d48:  ldc.i4.s   101
+    IL_2d4a:  bne.un     IL_386b
+    IL_2d4f:  ldarg.0
+    IL_2d50:  ldc.i4.s   20
+    IL_2d52:  call       ""char string.this[int].get""
+    IL_2d57:  ldc.i4.s   69
+    IL_2d59:  bne.un     IL_386b
+    IL_2d5e:  ldarg.0
+    IL_2d5f:  ldc.i4.s   21
+    IL_2d61:  call       ""char string.this[int].get""
+    IL_2d66:  ldc.i4.s   69
+    IL_2d68:  bne.un     IL_386b
+    IL_2d6d:  ldarg.0
+    IL_2d6e:  ldc.i4.s   22
+    IL_2d70:  call       ""char string.this[int].get""
+    IL_2d75:  ldc.i4.s   55
+    IL_2d77:  bne.un     IL_386b
+    IL_2d7c:  ldarg.0
+    IL_2d7d:  ldc.i4.s   23
+    IL_2d7f:  call       ""char string.this[int].get""
+    IL_2d84:  ldc.i4.s   106
+    IL_2d86:  bne.un     IL_386b
+    IL_2d8b:  ldarg.0
+    IL_2d8c:  ldc.i4.s   24
+    IL_2d8e:  call       ""char string.this[int].get""
+    IL_2d93:  ldc.i4.s   62
+    IL_2d95:  bne.un     IL_386b
+    IL_2d9a:  ldarg.0
+    IL_2d9b:  ldc.i4.s   25
+    IL_2d9d:  call       ""char string.this[int].get""
+    IL_2da2:  ldc.i4.s   73
+    IL_2da4:  bne.un     IL_386b
+    IL_2da9:  ldarg.0
+    IL_2daa:  ldc.i4.s   26
+    IL_2dac:  call       ""char string.this[int].get""
+    IL_2db1:  ldc.i4.s   60
+    IL_2db3:  bne.un     IL_386b
+    IL_2db8:  ldarg.0
+    IL_2db9:  ldc.i4.s   27
+    IL_2dbb:  call       ""char string.this[int].get""
+    IL_2dc0:  ldc.i4.s   81
+    IL_2dc2:  bne.un     IL_386b
+    IL_2dc7:  ldarg.0
+    IL_2dc8:  ldc.i4.s   28
+    IL_2dca:  call       ""char string.this[int].get""
+    IL_2dcf:  ldc.i4.s   62
+    IL_2dd1:  bne.un     IL_386b
+    IL_2dd6:  ldarg.0
+    IL_2dd7:  ldc.i4.s   29
+    IL_2dd9:  call       ""char string.this[int].get""
+    IL_2dde:  ldc.i4.s   52
+    IL_2de0:  bne.un     IL_386b
+    IL_2de5:  ldarg.0
+    IL_2de6:  ldc.i4.s   30
+    IL_2de8:  call       ""char string.this[int].get""
+    IL_2ded:  ldc.i4.s   50
+    IL_2def:  bne.un     IL_386b
+    IL_2df4:  ldarg.0
+    IL_2df5:  ldc.i4.s   31
+    IL_2df7:  call       ""char string.this[int].get""
+    IL_2dfc:  ldc.i4.s   52
+    IL_2dfe:  bne.un     IL_386b
+    IL_2e03:  ldarg.0
+    IL_2e04:  ldc.i4.s   32
+    IL_2e06:  call       ""char string.this[int].get""
+    IL_2e0b:  ldc.i4.s   51
+    IL_2e0d:  bne.un     IL_386b
+    IL_2e12:  ldarg.0
+    IL_2e13:  ldc.i4.s   33
+    IL_2e15:  call       ""char string.this[int].get""
+    IL_2e1a:  ldc.i4.s   87
+    IL_2e1c:  bne.un     IL_386b
+    IL_2e21:  ldarg.0
+    IL_2e22:  ldc.i4.s   34
+    IL_2e24:  call       ""char string.this[int].get""
+    IL_2e29:  ldc.i4.s   96
+    IL_2e2b:  bne.un     IL_386b
+    IL_2e30:  ldarg.0
+    IL_2e31:  ldc.i4.s   35
+    IL_2e33:  call       ""char string.this[int].get""
+    IL_2e38:  ldc.i4.s   65
+    IL_2e3a:  bne.un     IL_386b
+    IL_2e3f:  ldarg.0
+    IL_2e40:  ldc.i4.s   36
+    IL_2e42:  call       ""char string.this[int].get""
+    IL_2e47:  ldc.i4.s   71
+    IL_2e49:  bne.un     IL_386b
+    IL_2e4e:  ldarg.0
+    IL_2e4f:  ldc.i4.s   37
+    IL_2e51:  call       ""char string.this[int].get""
+    IL_2e56:  ldc.i4.s   72
+    IL_2e58:  bne.un     IL_386b
+    IL_2e5d:  ldarg.0
+    IL_2e5e:  ldc.i4.s   38
+    IL_2e60:  call       ""char string.this[int].get""
+    IL_2e65:  ldc.i4.s   65
+    IL_2e67:  bne.un     IL_386b
+    IL_2e6c:  ldarg.0
+    IL_2e6d:  ldc.i4.s   39
+    IL_2e6f:  call       ""char string.this[int].get""
+    IL_2e74:  ldc.i4.s   101
+    IL_2e76:  bne.un     IL_386b
+    IL_2e7b:  br         IL_383d
+    IL_2e80:  ldarg.0
+    IL_2e81:  ldc.i4.1
+    IL_2e82:  call       ""char string.this[int].get""
+    IL_2e87:  ldc.i4.s   107
+    IL_2e89:  bne.un     IL_386b
+    IL_2e8e:  ldarg.0
+    IL_2e8f:  ldc.i4.2
+    IL_2e90:  call       ""char string.this[int].get""
+    IL_2e95:  ldc.i4.s   51
+    IL_2e97:  bne.un     IL_386b
+    IL_2e9c:  ldarg.0
+    IL_2e9d:  ldc.i4.3
+    IL_2e9e:  call       ""char string.this[int].get""
+    IL_2ea3:  ldc.i4.s   65
+    IL_2ea5:  bne.un     IL_386b
+    IL_2eaa:  ldarg.0
+    IL_2eab:  ldc.i4.4
+    IL_2eac:  call       ""char string.this[int].get""
+    IL_2eb1:  ldc.i4.s   109
+    IL_2eb3:  bne.un     IL_386b
+    IL_2eb8:  ldarg.0
+    IL_2eb9:  ldc.i4.5
+    IL_2eba:  call       ""char string.this[int].get""
+    IL_2ebf:  ldc.i4.s   100
+    IL_2ec1:  bne.un     IL_386b
+    IL_2ec6:  ldarg.0
+    IL_2ec7:  ldc.i4.6
+    IL_2ec8:  call       ""char string.this[int].get""
+    IL_2ecd:  ldc.i4.s   51
+    IL_2ecf:  bne.un     IL_386b
+    IL_2ed4:  ldarg.0
+    IL_2ed5:  ldc.i4.7
+    IL_2ed6:  call       ""char string.this[int].get""
+    IL_2edb:  ldc.i4.s   97
+    IL_2edd:  bne.un     IL_386b
+    IL_2ee2:  ldarg.0
+    IL_2ee3:  ldc.i4.8
+    IL_2ee4:  call       ""char string.this[int].get""
+    IL_2ee9:  ldc.i4.s   70
+    IL_2eeb:  bne.un     IL_386b
+    IL_2ef0:  ldarg.0
+    IL_2ef1:  ldc.i4.s   9
+    IL_2ef3:  call       ""char string.this[int].get""
+    IL_2ef8:  ldc.i4.s   102
+    IL_2efa:  bne.un     IL_386b
+    IL_2eff:  ldarg.0
+    IL_2f00:  ldc.i4.s   10
+    IL_2f02:  call       ""char string.this[int].get""
+    IL_2f07:  ldc.i4.s   51
+    IL_2f09:  bne.un     IL_386b
+    IL_2f0e:  ldarg.0
+    IL_2f0f:  ldc.i4.s   11
+    IL_2f11:  call       ""char string.this[int].get""
+    IL_2f16:  ldc.i4.s   95
+    IL_2f18:  bne.un     IL_386b
+    IL_2f1d:  ldarg.0
+    IL_2f1e:  ldc.i4.s   12
+    IL_2f20:  call       ""char string.this[int].get""
+    IL_2f25:  ldc.i4.s   52
+    IL_2f27:  bne.un     IL_386b
+    IL_2f2c:  ldarg.0
+    IL_2f2d:  ldc.i4.s   13
+    IL_2f2f:  call       ""char string.this[int].get""
+    IL_2f34:  ldc.i4.s   83
+    IL_2f36:  bne.un     IL_386b
+    IL_2f3b:  ldarg.0
+    IL_2f3c:  ldc.i4.s   14
+    IL_2f3e:  call       ""char string.this[int].get""
+    IL_2f43:  ldc.i4.s   60
+    IL_2f45:  bne.un     IL_386b
+    IL_2f4a:  ldarg.0
+    IL_2f4b:  ldc.i4.s   15
+    IL_2f4d:  call       ""char string.this[int].get""
+    IL_2f52:  ldc.i4.s   98
+    IL_2f54:  bne.un     IL_386b
+    IL_2f59:  ldarg.0
+    IL_2f5a:  ldc.i4.s   16
+    IL_2f5c:  call       ""char string.this[int].get""
+    IL_2f61:  ldc.i4.s   74
+    IL_2f63:  bne.un     IL_386b
+    IL_2f68:  ldarg.0
+    IL_2f69:  ldc.i4.s   17
+    IL_2f6b:  call       ""char string.this[int].get""
+    IL_2f70:  ldc.i4.s   57
+    IL_2f72:  bne.un     IL_386b
+    IL_2f77:  ldarg.0
+    IL_2f78:  ldc.i4.s   18
+    IL_2f7a:  call       ""char string.this[int].get""
+    IL_2f7f:  ldc.i4.s   59
+    IL_2f81:  bne.un     IL_386b
+    IL_2f86:  ldarg.0
+    IL_2f87:  ldc.i4.s   19
+    IL_2f89:  call       ""char string.this[int].get""
+    IL_2f8e:  ldc.i4.s   85
+    IL_2f90:  bne.un     IL_386b
+    IL_2f95:  ldarg.0
+    IL_2f96:  ldc.i4.s   20
+    IL_2f98:  call       ""char string.this[int].get""
+    IL_2f9d:  ldc.i4.s   100
+    IL_2f9f:  bne.un     IL_386b
+    IL_2fa4:  ldarg.0
+    IL_2fa5:  ldc.i4.s   21
+    IL_2fa7:  call       ""char string.this[int].get""
+    IL_2fac:  ldc.i4.s   82
+    IL_2fae:  bne.un     IL_386b
+    IL_2fb3:  ldarg.0
+    IL_2fb4:  ldc.i4.s   22
+    IL_2fb6:  call       ""char string.this[int].get""
+    IL_2fbb:  ldc.i4.s   55
+    IL_2fbd:  bne.un     IL_386b
+    IL_2fc2:  ldarg.0
+    IL_2fc3:  ldc.i4.s   23
+    IL_2fc5:  call       ""char string.this[int].get""
+    IL_2fca:  ldc.i4.s   87
+    IL_2fcc:  bne.un     IL_386b
+    IL_2fd1:  ldarg.0
+    IL_2fd2:  ldc.i4.s   24
+    IL_2fd4:  call       ""char string.this[int].get""
+    IL_2fd9:  ldc.i4.s   89
+    IL_2fdb:  bne.un     IL_386b
+    IL_2fe0:  ldarg.0
+    IL_2fe1:  ldc.i4.s   25
+    IL_2fe3:  call       ""char string.this[int].get""
+    IL_2fe8:  ldc.i4.s   86
+    IL_2fea:  bne.un     IL_386b
+    IL_2fef:  ldarg.0
+    IL_2ff0:  ldc.i4.s   26
+    IL_2ff2:  call       ""char string.this[int].get""
+    IL_2ff7:  ldc.i4.s   109
+    IL_2ff9:  bne.un     IL_386b
+    IL_2ffe:  ldarg.0
+    IL_2fff:  ldc.i4.s   27
+    IL_3001:  call       ""char string.this[int].get""
+    IL_3006:  ldc.i4.s   98
+    IL_3008:  bne.un     IL_386b
+    IL_300d:  ldarg.0
+    IL_300e:  ldc.i4.s   28
+    IL_3010:  call       ""char string.this[int].get""
+    IL_3015:  ldc.i4.s   90
+    IL_3017:  bne.un     IL_386b
+    IL_301c:  ldarg.0
+    IL_301d:  ldc.i4.s   29
+    IL_301f:  call       ""char string.this[int].get""
+    IL_3024:  ldc.i4.s   76
+    IL_3026:  bne.un     IL_386b
+    IL_302b:  ldarg.0
+    IL_302c:  ldc.i4.s   30
+    IL_302e:  call       ""char string.this[int].get""
+    IL_3033:  ldc.i4.s   104
+    IL_3035:  bne.un     IL_386b
+    IL_303a:  ldarg.0
+    IL_303b:  ldc.i4.s   31
+    IL_303d:  call       ""char string.this[int].get""
+    IL_3042:  ldc.i4.s   91
+    IL_3044:  bne.un     IL_386b
+    IL_3049:  ldarg.0
+    IL_304a:  ldc.i4.s   32
+    IL_304c:  call       ""char string.this[int].get""
+    IL_3051:  ldc.i4.s   50
+    IL_3053:  bne.un     IL_386b
+    IL_3058:  ldarg.0
+    IL_3059:  ldc.i4.s   33
+    IL_305b:  call       ""char string.this[int].get""
+    IL_3060:  ldc.i4.s   101
+    IL_3062:  bne.un     IL_386b
+    IL_3067:  ldarg.0
+    IL_3068:  ldc.i4.s   34
+    IL_306a:  call       ""char string.this[int].get""
+    IL_306f:  ldc.i4.s   107
+    IL_3071:  bne.un     IL_386b
+    IL_3076:  ldarg.0
+    IL_3077:  ldc.i4.s   35
+    IL_3079:  call       ""char string.this[int].get""
+    IL_307e:  ldc.i4.s   72
+    IL_3080:  bne.un     IL_386b
+    IL_3085:  ldarg.0
+    IL_3086:  ldc.i4.s   36
+    IL_3088:  call       ""char string.this[int].get""
+    IL_308d:  ldc.i4.s   75
+    IL_308f:  bne.un     IL_386b
+    IL_3094:  ldarg.0
+    IL_3095:  ldc.i4.s   37
+    IL_3097:  call       ""char string.this[int].get""
+    IL_309c:  ldc.i4.s   100
+    IL_309e:  bne.un     IL_386b
+    IL_30a3:  ldarg.0
+    IL_30a4:  ldc.i4.s   38
+    IL_30a6:  call       ""char string.this[int].get""
+    IL_30ab:  ldc.i4.s   84
+    IL_30ad:  bne.un     IL_386b
+    IL_30b2:  ldarg.0
+    IL_30b3:  ldc.i4.s   39
+    IL_30b5:  call       ""char string.this[int].get""
+    IL_30ba:  ldc.i4.s   77
+    IL_30bc:  bne.un     IL_386b
+    IL_30c1:  br         IL_3845
+    IL_30c6:  ldarg.0
+    IL_30c7:  ldc.i4.1
+    IL_30c8:  call       ""char string.this[int].get""
+    IL_30cd:  ldc.i4.s   80
+    IL_30cf:  bne.un     IL_386b
+    IL_30d4:  ldarg.0
+    IL_30d5:  ldc.i4.2
+    IL_30d6:  call       ""char string.this[int].get""
+    IL_30db:  ldc.i4.s   84
+    IL_30dd:  bne.un     IL_386b
+    IL_30e2:  ldarg.0
+    IL_30e3:  ldc.i4.3
+    IL_30e4:  call       ""char string.this[int].get""
+    IL_30e9:  ldc.i4.s   110
+    IL_30eb:  bne.un     IL_386b
+    IL_30f0:  ldarg.0
+    IL_30f1:  ldc.i4.4
+    IL_30f2:  call       ""char string.this[int].get""
+    IL_30f7:  ldc.i4.s   87
+    IL_30f9:  bne.un     IL_386b
+    IL_30fe:  ldarg.0
+    IL_30ff:  ldc.i4.5
+    IL_3100:  call       ""char string.this[int].get""
+    IL_3105:  ldc.i4.s   109
+    IL_3107:  bne.un     IL_386b
+    IL_310c:  ldarg.0
+    IL_310d:  ldc.i4.6
+    IL_310e:  call       ""char string.this[int].get""
+    IL_3113:  ldc.i4.s   68
+    IL_3115:  bne.un     IL_386b
+    IL_311a:  ldarg.0
+    IL_311b:  ldc.i4.7
+    IL_311c:  call       ""char string.this[int].get""
+    IL_3121:  ldc.i4.s   102
+    IL_3123:  bne.un     IL_386b
+    IL_3128:  ldarg.0
+    IL_3129:  ldc.i4.8
+    IL_312a:  call       ""char string.this[int].get""
+    IL_312f:  ldc.i4.s   76
+    IL_3131:  bne.un     IL_386b
+    IL_3136:  ldarg.0
+    IL_3137:  ldc.i4.s   9
+    IL_3139:  call       ""char string.this[int].get""
+    IL_313e:  ldc.i4.s   94
+    IL_3140:  bne.un     IL_386b
+    IL_3145:  ldarg.0
+    IL_3146:  ldc.i4.s   10
+    IL_3148:  call       ""char string.this[int].get""
+    IL_314d:  ldc.i4.s   65
+    IL_314f:  bne.un     IL_386b
+    IL_3154:  ldarg.0
+    IL_3155:  ldc.i4.s   11
+    IL_3157:  call       ""char string.this[int].get""
+    IL_315c:  ldc.i4.s   73
+    IL_315e:  bne.un     IL_386b
+    IL_3163:  ldarg.0
+    IL_3164:  ldc.i4.s   12
+    IL_3166:  call       ""char string.this[int].get""
+    IL_316b:  ldc.i4.s   72
+    IL_316d:  bne.un     IL_386b
+    IL_3172:  ldarg.0
+    IL_3173:  ldc.i4.s   13
+    IL_3175:  call       ""char string.this[int].get""
+    IL_317a:  ldc.i4.s   93
+    IL_317c:  bne.un     IL_386b
+    IL_3181:  ldarg.0
+    IL_3182:  ldc.i4.s   14
+    IL_3184:  call       ""char string.this[int].get""
+    IL_3189:  ldc.i4.s   59
+    IL_318b:  bne.un     IL_386b
+    IL_3190:  ldarg.0
+    IL_3191:  ldc.i4.s   15
+    IL_3193:  call       ""char string.this[int].get""
+    IL_3198:  ldc.i4.s   69
+    IL_319a:  bne.un     IL_386b
+    IL_319f:  ldarg.0
+    IL_31a0:  ldc.i4.s   16
+    IL_31a2:  call       ""char string.this[int].get""
+    IL_31a7:  ldc.i4.s   107
+    IL_31a9:  bne.un     IL_386b
+    IL_31ae:  ldarg.0
+    IL_31af:  ldc.i4.s   17
+    IL_31b1:  call       ""char string.this[int].get""
+    IL_31b6:  ldc.i4.s   54
+    IL_31b8:  bne.un     IL_386b
+    IL_31bd:  ldarg.0
+    IL_31be:  ldc.i4.s   18
+    IL_31c0:  call       ""char string.this[int].get""
+    IL_31c5:  ldc.i4.s   108
+    IL_31c7:  bne.un     IL_386b
+    IL_31cc:  ldarg.0
+    IL_31cd:  ldc.i4.s   19
+    IL_31cf:  call       ""char string.this[int].get""
+    IL_31d4:  ldc.i4.s   49
+    IL_31d6:  bne.un     IL_386b
+    IL_31db:  ldarg.0
+    IL_31dc:  ldc.i4.s   20
+    IL_31de:  call       ""char string.this[int].get""
+    IL_31e3:  ldc.i4.s   65
+    IL_31e5:  bne.un     IL_386b
+    IL_31ea:  ldarg.0
+    IL_31eb:  ldc.i4.s   21
+    IL_31ed:  call       ""char string.this[int].get""
+    IL_31f2:  ldc.i4.s   86
+    IL_31f4:  bne.un     IL_386b
+    IL_31f9:  ldarg.0
+    IL_31fa:  ldc.i4.s   22
+    IL_31fc:  call       ""char string.this[int].get""
+    IL_3201:  ldc.i4.s   57
+    IL_3203:  bne.un     IL_386b
+    IL_3208:  ldarg.0
+    IL_3209:  ldc.i4.s   23
+    IL_320b:  call       ""char string.this[int].get""
+    IL_3210:  ldc.i4.s   74
+    IL_3212:  bne.un     IL_386b
+    IL_3217:  ldarg.0
+    IL_3218:  ldc.i4.s   24
+    IL_321a:  call       ""char string.this[int].get""
+    IL_321f:  ldc.i4.s   48
+    IL_3221:  bne.un     IL_386b
+    IL_3226:  ldarg.0
+    IL_3227:  ldc.i4.s   25
+    IL_3229:  call       ""char string.this[int].get""
+    IL_322e:  ldc.i4.s   50
+    IL_3230:  bne.un     IL_386b
+    IL_3235:  ldarg.0
+    IL_3236:  ldc.i4.s   26
+    IL_3238:  call       ""char string.this[int].get""
+    IL_323d:  ldc.i4.s   48
+    IL_323f:  bne.un     IL_386b
+    IL_3244:  ldarg.0
+    IL_3245:  ldc.i4.s   27
+    IL_3247:  call       ""char string.this[int].get""
+    IL_324c:  ldc.i4.s   106
+    IL_324e:  bne.un     IL_386b
+    IL_3253:  ldarg.0
+    IL_3254:  ldc.i4.s   28
+    IL_3256:  call       ""char string.this[int].get""
+    IL_325b:  ldc.i4.s   60
+    IL_325d:  bne.un     IL_386b
+    IL_3262:  ldarg.0
+    IL_3263:  ldc.i4.s   29
+    IL_3265:  call       ""char string.this[int].get""
+    IL_326a:  ldc.i4.s   87
+    IL_326c:  bne.un     IL_386b
+    IL_3271:  ldarg.0
+    IL_3272:  ldc.i4.s   30
+    IL_3274:  call       ""char string.this[int].get""
+    IL_3279:  ldc.i4.s   58
+    IL_327b:  bne.un     IL_386b
+    IL_3280:  ldarg.0
+    IL_3281:  ldc.i4.s   31
+    IL_3283:  call       ""char string.this[int].get""
+    IL_3288:  ldc.i4.s   86
+    IL_328a:  bne.un     IL_386b
+    IL_328f:  ldarg.0
+    IL_3290:  ldc.i4.s   32
+    IL_3292:  call       ""char string.this[int].get""
+    IL_3297:  ldc.i4.s   54
+    IL_3299:  bne.un     IL_386b
+    IL_329e:  ldarg.0
+    IL_329f:  ldc.i4.s   33
+    IL_32a1:  call       ""char string.this[int].get""
+    IL_32a6:  ldc.i4.s   83
+    IL_32a8:  bne.un     IL_386b
+    IL_32ad:  ldarg.0
+    IL_32ae:  ldc.i4.s   34
+    IL_32b0:  call       ""char string.this[int].get""
+    IL_32b5:  ldc.i4.s   85
+    IL_32b7:  bne.un     IL_386b
+    IL_32bc:  ldarg.0
+    IL_32bd:  ldc.i4.s   35
+    IL_32bf:  call       ""char string.this[int].get""
+    IL_32c4:  ldc.i4.s   57
+    IL_32c6:  bne.un     IL_386b
+    IL_32cb:  ldarg.0
+    IL_32cc:  ldc.i4.s   36
+    IL_32ce:  call       ""char string.this[int].get""
+    IL_32d3:  ldc.i4.s   86
+    IL_32d5:  bne.un     IL_386b
+    IL_32da:  ldarg.0
+    IL_32db:  ldc.i4.s   37
+    IL_32dd:  call       ""char string.this[int].get""
+    IL_32e2:  ldc.i4.s   65
+    IL_32e4:  bne.un     IL_386b
+    IL_32e9:  ldarg.0
+    IL_32ea:  ldc.i4.s   38
+    IL_32ec:  call       ""char string.this[int].get""
+    IL_32f1:  ldc.i4.s   64
+    IL_32f3:  bne.un     IL_386b
+    IL_32f8:  ldarg.0
+    IL_32f9:  ldc.i4.s   39
+    IL_32fb:  call       ""char string.this[int].get""
+    IL_3300:  ldc.i4.s   68
+    IL_3302:  bne.un     IL_386b
+    IL_3307:  br         IL_3855
+    IL_330c:  ldarg.0
+    IL_330d:  ldc.i4.1
+    IL_330e:  call       ""char string.this[int].get""
+    IL_3313:  ldc.i4.s   88
+    IL_3315:  bne.un     IL_386b
+    IL_331a:  ldarg.0
+    IL_331b:  ldc.i4.2
+    IL_331c:  call       ""char string.this[int].get""
+    IL_3321:  ldc.i4.s   79
+    IL_3323:  bne.un     IL_386b
+    IL_3328:  ldarg.0
+    IL_3329:  ldc.i4.3
+    IL_332a:  call       ""char string.this[int].get""
+    IL_332f:  ldc.i4.s   93
+    IL_3331:  bne.un     IL_386b
+    IL_3336:  ldarg.0
+    IL_3337:  ldc.i4.4
+    IL_3338:  call       ""char string.this[int].get""
+    IL_333d:  ldc.i4.s   55
+    IL_333f:  bne.un     IL_386b
+    IL_3344:  ldarg.0
+    IL_3345:  ldc.i4.5
+    IL_3346:  call       ""char string.this[int].get""
+    IL_334b:  ldc.i4.s   83
+    IL_334d:  bne.un     IL_386b
+    IL_3352:  ldarg.0
+    IL_3353:  ldc.i4.6
+    IL_3354:  call       ""char string.this[int].get""
+    IL_3359:  ldc.i4.s   64
+    IL_335b:  bne.un     IL_386b
+    IL_3360:  ldarg.0
+    IL_3361:  ldc.i4.7
+    IL_3362:  call       ""char string.this[int].get""
+    IL_3367:  ldc.i4.s   101
+    IL_3369:  bne.un     IL_386b
+    IL_336e:  ldarg.0
+    IL_336f:  ldc.i4.8
+    IL_3370:  call       ""char string.this[int].get""
+    IL_3375:  ldc.i4.s   77
+    IL_3377:  bne.un     IL_386b
+    IL_337c:  ldarg.0
+    IL_337d:  ldc.i4.s   9
+    IL_337f:  call       ""char string.this[int].get""
+    IL_3384:  ldc.i4.s   96
+    IL_3386:  bne.un     IL_386b
+    IL_338b:  ldarg.0
+    IL_338c:  ldc.i4.s   10
+    IL_338e:  call       ""char string.this[int].get""
+    IL_3393:  ldc.i4.s   111
+    IL_3395:  bne.un     IL_386b
+    IL_339a:  ldarg.0
+    IL_339b:  ldc.i4.s   11
+    IL_339d:  call       ""char string.this[int].get""
+    IL_33a2:  ldc.i4.s   62
+    IL_33a4:  bne.un     IL_386b
+    IL_33a9:  ldarg.0
+    IL_33aa:  ldc.i4.s   12
+    IL_33ac:  call       ""char string.this[int].get""
+    IL_33b1:  ldc.i4.s   76
+    IL_33b3:  bne.un     IL_386b
+    IL_33b8:  ldarg.0
+    IL_33b9:  ldc.i4.s   13
+    IL_33bb:  call       ""char string.this[int].get""
+    IL_33c0:  ldc.i4.s   85
+    IL_33c2:  bne.un     IL_386b
+    IL_33c7:  ldarg.0
+    IL_33c8:  ldc.i4.s   14
+    IL_33ca:  call       ""char string.this[int].get""
+    IL_33cf:  ldc.i4.s   88
+    IL_33d1:  bne.un     IL_386b
+    IL_33d6:  ldarg.0
+    IL_33d7:  ldc.i4.s   15
+    IL_33d9:  call       ""char string.this[int].get""
+    IL_33de:  ldc.i4.s   102
+    IL_33e0:  bne.un     IL_386b
+    IL_33e5:  ldarg.0
+    IL_33e6:  ldc.i4.s   16
+    IL_33e8:  call       ""char string.this[int].get""
+    IL_33ed:  ldc.i4.s   76
+    IL_33ef:  bne.un     IL_386b
+    IL_33f4:  ldarg.0
+    IL_33f5:  ldc.i4.s   17
+    IL_33f7:  call       ""char string.this[int].get""
+    IL_33fc:  ldc.i4.s   84
+    IL_33fe:  bne.un     IL_386b
+    IL_3403:  ldarg.0
+    IL_3404:  ldc.i4.s   18
+    IL_3406:  call       ""char string.this[int].get""
+    IL_340b:  ldc.i4.s   107
+    IL_340d:  bne.un     IL_386b
+    IL_3412:  ldarg.0
+    IL_3413:  ldc.i4.s   19
+    IL_3415:  call       ""char string.this[int].get""
+    IL_341a:  ldc.i4.s   94
+    IL_341c:  bne.un     IL_386b
+    IL_3421:  ldarg.0
+    IL_3422:  ldc.i4.s   20
+    IL_3424:  call       ""char string.this[int].get""
+    IL_3429:  ldc.i4.s   109
+    IL_342b:  bne.un     IL_386b
+    IL_3430:  ldarg.0
+    IL_3431:  ldc.i4.s   21
+    IL_3433:  call       ""char string.this[int].get""
+    IL_3438:  ldc.i4.s   51
+    IL_343a:  bne.un     IL_386b
+    IL_343f:  ldarg.0
+    IL_3440:  ldc.i4.s   22
+    IL_3442:  call       ""char string.this[int].get""
+    IL_3447:  ldc.i4.s   101
+    IL_3449:  bne.un     IL_386b
+    IL_344e:  ldarg.0
+    IL_344f:  ldc.i4.s   23
+    IL_3451:  call       ""char string.this[int].get""
+    IL_3456:  ldc.i4.s   80
+    IL_3458:  bne.un     IL_386b
+    IL_345d:  ldarg.0
+    IL_345e:  ldc.i4.s   24
+    IL_3460:  call       ""char string.this[int].get""
+    IL_3465:  ldc.i4.s   50
+    IL_3467:  bne.un     IL_386b
+    IL_346c:  ldarg.0
+    IL_346d:  ldc.i4.s   25
+    IL_346f:  call       ""char string.this[int].get""
+    IL_3474:  ldc.i4.s   78
+    IL_3476:  bne.un     IL_386b
+    IL_347b:  ldarg.0
+    IL_347c:  ldc.i4.s   26
+    IL_347e:  call       ""char string.this[int].get""
+    IL_3483:  ldc.i4.s   98
+    IL_3485:  bne.un     IL_386b
+    IL_348a:  ldarg.0
+    IL_348b:  ldc.i4.s   27
+    IL_348d:  call       ""char string.this[int].get""
+    IL_3492:  ldc.i4.s   65
+    IL_3494:  bne.un     IL_386b
+    IL_3499:  ldarg.0
+    IL_349a:  ldc.i4.s   28
+    IL_349c:  call       ""char string.this[int].get""
+    IL_34a1:  ldc.i4.s   106
+    IL_34a3:  bne.un     IL_386b
+    IL_34a8:  ldarg.0
+    IL_34a9:  ldc.i4.s   29
+    IL_34ab:  call       ""char string.this[int].get""
+    IL_34b0:  ldc.i4.s   56
+    IL_34b2:  bne.un     IL_386b
+    IL_34b7:  ldarg.0
+    IL_34b8:  ldc.i4.s   30
+    IL_34ba:  call       ""char string.this[int].get""
+    IL_34bf:  ldc.i4.s   78
+    IL_34c1:  bne.un     IL_386b
+    IL_34c6:  ldarg.0
+    IL_34c7:  ldc.i4.s   31
+    IL_34c9:  call       ""char string.this[int].get""
+    IL_34ce:  ldc.i4.s   94
+    IL_34d0:  bne.un     IL_386b
+    IL_34d5:  ldarg.0
+    IL_34d6:  ldc.i4.s   32
+    IL_34d8:  call       ""char string.this[int].get""
+    IL_34dd:  ldc.i4.s   91
+    IL_34df:  bne.un     IL_386b
+    IL_34e4:  ldarg.0
+    IL_34e5:  ldc.i4.s   33
+    IL_34e7:  call       ""char string.this[int].get""
+    IL_34ec:  ldc.i4.s   93
+    IL_34ee:  bne.un     IL_386b
+    IL_34f3:  ldarg.0
+    IL_34f4:  ldc.i4.s   34
+    IL_34f6:  call       ""char string.this[int].get""
+    IL_34fb:  ldc.i4.s   74
+    IL_34fd:  bne.un     IL_386b
+    IL_3502:  ldarg.0
+    IL_3503:  ldc.i4.s   35
+    IL_3505:  call       ""char string.this[int].get""
+    IL_350a:  ldc.i4.s   55
+    IL_350c:  bne.un     IL_386b
+    IL_3511:  ldarg.0
+    IL_3512:  ldc.i4.s   36
+    IL_3514:  call       ""char string.this[int].get""
+    IL_3519:  ldc.i4.s   80
+    IL_351b:  bne.un     IL_386b
+    IL_3520:  ldarg.0
+    IL_3521:  ldc.i4.s   37
+    IL_3523:  call       ""char string.this[int].get""
+    IL_3528:  ldc.i4.s   67
+    IL_352a:  bne.un     IL_386b
+    IL_352f:  ldarg.0
+    IL_3530:  ldc.i4.s   38
+    IL_3532:  call       ""char string.this[int].get""
+    IL_3537:  ldc.i4.s   104
+    IL_3539:  bne.un     IL_386b
+    IL_353e:  ldarg.0
+    IL_353f:  ldc.i4.s   39
+    IL_3541:  call       ""char string.this[int].get""
+    IL_3546:  ldc.i4.s   57
+    IL_3548:  bne.un     IL_386b
+    IL_354d:  br         IL_385d
+    IL_3552:  ldarg.0
+    IL_3553:  ldc.i4.1
+    IL_3554:  call       ""char string.this[int].get""
+    IL_3559:  ldc.i4.s   61
+    IL_355b:  bne.un     IL_386b
+    IL_3560:  ldarg.0
+    IL_3561:  ldc.i4.2
+    IL_3562:  call       ""char string.this[int].get""
+    IL_3567:  ldc.i4.s   70
+    IL_3569:  bne.un     IL_386b
+    IL_356e:  ldarg.0
+    IL_356f:  ldc.i4.3
+    IL_3570:  call       ""char string.this[int].get""
+    IL_3575:  ldc.i4.s   84
+    IL_3577:  bne.un     IL_386b
+    IL_357c:  ldarg.0
+    IL_357d:  ldc.i4.4
+    IL_357e:  call       ""char string.this[int].get""
+    IL_3583:  ldc.i4.s   90
+    IL_3585:  bne.un     IL_386b
+    IL_358a:  ldarg.0
+    IL_358b:  ldc.i4.5
+    IL_358c:  call       ""char string.this[int].get""
+    IL_3591:  ldc.i4.s   74
+    IL_3593:  bne.un     IL_386b
+    IL_3598:  ldarg.0
+    IL_3599:  ldc.i4.6
+    IL_359a:  call       ""char string.this[int].get""
+    IL_359f:  ldc.i4.s   95
+    IL_35a1:  bne.un     IL_386b
+    IL_35a6:  ldarg.0
+    IL_35a7:  ldc.i4.7
+    IL_35a8:  call       ""char string.this[int].get""
+    IL_35ad:  ldc.i4.s   86
+    IL_35af:  bne.un     IL_386b
+    IL_35b4:  ldarg.0
+    IL_35b5:  ldc.i4.8
+    IL_35b6:  call       ""char string.this[int].get""
+    IL_35bb:  ldc.i4.s   53
+    IL_35bd:  bne.un     IL_386b
+    IL_35c2:  ldarg.0
+    IL_35c3:  ldc.i4.s   9
+    IL_35c5:  call       ""char string.this[int].get""
+    IL_35ca:  ldc.i4.s   57
+    IL_35cc:  bne.un     IL_386b
+    IL_35d1:  ldarg.0
+    IL_35d2:  ldc.i4.s   10
+    IL_35d4:  call       ""char string.this[int].get""
+    IL_35d9:  ldc.i4.s   101
+    IL_35db:  bne.un     IL_386b
+    IL_35e0:  ldarg.0
+    IL_35e1:  ldc.i4.s   11
+    IL_35e3:  call       ""char string.this[int].get""
+    IL_35e8:  ldc.i4.s   70
+    IL_35ea:  bne.un     IL_386b
+    IL_35ef:  ldarg.0
+    IL_35f0:  ldc.i4.s   12
+    IL_35f2:  call       ""char string.this[int].get""
+    IL_35f7:  ldc.i4.s   106
+    IL_35f9:  bne.un     IL_386b
+    IL_35fe:  ldarg.0
+    IL_35ff:  ldc.i4.s   13
+    IL_3601:  call       ""char string.this[int].get""
+    IL_3606:  ldc.i4.s   103
+    IL_3608:  bne.un     IL_386b
+    IL_360d:  ldarg.0
+    IL_360e:  ldc.i4.s   14
+    IL_3610:  call       ""char string.this[int].get""
+    IL_3615:  ldc.i4.s   95
+    IL_3617:  bne.un     IL_386b
+    IL_361c:  ldarg.0
+    IL_361d:  ldc.i4.s   15
+    IL_361f:  call       ""char string.this[int].get""
+    IL_3624:  ldc.i4.s   82
+    IL_3626:  bne.un     IL_386b
+    IL_362b:  ldarg.0
+    IL_362c:  ldc.i4.s   16
+    IL_362e:  call       ""char string.this[int].get""
+    IL_3633:  ldc.i4.s   69
+    IL_3635:  bne.un     IL_386b
+    IL_363a:  ldarg.0
+    IL_363b:  ldc.i4.s   17
+    IL_363d:  call       ""char string.this[int].get""
+    IL_3642:  ldc.i4.s   77
+    IL_3644:  bne.un     IL_386b
+    IL_3649:  ldarg.0
+    IL_364a:  ldc.i4.s   18
+    IL_364c:  call       ""char string.this[int].get""
+    IL_3651:  ldc.i4.s   97
+    IL_3653:  bne.un     IL_386b
+    IL_3658:  ldarg.0
+    IL_3659:  ldc.i4.s   19
+    IL_365b:  call       ""char string.this[int].get""
+    IL_3660:  ldc.i4.s   103
+    IL_3662:  bne.un     IL_386b
+    IL_3667:  ldarg.0
+    IL_3668:  ldc.i4.s   20
+    IL_366a:  call       ""char string.this[int].get""
+    IL_366f:  ldc.i4.s   103
+    IL_3671:  bne.un     IL_386b
+    IL_3676:  ldarg.0
+    IL_3677:  ldc.i4.s   21
+    IL_3679:  call       ""char string.this[int].get""
+    IL_367e:  ldc.i4.s   52
+    IL_3680:  bne.un     IL_386b
+    IL_3685:  ldarg.0
+    IL_3686:  ldc.i4.s   22
+    IL_3688:  call       ""char string.this[int].get""
+    IL_368d:  ldc.i4.s   110
+    IL_368f:  bne.un     IL_386b
+    IL_3694:  ldarg.0
+    IL_3695:  ldc.i4.s   23
+    IL_3697:  call       ""char string.this[int].get""
+    IL_369c:  ldc.i4.s   48
+    IL_369e:  bne.un     IL_386b
+    IL_36a3:  ldarg.0
+    IL_36a4:  ldc.i4.s   24
+    IL_36a6:  call       ""char string.this[int].get""
+    IL_36ab:  ldc.i4.s   83
+    IL_36ad:  bne.un     IL_386b
+    IL_36b2:  ldarg.0
+    IL_36b3:  ldc.i4.s   25
+    IL_36b5:  call       ""char string.this[int].get""
+    IL_36ba:  ldc.i4.s   110
+    IL_36bc:  bne.un     IL_386b
+    IL_36c1:  ldarg.0
+    IL_36c2:  ldc.i4.s   26
+    IL_36c4:  call       ""char string.this[int].get""
+    IL_36c9:  ldc.i4.s   103
+    IL_36cb:  bne.un     IL_386b
+    IL_36d0:  ldarg.0
+    IL_36d1:  ldc.i4.s   27
+    IL_36d3:  call       ""char string.this[int].get""
+    IL_36d8:  ldc.i4.s   49
+    IL_36da:  bne.un     IL_386b
+    IL_36df:  ldarg.0
+    IL_36e0:  ldc.i4.s   28
+    IL_36e2:  call       ""char string.this[int].get""
+    IL_36e7:  ldc.i4.s   93
+    IL_36e9:  bne.un     IL_386b
+    IL_36ee:  ldarg.0
+    IL_36ef:  ldc.i4.s   29
+    IL_36f1:  call       ""char string.this[int].get""
+    IL_36f6:  ldc.i4.s   51
+    IL_36f8:  bne.un     IL_386b
+    IL_36fd:  ldarg.0
+    IL_36fe:  ldc.i4.s   30
+    IL_3700:  call       ""char string.this[int].get""
+    IL_3705:  ldc.i4.s   109
+    IL_3707:  bne.un     IL_386b
+    IL_370c:  ldarg.0
+    IL_370d:  ldc.i4.s   31
+    IL_370f:  call       ""char string.this[int].get""
+    IL_3714:  ldc.i4.s   79
+    IL_3716:  bne.un     IL_386b
+    IL_371b:  ldarg.0
+    IL_371c:  ldc.i4.s   32
+    IL_371e:  call       ""char string.this[int].get""
+    IL_3723:  ldc.i4.s   103
+    IL_3725:  bne.un     IL_386b
+    IL_372a:  ldarg.0
+    IL_372b:  ldc.i4.s   33
+    IL_372d:  call       ""char string.this[int].get""
+    IL_3732:  ldc.i4.s   69
+    IL_3734:  bne.un     IL_386b
+    IL_3739:  ldarg.0
+    IL_373a:  ldc.i4.s   34
+    IL_373c:  call       ""char string.this[int].get""
+    IL_3741:  ldc.i4.s   65
+    IL_3743:  bne.un     IL_386b
+    IL_3748:  ldarg.0
+    IL_3749:  ldc.i4.s   35
+    IL_374b:  call       ""char string.this[int].get""
+    IL_3750:  ldc.i4.s   81
+    IL_3752:  bne.un     IL_386b
+    IL_3757:  ldarg.0
+    IL_3758:  ldc.i4.s   36
+    IL_375a:  call       ""char string.this[int].get""
+    IL_375f:  ldc.i4.s   93
+    IL_3761:  bne.un     IL_386b
+    IL_3766:  ldarg.0
+    IL_3767:  ldc.i4.s   37
+    IL_3769:  call       ""char string.this[int].get""
+    IL_376e:  ldc.i4.s   69
+    IL_3770:  bne.un     IL_386b
+    IL_3775:  ldarg.0
+    IL_3776:  ldc.i4.s   38
+    IL_3778:  call       ""char string.this[int].get""
+    IL_377d:  ldc.i4.s   76
+    IL_377f:  bne.un     IL_386b
+    IL_3784:  ldarg.0
+    IL_3785:  ldc.i4.s   39
+    IL_3787:  call       ""char string.this[int].get""
+    IL_378c:  ldc.i4.s   52
+    IL_378e:  bne.un     IL_386b
+    IL_3793:  br         IL_3865
+    IL_3798:  ldstr      ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9""
+    IL_379d:  stloc.0
+    IL_379e:  br         IL_386b
+    IL_37a3:  ldstr      ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I""
+    IL_37a8:  stloc.0
+    IL_37a9:  br         IL_386b
+    IL_37ae:  ldstr      ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m""
+    IL_37b3:  stloc.0
+    IL_37b4:  br         IL_386b
+    IL_37b9:  ldstr      ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD""
+    IL_37be:  stloc.0
+    IL_37bf:  br         IL_386b
+    IL_37c4:  ldstr      ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]""
+    IL_37c9:  stloc.0
+    IL_37ca:  br         IL_386b
+    IL_37cf:  ldstr      ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c""
+    IL_37d4:  stloc.0
+    IL_37d5:  br         IL_386b
+    IL_37da:  ldstr      ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0""
+    IL_37df:  stloc.0
+    IL_37e0:  br         IL_386b
+    IL_37e5:  ldstr      ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>""
+    IL_37ea:  stloc.0
+    IL_37eb:  br.s       IL_386b
+    IL_37ed:  ldstr      ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF""
+    IL_37f2:  stloc.0
+    IL_37f3:  br.s       IL_386b
+    IL_37f5:  ldstr      ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:""
+    IL_37fa:  stloc.0
+    IL_37fb:  br.s       IL_386b
+    IL_37fd:  ldstr      "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj""
+    IL_3802:  stloc.0
+    IL_3803:  br.s       IL_386b
+    IL_3805:  ldstr      ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:""
+    IL_380a:  stloc.0
+    IL_380b:  br.s       IL_386b
+    IL_380d:  ldstr      ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU""
+    IL_3812:  stloc.0
+    IL_3813:  br.s       IL_386b
+    IL_3815:  ldstr      ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR""
+    IL_381a:  stloc.0
+    IL_381b:  br.s       IL_386b
+    IL_381d:  ldstr      ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj""
+    IL_3822:  stloc.0
+    IL_3823:  br.s       IL_386b
+    IL_3825:  ldstr      ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k""
+    IL_382a:  stloc.0
+    IL_382b:  br.s       IL_386b
+    IL_382d:  ldstr      ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4""
+    IL_3832:  stloc.0
+    IL_3833:  br.s       IL_386b
+    IL_3835:  ldstr      ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O""
+    IL_383a:  stloc.0
+    IL_383b:  br.s       IL_386b
+    IL_383d:  ldstr      ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe""
+    IL_3842:  stloc.0
+    IL_3843:  br.s       IL_386b
+    IL_3845:  ldstr      ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM""
+    IL_384a:  stloc.0
+    IL_384b:  br.s       IL_386b
+    IL_384d:  ldstr      ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W""
+    IL_3852:  stloc.0
+    IL_3853:  br.s       IL_386b
+    IL_3855:  ldstr      ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D""
+    IL_385a:  stloc.0
+    IL_385b:  br.s       IL_386b
+    IL_385d:  ldstr      ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9""
+    IL_3862:  stloc.0
+    IL_3863:  br.s       IL_386b
+    IL_3865:  ldstr      ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4""
+    IL_386a:  stloc.0
+    IL_386b:  ldloc.0
+    IL_386c:  ldarg.0
+    IL_386d:  call       ""bool string.op_Equality(string, string)""
+    IL_3872:  ret
+}");
         }
 
         [Fact]

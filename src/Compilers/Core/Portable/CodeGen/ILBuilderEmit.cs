@@ -242,7 +242,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Action? emitPushKeyLength,
             Func<LocalDefinition>? emitStoreKeyLength,
             Action<int>? emitPushCharAtIndex,
-            Func<int, LocalDefinition>? emitStoreCharAtIndex)
+            Func<int, LocalDefinition>? emitStoreCharAtIndex,
+            SwitchStringJumpTableEmitter.EmitSpanStringCompare? emitSpanStringCompare)
         {
             Debug.Assert(caseLabels.Length > 0);
 
@@ -255,7 +256,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 emitPushKeyLength,
                 emitStoreKeyLength,
                 emitPushCharAtIndex,
-                emitStoreCharAtIndex);
+                emitStoreCharAtIndex,
+                emitSpanStringCompare);
 
             emitter.EmitJumpTable();
         }

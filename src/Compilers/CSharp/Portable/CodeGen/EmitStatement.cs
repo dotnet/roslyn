@@ -1200,8 +1200,9 @@ oneMoreTime:
             Func<LocalDefinition> emitStoreKeyLength = null;
             Action<int> emitPushCharAtIndex = null;
             Func<int, LocalDefinition> emitStoreCharAtIndex = null;
- 
-             SwitchStringJumpTableEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate = null;
+
+            SwitchStringJumpTableEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate = null;
+            SwitchStringJumpTableEmitter.EmitSpanStringCompare emitSpanStringCompare = null;
 
             Cci.IMethodReference stringLengthRef = null;
             var stringLengthMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
@@ -1243,7 +1244,7 @@ oneMoreTime:
                 emitPushCharAtIndex = i =>
                 {
                     _builder.EmitLoad(key);
-                    _builder.EmitConstantValue(ConstantValue.Create(i));
+                    _builder.EmitIntConstant(i);
                     _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
                     _builder.EmitToken(stringIndexRef, null, _diagnostics);
                 };
@@ -1251,7 +1252,7 @@ oneMoreTime:
                 emitStoreCharAtIndex = i =>
                 {
                     _builder.EmitLoad(key);
-                    _builder.EmitConstantValue(ConstantValue.Create(i));
+                    _builder.EmitIntConstant(i);
                     _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
                     _builder.EmitToken(stringIndexRef, null, _diagnostics);
 
@@ -1262,6 +1263,45 @@ oneMoreTime:
 
                     return charTemp;
                 };
+
+                Cci.IMethodReference asSpanStringRef = null;
+                var asSpanStringMethod = _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__AsSpanString) as MethodSymbol;
+                if (asSpanStringMethod != null && !asSpanStringMethod.HasUseSiteError)
+                {
+                    asSpanStringRef = _module.Translate(asSpanStringMethod, null, _diagnostics);
+                }
+
+                Cci.IMethodReference asSpanStringIntIntRef = null;
+                var asSpanStringIntIntMethod = _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__AsSpanStringIntInt) as MethodSymbol;
+                if (asSpanStringIntIntMethod != null && !asSpanStringIntIntMethod.HasUseSiteError)
+                {
+                    asSpanStringIntIntRef = _module.Translate(asSpanStringIntIntMethod, null, _diagnostics);
+                }
+
+                Cci.IMethodReference sequenceEqualRef = null;
+                var sequenceEqualTMethod = _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__SequenceEqual_T) as MethodSymbol;
+                var sequenceEqualCharMethod = sequenceEqualTMethod?.Construct(_module.Compilation.GetSpecialType(SpecialType.System_Char));
+                if (sequenceEqualCharMethod != null && !sequenceEqualCharMethod.HasUseSiteError)
+                {
+                    sequenceEqualRef = _module.Translate(sequenceEqualCharMethod, null, _diagnostics);
+                }
+
+                if (asSpanStringRef != null && asSpanStringIntIntRef != null && sequenceEqualRef != null)
+                {
+                    emitSpanStringCompare = (keySlice, stringConstant) =>
+                    {
+                        _builder.EmitLoad(key);
+                        _builder.EmitIntConstant(keySlice.Start.Value);
+                        _builder.EmitIntConstant(keySlice.End.Value - keySlice.Start.Value);
+                        _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -2);
+                        _builder.EmitToken(asSpanStringIntIntRef, null, _diagnostics);
+                        _builder.EmitStringConstant(stringConstant.ToString());
+                        _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+                        _builder.EmitToken(asSpanStringRef, null, _diagnostics);
+                        _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
+                        _builder.EmitToken(sequenceEqualRef, null, _diagnostics);
+                    };
+                }
             }
 
             Cci.IReference stringEqualityMethodRef = _module.Translate(equalityMethod, syntaxNode, _diagnostics);
@@ -1309,7 +1349,8 @@ oneMoreTime:
                 emitPushKeyLength,
                 emitStoreKeyLength,
                 emitPushCharAtIndex,
-                emitStoreCharAtIndex);
+                emitStoreCharAtIndex,
+                emitSpanStringCompare);
         }
 
         /// <summary>
