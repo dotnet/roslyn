@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (namedType.IsScriptClass && format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScriptType))
+            if (namedType.IsScriptClass && !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScriptType))
             {
                 return false;
             }
