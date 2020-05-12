@@ -3595,7 +3595,9 @@ class Program
 
             var comp1 = CreateCompilation(new[] { source0, source1, IsExternalInitTypeDefinition },
                 targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
-            CompileAndVerify(comp1, expectedOutput: "42");
+            // PEVerify: [ : S::set_Property] Cannot change initonly field outside its .ctor.
+            CompileAndVerify(comp1, expectedOutput: "42",
+                verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
             var comp1Ref = new[] { comp1.ToMetadataReference() };
 
             var comp7 = CreateCompilation(source2, references: comp1Ref,
