@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
 {
     [CompilerTrait(CompilerFeature.ModuleInitializers)]
     public sealed class ModuleInitializersTests : CSharpTestBase
@@ -82,9 +82,10 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
             CompileAndVerify(
                 source,
                 parseOptions: s_parseOptions,
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, metadataImportOptions: MetadataImportOptions.All),
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
+                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
                     var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
                     Assert.Null(rootModuleType.GetMember(".cctor"));
                 },
@@ -119,6 +120,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
+                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
                     var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
                     var staticConstructor = (PEMethodSymbol)rootModuleType.GetMember(".cctor");
 
@@ -137,6 +139,140 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 expectedOutput: @"
 C.M
 Program.Main");
+        }
+
+        [Fact]
+        public void SingleCallIsGeneratedWhenMethodIsMarkedTwice()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer, ModuleInitializer]
+    internal static void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    class ModuleInitializerAttribute : System.Attribute { } 
+}
+";
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: "C.M");
+        }
+
+        [Fact]
+        public void AttributeCanBeAppliedWithinItsOwnDefinition()
+        {
+            string source = @"
+using System;
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
+}
+
+namespace System.Runtime.CompilerServices
+{
+    class ModuleInitializerAttribute : System.Attribute 
+    { 
+        [ModuleInitializer]
+        internal static void M() => Console.WriteLine(""ModuleInitializerAttribute.M"");
+    } 
+}
+";
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+ModuleInitializerAttribute.M
+Program.Main");
+        }
+
+        [Fact]
+        public void ExternMethodCanBeModuleInitializer()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+class C
+{
+    [ModuleInitializer, DllImport(""dllName"")]
+    internal static extern void M();
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            CompileAndVerify(
+                source,
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                    var rootModuleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                    Assert.NotNull(rootModuleType.GetMember(".cctor"));
+                });
+        }
+
+        [Fact]
+        public void MayBeDeclaredByStruct()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+struct S
+{
+    [ModuleInitializer]
+    internal static void M() => Console.WriteLine(""S.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+S.M
+Program.Main");
+        }
+
+        [Fact]
+        public void MayBeDeclaredByInterface()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+interface I
+{
+    [ModuleInitializer]
+    internal static void M() => Console.WriteLine(""I.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            CompileAndVerify(
+                source,
+                parseOptions: s_parseOptions,
+                targetFramework: TargetFramework.NetStandardLatest,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"
+I.M
+Program.Main" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
         }
 
         [Fact]
@@ -520,6 +656,127 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
                 Assert.NotNull(moduleType.GetMember<MethodSymbol>(".cctor"));
             }
+        }
+
+        [Fact]
+        public void ModuleInitializerAttributeIncludedByConditionalAttribute()
+        {
+            string source = @"
+#define INCLUDE
+
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer]
+    internal static void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [System.Diagnostics.Conditional(""INCLUDE"")]
+    class ModuleInitializerAttribute : System.Attribute { }
+}
+";
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+C.M
+Program.Main");
+        }
+
+        [Fact]
+        public void ModuleInitializerAttributeExcludedByConditionalAttribute()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer]
+    internal static void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [System.Diagnostics.Conditional(""EXCLUDE"")]
+    class ModuleInitializerAttribute : System.Attribute { }
+}
+";
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+C.M
+Program.Main");
+        }
+
+        [Fact]
+        public void ModuleInitializerMethodIncludedByConditionalAttribute()
+        {
+            string source = @"
+#define INCLUDE
+
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [System.Diagnostics.Conditional(""INCLUDE""), ModuleInitializer]
+    internal static void Preceding() => Console.WriteLine(""C.Preceding"");
+
+    [ModuleInitializer, System.Diagnostics.Conditional(""INCLUDE"")]
+    internal static void Following() => Console.WriteLine(""C.Following"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+C.Preceding
+C.Following
+Program.Main");
+        }
+
+        [Fact]
+        public void ModuleInitializerMethodExcludedByConditionalAttribute()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [System.Diagnostics.Conditional(""EXCLUDE""), ModuleInitializer]
+    internal static void Preceding() { }
+
+    [ModuleInitializer, System.Diagnostics.Conditional(""EXCLUDE"")]
+    internal static void Following() { }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            CompileAndVerify(
+                source,
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                    var rootModuleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                    Assert.Null(rootModuleType.GetMember(".cctor"));
+                });
         }
     }
 }

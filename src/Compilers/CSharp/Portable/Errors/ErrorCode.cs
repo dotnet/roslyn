@@ -1786,6 +1786,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_GivenExpressionAlwaysMatchesPattern = 8793,
         WRN_IsPatternAlways = 8794,
 
+        ERR_ModuleInitializerMethodMustBeOrdinary = 8795,
+        ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType = 8796,
+        ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid = 8797,
+        ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric = 8798,
+
         #endregion diagnostics introduced for C# 9.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
