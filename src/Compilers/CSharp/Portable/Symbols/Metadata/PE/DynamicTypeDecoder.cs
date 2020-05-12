@@ -349,23 +349,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             var sig = type.Signature;
 
-            var transformedReturn = handle(ref this, sig.RefKind, sig.RefCustomModifiers, sig.ReturnTypeWithAnnotations);
-            if (transformedReturn is null)
+            var (transformedReturnWithAnnotations, madeChanges) = handle(ref this, sig.RefKind, sig.RefCustomModifiers, sig.ReturnTypeWithAnnotations);
+            if (transformedReturnWithAnnotations is null)
             {
                 return null;
-            }
-
-            bool madeChanges = false;
-            TypeWithAnnotations transformedReturnWithAnnotations;
-
-            if (!transformedReturn.Equals(sig.ReturnType, TypeCompareKind.ConsiderEverything))
-            {
-                transformedReturnWithAnnotations = sig.ReturnTypeWithAnnotations.WithType(transformedReturn);
-                madeChanges = true;
-            }
-            else
-            {
-                transformedReturnWithAnnotations = sig.ReturnTypeWithAnnotations;
             }
 
             var transformedParameters = ImmutableArray<TypeWithAnnotations>.Empty;
@@ -377,21 +364,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     foreach (var param in sig.Parameters)
                     {
-                        var transformedParamType = handle(ref this, param.RefKind, param.RefCustomModifiers, param.TypeWithAnnotations);
+                        var (transformedParamType, paramTransformed) = handle(ref this, param.RefKind, param.RefCustomModifiers, param.TypeWithAnnotations);
                         if (transformedParamType is null)
                         {
                             return null;
                         }
 
-                        if (param.Type.Equals(transformedParamType, TypeCompareKind.ConsiderEverything))
-                        {
-                            paramsBuilder.Add(param.TypeWithAnnotations);
-                        }
-                        else
-                        {
-                            paramsBuilder.Add(param.TypeWithAnnotations.WithType(transformedParamType));
-                            paramsTransformed = true;
-                        }
+                        paramsBuilder.Add(transformedParamType.Value);
+                        paramsTransformed |= paramTransformed;
                     }
 
                     transformedParameters = paramsTransformed ? paramsBuilder.ToImmutable() : sig.ParameterTypesWithAnnotations;
@@ -405,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (madeChanges)
             {
-                return type.SubstituteTypeSymbol(transformedReturnWithAnnotations, transformedParameters,
+                return type.SubstituteTypeSymbol(transformedReturnWithAnnotations.Value, transformedParameters,
                                                  refCustomModifiers: default, paramRefCustomModifiers: default);
             }
             else
@@ -413,16 +393,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return type;
             }
 
-            static TypeSymbol? handle(ref DynamicTypeDecoder decoder, RefKind refKind, ImmutableArray<CustomModifier> refCustomModifiers, TypeWithAnnotations typeWithAnnotations)
+            static (TypeWithAnnotations?, bool madeChanges) handle(ref DynamicTypeDecoder decoder, RefKind refKind, ImmutableArray<CustomModifier> refCustomModifiers, TypeWithAnnotations typeWithAnnotations)
             {
                 if (!decoder.HandleCustomModifiers(refCustomModifiers.Length)
                     || !decoder.HandleRefKind(refKind)
                     || !decoder.HandleCustomModifiers(typeWithAnnotations.CustomModifiers.Length))
                 {
-                    return null;
+                    return (null, false);
                 }
 
-                return decoder.TransformType(typeWithAnnotations.Type);
+                var transformedType = decoder.TransformType(typeWithAnnotations.Type);
+                if (transformedType is null)
+                {
+                    return (null, false);
+                }
+
+                if (transformedType.Equals(typeWithAnnotations.Type, TypeCompareKind.ConsiderEverything))
+                {
+                    return (typeWithAnnotations, false);
+                }
+
+                return (typeWithAnnotations.WithType(transformedType), true);
             }
         }
 #nullable restore
