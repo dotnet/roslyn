@@ -729,8 +729,11 @@ using System.Runtime.CompilerServices;
 
 class C
 {
+    [System.Diagnostics.Conditional(""INCLUDE""), ModuleInitializer]
+    internal static void Preceding() => Console.WriteLine(""C.Preceding"");
+
     [ModuleInitializer, System.Diagnostics.Conditional(""INCLUDE"")]
-    internal static void M() => Console.WriteLine(""C.M"");
+    internal static void Following() => Console.WriteLine(""C.Following"");
 }
 
 class Program 
@@ -741,7 +744,8 @@ class Program
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
-C.M
+C.Preceding
+C.Following
 Program.Main");
         }
 
@@ -754,8 +758,11 @@ using System.Runtime.CompilerServices;
 
 class C
 {
+    [System.Diagnostics.Conditional(""EXCLUDE""), ModuleInitializer]
+    internal static void Preceding() { }
+
     [ModuleInitializer, System.Diagnostics.Conditional(""EXCLUDE"")]
-    internal static void M() { }
+    internal static void Following() { }
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
