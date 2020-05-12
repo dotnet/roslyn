@@ -715,14 +715,19 @@ C.Method() -> void
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparison))]
 ";
 
+#if NETCOREAPP
+            var containingAssembly = "netstandard";
+#else
+            var containingAssembly = "mscorlib";
+#endif
             string shippedText = $@"
-System.StringComparison (forwarded, contained in mscorlib)
-System.StringComparison.CurrentCulture = 0 -> System.StringComparison (forwarded, contained in mscorlib)
-System.StringComparison.CurrentCultureIgnoreCase = 1 -> System.StringComparison (forwarded, contained in mscorlib)
-System.StringComparison.InvariantCulture = 2 -> System.StringComparison (forwarded, contained in mscorlib)
-System.StringComparison.InvariantCultureIgnoreCase = 3 -> System.StringComparison (forwarded, contained in mscorlib)
-System.StringComparison.Ordinal = 4 -> System.StringComparison (forwarded, contained in mscorlib)
-System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwarded, contained in mscorlib)
+System.StringComparison (forwarded, contained in {containingAssembly})
+System.StringComparison.CurrentCulture = 0 -> System.StringComparison (forwarded, contained in {containingAssembly})
+System.StringComparison.CurrentCultureIgnoreCase = 1 -> System.StringComparison (forwarded, contained in {containingAssembly})
+System.StringComparison.InvariantCulture = 2 -> System.StringComparison (forwarded, contained in {containingAssembly})
+System.StringComparison.InvariantCultureIgnoreCase = 3 -> System.StringComparison (forwarded, contained in {containingAssembly})
+System.StringComparison.Ordinal = 4 -> System.StringComparison (forwarded, contained in {containingAssembly})
+System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwarded, contained in {containingAssembly})
 ";
             string unshippedText = $@"";
 
@@ -735,22 +740,28 @@ System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwar
             var source = @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparer))]
 ";
+
+#if NETCOREAPP
+            var containingAssembly = "netstandard";
+#else
+            var containingAssembly = "mscorlib";
+#endif
             string shippedText = $@"
-System.StringComparer (forwarded, contained in mscorlib)
-static System.StringComparer.InvariantCulture.get -> System.StringComparer (forwarded, contained in mscorlib)
-static System.StringComparer.InvariantCultureIgnoreCase.get -> System.StringComparer (forwarded, contained in mscorlib)
-static System.StringComparer.CurrentCulture.get -> System.StringComparer (forwarded, contained in mscorlib)
-static System.StringComparer.CurrentCultureIgnoreCase.get -> System.StringComparer (forwarded, contained in mscorlib)
-static System.StringComparer.Ordinal.get -> System.StringComparer (forwarded, contained in mscorlib)
-static System.StringComparer.OrdinalIgnoreCase.get -> System.StringComparer (forwarded, contained in mscorlib)
-static System.StringComparer.Create(System.Globalization.CultureInfo culture, bool ignoreCase) -> System.StringComparer (forwarded, contained in mscorlib)
-System.StringComparer.Compare(object x, object y) -> int (forwarded, contained in mscorlib)
-System.StringComparer.Equals(object x, object y) -> bool (forwarded, contained in mscorlib)
-System.StringComparer.GetHashCode(object obj) -> int (forwarded, contained in mscorlib)
-abstract System.StringComparer.Compare(string x, string y) -> int (forwarded, contained in mscorlib)
-abstract System.StringComparer.Equals(string x, string y) -> bool (forwarded, contained in mscorlib)
-abstract System.StringComparer.GetHashCode(string obj) -> int (forwarded, contained in mscorlib)
-System.StringComparer.StringComparer() -> void (forwarded, contained in mscorlib)
+System.StringComparer (forwarded, contained in {containingAssembly})
+static System.StringComparer.InvariantCulture.get -> System.StringComparer (forwarded, contained in {containingAssembly})
+static System.StringComparer.InvariantCultureIgnoreCase.get -> System.StringComparer (forwarded, contained in {containingAssembly})
+static System.StringComparer.CurrentCulture.get -> System.StringComparer (forwarded, contained in {containingAssembly})
+static System.StringComparer.CurrentCultureIgnoreCase.get -> System.StringComparer (forwarded, contained in {containingAssembly})
+static System.StringComparer.Ordinal.get -> System.StringComparer (forwarded, contained in {containingAssembly})
+static System.StringComparer.OrdinalIgnoreCase.get -> System.StringComparer (forwarded, contained in {containingAssembly})
+static System.StringComparer.Create(System.Globalization.CultureInfo culture, bool ignoreCase) -> System.StringComparer (forwarded, contained in {containingAssembly})
+System.StringComparer.Compare(object x, object y) -> int (forwarded, contained in {containingAssembly})
+System.StringComparer.Equals(object x, object y) -> bool (forwarded, contained in {containingAssembly})
+System.StringComparer.GetHashCode(object obj) -> int (forwarded, contained in {containingAssembly})
+abstract System.StringComparer.Compare(string x, string y) -> int (forwarded, contained in {containingAssembly})
+abstract System.StringComparer.Equals(string x, string y) -> bool (forwarded, contained in {containingAssembly})
+abstract System.StringComparer.GetHashCode(string obj) -> int (forwarded, contained in {containingAssembly})
+System.StringComparer.StringComparer() -> void (forwarded, contained in {containingAssembly})
 ";
             string unshippedText = $@"";
 

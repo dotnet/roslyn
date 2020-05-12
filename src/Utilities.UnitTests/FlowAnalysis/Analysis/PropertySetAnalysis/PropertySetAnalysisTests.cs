@@ -1301,12 +1301,16 @@ class TestClass
                 .AddMetadataReferences(projectId, references)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.CodeAnalysisReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.WorkspacesReference)
+#if !NETCOREAPP
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeSerialization)
+#endif
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDirectoryServices)
+#if !NETCOREAPP
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXaml)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.PresentationFramework)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebExtensions)
+#endif
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, null)
                 .GetProject(projectId);
