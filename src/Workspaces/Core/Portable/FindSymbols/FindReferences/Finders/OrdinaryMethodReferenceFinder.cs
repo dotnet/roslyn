@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -120,8 +121,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private bool IsSubstringMethod(IMethodSymbol methodSymbol)
             => methodSymbol.Name == nameof(string.Substring);
 
+#if NETCOREAPP
         private bool IsSubArrayMethod(IMethodSymbol methodSymbol)
-            => methodSymbol.Name == "System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray";
+            => methodSymbol.Name == nameof(RuntimeHelpers.GetSubArray);
+#else
+        private bool IsSubArrayMethod(IMethodSymbol methodSymbol) => false;
+#endif
 
         protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,

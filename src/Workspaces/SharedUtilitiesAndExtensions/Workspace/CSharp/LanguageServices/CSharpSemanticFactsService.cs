@@ -310,9 +310,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node is ElementAccessExpressionSyntax elementAccess)
             {
                 var info = semanticModel.GetSymbolInfo(elementAccess);
-                if (info.Symbol != null && info.Symbol.IsKind(SymbolKind.Method))
+                var symbol = info.Symbol;
+
+                if (symbol != null && symbol.IsKind(SymbolKind.Method))
                 {
-                    return (IMethodSymbol)info.Symbol;
+                    return (IMethodSymbol)symbol;
                 }
             }
 
@@ -330,6 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var symbol = info.Symbol;
 
                 // If we can't find a valid symbol, compare against the first candidate symbol instead.
+                // TO-DO: not sure if we should be doing this or if there's a bug somewhere? Including this check makes certain tests pass.
                 if (symbol == null)
                 {
                     symbol = info.CandidateSymbols.FirstOrDefault();

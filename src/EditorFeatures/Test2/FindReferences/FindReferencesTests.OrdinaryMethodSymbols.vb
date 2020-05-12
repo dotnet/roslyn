@@ -3255,7 +3255,7 @@ End Class
             {
                 string s = "str";
                 var x = [|s|][0..^1];
-                s.{|Definition:Substring|}(0, 1);
+                s.[|Subst$$ring|](0, 1);
             }
         }
         </Document>
@@ -3271,15 +3271,15 @@ End Class
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
+        using System.Runtime.CompilerServices;
+
         class C
         {
-            int {|Definition:Len$$gth|} => 10;
-            int this[int index] => 1;
-
             void M()
             {
-                var c = new C();
-                var o = [|c|][^1];
+                var a = new int[3];
+                var x = [|a|][0..^1];
+                RuntimeHelpers.[|GetSu$$bArray|](a, new System.Range());
             }
         }
         </Document>
