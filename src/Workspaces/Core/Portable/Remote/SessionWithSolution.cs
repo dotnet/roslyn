@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Remote
         internal readonly KeepAliveSession KeepAliveSession;
         private readonly PinnedRemotableDataScope _scope;
 
-
         public static async Task<SessionWithSolution> CreateAsync(KeepAliveSession keepAliveSession, Solution solution, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(keepAliveSession);
