@@ -443,8 +443,8 @@ namespace Analyzer.Utilities
             {
                 var optionValue = s;
 
-                if (!string.IsNullOrEmpty(optionForcedValue) &&
-                    (optionValue == null || !optionValue.Contains(optionForcedValue)))
+                if (!RoslynString.IsNullOrEmpty(optionForcedValue) &&
+                    (optionValue == null || !optionValue.Contains(optionForcedValue, StringComparison.Ordinal)))
                 {
                     optionValue = $"{optionForcedValue}|{optionValue}";
                 }
@@ -470,8 +470,8 @@ namespace Analyzer.Utilities
                     optionValue = optionDefaultValue;
                 }
 
-                if (!string.IsNullOrEmpty(optionForcedValue) &&
-                    (optionValue == null || !optionValue.Contains(optionForcedValue)))
+                if (!RoslynString.IsNullOrEmpty(optionForcedValue) &&
+                    (optionValue == null || !optionValue.Contains(optionForcedValue, StringComparison.Ordinal)))
                 {
                     optionValue = $"{optionForcedValue}|{optionValue}";
                 }
