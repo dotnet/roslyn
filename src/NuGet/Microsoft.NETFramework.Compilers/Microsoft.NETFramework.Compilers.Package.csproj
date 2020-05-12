@@ -4,11 +4,11 @@
     <TargetFramework>net472</TargetFramework>
 
     <IsPackable>true</IsPackable>
-    <NuspecPackageId>Microsoft.Net.Compilers</NuspecPackageId>
+    <NuspecPackageId>Microsoft.NETFramework.Compilers</NuspecPackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
     <PackageDescription>
-      Note: This package is deprecated. Please use Microsoft.Net.Compilers.Toolset instead
+      Note: This package is deprecated. Please use Microsoft.NET.Compilers instead
 
       .NET Compilers package.
       Referencing this package will cause the project to be built using the C# and Visual Basic compilers contained in the package, as opposed to the version installed with MSBuild.
@@ -38,5 +38,5 @@
     </ItemGroup>
   </Target>
 
-  <Import Project="..\Microsoft.Net.Compilers.Toolset\DesktopCompilerArtifacts.targets"/>
+  <Import Project="..\Microsoft.NET.Compilers\DesktopCompilerArtifacts.targets"/>
 </Project>

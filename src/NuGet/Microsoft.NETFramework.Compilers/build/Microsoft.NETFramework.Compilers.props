@@ -11,7 +11,7 @@
 
   <Target Name="ValidateMSBuildToolsVersion" Condition="'$(BuildingProject)' == 'true'">
     <!-- The new editorconfig support requires MSBuild version 16.3. -->
-    <Error Text="Microsoft.Net.Compilers is only supported on MSBuild v16.3 and above"
+    <Error Text="Microsoft.NETFramework.Compilers is only supported on MSBuild v16.3 and above"
            Condition="'$(MSBuildVersion)' &lt; '16.3'" />
   </Target>
 

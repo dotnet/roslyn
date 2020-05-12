@@ -100,7 +100,7 @@ namespace BuildBoss
             var allGood = true;
             allGood &= VerifyNuPackage(
                         textWriter,
-                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers"),
+                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.NETFramework.Compilers"),
                         @"tools",
                         assetRelativeNames);
 
@@ -142,7 +142,7 @@ namespace BuildBoss
 
             return VerifyNuPackage(
                     textWriter,
-                    FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Toolset"),
+                    FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.NET.Compilers"),
                     @"tasks",
                     list);
         }

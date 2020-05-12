@@ -1,7 +1,7 @@
 Compiler Toolset NuPkgs
 ===
 ## Summary
-The compiler produces the [Microsoft.Net.Compilers.Toolset NuPkg](https://www.nuget.org/packages/Microsoft.Net.Compilers.Toolset)
+The compiler produces the [Microsoft.NET.Compilers NuPkg](https://www.nuget.org/packages/Microsoft.NET.Compilers)
 from all of Roslyn's main branches. When this NuPkg is installed it will
 override the compiler that comes with MSBuild with the version from the branch
 it was built in.
@@ -16,7 +16,7 @@ SDK build process.
 which aren't in an official shipping product yet.
 
 This package is **not** meant to support using newer compiler versions in an
-older version of MSBuild. For example using Microsoft.Net.Compilers.Toolset
+older version of MSBuild. For example using Microsoft.NET.Compilers
 3.5 (C# 8) inside MSBuild 15 is explicitly not a supported scenario.
 
 Customers who want to use the compiler as a part of their supported build 
@@ -28,17 +28,17 @@ infrastructure should use the [Visual Studio Build Tools SKU](https://docs.micro
 To install the NuPgk run the following:
 
 ```cmd
-> nuget install Microsoft.Net.Compilers.Toolset   # Install C# and VB compilers
+> nuget install Microsoft.NET.Compilers   # Install C# and VB compilers
 ```
 
 Daily NuGet builds of the project are also available in our MyGet feed:
 
 > [https://dotnet.myget.org/F/roslyn/api/v3/index.json](https://dotnet.myget.org/F/roslyn/api/v3/index.json)
 
-## Microsoft.Net.Compilers
+## Microsoft.NETFramework.Compilers
 
-The [Microsoft.Net.Compilers](https://www.nuget.org/packages/Microsoft.Net.Compilers)
+The [Microsoft.NETFramework.Compilers](https://www.nuget.org/packages/Microsoft.NETFramework.Compilers)
 NuPkg is deprecated. It is a .NET Desktop specific version of
-Microsoft.Net.Compilers.Toolset and will not be produced anymore after the 
-3.6.0 release. The Microsoft.Net.Compilers.Toolset package is a drop in
+Microsoft.NET.Compilers and will not be produced anymore after the 
+3.6.0 release. The Microsoft.NET.Compilers package is a drop in
 replacement for it for all supported scenarios.

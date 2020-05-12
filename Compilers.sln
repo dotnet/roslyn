@@ -140,7 +140,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{27
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NETCore.Compilers.Package", "src\NuGet\Microsoft.NETCore.Compilers\Microsoft.NETCore.Compilers.Package.csproj", "{15FEBD1B-55CE-4EBD-85E3-04898260A25B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Package", "src\NuGet\Microsoft.Net.Compilers\Microsoft.Net.Compilers.Package.csproj", "{27B1EAE2-2E06-48EF-8A67-06D6FB3DC275}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NETFramework.Compilers.Package", "src\NuGet\Microsoft.NETFramework.Compilers\Microsoft.NETFramework.Compilers.Package.csproj", "{27B1EAE2-2E06-48EF-8A67-06D6FB3DC275}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Compilers.Package", "src\NuGet\Microsoft.CodeAnalysis.Compilers.Package.csproj", "{E0756C89-603F-4B48-8E64-1D53E62654C8}"
 EndProject
@@ -150,7 +150,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Pack
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildBoss", "src\Tools\BuildBoss\BuildBoss.csproj", "{8A02AFAF-F622-4E3E-9E1A-8CFDACC7C7E1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\Microsoft.Net.Compilers.Toolset.Package.csproj", "{6D407402-CC4A-4125-9B00-C70562A636A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NET.Compilers.Package", "src\NuGet\Microsoft.NET.Compilers\Microsoft.NET.Compilers.Package.csproj", "{6D407402-CC4A-4125-9B00-C70562A636A5}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "vbi", "src\Interactive\vbi\vbi.vbproj", "{706CFC25-B6E0-4DAA-BCC4-F6FAAFEEDF87}"
 EndProject

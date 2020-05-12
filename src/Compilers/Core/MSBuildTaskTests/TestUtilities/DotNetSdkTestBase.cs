@@ -195,7 +195,7 @@ $@"<Project>
             var binLog = Path.Combine(ProjectDir.Path, $"build{_logIndex++}.binlog");
 
             // RoslynTargetsPath is a path to the built-in Roslyn compilers in the .NET SDK.
-            // For testing we are using compilers from custom location (this emulates usage of Microsoft.Net.Compilers package.
+            // For testing we are using compilers from custom location (this emulates usage of Microsoft.NETFramework.Compilers package.
             // The core targets should be imported from CSharpCoreTargetsPath and VisualBasicCoreTargetsPath and the compiler tasks from the same location.
             var buildResult = ProcessUtilities.Run(DotNetPath, $@"msbuild ""{Project.Path}"" /t:{targetsArg} /p:RoslynTargetsPath=""<nonexistent directory>"" /p:Configuration={Configuration} /bl:""{binLog}""",
                 additionalEnvironmentVars: EnvironmentVariables);

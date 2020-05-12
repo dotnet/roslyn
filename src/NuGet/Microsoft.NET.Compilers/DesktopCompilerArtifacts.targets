@@ -3,7 +3,7 @@
 <Project>
 
   <!--
-    The CompilerArtifact list is used to generate Microsoft.Net.Compilers package, VS.Toolset.Roslyn CoreXT package and Microsoft.CodeAnalysis.Compilers Willow VSIX.
+    The CompilerArtifact list is used to generate Microsoft.NETFramework.Compilers package, VS.Toolset.Roslyn CoreXT package and Microsoft.CodeAnalysis.Compilers Willow VSIX.
     Keeping the list in central location allows us to make sure that these packages include the same files.
 
     Ngen* attributes indicate how VS should NGEN the assemblies that are distributed by VS Setup.

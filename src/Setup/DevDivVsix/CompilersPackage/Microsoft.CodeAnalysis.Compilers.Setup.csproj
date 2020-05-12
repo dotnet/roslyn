@@ -200,5 +200,5 @@ folder InstallDir:\MSBuild\Current\Bin\Roslyn\zh-Hant
     </ItemGroup>
   </Target>
 
-  <Import Project="..\..\..\NuGet\Microsoft.Net.Compilers.Toolset\DesktopCompilerArtifacts.targets"/>
+  <Import Project="..\..\..\NuGet\Microsoft.NET.Compilers\DesktopCompilerArtifacts.targets"/>
 </Project>

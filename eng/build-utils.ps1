@@ -313,7 +313,7 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
   Remove-Item -re $dir -ErrorAction SilentlyContinue
   Create-Directory $dir
 
-  $packageName = "Microsoft.Net.Compilers.Toolset"
+  $packageName = "Microsoft.NET.Compilers"
   $projectPath = "src\NuGet\$packageName\$packageName.Package.csproj"
   $force32Flag = if ($force32) { " /p:BOOTSTRAP32=true" } else { "" }
 

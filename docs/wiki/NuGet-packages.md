@@ -4,13 +4,13 @@ A number of NuGet packages are published from the Roslyn repo:
 * Official released packages are published to [nuget.org](https://www.nuget.org/profiles/RoslynTeam), when Visual Studio releases a new RTM or Preview version.
 * Pre-release packages are published daily to [myget.org](https://dotnet.myget.org/gallery/roslyn).
 
-### Microsoft.Net.Compilers.Toolset
+### Microsoft.NET.Compilers
 
 This package contains the C# and Visual Basic compiler toolset for .NET Desktop and .NET Core. This includes the compilers, msbuild tasks and targets files. When installed in a project this will override the compiler toolset installed in MSBuild. 
 
 This package is primarily intended as a method for rapidly shipping hotfixes to customers. Using it as a long term solution for providing newer compilers on older MSBuild installations is explicitly not supported. That can and will break on a regular basis.
 
-Note: this package is intended as a replacement for Microsoft.Net.Compilers (which is a Windows-only package) and Microsoft.NETCore.Compilers. Those packages are now deprecated and will be deleted in the future.
+Note: this package is intended as a replacement for Microsoft.NETFramework.Compilers (which is a Windows-only package) and Microsoft.NETCore.Compilers. Those packages are now deprecated and will be deleted in the future.
 
 ## Versioning
 Below are the versions of the language available in the NuGet packages. Remember to set a specific language version (or "latest") if you want to use one that is newer than "default" (ie. latest major version).

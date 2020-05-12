@@ -126,7 +126,7 @@ version and clicking Uninstall.
 
 If you only install the VSIX, then the IDE will behave correctly (ie. new compiler
 and IDE behavior), but the Build operation or building from the command-line won't. 
-To fix that, add a reference to the `Microsoft.Net.Compilers.Toolset` you built into 
+To fix that, add a reference to the `Microsoft.NET.Compilers` you built into 
 your csproj. As shown below, you'll want to (1) add a nuget source pointing to your local build folder,
 (2) add the package reference, then (3) verify the Build Output of your project with a
 `#error version` included in your program.

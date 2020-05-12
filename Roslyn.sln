@@ -350,7 +350,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost64", "src\In
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTest.IntegrationService", "src\VisualStudio\IntegrationTest\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj", "{764D2C19-0187-4837-A2A3-96DDC6EF4CE2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Package", "src\NuGet\Microsoft.Net.Compilers\Microsoft.Net.Compilers.Package.csproj", "{9102ECF3-5CD1-4107-B8B7-F3795A52D790}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NETFramework.Compilers.Package", "src\NuGet\Microsoft.NETFramework.Compilers\Microsoft.NETFramework.Compilers.Package.csproj", "{9102ECF3-5CD1-4107-B8B7-F3795A52D790}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NETCore.Compilers.Package", "src\NuGet\Microsoft.NETCore.Compilers\Microsoft.NETCore.Compilers.Package.csproj", "{50CF5D8F-F82F-4210-A06E-37CC9BFFDD49}"
 EndProject
@@ -388,7 +388,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.CodeLens", "src\VisualStudio\CodeLens\Microsoft.VisualStudio.LanguageServices.CodeLens.csproj", "{5E6E9184-DEC5-4EC5-B0A4-77CFDC8CDEBE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\Microsoft.Net.Compilers.Toolset.Package.csproj", "{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NET.Compilers.Package", "src\NuGet\Microsoft.NET.Compilers\Microsoft.NET.Compilers.Package.csproj", "{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Protocol", "src\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj", "{686BF57E-A6FF-467B-AAB3-44DE916A9772}"
 EndProject
