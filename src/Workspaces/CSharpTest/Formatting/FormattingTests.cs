@@ -6468,11 +6468,6 @@ class C
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task QueryExpressionInExpression()
         {
-            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
-            {
-                { CSharpFormattingOptions2.NewLinesForBracesInMethods, false }
-            };
-
             var code = @"
 class C
 {
@@ -6523,7 +6518,7 @@ class C
     }
 }
 ";
-            await AssertFormatAsync(expected, code, changedOptionSet: changingOptions);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
