@@ -235,9 +235,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
         {
-            var oldLocation = parameter.Locations[0];
+#if DEBUG
+            var locations = parameter.Locations;
+            Debug.Assert(!locations.IsEmpty || parameter.IsImplicitlyDeclared);
+            var oldLocation = locations.IsEmpty ? Location.None : locations[0];
             Debug.Assert(oldLocation != newLocation || oldLocation == Location.None || newLocation.SourceTree?.GetRoot().ContainsDiagnostics == true,
                 "same nonempty location refers to different symbols?");
+#endif 
             SymbolKind parameterKind = parameter.Kind;
 
             // Quirk of the way we represent lambda parameters.                

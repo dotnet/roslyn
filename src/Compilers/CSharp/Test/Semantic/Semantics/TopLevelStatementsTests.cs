@@ -33,7 +33,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
+            AssertEntryPointParameter(entryPoint);
             CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        private static void AssertEntryPointParameter(SynthesizedSimpleProgramEntryPointSymbol entryPoint)
+        {
+            Assert.Equal(1, entryPoint.ParameterCount);
+            ParameterSymbol parameter = entryPoint.Parameters.Single();
+            Assert.Equal("System.String[] args", parameter.ToTestDisplayString(includeNonNullable: true));
+            Assert.True(parameter.IsImplicitlyDeclared);
+            Assert.Same(entryPoint, parameter.ContainingSymbol);
         }
 
         [Fact]
@@ -52,6 +62,7 @@ Console.Write(""async main"");
             var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
+            AssertEntryPointParameter(entryPoint);
             CompileAndVerify(comp, expectedOutput: "hello async main");
         }
 
@@ -990,6 +1001,31 @@ System.Console.WriteLine(x+y);
         }
 
         [Fact]
+        public void LocalDeclarationStatement_14()
+        {
+            var text1 = @"
+string args = ""1"";
+System.Console.Write(args);
+";
+
+            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (2,8): error CS0136: A local or parameter named 'args' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // string args = "1";
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "args").WithArguments("args").WithLocation(2, 8)
+                );
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree1 = comp.SyntaxTrees[0];
+            var model1 = comp.GetSemanticModel(tree1);
+            var symbol1 = model1.GetDeclaredSymbol(tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First());
+            Assert.Equal("System.String args", symbol1.ToTestDisplayString());
+            Assert.Same(symbol1, model1.GetSymbolInfo(tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "args").Single()).Symbol);
+        }
+
+        [Fact]
         public void UsingStatement_01()
         {
             string source = @"
@@ -1532,11 +1568,17 @@ namespace N1
 
             Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
+            var nameRefs = tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Test").ToArray();
+
+            var nameRef = nameRefs[1];
+            Assert.Equal("System.Console.WriteLine(Test)", nameRef.Parent.Parent.Parent.ToString());
+            Assert.Same(declSymbol, model1.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model1, nameRef);
+
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var nameRefs = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Test").ToArray();
 
-            var nameRef = nameRefs[0];
+            nameRef = nameRefs[0];
             Assert.Equal("using alias1 = Test;", nameRef.Parent.ToString());
 
             Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
@@ -3689,6 +3731,333 @@ namespace N1
         }
 
         [Fact]
+        public void Scope_31()
+        {
+            var text = @"
+using alias1 = args;
+
+System.Console.WriteLine(args);
+
+class args {}
+
+class Derived : args
+{
+    void M()
+    {
+        args x = null;
+        alias1 y = x;
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(args); // 1
+        args.ToString(); // 2
+        args[0].EndsWith(null); // 3
+        _ = nameof(args);
+    }
+}
+
+namespace N1
+{
+    using alias2 = args;
+
+    class Derived : args
+    {
+        void M()
+        {
+            args x = null;
+            alias2 y = x;
+            System.Console.WriteLine(y);
+            System.Console.WriteLine(args); // 4
+            args.ToString(); // 5
+            args[0].EndsWith(null); // 6
+            _ = nameof(args);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (15,34): error CS0119: 'args' is a type, which is not valid in the given context
+                //         System.Console.WriteLine(args); // 1
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "args").WithArguments("args", "type").WithLocation(15, 34),
+                // (16,9): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
+                //         args.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "args.ToString").WithArguments("object.ToString()").WithLocation(16, 9),
+                // (17,9): error CS0119: 'args' is a type, which is not valid in the given context
+                //         args[0].EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "args").WithArguments("args", "type").WithLocation(17, 9),
+                // (33,38): error CS0119: 'args' is a type, which is not valid in the given context
+                //             System.Console.WriteLine(args); // 4
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "args").WithArguments("args", "type").WithLocation(33, 38),
+                // (34,13): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
+                //             args.ToString(); // 5
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "args.ToString").WithArguments("object.ToString()").WithLocation(34, 13),
+                // (35,13): error CS0119: 'args' is a type, which is not valid in the given context
+                //             args[0].EndsWith(null); // 6
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "args").WithArguments("args", "type").WithLocation(35, 13)
+                );
+
+            var testType = ((Compilation)comp).GetTypeByMetadataName("args");
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var nameRefs = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "args").ToArray();
+
+            var nameRef = nameRefs[0];
+            Assert.Equal("using alias1 = args;", nameRef.Parent.ToString());
+
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            var names = model.LookupNames(nameRef.SpanStart);
+            Assert.Contains("args", names);
+
+            var symbols = model.LookupSymbols(nameRef.SpanStart);
+            Assert.Contains(testType, symbols);
+            Assert.False(symbols.Any(s => s.Kind == SymbolKind.Parameter));
+            Assert.Same(testType, model.LookupSymbols(nameRef.SpanStart, name: "args").Single());
+
+            nameRef = nameRefs[1];
+            Assert.Equal("System.Console.WriteLine(args)", nameRef.Parent.Parent.Parent.ToString());
+            var parameter = model.GetSymbolInfo(nameRef).Symbol;
+            Assert.Equal("System.String[] args", parameter.ToTestDisplayString());
+            Assert.Equal("<simple-program-entry-point>", parameter.ContainingSymbol.ToTestDisplayString());
+
+            names = model.LookupNames(nameRef.SpanStart);
+            Assert.Contains("args", names);
+
+            symbols = model.LookupSymbols(nameRef.SpanStart);
+            Assert.DoesNotContain(testType, symbols);
+            Assert.Contains(parameter, symbols);
+            Assert.Same(parameter, model.LookupSymbols(nameRef.SpanStart, name: "args").Single());
+
+            symbols = model.LookupNamespacesAndTypes(nameRef.SpanStart);
+            Assert.Contains(testType, symbols);
+            Assert.DoesNotContain(parameter, symbols);
+            Assert.Same(testType, model.LookupNamespacesAndTypes(nameRef.SpanStart, name: "args").Single());
+
+            nameRef = nameRefs[2];
+            Assert.Equal(": args", nameRef.Parent.Parent.ToString());
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(parameter, model, nameRef);
+
+            nameRef = nameRefs[4];
+            Assert.Equal("System.Console.WriteLine(args)", nameRef.Parent.Parent.Parent.ToString());
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(parameter, model, nameRef);
+
+            nameRef = nameRefs[8];
+            Assert.Equal("using alias2 = args;", nameRef.Parent.ToString());
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(parameter, model, nameRef);
+
+            nameRef = nameRefs[9];
+            Assert.Equal(": args", nameRef.Parent.Parent.ToString());
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(parameter, model, nameRef);
+
+            nameRef = nameRefs[11];
+            Assert.Equal("System.Console.WriteLine(args)", nameRef.Parent.Parent.Parent.ToString());
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(parameter, model, nameRef);
+
+            void verifyModel(ISymbol declSymbol, SemanticModel model, IdentifierNameSyntax nameRef)
+            {
+                var names = model.LookupNames(nameRef.SpanStart);
+                Assert.Contains("args", names);
+
+                var symbols = model.LookupSymbols(nameRef.SpanStart);
+                Assert.Contains(testType, symbols);
+                Assert.DoesNotContain(declSymbol, symbols);
+                Assert.Same(testType, model.LookupSymbols(nameRef.SpanStart, name: "args").Single());
+
+                symbols = model.LookupNamespacesAndTypes(nameRef.SpanStart);
+                Assert.Contains(testType, symbols);
+                Assert.DoesNotContain(declSymbol, symbols);
+                Assert.Same(testType, model.LookupNamespacesAndTypes(nameRef.SpanStart, name: "args").Single());
+            }
+        }
+
+        [Fact]
+        public void Scope_32()
+        {
+            var text1 = @"
+System.Console.WriteLine(args);
+";
+            var text2 = @"
+using alias1 = args;
+
+class args {}
+
+class Derived : args
+{
+    void M()
+    {
+        args x = null;
+        alias1 y = x;
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(args); // 1
+        args.ToString(); // 2
+        args[0].EndsWith(null); // 3
+        _ = nameof(args);
+    }
+}
+
+namespace N1
+{
+    using alias2 = args;
+
+    class Derived : args
+    {
+        void M()
+        {
+            args x = null;
+            alias2 y = x;
+            System.Console.WriteLine(y);
+            System.Console.WriteLine(args); // 4
+            args.ToString(); // 5
+            args[0].EndsWith(null); // 6
+            _ = nameof(args);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (13,34): error CS0119: 'args' is a type, which is not valid in the given context
+                //         System.Console.WriteLine(args); // 1
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "args").WithArguments("args", "type").WithLocation(13, 34),
+                // (14,9): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
+                //         args.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "args.ToString").WithArguments("object.ToString()").WithLocation(14, 9),
+                // (15,9): error CS0119: 'args' is a type, which is not valid in the given context
+                //         args[0].EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "args").WithArguments("args", "type").WithLocation(15, 9),
+                // (31,38): error CS0119: 'args' is a type, which is not valid in the given context
+                //             System.Console.WriteLine(args); // 4
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "args").WithArguments("args", "type").WithLocation(31, 38),
+                // (32,13): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
+                //             args.ToString(); // 5
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "args.ToString").WithArguments("object.ToString()").WithLocation(32, 13),
+                // (33,13): error CS0119: 'args' is a type, which is not valid in the given context
+                //             args[0].EndsWith(null); // 6
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "args").WithArguments("args", "type").WithLocation(33, 13)
+                );
+
+            var testType = ((Compilation)comp).GetTypeByMetadataName("args");
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree = comp.SyntaxTrees[1];
+            var model = comp.GetSemanticModel(tree);
+            var nameRefs = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "args").ToArray();
+
+            var nameRef = nameRefs[0];
+            Assert.Equal("using alias1 = args;", nameRef.Parent.ToString());
+
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            var names = model.LookupNames(nameRef.SpanStart);
+            Assert.Contains("args", names);
+
+            var symbols = model.LookupSymbols(nameRef.SpanStart);
+            Assert.Contains(testType, symbols);
+            Assert.False(symbols.Any(s => s.Kind == SymbolKind.Parameter));
+            Assert.Same(testType, model.LookupSymbols(nameRef.SpanStart, name: "args").Single());
+
+            nameRef = nameRefs[1];
+            Assert.Equal(": args", nameRef.Parent.Parent.ToString());
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(model, nameRef);
+
+            nameRef = nameRefs[3];
+            Assert.Equal("System.Console.WriteLine(args)", nameRef.Parent.Parent.Parent.ToString());
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(model, nameRef);
+
+            nameRef = nameRefs[7];
+            Assert.Equal("using alias2 = args;", nameRef.Parent.ToString());
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(model, nameRef);
+
+            nameRef = nameRefs[8];
+            Assert.Equal(": args", nameRef.Parent.Parent.ToString());
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(model, nameRef);
+
+            nameRef = nameRefs[10];
+            Assert.Equal("System.Console.WriteLine(args)", nameRef.Parent.Parent.Parent.ToString());
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(model, nameRef);
+
+            void verifyModel(SemanticModel model, IdentifierNameSyntax nameRef)
+            {
+                var names = model.LookupNames(nameRef.SpanStart);
+                Assert.Contains("args", names);
+
+                var symbols = model.LookupSymbols(nameRef.SpanStart);
+                Assert.Contains(testType, symbols);
+                Assert.False(symbols.Any(s => s.Kind == SymbolKind.Parameter));
+                Assert.Same(testType, model.LookupSymbols(nameRef.SpanStart, name: "args").Single());
+
+                symbols = model.LookupNamespacesAndTypes(nameRef.SpanStart);
+                Assert.Contains(testType, symbols);
+                Assert.False(symbols.Any(s => s.Kind == SymbolKind.Parameter));
+                Assert.Same(testType, model.LookupNamespacesAndTypes(nameRef.SpanStart, name: "args").Single());
+            }
+        }
+
+        [Fact]
+        public void Scope_33()
+        {
+            var text = @"
+System.Console.WriteLine(args);
+
+class Test
+{
+    void M()
+    {
+        System.Console.WriteLine(args);
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (8,34): error CS0103: The name 'args' does not exist in the current context
+                //         System.Console.WriteLine(args);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "args").WithArguments("args").WithLocation(8, 34)
+                );
+        }
+
+        [Fact]
+        public void Scope_34()
+        {
+            var text1 = @"
+System.Console.WriteLine(args);
+";
+            var text2 = @"
+class Test
+{
+    void M()
+    {
+        System.Console.WriteLine(args);
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (6,34): error CS0103: The name 'args' does not exist in the current context
+                //         System.Console.WriteLine(args);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "args").WithArguments("args").WithLocation(6, 34)
+                );
+        }
+
+        [Fact]
         public void LocalFunctionStatement_01()
         {
             var text = @"
@@ -4034,6 +4403,101 @@ void local()
         }
 
         [Fact]
+        public void LocalFunctionStatement_11()
+        {
+            var text1 = @"
+args(1);
+void args(int x)
+{}
+";
+
+            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (3,6): error CS0136: A local or parameter named 'args' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // void args(int x)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "args").WithArguments("args").WithLocation(3, 6)
+                );
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree1 = comp.SyntaxTrees[0];
+            var model1 = comp.GetSemanticModel(tree1);
+            var symbol1 = model1.GetDeclaredSymbol(tree1.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().First());
+            Assert.Equal("void args(System.Int32 x)", symbol1.ToTestDisplayString());
+            Assert.Same(symbol1, model1.GetSymbolInfo(tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "args").Single()).Symbol);
+        }
+
+        [Fact]
+        public void LocalFunctionStatement_12()
+        {
+            var text1 = @"
+local(1);
+void local<args>(args x)
+{
+    System.Console.WriteLine(x);
+}
+";
+
+            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            CompileAndVerify(comp, expectedOutput: "1");
+        }
+
+        [Fact]
+        public void LocalFunctionStatement_13()
+        {
+            var text1 = @"
+local();
+void local()
+{
+    var args = 2;
+    System.Console.WriteLine(args);
+}
+";
+
+            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            CompileAndVerify(comp, expectedOutput: "2");
+        }
+
+        [Fact]
+        public void LocalFunctionStatement_14()
+        {
+            var text1 = @"
+local(3);
+void local(int args)
+{
+    System.Console.WriteLine(args);
+}
+";
+
+            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            CompileAndVerify(comp, expectedOutput: "3");
+        }
+
+        [Fact]
+        public void LocalFunctionStatement_15()
+        {
+            var text1 = @"
+local();
+void local()
+{
+    args(4);
+    void args(int x)
+    {
+        System.Console.WriteLine(x);
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            CompileAndVerify(comp, expectedOutput: "4");
+        }
+
+        [Fact]
         public void Lambda_01()
         {
             var text = @"
@@ -4240,6 +4704,37 @@ goto label1;
             Assert.Equal("label1", symbol2.ToTestDisplayString());
             Assert.NotEqual(symbol1, symbol2);
             Assert.Same(symbol2, model2.GetSymbolInfo(tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "label1").Single()).Symbol);
+        }
+
+        [Fact]
+        public void LabeledStatement_04()
+        {
+            var text = @"
+goto args;
+args: System.Console.WriteLine(""Hi!"");
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var declarator = tree.GetRoot().DescendantNodes().OfType<LabeledStatementSyntax>().Single();
+            var reference = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "args").Single();
+
+            var label = model.GetDeclaredSymbol(declarator);
+            Assert.Same(label, model.GetSymbolInfo(reference).Symbol);
+            Assert.Equal("args", label.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Label, label.Kind);
+
+            Assert.Equal(SymbolKind.Method, label.ContainingSymbol.Kind);
+            Assert.False(label.ContainingSymbol.IsImplicitlyDeclared);
+            Assert.Equal(SymbolKind.NamedType, label.ContainingSymbol.ContainingSymbol.Kind);
+            Assert.True(label.ContainingSymbol.ContainingSymbol.IsImplicitlyDeclared);
+            Assert.True(((INamespaceSymbol)label.ContainingSymbol.ContainingSymbol.ContainingSymbol).IsGlobalNamespace);
         }
 
         [Fact]
@@ -6626,7 +7121,9 @@ class C1
                 // error CS0518: Predefined type 'System.Object' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Object").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Void' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.String' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.String").WithLocation(1, 1)
                 );
         }
 
@@ -6769,10 +7266,27 @@ return 11;
         }
 
         [Fact]
+        public void MissingTypes_07()
+        {
+            var text = @"
+System.Console.WriteLine();
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.MakeTypeMissing(SpecialType.System_String);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.String[missing][] args", entryPoint.Parameters.Single().ToTestDisplayString());
+            comp.VerifyEmitDiagnostics(
+                // error CS0518: Predefined type 'System.String' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.String").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
         public void Return_01()
         {
             var text = @"
-System.Console.WriteLine(""Hi!"");
+System.Console.WriteLine(args[0]);
 return;
 ";
 
@@ -6780,14 +7294,15 @@ return;
             var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
-            CompileAndVerify(comp, expectedOutput: "Hi!");
+            AssertEntryPointParameter(entryPoint);
+            CompileAndVerify(comp, expectedOutput: "Return_01", args: new[] { "Return_01" });
         }
 
         [Fact]
         public void Return_02()
         {
             var text = @"
-System.Console.WriteLine(""Hi!"");
+System.Console.WriteLine(args[0]);
 return 10;
 ";
 
@@ -6795,7 +7310,8 @@ return 10;
             var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
-            CompileAndVerify(comp, expectedOutput: "Hi!", expectedReturnCode: 10);
+            AssertEntryPointParameter(entryPoint);
+            CompileAndVerify(comp, expectedOutput: "Return_02", args: new[] { "Return_02" }, expectedReturnCode: 10);
         }
 
         [Fact]
@@ -6807,7 +7323,7 @@ using System.Threading.Tasks;
 
 Console.Write(""hello "");
 await Task.Factory.StartNew(() => 5);
-Console.Write(""async main"");
+Console.Write(args[0]);
 return;
 ";
 
@@ -6815,7 +7331,8 @@ return;
             var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
-            CompileAndVerify(comp, expectedOutput: "hello async main");
+            AssertEntryPointParameter(entryPoint);
+            CompileAndVerify(comp, expectedOutput: "hello Return_03", args: new[] { "Return_03" });
         }
 
         [Fact]
@@ -6827,7 +7344,7 @@ using System.Threading.Tasks;
 
 Console.Write(""hello "");
 await Task.Factory.StartNew(() => 5);
-Console.Write(""async main"");
+Console.Write(args[0]);
 return 11;
 ";
 
@@ -6835,7 +7352,8 @@ return 11;
             var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
-            CompileAndVerify(comp, expectedOutput: "hello async main", expectedReturnCode: 11);
+            AssertEntryPointParameter(entryPoint);
+            CompileAndVerify(comp, expectedOutput: "hello Return_04", args: new[] { "Return_04" }, expectedReturnCode: 11);
         }
 
         [Fact]
@@ -7538,6 +8056,20 @@ catch
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             CompileAndVerify(comp, expectedOutput: "12");
+        }
+
+        [Fact]
+        public void Args_01()
+        {
+            var text = @"
+#nullable enable
+System.Console.WriteLine(args.Length == 0 ? 0 : -args[0].Length);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "0").VerifyDiagnostics();
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            AssertEntryPointParameter(entryPoint);
         }
     }
 }
