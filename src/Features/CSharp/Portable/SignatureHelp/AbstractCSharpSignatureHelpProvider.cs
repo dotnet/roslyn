@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -45,8 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IParameterSymbol parameter,
             SemanticModel semanticModel,
             int position,
-            IDocumentationCommentFormattingService formatter,
-            CancellationToken cancellationToken)
+            IDocumentationCommentFormattingService formatter)
         {
             return new SignatureHelpSymbolParameter(
                 parameter.Name,

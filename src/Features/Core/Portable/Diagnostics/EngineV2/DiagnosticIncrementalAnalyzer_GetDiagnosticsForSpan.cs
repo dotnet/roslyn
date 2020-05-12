@@ -271,20 +271,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     GC.KeepAlive(wholeMethodBodyDiagnostics);
                     GC.KeepAlive(wholeDiagnostics);
                 }
-#endif
-            }
 
-            private static bool IsUnusedImportDiagnostic(Diagnostic d)
-            {
-                switch (d.Id)
+                return;
+
+                // Local functions.
+                static bool IsUnusedImportDiagnostic(Diagnostic d)
                 {
-                    case "CS8019":
-                    case "BC50000":
-                    case "BC50001":
-                        return true;
-                    default:
-                        return false;
+                    switch (d.Id)
+                    {
+                        case "CS8019":
+                        case "BC50000":
+                        case "BC50001":
+                            return true;
+                        default:
+                            return false;
+                    }
                 }
+#endif
             }
 
             private static TextSpan AdjustSpan(Document document, SyntaxNode root, TextSpan span)

@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 {
                     foreach (var attribute in element.Attributes())
                     {
-                        AppendTextFromAttribute(state, element, attribute, attributeNameToParse: DocumentationCommentXmlNames.CrefAttributeName, SymbolDisplayPartKind.Text);
+                        AppendTextFromAttribute(state, attribute, attributeNameToParse: DocumentationCommentXmlNames.CrefAttributeName, SymbolDisplayPartKind.Text);
                     }
 
                     return;
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 var kind = name == DocumentationCommentXmlNames.ParameterReferenceElementName ? SymbolDisplayPartKind.ParameterName : SymbolDisplayPartKind.TypeParameterName;
                 foreach (var attribute in element.Attributes())
                 {
-                    AppendTextFromAttribute(state, element, attribute, attributeNameToParse: DocumentationCommentXmlNames.NameAttributeName, kind);
+                    AppendTextFromAttribute(state, attribute, attributeNameToParse: DocumentationCommentXmlNames.NameAttributeName, kind);
                 }
 
                 return;
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return null;
         }
 
-        private static void AppendTextFromAttribute(FormatterState state, XElement element, XAttribute attribute, string attributeNameToParse, SymbolDisplayPartKind kind)
+        private static void AppendTextFromAttribute(FormatterState state, XAttribute attribute, string attributeNameToParse, SymbolDisplayPartKind kind)
         {
             var attributeName = attribute.Name.LocalName;
             if (attributeNameToParse == attributeName)

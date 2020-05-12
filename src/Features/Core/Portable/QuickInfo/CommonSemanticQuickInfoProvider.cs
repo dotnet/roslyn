@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             foreach (var linkedDocumentId in linkedDocumentIds)
             {
                 var linkedDocument = document.Project.Solution.GetRequiredDocument(linkedDocumentId);
-                var linkedToken = await FindTokenInLinkedDocumentAsync(token, document, linkedDocument, cancellationToken).ConfigureAwait(false);
+                var linkedToken = await FindTokenInLinkedDocumentAsync(token, linkedDocument, cancellationToken).ConfigureAwait(false);
 
                 if (linkedToken != default)
                 {
@@ -126,7 +126,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
         private async Task<SyntaxToken> FindTokenInLinkedDocumentAsync(
             SyntaxToken token,
-            Document originalDocument,
             Document linkedDocument,
             CancellationToken cancellationToken)
         {

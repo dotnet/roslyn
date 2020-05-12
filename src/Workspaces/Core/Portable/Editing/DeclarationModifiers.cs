@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editing
             bool isWithEvents = false,
             bool isPartial = false,
             bool isAsync = false,
-            bool isWriteOnly = false,
             bool isRef = false,
             bool isVolatile = false,
             bool isExtern = false)

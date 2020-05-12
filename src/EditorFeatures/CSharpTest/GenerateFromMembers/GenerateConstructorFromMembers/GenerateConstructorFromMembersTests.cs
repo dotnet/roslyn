@@ -1644,7 +1644,7 @@ chosenSymbols: null);
     {
         field_a = p_a_End;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1664,7 +1664,7 @@ chosenSymbols: null);
     {
         field_s_a = p_a_End;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1684,7 +1684,7 @@ chosenSymbols: null);
     {
         s_field_a = p_a_End;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1695,7 +1695,7 @@ chosenSymbols: null);
 @"class Z
 {
     int [|field__End|] = 2;
-}", new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp)));
+}", new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1717,7 +1717,7 @@ chosenSymbols: null);
     {
         s_field_a = p_a;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
         }
     }
 }

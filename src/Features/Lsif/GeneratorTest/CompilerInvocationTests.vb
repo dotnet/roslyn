@@ -59,9 +59,11 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Assert.Equal(referencePath, DirectCast(metadataReference, PortableExecutableReference).FilePath)
         End Sub
 
+#Disable Warning IDE0060 ' Remove unused parameter - TODO: File a test issue
         <Theory>
         <CombinatorialData>
         Public Async Sub TestSourceFilePathMappingWithDriveLetters(<CombinatorialValues("F:", "F:\")> from As String, <CombinatorialValues("F:", "F:\")> [to] As String)
+#Enable Warning IDE0060 ' Remove unused parameter
             Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                 {
                     ""tool"": ""csc"",

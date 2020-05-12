@@ -1274,7 +1274,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
+            return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(text, mode));
         }
 
         /// <summary>
@@ -1319,7 +1319,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
+            return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(textAndVersion, mode));
         }
 
         /// <summary>
@@ -1397,7 +1397,7 @@ namespace Microsoft.CodeAnalysis
 
             // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
             // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
-            return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
+            return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(loader, mode));
         }
 
         private SolutionState UpdateDocumentState(DocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
@@ -1430,10 +1430,10 @@ namespace Microsoft.CodeAnalysis
             return ForkProject(newProject);
         }
 
-        private SolutionState UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
+        private SolutionState UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
-            var newProject = oldProject.UpdateAnalyzerConfigDocument(newDocument, textChanged, recalculateDependentVersions);
+            var newProject = oldProject.UpdateAnalyzerConfigDocument(newDocument);
 
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
