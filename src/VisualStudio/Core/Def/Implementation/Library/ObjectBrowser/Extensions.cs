@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             {
                 return project.Name;
             }
-            else if (project.Solution.Workspace is VisualStudioWorkspaceImpl workspace
+            else if (project.Solution.Workspace is VisualStudioWorkspace workspace
                 && workspace.GetHierarchy(project.Id) is { } hierarchy
                 && (IVsSolution3)ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution)) is { } solution)
             {
