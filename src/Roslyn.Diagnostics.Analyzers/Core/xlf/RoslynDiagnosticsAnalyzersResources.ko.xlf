@@ -337,21 +337,6 @@
         <target state="needs-review-translation">IEquatable을 구현할 때 Object.Equals(개체)를 재정의하세요.</target>
         <note />
       </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
-        <source>Do not invoke 'Diagnostic.Descriptor'</source>
-        <target state="needs-review-translation">Diagnostic.Descriptor를 호출하지 마세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
-        <source>Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.</source>
-        <target state="needs-review-translation">컴파일러 레이어에서 진단의 설명자 속성에 액세스하면 명령줄 컴파일에서 사용되지 않는 설명자의 필드에 대해 불필요한 문자열 할당이 발생합니다. 따라서 여기에서 컴파일러 진단의 설명자에 액세스하지 않아야 합니다. 대신 이 진단 형식의 속성에 직접 액세스해야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
-        <source>Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</source>
-        <target state="translated">'{1}' 형식에서 '{0}' 속성을 호출하지 마세요. 대신 '{1}'에서 필수 멤버 {2}에 직접 액세스하세요.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
         <target state="needs-review-translation">SymbolDeclaredEvent는 소스 기호에 대해 생성되어야 합니다.</target>
