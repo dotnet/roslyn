@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             foreach (var span in spans)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var spanAlignedToTokens = GetSpanAlignedToTokens(syntaxFactsService, root, span, out var startToken, out var endToken);
+                _ = GetSpanAlignedToTokens(syntaxFactsService, root, span, out var startToken, out var endToken);
 
                 var previousToken = startToken.GetPreviousToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
                 var nextToken = endToken.GetNextToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);

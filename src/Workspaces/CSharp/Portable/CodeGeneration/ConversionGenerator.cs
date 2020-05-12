@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            var operatorToken = SyntaxFactory.Token(SyntaxFacts.GetOperatorKind(method.MetadataName));
             var keyword = method.MetadataName == WellKnownMemberNames.ImplicitConversionName
                 ? SyntaxFactory.Token(SyntaxKind.ImplicitKeyword)
                 : SyntaxFactory.Token(SyntaxKind.ExplicitKeyword);
