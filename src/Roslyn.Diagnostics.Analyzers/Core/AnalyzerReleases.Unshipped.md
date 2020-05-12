@@ -20,3 +20,8 @@ RS0023 | RoslynDiagnosticsReliability | Warning | RoslyDiagnosticsReliability | 
 RS0032 | RoslynDiagnosticsReliability | Disabled | RoslyDiagnosticsReliability | Disabled | TestExportsShouldNotBeDiscoverable
 RS0033 | RoslynDiagnosticsReliability | Warning | RoslyDiagnosticsReliability | Warning | ImportingConstructorShouldBeObsolete
 RS0034 | RoslynDiagnosticsReliability | Warning | RoslyDiagnosticsReliability | Warning | ExportedPartsShouldHaveImportingConstructor
+
+### Removed Rules
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+RS0013 | RoslyDiagnosticsPerformance | Disabled | DiagnosticDescriptorAccessAnalyzer
