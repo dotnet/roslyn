@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            DiagnosticBag diagnosticBag = new DiagnosticBag();
+            DiagnosticBag diagnosticBag = DiagnosticBag.GetInstance();
             var globalConfig = globalAnalyzerConfigBuilder.Build(diagnosticBag);
             diagnostics = diagnosticBag.ToReadOnlyAndFree();
             return globalConfig;
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Builds a global analyzer config from a series of partial configs
         /// </summary>
-        internal class GlobalAnalyzerConfigBuilder
+        internal struct GlobalAnalyzerConfigBuilder
         {
             private ImmutableDictionary<string, ImmutableDictionary<string, (string value, string configPath)>.Builder>.Builder? _values;
             private ImmutableDictionary<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>.Builder? _duplicates;
@@ -490,26 +490,28 @@ namespace Microsoft.CodeAnalysis
                 _duplicates = null;
 
                 // gather the global and named sections
-                Section globalSection = getSection(string.Empty);
+                Section globalSection = GetSection(string.Empty);
                 _values.Remove(string.Empty);
 
                 ArrayBuilder<Section> namedSectionBuilder = new ArrayBuilder<Section>(_values.Count);
                 foreach (var sectionName in _values.Keys.Order())
                 {
-                    namedSectionBuilder.Add(getSection(sectionName));
+                    namedSectionBuilder.Add(GetSection(sectionName));
                 }
 
                 // create the global config
                 GlobalAnalyzerConfig globalConfig = new GlobalAnalyzerConfig(globalSection, namedSectionBuilder.ToImmutableAndFree());
                 _values = null;
                 return globalConfig;
+            }
 
-                Section getSection(string sectionName)
-                {
-                    var dict = _values[sectionName];
-                    var result = dict.ToImmutableDictionary(d => d.Key, d => d.Value.value, Section.PropertiesKeyComparer);
-                    return new Section(sectionName, result);
-                }
+            private Section GetSection(string sectionName)
+            {
+                Debug.Assert(_values is object);
+
+                var dict = _values[sectionName];
+                var result = dict.ToImmutableDictionary(d => d.Key, d => d.Value.value, Section.PropertiesKeyComparer);
+                return new Section(sectionName, result);
             }
 
             private void MergeSection(string configPath, Section section)
