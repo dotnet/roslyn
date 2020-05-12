@@ -108,14 +108,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.FunctionPointer:
                     {
                         var funcPtr = (FunctionPointerTypeSymbol)type;
-                        if (checkTypeWithAnnotations(funcPtr.Signature.ReturnTypeWithAnnotations, flagNonDefaultArraySizesOrLowerBounds))
+                        if (!funcPtr.Signature.RefCustomModifiers.IsEmpty || checkTypeWithAnnotations(funcPtr.Signature.ReturnTypeWithAnnotations, flagNonDefaultArraySizesOrLowerBounds))
                         {
                             return true;
                         }
 
                         foreach (var param in funcPtr.Signature.Parameters)
                         {
-                            if (checkTypeWithAnnotations(param.TypeWithAnnotations, flagNonDefaultArraySizesOrLowerBounds))
+                            if (!param.RefCustomModifiers.IsEmpty || checkTypeWithAnnotations(param.TypeWithAnnotations, flagNonDefaultArraySizesOrLowerBounds))
                             {
                                 return true;
                             }
