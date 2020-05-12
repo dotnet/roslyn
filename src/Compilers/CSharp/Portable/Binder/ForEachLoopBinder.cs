@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 result = overloadResolutionResult.ValidResult.Member;
 
-                if (result.IsStatic && !viaExtensionMethod || result.DeclaredAccessibility != Accessibility.Public)
+                if (!viaExtensionMethod && (result.IsStatic || result.DeclaredAccessibility != Accessibility.Public))
                 {
                     if (warningsOnly)
                     {
