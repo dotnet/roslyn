@@ -255,4 +255,4 @@ namespace Microsoft.CodeAnalysis
             public ImmutableDictionary<string, string> Properties { get; }
         }
     }
- }
+}
