@@ -191,20 +191,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 currentState.InvertedCapturedMask.Invert();
             }
             // Filter the modified state variables to only captured variables
-            stateAtReturn.Assigned.IntersectWith(currentState.CapturedMask);
+            stateAtReturn.Assigned.IntersectWith(in currentState.CapturedMask);
             if (NonMonotonicState.HasValue)
             {
                 var state = NonMonotonicState.Value;
-                state.Assigned.UnionWith(currentState.InvertedCapturedMask);
+                state.Assigned.UnionWith(in currentState.InvertedCapturedMask);
                 NonMonotonicState = state;
             }
 
             // Build a list of variables that are both captured and read before assignment
             var capturedAndRead = currentState.ReadVars;
-            capturedAndRead.IntersectWith(currentState.CapturedMask);
+            capturedAndRead.IntersectWith(in currentState.CapturedMask);
 
             // Union and check to see if there are any changes
-            return savedState.ReadVars.UnionWith(capturedAndRead);
+            return savedState.ReadVars.UnionWith(in capturedAndRead);
         }
     }
 }

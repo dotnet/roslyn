@@ -1231,15 +1231,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
             else if ((reserved & ReservedAttributes.IsReadOnlyAttribute) != 0 &&
-                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsReadOnlyAttribute))
+                reportExplicitUseOfReservedAttribute(attribute, in arguments, in AttributeDescription.IsReadOnlyAttribute))
             {
             }
             else if ((reserved & ReservedAttributes.IsUnmanagedAttribute) != 0 &&
-                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsUnmanagedAttribute))
+                reportExplicitUseOfReservedAttribute(attribute, in arguments, in AttributeDescription.IsUnmanagedAttribute))
             {
             }
             else if ((reserved & ReservedAttributes.IsByRefLikeAttribute) != 0 &&
-                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsByRefLikeAttribute))
+                reportExplicitUseOfReservedAttribute(attribute, in arguments, in AttributeDescription.IsByRefLikeAttribute))
             {
             }
             else if ((reserved & ReservedAttributes.TupleElementNamesAttribute) != 0 &&
@@ -1254,15 +1254,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if ((reserved & ReservedAttributes.NullableContextAttribute) != 0 &&
-                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.NullableContextAttribute))
+                reportExplicitUseOfReservedAttribute(attribute, in arguments, in AttributeDescription.NullableContextAttribute))
             {
             }
             else if ((reserved & ReservedAttributes.NullablePublicOnlyAttribute) != 0 &&
-                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.NullablePublicOnlyAttribute))
+                reportExplicitUseOfReservedAttribute(attribute, in arguments, in AttributeDescription.NullablePublicOnlyAttribute))
             {
             }
             else if ((reserved & ReservedAttributes.NativeIntegerAttribute) != 0 &&
-                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.NativeIntegerAttribute))
+                reportExplicitUseOfReservedAttribute(attribute, in arguments, in AttributeDescription.NativeIntegerAttribute))
             {
             }
             else if ((reserved & ReservedAttributes.CaseSensitiveExtensionAttribute) != 0 &&

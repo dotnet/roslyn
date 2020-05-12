@@ -1392,7 +1392,7 @@ recurse:
             var token = this.FindToken(position, findInsideTrivia: false);
             if (stepInto != null)
             {
-                var trivia = GetTriviaFromSyntaxToken(position, token);
+                var trivia = GetTriviaFromSyntaxToken(position, in token);
 
                 if (trivia.HasStructure && stepInto(trivia))
                 {

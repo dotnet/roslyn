@@ -1388,7 +1388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 do
                 {
-                    builder.AddSeparator(commaToken);
+                    builder.AddSeparator(in commaToken);
                     builder.Add(enumerator.Current);
                 }
                 while (enumerator.MoveNext());
@@ -1423,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         builder.Add(enumerator.Current);
-                        builder.AddSeparator(token);
+                        builder.AddSeparator(in token);
                     }
                 }
 

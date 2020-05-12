@@ -3387,11 +3387,11 @@ class C
 
             Assert.True(first.Concurrent);
             Assert.False(second.Concurrent);
-            Assert.True(first.Append(second).Concurrent);
+            Assert.True(first.Append(in second).Concurrent);
 
             Assert.True(first.Concurrent);
             Assert.False(second.Concurrent);
-            Assert.True(second.Append(first).Concurrent);
+            Assert.True(second.Append(in first).Concurrent);
         }
 
         [Fact, WorkItem(41402, "https://github.com/dotnet/roslyn/issues/41402")]

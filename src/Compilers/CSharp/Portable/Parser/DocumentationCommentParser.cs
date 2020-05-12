@@ -1151,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             finally
             {
-                _pool.Free(list);
+                _pool.Free(in list);
             }
         }
 
@@ -1248,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             finally
             {
-                _pool.Free(list);
+                _pool.Free(in list);
             }
         }
 
@@ -1413,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
                         finally
                         {
-                            _pool.Free(dimensionList);
+                            _pool.Free(in dimensionList);
                         }
                     }
 

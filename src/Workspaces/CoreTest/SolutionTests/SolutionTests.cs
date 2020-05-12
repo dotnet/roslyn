@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             SolutionTestHelpers.TestProperty(
                 solution,
-                (s, value) => s.WithProjectCompilationOutputFilePaths(projectId, value),
+                (s, value) => s.WithProjectCompilationOutputFilePaths(projectId, in value),
                 s => s.GetProject(projectId)!.CompilationOutputFilePaths,
                 new CompilationOutputFilePaths(path),
                 defaultThrows: false);

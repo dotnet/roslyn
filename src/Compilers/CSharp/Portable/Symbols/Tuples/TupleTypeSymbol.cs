@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MemberDescriptor relativeDescriptor = WellKnownMembers.GetDescriptor(relativeMember);
                 var members = type.GetMembers(relativeDescriptor.Name);
 
-                return CSharpCompilation.GetRuntimeMember(members, relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance,
+                return CSharpCompilation.GetRuntimeMember(members, in relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance,
                                                           accessWithinOpt: null); // force lookup of public members only
             }
         }
@@ -829,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(relativeMember >= WellKnownMember.System_ValueTuple_T1__Item1 && relativeMember <= WellKnownMember.System_ValueTuple_TRest__ctor);
 
                 MemberDescriptor relativeDescriptor = WellKnownMembers.GetDescriptor(relativeMember);
-                return CSharpCompilation.GetRuntimeMember(members, relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance,
+                return CSharpCompilation.GetRuntimeMember(members, in relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance,
                                                           accessWithinOpt: null); // force lookup of public members only
             }
 
