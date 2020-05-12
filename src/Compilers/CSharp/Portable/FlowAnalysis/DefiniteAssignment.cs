@@ -1954,9 +1954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
-                    var namedType = (NamedTypeSymbol)type;
-                    var assembly = type.ContainingAssembly as SourceAssemblySymbol;
-                    if ((object?)assembly == null)
+                    if (!(type.ContainingAssembly is SourceAssemblySymbol assembly))
                     {
                         return; // could be retargeting assembly
                     }
@@ -1964,6 +1962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var seen = assembly.TypesReferencedInExternalMethods;
                     if (seen.Add(type))
                     {
+                        var namedType = (NamedTypeSymbol)type;
                         foreach (var symbol in namedType.GetMembersUnordered())
                         {
                             if (symbol.Kind != SymbolKind.Field)
