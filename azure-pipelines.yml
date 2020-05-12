@@ -269,5 +269,5 @@ jobs:
       inputs:
         languages: 'csharp'
         environment: production
-        isPrivateFeed: false
+        richNavLogOutputDirectory: $(Build.SourcesDirectory)\bin
       continueOnError: true
