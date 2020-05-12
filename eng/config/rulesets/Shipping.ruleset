@@ -192,7 +192,7 @@
     <Rule Id="EPS06" Action="None" /> <!-- Hidden struct copy operation -->
     <Rule Id="EPS07" Action="None" /> <!-- A hash table "unfriendly" type is used as the key in a hash table -->
     <Rule Id="EPS08" Action="None" /> <!-- Default 'ValueType.Equals' or 'HashCode' is used for struct equality -->
-    <Rule Id="EPS09" Action="None" /> <!-- Pass an argument for an 'in' parameter explicitly -->
+    <Rule Id="EPS09" Action="Warning" /> <!-- Pass an argument for an 'in' parameter explicitly -->
     <Rule Id="EPS10" Action="None" /> <!-- Do not construct non-defaultable struct with 'default' expression -->
     <Rule Id="EPS11" Action="None" /> <!-- Do not embed non-defaultable structs into another structs -->
   </Rules>
