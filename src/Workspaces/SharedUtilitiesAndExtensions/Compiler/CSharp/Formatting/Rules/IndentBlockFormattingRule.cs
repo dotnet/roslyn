@@ -7,12 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -177,13 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case ImplicitArrayCreationExpressionSyntax implicitArrayCreation when implicitArrayCreation.Initializer != null:
                     SetAlignmentBlockOperation(list, implicitArrayCreation.NewKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
-                case CSharpSyntaxNode syntaxNode when syntaxNode.IsKind(SyntaxKind.SwitchExpression):
-                    SetAlignmentBlockOperation(
-                        list,
-                        syntaxNode.GetFirstToken(),
-                        syntaxNode.ChildNodesAndTokens().First(child => child.IsKind(SyntaxKind.OpenBraceToken)).AsToken(),
-                        syntaxNode.ChildNodesAndTokens().Last(child => child.IsKind(SyntaxKind.CloseBraceToken)).AsToken(),
-                        IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                case SwitchExpressionSyntax switchExpression:
+                    SetAlignmentBlockOperation(list, switchExpression.GetFirstToken(), switchExpression.OpenBraceToken, switchExpression.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
             }
         }

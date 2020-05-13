@@ -231,6 +231,8 @@ dotnet_diagnostic.IDE0005.severity = warning
 
 # IDE0011: Add braces
 csharp_prefer_braces = when_multiline:warning
+# NOTE: We need the below severity entry for Add Braces due to https://github.com/dotnet/roslyn/issues/44201
+dotnet_diagnostic.IDE0011.severity = warning
 
 # IDE0035: Remove unreachable code
 dotnet_diagnostic.IDE0035.severity = warning
