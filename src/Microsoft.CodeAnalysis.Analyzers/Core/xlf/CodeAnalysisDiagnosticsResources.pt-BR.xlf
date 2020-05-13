@@ -72,6 +72,21 @@
         <target state="translated">Adicione as IDs de diagnóstico do analisador à versão do analisador.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyDescription">
+        <source>The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</source>
+        <target state="new">The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
+        <source>Define diagnostic title correctly</source>
+        <target state="new">Define diagnostic title correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
+        <source>Define diagnostic title correctly</source>
+        <target state="new">Define diagnostic title correctly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
         <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
         <target state="translated">'GetSemanticModel' é um método caro para ser invocado em um analisador de diagnóstico porque ele cria um modelo semântico completamente novo, que não compartilha dados de compilação com o compilador ou com outros analisadores. Isso gera um custo de desempenho adicional durante a análise semântica. Nesse caso, considere o registro de uma ação do analisador diferente que permita o uso de um 'SemanticModel' compartilhado, como 'RegisterOperationAction', 'RegisterSyntaxNodeAction' ou 'RegisterSemanticModelAction'.</target>

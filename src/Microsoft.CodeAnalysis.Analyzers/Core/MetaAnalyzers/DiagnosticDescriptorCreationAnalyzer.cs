@@ -68,6 +68,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableDoNotUseReservedDiagnosticIdMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDoNotUseReservedDiagnosticIdDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
+        private static readonly LocalizableString s_localizableDefineDiagnosticTitleCorrectlyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticTitleCorrectlyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableDefineDiagnosticTitleCorrectlyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticTitleCorrectlyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableDefineDiagnosticTitleCorrectlyDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticTitleCorrectlyDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+
         /// <summary>
         /// RS1007 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorTitle"/>)
         /// </summary>
@@ -146,6 +150,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDoNotUseReservedDiagnosticIdDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        /// <summary>
+        /// RS1031 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DefineDiagnosticTitleCorrectlyTitle"/>)
+        /// </summary>
+        public static readonly DiagnosticDescriptor DefineDiagnosticTitleCorrectlyRule = new DiagnosticDescriptor(
+            DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId,
+            s_localizableDefineDiagnosticTitleCorrectlyTitle,
+            s_localizableDefineDiagnosticTitleCorrectlyMessage,
+            DiagnosticCategory.MicrosoftCodeAnalysisDesign,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: s_localizableDefineDiagnosticTitleCorrectlyDescription,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
             UseLocalizableStringsInDescriptorRule,
             ProvideHelpUriInDescriptorRule,
@@ -167,7 +184,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             InvalidHeaderInAnalyzerReleasesFileRule,
             InvalidUndetectedEntryInAnalyzerReleasesFileRule,
             InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule,
-            EnableAnalyzerReleaseTrackingRule);
+            EnableAnalyzerReleaseTrackingRule,
+            DefineDiagnosticTitleCorrectlyRule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -208,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         return;
                     }
 
-                    AnalyzeTitle(creationMethod, fieldInitializer, operationAnalysisContext.ReportDiagnostic);
+                    AnalyzeTitle(operationAnalysisContext, creationArguments, fieldInitializer);
                     AnalyzeHelpLinkUri(operationAnalysisContext, creationArguments, out var helpLink);
                     AnalyzeCustomTags(operationAnalysisContext, creationArguments);
                     var (isEnabledByDefault, defaultSeverity) = GetDefaultSeverityAndEnabledByDefault(operationAnalysisContext.Compilation, creationArguments);
@@ -305,15 +323,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     method.Parameters[0].Type.SpecialType == SpecialType.System_String;
         }
 
-        private static void AnalyzeTitle(IMethodSymbol descriptorCreationMethod, IFieldInitializerOperation creation, Action<Diagnostic> reportDiagnostic)
+        private static void AnalyzeTitle(OperationAnalysisContext operationAnalysisContext, ImmutableArray<IArgumentOperation> creationArguments, IFieldInitializerOperation creation)
         {
-            IParameterSymbol title = descriptorCreationMethod.Parameters.FirstOrDefault(p => p.Name == "title");
-            if (title != null &&
-                title.Type != null &&
-                title.Type.SpecialType == SpecialType.System_String)
+            IArgumentOperation titleArgument = creationArguments.FirstOrDefault(a => a.Parameter.Name.Equals("title", StringComparison.OrdinalIgnoreCase));
+
+            if (titleArgument != null &&
+                titleArgument.Parameter.Type != null &&
+                titleArgument.Parameter.Type.SpecialType == SpecialType.System_String)
             {
-                Diagnostic diagnostic = creation.Value.CreateDiagnostic(UseLocalizableStringsInDescriptorRule, WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString);
-                reportDiagnostic(diagnostic);
+                operationAnalysisContext.ReportDiagnostic(creation.Value.CreateDiagnostic(UseLocalizableStringsInDescriptorRule, WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString));
+
+                if (titleArgument.Value.ConstantValue.HasValue &&
+                    titleArgument.Value.ConstantValue.Value is string title &&
+                    (title.Contains(".") || title.Contains("\r") || title.Contains("\n")))
+                {
+                    operationAnalysisContext.ReportDiagnostic(titleArgument.CreateDiagnostic(DefineDiagnosticTitleCorrectlyRule));
+                }
             }
         }
 

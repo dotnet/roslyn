@@ -72,6 +72,21 @@
         <target state="translated">분석기 진단 ID를 분석기 릴리스에 추가합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyDescription">
+        <source>The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</source>
+        <target state="new">The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
+        <source>Define diagnostic title correctly</source>
+        <target state="new">Define diagnostic title correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
+        <source>Define diagnostic title correctly</source>
+        <target state="new">Define diagnostic title correctly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
         <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
         <target state="translated">'GetSemanticModel'은 컴파일러나 다른 분석기와 컴파일 데이터를 공유하지 않는 완전히 새로운 의미 체계 모델을 만들므로 진단 분석기 내에서 호출하는 데 부담이 큰 메서드입니다. 이 메서드를 사용하면 의미 체계 분석 중 추가 성능 비용이 발생합니다. 대신 공유 'SemanticModel'을 사용할 수 있는 'RegisterOperationAction', 'RegisterSyntaxNodeAction', 'RegisterSemanticModelAction' 등과 같은 다른 분석기 작업을 등록하세요.</target>

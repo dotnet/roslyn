@@ -72,6 +72,21 @@
         <target state="translated">Přidat ID diagnostiky analyzátoru do verze analyzátoru</target>
         <note />
       </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyDescription">
+        <source>The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</source>
+        <target state="new">The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
+        <source>Define diagnostic title correctly</source>
+        <target state="new">Define diagnostic title correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
+        <source>Define diagnostic title correctly</source>
+        <target state="new">Define diagnostic title correctly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
         <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
         <target state="translated">GetSemanticModel je náročná metoda na to, aby se volala v diagnostickém analyzátoru, protože vytváří zcela nový sémantický model, který nesdílí data kompilace s kompilátorem nebo jinými analyzátory. To dále snižuje výkon během analýzy sémantiky. Zvažte místo toho možnost zaregistrovat jinou akci analyzátoru, která umožňuje používat sdílený SemanticModel, třeba RegisterOperationAction, RegisterSyntaxNodeAction nebo RegisterSemanticModelAction.</target>

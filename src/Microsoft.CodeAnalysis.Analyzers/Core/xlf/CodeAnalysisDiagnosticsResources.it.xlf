@@ -72,6 +72,21 @@
         <target state="translated">Aggiungere gli ID diagnostica dell'analizzatore alla versione dell'analizzatore.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyDescription">
+        <source>The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</source>
+        <target state="new">The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
+        <source>Define diagnostic title correctly</source>
+        <target state="new">Define diagnostic title correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
+        <source>Define diagnostic title correctly</source>
+        <target state="new">Define diagnostic title correctly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
         <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
         <target state="translated">'GetSemanticModel' è un metodo dispendioso da richiamare in un analizzatore diagnostico perché crea un modello semantico completamente nuovo, che non condivide i dati di compilazione con il compilatore o con altri analizzatori, comportando un ulteriore costo in termini di prestazioni durante l'analisi semantica. Provare invece a registrare un'azione diversa dell'analizzatore che consenta l'uso di un elemento 'SemanticModel' condiviso, come 'RegisterOperationAction', 'RegisterSyntaxNodeAction' o 'RegisterSemanticModelAction'.</target>

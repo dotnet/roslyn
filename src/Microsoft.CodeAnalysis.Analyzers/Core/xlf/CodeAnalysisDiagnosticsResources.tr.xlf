@@ -72,6 +72,21 @@
         <target state="translated">Çözümleyici yayınına çözümleyici tanılama kimlikleri ekleyin.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyDescription">
+        <source>The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</source>
+        <target state="new">The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
+        <source>Define diagnostic title correctly</source>
+        <target state="new">Define diagnostic title correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
+        <source>Define diagnostic title correctly</source>
+        <target state="new">Define diagnostic title correctly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
         <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
         <target state="translated">'GetSemanticModel', derleme verilerini derleyici veya diğer çözümleyiciler ile paylaşmayan tamamen yeni bir anlam modeli oluşturduğundan bir tanılama çözümleyicisi içinde çağırmak için pahalı bir yöntemdir. Bu işlem, anlamsal analiz sırasında ek bir performans maliyetine neden olur. Bunun yerine, 'RegisterOperationAction', 'RegisterSyntaxNodeAction' veya 'RegisterSemanticModelAction' gibi paylaşılan bir 'SemanticModel' kullanılmasına izin veren farklı bir çözümleyici eylemini kaydetmeyi deneyin.</target>
