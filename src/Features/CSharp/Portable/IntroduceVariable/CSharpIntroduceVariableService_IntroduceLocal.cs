@@ -419,8 +419,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var nextStatementLeading = nextStatement.GetLeadingTrivia();
             var precedingEndOfLine = nextStatementLeading.LastOrDefault(t => t.Kind() == SyntaxKind.EndOfLineTrivia);
             if (precedingEndOfLine == default)
+            {
                 return oldStatements.ReplaceRange(
                     nextStatement, new[] { newStatement, nextStatement });
+            }
 
             var endOfLineIndex = nextStatementLeading.IndexOf(precedingEndOfLine) + 1;
 
