@@ -1001,7 +1001,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.TypeParameterName, "T", navigationAction:=Sub() Return, "T"),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1053,7 +1053,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
