@@ -1271,6 +1271,54 @@ class C
         }
 
         [Fact]
+        public void RefReadonlyInEmbeddedStatementInIterator()
+        {
+            var comp = CreateCompilation(@"
+using System.Collections.Generic;
+class C
+{
+    IEnumerable<int> M()
+    {
+        if (true)
+            ref int x = ref (new int[1])[0]; // 1, 2
+        
+        yield return 1;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             ref int x = ref (new int[1])[0]; // 1, 2
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "ref int x = ref (new int[1])[0];").WithLocation(8, 13),
+                // (8,21): error CS8176: Iterators cannot have by-reference locals
+                //             ref int x = ref (new int[1])[0]; // 1, 2
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(8, 21));
+        }
+
+        [Fact]
+        public void RefReadonlyInEmbeddedStatementInAsync()
+        {
+            var comp = CreateCompilation(@"
+using System.Threading.Tasks;
+class C
+{
+    async Task M()
+    {
+        if (true)
+            ref int x = ref (new int[1])[0]; // 1, 2
+        
+        await Task.Yield();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             ref int x = ref (new int[1])[0]; // 1, 2
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "ref int x = ref (new int[1])[0];").WithLocation(8, 13),
+                // (8,21): error CS8177: Async methods cannot have by-reference locals
+                //             ref int x = ref (new int[1])[0]; // 1, 2
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(8, 21));
+        }
+
+        [Fact]
         public void RefReadonlyLocalNotWritable()
         {
             var comp = CreateCompilation(@"
