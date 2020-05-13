@@ -7025,16 +7025,6 @@ Même si le langage C# permet de faire la différence entre out et ref, ce n'est
 Permettez au compilateur de différencier les méthodes. Par exemple, vous pouvez leur donner différents noms ou fournir un paramètre supplémentaire à l'une d'elles.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">Le membre '{1}' se substitue à '{0}'. Il existe plusieurs candidats à la substitution au moment de l'exécution. La méthode appelée dépend de l'implémentation.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
-        <source>Member overrides base member with multiple override candidates at run-time</source>
-        <target state="translated">Un membre remplace un membre de base avec plusieurs candidats à la substitution au moment de l'exécution</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ObjectOrCollectionInitializerWithDelegateCreation">
         <source>Object and collection initializer expressions may not be applied to a delegate creation expression</source>
         <target state="translated">Les expressions d'initialiseur d'objet et de collection ne peuvent pas être appliquées à une expression de création de délégué</target>

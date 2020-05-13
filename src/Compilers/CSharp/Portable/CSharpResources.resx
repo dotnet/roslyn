@@ -3371,12 +3371,6 @@ Although C# distinguishes between out and ref, the CLR sees them as the same. Wh
 
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</value>
   </data>
-  <data name="WRN_MultipleRuntimeOverrideMatches" xml:space="preserve">
-    <value>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</value>
-  </data>
-  <data name="WRN_MultipleRuntimeOverrideMatches_Title" xml:space="preserve">
-    <value>Member overrides base member with multiple override candidates at run-time</value>
-  </data>
   <data name="ERR_ObjectOrCollectionInitializerWithDelegateCreation" xml:space="preserve">
     <value>Object and collection initializer expressions may not be applied to a delegate creation expression</value>
   </data>

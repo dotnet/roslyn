@@ -7025,16 +7025,6 @@ Ačkoli C# rozlišuje mezi out a ref, pro CLR je to totéž. Při rozhodování,
 Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete například zadat různé názvy nebo k jedné z nich přidat parametr navíc.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">Člen {1} potlačuje člen {0}. Za běhu existuje víc kandidátů na potlačení. Volaná metoda závisí na konkrétní implementaci.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
-        <source>Member overrides base member with multiple override candidates at run-time</source>
-        <target state="translated">Člen za běhu přepíše základního člena s více kandidáty na přepsání.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ObjectOrCollectionInitializerWithDelegateCreation">
         <source>Object and collection initializer expressions may not be applied to a delegate creation expression</source>
         <target state="translated">Výrazy inicializátoru objektu a kolekce nejde použít na výraz vytvářející delegáta.</target>

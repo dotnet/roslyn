@@ -7025,16 +7025,6 @@ C# では out と ref を区別しますが、CLR では同じと認識します
 コンパイラにメソッドを区別する方法を与えます。たとえば、メソッドに異なる名前を付けたり、1 つのメソッドに追加のパラメーターを設けるなどです。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">メンバー '{1}' は '{0}' をオーバーライドします。実行時にオーバーライドされる可能性のある候補は複数あります。どのメソッドが呼び出されるかは実装に依存しています。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
-        <source>Member overrides base member with multiple override candidates at run-time</source>
-        <target state="translated">メンバーは、実行時に複数のオーバーライド候補がある基本メンバーをオーバーライドします</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ObjectOrCollectionInitializerWithDelegateCreation">
         <source>Object and collection initializer expressions may not be applied to a delegate creation expression</source>
         <target state="translated">オブジェクトとコレクションの初期化子式は、デリゲートの作成式には適用できません</target>

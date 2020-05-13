@@ -7025,16 +7025,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
 为编译器提供某种方式来区分方法。例如，可以为它们提供不同名称或对其中之一提供附加参数。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">成员“{1}”重写“{0}”。在运行时有多个重写候选项。此实现取决于将要调用的方法。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
-        <source>Member overrides base member with multiple override candidates at run-time</source>
-        <target state="translated">成员在运行时使用多个重写候选项重写基成员</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ObjectOrCollectionInitializerWithDelegateCreation">
         <source>Object and collection initializer expressions may not be applied to a delegate creation expression</source>
         <target state="translated">对象和集合初始值设定项表达式不能应用于委托创建表达式</target>

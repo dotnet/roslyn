@@ -523,8 +523,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             // NOTE: Normal finalize methods CanOverrideOrHide and will go through the normal code path.
 
-                            // First is fine, since there should only be one, since there are no parameters.
-                            MethodSymbol overridden = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
+                            // Unique is fine, since there should only be one, since there are no parameters.
+                            MethodSymbol overridden = method.GetUniqueRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
 
                             // NOTE: Dev11 doesn't expose symbols, so it can treat destructors as override and let them go through the normal
                             // checks.  Roslyn can't, since the language says they are not virtual/override and that's what we need to expose
@@ -1073,22 +1073,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // From: SymbolPreparer.cpp
-            // DevDiv Bugs 115384: Both out and ref parameters are implemented as references. In addition, out parameters are 
-            // decorated with OutAttribute. In CLR when a signature is looked up in virtual dispatch, CLR does not distinguish
-            // between these to parameter types. The choice is the last method in the vtable. Therefore we check and warn if 
-            // there would potentially be a mismatch in CLRs and C#s choice of the overridden method. Unfortunately we have no 
-            // way of communicating to CLR which method is the overridden one. We only run into this problem when the 
-            // parameters are generic.
-            var runtimeOverriddenMembers = overriddenOrHiddenMembers.RuntimeOverriddenMembers;
-            Debug.Assert(!runtimeOverriddenMembers.IsDefault);
-            if (runtimeOverriddenMembers.Length > 1 && overridingMember.Kind == SymbolKind.Method) // The runtime doesn't define overriding for properties or events.
-            {
-                // CONSIDER: Dev10 doesn't seem to report this warning for indexers.
-                var ambiguousMethod = runtimeOverriddenMembers[0];
-                diagnostics.Add(ErrorCode.WRN_MultipleRuntimeOverrideMatches, ambiguousMethod.Locations[0], ambiguousMethod, overridingMember);
-                suppressAccessors = true;
-            }
+            // We no longer warn ErrorCode.WRN_MultipleRuntimeOverrideMatches (CS1957) when there are multiple methods signatures in the base
+            // type that the method could be considered to override from the runtime's perspective based only on CLI signature because we
+            // use methodimpl records to communicate to the CLR which method is the overridden one.
 
             return;
 

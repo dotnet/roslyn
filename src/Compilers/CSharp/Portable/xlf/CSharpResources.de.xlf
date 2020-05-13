@@ -7025,16 +7025,6 @@ Obwohl C# zwischen Ausgabe und Verweis unterscheidet, sieht CLR da keinen Unters
 Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Dazu können Sie beispielsweise unterschiedliche Namen vergeben oder einen zusätzlichen Parameter angeben.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">Der Member "{1}" überschreibt "{0}". Zur Laufzeit sind mehrere Kandidaten zum Überschreiben verfügbar. Die aufgerufene Methode ist implementierungsabhängig.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
-        <source>Member overrides base member with multiple override candidates at run-time</source>
-        <target state="translated">Element überschreibt Basiselement mit mehreren Überschreibungskandidaten zur Laufzeit</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ObjectOrCollectionInitializerWithDelegateCreation">
         <source>Object and collection initializer expressions may not be applied to a delegate creation expression</source>
         <target state="translated">Objekt- und Sammlungsinitialisiererausdrücke dürfen nicht auf einen Delegaterstellungsausdruck angewendet werden.</target>

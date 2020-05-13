@@ -7025,16 +7025,6 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
 컴파일러에서 두 메서드를 구분할 수 있는 몇 가지 방법을 지정하세요. 예를 들어 다른 이름을 지정하거나 둘 중 하나에 대해 추가 매개 변수를 제공할 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">{1}' 멤버는 '{0}'을(를) 재정의합니다. 런타임에 여러 재정의 후보가 있습니다. 호출되는 메서드는 구현에 따라 다릅니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
-        <source>Member overrides base member with multiple override candidates at run-time</source>
-        <target state="translated">멤버가 런타임에 여러 재정의 후보로 기본 멤버를 재정의합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ObjectOrCollectionInitializerWithDelegateCreation">
         <source>Object and collection initializer expressions may not be applied to a delegate creation expression</source>
         <target state="translated">개체 및 컬렉션 이니셜라이저 식은 대리자 생성 식에 적용할 수 없습니다.</target>

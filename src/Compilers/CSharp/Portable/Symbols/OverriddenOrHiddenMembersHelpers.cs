@@ -932,8 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 // We can ignore newslot, since we checked IsOverride.
                 // We can ignore interface implementation changes since the method is already metadata virtual (since override).
-                // TODO: do we want to add more sophisticated handling for the case where there are multiple runtime-overridden methods?
-                MethodSymbol runtimeOverriddenMethod = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
+                MethodSymbol runtimeOverriddenMethod = method.GetUniqueRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
                 return csharpOverriddenMethod != runtimeOverriddenMethod;
             }
 
@@ -941,19 +940,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Given a method, find a method that it overrides from the perspective of the CLI.
+        /// Given a method, find a unique method that it overrides from the perspective of the CLI.
         /// Key differences from C#: non-virtual methods are ignored, the RuntimeSignatureComparer
-        /// is used (i.e. consider return types, ignore ref/out distinction).
+        /// is used (i.e. consider return types, ignore ref/out distinction).  If fewer or more than
+        /// one method is overridden by CLI rules, returns null.
         /// </summary>
         /// <remarks>
         /// WARN: Must not check method.MethodKind - PEMethodSymbol.ComputeMethodKind uses this method.
-        /// NOTE: Does not check whether the given method will be marked "newslot" in metadata (which
-        /// would indicate that it does not override anything).
+        /// NOTE: Does not check whether the given method will be marked "newslot" in metadata (as
+        /// "newslot" is used for covariant method overrides).
         /// WARN: If the method may override a source method and declaration diagnostics have yet to
         /// be computed, then it is important to pass ignoreInterfaceImplementationChanges: true
         /// (see MethodSymbol.IsMetadataVirtual for details).
         /// </remarks>
-        internal static MethodSymbol GetFirstRuntimeOverriddenMethodIgnoringNewSlot(this MethodSymbol method, bool ignoreInterfaceImplementationChanges)
+        internal static MethodSymbol GetUniqueRuntimeOverriddenMethodIgnoringNewSlot(this MethodSymbol method, bool ignoreInterfaceImplementationChanges)
         {
             if (!method.IsMetadataVirtual(ignoreInterfaceImplementationChanges))
             {
@@ -964,6 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (NamedTypeSymbol currType = containingType.BaseTypeNoUseSiteDiagnostics; !ReferenceEquals(currType, null); currType = currType.BaseTypeNoUseSiteDiagnostics)
             {
+                MethodSymbol candidate = null;
                 foreach (Symbol otherMember in currType.GetMembers(method.Name))
                 {
                     if (otherMember.Kind == SymbolKind.Method &&
@@ -975,9 +976,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // NOTE: The runtime doesn't consider non-virtual methods during override resolution.
                         if (overridden.IsMetadataVirtual(ignoreInterfaceImplementationChanges))
                         {
-                            return overridden;
+                            if (candidate is { })
+                            {
+                                // found more than one possible override in this type
+                                return null;
+                            }
+
+                            candidate = overridden;
                         }
                     }
+                }
+
+                if (candidate is { })
+                {
+                    return candidate;
                 }
             }
 

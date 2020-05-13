@@ -1116,9 +1116,8 @@ class Test
         private void TestAmbiguousOverridesWarningCase()
         {
             // Tests:
-            // Test that we continue to report errors / warnings even when ambiguous base methods that we are trying to
-            // override only differ by ref / out - test that only a warning (for runtime ambiguity) is reported 
-            // in the case where ambiguous signatures differ by just ref / out
+            // Test that we no longer report  warnings even when ambiguous base methods that we are trying to
+            // override only differ by ref / out because the compiler now produces a methodimpl record to disambiguate.
 
             var source = @"
 using System;
@@ -1135,8 +1134,11 @@ class Base2<A, B> : Base<A, B>
 }
 class Derived : Base2<int, int>
 {
-    public override void Method(ref List<int> a, out List<int> b) { Console.WriteLine(""Derived.Method(ref, out)""); b = null; } // Reports warning about runtime ambiguity
-    public override void Method(ref List<int> a) { Console.WriteLine(""Derived.Method(ref)""); } // No warning when ambiguous signatures are spread across multiple base types
+    // No longer reports warning about runtime ambiguity because compiler produces a methodimpl record to disambiguate
+    public override void Method(ref List<int> a, out List<int> b) { Console.WriteLine(""Derived.Method(ref, out)""); b = null; }
+
+    // No warning when ambiguous signatures are spread across multiple base types
+    public override void Method(ref List<int> a) { Console.WriteLine(""Derived.Method(ref)""); }
 }
 class Test
 {
@@ -1156,11 +1158,12 @@ class Test
             // the test flaky, we can delete this test.
 
             // Note: When implementing covariant return types, we caused the compiler to insert a methodimpl for the
-            // override that forces the runtime to agree with the compile-time override behavior.  It used to be
-            // that the third line printed was "Base.Method(ref)", but it now correctly prints as "Derived.Method(ref)".
+            // override that forces the runtime to agree with the compile-time override behavior.  It is therefore no
+            // longer ambiguous from the runtime's perspective.  The output of this test is therefore correct from a
+            // language perspective and there is no ambiguity.
             var comp = CompileAndVerify(source, expectedOutput: @"
+Base.Method(out, ref)
 Derived.Method(ref, out)
-Base.Method(ref, out)
 Derived.Method(ref)");
         }
         [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]

@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // At this point, we know method originated with a DestructorDeclarationSyntax in source,
                 // so it can't have the "new" modifier.
-                // First is fine, since there should only be one, since there are no parameters.
-                method = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
+                // Unique is fine, since there should only be one, since there are no parameters.
+                method = method.GetUniqueRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
                 skipFirstMethodKindCheck = false;
             }
 

@@ -7722,7 +7722,6 @@ class D : C<int>
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 3, Column = 24, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigOverride, Line = 9, Column = 25 });
         }
 
@@ -18214,7 +18213,8 @@ class Derived : Base<int, int>, IFace
         [Fact]
         public void CS1957WRN_MultipleRuntimeOverrideMatches()
         {
-            var text = @"class Base<TString>
+            var text =
+@"class Base<TString>
 {
     public virtual void Test(TString s, out int x)
     {
@@ -18229,8 +18229,8 @@ class Derived : Base<string>
     public override void Test(string s, ref int x) { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 8, Column = 25, IsWarning = true });
+            // We no longer report a runtime ambiguous override (CS1957) because the compiler produces a methodimpl record to disambiguate.
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]

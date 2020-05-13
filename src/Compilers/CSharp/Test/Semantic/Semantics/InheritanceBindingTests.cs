@@ -4926,7 +4926,6 @@ public class Derived : Base<short, int>
 }
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 4, Column = 25, IsWarning = true }, //can't tell which method Derived is trying to override
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigOverride, Line = 10, Column = 26 }, //can't override either Method since they unify to the same signature
             });
         }
@@ -4967,9 +4966,9 @@ class Derived : Base<int>
     public override void Method(int @in, ref int @ref) { }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 5, Column = 25, IsWarning = true }, //C# can distinguish, but runtime can't
-            });
+            // We no longer report a runtime ambiguous override because the compiler
+            // produces a methodimpl record to disambiguate.
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]

@@ -7025,16 +7025,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
 請為編譯器提供呼叫方法的區分方式。例如，您可以為它們指定不同的名稱，或在其上提供其他參數。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">成員 '{1}' 會覆寫 '{0}'。在執行階段有多個覆寫候選項。實作將視所呼叫的方法而定。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
-        <source>Member overrides base member with multiple override candidates at run-time</source>
-        <target state="translated">成員會在執行階段覆寫具有多個覆寫候選項的基底成員</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ObjectOrCollectionInitializerWithDelegateCreation">
         <source>Object and collection initializer expressions may not be applied to a delegate creation expression</source>
         <target state="translated">物件與集合初始設定式運算式不可套用到委派建立運算式</target>

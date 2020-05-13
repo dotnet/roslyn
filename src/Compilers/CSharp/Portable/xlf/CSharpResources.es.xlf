@@ -7025,16 +7025,6 @@ A pesar de que C# distingue entre out y ref, el CLR los ve como iguales. Cuando 
 Indique al compilador alguna forma de diferenciar los métodos. Por ejemplo, puede darles nombres diferentes o dar un parámetro adicional a uno de ellos.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">El miembro '{1}' invalida '{0}'. Hay varios candidatos de invalidación en tiempo de ejecución. El método que se llamará depende de la implementación.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
-        <source>Member overrides base member with multiple override candidates at run-time</source>
-        <target state="translated">El miembro invalida los miembros base con varios candidatos de invalidación en el tiempo de ejecución</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ObjectOrCollectionInitializerWithDelegateCreation">
         <source>Object and collection initializer expressions may not be applied to a delegate creation expression</source>
         <target state="translated">No se pueden aplicar expresiones de inicializador de objeto y colección a una expresión de creación de delegado</target>

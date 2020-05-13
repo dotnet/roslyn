@@ -7025,16 +7025,6 @@ C# out ve ref'i ayırsa da, CLR ikisini aynı görür. Hangi yöntemin arabirimi
 Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adlar verebilir veya içlerinden biri için ek parametre sağlayabilirsiniz.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">{1}' üyesi '{0}' öğesini geçersiz kılıyor. Çalışma zamanında birden fazla geçersiz kılma adayı var. Hangi yöntemin çağrılacağı uygulamaya bağımlıdır.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
-        <source>Member overrides base member with multiple override candidates at run-time</source>
-        <target state="translated">Üye, çalışma zamanında birden çok geçersiz kılma adayı ile temel üyeyi geçersiz kılar</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ObjectOrCollectionInitializerWithDelegateCreation">
         <source>Object and collection initializer expressions may not be applied to a delegate creation expression</source>
         <target state="translated">Nesne ve koleksiyon başlatıcı ifadeleri temsilci oluşturma ifadesine uygulanamaz</target>

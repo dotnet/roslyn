@@ -7025,16 +7025,6 @@ Język C# rozróżnia specyfikatory out i ref, jednak dla środowiska CLR są on
 Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nadać im różne nazwy lub określić dla jednej z nich dodatkowy parametr.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">Składowa „{1}” przesłania element „{0}”. W czasie wykonywania jest możliwych wiele różnych przesłonięć. Od implementacji zależy, która metoda zostanie wywołana.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
-        <source>Member overrides base member with multiple override candidates at run-time</source>
-        <target state="translated">Składowa przesłania podstawową składową za pomocą wielu możliwych przesłonięć w czasie wykonywania</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ObjectOrCollectionInitializerWithDelegateCreation">
         <source>Object and collection initializer expressions may not be applied to a delegate creation expression</source>
         <target state="translated">Nie można zastosować wyrażeń inicjatora obiektu i kolekcji do wyrażenia tworzenia delegata</target>
