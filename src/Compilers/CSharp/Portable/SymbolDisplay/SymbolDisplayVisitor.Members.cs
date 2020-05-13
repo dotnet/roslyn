@@ -171,8 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsInitOnly(IMethodSymbol symbol)
         {
-            // PROTOTYPE(init-only): adjust SymbolDisplayVisitor once we have a public IsInitOnly API
-            return (symbol as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol.IsInitOnly == true;
+            return symbol?.IsInitOnly == true;
         }
 
         private void AddPropertyNameAndParameters(IPropertySymbol symbol)
