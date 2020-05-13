@@ -520,7 +520,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 VisitFieldType(element);
-                if (!element.IsImplicitlyDeclared)
+                if (!element.IsImplicitlyDeclared &&
+                    !(symbol.IsGenericType && symbol.IsDefinition)) // C# tuples are generic
                 {
                     AddSpace();
                     builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name));

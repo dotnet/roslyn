@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -399,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return false;
+                return ContainingType.IsDefinition && TupleElementIndex >= 0;
             }
         }
 
@@ -424,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return null;
+                return (ContainingType.IsDefinition && TupleElementIndex >= 0) ? this : null;
             }
         }
 
@@ -445,6 +446,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (ContainingType.IsTupleType && ContainingType.IsDefinition)
+                {
+                    var i = NamedTypeSymbol.MatchesCanonicalElementName(Name);
+                    int itemsPerType = Math.Min(ContainingType.Arity, NamedTypeSymbol.ValueTupleRestPosition - 1);
+                    if (i > 0 && i <= itemsPerType)
+                    {
+                        WellKnownMember wellKnownMember = NamedTypeSymbol.GetTupleTypeMember(ContainingType.Arity, i);
+
+                        RuntimeMembers.MemberDescriptor relativeDescriptor = WellKnownMembers.GetDescriptor(wellKnownMember);
+                        var found = CSharpCompilation.GetRuntimeMember(ImmutableArray.Create<Symbol>(this), relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance,
+                                                                  accessWithinOpt: null); // force lookup of public members only
+
+                        if (found is object)
+                        {
+                            return i - 1;
+                        }
+                    }
+                }
+
                 return -1;
             }
         }

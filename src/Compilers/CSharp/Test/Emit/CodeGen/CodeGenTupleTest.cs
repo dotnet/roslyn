@@ -11,12 +11,14 @@ using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using TestResources.NetFX;
 using Xunit;
 using static TestResources.NetFX.ValueTuple;
 
@@ -26463,6 +26465,7 @@ public class ClassB
         [WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")]
         [WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
         [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
         public void CustomFields_01()
         {
             var source0 = @"
@@ -26527,16 +26530,15 @@ class Program
             CompileAndVerify(comp6, expectedOutput: "123");
             verifyField(comp6);
 
-            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
-            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
-            //CompileAndVerify(comp7, expectedOutput: "123");
-            //verifyField(comp7);
+            var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp7, expectedOutput: "123");
+            verifyField(comp7);
 
-            void verifyField(CSharpCompilation comp)
+            static void verifyField(CSharpCompilation comp)
             {
                 var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
                 Assert.NotNull(field.TupleUnderlyingField);
-                Assert.NotSame(field, field.TupleUnderlyingField);
+                Assert.Same(field, field.TupleUnderlyingField);
                 var toEmit = field.ContainingType.GetFieldsToEmit().Where(f => f.Name == "F1").Single();
                 Assert.Same(toEmit, toEmit.TupleUnderlyingField);
                 Assert.Same(field.TupleUnderlyingField, toEmit);
@@ -26546,6 +26548,7 @@ class Program
         [Fact]
         [WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")]
         [WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
         [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
         public void CustomFields_02()
         {
@@ -26612,16 +26615,15 @@ class Program
             CompileAndVerify(comp6, expectedOutput: "123");
             verifyField(comp6);
 
-            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
-            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
-            //CompileAndVerify(comp7, expectedOutput: "123");
-            //verifyField(comp7);
+            var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp7, expectedOutput: "123");
+            verifyField(comp7);
 
-            void verifyField(CSharpCompilation comp)
+            static void verifyField(CSharpCompilation comp)
             {
                 var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
                 Assert.NotNull(field.TupleUnderlyingField);
-                Assert.NotSame(field, field.TupleUnderlyingField);
+                Assert.Same(field, field.TupleUnderlyingField);
                 var toEmit = field.ContainingType.GetFieldsToEmit().Where(f => f.Name == "F1").Single();
                 Assert.Same(toEmit, toEmit.TupleUnderlyingField);
                 Assert.Same(field.TupleUnderlyingField, toEmit);
@@ -26631,6 +26633,7 @@ class Program
         [Fact]
         [WorkItem(43524, "https://github.com/dotnet/roslyn/issues/43524")]
         [WorkItem(1095184, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
         [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
         public void CustomFields_03()
         {
@@ -26687,16 +26690,15 @@ class Program
             CompileAndVerify(comp6, expectedOutput: "9");
             verifyField(comp6);
 
-            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
-            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
-            //CompileAndVerify(comp7, expectedOutput: "9");
-            //verifyField(comp7);
+            var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp7, expectedOutput: "9");
+            verifyField(comp7);
 
-            void verifyField(CSharpCompilation comp)
+            static void verifyField(CSharpCompilation comp)
             {
                 var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
                 Assert.NotNull(field.TupleUnderlyingField);
-                Assert.NotSame(field, field.TupleUnderlyingField);
+                Assert.Same(field, field.TupleUnderlyingField);
                 var toEmit = field.ContainingType.GetFieldsToEmit().Single();
                 Assert.Same(toEmit, toEmit.TupleUnderlyingField);
                 Assert.Same(field.TupleUnderlyingField, toEmit);
@@ -26766,16 +26768,15 @@ class Program
             CompileAndVerify(comp6, expectedOutput: "9");
             verifyField(comp6);
 
-            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
-            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
-            //CompileAndVerify(comp7, expectedOutput: "9");
-            //verifyField(comp7);
+            var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp7, expectedOutput: "9");
+            verifyField(comp7);
 
-            void verifyField(CSharpCompilation comp)
+            static void verifyField(CSharpCompilation comp)
             {
                 var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
                 Assert.NotNull(field.TupleUnderlyingField);
-                Assert.NotSame(field, field.TupleUnderlyingField);
+                Assert.Same(field, field.TupleUnderlyingField);
                 var toEmit = field.ContainingType.GetFieldsToEmit().Single();
                 Assert.Same(toEmit, toEmit.TupleUnderlyingField);
                 Assert.Same(field.TupleUnderlyingField, toEmit);
@@ -27357,7 +27358,7 @@ class C
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
             var type = (SourceNamedTypeSymbol)comp.GetMember("System.ValueTuple");
-            var field = (TupleFieldSymbol)type.GetMember("Item1");
+            var field = (SourceMemberFieldSymbolFromDeclarator)type.GetMember("Item1");
             var underlyingField = field.TupleUnderlyingField;
 
             Assert.True(field.RequiresCompletion);
@@ -27371,6 +27372,216 @@ class C
             Assert.True(underlyingField.RequiresCompletion);
             Assert.True(field.HasComplete(CompletionPart.All));
             Assert.True(underlyingField.HasComplete(CompletionPart.All));
+        }
+
+        [Fact, WorkItem(43597, "https://github.com/dotnet/roslyn/issues/43597")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        public void TestValueTuplesDefinition()
+        {
+            var comp = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples, targetFramework: TargetFramework.Mscorlib40);
+            CompileAndVerify(comp, sourceSymbolValidator: verifyModule, symbolValidator: verifyModule);
+
+            var comp2 = CreateCompilation("", targetFramework: TargetFramework.Mscorlib46, references: new[] { comp.ToMetadataReference() });
+            var retargetingValueTupleTypes = comp2.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple");
+            verifyTupleTypes(retargetingValueTupleTypes, retargeting: true);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var valueTupleTypes = module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple");
+                verifyTupleTypes(valueTupleTypes, retargeting: false);
+            }
+
+            static void verifyTupleTypes(ImmutableArray<Symbol> valueTupleTypes, bool retargeting)
+            {
+                AssertEx.SetEqual(new[] {
+                    "(T1, T2)", "(T1, T2, T3)", "System.ValueTuple<T1>",
+                    "(T1, T2, T3, T4)", "(T1, T2, T3, T4, T5)", "(T1, T2, T3, T4, T5, T6)",
+                    "(T1, T2, T3, T4, T5, T6, T7)", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>" },
+                    valueTupleTypes.ToTestDisplayStrings());
+
+                verify(valueTupleTypes[0], name: "Item1", display: "T1 (T1, T2).Item1", index: 0);
+                verify(valueTupleTypes[0], "Item2", "T2 (T1, T2).Item2", 1);
+
+                verify(valueTupleTypes[1], "Item1", "T1 (T1, T2, T3).Item1", 0);
+                verify(valueTupleTypes[1], "Item2", "T2 (T1, T2, T3).Item2", 1);
+                verify(valueTupleTypes[1], "Item3", "T3 (T1, T2, T3).Item3", 2);
+
+                verify(valueTupleTypes[2], "Item1", "T1 System.ValueTuple<T1>.Item1", 0);
+
+                verify(valueTupleTypes[3], "Item1", "T1 (T1, T2, T3, T4).Item1", 0);
+                verify(valueTupleTypes[3], "Item2", "T2 (T1, T2, T3, T4).Item2", 1);
+                verify(valueTupleTypes[3], "Item3", "T3 (T1, T2, T3, T4).Item3", 2);
+                verify(valueTupleTypes[3], "Item4", "T4 (T1, T2, T3, T4).Item4", 3);
+
+                verify(valueTupleTypes[4], "Item1", "T1 (T1, T2, T3, T4, T5).Item1", 0);
+                verify(valueTupleTypes[4], "Item2", "T2 (T1, T2, T3, T4, T5).Item2", 1);
+                verify(valueTupleTypes[4], "Item3", "T3 (T1, T2, T3, T4, T5).Item3", 2);
+                verify(valueTupleTypes[4], "Item4", "T4 (T1, T2, T3, T4, T5).Item4", 3);
+                verify(valueTupleTypes[4], "Item5", "T5 (T1, T2, T3, T4, T5).Item5", 4);
+
+                verify(valueTupleTypes[5], "Item1", "T1 (T1, T2, T3, T4, T5, T6).Item1", 0);
+                verify(valueTupleTypes[5], "Item2", "T2 (T1, T2, T3, T4, T5, T6).Item2", 1);
+                verify(valueTupleTypes[5], "Item3", "T3 (T1, T2, T3, T4, T5, T6).Item3", 2);
+                verify(valueTupleTypes[5], "Item4", "T4 (T1, T2, T3, T4, T5, T6).Item4", 3);
+                verify(valueTupleTypes[5], "Item5", "T5 (T1, T2, T3, T4, T5, T6).Item5", 4);
+                verify(valueTupleTypes[5], "Item6", "T6 (T1, T2, T3, T4, T5, T6).Item6", 5);
+
+                verify(valueTupleTypes[6], "Item1", "T1 (T1, T2, T3, T4, T5, T6, T7).Item1", 0);
+                verify(valueTupleTypes[6], "Item2", "T2 (T1, T2, T3, T4, T5, T6, T7).Item2", 1);
+                verify(valueTupleTypes[6], "Item3", "T3 (T1, T2, T3, T4, T5, T6, T7).Item3", 2);
+                verify(valueTupleTypes[6], "Item4", "T4 (T1, T2, T3, T4, T5, T6, T7).Item4", 3);
+                verify(valueTupleTypes[6], "Item5", "T5 (T1, T2, T3, T4, T5, T6, T7).Item5", 4);
+                verify(valueTupleTypes[6], "Item6", "T6 (T1, T2, T3, T4, T5, T6, T7).Item6", 5);
+                verify(valueTupleTypes[6], "Item7", "T7 (T1, T2, T3, T4, T5, T6, T7).Item7", 6);
+
+                void verify(Symbol tuple, string name, string display, int index)
+                {
+                    var isSourceSymbol = tuple.ContainingModule is SourceModuleSymbol;
+
+                    var namedType = (NamedTypeSymbol)tuple;
+                    Assert.True(namedType.IsTupleType);
+                    var item = namedType.GetMember<FieldSymbol>(name);
+                    if (retargeting)
+                    {
+                        Assert.IsType<RetargetingFieldSymbol>(item);
+                    }
+                    else if (isSourceSymbol)
+                    {
+                        Assert.IsType<SourceMemberFieldSymbolFromDeclarator>(item);
+                    }
+                    else
+                    {
+                        Assert.IsType<PEFieldSymbol>(item);
+                    }
+
+                    Assert.True(item.IsDefaultTupleElement);
+                    Assert.True(item.IsDefinition);
+
+                    Assert.False(item.IsImplicitlyDeclared);
+                    Assert.False(item.IsVirtualTupleField);
+
+                    Assert.Equal(display, item.ToTestDisplayString());
+                    Assert.Equal(index, item.TupleElementIndex);
+                    Assert.Equal(name, item.Name);
+                    Assert.Equal(1, item.Locations.Length);
+                    if (retargeting || isSourceSymbol)
+                    {
+                        Assert.Equal(name, item.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+                    }
+                    else
+                    {
+                        Assert.Empty(item.DeclaringSyntaxReferences);
+                    }
+
+                    Assert.Same(item, item.TupleUnderlyingField);
+                    Assert.Same(item, item.CorrespondingTupleField);
+
+                    Assert.Null(item.AssociatedSymbol);
+                }
+            }
+        }
+
+        [Fact, WorkItem(43597, "https://github.com/dotnet/roslyn/issues/43597")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        public void TestValueTuple8Definition()
+        {
+            var comp = CreateCompilation(trivialRemainingTuples, targetFramework: TargetFramework.Mscorlib40);
+            CompileAndVerify(comp, sourceSymbolValidator: verifyModule, symbolValidator: verifyModule);
+
+            var comp2 = CreateCompilation("", targetFramework: TargetFramework.Mscorlib46, references: new[] { comp.ToMetadataReference() });
+            var retargetingValueTupleTypes = comp2.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple");
+            verifyTuple8Type(retargetingValueTupleTypes[5], retargeting: true);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var valueTupleTypes = module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").As<NamedTypeSymbol>();
+                AssertEx.SetEqual(new[] { "System.ValueTuple<T1>",
+                "(T1, T2, T3, T4)", "(T1, T2, T3, T4, T5)", "(T1, T2, T3, T4, T5, T6)",
+                "(T1, T2, T3, T4, T5, T6, T7)", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>" },
+                    valueTupleTypes.ToTestDisplayStrings());
+            }
+
+            static void verifyTuple8Type(Symbol tuple, bool retargeting)
+            {
+                verify("Item1", "T1 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item1");
+                verify("Item2", "T2 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item2");
+                verify("Item3", "T3 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item3");
+                verify("Item4", "T4 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item4");
+                verify("Item5", "T5 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item5");
+                verify("Item6", "T6 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item6");
+                verify("Item7", "T7 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item7");
+                verify("Rest", "TRest System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Rest");
+
+                void verify(string name, string display)
+                {
+                    var isSourceSymbol = tuple.ContainingModule is SourceModuleSymbol;
+
+                    var namedType = (NamedTypeSymbol)tuple;
+                    Assert.False(namedType.IsTupleType);
+                    var item = namedType.GetMember<FieldSymbol>(name);
+                    if (retargeting)
+                    {
+                        Assert.IsType<RetargetingFieldSymbol>(item);
+                    }
+                    else if (isSourceSymbol)
+                    {
+                        Assert.IsType<SourceMemberFieldSymbolFromDeclarator>(item);
+                    }
+                    else
+                    {
+                        Assert.IsType<PEFieldSymbol>(item);
+                    }
+
+                    Assert.False(item.IsDefaultTupleElement);
+                    Assert.True(item.IsDefinition);
+
+                    Assert.False(item.IsImplicitlyDeclared);
+                    Assert.False(item.IsVirtualTupleField);
+
+                    Assert.Equal(display, item.ToTestDisplayString());
+                    Assert.Equal(-1, item.TupleElementIndex);
+                    Assert.Equal(name, item.Name);
+                    Assert.Equal(1, item.Locations.Length);
+                    if (retargeting || isSourceSymbol)
+                    {
+                        Assert.Equal(name, item.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+                    }
+                    else
+                    {
+                        Assert.Empty(item.DeclaringSyntaxReferences);
+                    }
+
+                    Assert.Null(item.TupleUnderlyingField);
+                    Assert.Null(item.CorrespondingTupleField);
+                    Assert.Null(item.AssociatedSymbol);
+                }
+            }
+        }
+
+        [Fact]
+        public void SwitchWithNamedTuple()
+        {
+            var source = @"
+class C
+{
+    static int M()
+    {
+        var isColInit = true;
+        var errorCode = (message: """", isColInit) switch
+        {
+            (message: null, isColInit: true) => 42,
+            (message: null, isColInit: false) => 43,
+            (message: { }, isColInit: true) => 44,
+            (message: { }, isColInit: false) => 45,
+        };
+
+        return errorCode;
+    }
+}
+" + trivial2uple + tupleattributes_cs;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
     }
 }

@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(container.Equals(underlyingField.ContainingType, TypeCompareKind.IgnoreDynamicAndTupleNames) || this is TupleVirtualElementFieldSymbol,
                                             "virtual fields should be represented by " + nameof(TupleVirtualElementFieldSymbol));
 
+            // The fields on definition of ValueTuple<...> types don't need to be wrapped
+            Debug.Assert(!container.IsDefinition);
+
             _containingTuple = container;
             _tupleElementIndex = tupleElementIndex;
         }
@@ -151,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents an element field of a tuple type (such as (int, byte).Item1)
     /// that is backed by a real field with the same name within the tuple underlying type.
+    /// Note that original tuple fields (like `System.ValueTuple'2.Item1` do not get wrapped.
     /// </summary>
     internal class TupleElementFieldSymbol : TupleFieldSymbol
     {
