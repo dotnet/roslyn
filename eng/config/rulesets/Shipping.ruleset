@@ -60,7 +60,7 @@
     <Rule Id="CA1835" Action="None" /> <!-- Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync' -->
     <Rule Id="CA2000" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25880 -->
     <Rule Id="CA2007" Action="Warning" />
-    <Rule Id="CA2100" Action="None" /> <!-- AD0001 ReviewSqlQueriesForSecurityVulnerabilities: https://github.com/dotnet/roslyn-analyzers/issues/3613 -->
+    <Rule Id="CA2109" Action="None" /> <!-- Review visible event handlers (legacy rule is no longer relevant) -->
     <Rule Id="CA2211" Action="None" />
     <Rule Id="CA2213" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25880 -->
     <Rule Id="CA2214" Action="None" /> <!-- do not call overridable methods in constructors: done in various places -->
