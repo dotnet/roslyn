@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             var expr = SyntaxFactory.GetStandaloneExpression(expression);
-            DecomposeName(expr, out var qualifier, out var name, out var arity);
+            DecomposeName(expr, out var qualifier, out var name, out _);
 
             INamespaceOrTypeSymbol symbol = null;
             if (qualifier != null)

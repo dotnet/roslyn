@@ -95,12 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     Contract.ThrowIfFalse(IsExtractMethodOnExpression(CSharpSelectionResult));
 
-                    ExpressionSyntax expression = null;
-
                     // special case for array initializer
                     var returnType = AnalyzerResult.ReturnType;
                     var containingScope = CSharpSelectionResult.GetContainingScope();
 
+                    ExpressionSyntax expression;
                     if (returnType.TypeKind == TypeKind.Array && containingScope is InitializerExpressionSyntax)
                     {
                         var typeSyntax = returnType.GenerateTypeSyntax();

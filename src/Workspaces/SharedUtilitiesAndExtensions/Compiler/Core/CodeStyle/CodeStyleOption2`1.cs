@@ -6,10 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal interface ICodeStyleOption
+    internal interface ICodeStyleOption : IObjectWritable
     {
         XElement ToXElement();
         object Value { get; }
@@ -17,6 +18,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption WithValue(object value);
         ICodeStyleOption WithNotification(NotificationOption2 notification);
         ICodeStyleOption AsCodeStyleOption<TCodeStyleOption>();
+#if !CODE_STYLE
+        ICodeStyleOption AsPublicCodeStyleOption();
+#endif
     }
 
     /// <summary>
@@ -35,6 +39,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// </summary>
     internal partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>>
     {
+        static CodeStyleOption2()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(CodeStyleOption2<T>), ReadFrom);
+        }
+
         public static CodeStyleOption2<T> Default => new CodeStyleOption2<T>(default, NotificationOption2.Silent);
 
         private const int SerializationVersion = 1;
@@ -53,11 +62,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption2<T>((T)value, Notification);
         ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption2<T>(Value, notification);
 
-        ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
 #if CODE_STYLE
-            => this;
+        ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>() => this;
 #else
+        ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
             => this is TCodeStyleOption ? this : (ICodeStyleOption)new CodeStyleOption<T>(this);
+        ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => new CodeStyleOption<T>(this);
 #endif
 
         private int EnumValueAsInt32 => (int)(object)Value;
@@ -147,6 +157,28 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 DiagnosticSeverity.Error => NotificationOption2.Error,
                 _ => throw new ArgumentException(nameof(element)),
             });
+        }
+
+        public bool ShouldReuseInSerialization => false;
+
+        public void WriteTo(ObjectWriter writer)
+        {
+            writer.WriteValue(GetValueForSerialization());
+            writer.WriteInt32((int)(Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
+        }
+
+        public static CodeStyleOption2<object> ReadFrom(ObjectReader reader)
+        {
+            return new CodeStyleOption2<object>(
+                reader.ReadValue(),
+                (DiagnosticSeverity)reader.ReadInt32() switch
+                {
+                    DiagnosticSeverity.Hidden => NotificationOption2.Silent,
+                    DiagnosticSeverity.Info => NotificationOption2.Suggestion,
+                    DiagnosticSeverity.Warning => NotificationOption2.Warning,
+                    DiagnosticSeverity.Error => NotificationOption2.Error,
+                    var v => throw ExceptionUtilities.UnexpectedValue(v),
+                });
         }
 
         private static Func<string, T> GetParser(string type)

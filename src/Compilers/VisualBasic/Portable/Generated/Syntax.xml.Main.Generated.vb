@@ -23365,7 +23365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represent an call statement (also known as a invocation statement).
+        ''' Represent a call statement (also known as a invocation statement).
         ''' </summary>
         ''' <param name="callKeyword">
         ''' The "Call" keyword.
@@ -23394,7 +23394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represent an call statement (also known as a invocation statement).
+        ''' Represent a call statement (also known as a invocation statement).
         ''' </summary>
         ''' <param name="invocation">
         ''' The expression denoting the call. This could be an Invocation or a MemberAccess
@@ -41900,7 +41900,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represents an Date literal token.
+        ''' Represents a Date literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -41914,7 +41914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represents an Date literal token.
+        ''' Represents a Date literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -41925,7 +41925,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -41939,7 +41939,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -41950,7 +41950,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -41964,7 +41964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.

@@ -5,8 +5,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
@@ -26,21 +24,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
                 serviceName += "64";
             }
 
-            using var connection = await client.TryCreateConnectionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
-            if (connection == null)
-            {
-                return default;
-            }
-
-            var remoteDataService = workspace.Services.GetRequiredService<IRemotableDataService>();
-
-            using var scope = await remoteDataService.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
-            using var _ = ArrayBuilder<object>.GetInstance(arguments.Count + 1, out var argumentsBuilder);
-
-            argumentsBuilder.Add(scope.SolutionInfo);
-            argumentsBuilder.AddRange(arguments);
-
-            return await connection.InvokeAsync<T>(targetName, argumentsBuilder, cancellationToken).ConfigureAwait(false);
+            return await client.TryRunRemoteAsync<T>(serviceName, targetName, solution, arguments, callbackTarget: null, cancellationToken).ConfigureAwait(false);
         }
     }
 }

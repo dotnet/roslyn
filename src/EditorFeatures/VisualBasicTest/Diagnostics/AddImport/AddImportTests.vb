@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                 initialMarkup, expectedMarkup, index,
                 parameters:=New TestParameters(
                     options:=[Option](GenerationOptions.PlaceSystemNamespaceFirst, placeSystemFirst),
-                    fixProviderData:=outOfProcess,
+                    runProviderOutOfProc:=outOfProcess,
                     priority:=priority))
         End Function
     End Class
@@ -48,9 +48,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, parameters As TestParameters) As (DiagnosticAnalyzer, CodeFixProvider)
-            Dim outOfProcess = DirectCast(parameters.fixProviderData, Boolean)
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
+                .WithChangedOption(RemoteHostOptions.RemoteHostTest, parameters.runProviderOutOfProc)))
 
             Return MyBase.CreateDiagnosticProviderAndFixer(workspace, parameters)
         End Function

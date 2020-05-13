@@ -7,7 +7,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.LanguageServiceIndexFormat;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -21,15 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         private static async Task FindSymbolMonikerReferencesAsync(
             IFindSymbolMonikerUsagesService monikerUsagesService,
             ISymbol definition,
-            IFindUsagesContext context,
-            CancellationToken cancellationToken)
+            IFindUsagesContext context)
         {
             var moniker = SymbolMoniker.TryCreate(definition);
             if (moniker == null)
                 return;
-
-            // Let the find-refs window know we have outstanding work
-            await using var _ = await context.ProgressTracker.AddSingleItemAsync().ConfigureAwait(false);
 
             var displayParts = GetDisplayParts(definition).AddRange(new[]
             {
@@ -45,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var monikers = ImmutableArray.Create(moniker);
 
             var first = true;
-            await foreach (var referenceItem in monikerUsagesService.FindReferencesByMoniker(
-                definitionItem, monikers, context.ProgressTracker, cancellationToken))
+            await foreach (var referenceItem in monikerUsagesService.FindReferencesByMoniker(definitionItem, monikers, context.CancellationToken))
             {
                 if (first)
                 {

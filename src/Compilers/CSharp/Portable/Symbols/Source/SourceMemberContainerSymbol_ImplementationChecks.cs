@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal delegate void ReportMismatchinReturnType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool topLevel, TArg arg);
+    internal delegate void ReportMismatchInReturnType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool topLevel, TArg arg);
     internal delegate void ReportMismatchInParameterType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol parameter, bool topLevel, TArg arg);
 
     internal partial class SourceMemberContainerTypeSymbol
@@ -1058,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        static readonly ReportMismatchinReturnType<Location> ReportBadReturn =
+        static readonly ReportMismatchInReturnType<Location> ReportBadReturn =
             (DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool topLevel, Location location)
             => diagnostics.Add(topLevel ?
                 ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride :
@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol overriddenMethod,
             MethodSymbol overridingMethod,
             DiagnosticBag diagnostics,
-            ReportMismatchinReturnType<TArg> reportMismatchInReturnType,
+            ReportMismatchInReturnType<TArg> reportMismatchInReturnType,
             ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
             TArg extraArgument)
         {

@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         if (syntaxFacts.IsSimpleAssignmentStatement(siblingNode))
                         {
                             syntaxFacts.GetPartsOfAssignmentStatement(
-                                siblingNode, out var left, out var right);
+                                siblingNode, out var left, out _);
 
                             var symbol = semanticDocument.SemanticModel.GetSymbolInfo(left, cancellationToken).Symbol;
                             if (symbol?.Kind == symbolKind &&

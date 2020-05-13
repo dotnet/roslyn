@@ -501,11 +501,20 @@ case_pattern_switch_label
   ;
 
 pattern
-  : constant_pattern
+  : binary_pattern
+  | constant_pattern
   | declaration_pattern
   | discard_pattern
+  | parenthesized_pattern
   | recursive_pattern
+  | relational_pattern
+  | type_pattern
+  | unary_pattern
   | var_pattern
+  ;
+
+binary_pattern
+  : pattern ('or' | 'and') pattern
   ;
 
 constant_pattern
@@ -538,6 +547,10 @@ discard_pattern
   : '_'
   ;
 
+parenthesized_pattern
+  : '(' pattern ')'
+  ;
+
 recursive_pattern
   : type? positional_pattern_clause? property_pattern_clause? variable_designation?
   ;
@@ -552,6 +565,23 @@ subpattern
 
 property_pattern_clause
   : '{' (subpattern (',' subpattern)* ','?)? '}'
+  ;
+
+relational_pattern
+  : '!=' expression
+  | '<' expression
+  | '<=' expression
+  | '==' expression
+  | '>' expression
+  | '>=' expression
+  ;
+
+type_pattern
+  : type
+  ;
+
+unary_pattern
+  : 'not' pattern
   ;
 
 var_pattern
@@ -616,6 +646,7 @@ expression
   | array_creation_expression
   | assignment_expression
   | await_expression
+  | base_object_creation_expression
   | binary_expression
   | cast_expression
   | checked_expression
@@ -637,7 +668,6 @@ expression
   | make_ref_expression
   | member_access_expression
   | member_binding_expression
-  | object_creation_expression
   | omitted_array_size_expression
   | parenthesized_expression
   | postfix_unary_expression
@@ -700,6 +730,19 @@ assignment_expression
 
 await_expression
   : 'await' expression
+  ;
+
+base_object_creation_expression
+  : implicit_object_creation_expression
+  | object_creation_expression
+  ;
+
+implicit_object_creation_expression
+  : 'new' argument_list initializer_expression?
+  ;
+
+object_creation_expression
+  : 'new' type argument_list? initializer_expression?
   ;
 
 binary_expression
@@ -819,10 +862,6 @@ member_access_expression
 
 member_binding_expression
   : '.' simple_name
-  ;
-
-object_creation_expression
-  : 'new' type argument_list? initializer_expression?
   ;
 
 omitted_array_size_expression
@@ -1205,6 +1244,11 @@ base_parameter_list
 
 character_literal_token
   : /* see lexical specification */
+  ;
+
+expression_or_pattern
+  : expression
+  | pattern
   ;
 
 identifier_token

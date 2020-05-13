@@ -316,25 +316,44 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var optionKey = new OptionKey(option, language);
             var optionKey2 = new OptionKey2(option, language);
 
-            //  1. WithChangedOption(OptionKey), GetOption(OptionKey)
+            // Value return from "object GetOption(OptionKey)" should always be public CodeStyleOption type.
+            var newPublicValue = newValue.AsPublicCodeStyleOption();
+
+            //  1. WithChangedOption(OptionKey), GetOption(OptionKey)/GetOption<T>(OptionKey)
             var newOptionSet = originalOptionSet.WithChangedOption(optionKey, newValue);
-            Assert.Equal(newValue, newOptionSet.GetOption(optionKey));
+            Assert.Equal(newPublicValue, newOptionSet.GetOption(optionKey));
+            // Value returned from public API should always be castable to public CodeStyleOption type.
+            Assert.NotNull((CodeStyleOption<bool>)newOptionSet.GetOption(optionKey)!);
+            // Verify "T GetOption<T>(OptionKey)" works for both cases of T being a public and internal code style option type.
+            Assert.Equal(newPublicValue, newOptionSet.GetOption<CodeStyleOption<bool>>(optionKey));
+            Assert.Equal(newValue, newOptionSet.GetOption<TCodeStyleOption>(optionKey));
 
-            //  2. WithChangedOption(OptionKey), GetOption(OptionKey2)
+            //  2. WithChangedOption(OptionKey), GetOption(OptionKey2)/GetOption<T>(OptionKey2)
             newOptionSet = originalOptionSet.WithChangedOption(optionKey, newValue);
-            Assert.Equal(newValue, newOptionSet.GetOption(optionKey2));
+            Assert.Equal(newPublicValue, newOptionSet.GetOption(optionKey2));
+            // Verify "T GetOption<T>(OptionKey2)" works for both cases of T being a public and internal code style option type.
+            Assert.Equal(newPublicValue, newOptionSet.GetOption<CodeStyleOption<bool>>(optionKey2));
+            Assert.Equal(newValue, newOptionSet.GetOption<TCodeStyleOption>(optionKey2));
 
-            //  3. WithChangedOption(OptionKey2), GetOption(OptionKey)
+            //  3. WithChangedOption(OptionKey2), GetOption(OptionKey)/GetOption<T>(OptionKey)
             newOptionSet = originalOptionSet.WithChangedOption(optionKey2, newValue);
-            Assert.Equal(newValue, newOptionSet.GetOption(optionKey));
+            Assert.Equal(newPublicValue, newOptionSet.GetOption(optionKey));
+            // Value returned from public API should always be castable to public CodeStyleOption type.
+            Assert.NotNull((CodeStyleOption<bool>)newOptionSet.GetOption(optionKey)!);
+            // Verify "T GetOption<T>(OptionKey)" works for both cases of T being a public and internal code style option type.
+            Assert.Equal(newPublicValue, newOptionSet.GetOption<CodeStyleOption<bool>>(optionKey));
+            Assert.Equal(newValue, newOptionSet.GetOption<TCodeStyleOption>(optionKey));
 
-            //  4. WithChangedOption(OptionKey2), GetOption(OptionKey2)
+            //  4. WithChangedOption(OptionKey2), GetOption(OptionKey2)/GetOption<T>(OptionKey2)
             newOptionSet = originalOptionSet.WithChangedOption(optionKey2, newValue);
-            Assert.Equal(newValue, newOptionSet.GetOption(optionKey2));
+            Assert.Equal(newPublicValue, newOptionSet.GetOption(optionKey2));
+            // Verify "T GetOption<T>(OptionKey2)" works for both cases of T being a public and internal code style option type.
+            Assert.Equal(newPublicValue, newOptionSet.GetOption<CodeStyleOption<bool>>(optionKey2));
+            Assert.Equal(newValue, newOptionSet.GetOption<TCodeStyleOption>(optionKey2));
 
             //  5. IOptionService.GetOption(OptionKey)
             optionService.SetOptions(newOptionSet);
-            Assert.Equal(newValue, optionService.GetOption(optionKey));
+            Assert.Equal(newPublicValue, optionService.GetOption(optionKey));
         }
     }
 }

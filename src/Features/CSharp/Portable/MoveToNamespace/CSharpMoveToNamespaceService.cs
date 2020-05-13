@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
             => container switch
             {
                 NamespaceDeclarationSyntax namespaceSyntax => namespaceSyntax.Name.ToString(),
-                CompilationUnitSyntax compilationUnit => string.Empty,
+                CompilationUnitSyntax _ => string.Empty,
                 _ => throw ExceptionUtilities.UnexpectedValue(container)
             };
 

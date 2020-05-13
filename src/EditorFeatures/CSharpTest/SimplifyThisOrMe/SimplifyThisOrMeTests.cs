@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -419,9 +420,12 @@ class D
     </Project>
 </Workspace>";
 
-            var options = OptionsSet(
-                SingleOption(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Suggestion),
-                SingleOption(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Suggestion));
+            var options =
+                new OptionsCollection(GetLanguage())
+                {
+                    { CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Suggestion },
+                    { CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Suggestion },
+                };
 
             await TestInRegularAndScriptAsync(
                 initialMarkup: input,

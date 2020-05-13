@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis
                 if (bType == PrivateKeyBlobId)
                 {
                     privateKey = ToRSAParameters(blob.AsSpan(), true);
-                    // For snKey, rewrite some of the the parameters
+                    // For snKey, rewrite some of the parameters
                     algId = AlgorithmId.RsaSign;
                     magic = RSA1;
                 }

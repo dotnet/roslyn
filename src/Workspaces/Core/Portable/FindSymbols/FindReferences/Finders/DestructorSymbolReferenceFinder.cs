@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IMethodSymbol symbol)
             => symbol.MethodKind == MethodKind.Destructor;
 
-        protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IMethodSymbol> symbol,
+        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            IMethodSymbol symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
+            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

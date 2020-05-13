@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -4495,7 +4495,7 @@ namespace N
 /// </summary>
 class Base
 {
-}", OptionsSet(), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
@@ -4509,7 +4509,7 @@ class Base
 class Base
 {
     public void Foo(string s) { }
-}", OptionsSet(), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -5848,7 +5848,7 @@ class Base
     {
         var v = nameof([|System|].Int32);
     }
-}", OptionsSet(), IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
+}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [WorkItem(11380, "https://github.com/dotnet/roslyn/issues/11380")]
@@ -5867,28 +5867,43 @@ class Program
         }
 
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
-            => await TestInRegularAndScriptAsync(code, expected, index: index, options: PreferIntrinsicTypeEverywhere);
+            => await TestInRegularAndScript1Async(code, expected, index, new TestParameters(options: PreferIntrinsicTypeEverywhere));
 
-        private IDictionary<OptionKey2, object> PreferIntrinsicTypeEverywhere => OptionsSet(
-            SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error),
-            SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError, GetLanguage()));
+        private OptionsCollection PreferIntrinsicTypeEverywhere
+            => new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError },
+            };
 
-        private IDictionary<OptionKey2, object> PreferIntrinsicTypeEverywhereAsWarning => OptionsSet(
-            SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Warning),
-            SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithWarning, GetLanguage()));
+        private OptionsCollection PreferIntrinsicTypeEverywhereAsWarning
+            => new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Warning },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithWarning },
+            };
 
-        private IDictionary<OptionKey2, object> PreferIntrinsicTypeInDeclaration => OptionsSet(
-            SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error),
-            SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithSilent, GetLanguage()));
+        private OptionsCollection PreferIntrinsicTypeInDeclaration
+            => new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithSilent },
+            };
 
-        private IDictionary<OptionKey2, object> PreferIntrinsicTypeInMemberAccess => OptionsSet(
-            SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption2.Error),
-            SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithSilent, GetLanguage()));
+        private OptionsCollection PreferIntrinsicTypeInMemberAccess
+            => new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption2.Error },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithSilent },
+            };
 
-        private IDictionary<OptionKey2, object> PreferImplicitTypeEverywhere => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
+        private OptionsCollection PreferImplicitTypeEverywhere
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
 
         private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
         private readonly CodeStyleOption2<bool> offWithSilent = new CodeStyleOption2<bool>(false, NotificationOption2.Silent);

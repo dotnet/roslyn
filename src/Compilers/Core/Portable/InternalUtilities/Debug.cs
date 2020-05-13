@@ -13,15 +13,17 @@ namespace Roslyn.Utilities
     {
         /// <inheritdoc cref="Debug.Assert(bool)"/>
         [Conditional("DEBUG")]
-        public static void Assert([DoesNotReturnIf(false)]bool b) => Debug.Assert(b);
+        public static void Assert([DoesNotReturnIf(false)] bool b) => Debug.Assert(b);
 
         /// <inheritdoc cref="Debug.Assert(bool, string)"/>
         [Conditional("DEBUG")]
-        public static void Assert([DoesNotReturnIf(false)]bool b, string message)
+        public static void Assert([DoesNotReturnIf(false)] bool b, string message)
             => Debug.Assert(b, message);
 
         [Conditional("DEBUG")]
-        public static void AssertNotNull<T>([NotNull]T value) where T : class?
-            => Debug.Assert(value is object, "Unexpected null reference");
+        public static void AssertNotNull<T>([NotNull] T value) where T : class?
+        {
+            Assert(value is object, "Unexpected null reference");
+        }
     }
 }

@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -30,12 +31,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public sealed class AnalyzerFileReference : AnalyzerReference, IEquatable<AnalyzerReference>
     {
         private static readonly string s_diagnosticAnalyzerAttributeNamespace = typeof(DiagnosticAnalyzerAttribute).Namespace!;
+        private static readonly string s_generatorAttributeNamespace = typeof(GeneratorAttribute).Namespace!;
 
         private delegate bool AttributePredicate(PEModule module, CustomAttributeHandle attribute);
+        private delegate IEnumerable<string> AttributeLanguagesFunc(PEModule module, CustomAttributeHandle attribute);
 
-        private readonly string _fullPath;
+        public override string FullPath { get; }
+
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
         private readonly Extensions<DiagnosticAnalyzer> _diagnosticAnalyzers;
+        private readonly Extensions<ISourceGenerator> _generators;
 
         private string? _lazyDisplay;
         private object? _lazyIdentity;
@@ -50,17 +55,59 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="assemblyLoader">Loader for obtaining the <see cref="Assembly"/> from the <paramref name="fullPath"/></param>
         public AnalyzerFileReference(string fullPath, IAnalyzerAssemblyLoader assemblyLoader)
         {
-            _fullPath = fullPath ?? throw new ArgumentNullException(nameof(fullPath));
-            _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute);
+            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
+
+            FullPath = fullPath;
             _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
+
+            _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute, GetDiagnosticsAnalyzerSupportedLanguages);
+            _generators = new Extensions<ISourceGenerator>(this, IsGeneratorAttribute, GetGeneratorsSupportedLanguages);
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
-            if (PathUtilities.IsAbsolute(fullPath))
-            {
-                assemblyLoader.AddDependencyLocation(fullPath);
-            }
+            assemblyLoader.AddDependencyLocation(fullPath);
         }
+
+        public IAnalyzerAssemblyLoader AssemblyLoader => _assemblyLoader;
+
+        public override bool Equals(object? obj)
+            => Equals(obj as AnalyzerFileReference);
+
+        public bool Equals(AnalyzerFileReference? other)
+        {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return other is object &&
+                ReferenceEquals(_assemblyLoader, other._assemblyLoader) &&
+                FullPath == other.FullPath;
+        }
+
+        // legacy, for backwards compat:
+        public bool Equals(AnalyzerReference? other)
+        {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (other is AnalyzerFileReference fileReference)
+            {
+                return Equals(fileReference);
+            }
+
+            return FullPath == other.FullPath;
+        }
+
+        public override int GetHashCode()
+            => Hash.Combine(RuntimeHelpers.GetHashCode(_assemblyLoader), FullPath.GetHashCode());
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
@@ -72,12 +119,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _diagnosticAnalyzers.GetExtensions(language);
         }
 
-        public override string FullPath
+        public override ImmutableArray<ISourceGenerator> GetGenerators()
         {
-            get
-            {
-                return _fullPath;
-            }
+            return _generators.GetExtensionsForAllLanguages();
         }
 
         public override string Display
@@ -114,17 +158,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // AssemblyName.GetAssemblyName(path) is not available on CoreCLR.
                 // Use our metadata reader to do the equivalent thing.
-                using (var reader = new PEReader(FileUtilities.OpenRead(_fullPath)))
-                {
-                    var metadataReader = reader.GetMetadataReader();
-                    var assemblyIdentity = metadataReader.ReadAssemblyIdentityOrThrow();
-                    _lazyDisplay = assemblyIdentity.Name;
-                    _lazyIdentity = assemblyIdentity;
-                }
+                using var reader = new PEReader(FileUtilities.OpenRead(FullPath));
+
+                var metadataReader = reader.GetMetadataReader();
+                var assemblyIdentity = metadataReader.ReadAssemblyIdentityOrThrow();
+                _lazyDisplay = assemblyIdentity.Name;
+                _lazyIdentity = assemblyIdentity;
             }
             catch
             {
-                _lazyDisplay = Path.GetFileNameWithoutExtension(_fullPath);
+                _lazyDisplay = FileNameUtilities.GetFileName(FullPath, includeExtension: false);
                 _lazyIdentity = _lazyDisplay;
             }
         }
@@ -135,6 +178,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal void AddAnalyzers(ImmutableArray<DiagnosticAnalyzer>.Builder builder, string language)
         {
             _diagnosticAnalyzers.AddExtensions(builder, language);
+        }
+
+        /// <summary>
+        /// Adds the <see cref="ImmutableArray{T}"/> of <see cref="ISourceGenerator"/> defined in this assembly reference of given <paramref name="language"/>.
+        /// </summary>
+        internal void AddGenerators(ImmutableArray<ISourceGenerator>.Builder builder, string language)
+        {
+            _generators.AddExtensions(builder, language);
         }
 
         private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeNameOpt = null)
@@ -163,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
         /// <exception cref="IOException">IO error reading the metadata.</exception>
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30449")]
-        private static ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap(string fullPath, AttributePredicate attributePredicate)
+        private static ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap(string fullPath, AttributePredicate attributePredicate, AttributeLanguagesFunc languagesFunc)
         {
             using var assembly = AssemblyMetadata.CreateFromFile(fullPath);
 
@@ -173,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var typeNameMap = from module in assembly.GetModules()
                               from typeDefHandle in module.MetadataReader.TypeDefinitions
                               let typeDef = module.MetadataReader.GetTypeDefinition(typeDefHandle)
-                              let supportedLanguages = GetSupportedLanguages(typeDef, module.Module, attributePredicate)
+                              let supportedLanguages = GetSupportedLanguages(typeDef, module.Module, attributePredicate, languagesFunc)
                               where supportedLanguages.Any()
                               let typeName = GetFullyQualifiedTypeName(typeDef, module.Module)
                               from supportedLanguage in supportedLanguages
@@ -182,18 +233,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return typeNameMap.ToImmutableDictionary(g => g.Key, g => g.ToImmutableHashSet());
         }
 
-        private static IEnumerable<string> GetSupportedLanguages(TypeDefinition typeDef, PEModule peModule, AttributePredicate attributePredicate)
+        private static IEnumerable<string> GetSupportedLanguages(TypeDefinition typeDef, PEModule peModule, AttributePredicate attributePredicate, AttributeLanguagesFunc languagesFunc)
         {
             var attributeLanguagesList = from customAttrHandle in typeDef.GetCustomAttributes()
                                          where attributePredicate(peModule, customAttrHandle)
-                                         let attributeSupportedLanguages = GetSupportedLanguages(peModule, customAttrHandle)
+                                         let attributeSupportedLanguages = languagesFunc(peModule, customAttrHandle)
                                          where attributeSupportedLanguages != null
                                          select attributeSupportedLanguages;
 
             return attributeLanguagesList.SelectMany(x => x);
         }
 
-        private static IEnumerable<string> GetSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle)
+        private static bool IsDiagnosticAnalyzerAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
+        {
+            return peModule.IsTargetAttribute(customAttrHandle, s_diagnosticAnalyzerAttributeNamespace, nameof(DiagnosticAnalyzerAttribute), ctor: out _);
+        }
+
+        private static IEnumerable<string> GetDiagnosticsAnalyzerSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle)
         {
             // The DiagnosticAnalyzerAttribute has one constructor, which has a string parameter for the
             // first supported language and an array parameter for addition supported languages.
@@ -227,10 +283,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedCollections.EmptyEnumerable<string>();
         }
 
-        private static bool IsDiagnosticAnalyzerAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
+        private static bool IsGeneratorAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
         {
-            return peModule.IsTargetAttribute(customAttrHandle, s_diagnosticAnalyzerAttributeNamespace, nameof(DiagnosticAnalyzerAttribute), ctor: out _);
+            return peModule.IsTargetAttribute(customAttrHandle, s_generatorAttributeNamespace, nameof(GeneratorAttribute), ctor: out _);
         }
+
+        private static IEnumerable<string> GetGeneratorsSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle) => ImmutableArray.Create(LanguageNames.CSharp);
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {
@@ -252,14 +310,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             private readonly AnalyzerFileReference _reference;
             private readonly AttributePredicate _attributePredicate;
+            private readonly AttributeLanguagesFunc _languagesFunc;
             private ImmutableArray<TExtension> _lazyAllExtensions;
             private ImmutableDictionary<string, ImmutableArray<TExtension>>? _lazyExtensionsPerLanguage;
             private ImmutableDictionary<string, ImmutableHashSet<string>>? _lazyExtensionTypeNameMap;
 
-            internal Extensions(AnalyzerFileReference reference, AttributePredicate attributePredicate)
+            internal Extensions(AnalyzerFileReference reference, AttributePredicate attributePredicate, AttributeLanguagesFunc languagesFunc)
             {
                 _reference = reference;
                 _attributePredicate = attributePredicate;
+                _languagesFunc = languagesFunc;
                 _lazyAllExtensions = default;
                 _lazyExtensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
             }
@@ -311,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (_lazyExtensionTypeNameMap == null)
                 {
-                    var analyzerTypeNameMap = GetAnalyzerTypeNameMap(_reference._fullPath, _attributePredicate);
+                    var analyzerTypeNameMap = GetAnalyzerTypeNameMap(_reference.FullPath, _attributePredicate, _languagesFunc);
                     Interlocked.CompareExchange(ref _lazyExtensionTypeNameMap, analyzerTypeNameMap, null);
                 }
 
@@ -460,32 +520,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as AnalyzerFileReference);
-        }
-
-        public bool Equals(AnalyzerReference? other)
-        {
-            if (other != null)
-            {
-                return other.Display == this.Display &&
-                       other.FullPath == this.FullPath;
-            }
-
-            return base.Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(this.Display, this.FullPath.GetHashCode());
-        }
-
         public Assembly GetAssembly()
         {
             if (_lazyAssembly == null)
             {
-                _lazyAssembly = _assemblyLoader.LoadFromPath(_fullPath);
+                _lazyAssembly = _assemblyLoader.LoadFromPath(FullPath);
             }
 
             return _lazyAssembly;

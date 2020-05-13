@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal interface IFormattingResult
     {
-        IList<TextChange> GetTextChanges(CancellationToken cancellationToken = default);
-        SyntaxNode GetFormattedRoot(CancellationToken cancellationToken = default);
+        IList<TextChange> GetTextChanges(CancellationToken cancellationToken);
+        SyntaxNode GetFormattedRoot(CancellationToken cancellationToken);
     }
 }

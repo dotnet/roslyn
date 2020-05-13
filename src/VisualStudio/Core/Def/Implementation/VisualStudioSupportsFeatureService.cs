@@ -39,7 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
                 var sourceTextContainer = textBuffer.AsTextContainer();
                 if (Workspace.TryGetWorkspace(sourceTextContainer, out var workspace))
                 {
-                    return SupportsRenameWorker(workspace.GetRelatedDocumentIds(sourceTextContainer).ToImmutableArray());
+                    var documentId = workspace.GetDocumentIdInCurrentContext(sourceTextContainer);
+                    return SupportsRenameWorker(workspace.CurrentSolution.GetRelatedDocumentIds(documentId));
                 }
 
                 return false;

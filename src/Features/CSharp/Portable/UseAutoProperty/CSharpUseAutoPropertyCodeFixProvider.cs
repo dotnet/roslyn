@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -40,8 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor, CancellationToken cancellationToken)
         {
             var project = propertyDocument.Project;
-            var sourceText = await propertyDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
             var trailingTrivia = propertyDeclaration.GetTrailingTrivia();
 
             var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList))
@@ -104,24 +101,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 return false;
             }
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 if (ForceSingleSpace(previousToken, currentToken))
                 {
                     return null;
                 }
 
-                return base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
+                return base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
             }
 
-            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+            public override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
             {
                 if (ForceSingleSpace(previousToken, currentToken))
                 {
                     return new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
 
-                return base.GetAdjustSpacesOperation(previousToken, currentToken, options, in nextOperation);
+                return base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
             }
         }
 

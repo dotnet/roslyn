@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Tags
+Imports Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Core.Imaging
 Imports Microsoft.VisualStudio.Imaging
@@ -106,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
                         New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException"))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -192,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
                         New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException"))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -308,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
                         New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException"))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -389,7 +390,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, "  "),
                         New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException", navigationAction:=Sub() Return, "IOException"))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -437,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 New ClassifiedTextElement(
                     New ClassifiedTextRun(ClassificationTypeNames.Text, "Remarks text.")))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -495,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                             New ClassifiedTextElement(
                                 New ClassifiedTextRun(ClassificationTypeNames.Text, "Returns text."))))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -555,7 +556,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                             New ClassifiedTextElement(
                                 New ClassifiedTextRun(ClassificationTypeNames.Text, "Returns text."))))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -618,7 +619,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                             New ClassifiedTextElement(
                                 New ClassifiedTextRun(ClassificationTypeNames.Text, "Value text."))))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -676,7 +677,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 New ClassifiedTextElement(
                     New ClassifiedTextRun(ClassificationTypeNames.Text, "text2")))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -725,7 +726,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "true", ClassifiedTextRunStyle.UseClassificationFont),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -775,7 +776,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 New ClassifiedTextElement(
                     New ClassifiedTextRun(ClassificationTypeNames.Text, ".")))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -827,7 +828,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "p"),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -867,7 +868,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -910,7 +911,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "}"))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -948,7 +949,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
                         New ClassifiedTextRun(ClassificationTypeNames.EventName, "MyEvent", navigationAction:=Sub() Return, "readonly event Action MyStruct.MyEvent"))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1107,7 +1108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.TypeParameterName, "K", navigationAction:=Sub() Return, "K"),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
     End Class
 End Namespace

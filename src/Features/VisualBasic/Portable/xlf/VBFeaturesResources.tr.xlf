@@ -1467,11 +1467,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">{0} öğesini bir Zaman Uyumsuz İşlev yap.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">Eksik İşlem Ekle</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">{0} öğesini Yineleyici'ye dönüştür</target>

@@ -186,7 +186,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SwitchStatement,
             SwitchSection,
             CasePatternSwitchLabel,            // tied to parent
-            WhenClause,
+            SwitchExpression,
+            SwitchExpressionArm,               // tied to parent
+            WhenClause,                        // tied to parent
 
             YieldStatement,                    // tied to parent
             GotoStatement,
@@ -254,6 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.GroupClauseLambda:
                 case Label.QueryContinuation:
                 case Label.CasePatternSwitchLabel:
+                case Label.WhenClause:
+                case Label.SwitchExpressionArm:
                     return 1;
 
                 default:
@@ -310,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.EmptyStatement:
                     isLeaf = true;
-                    return Label.Ignored;
+                    return Label.ExpressionStatement;
 
                 case SyntaxKind.GotoStatement:
                     isLeaf = true;
@@ -390,6 +394,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.CasePatternSwitchLabel:
                     return Label.CasePatternSwitchLabel;
+
+                case SyntaxKind.SwitchExpression:
+                    return Label.SwitchExpression;
+
+                case SyntaxKind.SwitchExpressionArm:
+                    return Label.SwitchExpressionArm;
 
                 case SyntaxKind.TryStatement:
                     return Label.TryStatement;
@@ -1110,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        private static void GetLocalNames(SyntaxToken syntaxToken, [NotNull]ref List<SyntaxToken>? result)
+        private static void GetLocalNames(SyntaxToken syntaxToken, [NotNull] ref List<SyntaxToken>? result)
         {
             result ??= new List<SyntaxToken>();
             result.Add(syntaxToken);

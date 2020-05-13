@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -69,6 +71,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             this.CanApplyChangeDocument = true;
             this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;
+
+            if (Services.GetService<INotificationService>() is INotificationServiceCallback callback)
+            {
+                // Avoid showing dialogs in tests by default
+                callback.NotificationCallback = (message, title, severity) =>
+                {
+                    var severityText = severity switch
+                    {
+                        NotificationSeverity.Information => "💡",
+                        NotificationSeverity.Warning => "⚠",
+                        _ => "❌"
+                    };
+
+                    var fullMessage = string.IsNullOrEmpty(title)
+                        ? message
+                        : $"{title}:{Environment.NewLine}{Environment.NewLine}{message}";
+
+                    throw new InvalidOperationException($"{severityText} {fullMessage}");
+                };
+            }
 
             _backgroundCompiler = new BackgroundCompiler(this);
             _backgroundParser = new BackgroundParser(this);
@@ -231,6 +253,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public TServiceInterface GetService<TServiceInterface>()
             => ExportProvider.GetExportedValue<TServiceInterface>();
 
+        public TServiceInterface GetService<TServiceInterface>(string contentType)
+        {
+            var values = ExportProvider.GetExports<TServiceInterface, ContentTypeMetadata>();
+            return values.Single(value => value.Metadata.ContentTypes.Contains(contentType)).Value;
+        }
+
+        public TServiceInterface GetService<TServiceInterface>(string contentType, string name)
+        {
+            var values = ExportProvider.GetExports<TServiceInterface, OrderableContentTypeMetadata>();
+            return values.Single(value => value.Metadata.Name == name && value.Metadata.ContentTypes.Contains(contentType)).Value;
+        }
+
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
             switch (feature)
@@ -241,6 +275,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 case ApplyChangesKind.RemoveAdditionalDocument:
                 case ApplyChangesKind.AddAnalyzerConfigDocument:
                 case ApplyChangesKind.RemoveAnalyzerConfigDocument:
+                case ApplyChangesKind.AddAnalyzerReference:
+                case ApplyChangesKind.RemoveAnalyzerReference:
+                case ApplyChangesKind.AddSolutionAnalyzerReference:
+                case ApplyChangesKind.RemoveSolutionAnalyzerReference:
                     return true;
 
                 case ApplyChangesKind.ChangeDocument:

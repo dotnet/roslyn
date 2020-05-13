@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
 using System.Composition.Hosting;
 using System.IO;
 using System.Linq;
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             string commandLine = @"goo.cs";
             var ws = new AdhocWorkspace(DesktopMefHostServices.DefaultServices); // includes non-portable services too
-            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory", ws);
+            _ = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory", ws);
         }
 
         [Fact]

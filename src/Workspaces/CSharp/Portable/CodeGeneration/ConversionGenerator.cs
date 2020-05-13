@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -60,7 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            var operatorToken = SyntaxFactory.Token(SyntaxFacts.GetOperatorKind(method.MetadataName));
             var keyword = method.MetadataName == WellKnownMemberNames.ImplicitConversionName
                 ? SyntaxFactory.Token(SyntaxKind.ImplicitKeyword)
                 : SyntaxFactory.Token(SyntaxKind.ExplicitKeyword);

@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
 
         /// <summary>
-        /// Host analyzer collection.
-        /// </summary>
-        HostDiagnosticAnalyzers HostAnalyzers { get; }
-
-        /// <summary>
         /// Re-analyze given projects and documents
         /// </summary>
         void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false);
@@ -48,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Force computes diagnostics and raises diagnostic events for the given project or solution. all diagnostics returned should be up-to-date with respect to the given project or solution.
         /// </summary>
-        Task ForceAnalyzeAsync(Solution solution, ProjectId? projectId = null, CancellationToken cancellationToken = default);
+        Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// True if given project has any diagnostics

@@ -1423,10 +1423,9 @@ class C
             Assert.False(parsedArgs.SourceFiles.Any());
 
             parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/langversion:?" }, WorkingDirectory, sdkDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS2007: Unrecognized option: '/langversion:?'
-                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/langversion:?").WithLocation(1, 1)
-                );
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.DisplayLangVersions);
+            Assert.False(parsedArgs.SourceFiles.Any());
 
             parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "//langversion:?" }, WorkingDirectory, sdkDirectory);
             parsedArgs.Errors.Verify(
@@ -1456,8 +1455,8 @@ class C
 
             parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/langversion:-1", "c.csx", }, WorkingDirectory, sdkDirectory);
             parsedArgs.Errors.Verify(
-                // error CS2007: Unrecognized option: '/langversion:-1'
-                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/langversion:-1"));
+                // error CS1617: Invalid option '-1' for /langversion. Use '/langversion:?' to list supported values.
+                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("-1").WithLocation(1, 1));
 
             Assert.False(parsedArgs.DisplayHelp);
             Assert.Equal(1, parsedArgs.SourceFiles.Length);
@@ -1526,12 +1525,22 @@ class C
         [InlineData("7", LanguageVersion.CSharp7)]
         [InlineData("7.0", LanguageVersion.CSharp7)]
         [InlineData("7.1", LanguageVersion.CSharp7_1)]
+        [InlineData("7.2", LanguageVersion.CSharp7_2)]
+        [InlineData("7.3", LanguageVersion.CSharp7_3)]
+        [InlineData("8", LanguageVersion.CSharp8)]
+        [InlineData("8.0", LanguageVersion.CSharp8)]
+        [InlineData("preview", LanguageVersion.Preview)]
         public void LangVersion_CanParseCorrectVersions(string value, LanguageVersion expectedVersion)
         {
             var parsedArgs = DefaultParse(new[] { $"/langversion:{value}", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(expectedVersion, parsedArgs.ParseOptions.LanguageVersion);
             Assert.Equal(expectedVersion, parsedArgs.ParseOptions.SpecifiedLanguageVersion);
+
+            var scriptParsedArgs = ScriptParse(new[] { $"/langversion:{value}" }, WorkingDirectory);
+            scriptParsedArgs.Errors.Verify();
+            Assert.Equal(expectedVersion, scriptParsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(expectedVersion, scriptParsedArgs.ParseOptions.SpecifiedLanguageVersion);
         }
 
         [Theory]
@@ -9598,6 +9607,7 @@ public class Program
                                            int expectedInfoCount = 0,
                                            int expectedWarningCount = 0,
                                            int expectedErrorCount = 0,
+                                           bool errorlog = false,
                                            params DiagnosticAnalyzer[] analyzers)
         {
             var args = new[] {
@@ -9608,6 +9618,12 @@ public class Program
             {
                 args = args.Append("/a:" + Assembly.GetExecutingAssembly().Location);
             }
+
+            if (errorlog)
+            {
+                args = args.Append("/errorlog:errorlog");
+            }
+
             if (additionalFlags != null)
             {
                 args = args.Append(additionalFlags);
@@ -9632,6 +9648,8 @@ public class Program
             }
             else
             {
+                // Info diagnostics are only logged with /errorlog.
+                Assert.True(errorlog);
                 Assert.Equal(expectedInfoCount, OccurrenceCount(output, "info"));
             }
 
@@ -9804,112 +9822,126 @@ public class Program
         [WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
         [WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
         [WorkItem(1021115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
-        [Fact]
-        public void NoWarnAndWarnAsError_InfoDiagnostic()
+        [WorkItem(42166, "https://github.com/dotnet/roslyn/issues/42166")]
+        [CombinatorialData, Theory]
+        public void NoWarnAndWarnAsError_InfoDiagnostic(bool errorlog)
         {
+            // NOTE: Info diagnostics are only logged on command line when /errorlog is specified. See https://github.com/dotnet/roslyn/issues/42166 for details.
+
             // This assembly has an InfoDiagnosticAnalyzer type which should produce custom info
             // diagnostics for the #pragma warning restore directives present in the compilations created in this test.
             var source = @"using System;
 #pragma warning restore";
             var name = "a.cs";
             string output;
-            output = GetOutput(name, source, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
-            Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
+            if (errorlog)
+                Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that /warn:0 suppresses custom info diagnostic Info01.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warn:0" });
+            output = GetOutput(name, source, additionalFlags: new[] { "/warn:0" }, errorlog: errorlog);
 
             // TEST: Verify that custom info diagnostic Info01 can be individually suppressed via /nowarn:.
-            output = GetOutput(name, source, additionalFlags: new[] { "/nowarn:Info01" }, expectedWarningCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/nowarn:Info01" }, expectedWarningCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that custom info diagnostic Info01 can never be promoted to an error via /warnaserror+.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+", "/nowarn:8032" }, expectedInfoCount: 1);
-            Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+", "/nowarn:8032" }, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
+            if (errorlog)
+                Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that custom info diagnostic Info01 is still reported as an info when /warnaserror- is used.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
-            Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
+            if (errorlog)
+                Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that custom info diagnostic Info01 can be individually promoted to an error via /warnaserror:.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that custom info diagnostic Info01 is still reported as an info when passed to /warnaserror-:.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
-            Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
+            if (errorlog)
+                Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify /nowarn overrides /warnaserror.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror:Info01", "/nowarn:Info01" }, expectedWarningCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror:Info01", "/nowarn:Info01" }, expectedWarningCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify /nowarn overrides /warnaserror.
-            output = GetOutput(name, source, additionalFlags: new[] { "/nowarn:Info01", "/warnaserror:Info01" }, expectedWarningCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/nowarn:Info01", "/warnaserror:Info01" }, expectedWarningCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify /nowarn overrides /warnaserror-.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/nowarn:Info01" }, expectedWarningCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/nowarn:Info01" }, expectedWarningCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify /nowarn overrides /warnaserror-.
-            output = GetOutput(name, source, additionalFlags: new[] { "/nowarn:Info01", "/warnaserror-:Info01" }, expectedWarningCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/nowarn:Info01", "/warnaserror-:Info01" }, expectedWarningCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
 
             // TEST: Verify that /warn:0 has no impact on custom info diagnostic Info01.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warn:0", "/warnaserror:Info01" });
+            output = GetOutput(name, source, additionalFlags: new[] { "/warn:0", "/warnaserror:Info01" }, errorlog: errorlog);
 
             // TEST: Verify that /warn:0 has no impact on custom info diagnostic Info01.
             output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror:Info01", "/warn:0" });
 
             // TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
-            Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
+            if (errorlog)
+                Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror+:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror+:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-", "/warnaserror+:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-", "/warnaserror+:Info01" }, expectedWarningCount: 1, expectedErrorCount: 1, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
             Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror+", "/nowarn:8032" }, expectedInfoCount: 1);
-            Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror+", "/nowarn:8032" }, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
+            if (errorlog)
+                Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror+", "/nowarn:8032" }, expectedInfoCount: 1);
-            Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror+", "/nowarn:8032" }, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
+            if (errorlog)
+                Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+", "/warnaserror+:Info01", "/nowarn:8032" }, expectedErrorCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+", "/warnaserror+:Info01", "/nowarn:8032" }, expectedErrorCount: 1, errorlog: errorlog);
             Assert.Contains("a.cs(2,1): error Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+:Info01", "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
-            Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
+            if (errorlog)
+                Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+", "/warnaserror-:Info01", "/nowarn:8032" }, expectedInfoCount: 1);
-            Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror+", "/warnaserror-:Info01", "/nowarn:8032" }, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
+            if (errorlog)
+                Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-:Info01", "/warnaserror-" }, expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
-            Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
+            if (errorlog)
+                Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
-            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-", "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: 1);
+            output = GetOutput(name, source, additionalFlags: new[] { "/warnaserror-", "/warnaserror-:Info01" }, expectedWarningCount: 1, expectedInfoCount: errorlog ? 1 : 0, errorlog: errorlog);
             Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
-            Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
+            if (errorlog)
+                Assert.Contains("a.cs(2,1): info Info01: Throwing a diagnostic for #pragma restore", output, StringComparison.Ordinal);
         }
 
         private string GetOutput(
@@ -9919,13 +9951,14 @@ public class Program
             string[] additionalFlags = null,
             int expectedInfoCount = 0,
             int expectedWarningCount = 0,
-            int expectedErrorCount = 0)
+            int expectedErrorCount = 0,
+            bool errorlog = false)
         {
             var dir = Temp.CreateDirectory();
             var file = dir.CreateFile(name);
             file.WriteAllText(source);
 
-            var output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference, additionalFlags, expectedInfoCount, expectedWarningCount, expectedErrorCount);
+            var output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference, additionalFlags, expectedInfoCount, expectedWarningCount, expectedErrorCount, errorlog);
             CleanupAllGeneratedFiles(file.Path);
             return output;
         }
@@ -10516,33 +10549,40 @@ class C {
                 paths);
         }
 
+        [Fact]
         [CompilerTrait(CompilerFeature.Determinism)]
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void PathMapParser()
         {
+            var s = PathUtilities.DirectorySeparatorStr;
+
             var parsedArgs = DefaultParse(new[] { "/pathmap:", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(ImmutableArray.Create<KeyValuePair<string, string>>(), parsedArgs.PathMap);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:K1=V1", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("K1\\", "V1\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("K1" + s, "V1" + s), parsedArgs.PathMap[0]);
 
-            parsedArgs = DefaultParse(new[] { "/pathmap:C:\\goo\\=/", "a.cs" }, WorkingDirectory);
+            parsedArgs = DefaultParse(new[] { $"/pathmap:abc{s}=/", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("C:\\goo\\", "/"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("abc" + s, "/"), parsedArgs.PathMap[0]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:K1=V1,K2=V2", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("K1\\", "V1\\"), parsedArgs.PathMap[0]);
-            Assert.Equal(KeyValuePairUtil.Create("K2\\", "V2\\"), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePairUtil.Create("K1" + s, "V1" + s), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("K2" + s, "V2" + s), parsedArgs.PathMap[1]);
+
+            parsedArgs = DefaultParse(new[] { "/pathmap:,", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(ImmutableArray.Create<KeyValuePair<string, string>>(), parsedArgs.PathMap);
+
+            parsedArgs = DefaultParse(new[] { "/pathmap:,,", "a.cs" }, WorkingDirectory);
+            Assert.Equal(1, parsedArgs.Errors.Count());
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:,,,", "a.cs" }, WorkingDirectory);
-            Assert.Equal(4, parsedArgs.Errors.Count());
+            Assert.Equal(1, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[3].Code);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:k=,=v", "a.cs" }, WorkingDirectory);
             Assert.Equal(2, parsedArgs.Errors.Count());
@@ -10553,19 +10593,46 @@ class C {
             Assert.Equal(1, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
 
+            parsedArgs = DefaultParse(new[] { "/pathmap:k=", "a.cs" }, WorkingDirectory);
+            Assert.Equal(1, parsedArgs.Errors.Count());
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
+
+            parsedArgs = DefaultParse(new[] { "/pathmap:=v", "a.cs" }, WorkingDirectory);
+            Assert.Equal(1, parsedArgs.Errors.Count());
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
+
             parsedArgs = DefaultParse(new[] { "/pathmap:\"supporting spaces=is hard\"", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("supporting spaces\\", "is hard\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("supporting spaces" + s, "is hard" + s), parsedArgs.PathMap[0]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:\"K 1=V 1\",\"K 2=V 2\"", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("K 1\\", "V 1\\"), parsedArgs.PathMap[0]);
-            Assert.Equal(KeyValuePairUtil.Create("K 2\\", "V 2\\"), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePairUtil.Create("K 1" + s, "V 1" + s), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("K 2" + s, "V 2" + s), parsedArgs.PathMap[1]);
 
             parsedArgs = DefaultParse(new[] { "/pathmap:\"K 1\"=\"V 1\",\"K 2\"=\"V 2\"", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(KeyValuePairUtil.Create("K 1\\", "V 1\\"), parsedArgs.PathMap[0]);
-            Assert.Equal(KeyValuePairUtil.Create("K 2\\", "V 2\\"), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePairUtil.Create("K 1" + s, "V 1" + s), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("K 2" + s, "V 2" + s), parsedArgs.PathMap[1]);
+
+            parsedArgs = DefaultParse(new[] { "/pathmap:\"a ==,,b\"=\"1,,== 2\",\"x ==,,y\"=\"3 4\",", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(KeyValuePairUtil.Create("a =,b" + s, "1,= 2" + s), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create("x =,y" + s, "3 4" + s), parsedArgs.PathMap[1]);
+        }
+
+        [Theory]
+        [InlineData("", new string[0])]
+        [InlineData(",", new[] { "", "" })]
+        [InlineData(",,", new[] { "," })]
+        [InlineData(",,,", new[] { ",", "" })]
+        [InlineData(",,,,", new[] { ",," })]
+        [InlineData("a,", new[] { "a", "" })]
+        [InlineData("a,b", new[] { "a", "b" })]
+        [InlineData(",,a,,,,,b,,", new[] { ",a,,", "b," })]
+        public void SplitWithDoubledSeparatorEscaping(string str, string[] expected)
+        {
+            AssertEx.Equal(expected, CommandLineParser.SplitWithDoubledSeparatorEscaping(str, ','));
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
@@ -11559,11 +11626,14 @@ class C { }";
         }
 
         [WorkItem(38674, "https://github.com/dotnet/roslyn/issues/38674")]
-        [Fact]
-        public void TestCategoryBasedBulkAnalyzerDiagnosticConfiguration()
+        [InlineData(DiagnosticSeverity.Warning, false)]
+        [InlineData(DiagnosticSeverity.Info, true)]
+        [InlineData(DiagnosticSeverity.Info, false)]
+        [InlineData(DiagnosticSeverity.Hidden, false)]
+        [Theory]
+        public void TestCategoryBasedBulkAnalyzerDiagnosticConfiguration(DiagnosticSeverity defaultSeverity, bool errorlog)
         {
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true);
-            Assert.Equal(DiagnosticSeverity.Warning, analyzer.Descriptor.DefaultSeverity);
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity);
 
             var diagnosticId = analyzer.Descriptor.Id;
             var category = analyzer.Descriptor.Category;
@@ -11572,10 +11642,10 @@ class C { }";
             var analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.category-{category}.severity = error";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Error);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Error);
 
             // Verify category based configuration does not get applied for suppressed diagnostic.
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Suppress, noWarn: true);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress, noWarn: true);
 
             // Verify category based configuration does not get applied for diagnostic configured in ruleset.
             var rulesetText = $@"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -11584,36 +11654,53 @@ dotnet_analyzer_diagnostic.category-{category}.severity = error";
     <Rule Id=""{diagnosticId}"" Action=""Warning"" />
   </Rules>
 </RuleSet>";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn, rulesetText: rulesetText);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn, rulesetText: rulesetText);
 
             // Verify category based configuration before diagnostic ID configuration is not respected.
             analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.category-{category}.severity = error
 dotnet_diagnostic.{diagnosticId}.severity = warning";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
 
             // Verify category based configuration after diagnostic ID configuration is not respected.
             analyzerConfigText = $@"
 [*.cs]
 dotnet_diagnostic.{diagnosticId}.severity = warning
 dotnet_analyzer_diagnostic.category-{category}.severity = error";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
 
             // Verify disabled by default analyzer is not enabled by category based configuration.
-            analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false);
+            analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false, defaultSeverity);
             analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.category-{category}.severity = error";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+
+            if (defaultSeverity == DiagnosticSeverity.Hidden ||
+                defaultSeverity == DiagnosticSeverity.Info && !errorlog)
+            {
+                // Verify analyzer with Hidden severity OR Info severity + no /errorlog is not executed.
+                analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: true);
+                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText: string.Empty, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+
+                // Verify that bulk configuration 'none' entry does not enable this analyzer.
+                analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.category-{category}.severity = none";
+                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+            }
         }
 
         [WorkItem(38674, "https://github.com/dotnet/roslyn/issues/38674")]
-        [Fact]
-        public void TestBulkAnalyzerDiagnosticConfiguration()
+        [InlineData(DiagnosticSeverity.Warning, false)]
+        [InlineData(DiagnosticSeverity.Info, true)]
+        [InlineData(DiagnosticSeverity.Info, false)]
+        [InlineData(DiagnosticSeverity.Hidden, false)]
+        [Theory]
+        public void TestBulkAnalyzerDiagnosticConfiguration(DiagnosticSeverity defaultSeverity, bool errorlog)
         {
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true);
-            Assert.Equal(DiagnosticSeverity.Warning, analyzer.Descriptor.DefaultSeverity);
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity);
 
             var diagnosticId = analyzer.Descriptor.Id;
 
@@ -11621,10 +11708,10 @@ dotnet_analyzer_diagnostic.category-{category}.severity = error";
             var analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.severity = error";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Error);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Error);
 
             // Verify bulk configuration does not get applied for suppressed diagnostic.
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Suppress, noWarn: true);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress, noWarn: true);
 
             // Verify bulk configuration does not get applied for diagnostic configured in ruleset.
             var rulesetText = $@"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -11633,36 +11720,53 @@ dotnet_analyzer_diagnostic.severity = error";
     <Rule Id=""{diagnosticId}"" Action=""Warning"" />
   </Rules>
 </RuleSet>";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn, rulesetText: rulesetText);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn, rulesetText: rulesetText);
 
             // Verify bulk configuration before diagnostic ID configuration is not respected.
             analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.severity = error
 dotnet_diagnostic.{diagnosticId}.severity = warning";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
 
             // Verify bulk configuration after diagnostic ID configuration is not respected.
             analyzerConfigText = $@"
 [*.cs]
 dotnet_diagnostic.{diagnosticId}.severity = warning
 dotnet_analyzer_diagnostic.severity = error";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
 
             // Verify disabled by default analyzer is not enabled by bulk configuration.
-            analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false);
+            analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false, defaultSeverity);
             analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.severity = error";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+
+            if (defaultSeverity == DiagnosticSeverity.Hidden ||
+                defaultSeverity == DiagnosticSeverity.Info && !errorlog)
+            {
+                // Verify analyzer with Hidden severity OR Info severity + no /errorlog is not executed.
+                analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: true);
+                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText: string.Empty, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+
+                // Verify that bulk configuration 'none' entry does not enable this analyzer.
+                analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.severity = none";
+                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+            }
         }
 
         [WorkItem(38674, "https://github.com/dotnet/roslyn/issues/38674")]
-        [Fact]
-        public void TestMixedCategoryBasedAndBulkAnalyzerDiagnosticConfiguration()
+        [InlineData(DiagnosticSeverity.Warning, false)]
+        [InlineData(DiagnosticSeverity.Info, true)]
+        [InlineData(DiagnosticSeverity.Info, false)]
+        [InlineData(DiagnosticSeverity.Hidden, false)]
+        [Theory]
+        public void TestMixedCategoryBasedAndBulkAnalyzerDiagnosticConfiguration(DiagnosticSeverity defaultSeverity, bool errorlog)
         {
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true);
-            Assert.Equal(DiagnosticSeverity.Warning, analyzer.Descriptor.DefaultSeverity);
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity);
 
             var diagnosticId = analyzer.Descriptor.Id;
             var category = analyzer.Descriptor.Category;
@@ -11672,14 +11776,14 @@ dotnet_analyzer_diagnostic.severity = error";
 [*.cs]
 dotnet_analyzer_diagnostic.category-{category}.severity = error
 dotnet_analyzer_diagnostic.severity = warning";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Error);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Error);
 
             // Verify category based configuration after bulk analyzer diagnostic configuration is respected.
             analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.severity = warning
 dotnet_analyzer_diagnostic.category-{category}.severity = error";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Error);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Error);
 
             // Verify neither category based nor bulk diagnostic configuration is respected when specific diagnostic ID is configured in analyzer config.
             analyzerConfigText = $@"
@@ -11687,7 +11791,7 @@ dotnet_analyzer_diagnostic.category-{category}.severity = error";
 dotnet_diagnostic.{diagnosticId}.severity = warning
 dotnet_analyzer_diagnostic.category-{category}.severity = none
 dotnet_analyzer_diagnostic.severity = suggestion";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
 
             // Verify neither category based nor bulk diagnostic configuration is respected when specific diagnostic ID is configured in ruleset.
             analyzerConfigText = $@"
@@ -11700,12 +11804,13 @@ dotnet_analyzer_diagnostic.severity = suggestion";
     <Rule Id=""{diagnosticId}"" Action=""Warning"" />
   </Rules>
 </RuleSet>";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn, rulesetText);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn, rulesetText);
         }
 
         private void TestBulkAnalyzerConfigurationCore(
             NamedTypeAnalyzerWithConfigurableEnabledByDefault analyzer,
             string analyzerConfigText,
+            bool errorlog,
             ReportDiagnostic expectedDiagnosticSeverity,
             string rulesetText = null,
             bool noWarn = false)
@@ -11726,6 +11831,11 @@ dotnet_analyzer_diagnostic.severity = suggestion";
                 arguments = arguments.Append($"/nowarn:{diagnosticId}");
             }
 
+            if (errorlog)
+            {
+                arguments = arguments.Append($"/errorlog:errorlog");
+            }
+
             if (rulesetText != null)
             {
                 var rulesetFile = CreateRuleSetFile(rulesetText);
@@ -11743,14 +11853,22 @@ dotnet_analyzer_diagnostic.severity = suggestion";
             var expectedErrorCode = expectedDiagnosticSeverity == ReportDiagnostic.Error ? 1 : 0;
             Assert.Equal(expectedErrorCode, exitCode);
 
-            if (expectedDiagnosticSeverity == ReportDiagnostic.Suppress)
+            var prefix = expectedDiagnosticSeverity switch
+            {
+                ReportDiagnostic.Error => "error",
+                ReportDiagnostic.Warn => "warning",
+                ReportDiagnostic.Info => errorlog ? "info" : null,
+                ReportDiagnostic.Hidden => null,
+                ReportDiagnostic.Suppress => null,
+                _ => throw ExceptionUtilities.UnexpectedValue(expectedDiagnosticSeverity)
+            };
+
+            if (prefix == null)
             {
                 Assert.DoesNotContain(diagnosticId, outWriter.ToString());
             }
             else
             {
-                Assert.True(expectedDiagnosticSeverity == ReportDiagnostic.Error || expectedDiagnosticSeverity == ReportDiagnostic.Warn);
-                var prefix = expectedDiagnosticSeverity == ReportDiagnostic.Error ? "error" : "warning";
                 Assert.Contains($"{prefix} {diagnosticId}: {analyzer.Descriptor.MessageFormat}", outWriter.ToString());
             }
         }
@@ -11920,22 +12038,22 @@ class C
         // Currently, configuring no location diagnostics through editorconfig is not supported.
         [Theory(Skip = "https://github.com/dotnet/roslyn/issues/38042")]
         [CombinatorialData]
-        public void AnalyzerConfigRespectedForNoLocationDiagnostic(ReportDiagnostic reportDiagnostic, bool isEnabledByDefault, bool noWarn)
+        public void AnalyzerConfigRespectedForNoLocationDiagnostic(ReportDiagnostic reportDiagnostic, bool isEnabledByDefault, bool noWarn, bool errorlog)
         {
             var analyzer = new AnalyzerWithNoLocationDiagnostics(isEnabledByDefault);
-            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic, noWarn);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic, noWarn, errorlog);
         }
 
         [WorkItem(37876, "https://github.com/dotnet/roslyn/issues/37876")]
         [Theory]
         [CombinatorialData]
-        public void AnalyzerConfigRespectedForDisabledByDefaultDiagnostic(ReportDiagnostic analyzerConfigSeverity, bool isEnabledByDefault, bool noWarn)
+        public void AnalyzerConfigRespectedForDisabledByDefaultDiagnostic(ReportDiagnostic analyzerConfigSeverity, bool isEnabledByDefault, bool noWarn, bool errorlog)
         {
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault);
-            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, analyzerConfigSeverity, noWarn);
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity: DiagnosticSeverity.Warning);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, analyzerConfigSeverity, noWarn, errorlog);
         }
 
-        private void TestAnalyzerConfigRespectedCore(DiagnosticAnalyzer analyzer, DiagnosticDescriptor descriptor, ReportDiagnostic analyzerConfigSeverity, bool noWarn)
+        private void TestAnalyzerConfigRespectedCore(DiagnosticAnalyzer analyzer, DiagnosticDescriptor descriptor, ReportDiagnostic analyzerConfigSeverity, bool noWarn, bool errorlog)
         {
             if (analyzerConfigSeverity == ReportDiagnostic.Default)
             {
@@ -11960,6 +12078,11 @@ dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerC
                 arguments = arguments.Append($"/nowarn:{descriptor.Id}");
             }
 
+            if (errorlog)
+            {
+                arguments = arguments.Append($"/errorlog:errorlog");
+            }
+
             var cmd = CreateCSharpCompiler(null, dir.Path, arguments,
                 analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
 
@@ -11971,7 +12094,10 @@ dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerC
             var expectedErrorCode = analyzerConfigSeverity == ReportDiagnostic.Error ? 1 : 0;
             Assert.Equal(expectedErrorCode, exitCode);
 
-            if (analyzerConfigSeverity == ReportDiagnostic.Error || analyzerConfigSeverity == ReportDiagnostic.Warn || analyzerConfigSeverity == ReportDiagnostic.Info)
+            // NOTE: Info diagnostics are only logged on command line when /errorlog is specified. See https://github.com/dotnet/roslyn/issues/42166 for details.
+            if (analyzerConfigSeverity == ReportDiagnostic.Error ||
+                analyzerConfigSeverity == ReportDiagnostic.Warn ||
+                (analyzerConfigSeverity == ReportDiagnostic.Info && errorlog))
             {
                 var prefix = analyzerConfigSeverity == ReportDiagnostic.Error ? "error" : analyzerConfigSeverity == ReportDiagnostic.Warn ? "warning" : "info";
                 Assert.Contains($"{prefix} {descriptor.Id}: {descriptor.MessageFormat}", outWriter.ToString());
@@ -12024,6 +12150,89 @@ generated_code = auto");
             output = VerifyOutput(dir, src, additionalFlags: new[] { "/nullable", "/analyzerconfig:" + analyzerConfig.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
             // warning CS8602: Dereference of a possibly null reference.
             Assert.Contains("warning CS8602", output, StringComparison.Ordinal);
+        }
+
+        [WorkItem(42166, "https://github.com/dotnet/roslyn/issues/42166")]
+        [CombinatorialData, Theory]
+        public void TestAnalyzerFilteringBasedOnSeverity(DiagnosticSeverity defaultSeverity, bool errorlog)
+        {
+            // This test verifies that analyzer execution is skipped at build time for the following:
+            //   1. Analyzer reporting Hidden diagnostics
+            //   2. Analyzer reporting Info diagnostics, when /errorlog is not specified
+            var analyzerShouldBeSkipped = defaultSeverity == DiagnosticSeverity.Hidden ||
+                defaultSeverity == DiagnosticSeverity.Info && !errorlog;
+
+            // We use an analyzer that throws an exception on every analyzer callback.
+            // So an AD0001 analyzer exeption diagnostic is reported if analyzer executed, otherwise not.
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: true);
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
+            var args = new[] { "/nologo", "/t:library", "/preferreduilang:en", src.Path };
+            if (errorlog)
+                args = args.Append("/errorlog:errorlog");
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, args, analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            if (analyzerShouldBeSkipped)
+            {
+                Assert.Empty(output);
+            }
+            else
+            {
+                Assert.Contains("warning AD0001: Analyzer 'Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+NamedTypeAnalyzerWithConfigurableEnabledByDefault' threw an exception of type 'System.NotImplementedException'",
+                    output, StringComparison.Ordinal);
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        private sealed class FieldAnalyzer : DiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor _rule = new DiagnosticDescriptor("Id", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzeFieldDeclaration, SyntaxKind.FieldDeclaration);
+            }
+
+            private static void AnalyzeFieldDeclaration(SyntaxNodeAnalysisContext context)
+            {
+            }
+        }
+
+        [Fact]
+        [WorkItem(44000, "https://github.com/dotnet/roslyn/issues/44000")]
+        public void TupleField_ForceComplete()
+        {
+            var source =
+@"namespace System
+{
+    public struct ValueTuple<T1>
+    {
+        public T1 Item1;
+        public ValueTuple(T1 item1)
+        {
+            Item1 = item1;
+        }
+    }
+}";
+            var srcFile = Temp.CreateFile().WriteAllText(source);
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = CreateCSharpCompiler(
+                null,
+                WorkingDirectory,
+                new[] { "/nologo", "/t:library", srcFile.Path },
+               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new FieldAnalyzer())); // at least one analyzer required
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            Assert.Empty(output);
+            CleanupAllGeneratedFiles(srcFile.Path);
         }
     }
 

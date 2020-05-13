@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 
         private async Task TestStatement(string input, string output)
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 $@"class C
 {{
     void M(object o)
@@ -107,7 +107,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestInSwitchSection()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -141,7 +141,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestRemoveNewLinesInSwitchStatement()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
                 @"class C
 {
     void M()
@@ -223,7 +223,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task InlineTypeCheckComplexExpression1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -248,7 +248,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestInlineTypeCheckWithElse()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -279,7 +279,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestComments1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -306,7 +306,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestComments2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -332,7 +332,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestComments3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -361,7 +361,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestRemoveNewLines()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
                 @"class C
 {
     void M()
@@ -390,7 +390,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestRemoveNewLinesWhereBlankLineIsNotEmpty()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
                 @"class C
 {
     void M()
@@ -419,7 +419,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestRemoveNewLines2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
                 @"class C
 {
     void M()
@@ -450,7 +450,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task InlineTypeCheckComplexCondition1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -475,7 +475,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task InlineTypeCheckComplexCondition2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -500,7 +500,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task InlineTypeCheckComplexCondition3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -562,7 +562,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestDefiniteAssignment3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -726,7 +726,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestTrivia1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(object y)
@@ -760,7 +760,7 @@ $@"class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestTrivia2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 namespace N
 {
@@ -944,7 +944,7 @@ public static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task DoNotChangeOriginalFormatting1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -974,7 +974,7 @@ public static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task DoNotChangeOriginalFormatting2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -1036,7 +1036,7 @@ public static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestNegativeDefiniteAssignment1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     string M(object o)
@@ -1059,7 +1059,7 @@ public static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestNegativeDefiniteAssignment2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     string M(object o, bool b)
@@ -1095,7 +1095,7 @@ public static class C
         [WorkItem(25993, "https://github.com/dotnet/roslyn/issues/25993")]
         public async Task TestEmbeddedStatement1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(object e)
@@ -1229,7 +1229,7 @@ public static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestDeclarationOnOuterBlock()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(object e)
@@ -1264,7 +1264,7 @@ public static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestConditionalExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(object e)
@@ -1313,7 +1313,7 @@ public static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestForStatement_InlineTypeCheck()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(object e)
@@ -1334,7 +1334,7 @@ public static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestForStatement_InScope()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(object e)
@@ -1379,7 +1379,7 @@ public static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestForStatement_AssignedBeforeAccess()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(object e, bool b)
@@ -1410,7 +1410,7 @@ public static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestForStatement_MultipleDeclarators()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(object e)
@@ -1472,7 +1472,7 @@ public static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestLocalFunction()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(object e)
@@ -1508,7 +1508,7 @@ public static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestExpressionLambda()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(object e)
@@ -1566,7 +1566,7 @@ public static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestSpaceAfterGenericType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"#nullable enable
 
 using System.Collections.Generic;

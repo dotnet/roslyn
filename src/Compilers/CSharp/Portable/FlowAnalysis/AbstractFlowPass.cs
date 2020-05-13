@@ -2753,6 +2753,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)
         {
             VisitTypeExpression(node.SourceType);
@@ -3062,6 +3067,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var writeMethod = symbol.GetOwnOrInheritedSetMethod();
                 PropertySetter(node, propertyAccessOpt.ReceiverOpt, writeMethod);
             }
+        }
+
+        public override BoundNode VisitSavePreviousSequencePoint(BoundSavePreviousSequencePoint node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitRestorePreviousSequencePoint(BoundRestorePreviousSequencePoint node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitStepThroughSequencePoint(BoundStepThroughSequencePoint node)
+        {
+            return null;
         }
 
         /// <summary>

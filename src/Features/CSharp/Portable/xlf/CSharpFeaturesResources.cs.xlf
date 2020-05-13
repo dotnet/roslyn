@@ -12,11 +12,6 @@
         <target state="translated">Přidat await</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="new">Add explicit cast</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_missing_usings">
         <source>Add missing usings</source>
         <target state="translated">Přidat chybějící direktivy using</target>
@@ -62,6 +57,11 @@
         <target state="translated">Použít předvolby kvalifikace this.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_using_directive_placement_preferences">
+        <source>Apply preferred 'using' placement preferences</source>
+        <target state="new">Apply preferred 'using' placement preferences</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
         <target state="translated">Přiřadit parametry out</target>
@@ -71,6 +71,21 @@
         <source>Assign 'out' parameters (at start)</source>
         <target state="translated">Přiřadit parametry out (při spuštění)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Assign_to_0">
+        <source>Assign to '{0}'</source>
+        <target state="new">Assign to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
+        <source>Autoselect disabled due to potential pattern variable declaration.</source>
+        <target state="new">Autoselect disabled due to potential pattern variable declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compare_to_0">
+        <source>Compare to '{0}'</source>
+        <target state="new">Compare to '{0}'</target>
+        <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
@@ -95,11 +110,6 @@
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
         <target state="new">Convert to verbatim string</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_type_to_0">
-        <source>Convert type to '{0}'</source>
-        <target state="new">Convert type to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -132,9 +142,9 @@
         <target state="translated">Nastavit jako ref struct</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Pass_in_captured_variables_as_arguments">
-        <source>Pass in captured variables as arguments</source>
-        <target state="translated">Předat zachycené proměnné jako argumenty</target>
+      <trans-unit id="Remove_new_modifier">
+        <source>Remove 'new' modifier</source>
+        <target state="new">Remove 'new' modifier</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -177,9 +187,9 @@
         <target state="translated">Upozornění: dočasné vkládání do volání podmíněné metody.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
-        <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
-        <target state="translated">Upozornění: Když se do deklarace místní funkce přidají parametry, může to vytvořit neplatný kód.</target>
+      <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
+        <source>Warning: Inlining temporary variable may change code meaning.</source>
+        <target state="new">Warning: Inlining temporary variable may change code meaning.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -235,6 +245,11 @@
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
         <source>Autoselect disabled due to possible tuple type element creation.</source>
         <target state="translated">Automatický výběr je zakázaný kvůli možnému vytvoření elementu typu řazená kolekce členů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="pattern_variable">
+        <source>&lt;pattern variable&gt;</source>
+        <target state="new">&lt;pattern variable&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
@@ -632,11 +647,6 @@
         <target state="translated">Skrýt základního člena</target>
         <note />
       </trans-unit>
-      <trans-unit id="Delegate_invocation_can_be_simplified">
-        <source>Delegate invocation can be simplified.</source>
-        <target state="translated">Volání delegáta se dá zjednodušit.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Properties">
         <source>Properties</source>
         <target state="translated">Vlastnosti</target>
@@ -755,31 +765,6 @@
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
         <target state="translated">Zavést příkaz using</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Misplaced_using_directive">
-        <source>Misplaced using directive</source>
-        <target state="translated">Nesprávné umístění direktivy using</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Move_misplaced_using_directives">
-        <source>Move misplaced using directives</source>
-        <target state="translated">Přesunout nesprávně umístěné direktivy using</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
-        <source>Using directives must be placed inside of a namespace declaration</source>
-        <target state="translated">Direktivy using se musí umístit do deklarace namespace.</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
-        <source>Using directives must be placed outside of a namespace declaration</source>
-        <target state="translated">Direktivy using se musí umístit mimo deklaraci namespace.</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
-        <source>Warning: Moving using directives may change code meaning.</source>
-        <target state="translated">Upozornění: Přesunutí direktiv using může změnit význam kódu.</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">

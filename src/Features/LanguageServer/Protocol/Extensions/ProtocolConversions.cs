@@ -59,6 +59,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.NuGet, LSP.CompletionItemKind.Text }
         };
 
+        public static Uri GetUriFromFilePath(string filePath)
+        {
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            return new Uri(filePath, UriKind.Absolute);
+        }
+
         public static LSP.TextDocumentPositionParams PositionToTextDocumentPositionParams(int position, SourceText text, Document document)
         {
             return new LSP.TextDocumentPositionParams()

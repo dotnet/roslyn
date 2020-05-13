@@ -34,11 +34,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     if (!object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
                     {
                         var workspace = e.NewSolution.Workspace;
-                        var documentIds = workspace.GetRelatedDocumentIds(SubjectBuffer.AsTextContainer());
-
-                        if (documentIds.Any(d => d.ProjectId == e.ProjectId))
+                        var documentId = workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
+                        if (documentId != null)
                         {
-                            this.RaiseChanged();
+                            var relatedDocumentIds = e.NewSolution.GetRelatedDocumentIds(documentId);
+
+                            if (relatedDocumentIds.Any(d => d.ProjectId == e.ProjectId))
+                            {
+                                RaiseChanged();
+                            }
                         }
                     }
                 }

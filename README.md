@@ -49,16 +49,7 @@ Want to start developing in C# and Visual Basic? Download [Visual Studio 2019](h
 also [prebuilt Azure VM images](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/category/compute?search=visual%20studio%202019) available with 
 Visual Studio 2019 already installed.
 
-To install the latest release without Visual Studio, run one of the following [nuget](https://dist.nuget.org/index.html) command lines:
-
-```
-nuget install Microsoft.Net.Compilers   # Install C# and VB compilers
-nuget install Microsoft.CodeAnalysis    # Install Language APIs and Services
-```
-
-Daily NuGet builds of the project are also available in our MyGet feed:
-
-> [https://dotnet.myget.org/F/roslyn/api/v3/index.json](https://dotnet.myget.org/F/roslyn/api/v3/index.json)
+To install the latest release without Visual Studio, download the [.NET SDK nightlies](https://github.com/dotnet/installer/blob/master/README.md#installers-and-binaries).
 
 See [what's new with the C# and VB compilers](https://github.com/dotnet/roslyn/wiki/Changelog-for-C%23-and-VB-compilers).
 
@@ -94,9 +85,9 @@ Some of the best ways to contribute are to try things out, file bugs, and join i
 
 Looking for something to work on? The list of [up for grabs issues](https://github.com/dotnet/roslyn/labels/help%20wanted) is a great place to start.
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).  For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+This [project](CODE-OF-CONDUCT.md) has adopted the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
 
 ### .NET Foundation
 
 This project is part of the [.NET Foundation](http://www.dotnetfoundation.org/projects) along with other
-projects like [the class libraries for .NET Core](https://github.com/dotnet/corefx/).
+projects like [the .NET Runtime](https://github.com/dotnet/runtime/).

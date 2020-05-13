@@ -353,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim found = False
 
                 For Each argument In tuple.Arguments
-                    Dim elementName = Nothing
+                    Dim elementName As Object
                     If argument.NameColonEquals IsNot Nothing Then
                         elementName = argument.NameColonEquals.Name.Identifier.ValueText
                     Else
@@ -752,8 +752,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                     Select Case parent.Kind
                         Case SyntaxKind.QualifiedName
-                            Dim qualifiedParent = DirectCast(parent, QualifiedNameSyntax)
-
                             result = rewrittenNode.CopyAnnotationsTo(
                                 SyntaxFactory.QualifiedName(
                                     DirectCast(left, NameSyntax),

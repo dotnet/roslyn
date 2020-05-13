@@ -124,7 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             // comments out a file).  Try to skip as many as possible if they're not actually in the span
             // we care about classifying.
             var classificationSpanStart = _textSpan.Start;
-            var classificationSpanEnd = _textSpan.End;
 
             // First, skip all the trivia before the span we care about.
             var enumerator = list.GetEnumerator();

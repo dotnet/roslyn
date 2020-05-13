@@ -94,6 +94,11 @@
         <target state="translated">No se puede usar una copia de módulo para crear metadatos de ensamblado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="new">Only a single {0} can be registered per generator.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">El analizador de "{0}" contiene un descriptor nulo en "SupportedDiagnostics".</target>

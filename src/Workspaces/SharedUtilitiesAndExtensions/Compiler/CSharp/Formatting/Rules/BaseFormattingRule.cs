@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -169,12 +172,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             if (node is MemberDeclarationSyntax memberDeclNode)
             {
-                var firstAndLastTokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
-                firstTokenOfNode = firstAndLastTokens.Item1;
+                (firstTokenOfNode, _) = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
             }
 
             if (node.IsLambdaBodyBlock())
             {
+                RoslynDebug.AssertNotNull(node.Parent);
+
                 // include lambda itself.
                 firstTokenOfNode = node.Parent.GetFirstToken(includeZeroWidth: true);
             }
@@ -186,8 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // suppress wrapping on whole construct that owns braces and also brace pair itself if 
             // it is on same line
-            AddSuppressWrappingIfOnSingleLineOperation(list, firstTokenOfNode, bracePair.Item2);
-            AddSuppressWrappingIfOnSingleLineOperation(list, bracePair.Item1, bracePair.Item2);
+            AddSuppressWrappingIfOnSingleLineOperation(list, firstTokenOfNode, bracePair.closeBrace);
+            AddSuppressWrappingIfOnSingleLineOperation(list, bracePair.openBrace, bracePair.closeBrace);
         }
     }
 }
