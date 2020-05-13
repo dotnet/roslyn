@@ -18,6 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\CSharpAddRequiredParenthesesDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertAnonymousTypeToTuple\CSharpConvertAnonymousTypeToTupleDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionDiagnosticAnalyzer.Analyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionDiagnosticAnalyzer.cs" />

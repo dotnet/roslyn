@@ -1760,6 +1760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_MemberNotNull = 8774,
         WRN_MemberNotNullWhen = 8775,
         WRN_MemberNotNullBadMember = 8776,
+        WRN_ParameterDisallowsNull = 8777,
 
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8782,
 

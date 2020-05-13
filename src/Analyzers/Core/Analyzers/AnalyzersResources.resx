@@ -274,4 +274,7 @@
   <data name="Invalid_format_string" xml:space="preserve">
     <value>Invalid format string</value>
   </data>
+  <data name="Convert_to_tuple" xml:space="preserve">
+    <value>Convert to tuple</value>
+  </data>
 </root>
