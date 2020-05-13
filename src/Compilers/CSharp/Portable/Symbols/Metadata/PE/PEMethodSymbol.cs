@@ -233,6 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public ImmutableArray<string> _lazyNotNullMembers;
             public ImmutableArray<string> _lazyNotNullMembersWhenTrue;
             public ImmutableArray<string> _lazyNotNullMembersWhenFalse;
+            public MethodSymbol _lazyExplicitClassOverride;
         }
 
         private UncommonFields CreateUncommonFields()
@@ -274,6 +275,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 retVal._lazyNotNullMembers = ImmutableArray<string>.Empty;
                 retVal._lazyNotNullMembersWhenTrue = ImmutableArray<string>.Empty;
                 retVal._lazyNotNullMembersWhenFalse = ImmutableArray<string>.Empty;
+            }
+
+            if (_packedFlags.IsExplicitOverrideIsPopulated)
+            {
+                retVal._lazyExplicitClassOverride = null;
             }
 
             return retVal;
@@ -1166,7 +1172,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return explicitInterfaceImplementations;
                 }
 
-                var explicitlyOverriddenMethods = ExplicitlyOverriddenMethods();
+                var moduleSymbol = _containingType.ContainingPEModule;
+
+                // Context: we need the containing type of this method as context so that we can substitute appropriately into
+                // any generic interfaces that we might be explicitly implementing.  There is no reason to pass in the method
+                // context, however, because any method type parameters will belong to the implemented (i.e. interface) method,
+                // which we do not yet know.
+                var explicitlyOverriddenMethods = new MetadataDecoder(moduleSymbol, _containingType).GetExplicitlyOverriddenMethods(_containingType.Handle, _handle, this.ContainingType);
 
                 //avoid allocating a builder in the common case
                 var anyToRemove = false;
@@ -1188,15 +1200,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                // CONSIDER: could assert that we're writing the existing value if it's already there
-                // CONSIDER: what we'd really like to do is set this bit only in cases where the explicitly
-                // overridden method matches the method that will be returned by MethodSymbol.OverriddenMethod.
-                // Unfortunately, this MethodSymbol will not be sufficiently constructed (need IsOverride and MethodKind,
-                // which depend on this property) to determine which method OverriddenMethod will return.
-                _packedFlags.InitializeIsExplicitOverride(isExplicitFinalizerOverride: sawObjectFinalize, isExplicitClassOverride: anyToRemove);
-
                 explicitInterfaceImplementations = explicitlyOverriddenMethods;
 
+                bool hasUniqueClassOverride = false;
                 if (anyToRemove)
                 {
                     var explicitInterfaceImplementationsBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
@@ -1209,46 +1215,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
 
                     explicitInterfaceImplementations = explicitInterfaceImplementationsBuilder.ToImmutableAndFree();
+
+                    MethodSymbol uniqueClassOverride = null;
+                    foreach (MethodSymbol method in explicitlyOverriddenMethods)
+                    {
+                        if (method.ContainingType.IsClassType())
+                        {
+                            if (uniqueClassOverride is { })
+                            {
+                                // not unique
+                                uniqueClassOverride = null;
+                                break;
+                            }
+
+                            uniqueClassOverride = method;
+                        }
+                    }
+
+                    if (uniqueClassOverride is { })
+                    {
+                        hasUniqueClassOverride = true;
+                        Interlocked.CompareExchange(ref AccessUncommonFields()._lazyExplicitClassOverride, uniqueClassOverride, null);
+                    }
                 }
+
+                // CONSIDER: what we'd really like to do is set this bit only in cases where the explicitly
+                // overridden method matches the method that will be returned by MethodSymbol.OverriddenMethod.
+                // Unfortunately, this MethodSymbol will not be sufficiently constructed (need IsOverride and MethodKind,
+                // which depend on this property) to determine which method OverriddenMethod will return.
+                _packedFlags.InitializeIsExplicitOverride(isExplicitFinalizerOverride: sawObjectFinalize, isExplicitClassOverride: hasUniqueClassOverride);
 
                 return InterlockedOperations.Initialize(ref _lazyExplicitMethodImplementations, explicitInterfaceImplementations);
             }
-        }
-
-        private ImmutableArray<MethodSymbol> ExplicitlyOverriddenMethods()
-        {
-            var moduleSymbol = _containingType.ContainingPEModule;
-
-            // Context: we need the containing type of this method as context so that we can substitute appropriately into
-            // any generic interfaces that we might be explicitly implementing.  There is no reason to pass in the method
-            // context, however, because any method type parameters will belong to the implemented (i.e. interface) method,
-            // which we do not yet know.
-            return new MetadataDecoder(moduleSymbol, _containingType).GetExplicitlyOverriddenMethods(_containingType.Handle, _handle, this.ContainingType);
         }
 
         internal override MethodSymbol ExplicitlyOverriddenClassMethod
         {
             get
             {
-                if (IsExplicitClassOverride)
-                {
-                    // If there is a *single* methodimpl entry, we return that.
-                    MethodSymbol result = null;
-                    foreach (MethodSymbol method in ExplicitlyOverriddenMethods())
-                    {
-                        if (method.ContainingType.IsClassType())
-                        {
-                            if (result is { })
-                                return null;
-
-                            result = method;
-                        }
-                    }
-
-                    return result;
-                }
-
-                return null;
+                return IsExplicitClassOverride ? AccessUncommonFields()._lazyExplicitClassOverride : null;
             }
         }
 
