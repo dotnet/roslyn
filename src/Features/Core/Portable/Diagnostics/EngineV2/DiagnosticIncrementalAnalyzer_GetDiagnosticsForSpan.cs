@@ -272,9 +272,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     GC.KeepAlive(wholeDiagnostics);
                 }
 
-                return;
-
-                // Local functions.
                 static bool IsUnusedImportDiagnostic(Diagnostic d)
                 {
                     switch (d.Id)
