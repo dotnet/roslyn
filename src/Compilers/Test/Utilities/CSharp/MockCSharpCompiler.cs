@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 analyzers = analyzers.InsertRange(0, _analyzers);
             }
-            if(!_generators.IsDefaultOrEmpty)
+            if (!_generators.IsDefaultOrEmpty)
             {
                 generators = generators.InsertRange(0, _generators);
             }

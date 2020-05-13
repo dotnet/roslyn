@@ -12205,7 +12205,7 @@ key = value");
 
             var generator = new SimpleGenerator("public class D {}");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/analyzerconfig:" + analyzerConfig.Path }, generators: new[] { generator }, analyzers: new HiddenDiagnosticAnalyzer() );
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/analyzerconfig:" + analyzerConfig.Path }, generators: new[] { generator }, analyzers: new HiddenDiagnosticAnalyzer());
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -12378,6 +12378,11 @@ key = value");
     {
         private readonly string _sourceToAdd;
 
+        public SimpleGenerator()
+        {
+            _sourceToAdd = string.Empty;
+        }
+
         public SimpleGenerator(string sourceToAdd)
         {
             _sourceToAdd = sourceToAdd;
@@ -12385,7 +12390,10 @@ key = value");
 
         public void Execute(SourceGeneratorContext context)
         {
-            context.AddSource("addedSource.cs", SourceText.From(_sourceToAdd, Encoding.UTF8));
+            if (!string.IsNullOrWhiteSpace(_sourceToAdd))
+            {
+                context.AddSource("addedSource.cs", SourceText.From(_sourceToAdd, Encoding.UTF8));
+            }
         }
 
         public void Initialize(InitializationContext context)
