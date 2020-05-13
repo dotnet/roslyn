@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editing
             bool isWithEvents = false,
             bool isPartial = false,
             bool isAsync = false,
+            bool isWriteOnly = false,
             bool isRef = false,
             bool isVolatile = false,
             bool isExtern = false)
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editing
                   (isWithEvents ? Modifiers.WithEvents : Modifiers.None) |
                   (isPartial ? Modifiers.Partial : Modifiers.None) |
                   (isAsync ? Modifiers.Async : Modifiers.None) |
+                  (isWriteOnly ? Modifiers.WriteOnly : Modifiers.None) |
                   (isRef ? Modifiers.Ref : Modifiers.None) |
                   (isVolatile ? Modifiers.Volatile : Modifiers.None) |
                   (isExtern ? Modifiers.Extern : Modifiers.None))
