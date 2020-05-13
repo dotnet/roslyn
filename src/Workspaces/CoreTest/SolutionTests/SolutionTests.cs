@@ -1672,9 +1672,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddDocument(did, "goo.cs", text);
 
             var document = sol.GetDocument(did);
-            Assert.False(document.TryGetSyntaxRoot(out var root));
+            Assert.False(document.TryGetSyntaxRoot(out _));
 
-            root = await document.GetSyntaxRootAsync();
+            var root = await document.GetSyntaxRootAsync();
             Assert.NotNull(root);
             Assert.Equal(text, root.ToString());
 
@@ -1727,9 +1727,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var root2 = tree2.GetRoot();
             // text should not be available yet (it should be defer created from the node)
             // and getting the document or root should not cause it to be created.
-            Assert.False(tree2.TryGetText(out var text2));
+            Assert.False(tree2.TryGetText(out _));
 
-            text2 = tree2.GetText();
+            var text2 = tree2.GetText();
             Assert.NotNull(text2);
 
             Assert.NotSame(tree, tree2);
@@ -1782,7 +1782,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             observedRoot.AssertReleased();
 
             // re-get the tree (should recover from storage, not reparse)
-            var root = sol.GetDocument(did).GetSyntaxRootAsync().Result;
+            _ = sol.GetDocument(did).GetSyntaxRootAsync().Result;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -2614,7 +2614,7 @@ public class C : A {
             var newTree = recoverableTree.WithFilePath("different/dummy");
 
             // this shouldn't throw
-            var root = newTree.GetRoot();
+            _ = newTree.GetRoot();
         }
 
         [Fact]

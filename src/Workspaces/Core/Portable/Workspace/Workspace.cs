@@ -1084,7 +1084,7 @@ namespace Microsoft.CodeAnalysis
                 if (newSolution != oldSolution)
                 {
                     newSolution = this.SetCurrentSolution(newSolution);
-                    var ignore = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+                    _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
                 }
             }
         }
@@ -1503,7 +1503,6 @@ namespace Microsoft.CodeAnalysis
             // changed additional documents
             foreach (var documentId in projectChanges.GetChangedAdditionalDocuments())
             {
-                var oldDoc = projectChanges.OldProject.GetAdditionalDocument(documentId)!;
                 var newDoc = projectChanges.NewProject.GetAdditionalDocument(documentId)!;
 
                 // We don't understand the text of additional documents and so we just replace the entire text.
@@ -1514,7 +1513,6 @@ namespace Microsoft.CodeAnalysis
             // changed analyzer config documents
             foreach (var documentId in projectChanges.GetChangedAnalyzerConfigDocuments())
             {
-                var oldDoc = projectChanges.OldProject.GetAnalyzerConfigDocument(documentId)!;
                 var newDoc = projectChanges.NewProject.GetAnalyzerConfigDocument(documentId)!;
 
                 // We don't understand the text of analyzer config documents and so we just replace the entire text.

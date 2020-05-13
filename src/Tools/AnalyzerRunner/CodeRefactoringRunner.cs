@@ -5,11 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -22,14 +20,16 @@ using static AnalyzerRunner.Program;
 
 namespace AnalyzerRunner
 {
-    internal sealed class CodeRefactoringRunner
+    public sealed class CodeRefactoringRunner
     {
+        private readonly Workspace _workspace;
         private readonly Options _options;
         private readonly ImmutableDictionary<string, ImmutableArray<CodeRefactoringProvider>> _refactorings;
         private readonly ImmutableDictionary<string, ImmutableHashSet<int>> _syntaxKinds;
 
-        public CodeRefactoringRunner(Options options)
+        public CodeRefactoringRunner(Workspace workspace, Options options)
         {
+            _workspace = workspace;
             _options = options;
 
             var refactorings = GetCodeRefactoringProviders(options.AnalyzerPath);
@@ -40,21 +40,14 @@ namespace AnalyzerRunner
 
         public bool HasRefactorings => _refactorings.Any(pair => pair.Value.Any());
 
-        public async Task RunAsync(Workspace workspace, CancellationToken cancellationToken)
+        public async Task RunAsync(CancellationToken cancellationToken)
         {
             if (!HasRefactorings)
             {
                 return;
             }
 
-            if (!string.IsNullOrEmpty(_options.ProfileRoot))
-            {
-                ProfileOptimization.StartProfile(nameof(CodeRefactoringRunner));
-            }
-
-            var solution = workspace.CurrentSolution;
-            var stopwatch = PerformanceTracker.StartNew();
-
+            var solution = _workspace.CurrentSolution;
             var updatedSolution = solution;
 
             foreach (var project in solution.Projects)
@@ -73,7 +66,7 @@ namespace AnalyzerRunner
 
             if (_options.ApplyChanges)
             {
-                workspace.TryApplyChanges(updatedSolution);
+                _workspace.TryApplyChanges(updatedSolution);
             }
         }
 

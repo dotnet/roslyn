@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ArrowExpressionClauseSyntax arrowClause => InferTypeInArrowExpressionClause(arrowClause),
                     AssignmentExpressionSyntax assignmentExpression => InferTypeInBinaryOrAssignmentExpression(assignmentExpression, assignmentExpression.OperatorToken, assignmentExpression.Left, assignmentExpression.Right, expression),
                     AttributeArgumentSyntax attribute => InferTypeInAttributeArgument(attribute),
-                    AttributeSyntax attribute => InferTypeInAttribute(),
+                    AttributeSyntax _ => InferTypeInAttribute(),
                     AwaitExpressionSyntax awaitExpression => InferTypeInAwaitExpression(awaitExpression),
                     BinaryExpressionSyntax binaryExpression => InferTypeInBinaryOrAssignmentExpression(binaryExpression, binaryExpression.OperatorToken, binaryExpression.Left, binaryExpression.Right, expression),
                     CastExpressionSyntax castExpression => InferTypeInCastExpression(castExpression, expression),
