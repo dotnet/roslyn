@@ -969,10 +969,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool nameConflict = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
             bool hasErrors = false;
 
-            var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
-            if (containingMethod != null && containingMethod.IsAsync && localSymbol.RefKind != RefKind.None)
+            if (localSymbol.RefKind != RefKind.None)
             {
-                Error(diagnostics, ErrorCode.ERR_BadAsyncLocalType, declarator);
+                CheckRefLocalInAsyncOrIteratorMethod(localSymbol.IdentifierToken, diagnostics);
             }
 
             EqualsValueClauseSyntax equalsClauseSyntax = declarator.Initializer;
@@ -1084,11 +1083,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (localSymbol.RefKind != RefKind.None)
                 {
-                    if (IsDirectlyInIterator)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadIteratorLocalType, localSymbol.Locations[0]);
-                    }
-
                     localSymbol.SetRefEscape(GetRefEscape(initializerOpt, currentScope));
                 }
             }
@@ -1153,6 +1147,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentsOpt: arguments,
                 inferredType: isVar,
                 hasErrors: hasErrors | nameConflict);
+        }
+
+        protected bool CheckRefLocalInAsyncOrIteratorMethod(SyntaxToken identifierToken, DiagnosticBag diagnostics)
+        {
+            if (IsInAsyncMethod())
+            {
+                Error(diagnostics, ErrorCode.ERR_BadAsyncLocalType, identifierToken);
+                return true;
+            }
+            else if (IsDirectlyInIterator)
+            {
+                Error(diagnostics, ErrorCode.ERR_BadIteratorLocalType, identifierToken);
+                return true;
+            }
+
+            return false;
         }
 
         internal ImmutableArray<BoundExpression> BindDeclaratorArguments(VariableDeclaratorSyntax declarator, DiagnosticBag diagnostics)
