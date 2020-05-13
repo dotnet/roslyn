@@ -1026,6 +1026,25 @@ System.Console.Write(args);
         }
 
         [Fact]
+        public void LocalDeclarationStatement_15()
+        {
+            var text1 = @"
+using System.Linq;
+string x = null;
+_ = from x in new object[0] select x;
+System.Console.Write(x);
+";
+
+            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (4,10): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                // _ = from x in new object[0] select x;
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(4, 10)
+                );
+        }
+
+        [Fact]
         public void UsingStatement_01()
         {
             string source = @"
@@ -4495,6 +4514,25 @@ void local()
             var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             CompileAndVerify(comp, expectedOutput: "4");
+        }
+
+        [Fact]
+        public void LocalFunctionStatement_16()
+        {
+            var text1 = @"
+using System.Linq;
+_ = from local in new object[0] select local;
+local();
+void local() {}
+";
+
+            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (3,10): error CS1931: The range variable 'local' conflicts with a previous declaration of 'local'
+                // _ = from local in new object[0] select local;
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "local").WithArguments("local").WithLocation(3, 10)
+                );
         }
 
         [Fact]
@@ -8070,6 +8108,50 @@ System.Console.WriteLine(args.Length == 0 ? 0 : -args[0].Length);
             CompileAndVerify(comp, expectedOutput: "0").VerifyDiagnostics();
             var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
             AssertEntryPointParameter(entryPoint);
+        }
+
+        [Fact]
+        public void Args_02()
+        {
+            var text1 = @"
+using System.Linq;
+_ = from args in new object[0] select args;
+";
+
+            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (3,10): error CS1931: The range variable 'args' conflicts with a previous declaration of 'args'
+                // _ = from args in new object[0] select args;
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "args").WithArguments("args").WithLocation(3, 10)
+                );
+        }
+
+        [Fact]
+        public void Args_03()
+        {
+            var text = @"
+local();
+void local()
+{
+    System.Console.WriteLine(args[0]);
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "Args_03", args: new[] { "Args_03" }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Args_04()
+        {
+            var text = @"
+System.Action lambda = () => System.Console.WriteLine(args[0]);
+lambda();
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "Args_04", args: new[] { "Args_04" }).VerifyDiagnostics();
         }
     }
 }
