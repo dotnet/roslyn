@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis
         IgnoreNullableModifiersForReferenceTypes = 8,
         ObliviousNullableModifierMatchesAny = 16,
         IgnoreNativeIntegers = 32,
+        FunctionPointerRefMatchesOutInRefReadonly = 64,
 
         AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | ObliviousNullableModifierMatchesAny,
         AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames | AllNullableIgnoreOptions | IgnoreNativeIntegers,

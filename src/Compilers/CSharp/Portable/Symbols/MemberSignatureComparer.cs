@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false,
             considerRefKindDifferences: false,
-            typeComparison: TypeCompareKind.AllIgnoreOptions); //shouldn't actually matter for source members
+            typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
         /// This instance is used to determine if a partial method implementation matches the definition.
@@ -313,6 +313,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _considerCallingConvention = considerCallingConvention;
             _considerRefKindDifferences = considerRefKindDifferences;
             _typeComparison = typeComparison;
+            if (!considerRefKindDifferences)
+            {
+                _typeComparison |= TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly;
+            }
         }
 
         #region IEqualityComparer<Symbol> Members

@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                && _containingSymbol.Equals(other._containingSymbol, compareKind, isValueTypeOverride);
 
         internal bool MethodEqualityChecks(FunctionPointerParameterSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
-            => RefKind == other.RefKind
+            => FunctionPointerTypeSymbol.RefKindEquals(compareKind, RefKind, other.RefKind)
                && ((compareKind & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) != 0
                     || RefCustomModifiers.SequenceEqual(other.RefCustomModifiers))
                && TypeWithAnnotations.Equals(other.TypeWithAnnotations, compareKind, isValueTypeOverride);

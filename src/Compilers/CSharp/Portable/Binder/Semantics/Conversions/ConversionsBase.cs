@@ -2966,26 +2966,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (!hasConversion(sourceParam.RefKind, destinationSig.Parameters[i].Type, sourceSig.Parameters[i].Type, ref useSiteDiagnostics))
+                if (!hasConversion(sourceParam.RefKind, destinationSig.Parameters[i].TypeWithAnnotations, sourceSig.Parameters[i].TypeWithAnnotations, ref useSiteDiagnostics))
                 {
                     return false;
                 }
             }
 
             return sourceSig.RefKind == destinationSig.RefKind
-                   && hasConversion(sourceSig.RefKind, sourceSig.ReturnType, destinationSig.ReturnType, ref useSiteDiagnostics);
+                   && hasConversion(sourceSig.RefKind, sourceSig.ReturnTypeWithAnnotations, destinationSig.ReturnTypeWithAnnotations, ref useSiteDiagnostics);
 
-            bool hasConversion(RefKind refKind, TypeSymbol sourceType, TypeSymbol destinationType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+            bool hasConversion(RefKind refKind, TypeWithAnnotations sourceType, TypeWithAnnotations destinationType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
             {
                 switch (refKind)
                 {
                     case RefKind.None:
-                        return HasIdentityOrImplicitReferenceConversion(sourceType, destinationType, ref useSiteDiagnostics)
-                               || HasImplicitPointerToVoidConversion(sourceType, destinationType)
-                               || HasImplicitPointerConversion(sourceType, destinationType, ref useSiteDiagnostics);
+                        return (!IncludeNullability || HasTopLevelNullabilityImplicitConversion(sourceType, destinationType))
+                               && (HasIdentityOrImplicitReferenceConversion(sourceType.Type, destinationType.Type, ref useSiteDiagnostics)
+                                   || HasImplicitPointerToVoidConversion(sourceType.Type, destinationType.Type)
+                                   || HasImplicitPointerConversion(sourceType.Type, destinationType.Type, ref useSiteDiagnostics));
 
                     default:
-                        return HasIdentityConversion(sourceType, destinationType);
+                        return (!IncludeNullability || HasTopLevelNullabilityIdentityConversion(sourceType, destinationType))
+                               && HasIdentityConversion(sourceType.Type, destinationType.Type);
                 }
             }
         }

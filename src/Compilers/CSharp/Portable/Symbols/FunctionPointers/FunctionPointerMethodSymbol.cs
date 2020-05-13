@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool EqualsNoParameters(FunctionPointerMethodSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
             => CallingConvention == other.CallingConvention
-               && RefKind == other.RefKind
+               && FunctionPointerTypeSymbol.RefKindEquals(compareKind, RefKind, other.RefKind)
                && ((compareKind & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) != 0
                     || RefCustomModifiers.SequenceEqual(other.RefCustomModifiers))
                && ReturnTypeWithAnnotations.Equals(other.ReturnTypeWithAnnotations, compareKind, isValueTypeOverride);

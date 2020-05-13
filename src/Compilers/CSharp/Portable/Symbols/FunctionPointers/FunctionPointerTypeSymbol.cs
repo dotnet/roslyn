@@ -157,5 +157,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this;
         }
 
+        internal static bool RefKindEquals(TypeCompareKind compareKind, RefKind refKind1, RefKind refKind2)
+        {
+            if ((compareKind & TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly) != 0)
+            {
+                return (refKind1, refKind2) switch
+                {
+                    (RefKind.None, RefKind.None) => true,
+                    (RefKind.None, _) => false,
+                    (_, RefKind.None) => false,
+                    _ => true
+                };
+            }
+            else
+            {
+                return refKind1 == refKind2;
+            }
+        }
     }
 }
