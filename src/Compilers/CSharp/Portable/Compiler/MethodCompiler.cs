@@ -541,8 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.Field:
                         {
-                            var field = (FieldSymbol)member;
-                            var fieldSymbol = (field.TupleUnderlyingField ?? field) as SourceMemberFieldSymbol;
+                            FieldSymbol fieldSymbol = member as FieldSymbol;
                             if ((object)fieldSymbol != null)
                             {
                                 if (fieldSymbol.IsConst)
