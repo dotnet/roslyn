@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string DoNotUseReservedDiagnosticIdRuleId = "RS1029";
         public const string DoNotUseCompilationGetSemanticModelRuleId = "RS1030";
         public const string DefineDiagnosticTitleCorrectlyRuleId = "RS1031";
+        public const string DefineDiagnosticMessageCorrectlyRuleId = "RS1032";
 
         // Release tracking analyzer IDs
         public const string DeclareDiagnosticIdInAnalyzerReleaseRuleId = "RS2000";

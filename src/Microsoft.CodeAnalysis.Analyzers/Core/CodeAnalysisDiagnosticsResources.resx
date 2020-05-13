@@ -512,4 +512,13 @@
   <data name="DefineDiagnosticTitleCorrectlyTitle" xml:space="preserve">
     <value>Define diagnostic title correctly</value>
   </data>
+  <data name="DefineDiagnosticMessageCorrectlyDescription" xml:space="preserve">
+    <value>The diagnostic message is recommended to be a sentence without any line return. It should end with a period only in case this is a multi sentences message.</value>
+  </data>
+  <data name="DefineDiagnosticMessageCorrectlyMessage" xml:space="preserve">
+    <value>Define diagnostic message correctly</value>
+  </data>
+  <data name="DefineDiagnosticMessageCorrectlyTitle" xml:space="preserve">
+    <value>Define diagnostic message correctly</value>
+  </data>
 </root>

@@ -72,6 +72,21 @@
         <target state="translated">Dodaj identyfikatory diagnostyczne analizatora do wydania analizatora.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyDescription">
+        <source>The diagnostic message is recommended to be a sentence without any line return. It should end with a period only in case this is a multi sentences message.</source>
+        <target state="new">The diagnostic message is recommended to be a sentence without any line return. It should end with a period only in case this is a multi sentences message.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
+        <source>Define diagnostic message correctly</source>
+        <target state="new">Define diagnostic message correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyTitle">
+        <source>Define diagnostic message correctly</source>
+        <target state="new">Define diagnostic message correctly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyDescription">
         <source>The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</source>
         <target state="new">The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</target>
