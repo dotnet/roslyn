@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
 
             // name must refer to something that is not a namespace, but be qualified with a namespace.
             var symbol = model.GetSymbolInfo(fullName).Symbol;
-            if (symbol != null && symbol.Kind != SymbolKind.Namespace && model.GetSymbolInfo(namespacePart).Symbol is INamespaceSymbol nsSymbol)
+            if (symbol != null && symbol.Kind != SymbolKind.Namespace && model.GetSymbolInfo(namespacePart).Symbol is INamespaceSymbol)
             {
                 // use the symbols containing namespace, and not the potentially less than fully qualified namespace in the full name expression.
                 var ns = symbol.ContainingNamespace;

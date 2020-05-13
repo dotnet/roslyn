@@ -399,8 +399,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 return true;
             }
 
-            var index = 0;
-            index = newMetadataName.IndexOf(replacementText, 0);
+            var index = newMetadataName.IndexOf(replacementText, 0);
             var newMetadataNameBuilder = new StringBuilder();
 
             // Every loop updates the newMetadataName to resemble the oldMetadataName

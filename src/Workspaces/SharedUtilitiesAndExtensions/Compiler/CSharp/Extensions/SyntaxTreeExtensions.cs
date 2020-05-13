@@ -224,7 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (trivia.IsSingleLineDocComment())
             {
-                var span = trivia.Span;
                 var fullSpan = trivia.FullSpan;
                 var endsWithNewLine = trivia.GetStructure().GetLastToken(includeSkipped: true).Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
 

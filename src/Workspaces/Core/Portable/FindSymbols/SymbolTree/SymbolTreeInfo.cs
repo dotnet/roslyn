@@ -540,7 +540,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             Debug.Assert(_inheritanceMap.Keys.Count == other._inheritanceMap.Keys.Count);
             var orderedKeys1 = this._inheritanceMap.Keys.Order().ToList();
-            var orderedKeys2 = other._inheritanceMap.Keys.Order().ToList();
 
             for (var i = 0; i < orderedKeys1.Count; i++)
             {

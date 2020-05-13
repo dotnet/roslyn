@@ -537,7 +537,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private async Task<IEnumerable<CodeActionOperation>> GetGenerateIntoTypeOperationsAsync(INamedTypeSymbol namedType)
             {
-                var codeGenService = GetCodeGenerationService();
                 var solution = _semanticDocument.Project.Solution;
                 var codeGenResult = await CodeGenerator.AddNamedTypeDeclarationAsync(
                     solution,

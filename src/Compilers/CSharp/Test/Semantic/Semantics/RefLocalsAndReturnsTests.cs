@@ -990,6 +990,19 @@ class C
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "P").WithLocation(8, 9));
         }
 
+        [Fact, WorkItem(44153, "https://github.com/dotnet/roslyn/issues/44153")]
+        public void RefErrorProperty()
+        {
+            CreateCompilation(@"
+public class C {
+    public ref ERROR Prop => throw null!;
+}
+").VerifyEmitDiagnostics(
+                // (3,16): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                //     public ref ERROR Prop => throw null!;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(3, 16));
+        }
+
         [Fact]
         public void RefReadonlyOnlyIn72()
         {

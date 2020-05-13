@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var found = false;
                 foreach (var argument in tuple.Arguments)
                 {
-                    string elementName = null;
+                    string elementName;
                     if (argument.NameColon != null)
                     {
                         elementName = argument.NameColon.Name.Identifier.ValueText;
@@ -434,8 +434,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-
-                var identifier = node.Identifier;
 
                 var newNode = (SimpleNameSyntax)base.VisitIdentifierName(node);
 
@@ -919,8 +917,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 {
                     ImmutableArray<SymbolDisplayPart> displayParts;
 
-                    ExpressionSyntax left = null;
-
                     // we either need to create an AliasQualifiedName if the symbol is directly contained in the global namespace,
                     // otherwise it a QualifiedName.
                     if (!replaceNode && symbol.ContainingType == null && symbol.ContainingNamespace.IsGlobalNamespace)
@@ -944,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                     if (!omitLeftHandSide)
                     {
-                        left = SyntaxFactory.ParseTypeName(displayParts.ToDisplayString());
+                        ExpressionSyntax left = SyntaxFactory.ParseTypeName(displayParts.ToDisplayString());
 
                         // Replaces the '<' token with the '{' token since we are inside crefs
                         left = TryReplaceAngleBracesWithCurlyBraces(left, isInsideCref);
@@ -964,8 +960,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         switch (parent.Kind())
                         {
                             case SyntaxKind.QualifiedName:
-                                var qualifiedParent = (QualifiedNameSyntax)parent;
-
                                 result = rewrittenNode.CopyAnnotationsTo(
                                     SyntaxFactory.QualifiedName(
                                         (NameSyntax)left,
@@ -974,8 +968,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                 break;
 
                             case SyntaxKind.SimpleMemberAccessExpression:
-                                var memberAccessParent = (MemberAccessExpressionSyntax)parent;
-
                                 result = rewrittenNode.CopyAnnotationsTo(
                                     SyntaxFactory.MemberAccessExpression(
                                         SyntaxKind.SimpleMemberAccessExpression,
