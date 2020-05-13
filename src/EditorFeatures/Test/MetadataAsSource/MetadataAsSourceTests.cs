@@ -591,10 +591,7 @@ internal class AllowNullAttribute : System.Attribute { }
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-using System.Runtime.CompilerServices;
-
-[NullableContextAttribute(1)]
-public interface [|C|]<[NullableAttribute(2)] T>
+public interface [|C|]<T>
 {{
     bool Equals([AllowNullAttribute] T other);
 }}");

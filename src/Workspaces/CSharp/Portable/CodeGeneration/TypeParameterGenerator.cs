@@ -27,8 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 symbol.Variance == VarianceKind.In ? SyntaxFactory.Token(SyntaxKind.InKeyword) :
                 symbol.Variance == VarianceKind.Out ? SyntaxFactory.Token(SyntaxKind.OutKeyword) : default;
 
+            var (attributes, isNullable) = AttributeGenerator.GenerateAttributeLists(symbol.GetAttributes(), options)
             return SyntaxFactory.TypeParameter(
-                AttributeGenerator.GenerateAttributeLists(symbol.GetAttributes(), options),
+                attributes,
                 varianceKeyword,
                 symbol.Name.ToIdentifierToken());
         }

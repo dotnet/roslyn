@@ -41,8 +41,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan()), symbol),
                 cancellationToken).ConfigureAwait(false);
 
-            document = await RemoveSimplifierAnnotationsFromImportsAsync(document, cancellationToken).ConfigureAwait(false);
-
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var docWithDocComments = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
@@ -53,27 +51,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             var reducers = GetReducers();
             return await Simplifier.ReduceAsync(formattedDoc, reducers, null, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// <see cref="ImportAdderService"/> adds <see cref="Simplifier.Annotation"/> to Import Directives it adds,
-        /// which causes the <see cref="Simplifier"/> to remove import directives when thety are only used by attributes.
-        /// Presumably this is because MetadataAsSource isn't actually semantically valid code.
-        /// 
-        /// To fix this we remove these annotations.
-        /// </summary>
-        private static async Task<Document> RemoveSimplifierAnnotationsFromImportsAsync(Document document, CancellationToken cancellationToken)
-        {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            var importDirectives = (await document.GetSyntaxRootAsync().ConfigureAwait(false))
-                .DescendantNodesAndSelf()
-                .Where(syntaxFacts.IsUsingOrExternOrImport);
-
-            return await document.ReplaceNodesAsync(
-                importDirectives,
-                (o, c) => c.WithoutAnnotations(Simplifier.Annotation),
-                cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
