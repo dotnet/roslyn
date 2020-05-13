@@ -577,6 +577,24 @@ namespace Analyzer.Utilities.Extensions
             return invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value.Syntax : invocationOperation.Instance.Syntax;
         }
 
+        public static ITypeSymbol GetInstanceType(this IOperation operation)
+        {
+            IOperation instance = operation switch
+            {
+                IInvocationOperation invocation => invocation.IsExtensionMethodAndHasNoInstance() ?
+                invocation.Arguments[0].Value :
+                invocation.Instance,
+
+                IPropertyReferenceOperation propertyReference => propertyReference.Instance,
+
+                _ => throw new NotImplementedException()
+            };
+
+            instance = instance.WalkDownConversion();
+
+            return instance.Type;
+        }
+
         public static ISymbol? GetReferencedMemberOrLocalOrParameter(this IOperation operation)
         {
             return operation switch
@@ -610,6 +628,16 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
+        public static IOperation WalkUpParentheses(this IOperation operation)
+        {
+            while (operation is IParenthesizedOperation parenthesizedOperation)
+            {
+                operation = parenthesizedOperation.Parent;
+            }
+
+            return operation;
+        }
+
         /// <summary>
         /// Walks down consequtive conversion operations until an operand is reached that isn't a conversion operation.
         /// </summary>
@@ -620,6 +648,16 @@ namespace Analyzer.Utilities.Extensions
             while (operation is IConversionOperation conversionOperation)
             {
                 operation = conversionOperation.Operand;
+            }
+
+            return operation;
+        }
+
+        public static IOperation WalkUpConversion(this IOperation operation)
+        {
+            while (operation is IConversionOperation conversionOperation)
+            {
+                operation = conversionOperation.Parent;
             }
 
             return operation;
