@@ -313,7 +313,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 cmds[0].cmdf = 0;
 
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
 
                 var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
                 if (ErrorHandler.Failed(hr))
@@ -335,7 +334,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 }
 
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
 
                 _oleCommandTarget = _serviceProvider.GetService<IOleCommandTarget, SUIHostCommandDispatcher>();
             }

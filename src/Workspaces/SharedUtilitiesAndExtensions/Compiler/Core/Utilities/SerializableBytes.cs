@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
             return stream;
         }
 
-        internal async static Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
+        internal static async Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
         {
             var length = stream.Length;
 

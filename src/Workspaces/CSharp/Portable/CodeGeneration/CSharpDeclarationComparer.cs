@@ -431,18 +431,5 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return comparisonResult == 0;
         }
-
-        private static bool EqualTypeParameterCount(TypeParameterListSyntax x, TypeParameterListSyntax y, out int comparisonResult)
-        {
-            if (NeitherNull(x, y, out comparisonResult))
-            {
-                var xParameterCount = x.Parameters.Count;
-                var yParameterCount = y.Parameters.Count;
-
-                comparisonResult = xParameterCount - yParameterCount;
-            }
-
-            return comparisonResult == 0;
-        }
     }
 }

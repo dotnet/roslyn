@@ -1174,5 +1174,53 @@ class D : C, I
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WorkItem(43664, "https://github.com/dotnet/roslyn/issues/43664")]
+        public async Task AddParameterOnUnparenthesizedLambda()
+        {
+            var markup = @"
+using System.Linq;
+
+namespace ConsoleApp426
+{
+    class Program
+    {
+        static void M(string[] args)
+        {
+            if (args.All(b$$ => Test()))
+            {
+
+            }
+        }
+
+        static bool Test() { return true; }
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(0),
+                AddedParameterOrExistingIndex.CreateAdded("byte", "bb", callSiteValue: "34") };
+
+            var updatedCode = @"
+using System.Linq;
+
+namespace ConsoleApp426
+{
+    class Program
+    {
+        static void M(string[] args)
+        {
+            if (args.All((b, byte bb) => Test()))
+            {
+
+            }
+        }
+
+        static bool Test() { return true; }
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
     }
 }

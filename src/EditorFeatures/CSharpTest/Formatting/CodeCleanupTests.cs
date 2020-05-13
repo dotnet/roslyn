@@ -264,8 +264,8 @@ namespace M
                     .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateUsingGroups))
                 .WithAnalyzerReferences(new[]
                 {
-                    new AnalyzerFileReference(typeof(CSharpCompilerDiagnosticAnalyzer).Assembly.Location, FromFileLoader.Instance),
-                    new AnalyzerFileReference(typeof(UseExpressionBodyDiagnosticAnalyzer).Assembly.Location, FromFileLoader.Instance)
+                    new AnalyzerFileReference(typeof(CSharpCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                    new AnalyzerFileReference(typeof(UseExpressionBodyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
                 });
 
             workspace.TryApplyChanges(solution);
@@ -287,18 +287,6 @@ namespace M
             var actual = await newDoc.GetTextAsync();
 
             Assert.Equal(expected, actual.ToString());
-        }
-
-        public class FromFileLoader : IAnalyzerAssemblyLoader
-        {
-            public static FromFileLoader Instance = new FromFileLoader();
-
-            public void AddDependencyLocation(string fullPath)
-            {
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-                => Assembly.LoadFrom(fullPath);
         }
     }
 }

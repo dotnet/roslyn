@@ -30,6 +30,7 @@ This document provides guidance for thinking about language interactions and tes
     - GetCFG (`ControlFlowGraph`)
 - VB/F# interop
 - Performance and stress testing
+- Can build VS
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
@@ -347,6 +348,12 @@ __makeref( x )
 - Declaration Pattern
 - Constant Pattern
 - Recursive Pattern
+- Parenthesized Pattern
+- `and` Pattern
+- `or` Pattern
+- `not` Pattern
+- Relational Pattern
+- Type Pattern
 
 ## Metadata table numbers / token prefixes 
  
