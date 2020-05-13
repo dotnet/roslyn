@@ -1776,6 +1776,12 @@ namespace Microsoft.Cci
                 {
                     EmbedSourceLink(module.SourceLinkStreamOpt);
                 }
+
+                if (module.CommonCompilation.IsEmitDeterministic)
+                {
+                    EmbedCompilerFlags(module);
+                    EmbedMetadataReferenceInformation(module);
+                }
             }
 
             int[] methodBodyOffsets;

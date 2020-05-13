@@ -831,5 +831,36 @@ namespace Microsoft.Cci
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.SourceLink),
                 value: _debugMetadataOpt.GetOrAddBlob(bytes));
         }
+
+        private void EmbedCompilerFlags(CommonPEModuleBuilder module)
+        {
+            byte[] bytes = new byte[0];
+
+            // TODO: Where to get compiler version? 
+
+            // TODO: Where to get source encoding?
+
+            _debugMetadataOpt.AddCustomDebugInformation(
+                parent: EntityHandle.ModuleDefinition,
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.DeterministicCompilerFlags),
+                value: _debugMetadataOpt.GetOrAddBlob(bytes));
+        }
+
+        private void EmbedMetadataReferenceInformation(CommonPEModuleBuilder module)
+        {
+            byte[] bytes = new byte[0];
+
+            // TODO: Get metadata reference information
+            // File name: Foo.exe
+            // COFF header Timestamp field (4 bytes): 0x542d5742
+            // COFF header SizeOfImage field (4 bytes): 0x32000000
+            // MVID (Guid, 24 bytes): 0x24a44d8218894463807674caf3b1c19a
+            // Output: Foo.exe542d5742320000000024a44d8218894463807674caf3b1c19a
+
+            _debugMetadataOpt.AddCustomDebugInformation(
+                parent: EntityHandle.ModuleDefinition,
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.MetadataReferenceInfo),
+                value: _debugMetadataOpt.GetOrAddBlob(bytes));
+        }
     }
 }

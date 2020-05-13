@@ -213,6 +213,8 @@ class C
         [Fact]
         public void PortablePdb_DeterministicCompilation()
         {
+            var referenceTimestamp = DateTime.Now;
+
             var referenceCompilation = CreateCompilation(
 @"public struct StructWithReference
 {
@@ -221,7 +223,7 @@ class C
 public struct StructWithValue
 {
     int PrivateData;
-}");
+}", options: TestOptions.DebugDll.WithCurrentLocalTime(referenceTimestamp));
 
             string source = @"
 using System;
@@ -279,9 +281,9 @@ class C
                     Assert.Equal("", compilerFlags["sourceencoding"]);
 
                     // Check the metadata references
-                    Assert.Equal(0, timestamp);
-                    Assert.Equal(0, fileSize);
-                    Assert.Equal("", name);
+                    Assert.Equal(referenceTimestamp.ToFileTime(), timestamp);
+                    Assert.Equal(500, fileSize);
+                    Assert.Equal(referenceCompilation.AssemblyName, name);
                     Assert.Equal(Guid.NewGuid(), mvid);
                 }
             }
@@ -301,7 +303,7 @@ class C
                 var nullTerminator = Encoding.UTF8.GetBytes(new[] { '\0' })[0];
                 var terminatorIndex = metadataReferenceBytes.IndexOf(nullTerminator);
                 Assert.NotEqual(-1, terminatorIndex);
-                var name = Encoding.UTF8.GetString(metadataReferenceBytes[0..terminatorIndex]);
+                var name = Encoding.UTF8.GetString(metadataReferenceBytes.Take(terminatorIndex).AsArray());
 
                 // Timestamp = 4 bytes
                 // FileSize = 4 bytes
@@ -310,16 +312,13 @@ class C
                 Assert.Equal(metadataReferenceBytes.Length, terminatorIndex + 25);
 
                 var timestampStart = terminatorIndex + 1;
-                var timestampStop = timestampStart + 4;
+                var timestamp = BitConverter.ToInt32(metadataReferenceBytes.Skip(timestampStart).Take(4).ToArray(), 0);
 
-                var timestamp = BitConverter.ToInt32(metadataReferenceBytes[timestampStart..timestampStop]);
+                var fileSizeStart = timestampStart + 5;
+                var fileSize = BitConverter.ToInt32(metadataReferenceBytes.Skip(fileSizeStart).Take(4).ToArray(), 0);
 
-                var fileSizeStart = timestampStop + 1;
-                var fileSizeStop = fileSizeStart + 4;
-                var fileSize = BitConverter.ToInt32(metadataReferenceBytes[fileSizeStart..fileSizeStop]);
-
-                var mvidStart = fileSizeStop + 1;
-                var mvid = new Guid(metadataReferenceBytes[mvidStart..]);
+                var mvidStart = fileSizeStart + 5;
+                var mvid = new Guid(metadataReferenceBytes.Skip(mvidStart).ToArray());
 
                 return (timestamp, fileSize, name, mvid);
             }
@@ -336,7 +335,7 @@ class C
                 {
                     if (compilerFlagBytes[i] == nullTerminator)
                     {
-                        var value = Encoding.UTF8.GetString(compilerFlagBytes[start..i]);
+                        var value = Encoding.UTF8.GetString(compilerFlagBytes.Skip(start).Take(i - start).ToArray());
                         if (key is null)
                         {
                             key = value;
