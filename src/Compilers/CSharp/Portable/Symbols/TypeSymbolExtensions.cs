@@ -920,6 +920,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.Type?.ContainsNativeInteger() == true;
         }
 
+        internal static bool ContainsErrorType(this TypeSymbol type)
+        {
+            var result = type.VisitType((type, unused1, unused2) => type.IsErrorType(), (object?)null, canDigThroughNullable: true);
+            return result is object;
+        }
+
         /// <summary>
         /// Return true if the type contains any tuples.
         /// </summary>

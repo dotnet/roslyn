@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// there may be symbol mapping involved (for example in Metadata-As-Source
         /// scenarios).
         /// </summary>
-        public static async Task<(ISymbol symbol, Solution solution)?> GetRelevantSymbolAndSolutionAtPositionAsync(
+        public static async Task<(ISymbol symbol, Project project)?> GetRelevantSymbolAndProjectAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -49,103 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             if (mapping == null)
                 return null;
 
-            return (mapping.Symbol, mapping.Project.Solution);
-        }
-
-        public static async Task<(Solution solution, ISymbol symbol, ImmutableArray<ISymbol> implementations, string message)?> FindSourceImplementationsAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var symbolAndSolutionOpt = await GetRelevantSymbolAndSolutionAtPositionAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndSolutionOpt == null)
-                return null;
-
-            var (symbol, solution) = symbolAndSolutionOpt.Value;
-            return await FindSourceImplementationsAsync(
-                solution, symbol, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task<(Solution solution, ISymbol symbol, ImmutableArray<ISymbol> implementations, string message)?> FindSourceImplementationsAsync(
-            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
-        {
-            var builder = new HashSet<ISymbol>(SymbolEquivalenceComparer.Instance);
-
-            // If we're in a linked file, try to find all the symbols this links to, and find all the implementations of
-            // each of those linked symbols. De-dupe the results so the user only gets unique results.
-            var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(
-                symbol, solution, cancellationToken).ConfigureAwait(false);
-
-            foreach (var linkedSymbol in linkedSymbols)
-            {
-                builder.AddRange(await FindSourceImplementationsWorkerAsync(
-                    solution, linkedSymbol, cancellationToken).ConfigureAwait((bool)false));
-            }
-
-            var result = builder.ToImmutableArray();
-            var message = result.IsEmpty ? EditorFeaturesResources.The_symbol_has_no_implementations : null;
-
-            return (solution, symbol, result, message);
-        }
-
-        private static async Task<ImmutableArray<ISymbol>> FindSourceImplementationsWorkerAsync(
-            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
-        {
-            var implementations = await FindSourceAndMetadataImplementationsAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
-            return implementations.WhereAsArray(s => s.Locations.Any(l => l.IsInSource));
-        }
-
-        private static async Task<ImmutableArray<ISymbol>> FindSourceAndMetadataImplementationsAsync(
-            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
-        {
-            if (symbol.IsInterfaceType() || symbol.IsImplementableMember())
-            {
-                var implementations = await SymbolFinder.FindImplementationsAsync(
-                    symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                // It's important we use a HashSet here -- we may have cases in an inheritance hierarchy where more than one method
-                // in an overrides chain implements the same interface method, and we want to duplicate those. The easiest way to do it
-                // is to just use a HashSet.
-                var implementationsAndOverrides = new HashSet<ISymbol>();
-
-                foreach (var implementation in implementations)
-                {
-                    implementationsAndOverrides.Add(implementation);
-
-                    // FindImplementationsAsync will only return the base virtual/abstract method, not that method and the overrides
-                    // of the method. We should also include those.
-                    if (implementation.IsOverridable())
-                    {
-                        var overrides = await SymbolFinder.FindOverridesAsync(
-                            implementation, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-                        implementationsAndOverrides.AddRange(overrides);
-                    }
-                }
-
-                if (!symbol.IsInterfaceType() &&
-                    !symbol.IsAbstract)
-                {
-                    implementationsAndOverrides.Add(symbol);
-                }
-
-                return implementationsAndOverrides.ToImmutableArray();
-            }
-            else if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Class } namedType)
-            {
-                var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
-                    namedType, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                return derivedClasses.Concat(symbol).ToImmutableArray();
-            }
-            else if (symbol.IsOverridable())
-            {
-                var overrides = await SymbolFinder.FindOverridesAsync(
-                    symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-                return overrides.Concat(symbol).ToImmutableArray();
-            }
-            else
-            {
-                // This is something boring like a regular method or type, so we'll just go there directly
-                return ImmutableArray.Create(symbol);
-            }
+            return (mapping.Symbol, mapping.Project);
         }
 
         private static SymbolDisplayFormat GetFormat(ISymbol definition)
@@ -154,9 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 ? s_parameterDefinitionFormat
                 : s_definitionFormat;
         }
-
-        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
-            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
         private static readonly SymbolDisplayFormat s_definitionFormat =
             new SymbolDisplayFormat(
@@ -182,8 +83,5 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
         public static ImmutableArray<TaggedText> GetDisplayParts(ISymbol definition)
             => definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
-
-        public static ImmutableArray<TaggedText> GetNameDisplayParts(ISymbol definition)
-            => definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();
     }
 }

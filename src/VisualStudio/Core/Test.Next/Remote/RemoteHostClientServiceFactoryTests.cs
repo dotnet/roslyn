@@ -56,25 +56,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task ClientId()
-        {
-            var service = CreateRemoteHostClientService();
-            service.Enable();
-
-            var client1 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
-            var id1 = client1.ClientId;
-
-            await service.RequestNewRemoteHostAsync(CancellationToken.None);
-
-            var client2 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
-            var id2 = client2.ClientId;
-
-            Assert.NotEqual(id1, id2);
-
-            service.Disable();
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task UpdaterService()
         {
             var exportProvider = TestHostServices.CreateMinimalExportProvider();
@@ -121,16 +102,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var mock = new MockLogAndProgressService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
-            var result = await session.TryInvokeAsync(
+            using var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
+            await session.RunRemoteAsync(
                 nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
                 solution: null,
                 new object[] { "emptySource", Path.GetTempPath() },
                 CancellationToken.None);
-
-            Assert.True(result);
-
-            session.Shutdown();
 
             service.Disable();
         }
@@ -153,10 +130,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             });
 
             // create session that stay alive until client alive (ex, SymbolSearchUpdateEngine)
-            var session = await client.TryCreateKeepAliveSessionAsync("Test", callbackTarget: null, CancellationToken.None);
+            using var session = await client.TryCreateKeepAliveSessionAsync("Test", callbackTarget: null, CancellationToken.None);
 
             // mimic unfortunate call that happens to be in the middle of communication.
-            var task = session.TryInvokeAsync("TestMethodAsync", solution: null, arguments: null, CancellationToken.None);
+            var task = session.RunRemoteAsync("TestMethodAsync", solution: null, arguments: null, CancellationToken.None);
 
             // make client to go away
             service.Disable();
@@ -166,34 +143,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // make sure task finished gracefully
             await task;
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task TestRequestNewRemoteHost()
-        {
-            var service = CreateRemoteHostClientService();
-
-            service.Enable();
-
-            var completionTask = new TaskCompletionSource<bool>();
-
-            var client1 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
-            client1.StatusChanged += (_, started) =>
-            {
-                // mark done
-                completionTask.SetResult(started);
-            };
-
-            await service.RequestNewRemoteHostAsync(CancellationToken.None);
-
-            var result = await completionTask.Task;
-            Assert.False(result);
-
-            var client2 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
-
-            Assert.NotEqual(client1, client2);
-
-            service.Disable();
         }
 
         private RemoteHostClientServiceFactory.RemoteHostClientService CreateRemoteHostClientService(

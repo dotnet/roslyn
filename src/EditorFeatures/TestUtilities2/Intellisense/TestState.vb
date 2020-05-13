@@ -24,8 +24,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestState
         Inherits AbstractCommandHandlerTestState
 
-        Private Const timeoutMs = 10000
-        Private Const editorTimeoutMs = 20000
+        Private Const timeoutMs = 60000
+        Private Const editorTimeoutMs = 60000
         Friend Const RoslynItem = "RoslynItem"
         Friend ReadOnly EditorCompletionCommandHandler As ICommandHandler
         Friend ReadOnly CompletionPresenterProvider As ICompletionPresenterProvider
