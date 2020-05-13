@@ -30,15 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 : result;
         }
 
-        public static TDeclarationSyntax ConditionallyAddNullableAnnotationTo<TDeclarationSyntax>(
-            TDeclarationSyntax result,
-            bool isNullable) where TDeclarationSyntax : SyntaxNode
-        {
-            return isNullable
-                ? result.WithAdditionalAnnotations(NullableAnnotation.Instance)
-                : result;
-        }
-
         internal static void AddAccessibilityModifiers(
             Accessibility accessibility,
             ArrayBuilder<SyntaxToken> tokens,

@@ -599,7 +599,6 @@ public interface [|C|]<T>
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
-Imports System.Runtime.CompilerServices
 
 <NullableContextAttribute(1)>
 Public Interface [|C|](Of T)
@@ -1701,7 +1700,6 @@ public readonly struct [|S|]
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
-Imports System.Runtime.CompilerServices
 
 <IsReadOnlyAttribute>
 Public Structure [|S|]
@@ -1763,7 +1761,6 @@ public ref struct [|S|]
 #End Region
 
 Imports System
-Imports System.Runtime.CompilerServices
 
 <IsByRefLikeAttribute> <Obsolete(""Types with embedded references are not supported in this version of your compiler."", True)>
 Public Structure [|S|]
@@ -1794,7 +1791,6 @@ public readonly ref struct [|S|]
 #End Region
 
 Imports System
-Imports System.Runtime.CompilerServices
 
 <IsByRefLikeAttribute> <IsReadOnlyAttribute> <Obsolete(""Types with embedded references are not supported in this version of your compiler."", True)>
 Public Structure [|S|]
@@ -1829,7 +1825,6 @@ public struct S
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
-Imports System.Runtime.CompilerServices
 
 Public Structure S <IsReadOnlyAttribute>
     Public Sub [|M|]()
@@ -1864,7 +1859,6 @@ public readonly struct S
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
-Imports System.Runtime.CompilerServices
 
 <IsReadOnlyAttribute>
 Public Structure S
@@ -1995,7 +1989,6 @@ public readonly struct S
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
-Imports System.Runtime.CompilerServices
 
 <IsReadOnlyAttribute>
 Public Structure S
@@ -2241,7 +2234,6 @@ public readonly struct S
 #End Region
 
 Imports System
-Imports System.Runtime.CompilerServices
 
 <IsReadOnlyAttribute>
 Public Structure S
@@ -2267,6 +2259,8 @@ class C
             var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
+
+#nullable enable
 
 using System.Runtime.CompilerServices;
 
@@ -2310,13 +2304,12 @@ class C
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-using System.Runtime.CompilerServices;
+#nullable enable 
 
 public class TestType
 {{
     public TestType();
 
-    [NullableContextAttribute(1)]
     public void [|M|]<T>() where T : notnull;
 }}";
 
@@ -2349,9 +2342,63 @@ class C
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-using System.Runtime.CompilerServices;
+#nullable enable
 
-public delegate void [|D|]<[NullableAttribute(1)] T>() where T : notnull;";
+public delegate void [|D|]<T>() where T : notnull;";
+
+            using var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp8",
+                sourceWithSymbolReference: sourceWithSymbolReference,
+                metadataLanguageVersion: "CSharp8");
+
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestNullableEnableDisable1()
+        {
+            var metadata = @"
+#nullable enable
+
+using System;
+
+public class TestType
+{
+    public void M1(string)
+    {
+    }
+
+#nullable disable
+
+    public void M(string)
+    {
+    }
+}";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M()
+    {
+        var obj = new TestType().[|M1|]&lt;int&gt;();
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+#nullable enable 
+
+public class TestType
+{{
+    public TestType();
+
+    public void [|M|]<T>() where T : notnull;
+}}";
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,

@@ -5,12 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -41,6 +39,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan()), symbol),
                 cancellationToken).ConfigureAwait(false);
 
+            document = await AddNullableRegionsAsync(document, cancellationToken).ConfigureAwait(false);
+
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var docWithDocComments = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var reducers = GetReducers();
             return await Simplifier.ReduceAsync(formattedDoc, reducers, null, cancellationToken).ConfigureAwait(false);
         }
+
+        protected abstract Task<Document> AddNullableRegionsAsync(Document document, CancellationToken cancellationToken);
 
         /// <summary>
         /// provide formatting rules to be used when formatting MAS file

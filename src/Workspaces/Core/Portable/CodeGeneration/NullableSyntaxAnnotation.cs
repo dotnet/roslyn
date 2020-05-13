@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     /// </summary>
     internal sealed class NullableSyntaxAnnotation
     {
-        public static readonly SyntaxAnnotation Instance = new SyntaxAnnotation(nameof(NullableAnnotation));
+        public static readonly SyntaxAnnotation None = new SyntaxAnnotation($"{nameof(NullableAnnotation)}.{NullableAnnotation.None}");
+        public static readonly SyntaxAnnotation Annotated = new SyntaxAnnotation($"{nameof(NullableAnnotation)}.{NullableAnnotation.Annotated}");
+        public static readonly SyntaxAnnotation NotAnnotated = new SyntaxAnnotation($"{nameof(NullableAnnotation)}.{NullableAnnotation.NotAnnotated}");
     }
 }

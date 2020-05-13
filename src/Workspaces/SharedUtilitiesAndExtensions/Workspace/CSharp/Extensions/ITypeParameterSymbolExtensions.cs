@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
@@ -53,7 +54,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
             else if (typeParameter.HasNotNullConstraint)
             {
-                constraints.Add(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("notnull")));
+                var constraint = SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("notnull"));
+
+#if !CODE_STYLE
+                constraint = constraint.WithAdditionalAnnotations(NullableSyntaxAnnotation.Annotated);
+#endif
+
+                constraints.Add(constraint);
             }
 
             var constraintTypes =
