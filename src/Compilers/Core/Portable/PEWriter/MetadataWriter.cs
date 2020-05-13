@@ -1777,7 +1777,7 @@ namespace Microsoft.Cci
                     EmbedSourceLink(module.SourceLinkStreamOpt);
                 }
 
-                if (module.CommonCompilation.IsEmitDeterministic)
+                if (_deterministic)
                 {
                     EmbedCompilerFlags(module);
                     EmbedMetadataReferenceInformation(module);

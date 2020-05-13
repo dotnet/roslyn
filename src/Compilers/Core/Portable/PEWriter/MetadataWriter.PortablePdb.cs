@@ -839,7 +839,7 @@ namespace Microsoft.Cci
 
             // TODO: Where to get compiler version? 
 
-            // TODO: Where to get source encoding?
+            // TODO: Where to get source encoding
 
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,
@@ -859,12 +859,12 @@ namespace Microsoft.Cci
             // Output: Foo.exe\0542d5742320000000024a44d8218894463807674caf3b1c19a
             foreach (var metadataReference in module.CommonCompilation.ExternalReferences)
             {
-                if (metadataReference.Display is object)
+                if (metadataReference.Display is object && !IsTooLongInternal(metadataReference.Display, PdbLengthLimit))
                 {
                     bytes.AddRange(Encoding.UTF8.GetBytes(metadataReference.Display));
                     bytes.Add(0);
 
-                    // TODO: How to get the timestamp and sizeof? 
+                    // TODO: How to get the timestamp, sizeof, and mvid?
                 }
             }
 
