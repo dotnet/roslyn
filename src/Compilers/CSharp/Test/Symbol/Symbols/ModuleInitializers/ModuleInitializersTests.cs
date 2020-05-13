@@ -778,5 +778,105 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                     Assert.Null(rootModuleType.GetMember(".cctor"));
                 });
         }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NetModulesNeedDesktop)]
+        public void MultipleNetmodules()
+        {
+            var s1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class A
+{
+    [ModuleInitializer]
+    public static void M1()
+    {
+        Console.Write(1);
+    }
+}
+
+namespace System.Runtime.CompilerServices { public class ModuleInitializerAttribute : System.Attribute { } }";
+            var comp1 = CreateCompilation(s1, options: TestOptions.ReleaseModule.WithModuleName("A"), parseOptions: s_parseOptions);
+            comp1.VerifyDiagnostics();
+            var ref1 = comp1.EmitToImageReference();
+
+            var s2 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class B
+{
+    [ModuleInitializer]
+    public static void M2()
+    {
+        Console.Write(2);
+    }
+}";
+            var comp2 = CreateCompilation(s2, options: TestOptions.ReleaseModule.WithModuleName("B"), parseOptions: s_parseOptions, references: new[] { ref1 });
+            comp2.VerifyDiagnostics();
+            var ref2 = comp2.EmitToImageReference();
+
+            var s3 = @"
+using System;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(3);
+    }
+}";
+            var comp3 = CreateCompilation(s3, options: TestOptions.ReleaseExe.WithModuleName("C"), parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
+            comp3.VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "3");
+
+            var s4 = @"
+using System;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        new A();
+        new B();
+        Console.Write(3);
+    }
+}";
+            var comp4 = CreateCompilation(s4, options: TestOptions.ReleaseExe.WithModuleName("C"), parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
+            comp4.VerifyDiagnostics();
+            CompileAndVerify(comp4, expectedOutput: "123");
+
+            var s5 = @"
+using System;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        new B();
+        Console.Write(3);
+        new A();
+    }
+}";
+            var comp5 = CreateCompilation(s5, options: TestOptions.ReleaseExe.WithModuleName("C"), parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
+            comp5.VerifyDiagnostics();
+            // This order seems surprising, but is likely related to the order in which types are loaded when a method is called.
+            CompileAndVerify(comp5, expectedOutput: "213");
+
+            var s6 = @"
+using System;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        new A();
+        Console.Write(3);
+    }
+}";
+            var comp6 = CreateCompilation(s6, options: TestOptions.ReleaseExe.WithModuleName("C"), parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
+            comp6.VerifyDiagnostics();
+            CompileAndVerify(comp6, expectedOutput: "13");
+        }
     }
 }
