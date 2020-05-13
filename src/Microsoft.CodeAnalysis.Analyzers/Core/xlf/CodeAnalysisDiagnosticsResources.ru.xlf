@@ -72,6 +72,21 @@
         <target state="translated">Добавить идентификаторы диагностики анализатора в выпуск анализатора.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyDescription">
+        <source>The diagnostic description is recommended to be a sentence or multi-sentences thus ending with a punctuation.</source>
+        <target state="new">The diagnostic description is recommended to be a sentence or multi-sentences thus ending with a punctuation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
+        <source>Define diagnostic description correctly</source>
+        <target state="new">Define diagnostic description correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyTitle">
+        <source>Define diagnostic description correctly</source>
+        <target state="new">Define diagnostic description correctly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyDescription">
         <source>The diagnostic message is recommended to be a sentence without any line return. It should end with a period only in case this is a multi sentences message.</source>
         <target state="new">The diagnostic message is recommended to be a sentence without any line return. It should end with a period only in case this is a multi sentences message.</target>

@@ -521,4 +521,13 @@
   <data name="DefineDiagnosticMessageCorrectlyTitle" xml:space="preserve">
     <value>Define diagnostic message correctly</value>
   </data>
+  <data name="DefineDiagnosticDescriptionCorrectlyDescription" xml:space="preserve">
+    <value>The diagnostic description is recommended to be a sentence or multi-sentences thus ending with a punctuation.</value>
+  </data>
+  <data name="DefineDiagnosticDescriptionCorrectlyMessage" xml:space="preserve">
+    <value>Define diagnostic description correctly</value>
+  </data>
+  <data name="DefineDiagnosticDescriptionCorrectlyTitle" xml:space="preserve">
+    <value>Define diagnostic description correctly</value>
+  </data>
 </root>
