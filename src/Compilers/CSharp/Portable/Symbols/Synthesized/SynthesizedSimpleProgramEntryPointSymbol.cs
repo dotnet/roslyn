@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SingleTypeDeclaration _declaration;
 
         private readonly TypeSymbol _returnType;
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
         private WeakReference<ExecutableCodeBinder>? _weakBodyBinder;
         private WeakReference<ExecutableCodeBinder>? _weakIgnoreAccessibilityBodyBinder;
 
@@ -35,20 +36,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasAwait = declaration.HasAwaitExpressions;
             bool hasReturnWithExpression = declaration.HasReturnWithExpression;
 
+            CSharpCompilation compilation = containingType.DeclaringCompilation;
             switch (hasAwait, hasReturnWithExpression)
             {
                 case (true, false):
-                    _returnType = Binder.GetWellKnownType(containingType.DeclaringCompilation, WellKnownType.System_Threading_Tasks_Task, diagnostics, NoLocation.Singleton);
+                    _returnType = Binder.GetWellKnownType(compilation, WellKnownType.System_Threading_Tasks_Task, diagnostics, NoLocation.Singleton);
                     break;
                 case (false, false):
-                    _returnType = Binder.GetSpecialType(containingType.DeclaringCompilation, SpecialType.System_Void, NoLocation.Singleton, diagnostics);
+                    _returnType = Binder.GetSpecialType(compilation, SpecialType.System_Void, NoLocation.Singleton, diagnostics);
                     break;
                 case (true, true):
-                    _returnType = Binder.GetWellKnownType(containingType.DeclaringCompilation, WellKnownType.System_Threading_Tasks_Task_T, diagnostics, NoLocation.Singleton).
-                                      Construct(Binder.GetSpecialType(containingType.DeclaringCompilation, SpecialType.System_Int32, NoLocation.Singleton, diagnostics));
+                    _returnType = Binder.GetWellKnownType(compilation, WellKnownType.System_Threading_Tasks_Task_T, diagnostics, NoLocation.Singleton).
+                                      Construct(Binder.GetSpecialType(compilation, SpecialType.System_Int32, NoLocation.Singleton, diagnostics));
                     break;
                 case (false, true):
-                    _returnType = Binder.GetSpecialType(containingType.DeclaringCompilation, SpecialType.System_Int32, NoLocation.Singleton, diagnostics);
+                    _returnType = Binder.GetSpecialType(compilation, SpecialType.System_Int32, NoLocation.Singleton, diagnostics);
                     break;
             }
 
@@ -58,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 returnsVoid: !hasAwait && !hasReturnWithExpression,
                 isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: false);
+
+            _parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(this,
+                              TypeWithAnnotations.Create(
+                                  ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly,
+                                      TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_String, NoLocation.Singleton, diagnostics)))), 0, RefKind.None, "args"));
         }
 
         public override string Name
@@ -93,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return 0;
+                return 1;
             }
         }
 
@@ -101,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray<ParameterSymbol>.Empty;
+                return _parameters;
             }
         }
 
