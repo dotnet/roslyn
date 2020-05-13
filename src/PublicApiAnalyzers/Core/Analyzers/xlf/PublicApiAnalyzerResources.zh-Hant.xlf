@@ -179,7 +179,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="needs-review-translation">在 PublicAPI.txt 中宣告所有公用類型與成員時，應提供可 NULL 性註釋。此動作會引起對程式碼檢閱與原始檔控制記錄中 API 可 NULL 性變更的注意，有助於避免發生中斷性變更。</target>
+        <target state="translated">PublicAPI.txt 檔案應具有 `#nullable enable` 以追蹤可 NULL 性資訊，否則應隱藏此診斷。透過啟用可 NULL 性，PublicAPI.txt 會記錄哪些類型可為 Null (類型的尾碼 `?`) 或不可為 Null (尾碼 `!`)。該檔案也會追蹤仍在使用未察覺參考型別的任何 API (行的首碼 `~`)。</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
         <source>Enable tracking of nullability of reference types in the declared API</source>
-        <target state="needs-review-translation">標註已宣告 API 中類型和成員的可 NULL 性</target>
+        <target state="translated">在宣告 API 中啟用參考型別的可為 Null 追蹤</target>
         <note />
       </trans-unit>
     </body>
