@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Emit;
@@ -186,6 +187,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             using var stream = File.OpenRead(path);
             return SourceText.From(stream, Encoding.UTF8, SourceHashAlgorithm.Sha256);
         }
+
+        private static TextSpan GetSpan(string str, string substr)
+            => new TextSpan(str.IndexOf(substr), substr.Length);
 
         [Fact]
         public async Task RunMode_ProjectThatDoesNotSupportEnC()
@@ -2295,6 +2299,210 @@ class C1
                     "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
                 }, _telemetryLog);
             }
+        }
+
+        [Fact]
+        public async Task ActiveStatements()
+        {
+            var sourceV1 = "class C { void F() => G(1); void G(int a) => System.Console.WriteLine(1); }";
+            var sourceV2 = "class C { int x; void F() => G(1); void G(int a) => System.Console.WriteLine(2); }";
+
+            using var workspace = TestWorkspace.CreateCSharp(sourceV1);
+            var activeSpan11 = GetSpan(sourceV1, "G(1)");
+            var activeSpan12 = GetSpan(sourceV1, "System.Console.WriteLine(1)");
+            var activeSpan21 = GetSpan(sourceV2, "G(1)");
+            var activeSpan22 = GetSpan(sourceV2, "System.Console.WriteLine(2)");
+
+            var project = workspace.CurrentSolution.Projects.Single();
+            var document1 = project.Documents.Single();
+            var documentId = document1.Id;
+            var documentName = document1.Name;
+
+            var sourceTextV1 = document1.GetTextSynchronously(CancellationToken.None);
+            var sourceTextV2 = SourceText.From(sourceV2, Encoding.UTF8);
+
+            var activeLineSpan11 = sourceTextV1.Lines.GetLinePositionSpan(activeSpan11);
+            var activeLineSpan12 = sourceTextV1.Lines.GetLinePositionSpan(activeSpan12);
+            var activeLineSpan21 = sourceTextV2.Lines.GetLinePositionSpan(activeSpan21);
+            var activeLineSpan22 = sourceTextV2.Lines.GetLinePositionSpan(activeSpan22);
+
+            _mockActiveStatementSpanTracker.Spans = new Dictionary<DocumentId, TextSpan?[]>
+            {
+                { documentId, new TextSpan?[] { activeSpan11, activeSpan12 } }
+            };
+
+            var service = CreateEditAndContinueService(workspace);
+
+            // default if called outside of edit session
+            Assert.True((await service.GetBaseActiveStatementSpansAsync(ImmutableArray.Create(documentId), CancellationToken.None).ConfigureAwait(false)).IsDefault);
+
+            var debuggingSession = StartDebuggingSession(service);
+
+            // default if called outside of edit session
+            Assert.True((await service.GetBaseActiveStatementSpansAsync(ImmutableArray.Create(documentId), CancellationToken.None).ConfigureAwait(false)).IsDefault);
+
+            var moduleId = Guid.NewGuid();
+            var threadId = Guid.NewGuid();
+            var activeInstruction1 = new ActiveInstructionId(moduleId, methodToken: 0x06000001, methodVersion: 1, ilOffset: 1);
+            var activeInstruction2 = new ActiveInstructionId(moduleId, methodToken: 0x06000002, methodVersion: 1, ilOffset: 1);
+
+            var activeStatements = ImmutableArray.Create(
+                new ActiveStatementDebugInfo(
+                    activeInstruction1,
+                    documentName,
+                    activeLineSpan11,
+                    threadIds: ImmutableArray.Create(threadId),
+                    ActiveStatementFlags.IsNonLeafFrame),
+                new ActiveStatementDebugInfo(
+                    activeInstruction2,
+                    documentName,
+                    activeLineSpan12,
+                    threadIds: ImmutableArray.Create(threadId),
+                    ActiveStatementFlags.IsLeafFrame));
+
+            service.StartEditSession(_ => Task.FromResult(activeStatements));
+
+            var editSession = service.Test_GetEditSession();
+
+            var baseSpans = await service.GetBaseActiveStatementSpansAsync(ImmutableArray.Create(documentId), CancellationToken.None).ConfigureAwait(false);
+            AssertEx.Equal(new[]
+            {
+                $"({activeLineSpan11}, IsNonLeafFrame)",
+                $"({activeLineSpan12}, IsLeafFrame)"
+            }, baseSpans.Single().Select(s => s.ToString()));
+
+            var currentSpans = await service.GetDocumentActiveStatementSpansAsync(document1, CancellationToken.None).ConfigureAwait(false);
+            AssertEx.Equal(new[]
+            {
+                $"({activeLineSpan11}, IsNonLeafFrame)",
+                $"({activeLineSpan12}, IsLeafFrame)"
+            }, currentSpans.Select(s => s.ToString()));
+
+            Assert.Equal(activeLineSpan11,
+                await service.GetCurrentActiveStatementPositionAsync(document1.Project.Solution, activeInstruction1, CancellationToken.None).ConfigureAwait(false));
+
+            Assert.Equal(activeLineSpan12,
+                await service.GetCurrentActiveStatementPositionAsync(document1.Project.Solution, activeInstruction2, CancellationToken.None).ConfigureAwait(false));
+
+            // change the source (valid edit):
+            workspace.ChangeDocument(document1.Id, sourceTextV2);
+            var document2 = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            // tracking span update triggered by the edit:
+            _mockActiveStatementSpanTracker.Spans[documentId] = new TextSpan?[] { activeSpan21, activeSpan22 };
+
+            baseSpans = await service.GetBaseActiveStatementSpansAsync(ImmutableArray.Create(documentId), CancellationToken.None).ConfigureAwait(false);
+            AssertEx.Equal(new[]
+            {
+                $"({activeLineSpan11}, IsNonLeafFrame)",
+                $"({activeLineSpan12}, IsLeafFrame)"
+            }, baseSpans.Single().Select(s => s.ToString()));
+
+            currentSpans = await service.GetDocumentActiveStatementSpansAsync(document2, CancellationToken.None).ConfigureAwait(false);
+            AssertEx.Equal(new[]
+            {
+                $"({activeLineSpan21}, IsNonLeafFrame)",
+                $"({activeLineSpan22}, IsLeafFrame)"
+            }, currentSpans.Select(s => s.ToString()));
+
+            Assert.Equal(activeLineSpan21,
+                await service.GetCurrentActiveStatementPositionAsync(document2.Project.Solution, activeInstruction1, CancellationToken.None).ConfigureAwait(false));
+
+            Assert.Equal(activeLineSpan22,
+                await service.GetCurrentActiveStatementPositionAsync(document2.Project.Solution, activeInstruction2, CancellationToken.None).ConfigureAwait(false));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task ActiveStatements_SyntaxErrorOrOutOfSyncDocument(bool isOutOfSync)
+        {
+            var sourceV1 = "class C { void F() => G(1); void G(int a) => System.Console.WriteLine(1); }";
+
+            // syntax error (missing ';') unless testing out-of-sync document
+            var sourceV2 = isOutOfSync ?
+                "class C { int x; void F() => G(1); void G(int a) => System.Console.WriteLine(2); }" :
+                "class C { int x void F() => G(1); void G(int a) => System.Console.WriteLine(2); }";
+
+            using var workspace = TestWorkspace.CreateCSharp(sourceV1);
+            var activeSpan11 = GetSpan(sourceV1, "G(1)");
+            var activeSpan12 = GetSpan(sourceV1, "System.Console.WriteLine(1)");
+            var activeSpan21 = GetSpan(sourceV2, "G(1)");
+            var activeSpan22 = GetSpan(sourceV2, "System.Console.WriteLine(2)");
+
+            var project = workspace.CurrentSolution.Projects.Single();
+            var document1 = project.Documents.Single();
+            var documentId = document1.Id;
+            var documentName = document1.Name;
+
+            var sourceTextV1 = document1.GetTextSynchronously(CancellationToken.None);
+            var sourceTextV2 = SourceText.From(sourceV2, Encoding.UTF8);
+
+            var activeLineSpan11 = sourceTextV1.Lines.GetLinePositionSpan(activeSpan11);
+            var activeLineSpan12 = sourceTextV1.Lines.GetLinePositionSpan(activeSpan12);
+            var activeLineSpan21 = sourceTextV2.Lines.GetLinePositionSpan(activeSpan21);
+            var activeLineSpan22 = sourceTextV2.Lines.GetLinePositionSpan(activeSpan22);
+
+            _mockActiveStatementSpanTracker.Spans = new Dictionary<DocumentId, TextSpan?[]>
+            {
+                { documentId, new TextSpan?[] { activeSpan11, activeSpan12 } }
+            };
+
+            var service = CreateEditAndContinueService(workspace);
+
+            var debuggingSession = StartDebuggingSession(service,
+                isOutOfSync ? CommittedSolution.DocumentState.OutOfSync : CommittedSolution.DocumentState.MatchesBuildOutput);
+
+            var moduleId = Guid.NewGuid();
+            var threadId = Guid.NewGuid();
+            var activeInstruction1 = new ActiveInstructionId(moduleId, methodToken: 0x06000001, methodVersion: 1, ilOffset: 1);
+            var activeInstruction2 = new ActiveInstructionId(moduleId, methodToken: 0x06000002, methodVersion: 1, ilOffset: 1);
+
+            var activeStatements = ImmutableArray.Create(
+                new ActiveStatementDebugInfo(
+                    activeInstruction1,
+                    documentName,
+                    activeLineSpan11,
+                    threadIds: ImmutableArray.Create(threadId),
+                    ActiveStatementFlags.IsNonLeafFrame),
+                new ActiveStatementDebugInfo(
+                    activeInstruction2,
+                    documentName,
+                    activeLineSpan12,
+                    threadIds: ImmutableArray.Create(threadId),
+                    ActiveStatementFlags.IsLeafFrame));
+
+            service.StartEditSession(_ => Task.FromResult(activeStatements));
+
+            var editSession = service.Test_GetEditSession();
+
+            // change the source (valid edit):
+            workspace.ChangeDocument(document1.Id, sourceTextV2);
+            var document2 = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            // tracking span update triggered by the edit:
+            _mockActiveStatementSpanTracker.Spans[documentId] = new TextSpan?[] { activeSpan21, activeSpan22 };
+
+            var baseSpans = await service.GetBaseActiveStatementSpansAsync(ImmutableArray.Create(documentId), CancellationToken.None).ConfigureAwait(false);
+
+            if (isOutOfSync)
+            {
+                Assert.Empty(baseSpans.Single());
+            }
+            else
+            {
+                AssertEx.Equal(new[]
+                {
+                    $"({activeLineSpan11}, IsNonLeafFrame)",
+                    $"({activeLineSpan12}, IsLeafFrame)"
+                }, baseSpans.Single().Select(s => s.ToString()));
+            }
+
+            // no active statements due to syntax error or out-of-sync document:
+            var currentSpans = await service.GetDocumentActiveStatementSpansAsync(document2, CancellationToken.None).ConfigureAwait(false);
+            Assert.True(currentSpans.IsDefault);
+
+            Assert.Null(await service.GetCurrentActiveStatementPositionAsync(document2.Project.Solution, activeInstruction1, CancellationToken.None).ConfigureAwait(false));
+            Assert.Null(await service.GetCurrentActiveStatementPositionAsync(document2.Project.Solution, activeInstruction2, CancellationToken.None).ConfigureAwait(false));
         }
     }
 }

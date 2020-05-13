@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     internal class TestActiveStatementSpanTracker : IActiveStatementSpanTracker
     {
-        public readonly Dictionary<DocumentId, TextSpan?[]>? Spans;
+        public Dictionary<DocumentId, TextSpan?[]>? Spans;
 
         public TestActiveStatementSpanTracker(Dictionary<DocumentId, TextSpan?[]>? spans = null)
         {
@@ -35,19 +35,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             span = default;
             return false;
-        }
-
-        public void UpdateActiveStatementSpans(SourceText source, IEnumerable<(ActiveStatementId, ActiveStatementTextSpan)> spans)
-        {
-            if (Spans == null)
-            {
-                return;
-            }
-
-            foreach (var (id, span) in spans)
-            {
-                Spans[id.DocumentId][id.Ordinal] = span.Span.Length > 0 ? span.Span : (TextSpan?)null;
-            }
         }
     }
 }

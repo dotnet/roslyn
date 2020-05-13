@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         internal void VerifyUnchangedDocument(
             string source,
             ActiveStatement[] oldActiveStatements,
-            TextSpan?[] trackingSpansOpt,
+            TextSpan?[]? trackingSpans,
             TextSpan[] expectedNewActiveStatements,
             ImmutableArray<TextSpan>[] expectedOldExceptionRegions,
             ImmutableArray<TextSpan>[] expectedNewExceptionRegions)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
 
             var spanTracker = new TestActiveStatementSpanTracker(
-                (trackingSpansOpt != null) ? new Dictionary<DocumentId, TextSpan?[]> { { documentId, trackingSpansOpt } } : null);
+                (trackingSpans != null) ? new Dictionary<DocumentId, TextSpan?[]> { { documentId, trackingSpans } } : null);
 
             var actualNewActiveStatements = new ActiveStatement[oldActiveStatements.Length];
             var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[oldActiveStatements.Length];
@@ -53,8 +53,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 oldActiveStatements.AsImmutable(),
                 text,
                 root,
-                documentId,
-                spanTracker,
                 actualNewActiveStatements,
                 actualNewExceptionRegions);
 
@@ -144,12 +142,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 {
                     Assert.Equal(0, description.NewRegions[i].Length);
                 }
-            }
-
-            if (description.OldTrackingSpans != null)
-            {
-                // Verify that the new tracking spans are equal to the new active statements.
-                AssertEx.Equal(spanTracker.Spans.Single().Value, description.NewSpans.Select(s => (TextSpan?)s));
             }
         }
 

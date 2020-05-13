@@ -36,8 +36,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         public bool TryGetSpan(ActiveStatementId id, SourceText source, out TextSpan span)
             => _trackingService.TryGetSpan(id, source, out span);
-
-        public void UpdateActiveStatementSpans(SourceText source, IEnumerable<(ActiveStatementId, ActiveStatementTextSpan)> spans)
-            => _trackingService.UpdateActiveStatementSpans(source, spans);
     }
 }

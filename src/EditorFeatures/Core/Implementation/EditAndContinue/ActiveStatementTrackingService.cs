@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -48,24 +49,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private TrackingSession? _session;
         private readonly Workspace _workspace;
 
-        public event Action? TrackingSpansChanged;
+        /// <summary>
+        /// Raised whenever span tracking starts or ends.
+        /// </summary>
+        public event Action? TrackingChanged;
 
         public ActiveStatementTrackingService(Workspace workspace)
         {
             _workspace = workspace;
         }
 
-        private void OnTrackingSpansChanged()
-            => TrackingSpansChanged?.Invoke();
-
         public void StartTracking()
         {
-            var newSession = new TrackingSession(_workspace, this);
+            var newSession = new TrackingSession(_workspace);
             if (Interlocked.CompareExchange(ref _session, newSession, null) != null)
             {
                 newSession.EndTracking();
                 Contract.Fail("Can only track active statements for a single edit session.");
             }
+
+            // fire and forget on a background thread:
+            _ = newSession.TrackActiveSpansAsync();
+
+            TrackingChanged?.Invoke();
         }
 
         public void EndTracking()
@@ -73,6 +79,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             var session = Interlocked.Exchange(ref _session, null);
             Contract.ThrowIfNull(session, "Active statement tracking not started.");
             session.EndTracking();
+
+            TrackingChanged?.Invoke();
         }
 
         public bool TryGetSpan(ActiveStatementId id, SourceText source, out TextSpan span)
@@ -87,56 +95,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             return session.TryGetSpan(id, source, out span);
         }
 
-        public IEnumerable<ActiveStatementTextSpan> GetSpans(SourceText source)
-            => _session?.GetSpans(source) ?? SpecializedCollections.EmptyEnumerable<ActiveStatementTextSpan>();
+        public Task<ImmutableArray<ActiveStatementTrackingSpan>> GetLatestSpansAsync(Document document, ITextSnapshot snapshot, CancellationToken cancellationToken)
+            => _session?.GetLatestSpansAsync(document, snapshot, cancellationToken) ?? Task.FromResult(ImmutableArray<ActiveStatementTrackingSpan>.Empty);
 
-        public void UpdateActiveStatementSpans(SourceText source, IEnumerable<(ActiveStatementId, ActiveStatementTextSpan)> spans)
-            => _session?.UpdateActiveStatementSpans(source, spans);
-
-        private sealed class TrackingSession
+        // internal for testing
+        internal sealed class TrackingSession
         {
-            private struct ActiveStatementTrackingSpan
-            {
-                public readonly ITrackingSpan Span;
-                public readonly ActiveStatementFlags Flags;
-
-                public ActiveStatementTrackingSpan(ITrackingSpan trackingSpan, ActiveStatementFlags flags)
-                {
-                    Span = trackingSpan;
-                    Flags = flags;
-                }
-            }
-
-            private readonly ActiveStatementTrackingService _service;
             private readonly Workspace _workspace;
             private readonly CancellationTokenSource _cancellationSource;
 
             #region lock(_trackingSpans)
 
             // Spans that are tracking active statements contained in the specified document.
-            private readonly Dictionary<DocumentId, ActiveStatementTrackingSpan[]> _trackingSpans;
+            private readonly Dictionary<DocumentId, ImmutableArray<ActiveStatementTrackingSpan>> _trackingSpans;
 
             #endregion
 
-            public TrackingSession(Workspace workspace, ActiveStatementTrackingService service)
+            public TrackingSession(Workspace workspace)
             {
-                _service = service;
                 _workspace = workspace;
-                _trackingSpans = new Dictionary<DocumentId, ActiveStatementTrackingSpan[]>();
+                _trackingSpans = new Dictionary<DocumentId, ImmutableArray<ActiveStatementTrackingSpan>>();
                 _cancellationSource = new CancellationTokenSource();
 
                 _workspace.DocumentOpened += DocumentOpened;
                 _workspace.DocumentClosed += DocumentClosed;
-
-                // fire and forget on a background thread:
-                try
-                {
-                    _ = Task.Run(() => TrackActiveSpansAsync(_cancellationSource.Token), _cancellationSource.Token);
-                }
-                catch (TaskCanceledException)
-                {
-                }
             }
+
+            internal Dictionary<DocumentId, ImmutableArray<ActiveStatementTrackingSpan>> Test_GetTrackingSpans()
+                => _trackingSpans;
 
             public void EndTracking()
             {
@@ -150,8 +136,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 {
                     _trackingSpans.Clear();
                 }
-
-                _service.OnTrackingSpansChanged();
             }
 
             private void DocumentClosed(object sender, DocumentEventArgs e)
@@ -163,9 +147,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
 
             private void DocumentOpened(object sender, DocumentEventArgs e)
-                => _ = DocumentOpenedAsync(e.Document, _cancellationSource.Token);
+                => _ = TrackActiveSpansAsync(e.Document, _cancellationSource.Token);
 
-            private async Task DocumentOpenedAsync(Document document, CancellationToken cancellationToken)
+            private async Task TrackActiveSpansAsync(Document document, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -174,25 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                         return;
                     }
 
-                    var encService = _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
-                    var baseActiveStatementSpans = await encService.GetBaseActiveStatementSpansAsync(ImmutableArray.Create(document.Id), cancellationToken).ConfigureAwait(false);
-                    if (baseActiveStatementSpans.IsDefault)
-                    {
-                        // Edit session not in progress.
-                        return;
-                    }
-
-                    lock (_trackingSpans)
-                    {
-                        // Create tracking spans if they have not been created for this open document yet
-                        // (avoids race condition with TrackActiveSpansAsync).
-                        if (!_trackingSpans.ContainsKey(document.Id))
-                        {
-                            _trackingSpans.Add(document.Id, CreateTrackingSpans(snapshot, baseActiveStatementSpans.Single()));
-                        }
-                    }
-
-                    _service.OnTrackingSpansChanged();
+                    _ = await GetLatestSpansAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -201,6 +167,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 catch (Exception e) when (FatalError.ReportWithoutCrash(e))
                 {
                     // nop
+                }
+            }
+
+            internal Task TrackActiveSpansAsync()
+            {
+                try
+                {
+                    return Task.Run(() => TrackActiveSpansAsync(_cancellationSource.Token), _cancellationSource.Token);
+                }
+                catch (TaskCanceledException)
+                {
+                    return Task.CompletedTask;
                 }
             }
 
@@ -250,8 +228,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                             }
                         }
                     }
-
-                    _service.OnTrackingSpansChanged();
                 }
                 catch (OperationCanceledException)
                 {
@@ -263,16 +239,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 }
             }
 
-            private static ActiveStatementTrackingSpan[] CreateTrackingSpans(ITextSnapshot snapshot, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)> activeStatementSpans)
+            private static ImmutableArray<ActiveStatementTrackingSpan> CreateTrackingSpans(ITextSnapshot snapshot, ImmutableArray<(LinePositionSpan span, ActiveStatementFlags flags)> activeStatementSpans)
             {
-                var result = new ActiveStatementTrackingSpan[activeStatementSpans.Length];
-                for (var i = 0; i < result.Length; i++)
+                return activeStatementSpans.SelectAsArray(spanAndFlags =>
+                    new ActiveStatementTrackingSpan(snapshot.CreateTrackingSpan(snapshot.GetTextSpan(spanAndFlags.span).ToSpan(), SpanTrackingMode.EdgeExclusive), spanAndFlags.flags));
+            }
+
+            private static ImmutableArray<ActiveStatementTrackingSpan> UpdateTrackingSpans(
+                ITextSnapshot snapshot,
+                ImmutableArray<ActiveStatementTrackingSpan> oldSpans,
+                ImmutableArray<(LinePositionSpan, ActiveStatementFlags)> newSpans)
+            {
+                Debug.Assert(oldSpans.Length == newSpans.Length);
+
+                ArrayBuilder<ActiveStatementTrackingSpan>? lazyBuilder = null;
+
+                for (var i = 0; i < oldSpans.Length; i++)
                 {
-                    var (span, flags) = activeStatementSpans[i];
-                    result[i] = new ActiveStatementTrackingSpan(snapshot.CreateTrackingSpan(snapshot.GetTextSpan(span).ToSpan(), SpanTrackingMode.EdgeExclusive), flags);
+                    var oldSpan = oldSpans[i];
+                    var (newLineSpan, newFlags) = newSpans[i];
+
+                    // flags must be preserved (can't change leaf statement to non-leaf, etc.):
+                    Contract.ThrowIfFalse(oldSpan.Flags == newFlags);
+
+                    var newSpan = snapshot.GetTextSpan(newLineSpan).ToSpan();
+                    if (oldSpan.Span.GetSpan(snapshot).Span != newSpan)
+                    {
+                        if (lazyBuilder == null)
+                        {
+                            lazyBuilder = ArrayBuilder<ActiveStatementTrackingSpan>.GetInstance(oldSpans.Length);
+                            lazyBuilder.AddRange(oldSpans);
+                        }
+
+                        lazyBuilder[i] = new ActiveStatementTrackingSpan(
+                            snapshot.CreateTrackingSpan(newSpan, SpanTrackingMode.EdgeExclusive),
+                            newFlags);
+                    }
                 }
 
-                return result;
+                return lazyBuilder?.ToImmutableAndFree() ?? oldSpans;
             }
 
             private static bool TryGetSnapshot(Document document, [NotNullWhen(true)] out ITextSnapshot? snapshot)
@@ -308,79 +313,44 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 return false;
             }
 
-            public IEnumerable<ActiveStatementTextSpan> GetSpans(SourceText source)
+            /// <summary>
+            /// Updates tracking spans with the latest positions of all active statements in the specified document snapshot.
+            /// </summary>
+            internal async Task<ImmutableArray<ActiveStatementTrackingSpan>> GetLatestSpansAsync(Document document, ITextSnapshot snapshot, CancellationToken cancellationToken)
             {
-                var document = source.GetOpenDocumentInCurrentContextWithChanges();
-                if (document == null)
+                try
                 {
-                    return SpecializedCollections.EmptyEnumerable<ActiveStatementTextSpan>();
-                }
+                    Debug.Assert(TryGetSnapshot(document, out var s) && s == snapshot);
 
-                // We might be asked for spans in a different workspace than 
-                // the one we maintain tracking spans for (for example, a preview).
-                if (document.Project.Solution.Workspace != _workspace)
-                {
-                    return SpecializedCollections.EmptyEnumerable<ActiveStatementTextSpan>();
-                }
+                    var encService = _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+                    var activeStatementSpans = await encService.GetDocumentActiveStatementSpansAsync(document, cancellationToken).ConfigureAwait(false);
 
-                ActiveStatementTrackingSpan[] documentTrackingSpans;
-                lock (_trackingSpans)
-                {
-                    if (!_trackingSpans.TryGetValue(document.Id, out documentTrackingSpans))
+                    lock (_trackingSpans)
                     {
-                        return SpecializedCollections.EmptyEnumerable<ActiveStatementTextSpan>();
-                    }
-                }
+                        bool hasExistingSpans = _trackingSpans.TryGetValue(document.Id, out var oldSpans);
 
-                Debug.Assert(documentTrackingSpans.Length > 0);
-                var snapshot = source.FindCorrespondingEditorTextSnapshot();
-
-                // The document might have been reopened with a new text buffer
-                // and we haven't created tracking spans for the new text buffer yet.
-                if (snapshot == null || snapshot.TextBuffer != documentTrackingSpans[0].Span.TextBuffer)
-                {
-                    return SpecializedCollections.EmptyEnumerable<ActiveStatementTextSpan>();
-                }
-
-                var result = new ActiveStatementTextSpan[documentTrackingSpans.Length];
-                for (var i = 0; i < documentTrackingSpans.Length; i++)
-                {
-                    Debug.Assert(documentTrackingSpans[i].Span.TextBuffer == snapshot.TextBuffer);
-
-                    result[i] = new ActiveStatementTextSpan(
-                        documentTrackingSpans[i].Flags,
-                        documentTrackingSpans[i].Span.GetSpan(snapshot).Span.ToTextSpan());
-                }
-
-                return result;
-            }
-
-            public void UpdateActiveStatementSpans(SourceText source, IEnumerable<(ActiveStatementId, ActiveStatementTextSpan)> spans)
-            {
-                var updated = false;
-                lock (_trackingSpans)
-                {
-                    foreach (var (id, span) in spans)
-                    {
-                        if (_trackingSpans.TryGetValue(id.DocumentId, out var documentSpans))
+                        if (activeStatementSpans.IsDefault)
                         {
-                            var snapshot = source.FindCorrespondingEditorTextSnapshot();
-
-                            // Avoid updating spans if the buffer has changed. 
-                            // Buffer change is handled by DocumentClosed event.
-                            if (snapshot != null && snapshot.TextBuffer == documentSpans[id.Ordinal].Span.TextBuffer)
-                            {
-                                documentSpans[id.Ordinal] = new ActiveStatementTrackingSpan(snapshot.CreateTrackingSpan(span.Span.ToSpan(), SpanTrackingMode.EdgeExclusive), span.Flags);
-                                updated = true;
-                            }
+                            // Unable to determine the latest positions of active statements for the document snapshot (the document might have syntax errors).
+                            // Return the current tracking spans.
+                            return oldSpans.NullToEmpty();
                         }
+
+                        return _trackingSpans[document.Id] = hasExistingSpans ?
+                            UpdateTrackingSpans(snapshot, oldSpans, activeStatementSpans) :
+                            CreateTrackingSpans(snapshot, activeStatementSpans);
                     }
                 }
-
-                if (updated)
+                catch (OperationCanceledException)
                 {
-                    _service.OnTrackingSpansChanged();
+                    // nop
                 }
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                {
+                    // nop
+                }
+
+                return ImmutableArray<ActiveStatementTrackingSpan>.Empty;
             }
         }
     }

@@ -158,38 +158,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static bool IsDesignTimeOnlyDocument(Document document)
             => document.Services.GetService<DocumentPropertiesService>()?.DesignTimeOnly == true;
 
-        public async Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
-        {
-            var editSession = _editSession;
-            if (editSession == null)
-            {
-                return default;
-            }
-
-            var lastCommittedSolution = editSession.DebuggingSession.LastCommittedSolution;
-            var baseActiveStatements = await editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            using var _ = ArrayBuilder<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>.GetInstance(out var spans);
-
-            foreach (var documentId in documentIds)
-            {
-                if (baseActiveStatements.DocumentMap.TryGetValue(documentId, out var documentActiveStatements))
-                {
-                    var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(documentId, cancellationToken).ConfigureAwait(false);
-                    if (baseDocument != null)
-                    {
-                        spans.Add(documentActiveStatements.SelectAsArray(s => (s.Span, s.Flags)));
-                        continue;
-                    }
-                }
-
-                // Documents contains no active statements, or
-                // document has been added, is out-of-sync or a design-time-only document.
-                spans.Add(ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>.Empty);
-            }
-
-            return spans.ToImmutableAndFree();
-        }
-
         public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
             try
@@ -457,6 +425,62 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 moduleReader.Dispose();
             }
+        }
+
+        public async Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        {
+            var editSession = _editSession;
+            if (editSession == null)
+            {
+                return default;
+            }
+
+            var lastCommittedSolution = editSession.DebuggingSession.LastCommittedSolution;
+            var baseActiveStatements = await editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            using var _ = ArrayBuilder<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>.GetInstance(out var spans);
+
+            foreach (var documentId in documentIds)
+            {
+                if (baseActiveStatements.DocumentMap.TryGetValue(documentId, out var documentActiveStatements))
+                {
+                    var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(documentId, cancellationToken).ConfigureAwait(false);
+                    if (baseDocument != null)
+                    {
+                        spans.Add(documentActiveStatements.SelectAsArray(s => (s.Span, s.Flags)));
+                        continue;
+                    }
+                }
+
+                // Document contains no active statements, or
+                // document has been added, is out-of-sync or a design-time-only document.
+                spans.Add(ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>.Empty);
+            }
+
+            return spans.ToImmutable();
+        }
+
+        public async Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetDocumentActiveStatementSpansAsync(Document document, CancellationToken cancellationToken)
+        {
+            var editSession = _editSession;
+            if (editSession == null)
+            {
+                return default;
+            }
+
+            var lastCommittedSolution = editSession.DebuggingSession.LastCommittedSolution;
+            var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(document.Id, cancellationToken).ConfigureAwait(false);
+            if (baseDocument == null)
+            {
+                return default;
+            }
+
+            var analysis = await editSession.GetDocumentAnalysis(baseDocument, document).GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (analysis.ActiveStatements.IsDefault)
+            {
+                return default;
+            }
+
+            return analysis.ActiveStatements.SelectAsArray(s => (s.Span, s.Flags));
         }
 
         public async Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveInstructionId instructionId, CancellationToken cancellationToken)

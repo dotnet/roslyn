@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,8 +23,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </returns>
         Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Returns the active statements in the specified <paramref name="document"/> snapshot.
+        /// </summary>
+        /// <returns>
+        /// <see langword="default"/> if called outside of an edit session, or active statements for the document can't be determined for some reason
+        /// (e.g. the document has syntax errors or is out-of-sync).
+        /// </returns>
+        Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetDocumentActiveStatementSpansAsync(Document document, CancellationToken cancellationToken);
+
         Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken);
-        Task<bool> HasChangesAsync(Solution solution, string sourceFilePath, CancellationToken cancellationToken);
+        Task<bool> HasChangesAsync(Solution solution, string? sourceFilePath, CancellationToken cancellationToken);
         Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken);
 
         void CommitSolutionUpdate();
