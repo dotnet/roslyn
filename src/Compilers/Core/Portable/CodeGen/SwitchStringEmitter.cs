@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     // having identical hash value.
     using Bucket = List<KeyValuePair<ConstantValue, object>>;
 
-    internal struct SwitchStringJumpTableEmitter
+    internal struct SwitchStringEmitter
     {
         private readonly ILBuilder _builder;
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <param name="targetLabel">Target label to branch to if key = stringConstant</param>
         public delegate void EmitStringCompareAndBranch(LocalOrParameter key, ConstantValue stringConstant, object targetLabel);
 
-        public delegate void EmitSpanStringCompare(Range keySlice, ReadOnlySpan<char> stringConstant);
+        public delegate void EmitSpanStringCompareAndBranch(Range keySlice, ReadOnlySpan<char> stringConstant, object targetLabelIfFalse);
 
         /// <summary>
         /// Delegate to emit string compare call
@@ -56,9 +56,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly Func<int, LocalDefinition>? _emitStoreCharAtIndex;
         private readonly Action<int>? _emitPushCharAtIndex;
         private readonly Action? _emitPushKeyLength;
-        private readonly EmitSpanStringCompare? _emitSpanStringCompare;
+        private readonly EmitSpanStringCompareAndBranch? _emitSpanStringCompare;
 
-        internal SwitchStringJumpTableEmitter(
+        internal SwitchStringEmitter(
             ILBuilder builder,
             LocalOrParameter key,
             KeyValuePair<ConstantValue, object>[] caseLabels,
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Func<LocalDefinition>? emitStoreKeyLength,
             Action<int>? emitPushCharAtIndex,
             Func<int, LocalDefinition>? emitStoreCharAtIndex,
-            EmitSpanStringCompare? emitSpanStringCompare)
+            EmitSpanStringCompareAndBranch? emitSpanStringCompare)
         {
             Debug.Assert(caseLabels.Length > 0);
             RoslynDebug.Assert(emitStringCondBranchDelegate != null);
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _emitSpanStringCompare = emitSpanStringCompare;
         }
 
-        internal void EmitJumpTable()
+        internal void EmitSwitch()
         {
             if (_emitStoreKeyLength != null)
             {
@@ -249,11 +249,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private void EmitTestForContinuousSequenceOfSingleValidChars(Bucket bucket, Range range)
         {
             var testSpan = bucket[0].Key.StringValue.AsSpan()[range];
-            // Comparing spans via SequenceEquals is faster than emitting code to test each char individually when the span is greater than 16.
-            if (testSpan.Length > 16 && _emitSpanStringCompare != null)
+
+            // Testing each char individually greatly increases quantity of emitted code.
+            // When MemoryExtensions are available using SequenceEquals is faster than emitting code to test each char individually 
+            // when the span length is at least 16.
+            // When MemoryExtensions are not available we use CompareOrdinal. 
+            // This is always slower than testing each char individually on .Net Framework, but reduces quantity of emitted code.
+            // We switch to SequenceEqual/CompareOrdinal when there are at least 16 characters in order to maximise performance on 
+            // .Net Core, whilst preventing emitted code growing too large on either platform.
+            if (testSpan.Length >= 16 && _emitSpanStringCompare != null)
             {
-                _emitSpanStringCompare(range, testSpan);
-                _builder.EmitBranch(ILOpCode.Brfalse, _fallThroughLabel);
+                _emitSpanStringCompare(range, testSpan, _fallThroughLabel);
             }
             else
             {

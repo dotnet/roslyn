@@ -1202,7 +1202,7 @@ oneMoreTime:
             Func<int, LocalDefinition> emitStoreCharAtIndex = null;
 
             SwitchStringJumpTableEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate = null;
-            SwitchStringJumpTableEmitter.EmitSpanStringCompare emitSpanStringCompare = null;
+            SwitchStringJumpTableEmitter.EmitSpanStringCompareAndBranch emitSpanStringCompare = null;
 
             Cci.IMethodReference stringLengthRef = null;
             var stringLengthMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
@@ -1288,7 +1288,7 @@ oneMoreTime:
 
                 if (asSpanStringRef != null && asSpanStringIntIntRef != null && sequenceEqualRef != null)
                 {
-                    emitSpanStringCompare = (keySlice, stringConstant) =>
+                    emitSpanStringCompare = (keySlice, stringConstant, targetLabelIfFalse) =>
                     {
                         _builder.EmitLoad(key);
                         _builder.EmitIntConstant(keySlice.Start.Value);
@@ -1300,7 +1300,34 @@ oneMoreTime:
                         _builder.EmitToken(asSpanStringRef, null, _diagnostics);
                         _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
                         _builder.EmitToken(sequenceEqualRef, null, _diagnostics);
+                        _builder.EmitBranch(ILOpCode.Brfalse, targetLabelIfFalse);
                     };
+                }
+                else
+                {
+                    Cci.IMethodReference compareOrdinalRef = null;
+                    var compareOrdinalMethod = _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_String__CompareOrdinalStringIntStringIntInt) as MethodSymbol;
+                    if (compareOrdinalMethod != null && !compareOrdinalMethod.HasUseSiteError)
+                    {
+                        compareOrdinalRef = _module.Translate(compareOrdinalMethod, null, _diagnostics);
+                    }
+
+                    // CompareOrdinal has been a method on string since .Net 1, so it is extremely unlikely it's not available.
+                    // It's not worth optimizing the case where it isn't.
+                    if (compareOrdinalRef != null)
+                    {
+                        emitSpanStringCompare = (keySlice, stringConstant, targetLabelIfFalse) =>
+                        {
+                            _builder.EmitLoad(key);
+                            _builder.EmitIntConstant(keySlice.Start.Value);
+                            _builder.EmitStringConstant(stringConstant.ToString());
+                            _builder.EmitIntConstant(0);
+                            _builder.EmitIntConstant(keySlice.End.Value - keySlice.Start.Value);
+                            _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -4);
+                            _builder.EmitToken(compareOrdinalMethod, null, _diagnostics);
+                            _builder.EmitBranch(ILOpCode.Brtrue, targetLabelIfFalse);
+                        };
+                    }
                 }
             }
 
