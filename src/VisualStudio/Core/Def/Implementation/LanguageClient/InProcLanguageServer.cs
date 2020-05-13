@@ -176,6 +176,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             => _protocol.ExecuteRequestAsync<WorkspaceSymbolParams, SymbolInformation[]>(Methods.WorkspaceSymbolName,
                 _workspace.CurrentSolution, workspaceSymbolParams, _clientCapabilities, _clientName, cancellationToken);
 
+        [JsonRpcMethod(MSLSPMethods.ProjectContextsName, UseSingleObjectParameterDeserialization = true)]
+        public Task<ActiveProjectContexts?> GetProjectContextsAsync(GetTextDocumentWithContextParams textDocumentWithContextParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<GetTextDocumentWithContextParams, ActiveProjectContexts?>(MSLSPMethods.ProjectContextsName,
+                _workspace.CurrentSolution, textDocumentWithContextParams, _clientCapabilities, _clientName, cancellationToken);
+
 #pragma warning disable VSTHRD100 // Avoid async void methods
         private async void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
 #pragma warning restore VSTHRD100 // Avoid async void methods

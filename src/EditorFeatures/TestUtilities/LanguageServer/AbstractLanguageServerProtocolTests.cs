@@ -203,7 +203,7 @@ namespace Roslyn.Test.Utilities
             return workspace;
         }
 
-        protected Workspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
+        protected TestWorkspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
         {
             var workspace = TestWorkspace.Create(xmlContent, exportProvider: GetExportProvider());
             locations = GetAnnotatedLocations(workspace, workspace.CurrentSolution);

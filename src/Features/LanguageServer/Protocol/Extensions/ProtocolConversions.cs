@@ -443,5 +443,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             return referenceKinds.ToArrayAndFree();
         }
+
+        public static string ProjectIdToProjectContextId(ProjectId id)
+        {
+            return id.Id + "|" + id.DebugName;
+        }
     }
 }
