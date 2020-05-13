@@ -1279,6 +1279,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (m.Kind)
                 {
                     case SymbolKind.Field:
+                        if (m is TupleErrorFieldSymbol)
+                        {
+                            break;
+                        }
+
                         yield return (FieldSymbol)m;
                         break;
                     case SymbolKind.Event:

@@ -1126,6 +1126,11 @@ next:;
                     switch (m.Kind)
                     {
                         case SymbolKind.Field:
+                            if (m is TupleErrorFieldSymbol)
+                            {
+                                break;
+                            }
+
                             return true;
 
                         case SymbolKind.Event:
