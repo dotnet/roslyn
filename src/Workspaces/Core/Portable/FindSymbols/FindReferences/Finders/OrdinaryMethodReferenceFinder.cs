@@ -121,12 +121,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private bool IsSubstringMethod(IMethodSymbol methodSymbol)
             => methodSymbol.Name == nameof(string.Substring);
 
-#if NETCOREAPP
-        private bool IsSubArrayMethod(IMethodSymbol methodSymbol)
-            => methodSymbol.Name == nameof(RuntimeHelpers.GetSubArray);
-#else
-        private bool IsSubArrayMethod(IMethodSymbol methodSymbol) => false;
-#endif
+        private bool IsGetSubArrayMethod(IMethodSymbol methodSymbol)
+            => methodSymbol.Name == "GetSubArray";
 
         protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
@@ -162,7 +158,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 nameMatches = nameMatches.Concat(getAwaiterMatches);
             }
 
-            if (IsSliceMethod(symbol) || IsSubstringMethod(symbol) || IsSubArrayMethod(symbol))
+            if (IsSliceMethod(symbol) || IsSubstringMethod(symbol) || IsGetSubArrayMethod(symbol))
             {
                 var elementAccessMatches = await FindReferencesInElementAccessExpressionsAsync(
                     symbol, document, semanticModel, isFindMethod: true, cancellationToken).ConfigureAwait(false);

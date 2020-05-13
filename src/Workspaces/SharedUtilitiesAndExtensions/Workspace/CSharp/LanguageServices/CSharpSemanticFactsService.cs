@@ -309,13 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node is ElementAccessExpressionSyntax elementAccess)
             {
-                var info = semanticModel.GetSymbolInfo(elementAccess);
-                var symbol = info.Symbol;
-
-                if (symbol != null && symbol.IsKind(SymbolKind.Method))
-                {
-                    return (IMethodSymbol)symbol;
-                }
+                return semanticModel.GetSymbolInfo(elementAccess).Symbol as IMethodSymbol;
             }
 
             return null;
@@ -338,34 +332,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     symbol = info.CandidateSymbols.FirstOrDefault();
                 }
 
-                if (symbol == null || symbol.ContainingType == null)
+                if (symbol?.ContainingType == null)
                 {
                     return null;
                 }
 
-                IPropertySymbol useCountPropertySymbol = null;
                 var containingType = symbol.ContainingType;
-                foreach (var location in containingType.Locations)
+                var lengthProperty = containingType.GetMembers(WellKnownMemberNames.LengthPropertyName).OfType<IPropertySymbol>();
+                if (!lengthProperty.IsEmpty())
                 {
-                    var propertySymbols = semanticModel.LookupSymbols(location.SourceSpan.Start, containingType)
-                        .Where(s => s.IsKind(SymbolKind.Property));
-
-                    var lengthPropertySymbol = propertySymbols.Where(s => s.Name.Equals(WellKnownMemberNames.LengthPropertyName));
-                    if (!lengthPropertySymbol.IsEmpty())
-                    {
-                        return (IPropertySymbol)lengthPropertySymbol.First();
-                    }
-
-                    var countPropertySymbol = propertySymbols.Where(s => s.Name.Equals(WellKnownMemberNames.CountPropertyName));
-                    if (!countPropertySymbol.IsEmpty())
-                    {
-                        useCountPropertySymbol = (IPropertySymbol)countPropertySymbol.First();
-                    }
+                    return lengthProperty.First();
                 }
 
                 // If we reach this point, we can assume that the indexer has no Length property.
                 // Return the Count property instead if it exists.
-                return useCountPropertySymbol;
+                var countProperty = containingType.GetMembers(WellKnownMemberNames.CountPropertyName).OfType<IPropertySymbol>();
+                return countProperty.FirstOrDefault();
             }
 
             return null;
