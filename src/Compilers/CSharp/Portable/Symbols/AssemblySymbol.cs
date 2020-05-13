@@ -438,9 +438,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                // PROTOTYPE(covariant-returns): For testing purposes, we support a compiler "feature" flag that permits us to skip
-                // the requirement for a runtime feature indicator. We can remove it once we have a runtime that
-                // we can test against that actually supports the feature.
+                // https://github.com/dotnet/roslyn/issues/44206: For testing purposes, we added a feature flag to
+                // the C# compiler that causes the compiler to skip the requirement that the runtime supports covariant
+                // returns. We can remove it once we have a runtime that we can test against that actually supports the feature.
                 if (this is SourceAssemblySymbol { DeclaringCompilation: CSharpCompilation compilation } &&
                     compilation.Feature("DoNotRequireRuntimeCovariantReturnsSupport") != null)
                 {

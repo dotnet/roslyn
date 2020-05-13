@@ -909,9 +909,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     {
                                         // error CS1715: 'Derived.M': type must be 'object' to match overridden member 'Base.M'
                                         diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.Type);
-                                        // PROTOTYPE(covariant-returns): when overriddenMemberType.Type is an inheritable reference type
-                                        // and the platform supports it, and there is no setter, we can say it has to be 'object' **or a derived reference type**.
-                                        // That would probably be a new error code.
                                     }
                                 }
 
@@ -1038,9 +1035,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     {
                                         // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
                                         diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType);
-                                        // PROTOTYPE(covariant-returns): when overriddenMethod.ReturnType is an inheritable reference type
-                                        // and the platform supports it, we can say it has to be 'C<V>' **or a derived reference type**.
-                                        // That would probably be a new error code.
                                     }
                                 }
                             }
@@ -1108,12 +1102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureCovariantReturnsForOverrides.RequiredVersion())
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                // PROTOTYPE(covariant-returns): Add a check that the platform supports covariant returns if used.
                 var result = DeclaringCompilation.Conversions.HasIdentityOrImplicitReferenceConversion(overridingReturnType.Type, overriddenReturnType.Type, ref useSiteDiagnostics);
                 if (useSiteDiagnostics != null)
                 {
                     Location symbolLocation = overridingSymbol.Locations.FirstOrDefault();
-                    // PROTOTYPE(covariant-returns): This path is not tested.
                     diagnostics.Add(symbolLocation, useSiteDiagnostics);
                 }
 

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class CovariantReturnTests : CSharpTestBase
     {
-        // PROTOTYPE(covariant-returns): For testing purposes, we support a compiler "feature" flag that permits us to skip
+        // https://github.com/dotnet/roslyn/issues/44206: For testing purposes, we support a compiler "feature" flag that permits us to skip
         // the requirement for a runtime feature indicator. We should remove it once we have a runtime that
         // we can test against that actually supports the feature.
         private const string s_pretendRuntimeSupportsCovariantReturnsFeature = "DoNotRequireRuntimeCovariantReturnsSupport";
