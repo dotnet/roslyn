@@ -562,14 +562,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return typeSymbol.RemoveUnnamedErrorTypes(compilation);
             }
 
-            private ICodeGenerationService GetCodeGenerationService()
-            {
-                var language = _state.TypeToGenerateInOpt == null
-                    ? _state.SimpleName.Language
-                    : _state.TypeToGenerateInOpt.Language;
-                return _semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(language).GetService<ICodeGenerationService>();
-            }
-
             private bool TryFindMatchingField(
                 ParameterName parameterName,
                 ITypeSymbol parameterType,

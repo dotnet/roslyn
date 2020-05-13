@@ -1344,6 +1344,12 @@ I agree to all of the foregoing:</value>
   <data name="Code_analysis_completed_for_Solution" xml:space="preserve">
     <value>Code analysis completed for Solution.</value>
   </data>
+  <data name="Code_analysis_terminated_before_completion_for_0" xml:space="preserve">
+    <value>Code analysis terminated before completion for '{0}'.</value>
+  </data>
+  <data name="Code_analysis_terminated_before_completion_for_Solution" xml:space="preserve">
+    <value>Code analysis terminated before completion for Solution.</value>
+  </data>
   <data name="Background_analysis_scope_colon" xml:space="preserve">
     <value>Background analysis scope:</value>
   </data>

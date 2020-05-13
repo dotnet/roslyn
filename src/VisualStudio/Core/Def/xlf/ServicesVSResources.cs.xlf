@@ -127,6 +127,16 @@
         <target state="translated">Dokončila se analýza kódu pro řešení.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_analysis_terminated_before_completion_for_0">
+        <source>Code analysis terminated before completion for '{0}'.</source>
+        <target state="new">Code analysis terminated before completion for '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_terminated_before_completion_for_Solution">
+        <source>Code analysis terminated before completion for Solution.</source>
+        <target state="new">Code analysis terminated before completion for Solution.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Obarvit regulární výrazy</target>

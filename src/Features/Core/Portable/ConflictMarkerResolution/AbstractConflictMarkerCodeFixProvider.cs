@@ -93,7 +93,9 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                 // issue there.
                 if (startTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia ||
                     middleTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
+                {
                     return false;
+                }
             }
 
             return true;
