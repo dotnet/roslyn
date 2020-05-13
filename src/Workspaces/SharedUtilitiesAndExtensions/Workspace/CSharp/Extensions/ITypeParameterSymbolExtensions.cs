@@ -54,13 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
             else if (typeParameter.HasNotNullConstraint)
             {
-                var constraint = SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("notnull"));
-
-#if !CODE_STYLE
-                constraint = constraint.WithAdditionalAnnotations(NullableSyntaxAnnotation.Annotated);
-#endif
-
-                constraints.Add(constraint);
+                constraints.Add(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("notnull")));
             }
 
             var constraintTypes =

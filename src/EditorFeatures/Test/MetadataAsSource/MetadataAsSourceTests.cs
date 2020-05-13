@@ -2260,11 +2260,7 @@ class C
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-#nullable enable
-
-using System.Runtime.CompilerServices;
-
-public class [|TestType|]<[NullableAttribute(1)] T> where T : notnull
+public class [|TestType|]<T> where T : notnull
 {{
     public TestType();
 }}";
@@ -2304,8 +2300,6 @@ class C
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-#nullable enable 
-
 public class TestType
 {{
     public TestType();
@@ -2342,8 +2336,6 @@ class C
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-#nullable enable
-
 public delegate void [|D|]<T>() where T : notnull;";
 
             using var context = TestContext.Create(
@@ -2369,13 +2361,13 @@ using System;
 
 public class TestType
 {
-    public void M1(string)
+    public void M1(string s)
     {
     }
 
 #nullable disable
 
-    public void M(string)
+    public void M2(string s)
     {
     }
 }";
@@ -2384,20 +2376,243 @@ class C
 {
     void M()
     {
-        var obj = new TestType().[|M1|]&lt;int&gt;();
+        var obj = new TestType().[|M1|](null);
     }
 }";
             var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-#nullable enable 
+#nullable enable
 
 public class TestType
 {{
     public TestType();
 
-    public void [|M|]<T>() where T : notnull;
+    public void [|M1|](string s);
+#nullable disable
+    public void M2(string s);
+
+#nullable enable
+}}";
+
+            using var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp8",
+                sourceWithSymbolReference: sourceWithSymbolReference,
+                metadataLanguageVersion: "CSharp8");
+
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestNullableEnableDisable2()
+        {
+            var metadata = @"
+using System;
+
+public class TestType
+{
+    public void M1(string s)
+    {
+    }
+
+#nullable enable
+
+    public void M2(string s)
+    {
+    }
+}";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M()
+    {
+        var obj = new TestType().[|M1|](null);
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+#nullable enable
+
+public class TestType
+{{
+    public TestType();
+
+#nullable disable
+    public void [|M1|](string s);
+#nullable enable
+    public void M2(string s);
+}}";
+
+            using var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp8",
+                sourceWithSymbolReference: sourceWithSymbolReference,
+                metadataLanguageVersion: "CSharp8");
+
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestNullableEnableDisable3()
+        {
+            var metadata = @"
+#nullable enable
+
+using System;
+
+public class TestType
+{
+    public void M1(string s)
+    {
+    }
+
+#nullable disable
+
+    public void M2(string s)
+    {
+    }
+
+    public void M3(string s)
+    {
+    }
+}";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M()
+    {
+        var obj = new TestType().[|M1|](null);
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+#nullable enable
+
+public class TestType
+{{
+    public TestType();
+
+    public void [|M1|](string s);
+#nullable disable
+    public void M2(string s);
+    public void M3(string s);
+
+#nullable enable
+}}";
+
+            using var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp8",
+                sourceWithSymbolReference: sourceWithSymbolReference,
+                metadataLanguageVersion: "CSharp8");
+
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestNullableEnableDisable4()
+        {
+            var metadata = @"
+#nullable enable
+
+using System;
+
+public class TestType
+{
+    public void M1(ICloneable s)
+    {
+    }
+}";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M()
+    {
+        var obj = new TestType().[|M1|](null);
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+#nullable enable
+
+using System;
+
+public class TestType
+{{
+    public TestType();
+
+    public void [|M1|](ICloneable s);
+}}";
+
+            using var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp8",
+                sourceWithSymbolReference: sourceWithSymbolReference,
+                metadataLanguageVersion: "CSharp8");
+
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestNullableEnableDisable5()
+        {
+            var metadata = @"
+#nullable enable
+
+using System;
+
+public class TestType
+{
+    public void M1(ICloneable s)
+    {
+#nullable disable
+    }
+}";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M()
+    {
+        var obj = new TestType().[|M1|](null);
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+#nullable enable
+
+using System;
+
+public class TestType
+{{
+    public TestType();
+
+    public void [|M1|](ICloneable s);
 }}";
 
             using var context = TestContext.Create(
