@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
@@ -848,19 +849,29 @@ namespace Microsoft.Cci
 
         private void EmbedMetadataReferenceInformation(CommonPEModuleBuilder module)
         {
-            byte[] bytes = new byte[0];
+            var bytes = new List<byte>();
 
             // TODO: Get metadata reference information
             // File name: Foo.exe
             // COFF header Timestamp field (4 bytes): 0x542d5742
             // COFF header SizeOfImage field (4 bytes): 0x32000000
             // MVID (Guid, 24 bytes): 0x24a44d8218894463807674caf3b1c19a
-            // Output: Foo.exe542d5742320000000024a44d8218894463807674caf3b1c19a
+            // Output: Foo.exe\0542d5742320000000024a44d8218894463807674caf3b1c19a
+            foreach (var metadataReference in module.CommonCompilation.ExternalReferences)
+            {
+                if (metadataReference.Display is object)
+                {
+                    bytes.AddRange(Encoding.UTF8.GetBytes(metadataReference.Display));
+                    bytes.Add(0);
+
+                    // TODO: How to get the timestamp and sizeof? 
+                }
+            }
 
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.MetadataReferenceInfo),
-                value: _debugMetadataOpt.GetOrAddBlob(bytes));
+                value: _debugMetadataOpt.GetOrAddBlob(bytes.ToArray()));
         }
     }
 }
