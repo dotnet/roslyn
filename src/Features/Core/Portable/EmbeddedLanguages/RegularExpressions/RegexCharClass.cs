@@ -269,7 +269,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // reverse this check.
             Debug.Assert((SETSTART & 0x1) == 1, "If SETSTART is not odd, the calculation below this will be reversed");
             if ((min & 0x1) == (start & 0x1))
+            {
                 return true;
+            }
             else
             {
                 if (myCategoryLength == 0)
@@ -302,7 +304,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     if (curcat == SpaceConst)
                     {
                         if (char.IsWhiteSpace(ch))
+                        {
                             return true;
+                        }
                         else
                         {
                             i++;
@@ -320,7 +324,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     if (curcat == NotSpaceConst)
                     {
                         if (!char.IsWhiteSpace(ch))
+                        {
                             return true;
+                        }
                         else
                         {
                             i++;
