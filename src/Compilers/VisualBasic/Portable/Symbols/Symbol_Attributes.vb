@@ -198,6 +198,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.SkipLocalsInitAttribute) Then
                 arguments.Diagnostics.Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.SkipLocalsInitAttribute.FullName)
             End If
+
+            If arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.ModuleInitializerAttribute) Then
+                arguments.Diagnostics.Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.ModuleInitializerAttribute.FullName)
+            End If
         End Sub
 
         ''' <summary>

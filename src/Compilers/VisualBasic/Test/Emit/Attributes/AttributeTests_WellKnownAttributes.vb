@@ -5814,6 +5814,39 @@ BC30657: 'sc1_method' has a return type that is not supported or parameter types
 
 #End Region
 
+#Region "ModuleInitializerAttribute"
+        <Fact, WorkItem(40500, "https://github.com/dotnet/roslyn/issues/40500")>
+        Public Sub TestModuleInitializerAttributeOnMethod()
+            Dim source =
+            <compilation>
+                <file name="attr.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+
+Class Program
+    <ModuleInitializer>
+    Sub M1()
+    End Sub
+End Class
+
+Namespace System.Runtime.CompilerServices
+    Public Class ModuleInitializerAttribute
+        Inherits Attribute
+    End Class
+End Namespace
+]]>
+                </file>
+            </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40(source)
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
+    <ModuleInitializer>
+     ~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+#End Region
+
         <Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")>
         Public Sub TestAttributePropagationForAsyncAndIterators_01()
             Dim source =
