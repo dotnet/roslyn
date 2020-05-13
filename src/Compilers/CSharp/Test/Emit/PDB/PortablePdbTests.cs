@@ -3,19 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
@@ -206,6 +207,152 @@ class C
                 var checksumData = peReader.ReadPdbChecksumDebugDirectoryData(checksum);
                 Assert.Equal("SHA512", checksumData.AlgorithmName);
                 Assert.Equal(64, checksumData.Checksum.Length);
+            }
+        }
+
+        [Fact]
+        public void PortablePdb_DeterministicCompilation()
+        {
+            var referenceCompilation = CreateCompilation(
+@"public struct StructWithReference
+{
+    string PrivateData;
+}
+public struct StructWithValue
+{
+    int PrivateData;
+}");
+
+            string source = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+";
+            var originalCompilation = CreateCompilation(
+                Parse(source, "goo.cs"),
+                references: new MetadataReference[] { new CSharpCompilationReference(referenceCompilation) },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            var originalCompilationOptions = originalCompilation.Options;
+            var originalEmitOptions = EmitOptions.Default;
+
+            var peBlob = originalCompilation.EmitToArray(originalEmitOptions.
+                WithDebugInformationFormat(DebugInformationFormat.Embedded).
+                WithPdbChecksumAlgorithm(HashAlgorithmName.SHA384).
+                WithPdbFilePath(@"a/b/c/d.pdb"));
+
+            using (var peReader = new PEReader(peBlob))
+            {
+                var entries = peReader.ReadDebugDirectory();
+
+                AssertEx.Equal(new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.Reproducible, DebugDirectoryEntryType.EmbeddedPortablePdb }, entries.Select(e => e.Type));
+
+                var codeView = entries[0];
+                var checksum = entries[1];
+                var reproducible = entries[2];
+                var embedded = entries[3];
+
+
+                using (var embeddedPdb = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded))
+                {
+                    var pdbReader = embeddedPdb.GetMetadataReader();
+
+                    var metadataReferenceBytes = getSingleBlob(PortableCustomDebugInfoKinds.MetadataReferenceInfo, pdbReader);
+                    var compilerFlagBytes = getSingleBlob(PortableCustomDebugInfoKinds.DeterministicCompilerFlags, pdbReader);
+
+                    Assert.NotEmpty(metadataReferenceBytes);
+                    Assert.NotEmpty(compilerFlagBytes);
+
+                    var (timestamp, fileSize, name, mvid) = parseMetadataReferenceInfo(metadataReferenceBytes);
+                    var compilerFlags = parseDeterministicCompilerFlags(compilerFlagBytes);
+
+                    // Check version
+                    Assert.Equal("", compilerFlags["compilerversion"]);
+
+                    // Check source encoding
+                    Assert.Equal("", compilerFlags["sourceencoding"]);
+
+                    // Check the metadata references
+                    Assert.Equal(0, timestamp);
+                    Assert.Equal(0, fileSize);
+                    Assert.Equal("", name);
+                    Assert.Equal(Guid.NewGuid(), mvid);
+                }
+            }
+
+            static byte[] getSingleBlob(Guid infoGuid, MetadataReader pdbReader)
+            {
+                return (from cdiHandle in pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
+                        let cdi = pdbReader.GetCustomDebugInformation(cdiHandle)
+                        where pdbReader.GetGuid(cdi.Kind) == infoGuid
+                        select pdbReader.GetBlobBytes(cdi.Value)).Single();
+            }
+
+            // Move this to a central location?
+            static (int timestamp, int fileSize, string name, Guid mvid) parseMetadataReferenceInfo(byte[] metadataReferenceBytes)
+            {
+                // Name is first. UTF8 encoded null-terminated string
+                var nullTerminator = Encoding.UTF8.GetBytes(new[] { '\0' })[0];
+                var terminatorIndex = metadataReferenceBytes.IndexOf(nullTerminator);
+                Assert.NotEqual(-1, terminatorIndex);
+                var name = Encoding.UTF8.GetString(metadataReferenceBytes[0..terminatorIndex]);
+
+                // Timestamp = 4 bytes
+                // FileSize = 4 bytes
+                // MVID = 16 bytes
+                // End = 4 + 4 + 16 + 1 = 25
+                Assert.Equal(metadataReferenceBytes.Length, terminatorIndex + 25);
+
+                var timestampStart = terminatorIndex + 1;
+                var timestampStop = timestampStart + 4;
+
+                var timestamp = BitConverter.ToInt32(metadataReferenceBytes[timestampStart..timestampStop]);
+
+                var fileSizeStart = timestampStop + 1;
+                var fileSizeStop = fileSizeStart + 4;
+                var fileSize = BitConverter.ToInt32(metadataReferenceBytes[fileSizeStart..fileSizeStop]);
+
+                var mvidStart = fileSizeStop + 1;
+                var mvid = new Guid(metadataReferenceBytes[mvidStart..]);
+
+                return (timestamp, fileSize, name, mvid);
+            }
+
+            // Move this to a central location?
+            static ImmutableDictionary<string, string> parseDeterministicCompilerFlags(byte[] compilerFlagBytes)
+            {
+                // Compiler flag bytes are UTF-8 null-terminated key-value pairs
+                string key = null;
+                Dictionary<string, string> kvp = new Dictionary<string, string>();
+                var nullTerminator = Encoding.UTF8.GetBytes(new[] { '\0' })[0];
+
+                for (int i = 0, start = 0; i < compilerFlagBytes.Length; i++)
+                {
+                    if (compilerFlagBytes[i] == nullTerminator)
+                    {
+                        var value = Encoding.UTF8.GetString(compilerFlagBytes[start..i]);
+                        if (key is null)
+                        {
+                            key = value;
+                        }
+                        else
+                        {
+                            kvp[key] = value;
+                            key = null;
+                        }
+
+                        start = i + 1;
+                    }
+                }
+
+                Assert.Null(key);
+                return kvp.ToImmutableDictionary();
             }
         }
 
