@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return true;
         }
 
-        // Native compiler encodes bools (always false) for custom modifiers and parameter ref-kinds, if ref-kind is ref or out.
+        // Native compiler encodes bools (always false) for custom modifiers and parameter ref-kinds, if ref-kind is not none.
         private bool HandleRefKind(RefKind refKind)
         {
             Debug.Assert(_index >= 0);
