@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
@@ -833,18 +834,19 @@ namespace Microsoft.Cci
                 value: _debugMetadataOpt.GetOrAddBlob(bytes));
         }
 
-        private void EmbedCompilerFlags(CommonPEModuleBuilder module)
+        private void EmbedCompilationOptions(CommonPEModuleBuilder module)
         {
-            byte[] bytes = new byte[0];
-
-            // TODO: Where to get compiler version? 
+            var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
             // TODO: Where to get source encoding
+            var builder = new BlobBuilder();
+            builder.WriteUTF8(compilerVersion);
+            builder.WriteByte(0);
 
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,
-                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.DeterministicCompilerFlags),
-                value: _debugMetadataOpt.GetOrAddBlob(bytes));
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationOptions),
+                value: _debugMetadataOpt.GetOrAddBlob(builder.ToArray()));
         }
 
         private void EmbedMetadataReferenceInformation(CommonPEModuleBuilder module)
@@ -859,12 +861,29 @@ namespace Microsoft.Cci
             // Output: Foo.exe\0542d5742320000000024a44d8218894463807674caf3b1c19a
             foreach (var metadataReference in module.CommonCompilation.ExternalReferences)
             {
-                if (metadataReference.Display is object && !IsTooLongInternal(metadataReference.Display, PdbLengthLimit))
+                if (metadataReference is PortableExecutableReference portableReference && portableReference.FilePath is object)
                 {
-                    bytes.AddRange(Encoding.UTF8.GetBytes(metadataReference.Display));
-                    bytes.Add(0);
+                    var path = PathUtilities.GetFileName(portableReference.FilePath);
 
-                    // TODO: How to get the timestamp, sizeof, and mvid?
+                    // Write file name first
+                    var builder = new BlobBuilder();
+                    builder.WriteUTF8(path);
+                    // Make sure to add null terminator
+                    builder.WriteByte(0);
+
+                    using var peStream = File.Open(portableReference.FilePath, FileMode.Open);
+                    using var peReader = new PEReader(peStream);
+
+                    // Write timestamp from the COFF Header
+                    builder.WriteInt32(peReader.PEHeaders.CoffHeader.TimeDateStamp);
+
+                    // Write SizeOfImage field
+                    builder.WriteInt32(peReader.PEHeaders.PEHeader.SizeOfImage);
+
+                    // Write MVID
+                    var metadataReader = peReader.GetMetadataReader();
+                    var moduleDefinition = peReader.GetMetadataReader().GetModuleDefinition();
+                    builder.WriteGuid(metadataReader.GetGuid(moduleDefinition.Mvid));
                 }
             }
 

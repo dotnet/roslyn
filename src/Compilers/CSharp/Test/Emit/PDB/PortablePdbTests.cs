@@ -266,7 +266,7 @@ class C
                     var pdbReader = embeddedPdb.GetMetadataReader();
 
                     var metadataReferenceBytes = getSingleBlob(PortableCustomDebugInfoKinds.MetadataReferenceInfo, pdbReader);
-                    var compilerFlagBytes = getSingleBlob(PortableCustomDebugInfoKinds.DeterministicCompilerFlags, pdbReader);
+                    var compilerFlagBytes = getSingleBlob(PortableCustomDebugInfoKinds.CompilationOptions, pdbReader);
 
                     Assert.NotEmpty(metadataReferenceBytes);
                     Assert.NotEmpty(compilerFlagBytes);

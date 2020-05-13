@@ -1779,7 +1779,7 @@ namespace Microsoft.Cci
 
                 if (_deterministic)
                 {
-                    EmbedCompilerFlags(module);
+                    EmbedCompilationOptions(module);
                     EmbedMetadataReferenceInformation(module);
                 }
             }
