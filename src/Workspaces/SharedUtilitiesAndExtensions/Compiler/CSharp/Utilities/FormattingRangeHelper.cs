@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 // double initializer case such as
                 // { { }
-                if (parentOfParent is InitializerExpressionSyntax doubleInitializer)
+                if (parentOfParent is InitializerExpressionSyntax)
                 {
                     // if parent block has a missing brace, and current block is on same line, then
                     // don't try to indent inner block.

@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 }
 
                 // If this node is not parented by a name, we're done.
-                if (!(parent is NameSyntax name))
+                if (!(parent is NameSyntax))
                 {
                     break;
                 }

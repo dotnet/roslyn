@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             if (!TryGetGenericIdentifier(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken,
-                    out var genericIdentifier, out var lessThanToken))
+                    out var genericIdentifier, out _))
             {
                 return null;
             }

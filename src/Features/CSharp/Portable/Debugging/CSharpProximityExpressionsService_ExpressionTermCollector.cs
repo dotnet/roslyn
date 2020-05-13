@@ -251,9 +251,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
         private static void AddInvocationExpressionTerms(InvocationExpressionSyntax invocationExpression, IList<string> terms, ref ExpressionType expressionType)
         {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             // Invocations definitely have side effects.  So we assume this
             // is invalid initially;
             expressionType = ExpressionType.Invalid;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
             ExpressionType leftFlags = ExpressionType.Invalid, rightFlags = ExpressionType.Invalid;
 
             AddSubExpressionTerms(invocationExpression.Expression, terms, ref leftFlags);

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SymbolMapping;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
+namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     [ExportWorkspaceServiceFactory(typeof(ISymbolMappingService), WorkspaceKind.MetadataAsSource)]
     [Shared]
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             {
                 if (!(document.Project.Solution.Workspace is MetadataAsSourceWorkspace workspace))
                 {
-                    throw new ArgumentException(EditorFeaturesResources.Document_must_be_contained_in_the_workspace_that_created_this_service, nameof(document));
+                    throw new ArgumentException(FeaturesResources.Document_must_be_contained_in_the_workspace_that_created_this_service, nameof(document));
                 }
 
                 return workspace.FileService.MapSymbolAsync(document, symbolId, cancellationToken);
@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             public async Task<SymbolMappingResult?> MapSymbolAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
             {
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 return await MapSymbolAsync(document, SymbolKey.Create(symbol, cancellationToken), cancellationToken).ConfigureAwait(false);
             }
         }

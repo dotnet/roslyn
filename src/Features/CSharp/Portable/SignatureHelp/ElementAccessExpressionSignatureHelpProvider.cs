@@ -155,7 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (expression.Parent is ConditionalAccessExpressionSyntax)
             {
                 // The typed code looks like: <expression>?[
-                var conditional = (ConditionalAccessExpressionSyntax)expression.Parent;
                 var elementBinding = SyntaxFactory.ElementBindingExpression(newBracketedArgumentList);
                 var conditionalAccessExpression = SyntaxFactory.ConditionalAccessExpression(expression, elementBinding);
                 offset = expression.SpanStart - conditionalAccessExpression.SpanStart;

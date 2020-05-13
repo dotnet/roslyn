@@ -305,6 +305,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Der aktuelle Inhalt der Quelldatei "{0}" stimmt nicht mit dem kompilierten Quellcode überein. Alle Änderungen, die während des Debuggens an dieser Datei vorgenommen wurden, werden erst angewendet, wenn der Inhalt dem kompilierten Quellcode entspricht.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
+        <source>Document must be contained in the workspace that created this service</source>
+        <target state="new">Document must be contained in the workspace that created this service</target>
+        <note />
+      </trans-unit>
       <trans-unit id="EditAndContinue">
         <source>Edit and Continue</source>
         <target state="translated">Bearbeiten und Fortfahren</target>
@@ -2323,6 +2328,11 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <target state="translated">Ausschussvariable</target>
         <note />
       </trans-unit>
+      <trans-unit id="from_metadata">
+        <source>from metadata</source>
+        <target state="new">from metadata</target>
+        <note />
+      </trans-unit>
       <trans-unit id="full_long_date_time">
         <source>full long date/time</source>
         <target state="new">full long date/time</target>
@@ -3573,6 +3583,11 @@ When this standard format specifier is used, the formatting or parsing operation
 The purpose of the "s" format specifier is to produce result strings that sort consistently in ascending or descending order based on date and time values. As a result, although the "s" standard format specifier represents a date and time value in a consistent format, the formatting operation does not modify the value of the date and time object that is being formatted to reflect its DateTime.Kind property or its DateTimeOffset.Offset value. For example, the result strings produced by formatting the date and time values 2014-11-15T18:32:17+00:00 and 2014-11-15T18:32:17+08:00 are identical.
 
 When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="symbol_cannot_be_a_namespace">
+        <source>'symbol' cannot be a namespace.</source>
+        <target state="new">'symbol' cannot be a namespace.</target>
         <note />
       </trans-unit>
       <trans-unit id="time_separator">

@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return conversion;
             }
 
-            var speculatedExpressionOuterType = GetOuterCastType(speculatedExpression, speculationAnalyzer.SpeculativeSemanticModel, out var discarded) ?? typeInfo.ConvertedType;
+            var speculatedExpressionOuterType = GetOuterCastType(speculatedExpression, speculationAnalyzer.SpeculativeSemanticModel, out _) ?? typeInfo.ConvertedType;
             if (speculatedExpressionOuterType == null)
             {
                 return default;
@@ -1163,7 +1163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             if (parent is AttributeArgumentSyntax attributeArgument)
             {
-                if (attributeArgument.Parent is AttributeArgumentListSyntax attributeArgumentList)
+                if (attributeArgument.Parent is AttributeArgumentListSyntax)
                 {
                     // We don't check the position of the argument because in attributes it is allowed that 
                     // params parameter are positioned in between if named arguments are used.
