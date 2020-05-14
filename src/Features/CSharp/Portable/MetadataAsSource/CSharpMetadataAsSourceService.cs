@@ -143,13 +143,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             };
         }
 
-        private SyntaxNode AddNullableRegions(SyntaxNode node, CancellationToken cancellationToken)
+        private TSyntax AddNullableRegions<TSyntax>(TSyntax node, CancellationToken cancellationToken)
+            where TSyntax : SyntaxNode
         {
             return node switch
             {
-                CompilationUnitSyntax compilationUnit => compilationUnit.WithMembers(AddNullableRegions(compilationUnit.Members, cancellationToken)),
-                NamespaceDeclarationSyntax ns => ns.WithMembers(AddNullableRegions(ns.Members, cancellationToken)),
-                TypeDeclarationSyntax type => AddNullableRegionsAroundTypeMembers(type, cancellationToken),
+                CompilationUnitSyntax compilationUnit => (TSyntax)(object)compilationUnit.WithMembers(AddNullableRegions(compilationUnit.Members, cancellationToken)),
+                NamespaceDeclarationSyntax ns => (TSyntax)(object)ns.WithMembers(AddNullableRegions(ns.Members, cancellationToken)),
+                TypeDeclarationSyntax type => (TSyntax)(object)AddNullableRegionsAroundTypeMembers(type, cancellationToken),
                 _ => node,
             };
         }
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             using var _ = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var builder);
 
             foreach (var member in members)
-                builder.Add((MemberDeclarationSyntax)AddNullableRegions(member, cancellationToken));
+                builder.Add(AddNullableRegions(member, cancellationToken));
 
             return SyntaxFactory.List(builder);
         }
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
                 {
                     // if we hit a type, and we're currently disabled, then switch us back to enabled for that type.
                     // This ensures whenever we walk into a type-decl, we're always in the enabled-state.
-                    builder.Add(TransitionTo(member, enabled: true, ref currentlyEnabled));
+                    builder.Add(TransitionTo(AddNullableRegions(member, cancellationToken), enabled: true, ref currentlyEnabled));
                     continue;
                 }
 

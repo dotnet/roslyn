@@ -2971,6 +2971,80 @@ namespace N
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestNullableEnableDisable13()
+        {
+            var metadata = @"
+#nullable enable
+
+using System;
+
+public class TestType
+{
+    public void M1(string s)
+    {
+    }
+
+#nullable disable
+
+    public class Nested
+    {
+        public void NestedM(string s)
+        {
+        }
+    }
+
+#nullable enable
+
+    public void M2(string s)
+    {
+    }
+}";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M()
+    {
+        var obj = new TestType().[|M1|](null);
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+#nullable enable
+
+public class TestType
+{{
+    public TestType();
+
+    public void [|M1|](string s);
+    public void M2(string s);
+
+    public class Nested
+    {{
+        public Nested();
+
+#nullable disable
+        public void NestedM(string s);
+
+#nullable enable
+    }}                    
+}}";
+
+            using var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp8",
+                sourceWithSymbolReference: sourceWithSymbolReference,
+                metadataLanguageVersion: "CSharp8");
+
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestDynamic1()
         {
             var metadata = @"
