@@ -1232,7 +1232,7 @@ class Caller
 }}";
 
             var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: "Hello World");
-            // PROTOTYPE(func-ptr): Add calling convention when the formatter supports it
+            // https://github.com/dotnet/roslyn/issues/39865: Add calling convention when the formatter supports it
             verifier.VerifyIL($"Caller.Call(delegate*<string, string, string>)", @"
 {
   // Code size       24 (0x18)
@@ -6478,6 +6478,61 @@ Multi-dimension array return as return
                 Assert.Equal(2, array.LowerBounds[1]);
                 Assert.Equal(3, array.Sizes[1]);
             }
+        }
+
+        [Fact]
+        public void NullableUsageWarnings()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+#nullable enable
+unsafe public class C
+{
+    static void M1(delegate*<string, string?, string?> ptr1)
+    {
+        _ = ptr1(null, null);
+        _ = ptr1("""", null).ToString();
+        delegate*<string?, string?, string?> ptr2 = ptr1;
+        delegate*<string, string?, string> ptr3 = ptr1;
+    }
+
+    static void M2(delegate*<ref string, ref string> ptr1)
+    {
+        string? str1 = null;
+        ptr1(ref str1);
+        string str2 = """";
+        ref string? str3 = ref ptr1(ref str2);
+        delegate*<ref string?, ref string> ptr2 = ptr1;
+        delegate*<ref string, ref string?> ptr3 = ptr1;
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (7,18): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         _ = ptr1(null, null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 18),
+                // (8,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = ptr1("", null).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"ptr1("""", null)").WithLocation(8, 13),
+                // (9,53): warning CS8619: Nullability of reference types in value of type 'delegate*<string, string?, string?>' doesn't match target type 'delegate*<string?, string?, string?>'.
+                //         delegate*<string?, string?, string?> ptr2 = ptr1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<string, string?, string?>", "delegate*<string?, string?, string?>").WithLocation(9, 53),
+                // (10,51): warning CS8619: Nullability of reference types in value of type 'delegate*<string, string?, string?>' doesn't match target type 'delegate*<string, string?, string>'.
+                //         delegate*<string, string?, string> ptr3 = ptr1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<string, string?, string?>", "delegate*<string, string?, string>").WithLocation(10, 51),
+                // (16,18): warning CS8601: Possible null reference assignment.
+                //         ptr1(ref str1);
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "str1").WithLocation(16, 18),
+                // (18,32): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
+                //         ref string? str3 = ref ptr1(ref str2);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1(ref str2)").WithArguments("string", "string?").WithLocation(18, 32),
+                // (19,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, string>' doesn't match target type 'delegate*<ref string?, string>'.
+                //         delegate*<ref string?, ref string> ptr2 = ptr1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, string>", "delegate*<ref string?, string>").WithLocation(19, 51),
+                // (20,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, string>' doesn't match target type 'delegate*<ref string, string?>'.
+                //         delegate*<ref string, ref string?> ptr3 = ptr1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, string>", "delegate*<ref string, string?>").WithLocation(20, 51)
+            );
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");

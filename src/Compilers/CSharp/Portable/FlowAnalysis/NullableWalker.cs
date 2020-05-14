@@ -8888,7 +8888,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        // PROTOTYPE(func-ptr): Test nullable related features
         public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
         {
             _ = Visit(node.InvokedExpression);

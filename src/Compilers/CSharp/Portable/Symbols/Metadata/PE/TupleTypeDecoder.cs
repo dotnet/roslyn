@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </code>
     /// </example>
     /// </summary>
-    // PROTOTYPE(func-ptr): Implement and test in function pointers. Also dynamic and nullable
     internal struct TupleTypeDecoder
     {
         private readonly ImmutableArray<string?> _elementNames;
