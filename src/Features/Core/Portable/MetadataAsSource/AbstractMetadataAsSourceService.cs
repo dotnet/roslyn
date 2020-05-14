@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 document.Project.Solution,
                 rootNamespace,
                 CreateCodeGenerationSymbol(document, symbol),
-                CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan()), symbol),
+                CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
                 cancellationToken).ConfigureAwait(false);
 
             document = await AddNullableRegionsAsync(document, cancellationToken).ConfigureAwait(false);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     new[] { wrappedType });
         }
 
-        private static CodeGenerationOptions CreateCodeGenerationOptions(Location contextLocation, ISymbol symbol)
+        private static CodeGenerationOptions CreateCodeGenerationOptions(Location contextLocation)
         {
             return new CodeGenerationOptions(
                 contextLocation: contextLocation,

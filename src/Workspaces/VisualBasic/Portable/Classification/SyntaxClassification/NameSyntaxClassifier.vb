@@ -35,19 +35,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
             Dim modifiedIdentifier = TryCast(syntax, ModifiedIdentifierSyntax)
             If modifiedIdentifier IsNot Nothing Then
-                ClassifyModifiedIdentifier(modifiedIdentifier, semanticModel, result, cancellationToken)
+                ClassifyModifiedIdentifier(modifiedIdentifier, result)
                 Return
             End If
 
             Dim methodStatement = TryCast(syntax, MethodStatementSyntax)
             If methodStatement IsNot Nothing Then
-                ClassifyMethodStatement(methodStatement, semanticModel, result, cancellationToken)
+                ClassifyMethodStatement(methodStatement, semanticModel, result)
                 Return
             End If
 
             Dim labelSyntax = TryCast(syntax, LabelSyntax)
             If labelSyntax IsNot Nothing Then
-                ClassifyLabelSyntax(labelSyntax, semanticModel, result, cancellationToken)
+                ClassifyLabelSyntax(labelSyntax, result)
                 Return
             End If
         End Sub
@@ -76,15 +76,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Dim symbol = TryGetSymbol(node, symbolInfo, semanticModel)
 
             If symbol Is Nothing Then
-                If TryClassifyIdentifier(node, symbol, semanticModel, cancellationToken, classifiedSpan) Then
+                If TryClassifyIdentifier(node, semanticModel, cancellationToken, classifiedSpan) Then
                     result.Add(classifiedSpan)
                 End If
                 Return
             End If
 
-            If TryClassifyMyNamespace(node, symbol, semanticModel, cancellationToken, classifiedSpan) Then
+            If TryClassifyMyNamespace(node, symbol, semanticModel, classifiedSpan) Then
                 result.Add(classifiedSpan)
-            ElseIf TryClassifySymbol(node, symbol, semanticModel, cancellationToken, classifiedSpan) Then
+            ElseIf TryClassifySymbol(node, symbol, classifiedSpan) Then
                 result.Add(classifiedSpan)
 
                 ' Additionally classify static symbols
@@ -95,8 +95,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
         Private Function TryClassifySymbol(
             node As NameSyntax,
             symbol As ISymbol,
-            semanticModel As SemanticModel,
-            cancellationToken As CancellationToken,
             ByRef classifiedSpan As ClassifiedSpan) As Boolean
 
             Select Case symbol.Kind
@@ -153,7 +151,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             node As NameSyntax,
             symbol As ISymbol,
             semanticModel As SemanticModel,
-            cancellationToken As CancellationToken,
             ByRef classifiedSpan As ClassifiedSpan) As Boolean
 
             If symbol.IsMyNamespace(semanticModel.Compilation) Then
@@ -166,7 +163,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
         Private Function TryClassifyIdentifier(
             node As NameSyntax,
-            symbol As ISymbol,
             semanticModel As SemanticModel,
             cancellationToken As CancellationToken,
             ByRef classifiedSpan As ClassifiedSpan) As Boolean
@@ -237,9 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
         Private Sub ClassifyModifiedIdentifier(
                 modifiedIdentifier As ModifiedIdentifierSyntax,
-                semanticModel As SemanticModel,
-                result As ArrayBuilder(Of ClassifiedSpan),
-                cancellationToken As CancellationToken)
+                result As ArrayBuilder(Of ClassifiedSpan))
 
             If modifiedIdentifier.ArrayBounds IsNot Nothing OrElse
                modifiedIdentifier.ArrayRankSpecifiers.Count > 0 OrElse
@@ -279,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End Select
         End Function
 
-        Private Sub ClassifyMethodStatement(methodStatement As MethodStatementSyntax, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Private Sub ClassifyMethodStatement(methodStatement As MethodStatementSyntax, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpan))
             ' Ensure that extension method declarations are classified properly.
             ' Note that the method statement name is likely already classified as a method name
             ' by the syntactic classifier. However, there isn't away to determine whether a VB
@@ -292,9 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
         Private Sub ClassifyLabelSyntax(
             node As LabelSyntax,
-            semanticModel As SemanticModel,
-            result As ArrayBuilder(Of ClassifiedSpan),
-            cancellationToken As CancellationToken)
+            result As ArrayBuilder(Of ClassifiedSpan))
 
             result.Add(New ClassifiedSpan(node.LabelToken.Span, ClassificationTypeNames.LabelName))
         End Sub

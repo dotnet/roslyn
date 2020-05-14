@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     token.ValueText == _replacementText ||
                     isOldText ||
                     _possibleNameConflicts.Contains(token.ValueText) ||
-                    IsPossiblyDestructorConflict(token, _replacementText);
+                    IsPossiblyDestructorConflict(token);
 
                 if (tokenNeedsConflictCheck)
                 {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 return newToken;
             }
 
-            private bool IsPossiblyDestructorConflict(SyntaxToken token, string replacementText)
+            private bool IsPossiblyDestructorConflict(SyntaxToken token)
             {
                 return _replacementText == "Finalize" &&
                     token.IsKind(SyntaxKind.IdentifierToken) &&

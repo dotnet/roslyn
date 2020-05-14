@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
 
             Dim methodBlockOrStatement = GetParentIfBlock(getMethodDeclaration)
             editor.ReplaceNode(methodBlockOrStatement,
-                               ConvertMethodsToProperty(editor, semanticModel, getAndSetMethods, propertyName, nameChanged))
+                               ConvertMethodsToProperty(editor, getAndSetMethods, propertyName, nameChanged))
         End Sub
 
         Private Function GetParentIfBlock(declaration As MethodStatementSyntax) As DeclarationStatementSyntax
@@ -61,7 +61,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
 
         Private Function ConvertMethodsToProperty(
             editor As SyntaxEditor,
-            semanticModel As SemanticModel,
             getAndSetMethods As GetAndSetMethods,
             propertyName As String, nameChanged As Boolean) As DeclarationStatementSyntax
 

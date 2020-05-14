@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly HostLanguageServices _hostLanguageServices;
         private readonly HostLanguageServices _codeStyleLanguageServices;
 
+        [SuppressMessage("ApiDesign", "RS0030:Do not used banned APIs", Justification = "This is the replacement API")]
         private CodeStyleHostLanguageServices(HostLanguageServices hostLanguageServices)
         {
             _hostLanguageServices = hostLanguageServices;
