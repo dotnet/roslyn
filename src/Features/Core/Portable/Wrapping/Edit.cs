@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
 {
     /// <summary>
     /// Represents an edit between two tokens.  Specifically, provides the new trailing trivia for
-    /// the <see cref="Edit.Left"/> token and the new leading trivia for the <see
-    /// cref="Edit.Right"/> token.
+    /// the <see cref="Left"/> token and the new leading trivia for the <see
+    /// cref="Right"/> token.
     /// </summary>
     internal readonly struct Edit
     {

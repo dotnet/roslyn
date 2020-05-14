@@ -406,7 +406,6 @@ namespace Microsoft.CodeAnalysis.Differencing
 
                     // start point
                     var yStart = currentV[kPrev];
-                    var xStart = yStart + kPrev;
 
                     // mid point
                     var yMid = right ? yStart : yStart + 1;

@@ -82,20 +82,32 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static SyntaxNode Unparenthesize(
             this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
-            syntaxFacts.GetPartsOfParenthesizedExpression(node,
-                out var openParenToken, out var expression, out var closeParenToken);
+            SyntaxToken openParenToken;
+            SyntaxNode operand;
+            SyntaxToken closeParenToken;
+
+            if (syntaxFacts.IsParenthesizedPattern(node))
+            {
+                syntaxFacts.GetPartsOfParenthesizedPattern(node,
+                    out openParenToken, out operand, out closeParenToken);
+            }
+            else
+            {
+                syntaxFacts.GetPartsOfParenthesizedExpression(node,
+                    out openParenToken, out operand, out closeParenToken);
+            }
 
             var leadingTrivia = openParenToken.LeadingTrivia
                 .Concat(openParenToken.TrailingTrivia)
                 .Where(t => !syntaxFacts.IsElastic(t))
-                .Concat(expression.GetLeadingTrivia());
+                .Concat(operand.GetLeadingTrivia());
 
-            var trailingTrivia = expression.GetTrailingTrivia()
+            var trailingTrivia = operand.GetTrailingTrivia()
                 .Concat(closeParenToken.LeadingTrivia)
                 .Where(t => !syntaxFacts.IsElastic(t))
                 .Concat(closeParenToken.TrailingTrivia);
 
-            var resultNode = expression
+            var resultNode = operand
                 .WithLeadingTrivia(leadingTrivia)
                 .WithTrailingTrivia(trailingTrivia);
 
@@ -141,6 +153,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static void GetPartsOfBinaryExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node, out SyntaxNode left, out SyntaxNode right)
             => syntaxFacts.GetPartsOfBinaryExpression(node, out left, out _, out right);
+
+        public static SyntaxNode GetPatternOfParenthesizedPattern(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfParenthesizedPattern(node, out _, out var pattern, out _);
+            return pattern;
+        }
 
         public static SyntaxNode GetExpressionOfParenthesizedExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
@@ -219,7 +237,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         public static bool IsOnTypeHeader(this ISyntaxFacts syntaxFacts, SyntaxNode root, int position, out SyntaxNode typeDeclaration)
             => syntaxFacts.IsOnTypeHeader(root, position, fullHeader: false, out typeDeclaration);
-
 
         #region ISyntaxKinds forwarding methods
 
@@ -315,6 +332,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool IsAwaitExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.AwaitExpression;
+
+        public static bool IsImplicitObjectCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => syntaxFacts.IsImplicitObjectCreation(node);
 
         public static bool IsBaseExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.BaseExpression;

@@ -43,7 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private readonly object _classMemberGate = new object();
 
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
-        private readonly IThreadingContext _threadingContext;
 
         protected AbstractObjectBrowserLibraryManager(
             string languageName,
@@ -63,7 +62,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             _libraryService = new Lazy<ILibraryService>(() => Workspace.Services.GetLanguageServices(_languageName).GetService<ILibraryService>());
             _streamingPresenter = componentModel.DefaultExportProvider.GetExportedValue<IStreamingFindUsagesPresenter>();
-            _threadingContext = componentModel.DefaultExportProvider.GetExportedValue<IThreadingContext>();
         }
 
         internal abstract AbstractDescriptionBuilder CreateDescriptionBuilder(
@@ -528,7 +526,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 // thread.
                 await Task.Run(async () =>
                 {
-                    await FindReferencesAsync(_threadingContext, symbolListItem, project, context, cancellationToken).ConfigureAwait(false);
+                    await FindReferencesAsync(symbolListItem, project, context).ConfigureAwait(false);
                 }, cancellationToken).ConfigureAwait(false);
 
                 // Note: we don't need to put this in a finally.  The only time we might not hit
@@ -546,16 +544,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        private static async Task FindReferencesAsync(IThreadingContext threadingContext, SymbolListItem symbolListItem, Project project, CodeAnalysis.FindUsages.FindUsagesContext context, CancellationToken cancellationToken)
+        private static async Task FindReferencesAsync(SymbolListItem symbolListItem, Project project, CodeAnalysis.FindUsages.FindUsagesContext context)
         {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetCompilationAsync(context.CancellationToken).ConfigureAwait(false);
             var symbol = symbolListItem.ResolveSymbol(compilation);
             if (symbol != null)
-            {
-                await AbstractFindUsagesService.FindSymbolReferencesAsync(
-                    threadingContext,
-                    context, symbol, project, cancellationToken).ConfigureAwait(false);
-            }
+                await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project).ConfigureAwait(false);
         }
     }
 }

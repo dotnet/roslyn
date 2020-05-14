@@ -2,15 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -42,7 +45,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        public static List<T> Combine<T>(this List<T> list1, List<T> list2)
+        [return: NotNullIfNotNull("list1"), NotNullIfNotNull("list2")]
+        public static List<T>? Combine<T>(this List<T>? list1, List<T>? list2)
         {
             if (list1 == null)
             {
@@ -164,7 +168,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             var isEmptyString = false;
             var builder = StringBuilderPool.Allocate();
 
-            var trimmedTriviaText = triviaText.TrimEnd(s_trimChars);
             var nonWhitespaceCharIndex = GetFirstNonWhitespaceIndexInString(triviaText);
             if (nonWhitespaceCharIndex == -1)
             {
@@ -253,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static TextChange SimpleDiff(this TextChange textChange, string text)
         {
             var span = textChange.Span;
-            var newText = textChange.NewText;
+            var newText = textChange.NewText ?? "";
 
             var i = 0;
             for (; i < span.Length; i++)
@@ -284,8 +287,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             foreach (var nodeOrToken in node.GetAnnotatedNodesAndTokens(annotation))
             {
-                var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode().GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode().GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
+                var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
+                var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
                 yield return GetSpan(firstToken, lastToken);
             }
         }

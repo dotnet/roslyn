@@ -8,9 +8,10 @@
     xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
     xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
     xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns:vs2="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
     xmlns:imagingPlatformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
-    Height="470" Width="560"
-    MinHeight="470" MinWidth="560"
+    Height="500" Width="700"
+    MinHeight="500" MinWidth="700"
     Title="{Binding ElementName=dialog, Path=ChangeSignatureDialogTitle}"
     HasHelpButton="True"
     ResizeMode="CanResizeWithGrip"
@@ -58,7 +59,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0" Height="Auto" Width="Auto" Padding="0,4,0,0" Text="{Binding ElementName=dialog, Path=Parameters}"/>
+        <TextBlock x:Name="ParametersTextBlock" Grid.Row="0" Height="Auto" Width="Auto" Padding="0,4,0,0" Text="{Binding ElementName=dialog, Path=Parameters}"/>
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition MinHeight="220"/>
@@ -72,6 +73,7 @@
             <DataGrid 
                 x:Uid="MemberSelectionList"
                 x:Name="Members"
+                AutomationProperties.LabeledBy="{Binding ElementName=ParametersTextBlock}"
                 Grid.Row="0"
                 Grid.Column="0"
                 Margin="0, 3, 0, 0"
@@ -196,21 +198,35 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn x:Name="typeHeader" Binding="{Binding Type, Mode=OneWay}" IsReadOnly="True">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Padding" Value="{StaticResource ResourceKey=cellPadding}" />
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn x:Name="parameterHeader" Binding="{Binding ParameterName, Mode=OneWay}" IsReadOnly="True">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Padding" Value="{StaticResource ResourceKey=cellPadding}" />
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn x:Name="defaultHeader" Binding="{Binding Default, Mode=OneWay}" Width="*" IsReadOnly="True">
+                    <DataGridTemplateColumn x:Name="typeHeader" Width="*" IsReadOnly="True">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <imaging:CrispImage 
+                                        Moniker="{x:Static imagecatalog:KnownMonikers.StatusWarning}" 
+                                        Visibility="{Binding TypeWarningVisibility}"
+                                        vs2:ImageThemingUtilities.ImageBackgroundColor="White"
+                                        Margin="0,0,5,0"/>
+                                    <TextBlock Text="{Binding Type, Mode=OneWay}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn x:Name="parameterHeader" Width="*" IsReadOnly="True">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <imaging:CrispImage 
+                                        Moniker="{x:Static imagecatalog:KnownMonikers.StatusWarning}" 
+                                        Visibility="{Binding HasParameterNameConflict, Mode=TwoWay}"
+                                        vs2:ImageThemingUtilities.ImageBackgroundColor="White"
+                                        Margin="0,0,5,0"/>
+                                    <TextBlock Text="{Binding ParameterName, Mode=OneWay}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn x:Name="defaultHeader" Binding="{Binding DefaultValue, Mode=OneWay}" Width="*" IsReadOnly="True">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Padding" Value="{StaticResource ResourceKey=cellPadding}" />

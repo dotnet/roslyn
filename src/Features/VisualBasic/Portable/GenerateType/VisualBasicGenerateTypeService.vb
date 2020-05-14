@@ -711,8 +711,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                                                       typeInferenceService As ITypeInferenceService,
                                                       cancellationToken As CancellationToken,
                                                       ByRef propertySymbol As IPropertySymbol) As Boolean
-            propertySymbol = Nothing
-
             Dim typeSymbol = GetPropertyType(propertyName, semanticModel, typeInferenceService, cancellationToken)
             If typeSymbol Is Nothing OrElse TypeOf typeSymbol Is IErrorTypeSymbol Then
                 propertySymbol = GenerateProperty(propertyName, semanticModel.Compilation.ObjectType)

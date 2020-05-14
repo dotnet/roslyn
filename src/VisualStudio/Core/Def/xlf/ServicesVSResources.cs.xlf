@@ -112,16 +112,6 @@
         <target state="new">Call site</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangeSignature_NewParameterIndicator">
-        <source>&lt;new&gt;</source>
-        <target state="new">&lt;new&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
-        <source>TODO</source>
-        <target state="new">TODO</target>
-        <note>"TODO" is an indication that there is work to be done still</note>
-      </trans-unit>
       <trans-unit id="Code_analysis_completed_for_0">
         <source>Code analysis completed for '{0}'.</source>
         <target state="translated">Dokončila se analýza kódu pro {0}.</target>
@@ -130,6 +120,16 @@
       <trans-unit id="Code_analysis_completed_for_Solution">
         <source>Code analysis completed for Solution.</source>
         <target state="translated">Dokončila se analýza kódu pro řešení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_terminated_before_completion_for_0">
+        <source>Code analysis terminated before completion for '{0}'.</source>
+        <target state="new">Code analysis terminated before completion for '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_terminated_before_completion_for_Solution">
+        <source>Code analysis terminated before completion for Solution.</source>
+        <target state="new">Code analysis terminated before completion for Solution.</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -175,6 +175,11 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">Element není platný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
+        <source>Enter a call site value or choose a different value injection kind</source>
+        <target state="new">Enter a call site value or choose a different value injection kind</target>
         <note />
       </trans-unit>
       <trans-unit id="Entire_solution">
@@ -226,6 +231,11 @@
         <source>Interface cannot have field.</source>
         <target state="translated">Rozhraní nemůže mít pole.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="IntroduceUndefinedTodoVariables">
+        <source>Introduce undefined TODO variables</source>
+        <target state="new">Introduce undefined TODO variables</target>
+        <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
@@ -437,9 +447,24 @@
         <target state="translated">Neveřejné metody</target>
         <note />
       </trans-unit>
+      <trans-unit id="Omit_only_for_optional_parameters">
+        <source>Omit (only for optional parameters)</source>
+        <target state="new">Omit (only for optional parameters)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Open_documents">
         <source>Open documents</source>
         <target state="translated">Otevřené dokumenty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optional_parameters_must_provide_a_default_value">
+        <source>Optional parameters must provide a default value</source>
+        <target state="new">Optional parameters must provide a default value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optional_with_default_value_colon">
+        <source>Optional with default value:</source>
+        <target state="new">Optional with default value:</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Details">
@@ -450,6 +475,16 @@
       <trans-unit id="Parameter_Name">
         <source>Parameter name:</source>
         <target state="new">Parameter name:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_information">
+        <source>Parameter information</source>
+        <target state="new">Parameter information</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_kind">
+        <source>Parameter kind</source>
+        <target state="new">Parameter kind</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_name_contains_invalid_characters">
@@ -476,6 +511,11 @@
         <source>Paused ({0} tasks in queue)</source>
         <target state="translated">Pozastaveno (počet úloh ve frontě: {0})</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Please_enter_a_type_name">
+        <source>Please enter a type name</source>
+        <target state="new">Please enter a type name</target>
+        <note>"Type" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
         <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
@@ -540,6 +580,11 @@
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">Nahlásit neplatné regulární výrazy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Required">
+        <source>Required</source>
+        <target state="new">Required</target>
         <note />
       </trans-unit>
       <trans-unit id="Requires_System_HashCode_be_present_in_project">
@@ -642,6 +687,21 @@
         <target state="new">Type name:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_name_has_a_syntax_error">
+        <source>Type name has a syntax error</source>
+        <target state="new">Type name has a syntax error</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Type_name_is_not_recognized">
+        <source>Type name is not recognized</source>
+        <target state="new">Type name is not recognized</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Type_name_is_recognized">
+        <source>Type name is recognized</source>
+        <target state="new">Type name is recognized</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
         <target state="translated">Nepoužitá hodnota se explicitně přiřadí nepoužité lokální hodnotě.</target>
@@ -672,6 +732,11 @@
         <target state="translated">Pro místní funkce používat text výrazu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_named_argument">
+        <source>Use named argument</source>
+        <target state="new">Use named argument</target>
+        <note>"argument" is a programming term for a value passed to a function</note>
+      </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
         <target state="translated">Zde přiřazená hodnota se nikdy nepoužije.</target>
@@ -685,6 +750,11 @@
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
         <source>Value returned by invocation is implicitly ignored</source>
         <target state="translated">Hodnota vrácená voláním je implicitně ignorována.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_to_inject_at_call_sites">
+        <source>Value to inject at call sites</source>
+        <target state="new">Value to inject at call sites</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_2017">

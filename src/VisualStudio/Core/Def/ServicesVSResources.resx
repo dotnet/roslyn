@@ -1344,6 +1344,12 @@ I agree to all of the foregoing:</value>
   <data name="Code_analysis_completed_for_Solution" xml:space="preserve">
     <value>Code analysis completed for Solution.</value>
   </data>
+  <data name="Code_analysis_terminated_before_completion_for_0" xml:space="preserve">
+    <value>Code analysis terminated before completion for '{0}'.</value>
+  </data>
+  <data name="Code_analysis_terminated_before_completion_for_Solution" xml:space="preserve">
+    <value>Code analysis terminated before completion for Solution.</value>
+  </data>
   <data name="Background_analysis_scope_colon" xml:space="preserve">
     <value>Background analysis scope:</value>
   </data>
@@ -1396,13 +1402,6 @@ I agree to all of the foregoing:</value>
     <value>You must change the signature</value>
     <comment>"signature" here means the definition of a method</comment>
   </data>
-  <data name="ChangeSignature_NewParameterIndicator" xml:space="preserve">
-    <value>&lt;new&gt;</value>
-  </data>
-  <data name="ChangeSignature_NewParameterIntroduceTODOVariable" xml:space="preserve">
-    <value>TODO</value>
-    <comment>"TODO" is an indication that there is work to be done still</comment>
-  </data>
   <data name="Added_Parameter" xml:space="preserve">
     <value>Added parameter.</value>
   </data>
@@ -1412,6 +1411,29 @@ I agree to all of the foregoing:</value>
   <data name="Index" xml:space="preserve">
     <value>Index</value>
     <comment>Index of parameter in original signature</comment>
+  </data>
+  <data name="IntroduceUndefinedTodoVariables" xml:space="preserve">
+    <value>Introduce undefined TODO variables</value>
+    <comment>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</comment>
+  </data>
+  <data name="Omit_only_for_optional_parameters" xml:space="preserve">
+    <value>Omit (only for optional parameters)</value>
+  </data>
+  <data name="Optional_with_default_value_colon" xml:space="preserve">
+    <value>Optional with default value:</value>
+  </data>
+  <data name="Parameter_kind" xml:space="preserve">
+    <value>Parameter kind</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Required</value>
+  </data>
+  <data name="Use_named_argument" xml:space="preserve">
+    <value>Use named argument</value>
+    <comment>"argument" is a programming term for a value passed to a function</comment>
+  </data>
+  <data name="Value_to_inject_at_call_sites" xml:space="preserve">
+    <value>Value to inject at call sites</value>
   </data>
   <data name="Value_colon" xml:space="preserve">
     <value>Value:</value>
@@ -1436,5 +1458,30 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Razor_CSharp_Language_Server_Client" xml:space="preserve">
     <value>Razor C# Language Server Client</value>
+  </data>
+  <data name="Type_name_has_a_syntax_error" xml:space="preserve">
+    <value>Type name has a syntax error</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Type_name_is_not_recognized" xml:space="preserve">
+    <value>Type name is not recognized</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Type_name_is_recognized" xml:space="preserve">
+    <value>Type name is recognized</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Please_enter_a_type_name" xml:space="preserve">
+    <value>Please enter a type name</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Enter_a_call_site_value_or_choose_a_different_value_injection_kind" xml:space="preserve">
+    <value>Enter a call site value or choose a different value injection kind</value>
+  </data>
+  <data name="Optional_parameters_must_provide_a_default_value" xml:space="preserve">
+    <value>Optional parameters must provide a default value</value>
+  </data>
+  <data name="Parameter_information" xml:space="preserve">
+    <value>Parameter information</value>
   </data>
 </root>

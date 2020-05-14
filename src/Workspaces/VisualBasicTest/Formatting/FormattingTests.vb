@@ -2,8 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -1706,11 +1706,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1734,11 +1734,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1762,11 +1762,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1792,11 +1792,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1822,11 +1822,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1849,11 +1849,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1875,11 +1875,11 @@ End Class</Code>
                 "    End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), False},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, False},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1901,11 +1901,11 @@ End Class</Code>
                 "  End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), False},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 2}
+                {FormattingOptions2.UseTabs, False},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 2}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1927,11 +1927,11 @@ End Class</Code>
                 "      End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), False},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 6}
+                {FormattingOptions2.UseTabs, False},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 6}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1953,11 +1953,11 @@ End Class</Code>
                 "  End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 3},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 2}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 3},
+                {FormattingOptions2.IndentationSize, 2}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -2025,9 +2025,9 @@ End Class</Code>
 	End Sub
 End Class</Code>
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True}
+                {FormattingOptions2.UseTabs, True}
             }
 
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value, optionSet)

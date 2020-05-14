@@ -31,6 +31,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
+        private readonly Func<SyntaxNode, bool> _isFunctionDeclarationFunc;
+
+        protected AbstractInitializeParameterCodeRefactoringProvider()
+        {
+            _isFunctionDeclarationFunc = IsFunctionDeclaration;
+        }
+
         protected abstract bool IsFunctionDeclaration(SyntaxNode node);
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
 
@@ -70,7 +77,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
-            var functionDeclaration = selectedParameter.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+            var functionDeclaration = selectedParameter.FirstAncestorOrSelf(_isFunctionDeclarationFunc);
             if (functionDeclaration is null)
             {
                 return;
@@ -80,8 +87,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var parameterNodes = generator.GetParameters(functionDeclaration);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-            var parameterDefault = syntaxFacts.GetDefaultOfParameter(selectedParameter);
 
             // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,
             // so first we have to get the parameter symbol and then its containing method symbol
@@ -228,7 +233,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected static bool IsFieldOrPropertyReference(IOperation operation, INamedTypeSymbol containingType)
-            => IsFieldOrPropertyAssignment(operation, containingType, out var fieldOrProperty);
+            => IsFieldOrPropertyAssignment(operation, containingType, out _);
 
         protected static bool IsFieldOrPropertyReference(
             IOperation? operation, INamedTypeSymbol containingType,

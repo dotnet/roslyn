@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -36,6 +35,12 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly int InstanceId;
         protected readonly TraceSource Logger;
         protected readonly AssetStorage AssetStorage;
+
+        static ServiceBase()
+        {
+            // Use a TraceListener hook to intercept assertion failures and report them through FatalError.
+            WatsonTraceListener.Install();
+        }
 
         protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)
         {

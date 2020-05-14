@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 extern alias InteractiveHost;
 
 using System;
@@ -34,8 +36,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
     {
         #region Utils
 
-        private SynchronizedStringWriter _synchronizedOutput;
-        private SynchronizedStringWriter _synchronizedErrorOutput;
+        private SynchronizedStringWriter _synchronizedOutput = null!;
+        private SynchronizedStringWriter _synchronizedErrorOutput = null!;
         private int[] _outputReadPosition = new int[] { 0, 0 };
 
         private readonly InteractiveHost _host;
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             try
             {
-                Process process = _host.TryGetProcess();
+                var process = _host.TryGetProcess();
 
                 DisposeInteractiveHostProcess(_host);
 
@@ -118,11 +120,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             return task.Result.Success;
         }
 
-        private bool IsShadowCopy(string path)
-        {
-            return _host.TryGetService().IsShadowCopy(path);
-        }
-
         public string ReadErrorOutputToEnd()
         {
             return ReadOutputToEnd(isError: true);
@@ -135,7 +132,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             _synchronizedErrorOutput.Clear();
         }
 
-        private void RestartHost(string rspFile = null)
+        private void RestartHost(string? rspFile = null)
         {
             ClearOutput();
 
@@ -150,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             var mark = markPrefix + Guid.NewGuid().ToString();
 
             // writes mark to the STDOUT/STDERR pipe in the remote process:
-            _host.TryGetService().RemoteConsoleWrite(Encoding.UTF8.GetBytes(mark), isError);
+            _host.TryGetService()!.RemoteConsoleWrite(Encoding.UTF8.GetBytes(mark), isError);
 
             while (true)
             {
@@ -164,13 +161,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             }
         }
 
-        private class CompiledFile
-        {
-            public string Path;
-            public ImmutableArray<byte> Image;
-        }
-
-        private static CompiledFile CompileLibrary(TempDirectory dir, string fileName, string assemblyName, string source, params MetadataReference[] references)
+        private static (string Path, ImmutableArray<byte> Image) CompileLibrary(
+            TempDirectory dir, string fileName, string assemblyName, string source, params MetadataReference[] references)
         {
             var file = dir.CreateFile(fileName);
             var compilation = CreateEmptyCompilation(
@@ -182,7 +174,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             var image = compilation.EmitToArray();
             file.WriteAllBytes(image);
 
-            return new CompiledFile { Path = file.Path, Image = image };
+            return (file.Path, image);
         }
 
         #endregion
@@ -250,7 +242,7 @@ goo(0,1,2,3,4,5,6,7,8,9)
 
             // Hosting process exited with exit code ###.
             var errorOutput = ReadErrorOutputToEnd().Trim();
-            Assert.Equal("Process is terminated due to StackOverflowException.\n" + string.Format(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, process.ExitCode), errorOutput);
+            Assert.Equal("Process is terminated due to StackOverflowException.\n" + string.Format(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, process!.ExitCode), errorOutput);
 
             Execute(@"1+1");
 
@@ -337,10 +329,10 @@ while(true) {}
             var process = _host.TryGetProcess();
             Assert.NotNull(process);
 
-            service.EmulateClientExit();
+            service!.EmulateClientExit();
 
             // the process should terminate with exit code 0:
-            process.WaitForExit();
+            process!.WaitForExit();
             Assert.Equal(0, process.ExitCode);
         }
 
@@ -454,7 +446,7 @@ WriteLine(5);
             var mayTerminate = new ManualResetEvent(false);
             _host.ErrorOutputReceived += (_, __) => mayTerminate.Set();
 
-            _host.TryGetService().HookMaliciousAssemblyResolve();
+            _host.TryGetService()!.HookMaliciousAssemblyResolve();
             var executeTask = _host.AddReferenceAsync("nonexistingassembly" + Guid.NewGuid());
 
             Assert.True(mayTerminate.WaitOne());

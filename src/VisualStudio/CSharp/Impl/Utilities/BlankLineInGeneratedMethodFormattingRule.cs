@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
@@ -17,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
         {
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             // case: insert blank line in empty method body.
             if (previousToken.Kind() == SyntaxKind.OpenBraceToken &&
@@ -30,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
                 }
             }
 
-            return nextOperation.Invoke();
+            return nextOperation.Invoke(in previousToken, in currentToken);
         }
     }
 }

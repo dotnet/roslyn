@@ -53,7 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             if (declaration == null ||
                 declaration.Variables.Count != 1 ||
                 forStatement.Incrementors.Count != 1)
+            {
                 return;
+            }
 
             var variable = declaration.Variables[0];
             var after = forStatement.Incrementors[0];
@@ -102,20 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 
         private static bool ValueEquals(Optional<object> valueOpt, ulong value)
             => valueOpt.HasValue && IsIntegral(valueOpt.Value) && ToUInt64(valueOpt.Value) == value;
-
-        private static bool IsIntegral(object value)
-            => value switch
-            {
-                sbyte _ => true,
-                byte _ => true,
-                short _ => true,
-                ushort _ => true,
-                int _ => true,
-                uint _ => true,
-                long _ => true,
-                ulong _ => true,
-                _ => false,
-            };
 
         private bool MatchesIncrementPattern(
             VariableDeclaratorSyntax variable, BinaryExpressionSyntax condition, ExpressionSyntax after,

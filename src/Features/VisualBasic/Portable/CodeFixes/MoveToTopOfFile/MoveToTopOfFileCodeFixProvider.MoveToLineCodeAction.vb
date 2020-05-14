@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
 
             Private ReadOnly _destinationLine As Integer
             Private ReadOnly _document As Document
-            Private _token As SyntaxToken
+            Private ReadOnly _token As SyntaxToken
             Private ReadOnly _title As String
 
             Public Sub New(document As Document, token As SyntaxToken, destinationLine As Integer, title As String)

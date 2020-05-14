@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
         private (IList<SignatureHelpItem> items, int? selectedItem) GetDelegateTypeConstructors(
-            ObjectCreationExpressionSyntax objectCreationExpression,
+            BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
             INamedTypeSymbol delegateType,
