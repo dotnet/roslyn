@@ -572,18 +572,17 @@ namespace Analyzer.Utilities.Extensions
             return invocationOperation.TargetMethod.IsExtensionMethod && (invocationOperation.Language != LanguageNames.VisualBasic || invocationOperation.Instance == null);
         }
 
-        public static SyntaxNode GetInstance(this IInvocationOperation invocationOperation)
-        {
-            return invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value.Syntax : invocationOperation.Instance.Syntax;
-        }
+        public static IOperation GetInstance(this IInvocationOperation invocationOperation)
+            => invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value : invocationOperation.Instance;
+
+        public static SyntaxNode GetInstanceSyntax(this IInvocationOperation invocationOperation)
+            => invocationOperation.GetInstance().Syntax;
 
         public static ITypeSymbol GetInstanceType(this IOperation operation)
         {
             IOperation instance = operation switch
             {
-                IInvocationOperation invocation => invocation.IsExtensionMethodAndHasNoInstance() ?
-                invocation.Arguments[0].Value :
-                invocation.Instance,
+                IInvocationOperation invocation => invocation.GetInstance(),
 
                 IPropertyReferenceOperation propertyReference => propertyReference.Instance,
 
