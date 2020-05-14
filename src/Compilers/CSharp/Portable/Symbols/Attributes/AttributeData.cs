@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (resolvedFilePath == null)
                     {
                         // CS7053: Unable to resolve file path '{0}' specified for the named argument '{1}' for PermissionSet attribute
-                        Location argSyntaxLocation = nodeOpt != null ? nodeOpt.GetNamedArgumentSyntax(filePropName).Location : NoLocation.Singleton;
+                        Location argSyntaxLocation = nodeOpt?.GetNamedArgumentSyntax(filePropName)?.Location ?? NoLocation.Singleton;
                         diagnostics.Add(ErrorCode.ERR_PermissionSetAttributeInvalidFile, argSyntaxLocation, fileName ?? "<null>", filePropName);
                     }
                     else if (!PermissionSetAttributeTypeHasRequiredProperty(attrType, hexPropName))

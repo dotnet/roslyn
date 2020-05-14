@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpParseOptions options,
                 CSharpSyntaxNode root,
                 Syntax.InternalSyntax.DirectiveStack directives,
-                ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
+                ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
                 bool? isGeneratedCode,
                 bool cloneRoot)
             {

@@ -108,9 +108,9 @@ tryAgain:
         /// <summary>
         /// The current diagnostic that the enumerator is pointing at.
         /// </summary>
-        public Diagnostic? Current
+        public Diagnostic Current
         {
-            get { return _current; }
+            get { Debug.Assert(_current is object); return _current; }
         }
 
         private struct NodeIteration
