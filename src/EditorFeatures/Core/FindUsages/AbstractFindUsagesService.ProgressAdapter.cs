@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// <summary>
         /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
         /// </summary>
-        private class FindReferencesProgressAdapter : ForegroundThreadAffinitizedObject, IStreamingFindReferencesProgress
+        private class FindReferencesProgressAdapter : IStreamingFindReferencesProgress
         {
             private readonly Solution _solution;
             private readonly IFindUsagesContext _context;
@@ -74,9 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 => _context.ProgressTracker;
 
             public FindReferencesProgressAdapter(
-                IThreadingContext threadingContext, Solution solution,
-                IFindUsagesContext context, FindReferencesSearchOptions options)
-                : base(threadingContext)
+                Solution solution, IFindUsagesContext context, FindReferencesSearchOptions options)
             {
                 _solution = solution;
                 _context = context;

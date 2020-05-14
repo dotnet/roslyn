@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             var newDocument = conflictResolution.CurrentSolution.GetDocument(documentId);
                             var syntaxRoot = await newDocument.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
 
-                            var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(documentId, syntaxRoot);
+                            var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(syntaxRoot);
                             foreach (var (syntax, annotation) in nodesOrTokensWithConflictCheckAnnotations)
                             {
                                 if (annotation.IsRenameLocation)
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var syntaxFactsService = newDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
                         // Get all tokens that need conflict check
-                        var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(documentId, syntaxRoot);
+                        var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(syntaxRoot);
 
                         var complexifiedLocationSpanForThisDocument =
                             _conflictLocations
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             var baseDocument = conflictResolution.OldSolution.GetDocument(unprocessedDocumentIdWithPotentialDeclarationConflicts);
                             var baseSyntaxTree = await baseDocument.GetSyntaxTreeAsync(_cancellationToken).ConfigureAwait(false);
 
-                            var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(unprocessedDocumentIdWithPotentialDeclarationConflicts, syntaxRoot);
+                            var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(syntaxRoot);
                             foreach (var (syntax, annotation) in nodesOrTokensWithConflictCheckAnnotations)
                             {
                                 var tokenOrNode = syntax;
@@ -494,7 +494,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             /// Gets the list of the nodes that were annotated for a conflict check 
             /// </summary>
             private IEnumerable<(SyntaxNodeOrToken syntax, RenameActionAnnotation annotation)> GetNodesOrTokensToCheckForConflicts(
-                DocumentId documentId,
                 SyntaxNode syntaxRoot)
             {
                 return syntaxRoot.DescendantNodesAndTokens(descendIntoTrivia: true)
@@ -726,7 +725,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             continue;
                         }
 
-                        var info = await SyntaxTreeIndex.GetIndexAsync(document, CancellationToken.None).ConfigureAwait(false);
+                        var info = await SyntaxTreeIndex.GetIndexAsync(document, _cancellationToken).ConfigureAwait(false);
                         if (info.ProbablyContainsEscapedIdentifier(_originalText))
                         {
                             _documentsIdsToBeCheckedForConflict.Add(document.Id);

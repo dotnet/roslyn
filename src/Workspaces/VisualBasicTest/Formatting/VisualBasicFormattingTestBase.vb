@@ -80,7 +80,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
 
         Protected Function AssertFormatSpanAsync(markupCode As String, expected As String) As Task
             Dim code As String = Nothing
-            Dim cursorPosition As Integer? = Nothing
             Dim spans As ImmutableArray(Of TextSpan) = Nothing
             MarkupTestFile.GetSpans(markupCode, code, spans)
 

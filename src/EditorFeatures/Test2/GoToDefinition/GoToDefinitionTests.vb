@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
@@ -14,9 +15,10 @@ Imports Microsoft.VisualStudio.Text
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     <[UseExportProvider]>
     Public Class GoToDefinitionTests
-        Friend Sub Test(workspaceDefinition As XElement,
-                                        expectedResult As Boolean,
-                                        executeOnDocument As Func(Of Document, Integer, IStreamingFindUsagesPresenter, Boolean))
+        Friend Sub Test(
+                workspaceDefinition As XElement,
+                expectedResult As Boolean,
+                executeOnDocument As Func(Of Document, Integer, IThreadingContext, IStreamingFindUsagesPresenter, Boolean))
             Using workspace = TestWorkspace.Create(
                     workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProviderFactory.CreateExportProvider())
                 Dim solution = workspace.CurrentSolution
@@ -39,8 +41,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 Dim mockSymbolNavigationService = DirectCast(workspace.Services.GetService(Of ISymbolNavigationService)(), MockSymbolNavigationService)
 
                 Dim presenterCalled As Boolean = False
+                Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
                 Dim presenter = New MockStreamingFindUsagesPresenter(Sub() presenterCalled = True)
-                Dim actualResult = executeOnDocument(document, cursorPosition, presenter)
+                Dim actualResult = executeOnDocument(document, cursorPosition, threadingContext, presenter)
 
                 Assert.Equal(expectedResult, actualResult)
 
@@ -105,11 +108,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
         Private Sub Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True)
             Test(workspaceDefinition, expectedResult,
-                Function(document As Document, cursorPosition As Integer, presenter As IStreamingFindUsagesPresenter)
+                Function(document, cursorPosition, threadingContext, presenter)
                     Dim lazyPresenter = New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(lazyPresenter), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(lazyPresenter))
+                        DirectCast(New CSharpGoToDefinitionService(threadingContext, lazyPresenter), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(threadingContext, lazyPresenter))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)

@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     token.ValueText == _replacementText ||
                     isOldText ||
                     _possibleNameConflicts.Contains(token.ValueText) ||
-                    IsPossiblyDestructorConflict(token, _replacementText);
+                    IsPossiblyDestructorConflict(token);
 
                 if (tokenNeedsConflictCheck)
                 {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 return newToken;
             }
 
-            private bool IsPossiblyDestructorConflict(SyntaxToken token, string replacementText)
+            private bool IsPossiblyDestructorConflict(SyntaxToken token)
             {
                 return _replacementText == "Finalize" &&
                     token.IsKind(SyntaxKind.IdentifierToken) &&
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 if (identifierToken != default && !_annotatedIdentifierTokens.Contains(identifierToken))
                 {
                     var symbolInfo = _semanticModel.GetSymbolInfo(invocationExpression, _cancellationToken);
-                    IEnumerable<ISymbol> symbols = null;
+                    IEnumerable<ISymbol> symbols;
                     if (symbolInfo.Symbol == null)
                     {
                         return null;
@@ -574,8 +574,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                 // if it's an attribute name we don't mess with the escaping because it might change overload resolution
                 newToken = _isVerbatim || (isAttributeName && oldToken.IsVerbatimIdentifier())
-                    ? newToken = newToken.CopyAnnotationsTo(SyntaxFactory.VerbatimIdentifier(newToken.LeadingTrivia, currentNewIdentifier, valueText, newToken.TrailingTrivia))
-                    : newToken = newToken.CopyAnnotationsTo(SyntaxFactory.Identifier(newToken.LeadingTrivia, SyntaxKind.IdentifierToken, currentNewIdentifier, valueText, newToken.TrailingTrivia));
+                    ? newToken.CopyAnnotationsTo(SyntaxFactory.VerbatimIdentifier(newToken.LeadingTrivia, currentNewIdentifier, valueText, newToken.TrailingTrivia))
+                    : newToken.CopyAnnotationsTo(SyntaxFactory.Identifier(newToken.LeadingTrivia, SyntaxKind.IdentifierToken, currentNewIdentifier, valueText, newToken.TrailingTrivia));
 
                 if (_replacementTextValid)
                 {

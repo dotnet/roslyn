@@ -104,9 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim semanticModel = SemanticDocument.SemanticModel
                 Dim context = InsertionPoint.GetContext()
                 Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
-                Dim statements = SpecializedCollections.EmptyEnumerable(Of StatementSyntax)()
 
-                statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(statements, cancellationToken)
+                Dim statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(cancellationToken)
                 statements = postProcessor.MergeDeclarationStatements(statements)
                 statements = AddAssignmentStatementToCallSite(statements, cancellationToken)
                 statements = Await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(False)

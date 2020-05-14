@@ -257,8 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
         {
-            XmlAttributeSyntax attributeSyntax = null;
-
+            XmlAttributeSyntax attributeSyntax;
             if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
                 token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute, out XmlNameAttributeSyntax xmlName))
             {

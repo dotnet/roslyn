@@ -60,7 +60,7 @@ This section is broken down by user scenarios, with general solutions listed fir
 
 ### Generated class
 
-**User scenario:** As a generator author I want to be able to add a type to the compilation, that can be referenced by the users code.
+**User scenario:** As a generator author I want to be able to add a type to the compilation, that can be referenced by the user's code.
 
 **Solution:** Have the user write the code as if the type was already present. Generate the missing type based on information available in the compilation.
 
@@ -83,11 +83,14 @@ public partial class UserClass
 Create a generator that will create the missing type when run:
 
 ```csharp
+[Generator]
 public class CustomGenerator : ISourceGenerator
 {
+    public void Initialize(InitializationContext context) {}
+
     public void Execute(SourceGeneratorContext context)
     {
-        context.AddSource("myGeneratedFile.cs", SourceText.From($@"
+        context.AddSource("myGeneratedFile.cs", SourceText.From(@"
 namespace GeneratedNamespace
 {
     public class GeneratedClass
@@ -97,7 +100,7 @@ namespace GeneratedNamespace
             // generated code
         }
     }
-}"));
+}", Encoding.UTF8));
     }
 }
 ```
@@ -112,8 +115,11 @@ namespace GeneratedNamespace
 **Example:**
 
 ```csharp
+[Generator]
 public class FileTransformGenerator : ISourceGenerator
     {
+        public void Initialize(InitializationContext context) {}
+
         public void Execute(SourceGeneratorContext context)
         {
             // find anything that matches our files
@@ -125,7 +131,7 @@ public class FileTransformGenerator : ISourceGenerator
                 // do some transforms based on the file context
                 string output = MyXmlToCSharpCompiler.Compile(content);
 
-                var sourceText = SourceText.From(output);
+                var sourceText = SourceText.From(output, Encoding.UTF8);
 
                 context.AddSource($"{file.Name}generated.cs", sourceText);
             }
@@ -135,10 +141,12 @@ public class FileTransformGenerator : ISourceGenerator
 
 ### Augment user code
 
-**User scenario:** As a generator author I want to be able to augment a users code with new functionality.
+**User scenario:** As a generator author I want to be able to inspect and augment a user's code with new functionality.
 
 **Solution:** Require the user to make the class you want to augment be a `partial class`, and mark it with e.g. a unique attribute, or name.
-Look for any classes marked for generation and generate a matching `partial class` that contains the additional functionality.
+Register a `SyntaxReceiver` that looks for any classes marked for generation and records them. Retrieve the populated `SyntaxReceiver`
+during the generation phase and use the recorded information to generate a matching `partial class` that
+contains the additional functionality.
 
 **Example:**
 
@@ -147,62 +155,63 @@ public partial class UserClass
 {
     public void UserMethod()
     {
-        // call into a method inside the class
+        // call into a generated method inside the class
         this.GeneratedMethod();
     }
 }
 ```
 
 ```csharp
+[Generator]
 public class AugmentingGenerator : ISourceGenerator
 {
+    public void Initialize(InitializationContext context)
+    {
+        // Register a factory that can create our custom syntax receiver
+        context.RegisterForSyntaxNotifications(() => new MySyntaxReceiver());
+    }
+
     public void Execute(SourceGeneratorContext context)
     {
-        var syntaxTrees = context.Compilation.SyntaxTrees;
-        foreach (var syntaxTree in syntaxTrees)
+        // the generator infrastructure will create a receiver and populate it
+        // we can retrieve the populated instance via the context
+        MySyntaxReceiver syntaxReceiver = (MySyntaxReceiver)context.SyntaxReceiver;
+
+        // get the recorded user class
+        ClassDeclarationSyntax userClass = syntaxReceiver.ClassToAugment;
+        if (userClass is null)
         {
-                // find the class to augment
-            var classToAugment = syntaxTree.GetRoot().DescendantNodes()
-                .OfType<ClassDeclarationSyntax>()
-                .Where(c => c.Name.ToString() == "UserClass")
-                .Single();
-
-            var sourceText = SourceText.From($@"
-public partial class {classToAugment.Identifier.ToString()}
-{
-private void GeneratedMethod()
-{
-    // generated code
-}
-}");
-            context.AddSource("myGeneratedFile.cs", sourceText);
+            // if we didn't find the user class, there is nothing to do
+            return;
         }
+
+        // add the generated implementation to the compilation
+        SourceText sourceText = SourceText.From($@"
+public partial class {userClass.Identifier}
+{{
+    private void GeneratedMethod()
+    {{
+        // generated code
+    }}
+}", Encoding.UTF8);
+        context.AddSource("UserClass.Generated.cs", sourceText);
     }
-}
 
-```
-
-### Participate in the IDE experience
-
-**User scenario:** As a generator author I want to be able to interactively regenerate code as the user is editing files.
-
-**Solution:** We expect there to be an an opt-in set of interactive interfaces that can be implemented to allow for progressively more complex generation strategies.
-It is anticipated there will be a mechanism for providing symbol mapping for lighting up features such a 'Find all references'.
-
-```csharp
-public class InteractiveGenerator : ISourceGenerator, IAdditionalFilesChangedGenerator
+    class MySyntaxReceiver : ISyntaxReceiver
     {
-        public void Execute(SourceGeneratorContext context)
-        {
-            // generators must always support a total generation pass
-        }
+        public ClassDeclarationSyntax ClassToAugment { get; private set; }
 
-        public void OnAdditionalFilesChanged(AdditionalFilesChangedContext context)
+        public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
         {
-            // determine which file changed, and if it affects this generator
-            // regenerate only the parts that are affected by this change.
+            // Business logic to decide what we're interested in goes here
+            if (syntaxNode is ClassDeclarationSyntax cds &&
+                cds.Identifier.ValueText == "UserClass")
+            {
+                ClassToAugment = cds;
+            }
         }
     }
+}
 ```
 
 ### INotifyPropertyChanged
@@ -275,6 +284,38 @@ public partial class UserClass : INotifyPropertyChanged
 
 ```
 
+### Participate in the IDE experience
+
+**Implementation Status**: Not Implemented.
+
+**User scenario:** As a generator author I want to be able to interactively regenerate code as the user is editing files.
+
+**Solution:** We expect there to be an opt-in set of interactive callbacks that can be implemented to allow for progressively more complex generation strategies.
+It is anticipated there will be a mechanism for providing symbol mapping for lighting up features such as 'Find all references'.
+
+```csharp
+[Generator]
+public class InteractiveGenerator : ISourceGenerator
+{
+    public void Initialize(InitializationContext context)
+    {
+        // Register for additional file callbacks
+        context.RegisterForAdditionalFileChanges(OnAdditionalFilesChanged);
+    }
+
+    public void Execute(SourceGeneratorContext context)
+    {
+        // generators must always support a total generation pass
+    }
+
+    public void OnAdditionalFilesChanged(AdditionalFilesChangedContext context)
+    {
+        // determine which file changed, and if it affects this generator
+        // regenerate only the parts that are affected by this change.
+    }
+}
+```
+
 ### Serialization
 
 **User Scenario**
@@ -310,7 +351,7 @@ the compiler would notify the generator of every type marked with the given
 attribute. For now we'll assume that the types are provided to us.
 
 The first task is to decide what we want our serialization to return. Let's say
-we do a simple JSon serialization that produces a string like the following
+we do a simple JSON serialization that produces a string like the following
 
 ```json
 {
@@ -351,7 +392,7 @@ of code a source generator could add to a compilation.
 Our next task is design a generator to generate the above code, since the
 above code is itself customized in the `// Body` section according to the
 actual properties in the class. In other words, we need to generate the code
-which will generate the JSon format. This is a generator-generator.
+which will generate the JSON format. This is a generator-generator.
 
 Let's start with a basic template. We are adding a full source generator, so we'll need
 to generate a class with the same name as the input class, with a public method called
@@ -476,8 +517,6 @@ type that opt-ed in to generated serialization. Unlike other technologies,
 this serialization mechanism happens entirely at compile time and can be
 specialized exactly to what was written in the user class.
 
-
-
 ### Auto interface implementation
 
 TODO:
@@ -493,6 +532,6 @@ This section track other miscellaneous TODO items:
 **Conventions**: (See TODO in [conventions](#conventions) section above). What standard conventions are we suggesting to users?
 
 **Partial methods**: Should we provide a scenario that includes partial methods? Reasons:
- - Control of name. The developer can control the name of the member
- - Generation is optional/depending on other state. Based on other information, generator might decide that the method isn't needed.
 
+- Control of name. The developer can control the name of the member
+- Generation is optional/depending on other state. Based on other information, generator might decide that the method isn't needed.

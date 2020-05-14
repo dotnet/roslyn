@@ -1177,6 +1177,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (!methodSymbol.IsDefinition)
             {
                 Debug.Assert(!needDeclaration);
+                Debug.Assert(!(methodSymbol.OriginalDefinition is NativeIntegerMethodSymbol));
+                Debug.Assert(!(methodSymbol.ConstructedFrom is NativeIntegerMethodSymbol));
 
                 return methodSymbol;
             }
@@ -1213,6 +1215,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     methodRef = (Cci.IMethodReference)_genericInstanceMap.GetOrAdd(methodSymbol, methodRef);
 
                     return methodRef;
+                }
+                else if (methodSymbol is NativeIntegerMethodSymbol { UnderlyingMethod: MethodSymbol underlyingMethod })
+                {
+                    methodSymbol = underlyingMethod;
                 }
             }
 

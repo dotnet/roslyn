@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static string DetermineSuffix(ITypeSymbol type, object value)
         {
-            if (value is float f)
+            if (value is float)
             {
                 var stringValue = ((IFormattable)value).ToString("R", CultureInfo.InvariantCulture);
 

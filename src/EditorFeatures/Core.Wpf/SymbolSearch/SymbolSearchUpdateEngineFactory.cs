@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             return new SymbolSearchUpdateEngine(logService, progressService);
         }
 
-        private partial class RemoteUpdateEngine : ISymbolSearchUpdateEngine
+        private sealed partial class RemoteUpdateEngine : ISymbolSearchUpdateEngine
         {
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
@@ -56,51 +57,53 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 _session = session;
             }
 
+            public void Dispose()
+            {
+                _session.Dispose();
+            }
+
             public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
-                var results = await _session.TryInvokeAsync<IList<PackageWithTypeResult>>(
+                var results = await _session.RunRemoteAsync<IList<PackageWithTypeResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
                     solution: null,
                     new object[] { source, name, arity },
                     cancellationToken).ConfigureAwait(false);
 
-                return results.HasValue ? results.Value.ToImmutableArray() : ImmutableArray<PackageWithTypeResult>.Empty;
+                return results.ToImmutableArray();
             }
 
             public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string assemblyName, CancellationToken cancellationToken)
             {
-                var results = await _session.TryInvokeAsync<IList<PackageWithAssemblyResult>>(
+                var results = await _session.RunRemoteAsync<IList<PackageWithAssemblyResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
                     solution: null,
                     new object[] { source, assemblyName },
                     cancellationToken).ConfigureAwait(false);
 
-                return results.HasValue ? results.Value.ToImmutableArray() : ImmutableArray<PackageWithAssemblyResult>.Empty;
+                return results.ToImmutableArray();
             }
 
             public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity, CancellationToken cancellationToken)
             {
-                var results = await _session.TryInvokeAsync<IList<ReferenceAssemblyWithTypeResult>>(
+                var results = await _session.RunRemoteAsync<IList<ReferenceAssemblyWithTypeResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindReferenceAssembliesWithTypeAsync),
                     solution: null,
                     new object[] { name, arity },
                     cancellationToken).ConfigureAwait(false);
 
-                return results.HasValue ? results.Value.ToImmutableArray() : ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty;
+                return results.ToImmutableArray();
             }
 
-            public async Task UpdateContinuouslyAsync(
-                string sourceName, string localSettingsDirectory)
-            {
-                _ = await _session.TryInvokeAsync(
+            public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
+                => _session.RunRemoteAsync(
                     nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
                     solution: null,
                     new object[] { sourceName, localSettingsDirectory },
-                    CancellationToken.None).ConfigureAwait(false);
-            }
+                    CancellationToken.None);
         }
 
         private class CallbackObject : ISymbolSearchLogService, ISymbolSearchProgressService

@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If castToOuterType.IsUserDefined OrElse expressionToCastType.IsUserDefined Then
                     Return (HaveSameUserDefinedConversion(expressionToCastType, expressionToOuterType) OrElse
                             HaveSameUserDefinedConversion(castToOuterType, expressionToOuterType)) AndAlso
-                           (UserDefinedConversionIsAllowed(_castNode, _semanticModel) AndAlso
+                           (UserDefinedConversionIsAllowed(_castNode) AndAlso
                             Not expressionToCastType.IsNarrowing)
                 ElseIf expressionToOuterType.IsUserDefined Then
                     Return False
@@ -346,7 +346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return conversion1.IsUserDefined AndAlso conversion2.IsUserDefined AndAlso conversion1.MethodSymbol.Equals(conversion2.MethodSymbol)
         End Function
 
-        Private Shared Function UserDefinedConversionIsAllowed(expression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
+        Private Shared Function UserDefinedConversionIsAllowed(expression As ExpressionSyntax) As Boolean
             expression = expression.WalkUpParentheses()
 
             Dim parentNode = expression.Parent

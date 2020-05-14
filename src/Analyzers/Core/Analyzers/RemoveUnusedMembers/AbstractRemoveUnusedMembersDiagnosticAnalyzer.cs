@@ -542,8 +542,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             AddDebuggerDisplayAttributeArguments(nestedType, builder);
                             break;
 
-                        case IPropertySymbol property:
-                        case IFieldSymbol field:
+                        case IPropertySymbol _:
+                        case IFieldSymbol _:
                             AddDebuggerDisplayAttributeArgumentsCore(member, builder);
                             break;
                     }

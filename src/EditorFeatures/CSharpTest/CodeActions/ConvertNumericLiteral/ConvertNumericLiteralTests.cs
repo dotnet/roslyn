@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
             => await TestMissingInRegularAndScriptAsync(CreateTreeText("[||]" + initial));
 
         private async Task TestFixOneAsync(string initial, string expected, Refactoring refactoring)
-            => await TestInRegularAndScriptAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), index: (int)refactoring);
+            => await TestInRegularAndScript1Async(CreateTreeText("[||]" + initial), CreateTreeText(expected), (int)refactoring);
 
         private static string CreateTreeText(string initial)
             => @"class X { void F() { var x = " + initial + @"; } }";

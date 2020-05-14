@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithNoParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(int someValue)
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithEscapeSequences()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(System.DateTime someValue)
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithVerbatimEscapeSequencesInsideVerbatimInterpolatedString()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(System.DateTime someValue)
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithVerbatimEscapeSequencesInsideNonVerbatimInterpolatedString()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(System.DateTime someValue)
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithNonVerbatimEscapeSequencesInsideVerbatimInterpolatedString()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(System.DateTime someValue)
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadLeftWithIntegerLiteral()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadRightWithIntegerLiteral()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadLeftWithComplexConstantExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadLeftWithSpaceChar()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadRightWithSpaceChar()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadRightWithComplexConstantExpressionRequiringParentheses()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithNoParameterWhenAlignmentComponentIsSpecified()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithoutFormatThenPadLeft()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadLeftThenToStringWithoutFormat()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadLeftThenToStringWithoutFormatWhenAlignmentComponentIsSpecified()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadLeftThenPadRight_WithoutAlignment()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -791,7 +791,7 @@ class Derived : Base
         [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
         public async Task PadLeftSimplificationIsStillOfferedOnBaseToString()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     public override string ToString() => $""Test: {base.ToString()[||].PadLeft(10)}"";
@@ -820,7 +820,7 @@ struct TypeNotImplementingIFormattable
         [Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")]
         public async Task FormatComponentSimplificationIsOfferedOnIFormattableType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -852,7 +852,7 @@ struct TypeImplementingIFormattable : IFormattable
         [Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")]
         public async Task ParameterlessToStringSimplificationIsStillOfferedOnNonIFormattableType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     string M(TypeNotImplementingIFormattable value) => $""Test: {value[||].ToString()}"";
@@ -876,7 +876,7 @@ struct TypeNotImplementingIFormattable
         [Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")]
         public async Task PadLeftSimplificationIsStillOfferedOnNonIFormattableType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     string M(TypeNotImplementingIFormattable value) => $""Test: {value.ToString(""a"")[||].PadLeft(10)}"";
@@ -915,7 +915,7 @@ ref struct RefStruct
         [Fact, WorkItem(42936, "https://github.com/dotnet/roslyn/issues/42936")]
         public async Task PadLeftSimplificationIsStillOfferedOnRefStruct()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     string M(RefStruct someValue) => $""Test: {someValue.ToString()[||].PadLeft(10)}"";

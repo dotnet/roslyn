@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public Task<ImmutableArray<ISymbol>> FindAsync(
-            SearchQuery query, IAssemblySymbol assembly, ProjectId assemblyProjectId, SymbolFilter filter, CancellationToken cancellationToken)
+            SearchQuery query, IAssemblySymbol assembly, SymbolFilter filter, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
@@ -540,7 +540,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             Debug.Assert(_inheritanceMap.Keys.Count == other._inheritanceMap.Keys.Count);
             var orderedKeys1 = this._inheritanceMap.Keys.Order().ToList();
-            var orderedKeys2 = other._inheritanceMap.Keys.Order().ToList();
 
             for (var i = 0; i < orderedKeys1.Count; i++)
             {

@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim accessibleMembers = New ImmutableArray(Of ISymbol)
             If memberGroup.Length > 0 Then
                 accessibleMembers = GetAccessibleMembers(invocationExpression, semanticModel, within, memberGroup, cancellationToken)
-                items.AddRange(GetMemberGroupItems(accessibleMembers, document, invocationExpression, semanticModel, cancellationToken))
+                items.AddRange(GetMemberGroupItems(accessibleMembers, document, invocationExpression, semanticModel))
             End If
 
             If expressionType.IsDelegateType() Then

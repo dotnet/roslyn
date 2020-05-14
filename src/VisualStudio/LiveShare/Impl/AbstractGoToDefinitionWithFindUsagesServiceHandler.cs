@@ -4,17 +4,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using Microsoft.VisualStudio.Shell;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
