@@ -16,6 +16,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.InternalUtilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
@@ -838,7 +839,6 @@ namespace Microsoft.Cci
         {
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
-            // TODO: Where to get source encoding
             var builder = new BlobBuilder();
             builder.WriteUTF8(compilerVersion);
             builder.WriteByte(0);
@@ -846,19 +846,18 @@ namespace Microsoft.Cci
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationOptions),
-                value: _debugMetadataOpt.GetOrAddBlob(builder.ToArray()));
+                value: _debugMetadataOpt.GetOrAddBlob(builder));
         }
 
         private void EmbedMetadataReferenceInformation(CommonPEModuleBuilder module)
         {
-            var bytes = new List<byte>();
+            var builder = new BlobBuilder();
 
-            // TODO: Get metadata reference information
-            // File name: Foo.exe
+            // Order of information
+            // File name (null terminated): Foo.exe
             // COFF header Timestamp field (4 bytes): 0x542d5742
             // COFF header SizeOfImage field (4 bytes): 0x32000000
             // MVID (Guid, 24 bytes): 0x24a44d8218894463807674caf3b1c19a
-            // Output: Foo.exe\0542d5742320000000024a44d8218894463807674caf3b1c19a
             foreach (var metadataReference in module.CommonCompilation.ExternalReferences)
             {
                 if (metadataReference is PortableExecutableReference portableReference && portableReference.FilePath is object)
@@ -866,31 +865,24 @@ namespace Microsoft.Cci
                     var path = PathUtilities.GetFileName(portableReference.FilePath);
 
                     // Write file name first
-                    var builder = new BlobBuilder();
                     builder.WriteUTF8(path);
                     // Make sure to add null terminator
                     builder.WriteByte(0);
 
+                    // TODO: This seems wrong. Is there a better way to get the PEReader from a portable reference? 
                     using var peStream = File.Open(portableReference.FilePath, FileMode.Open);
                     using var peReader = new PEReader(peStream);
 
-                    // Write timestamp from the COFF Header
-                    builder.WriteInt32(peReader.PEHeaders.CoffHeader.TimeDateStamp);
-
-                    // Write SizeOfImage field
-                    builder.WriteInt32(peReader.PEHeaders.PEHeader.SizeOfImage);
-
-                    // Write MVID
-                    var metadataReader = peReader.GetMetadataReader();
-                    var moduleDefinition = peReader.GetMetadataReader().GetModuleDefinition();
-                    builder.WriteGuid(metadataReader.GetGuid(moduleDefinition.Mvid));
+                    builder.WriteInt32(peReader.GetTimestamp());
+                    builder.WriteInt32(peReader.GetSizeOfImage());
+                    builder.WriteGuid(peReader.GetMvid());
                 }
             }
 
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.MetadataReferenceInfo),
-                value: _debugMetadataOpt.GetOrAddBlob(bytes.ToArray()));
+                value: _debugMetadataOpt.GetOrAddBlob(builder));
         }
     }
 }

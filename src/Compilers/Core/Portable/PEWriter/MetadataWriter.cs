@@ -1777,11 +1777,8 @@ namespace Microsoft.Cci
                     EmbedSourceLink(module.SourceLinkStreamOpt);
                 }
 
-                if (_deterministic)
-                {
-                    EmbedCompilationOptions(module);
-                    EmbedMetadataReferenceInformation(module);
-                }
+                EmbedCompilationOptions(module);
+                EmbedMetadataReferenceInformation(module);
             }
 
             int[] methodBodyOffsets;
