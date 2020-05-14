@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var sig = type.Signature;
 
             var (transformedReturnWithAnnotations, madeChanges) = handle(ref this, sig.RefKind, sig.RefCustomModifiers, sig.ReturnTypeWithAnnotations);
-            if (transformedReturnWithAnnotations is null)
+            if (transformedReturnWithAnnotations.IsDefault)
             {
                 return null;
             }
@@ -365,12 +365,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     foreach (var param in sig.Parameters)
                     {
                         var (transformedParamType, paramTransformed) = handle(ref this, param.RefKind, param.RefCustomModifiers, param.TypeWithAnnotations);
-                        if (transformedParamType is null)
+                        if (transformedParamType.IsDefault)
                         {
                             return null;
                         }
 
-                        paramsBuilder.Add(transformedParamType.Value);
+                        paramsBuilder.Add(transformedParamType);
                         paramsTransformed |= paramTransformed;
                     }
 
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (madeChanges)
             {
-                return type.SubstituteTypeSymbol(transformedReturnWithAnnotations.Value, transformedParameters,
+                return type.SubstituteTypeSymbol(transformedReturnWithAnnotations, transformedParameters,
                                                  refCustomModifiers: default, paramRefCustomModifiers: default);
             }
             else
@@ -393,19 +393,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return type;
             }
 
-            static (TypeWithAnnotations?, bool madeChanges) handle(ref DynamicTypeDecoder decoder, RefKind refKind, ImmutableArray<CustomModifier> refCustomModifiers, TypeWithAnnotations typeWithAnnotations)
+            static (TypeWithAnnotations, bool madeChanges) handle(ref DynamicTypeDecoder decoder, RefKind refKind, ImmutableArray<CustomModifier> refCustomModifiers, TypeWithAnnotations typeWithAnnotations)
             {
                 if (!decoder.HandleCustomModifiers(refCustomModifiers.Length)
                     || !decoder.HandleRefKind(refKind)
                     || !decoder.HandleCustomModifiers(typeWithAnnotations.CustomModifiers.Length))
                 {
-                    return (null, false);
+                    return (default, false);
                 }
 
                 var transformedType = decoder.TransformType(typeWithAnnotations.Type);
                 if (transformedType is null)
                 {
-                    return (null, false);
+                    return (default, false);
                 }
 
                 if (transformedType.Equals(typeWithAnnotations.Type, TypeCompareKind.ConsiderEverything))
