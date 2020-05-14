@@ -23,6 +23,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public partial class PortablePdbTests
     {
+        private class TestMetadataReferenceInfo
+        {
+            public readonly Compilation Compilation;
+            public readonly TestMetadataReference MetadataReference;
+            public int Timestamp;
+            public int SizeOfImage;
+            public Guid Mvid;
+            public string Name;
+
+            public TestMetadataReferenceInfo(string code, string fullPath)
+            {
+                Compilation = CreateCompilation(code, options: TestOptions.DebugDll);
+                using var referenceStream = Compilation.EmitToStream(EmitOptions.Default);
+
+                var metadata = AssemblyMetadata.CreateFromStream(referenceStream);
+                MetadataReference = new TestMetadataReference(metadata, fullPath: fullPath);
+
+                using var peReader = new PEReader(referenceStream);
+                Timestamp = peReader.GetTimestamp();
+                SizeOfImage = peReader.GetSizeOfImage();
+                Mvid = peReader.GetMvid();
+                Name = PathUtilities.GetFileName(fullPath);
+            }
+        }
         static BlobReader GetSingleBlob(Guid infoGuid, MetadataReader pdbReader)
         {
             return (from cdiHandle in pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
@@ -91,15 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         [Fact]
         public void PortablePdb_DeterministicCompilation1()
         {
-            var referenceCompilation = CreateCompilation(
-    @"public struct StructWithReference
-{
-    string PrivateData;
-}
-public struct StructWithValue
-{
-    int PrivateData;
-}", options: TestOptions.DebugDll);
 
             string source = @"
 using System;
@@ -112,15 +127,19 @@ class C
     }
 }
 ";
-
-            using var referenceStream = referenceCompilation.EmitToStream(EmitOptions.Default);
-
-            var metadata = AssemblyMetadata.CreateFromStream(referenceStream);
-            using var referencePEReader = new PEReader(referenceStream);
+            var reference = new TestMetadataReferenceInfo(
+@"public struct StructWithReference
+{
+    string PrivateData;
+}
+public struct StructWithValue
+{
+    int PrivateData;
+}", fullPath: "abcd.dll");
 
             var originalCompilation = CreateCompilation(
                 Parse(source, "goo.cs"),
-                references: new[] { new TestMetadataReference(metadata, fullPath: "abcd.dll") },
+                references: new[] { reference.MetadataReference },
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             var originalCompilationOptions = originalCompilation.Options;
@@ -162,10 +181,10 @@ class C
                     //Assert.Equal("", compilerFlags["sourceencoding"]);
 
                     // Check the metadata references
-                    Assert.Equal(referencePEReader.GetTimestamp(), timestamp);
-                    Assert.Equal(referencePEReader.GetSizeOfImage(), imageSize);
-                    Assert.Equal("abcd.dll", name);
-                    Assert.Equal(referencePEReader.GetMvid(), mvid);
+                    Assert.Equal(reference.Timestamp, timestamp);
+                    Assert.Equal(reference.SizeOfImage, imageSize);
+                    Assert.Equal(reference.Name, name);
+                    Assert.Equal(reference.Mvid, mvid);
                 }
             }
         }
