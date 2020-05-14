@@ -782,6 +782,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NetModulesNeedDesktop)]
         public void MultipleNetmodules()
         {
+            var moduleOptions = TestOptions.ReleaseModule.WithMetadataImportOptions(MetadataImportOptions.All);
             var s1 = @"
 using System;
 using System.Runtime.CompilerServices;
@@ -796,9 +797,10 @@ public class A
 }
 
 namespace System.Runtime.CompilerServices { public class ModuleInitializerAttribute : System.Attribute { } }";
-            var comp1 = CreateCompilation(s1, options: TestOptions.ReleaseModule.WithModuleName("A"), parseOptions: s_parseOptions);
+            var comp1 = CreateCompilation(s1, options: moduleOptions.WithModuleName("A"), parseOptions: s_parseOptions);
             comp1.VerifyDiagnostics();
             var ref1 = comp1.EmitToImageReference();
+            CompileAndVerify(comp1, symbolValidator: validateModuleInitializer, verify: Verification.Skipped);
 
             var s2 = @"
 using System;
@@ -812,10 +814,14 @@ public class B
         Console.Write(2);
     }
 }";
-            var comp2 = CreateCompilation(s2, options: TestOptions.ReleaseModule.WithModuleName("B"), parseOptions: s_parseOptions, references: new[] { ref1 });
+            var comp2 = CreateCompilation(s2, options: moduleOptions.WithModuleName("B"), parseOptions: s_parseOptions, references: new[] { ref1 });
             comp2.VerifyDiagnostics();
             var ref2 = comp2.EmitToImageReference();
+            CompileAndVerify(comp2, symbolValidator: validateModuleInitializer, verify: Verification.Skipped);
 
+            var exeOptions = TestOptions.ReleaseExe
+                .WithMetadataImportOptions(MetadataImportOptions.All)
+                .WithModuleName("C");
             var s3 = @"
 using System;
 
@@ -826,9 +832,9 @@ public class Program
         Console.Write(3);
     }
 }";
-            var comp3 = CreateCompilation(s3, options: TestOptions.ReleaseExe.WithModuleName("C"), parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
+            var comp3 = CreateCompilation(s3, options: exeOptions, parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
             comp3.VerifyDiagnostics();
-            CompileAndVerify(comp3, expectedOutput: "3");
+            CompileAndVerify(comp3, symbolValidator: validateNoModuleInitializer, expectedOutput: "3");
 
             var s4 = @"
 using System;
@@ -842,9 +848,9 @@ public class Program
         Console.Write(3);
     }
 }";
-            var comp4 = CreateCompilation(s4, options: TestOptions.ReleaseExe.WithModuleName("C"), parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
+            var comp4 = CreateCompilation(s4, options: exeOptions, parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
             comp4.VerifyDiagnostics();
-            CompileAndVerify(comp4, expectedOutput: "123");
+            CompileAndVerify(comp4, symbolValidator: validateNoModuleInitializer, expectedOutput: "123");
 
             var s5 = @"
 using System;
@@ -858,10 +864,10 @@ public class Program
         new A();
     }
 }";
-            var comp5 = CreateCompilation(s5, options: TestOptions.ReleaseExe.WithModuleName("C"), parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
+            var comp5 = CreateCompilation(s5, options: exeOptions, parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
             comp5.VerifyDiagnostics();
             // This order seems surprising, but is likely related to the order in which types are loaded when a method is called.
-            CompileAndVerify(comp5, expectedOutput: "213");
+            CompileAndVerify(comp5, symbolValidator: validateNoModuleInitializer, expectedOutput: "213");
 
             var s6 = @"
 using System;
@@ -874,9 +880,67 @@ public class Program
         Console.Write(3);
     }
 }";
-            var comp6 = CreateCompilation(s6, options: TestOptions.ReleaseExe.WithModuleName("C"), parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
+            var comp6 = CreateCompilation(s6, options: exeOptions, parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
             comp6.VerifyDiagnostics();
-            CompileAndVerify(comp6, expectedOutput: "13");
+            CompileAndVerify(comp6, symbolValidator: validateNoModuleInitializer, expectedOutput: "13");
+
+            var s7 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class Program
+{
+    [ModuleInitializer]
+    public static void Init()
+    {
+        Console.Write(1);
+    }
+
+    public static void Main(string[] args)
+    {
+        new B();
+        Console.Write(3);
+    }
+}";
+            var comp7 = CreateCompilation(s7, options: exeOptions, parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
+            comp7.VerifyDiagnostics();
+            CompileAndVerify(comp7, symbolValidator: validateModuleInitializer, expectedOutput: "123");
+
+            var s8 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class Program
+{
+    [ModuleInitializer]
+    public static void Init()
+    {
+        Console.Write(0);
+        new A();
+    }
+
+    public static void Main(string[] args)
+    {
+        new A();
+        new B();
+        Console.Write(3);
+    }
+}";
+            var comp8 = CreateCompilation(s8, options: exeOptions, parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
+            comp8.VerifyDiagnostics();
+            CompileAndVerify(comp8, symbolValidator: validateModuleInitializer, expectedOutput: "1023");
+
+            void validateModuleInitializer(ModuleSymbol module)
+            {
+                var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                Assert.NotNull(moduleType.GetMember<MethodSymbol>(".cctor"));
+            }
+
+            void validateNoModuleInitializer(ModuleSymbol module)
+            {
+                var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                Assert.Null(moduleType.GetMember<MethodSymbol>(".cctor"));
+            }
         }
     }
 }
