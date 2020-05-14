@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return;
             }
 
-            var (charBucketLabelsMap, charTemp) = EmitCharJumpTable(groupedByChar, charIndex, length);
+            var charBucketLabelsMap = EmitCharJumpTable(groupedByChar, charIndex, length);
 
             if (charIndex == length - 1)
                 return;
@@ -242,8 +242,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 EmitTrieSwitchPart(subBucket, charIndex + 1, length);
             }
-
-            FreeTemp(charTemp);
         }
 
         private void EmitTestForContinuousSequenceOfSingleValidChars(Bucket bucket, Range range)
@@ -291,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return dictionary;
         }
 
-        private (Dictionary<char, object>? labelsMap, LocalDefinition?) EmitCharJumpTable(Dictionary<char, Bucket> groupedByChar, int charIndex, int length)
+        private Dictionary<char, object>? EmitCharJumpTable(Dictionary<char, Bucket> groupedByChar, int charIndex, int length)
         {
             int count = groupedByChar.Count;
 
@@ -333,7 +331,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             charBucketJumpTableEmitter.EmitJumpTable();
 
-            return (charBucketLabelsMap, charTemp);
+            FreeTemp(charTemp);
+            return charBucketLabelsMap;
         }
 
         private void FreeTemp(LocalDefinition? temp)

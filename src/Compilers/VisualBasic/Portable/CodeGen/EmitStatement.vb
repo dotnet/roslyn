@@ -1087,56 +1087,6 @@ OtherExpressions:
         End Sub
 
         Private Sub EmitStringSwitchJumpTable(caseLabels As KeyValuePair(Of ConstantValue, Object)(), fallThroughLabel As LabelSymbol, key As LocalDefinition, syntaxNode As SyntaxNode)
-            Dim genHashTableSwitch As Boolean = SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(_module, caseLabels.Length)
-            Dim keyHash As LocalDefinition = Nothing
-
-            If genHashTableSwitch Then
-                Debug.Assert(_module.SupportsPrivateImplClass)
-                Dim privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics)
-                Dim stringHashMethodRef As Microsoft.Cci.IReference = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName)
-                Debug.Assert(stringHashMethodRef IsNot Nothing)
-
-                ' static uint ComputeStringHash(string s)
-                ' pop 1 (s)
-                ' push 1 (uint return value)
-                ' stackAdjustment = (pushCount - popCount) = 0
-
-                _builder.EmitLocalLoad(key)
-                _builder.EmitOpCode(ILOpCode.[Call], stackAdjustment:=0)
-                _builder.EmitToken(stringHashMethodRef, syntaxNode, _diagnostics)
-
-                Dim UInt32Type = DirectCast(_module.GetSpecialType(SpecialType.System_UInt32, syntaxNode, _diagnostics), TypeSymbol)
-                keyHash = AllocateTemp(UInt32Type, syntaxNode)
-
-                _builder.EmitLocalStore(keyHash)
-            End If
-
-            ' Prefer embedded version of the member if present
-            Dim embeddedOperatorsType As NamedTypeSymbol = Me._module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators)
-            Dim compareStringMember As WellKnownMember =
-                If(embeddedOperatorsType.IsErrorType AndAlso TypeOf embeddedOperatorsType Is MissingMetadataTypeSymbol,
-                   WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__CompareStringStringStringBoolean,
-                   WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean)
-
-            Dim stringCompareMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(compareStringMember), MethodSymbol)
-            Dim stringCompareMethodRef As Cci.IReference = Me._module.Translate(stringCompareMethod, needDeclaration:=False, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics)
-
-            Dim compareDelegate As SwitchStringJumpTableEmitter.EmitStringCompareAndBranch =
-                Sub(keyArg, stringConstant, targetLabel)
-                    EmitStringCompareAndBranch(keyArg, syntaxNode, stringConstant, targetLabel, stringCompareMethodRef)
-                End Sub
-
-            _builder.EmitStringSwitchJumpTable(
-                            caseLabels,
-                            fallThroughLabel,
-                            key,
-                            keyHash,
-                            compareDelegate,
-                            AddressOf SynthesizedStringSwitchHashMethod.ComputeStringHash)
-
-            If keyHash IsNot Nothing Then
-                FreeTemp(keyHash)
-            End If
         End Sub
 
         ''' <summary>

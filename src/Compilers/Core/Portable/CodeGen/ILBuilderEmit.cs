@@ -238,16 +238,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
             LocalOrParameter key,
-            SwitchStringJumpTableEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate,
+            SwitchStringEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate,
             Action? emitPushKeyLength,
             Func<LocalDefinition>? emitStoreKeyLength,
             Action<int>? emitPushCharAtIndex,
             Func<int, LocalDefinition>? emitStoreCharAtIndex,
-            SwitchStringJumpTableEmitter.EmitSpanStringCompareAndBranch? emitSpanStringCompare)
+            SwitchStringEmitter.EmitSpanStringCompareAndBranch? emitSpanStringCompare)
         {
             Debug.Assert(caseLabels.Length > 0);
 
-            var emitter = new SwitchStringJumpTableEmitter(
+            var emitter = new SwitchStringEmitter(
                 this,
                 key,
                 caseLabels,
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 emitStoreCharAtIndex,
                 emitSpanStringCompare);
 
-            emitter.EmitJumpTable();
+            emitter.EmitSwitch();
         }
 
         /// <summary>

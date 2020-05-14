@@ -1201,8 +1201,8 @@ oneMoreTime:
             Action<int> emitPushCharAtIndex = null;
             Func<int, LocalDefinition> emitStoreCharAtIndex = null;
 
-            SwitchStringJumpTableEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate = null;
-            SwitchStringJumpTableEmitter.EmitSpanStringCompareAndBranch emitSpanStringCompare = null;
+            SwitchStringEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate = null;
+            SwitchStringEmitter.EmitSpanStringCompareAndBranch emitSpanStringCompare = null;
 
             Cci.IMethodReference stringLengthRef = null;
             var stringLengthMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
@@ -1218,7 +1218,7 @@ oneMoreTime:
                 stringIndexRef = _module.Translate(stringIndexMethod, null, _diagnostics);
             }
 
-            if (SwitchStringJumpTableEmitter.ShouldGenerateTrieSwitch(switchCaseLabels.Length) && stringLengthRef != null && stringIndexRef != null)
+            if (SwitchStringEmitter.ShouldGenerateTrieSwitch(switchCaseLabels.Length) && stringLengthRef != null && stringIndexRef != null)
             {
                 emitPushKeyLength = () =>
                 {

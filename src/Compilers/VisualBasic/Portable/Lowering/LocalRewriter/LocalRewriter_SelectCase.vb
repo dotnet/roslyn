@@ -109,12 +109,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 statementBuilder.Add(rewrittenSelectExprStmt)
 
             ElseIf recommendSwitchTable Then
-                If rewrittenSelectExpression.Type.IsStringType Then
-                    ' If we are emitting a hash table based string switch, then we need to create a
-                    ' SynthesizedStringSwitchHashMethod and add it to the compiler generated <PrivateImplementationDetails> class.
-                    EnsureStringHashFunction(node)
-                End If
-
                 statementBuilder.Add(node.Update(rewrittenSelectExprStmt, exprPlaceholderOpt, VisitList(caseBlocks), recommendSwitchTable:=True, exitLabel:=exitLabel))
 
             Else
@@ -151,46 +145,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return New BoundBlock(syntaxNode, Nothing, tempLocals, statementBuilder.ToImmutableAndFree()).MakeCompilerGenerated()
         End Function
-
-        Private Sub EnsureStringHashFunction(node As BoundSelectStatement)
-            Dim selectCaseExpr = node.ExpressionStatement.Expression
-
-            ' Prefer embedded version of the member if present
-            Dim embeddedOperatorsType As NamedTypeSymbol = Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators)
-            Dim compareStringMember As WellKnownMember =
-                If(embeddedOperatorsType.IsErrorType AndAlso TypeOf embeddedOperatorsType Is MissingMetadataTypeSymbol,
-                   WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__CompareStringStringStringBoolean,
-                   WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean)
-
-            Dim compareStringMethod = DirectCast(Compilation.GetWellKnownTypeMember(compareStringMember), MethodSymbol)
-            Me.ReportMissingOrBadRuntimeHelper(selectCaseExpr, compareStringMember, compareStringMethod)
-
-            Const stringCharsMember As SpecialMember = SpecialMember.System_String__Chars
-            Dim stringCharsMethod = DirectCast(ContainingAssembly.GetSpecialTypeMember(stringCharsMember), MethodSymbol)
-            Me.ReportMissingOrBadRuntimeHelper(selectCaseExpr, stringCharsMember, stringCharsMethod)
-
-            Me.ReportBadType(selectCaseExpr, Compilation.GetSpecialType(SpecialType.System_Int32))
-            Me.ReportBadType(selectCaseExpr, Compilation.GetSpecialType(SpecialType.System_UInt32))
-            Me.ReportBadType(selectCaseExpr, Compilation.GetSpecialType(SpecialType.System_String))
-
-            If _emitModule Is Nothing Then
-                Return
-            End If
-
-            If Not ShouldGenerateHashTableSwitch(_emitModule, node) Then
-                Return
-            End If
-
-            ' If we have already generated this helper method, possibly for another select case
-            ' or on another thread, we don't need to regenerate it.
-            Dim privateImplClass = _emitModule.GetPrivateImplClass(node.Syntax, _diagnostics)
-            If privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName) IsNot Nothing Then
-                Return
-            End If
-
-            Dim method = New SynthesizedStringSwitchHashMethod(_emitModule.SourceModule, privateImplClass)
-            privateImplClass.TryAddSynthesizedMethod(method)
-        End Sub
 
         Private Function RewriteSelectExpression(
             generateUnstructuredExceptionHandlingResumeCode As Boolean,
@@ -338,51 +292,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        ' Checks whether we are generating a hash table based string switch
-        Private Shared Function ShouldGenerateHashTableSwitch([module] As Microsoft.CodeAnalysis.VisualBasic.Emit.PEModuleBuilder, node As BoundSelectStatement) As Boolean
-            Debug.Assert(Not node.HasErrors)
-            Debug.Assert(node.ExpressionStatement.Expression.Type.IsStringType)
-            Debug.Assert(node.RecommendSwitchTable)
-
-            If Not [module].SupportsPrivateImplClass Then
-                Return False
-            End If
-
-            ' compute unique string constants from select clauses.
-            Dim uniqueStringConstants = New HashSet(Of ConstantValue)
-
-            For Each caseBlock In node.CaseBlocks
-                For Each caseClause In caseBlock.CaseStatement.CaseClauses
-                    Dim constant As ConstantValue = Nothing
-                    Select Case caseClause.Kind
-                        Case BoundKind.SimpleCaseClause
-                            Dim simpleCaseClause = DirectCast(caseClause, BoundSimpleCaseClause)
-
-                            Debug.Assert(simpleCaseClause.ValueOpt IsNot Nothing)
-                            Debug.Assert(simpleCaseClause.ConditionOpt Is Nothing)
-
-                            constant = simpleCaseClause.ValueOpt.ConstantValueOpt
-
-                        Case BoundKind.RelationalCaseClause
-                            Dim relationalCaseClause = DirectCast(caseClause, BoundRelationalCaseClause)
-
-                            Debug.Assert(relationalCaseClause.OperatorKind = BinaryOperatorKind.Equals)
-                            Debug.Assert(relationalCaseClause.ValueOpt IsNot Nothing)
-                            Debug.Assert(relationalCaseClause.ConditionOpt Is Nothing)
-
-                            constant = relationalCaseClause.ValueOpt.ConstantValueOpt
-
-                        Case Else
-                            Throw ExceptionUtilities.UnexpectedValue(caseClause.Kind)
-                    End Select
-
-                    Debug.Assert(constant IsNot Nothing)
-                    uniqueStringConstants.Add(constant)
-                Next
-            Next
-
-            Return SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch([module], uniqueStringConstants.Count)
-        End Function
 
         Public Overrides Function VisitCaseBlock(node As BoundCaseBlock) As BoundNode
             Dim rewritten = DirectCast(MyBase.VisitCaseBlock(node), BoundCaseBlock)
