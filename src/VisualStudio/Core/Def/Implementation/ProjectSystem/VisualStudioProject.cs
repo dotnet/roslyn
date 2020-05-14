@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.PlatformUI;
 using Roslyn.Utilities;
@@ -67,6 +68,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string? _outputFilePath;
         private string? _outputRefFilePath;
         private string? _defaultNamespace;
+
+        /// <summary>
+        /// We store if this is a primary project or not as a tri-state.  Only <see langword="false"/> means that it's
+        /// not a primary project.  This way, if the value hasn't been set, or is never set, we still consider the
+        /// project to be a primary one.
+        /// </summary>
+        private bool? _isPrimary;
 
         // Actual property values for 'RunAnalyzers' and 'RunAnalyzersDuringLiveAnalysis' properties from the project file.
         // Both these properties can be used to configure running analyzers, with RunAnalyzers overriding RunAnalyzersDuringLiveAnalysis.
@@ -287,6 +295,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             get => _hasAllInformation;
             set => ChangeProjectProperty(ref _hasAllInformation, value, s => s.WithHasAllInformation(Id, value));
+        }
+
+        internal bool IsPrimary
+        {
+            get => _isPrimary != false;
+            set => _isPrimary = value;
         }
 
         internal bool? RunAnalyzers

@@ -46,6 +46,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             set => _visualStudioProject.FilePath = value;
         }
 
+        public bool IsPrimary
+        {
+            get => _visualStudioProject.IsPrimary;
+            set => _visualStudioProject.IsPrimary = value;
+        }
+
         public Guid Guid
         {
             get;
