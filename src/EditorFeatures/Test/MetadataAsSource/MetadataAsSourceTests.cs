@@ -2627,5 +2627,49 @@ public class TestType
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
             context.VerifyResult(metadataAsSourceFile, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestDynamic1()
+        {
+            var metadata = @"
+using System;
+
+public class TestType
+{
+    public void M1(dynamic s)
+    {
+    }
+}";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M()
+    {
+        var obj = new TestType().[|M1|](null);
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public class TestType
+{{
+    public TestType();
+
+    public void [|M1|](dynamic s);
+}}";
+
+            using var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp8",
+                sourceWithSymbolReference: sourceWithSymbolReference,
+                metadataLanguageVersion: "CSharp8");
+
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
+        }
     }
 }

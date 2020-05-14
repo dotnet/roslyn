@@ -93,8 +93,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var name = attrClass.Name;
 
-            if (name != "NullableAttribute" && name != "NullableContextAttribute" && name != "NativeIntegerAttribute")
+            if (name != "NullableAttribute" &&
+                name != "NullableContextAttribute" &&
+                name != "NativeIntegerAttribute" &&
+                name != "DynamicAttribute")
+            {
                 return false;
+            }
 
             var ns = attrClass.ContainingNamespace;
             return ns?.Name == nameof(System.Runtime.CompilerServices) &&
