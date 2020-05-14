@@ -67,11 +67,16 @@ MVID: `0x24a44d8218894463807674caf3b1c19a`
 
 #### Key Value Pairs
 
-The remaining values will be stored as key value pairs in the pdb. The storage format will be UTF8 encoded key value pairs that are null terminated. These are the known keys that will be used:
+The remaining values will be stored as key value pairs in the pdb. The storage format will be UTF8 encoded key value pairs that are null terminated. Order is not guaranteed. Any values left out can be assumed to be the default for the type.
+
+These are the known keys that will be used
 
 1. "compilerversion" : string
 2. "sourceencoding" : string
+3. "checked" : bool
+4. "unsafe" : bool
+5. "langversion" : string
+6. "nullable" : string
+7. "define" : string
 
-Example:
-
-`compilerversion\01.2.3\0sourceencoding\0utf-8`
+`compilerversion\01.2.3\0sourceencoding\0utf-8\0checked\01\0unsafe\01\0langversion\0latest\0nullable\0enable`

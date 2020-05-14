@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -837,16 +838,54 @@ namespace Microsoft.Cci
 
         private void EmbedCompilationOptions(CommonPEModuleBuilder module)
         {
-            var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
             var builder = new BlobBuilder();
-            builder.WriteUTF8(compilerVersion);
-            builder.WriteByte(0);
+
+            // compilerversion
+            var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            WriteValue("compilerversion", compilerVersion);
+
+            var compilationOptions = module.CommonCompilation.Options;
+
+            // TODO: source encoding 
+
+            // checked
+            WriteValue("checked", compilationOptions.CheckOverflow.ToString());
+
+            // TODO: unsafe
+
+            // TODO: langversion
+
+            // nullable
+            string nullable;
+            if (compilationOptions.NullableContextOptions.AnnotationsEnabled())
+            {
+                nullable = compilationOptions.NullableContextOptions.WarningsEnabled()
+                    ? "enable"
+                    : "annotations";
+            }
+            else
+            {
+                nullable = compilationOptions.NullableContextOptions.WarningsEnabled()
+                    ? "warnings"
+                    : "disable";
+            }
+            WriteValue("nullable", nullable);
+
+            // TODO: define
 
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationOptions),
                 value: _debugMetadataOpt.GetOrAddBlob(builder));
+
+            void WriteValue(string key, string value)
+            {
+                builder.WriteUTF8(key);
+                builder.WriteByte(0);
+                builder.WriteUTF8(value);
+                builder.WriteByte(0);
+            }
         }
 
         private void EmbedMetadataReferenceInformation(CommonPEModuleBuilder module)
