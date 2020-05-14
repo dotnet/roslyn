@@ -5873,12 +5873,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
-<System.Runtime.CompilerServices.ModuleInitializerAttribute>
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-]]></expected>)
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
         End Sub
 
         <Fact>
@@ -5910,12 +5905,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
-    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-]]></expected>)
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
         End Sub
 
         <Fact>
@@ -5978,12 +5968,7 @@ End Namespace
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
-<Module: System.Runtime.CompilerServices.ModuleInitializerAttribute>
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-]]></expected>)
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
         End Sub
 
         <Fact>
@@ -6005,12 +5990,7 @@ End Namespace
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
-<Assembly: System.Runtime.CompilerServices.ModuleInitializerAttribute>
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-]]></expected>)
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
         End Sub
 
         <Fact>
@@ -6035,12 +6015,7 @@ End Enum
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
-<System.Runtime.CompilerServices.ModuleInitializerAttribute>
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-]]></expected>)
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
         End Sub
 
         <Fact>
@@ -6067,15 +6042,7 @@ End Enum
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
-    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
-    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-]]></expected>)
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
         End Sub
 
         <Fact>
@@ -6100,12 +6067,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
-    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-]]></expected>)
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
         End Sub
 
         <Fact>
@@ -6130,12 +6092,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
-    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-]]></expected>)
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
         End Sub
 
         <Fact>
@@ -6159,12 +6116,7 @@ End Interface
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
-<System.Runtime.CompilerServices.ModuleInitializerAttribute>
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-]]></expected>)
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
         End Sub
 
         <Fact>
@@ -6188,12 +6140,7 @@ End Structure
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
-<System.Runtime.CompilerServices.ModuleInitializerAttribute>
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-]]></expected>)
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
         End Sub
 
         <Fact>
@@ -6249,12 +6196,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
-    Sub M(<System.Runtime.CompilerServices.ModuleInitializerAttribute> ByVal i As Integer)
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-]]></expected>)
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
         End Sub
 
         <Fact>
@@ -6279,12 +6221,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
-    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-]]></expected>)
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
         End Sub
 
 #End Region

@@ -1572,6 +1572,10 @@ lReportErrorOnTwoTokens:
                 arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
+            If arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.ModuleInitializerAttribute) Then
+                arguments.Diagnostics.Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.ModuleInitializerAttribute.FullName)
+            End If
+
             If arguments.SymbolPart = AttributeLocation.Return Then
                 ' Decode well-known attributes applied to return value
 
