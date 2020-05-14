@@ -260,7 +260,7 @@ jobs:
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   variables:
     EnableRichCodeNavigation: true
-  timeoutInMinutes: 300
+  timeoutInMinutes: 200
 
   steps:
     - script: eng/cibuild.cmd -configuration Debug -prepareMachine
