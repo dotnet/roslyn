@@ -5873,7 +5873,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
+            CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
         <Fact>
@@ -5905,7 +5905,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
+            CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
         <Fact>
@@ -5968,7 +5968,7 @@ End Namespace
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
+            CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
         <Fact>
@@ -5990,7 +5990,7 @@ End Namespace
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
+            CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
         <Fact>
@@ -6015,7 +6015,7 @@ End Enum
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
+            CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
         <Fact>
@@ -6042,7 +6042,7 @@ End Enum
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
+            CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
         <Fact>
@@ -6067,7 +6067,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
+            CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
         <Fact>
@@ -6092,7 +6092,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
+            CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
         <Fact>
@@ -6116,7 +6116,7 @@ End Interface
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
+            CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
         <Fact>
@@ -6140,7 +6140,7 @@ End Structure
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
+            CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
         <Fact>
@@ -6166,12 +6166,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
-    Function F() As <System.Runtime.CompilerServices.ModuleInitializerAttribute> Integer
-                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-]]></expected>)
+            CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
         <Fact>
@@ -6196,7 +6191,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
+            CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
         <Fact>
@@ -6221,7 +6216,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source)
 
-            CompilationUtils.AssertTheseDiagnostics(comp, <expected></expected>)
+            CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
 #End Region

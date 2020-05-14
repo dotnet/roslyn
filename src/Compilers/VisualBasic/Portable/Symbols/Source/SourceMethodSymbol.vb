@@ -1572,10 +1572,6 @@ lReportErrorOnTwoTokens:
                 arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
-            If arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.ModuleInitializerAttribute) Then
-                arguments.Diagnostics.Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.ModuleInitializerAttribute.FullName)
-            End If
-
             If arguments.SymbolPart = AttributeLocation.Return Then
                 ' Decode well-known attributes applied to return value
 
@@ -1725,6 +1721,8 @@ lReportErrorOnTwoTokens:
                 End If
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.ObsoleteAttribute) Then
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.DeprecatedAttribute) Then
+            ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.ModuleInitializerAttribute) Then
+                arguments.Diagnostics.Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.ModuleInitializerAttribute.FullName)
             Else
                 Dim methodImpl As MethodSymbol = If(Me.IsPartial, PartialImplementationPart, Me)
 
