@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -899,21 +900,28 @@ namespace Microsoft.Cci
             {
                 if (metadataReference is PortableExecutableReference portableReference && portableReference.FilePath is object)
                 {
-                    var path = PathUtilities.GetFileName(portableReference.FilePath);
+                    var fileName = PathUtilities.GetFileName(portableReference.FilePath);
 
                     // Write file name first
-                    builder.WriteUTF8(path);
+                    builder.WriteUTF8(fileName);
                     // Make sure to add null terminator
                     builder.WriteByte(0);
 
-                    // TODO: This seems wrong. Is there a better way to get the PEReader from a portable reference? 
-                    using var peStream = File.Open(portableReference.FilePath, FileMode.Open);
-                    using var peReader = new PEReader(peStream);
+                    var reference = module.CommonCompilation.GetAssemblyOrModuleSymbol(portableReference);
+                    var peReader = GetReader(reference);
 
                     builder.WriteInt32(peReader.GetTimestamp());
                     builder.WriteInt32(peReader.GetSizeOfImage());
                     builder.WriteGuid(peReader.GetMvid());
                 }
+
+                PEReader GetReader(ISymbol symbol)
+                 => symbol switch
+                 {
+                     IAssemblySymbol assemblySymbol => assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt,
+                     IModuleSymbol moduleSymbol => moduleSymbol.GetMetadata().Module.PEReaderOpt,
+                     _ => throw new Exception()
+                 };
             }
 
             _debugMetadataOpt.AddCustomDebugInformation(

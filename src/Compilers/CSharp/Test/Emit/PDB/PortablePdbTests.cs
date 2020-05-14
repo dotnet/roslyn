@@ -37,60 +37,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         // Move this to a central location?
         static unsafe (int timestamp, int imageSize, string name, Guid mvid) ParseMetadataReferenceInfo(byte[] metadataReferenceBytes)
         {
-            var blobReader = new BlobReader((byte*)metadataReferenceBytes[0], metadataReferenceBytes.Length);
+            fixed (byte* metadataReferenceBytesPtr = &metadataReferenceBytes[0])
+            {
+                var blobReader = new BlobReader(metadataReferenceBytesPtr, metadataReferenceBytes.Length);
 
-            // Name is first. UTF8 encoded null-terminated string
-            var terminatorIndex = metadataReferenceBytes.IndexOf((byte)0);
-            Assert.NotEqual(-1, terminatorIndex);
+                // Name is first. UTF8 encoded null-terminated string
+                var terminatorIndex = metadataReferenceBytes.IndexOf((byte)0);
+                Assert.NotEqual(-1, terminatorIndex);
 
-            var name = blobReader.ReadUTF8(terminatorIndex);
+                var name = blobReader.ReadUTF8(terminatorIndex);
 
-            // Skip the null terminator
-            blobReader.ReadByte();
+                // Skip the null terminator
+                blobReader.ReadByte();
 
-            var timestamp = blobReader.ReadInt32();
-            var imageSize = blobReader.ReadInt32();
-            var mvid = blobReader.ReadGuid();
+                var timestamp = blobReader.ReadInt32();
+                var imageSize = blobReader.ReadInt32();
+                var mvid = blobReader.ReadGuid();
 
-            Assert.Equal(0, blobReader.RemainingBytes);
+                Assert.Equal(0, blobReader.RemainingBytes);
 
-            return (timestamp, imageSize, name, mvid);
+                return (timestamp, imageSize, name, mvid);
+            }
         }
 
         // Move this to a central location?
         static unsafe ImmutableDictionary<string, string> ParserCompilerFlags(byte[] compilerFlagBytes)
         {
-            var blobReader = new BlobReader((byte*)compilerFlagBytes[0], compilerFlagBytes.Length);
-
-            // Compiler flag bytes are UTF-8 null-terminated key-value pairs
-            string key = null;
-            Dictionary<string, string> kvp = new Dictionary<string, string>();
-            for (int i = 0, start = 0; i < compilerFlagBytes.Length; i++)
+            fixed (byte* compilerFlagBytesPtr = &compilerFlagBytes[0])
             {
-                if (compilerFlagBytes[i] == 0)
+                var blobReader = new BlobReader(compilerFlagBytesPtr, compilerFlagBytes.Length);
+
+                // Compiler flag bytes are UTF-8 null-terminated key-value pairs
+                string key = null;
+                Dictionary<string, string> kvp = new Dictionary<string, string>();
+                for (int i = 0, start = 0; i < compilerFlagBytes.Length; i++)
                 {
-                    var value = blobReader.ReadUTF8(i - start);
-
-                    // Skip the null terminator
-                    blobReader.ReadByte();
-
-                    if (key is null)
+                    if (compilerFlagBytes[i] == 0)
                     {
-                        key = value;
-                    }
-                    else
-                    {
-                        kvp[key] = value;
-                        key = null;
-                    }
+                        var value = blobReader.ReadUTF8(i - start);
 
-                    start = i + 1;
+                        // Skip the null terminator
+                        blobReader.ReadByte();
+
+                        if (key is null)
+                        {
+                            key = value;
+                        }
+                        else
+                        {
+                            kvp[key] = value;
+                            key = null;
+                        }
+
+                        start = i + 1;
+                    }
                 }
-            }
 
-            Assert.Null(key);
-            Assert.Equal(0, blobReader.RemainingBytes);
-            return kvp.ToImmutableDictionary();
+                Assert.Null(key);
+                Assert.Equal(0, blobReader.RemainingBytes);
+                return kvp.ToImmutableDictionary();
+            }
         }
 
         [Fact]
@@ -305,15 +311,14 @@ class C
 }
 ";
 
-            var emitResult = referenceCompilation.Emit("reference.dll");
-            Assert.True(emitResult.Success);
+            using var referenceStream = referenceCompilation.EmitToStream(EmitOptions.Default);
 
-            using var referenceStream = File.OpenRead("reference.dll");
+            var metadata = AssemblyMetadata.CreateFromStream(referenceStream);
             using var referencePEReader = new PEReader(referenceStream);
 
             var originalCompilation = CreateCompilation(
                 Parse(source, "goo.cs"),
-                references: new[] { new TestMetadataReference(fullPath: "reference.dll") },
+                references: new[] { new TestMetadataReference(metadata, fullPath: "abcd.dll") },
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             var originalCompilationOptions = originalCompilation.Options;
@@ -360,7 +365,7 @@ class C
                     // Check the metadata references
                     Assert.Equal(referencePEReader.GetTimestamp(), timestamp);
                     Assert.Equal(referencePEReader.GetSizeOfImage(), imageSize);
-                    Assert.Equal(referenceCompilation.AssemblyName, name);
+                    Assert.Equal("abcd.dll", name);
                     Assert.Equal(referencePEReader.GetMvid(), mvid);
                 }
             }
