@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -197,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private int DescendThroughTupleRestFields(ref Symbol symbol, int containingSlot, bool forceContainingSlotsToExist)
         {
             var fieldSymbol = symbol as TupleFieldSymbol;
-            if ((object)fieldSymbol != null)
+            if ((object?)fieldSymbol != null)
             {
                 TypeSymbol containingType = symbol.ContainingType;
 
@@ -233,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return containingSlot;
         }
 
-        protected abstract bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member);
+        protected abstract bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression? receiver, [NotNullWhen(true)] out Symbol? member);
 
         protected Symbol GetNonMemberSymbol(int slot)
         {
@@ -268,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                 case BoundKind.EventAccess:
                 case BoundKind.PropertyAccess:
-                    if (TryGetReceiverAndMember(node, out BoundExpression receiver, out Symbol member))
+                    if (TryGetReceiverAndMember(node, out BoundExpression? receiver, out Symbol? member))
                     {
                         Debug.Assert((receiver is null) != member.RequiresInstanceReceiver());
                         return MakeMemberSlot(receiver, member);
@@ -280,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return -1;
         }
 
-        protected int MakeMemberSlot(BoundExpression receiverOpt, Symbol member)
+        protected int MakeMemberSlot(BoundExpression? receiverOpt, Symbol member)
         {
             int containingSlot;
             if (member.RequiresInstanceReceiver())
