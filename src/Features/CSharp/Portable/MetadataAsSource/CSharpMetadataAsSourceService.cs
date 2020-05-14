@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
         /// Adds <c>#nullable enable</c> and <c>#nullable disable</c> annotations to the file as necessary.  Note that
         /// this does not try to be 100% accurate, but rather it handles the most common cases out there.  Specifically,
         /// if a file contains any nullable annotated/not-annotated types, then we prefix the file with <c>#nullable
-        /// enable</c>.  Then if we hit any members that explicitly have *oblivious* types, not no annotated or
+        /// enable</c>.  Then if we hit any members that explicitly have *oblivious* types, but no annotated or
         /// non-annotated types, then we switch to <c>#nullable disable</c> for those specific members.
         /// <para/>
         /// This is technically innacurate for possible, but very uncommon cases.  For example, if the user's code
