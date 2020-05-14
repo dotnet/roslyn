@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly Lazy<IVsPackageUninstaller> _packageUninstaller;
         private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
 
-        private JoinableTask<ImmutableArray<PackageSource>> _packageSourcesAsync;
+        private JoinableTask<ImmutableArray<PackageSource>?> _packageSourcesAsync;
         private IVsPackage _nugetPackageManager;
 
         private CancellationTokenSource _tokenSource = new CancellationTokenSource();
@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             // Only read from _packageSourcesAsync once, since OnSourceProviderSourcesChanged could reset it to default
             // at any time while this method is running.
-            JoinableTask<ImmutableArray<PackageSource>> packageSourcesAsync;
+            JoinableTask<ImmutableArray<PackageSource>?> packageSourcesAsync;
             lock (_gate)
             {
                 if (_packageSourcesAsync is null)
@@ -125,21 +125,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
 
-        private async Task<ImmutableArray<PackageSource>> GetPackageSourcesImplAsync()
+        private async Task<ImmutableArray<PackageSource>?> GetPackageSourcesImplAsync()
         {
-            // Automatically retry the operation if it gets cancelled due to a change in the workspace.
-            while (true)
+            var cancellationToken = _tokenSource.Token;
+            try
             {
-                var cancellationToken = _tokenSource.Token;
-                try
-                {
-                    return await GetPackageSourcesImplAsync(cancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    // The failure may have been caused by a workspace change; try again after a short delay
-                    await Task.Delay(TimeSpan.FromMilliseconds(250)).ConfigureAwait(false);
-                }
+                return await GetPackageSourcesImplAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // The failure may have been caused by a workspace change. The task has already been invalidated at
+                // a higher level, so just return indicating the data is not complete.
+                return null;
             }
 
             // Local function

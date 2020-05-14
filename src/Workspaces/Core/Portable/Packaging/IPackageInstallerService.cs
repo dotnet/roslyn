@@ -37,8 +37,13 @@ namespace Microsoft.CodeAnalysis.Packaging
         /// answer if such a switch would be required.</param>
         /// <param name="cancellationToken">The cancellation token that the asynchronous operation will observe.</param>
         /// <returns>
-        /// A collection of package sources, or <see langword="null"/> if <paramref name="allowSwitchToMainThread"/> is
-        /// <see langword="false"/> and the package sources could not be computed without switching to the main thread.
+        /// <para>A collection of package sources.</para>
+        /// <para>-or-</para>
+        /// <para><see langword="null"/> if <paramref name="allowSwitchToMainThread"/> is <see langword="false"/> and
+        /// the package sources could not be computed without switching to the main thread.</para>
+        /// <para>-or-</para>
+        /// <para><see langword="null"/> if the package sources were invalidated by the project system before the
+        /// computation completed.</para>
         /// </returns>
         ValueTask<ImmutableArray<PackageSource>?> TryGetPackageSourcesAsync(bool allowSwitchToMainThread, CancellationToken cancellationToken);
 
