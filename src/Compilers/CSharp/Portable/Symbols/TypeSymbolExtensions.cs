@@ -696,9 +696,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable)
             {
-
                 MethodSymbol currentPointer = type.Signature;
-                var result = visitType(currentPointer.ReturnTypeWithAnnotations);
+                var result = VisitType(
+                    typeWithAnnotationsOpt: canDigThroughNullable ? default : currentPointer.ReturnTypeWithAnnotations,
+                    type: canDigThroughNullable ? currentPointer.ReturnTypeWithAnnotations.NullableUnderlyingTypeOrSelf : null,
+                    typeWithAnnotationsPredicate,
+                    typePredicate,
+                    arg,
+                    canDigThroughNullable,
+                    useDefaultType);
                 if (result is object)
                 {
                     return result;
@@ -706,7 +712,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var parameter in currentPointer.Parameters)
                 {
-                    result = visitType(parameter.TypeWithAnnotations);
+                    result = VisitType(
+                        typeWithAnnotationsOpt: canDigThroughNullable ? default : parameter.TypeWithAnnotations,
+                        type: canDigThroughNullable ? parameter.TypeWithAnnotations.NullableUnderlyingTypeOrSelf : null,
+                        typeWithAnnotationsPredicate,
+                        typePredicate,
+                        arg,
+                        canDigThroughNullable,
+                        useDefaultType);
                     if (result is object)
                     {
                         return result;
@@ -714,15 +727,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return null;
-
-                TypeSymbol? visitType(TypeWithAnnotations typeArg) => VisitType(
-                    typeWithAnnotationsOpt: canDigThroughNullable ? default : typeArg,
-                    type: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
-                    typeWithAnnotationsPredicate,
-                    typePredicate,
-                    arg,
-                    canDigThroughNullable,
-                    useDefaultType);
             }
         }
 

@@ -397,9 +397,9 @@ unsafe class D
   // Code size       87 (0x57)
   .maxstack  2
   IL_0000:  ldftn      ""ref readonly int D.M()""
-  IL_0006:  stsfld     ""delegate*<int> C.Field1""
-  IL_000b:  ldsfld     ""delegate*<int> C.Field1""
-  IL_0010:  calli      ""delegate*<int>""
+  IL_0006:  stsfld     ""delegate*<ref readonly int> C.Field1""
+  IL_000b:  ldsfld     ""delegate*<ref readonly int> C.Field1""
+  IL_0010:  calli      ""delegate*<ref readonly int>""
   IL_0015:  dup
   IL_0016:  ldind.i4
   IL_0017:  call       ""void System.Console.Write(int)""
@@ -408,11 +408,11 @@ unsafe class D
   IL_0022:  ldind.i4
   IL_0023:  call       ""void System.Console.Write(int)""
   IL_0028:  ldftn      ""ref readonly int D.M()""
-  IL_002e:  stsfld     ""delegate*<int> C.Field2""
+  IL_002e:  stsfld     ""delegate*<ref readonly int> C.Field2""
   IL_0033:  ldc.i4.3
   IL_0034:  stsfld     ""int D.i""
-  IL_0039:  ldsfld     ""delegate*<int> C.Field2""
-  IL_003e:  calli      ""delegate*<int>""
+  IL_0039:  ldsfld     ""delegate*<ref readonly int> C.Field2""
+  IL_003e:  calli      ""delegate*<ref readonly int>""
   IL_0043:  dup
   IL_0044:  ldind.i4
   IL_0045:  call       ""void System.Console.Write(int)""
@@ -538,7 +538,7 @@ unsafe class C
   // Code size       31 (0x1f)
   .maxstack  2
   IL_0000:  ldftn      ""ref readonly int C.GetI()""
-  IL_0006:  calli      ""delegate*<int>""
+  IL_0006:  calli      ""delegate*<ref readonly int>""
   IL_000b:  dup
   IL_000c:  ldind.i4
   IL_000d:  call       ""void System.Console.Write(int)""
@@ -2402,8 +2402,8 @@ unsafe class C
   .maxstack  1
   IL_0000:  ldstr      ""Field""
   IL_0005:  stsfld     ""string Program.field""
-  IL_000a:  call       ""delegate*<string> Program.LoadPtr()""
-  IL_000f:  calli      ""delegate*<string>""
+  IL_000a:  call       ""delegate*<ref string> Program.LoadPtr()""
+  IL_000f:  calli      ""delegate*<ref string>""
   IL_0014:  ldind.ref
   IL_0015:  call       ""void System.Console.WriteLine(string)""
   IL_001a:  ret
@@ -2465,14 +2465,15 @@ unsafe class C
 {
   // Code size       27 (0x1b)
   .maxstack  2
-  IL_0000:  call       ""delegate*<string> Program.LoadPtr()""
-  IL_0005:  calli      ""delegate*<string>""
+  IL_0000:  call       ""delegate*<ref string> Program.LoadPtr()""
+  IL_0005:  calli      ""delegate*<ref string>""
   IL_000a:  ldstr      ""Field""
   IL_000f:  stind.ref
   IL_0010:  ldsfld     ""string Program.field""
   IL_0015:  call       ""void System.Console.WriteLine(string)""
   IL_001a:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -5061,7 +5062,7 @@ unsafe class C
   // Code size       34 (0x22)
   .maxstack  1
   IL_0000:  ldarg.1
-  IL_0001:  calli      ""delegate*<T>""
+  IL_0001:  calli      ""delegate*<ref T>""
   IL_0006:  constrained. ""T""
   IL_000c:  callvirt   ""void C.M1()""
   IL_0011:  ldarg.2
@@ -5172,6 +5173,402 @@ unsafe class Z
                 CommonVerifyFunctionPointer((FunctionPointerTypeSymbol)field.Type);
                 Assert.Equal(type, field.Type.ToTestDisplayString());
             }
+        }
+
+        [Fact]
+        public void DynamicTypeAttributeInMetadata()
+        {
+            var comp = CompileAndVerifyFunctionPointers(@"
+#pragma warning disable CS0649 // Unassigned field
+unsafe class C
+{
+    public delegate*<dynamic, dynamic, dynamic> F1;
+
+    public delegate*<object, object, dynamic> F2;
+    public delegate*<dynamic, object, object> F3;
+    public delegate*<object, dynamic, object> F4;
+
+    public delegate*<object, object, object> F5;
+
+    public delegate*<object, object, ref dynamic> F6;
+    public delegate*<ref dynamic, object, object> F7;
+    public delegate*<object, ref dynamic, object> F8;
+
+    public delegate*<ref object, ref object, dynamic> F9;
+    public delegate*<dynamic, ref object, ref object> F10;
+    public delegate*<ref object, dynamic, ref object> F11;
+
+    public delegate*<object, ref readonly dynamic> F12;
+    public delegate*<in dynamic, object> F13;
+
+    public delegate*<out dynamic, object> F14;
+
+    public D<delegate*<dynamic>[], dynamic> F15;
+
+    public delegate*<A<object>.B<dynamic>> F16;
+}
+class D<T, U> { }
+class A<T>
+{
+    public class B<U> {}
+}
+", symbolValidator: symbolValidator);
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+
+                assertField("F1", "System.Runtime.CompilerServices.DynamicAttribute({false, true, true, true})", "delegate*<dynamic, dynamic, dynamic>");
+
+                assertField("F2", "System.Runtime.CompilerServices.DynamicAttribute({false, true, false, false})", "delegate*<System.Object, System.Object, dynamic>");
+                assertField("F3", "System.Runtime.CompilerServices.DynamicAttribute({false, false, true, false})", "delegate*<dynamic, System.Object, System.Object>");
+                assertField("F4", "System.Runtime.CompilerServices.DynamicAttribute({false, false, false, true})", "delegate*<System.Object, dynamic, System.Object>");
+
+                assertField("F5", null, "delegate*<System.Object, System.Object, System.Object>");
+
+                assertField("F6", "System.Runtime.CompilerServices.DynamicAttribute({false, false, true, false, false})", "delegate*<System.Object, System.Object, ref dynamic>");
+                assertField("F7", "System.Runtime.CompilerServices.DynamicAttribute({false, false, false, true, false})", "delegate*<ref dynamic, System.Object, System.Object>");
+                assertField("F8", "System.Runtime.CompilerServices.DynamicAttribute({false, false, false, false, true})", "delegate*<System.Object, ref dynamic, System.Object>");
+
+                assertField("F9", "System.Runtime.CompilerServices.DynamicAttribute({false, true, false, false, false, false})", "delegate*<ref System.Object, ref System.Object, dynamic>");
+                assertField("F10", "System.Runtime.CompilerServices.DynamicAttribute({false, false, false, true, false, false})", "delegate*<dynamic, ref System.Object, ref System.Object>");
+                assertField("F11", "System.Runtime.CompilerServices.DynamicAttribute({false, false, false, false, false, true})", "delegate*<ref System.Object, dynamic, ref System.Object>");
+
+                assertField("F12", "System.Runtime.CompilerServices.DynamicAttribute({false, false, false, true, false})", "delegate*<System.Object, ref readonly modreq(System.Runtime.InteropServices.InAttribute) dynamic>");
+                assertField("F13", "System.Runtime.CompilerServices.DynamicAttribute({false, false, false, false, true})", "delegate*<in modreq(System.Runtime.InteropServices.InAttribute) dynamic, System.Object>");
+
+                assertField("F14", "System.Runtime.CompilerServices.DynamicAttribute({false, false, false, false, true})", "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) dynamic, System.Object>");
+
+                // https://github.com/dotnet/roslyn/issues/44160 tracks fixing this. We're not encoding dynamic correctly for function pointers as type parameters
+                assertField("F15", "System.Runtime.CompilerServices.DynamicAttribute({false, false, false, true})", "D<delegate*<System.Object>[], System.Object>");
+
+                assertField("F16", "System.Runtime.CompilerServices.DynamicAttribute({false, false, false, true})", "delegate*<A<System.Object>.B<dynamic>>");
+
+                void assertField(string field, string? expectedAttribute, string expectedType)
+                {
+                    var f = c.GetField(field);
+                    if (expectedAttribute is null)
+                    {
+                        Assert.Empty(f.GetAttributes());
+                    }
+                    else
+                    {
+                        Assert.Equal(expectedAttribute, f.GetAttributes().Single().ToString());
+                    }
+
+                    if (f.Type is FunctionPointerTypeSymbol ptrType)
+                    {
+                        CommonVerifyFunctionPointer(ptrType);
+                    }
+                    Assert.Equal(expectedType, f.Type.ToTestDisplayString());
+                }
+            }
+        }
+
+        [Fact]
+        public void DynamicOverriddenWithCustomModifiers()
+        {
+            var il = @"
+.class public A
+{
+  .method public hidebysig newslot virtual
+    instance void M(method class [mscorlib]System.Object modopt([mscorlib]System.Object) & modopt([mscorlib]System.Object) modreq([mscorlib]System.Runtime.InteropServices.InAttribute) *(class [mscorlib]System.Object modopt([mscorlib]System.Object)) a) managed
+  {
+    .param [1]
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 08 00 00 00 00 00 00 00 00 01 00 01 00 00 ) 
+    ret
+  }
+  .method public hidebysig specialname rtspecialname 
+    instance void .ctor () cil managed 
+  {
+    ldarg.0
+    call instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+";
+
+            var source = @"
+unsafe class B : A
+{
+    public override void M(delegate*<dynamic, ref readonly dynamic> a) {}
+}";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, il, symbolValidator: symbolValidator);
+
+            static void symbolValidator(ModuleSymbol module)
+            {
+                var b = module.GlobalNamespace.GetTypeMember("B");
+
+                var m = b.GetMethod("M");
+                var param = m.Parameters.Single();
+                Assert.Equal("System.Runtime.CompilerServices.DynamicAttribute({false, false, false, false, false, true, false, true})", param.GetAttributes().Single().ToString());
+
+                CommonVerifyFunctionPointer((FunctionPointerTypeSymbol)param.Type);
+                Assert.Equal("delegate*<dynamic modopt(System.Object), ref readonly modreq(System.Runtime.InteropServices.InAttribute) modopt(System.Object) dynamic modopt(System.Object)>", param.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void BadDynamicAttributes()
+        {
+            var il = @"
+.class public A
+{
+  .method public hidebysig static void TooManyFlags(method class [mscorlib]System.Object *(class [mscorlib]System.Object) a)
+  {
+    .param [1]
+    //{false, true, true, true}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 04 00 00 00 00 01 01 01 00 00 ) 
+    ret
+  }
+  .method public hidebysig static void TooFewFlags_MissingParam(method class [mscorlib]System.Object *(class [mscorlib]System.Object) a)
+  {
+    .param [1]
+    //{false, true}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
+    ret
+  }
+  .method public hidebysig static void TooFewFlags_MissingReturn(method class [mscorlib]System.Object *(class [mscorlib]System.Object) a)
+  {
+    .param [1]
+    //{false}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) 
+    ret
+  }
+  .method public hidebysig static void PtrTypeIsTrue(method class [mscorlib]System.Object *(class [mscorlib]System.Object) a)
+  {
+    .param [1]
+    //{true, true, true}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 01 01 01 00 00 ) 
+    ret
+  }
+  .method public hidebysig static void NonObjectIsTrue(method class [mscorlib]System.String *(class [mscorlib]System.Object) a)
+  {
+    .param [1]
+    //{false, true, true}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 00 01 01 00 00 ) 
+    ret
+  }
+  .method public hidebysig static void RefIsTrue_Return(method class [mscorlib]System.Object& *(class [mscorlib]System.Object) a)
+  {
+    .param [1]
+    //{false, true, true, true}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 04 00 00 00 00 01 01 01 00 00 ) 
+    ret
+  }
+  .method public hidebysig static void RefIsTrue_Param(method class [mscorlib]System.Object *(class [mscorlib]System.Object&) a)
+  {
+    .param [1]
+    //{false, true, true, true}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 04 00 00 00 00 01 01 01 00 00 ) 
+    ret
+  }
+  .method public hidebysig static void ModIsTrue_Return(method class [mscorlib]System.Object modopt([mscorlib]System.Object) *(class [mscorlib]System.Object) a)
+  {
+    .param [1]
+    //{false, true, true, true}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 04 00 00 00 00 01 01 01 00 00 ) 
+    ret
+  }
+  .method public hidebysig static void ModIsTrue_Param(method class [mscorlib]System.Object *(class [mscorlib]System.Object modopt([mscorlib]System.Object)) a)
+  {
+    .param [1]
+    //{false, true, true, true}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 04 00 00 00 00 01 01 01 00 00 ) 
+    ret
+  }
+  .method public hidebysig static void ModIsTrue_RefReturn(method class [mscorlib]System.Object & modopt([mscorlib]System.Object) *(class [mscorlib]System.Object) a)
+  {
+    .param [1]
+    //{false, false, true, true, true}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 05 00 00 00 00 00 01 01 01 00 00 ) 
+    ret
+  }
+  .method public hidebysig static void ModIsTrue_RefParam(method class [mscorlib]System.Object *(class [mscorlib]System.Object & modopt([mscorlib]System.Object)) a)
+  {
+    .param [1]
+    //{false, true, false, true, true}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 05 00 00 00 00 01 00 01 01 00 00 ) 
+    ret
+  }
+}
+";
+
+            var comp = CreateCompilationWithFunctionPointersAndIl("", il);
+
+            var a = comp.GetTypeByMetadataName("A");
+
+            assert("TooManyFlags", "delegate*<System.Object, System.Object>");
+            assert("TooFewFlags_MissingParam", "delegate*<System.Object, System.Object>");
+            assert("TooFewFlags_MissingReturn", "delegate*<System.Object, System.Object>");
+            assert("PtrTypeIsTrue", "delegate*<System.Object, System.Object>");
+            assert("NonObjectIsTrue", "delegate*<System.Object, System.String>");
+            assert("RefIsTrue_Return", "delegate*<System.Object, ref System.Object>");
+            assert("RefIsTrue_Param", "delegate*<ref System.Object, System.Object>");
+            assert("ModIsTrue_Return", "delegate*<System.Object, System.Object modopt(System.Object)>");
+            assert("ModIsTrue_Param", "delegate*<System.Object modopt(System.Object), System.Object>");
+            assert("ModIsTrue_RefReturn", "delegate*<System.Object, ref modopt(System.Object) System.Object>");
+            assert("ModIsTrue_RefParam", "delegate*<ref modopt(System.Object) System.Object, System.Object>");
+
+            void assert(string methodName, string expectedType)
+            {
+                var method = a.GetMethod(methodName);
+                var param = method.Parameters.Single();
+                CommonVerifyFunctionPointer((FunctionPointerTypeSymbol)param.Type);
+                Assert.Equal(expectedType, param.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void BetterFunctionMember_BreakTiesByCustomModifierCount_TypeMods()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        void RetModifiers (method void modopt([mscorlib]System.Object) modopt([mscorlib]System.Object) *()) cil managed 
+    {
+        ldstr ""M""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+
+    .method public hidebysig static 
+        void RetModifiers (method void modopt([mscorlib]System.Object) *()) cil managed 
+    {
+        ldstr ""L""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+
+    .method public hidebysig static 
+        void ParamModifiers (method void *(int32 modopt([mscorlib]System.Object) modopt([mscorlib]System.Object))) cil managed 
+    {
+        ldstr ""M""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+
+    .method public hidebysig static 
+        void ParamModifiers (method void *(int32) modopt([mscorlib]System.Object)) cil managed 
+    {
+        ldstr ""L""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+}";
+
+            var source = @"
+unsafe class C
+{
+    static void Main()
+    {
+        delegate*<void> ptr1 = null;
+        Program.RetModifiers(ptr1);
+        delegate*<int, void> ptr2 = null;
+        Program.ParamModifiers(ptr2);
+    }
+}";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, il, expectedOutput: "LL");
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (delegate*<void> V_0, //ptr1
+                delegate*<int, void> V_1) //ptr2
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""void Program.RetModifiers(delegate*<void>)""
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  call       ""void Program.ParamModifiers(delegate*<int, void>)""
+  IL_0012:  ret
+}
+            ");
+        }
+
+        [Fact]
+        public void BetterFunctionMember_BreakTiesByCustomModifierCount_Ref()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        void RetModifiers (method int32 & modopt([mscorlib]System.Object) modopt([mscorlib]System.Object) *()) cil managed 
+    {
+        ldstr ""M""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+
+    .method public hidebysig static 
+        void RetModifiers (method int32 & modopt([mscorlib]System.Object) *()) cil managed 
+    {
+        ldstr ""L""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+
+    .method public hidebysig static 
+        void ParamModifiers (method void *(int32 & modopt([mscorlib]System.Object) modopt([mscorlib]System.Object))) cil managed 
+    {
+        ldstr ""M""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+
+    .method public hidebysig static 
+        void ParamModifiers (method void *(int32 & modopt([mscorlib]System.Object))) cil managed 
+    {
+        ldstr ""L""
+        call void [mscorlib]System.Console::Write(string)
+        ret
+    }
+}
+";
+
+            var source = @"
+unsafe class C
+{
+    static void Main()
+    {
+        delegate*<ref int> ptr1 = null;
+        Program.RetModifiers(ptr1);
+        delegate*<ref int, void> ptr2 = null;
+        Program.ParamModifiers(ptr2);
+    }
+}";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, il, expectedOutput: "LL");
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (delegate*<ref int> V_0, //ptr1
+                delegate*<ref int, void> V_1) //ptr2
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""void Program.RetModifiers(delegate*<ref int>)""
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  call       ""void Program.ParamModifiers(delegate*<ref int, void>)""
+  IL_0012:  ret
+}
+");
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");

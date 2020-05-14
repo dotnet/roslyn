@@ -543,6 +543,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeWithAnnotations WithTypeAndModifiers(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithTypeAndModifiers(this, typeSymbol, customModifiers);
 
+        public TypeWithAnnotations WithType(TypeSymbol typeSymbol) =>
+            _extensions.WithTypeAndModifiers(this, typeSymbol, CustomModifiers);
+
         /// <summary>
         /// Used by callers before calling CSharpCompilation.EnsureNullableAttributeExists().
         /// </summary>

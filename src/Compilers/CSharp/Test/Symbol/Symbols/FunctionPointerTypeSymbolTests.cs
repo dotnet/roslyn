@@ -1042,5 +1042,30 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "i").WithLocation(10, 50)
             );
         }
+
+        [Fact]
+        public void FormattingReturnTypeOptions()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit C
+       extends [mscorlib]System.Object
+{
+    .field public method int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) *() 'Field1'
+    .field public method int32 modopt([mscorlib]System.Object) & *() 'Field2'
+}
+";
+
+            var comp = CreateCompilation("", references: new[] { CompileIL(il) });
+            comp.VerifyDiagnostics();
+
+            var c = comp.GetTypeByMetadataName("C");
+            var f1 = c.GetField("Field1").Type;
+            var f2 = c.GetField("Field2").Type;
+
+            Assert.Equal("delegate*<ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32>", f1.ToTestDisplayString());
+            Assert.Equal("delegate*<int>", f1.ToDisplayString());
+            Assert.Equal("delegate*<ref System.Int32 modopt(System.Object)>", f2.ToTestDisplayString());
+            Assert.Equal("delegate*<int>", f2.ToDisplayString());
+        }
     }
 }
