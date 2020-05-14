@@ -486,7 +486,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                         var root = await currentDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                         previousDocument = currentDocument;
                         spans = GetSpans(root, spanGetter);
-                        ;
                     }
 
                     // If we are at the end and there were no changes to the document, use the original document for the cleanup.

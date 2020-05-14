@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 .WithTriviaFrom(invocation);
 
             return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken).ConfigureAwait(false);
-            ;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

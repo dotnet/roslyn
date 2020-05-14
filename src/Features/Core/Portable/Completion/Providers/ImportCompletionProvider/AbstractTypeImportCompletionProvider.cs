@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // with completion, which would be a race.
                     completionContext.AddItem(item);
                     counter.ItemsCount++;
-                    ;
                 }
             }
         }

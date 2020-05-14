@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         {
             var binaryToAssignmentBuilder = ImmutableDictionary.CreateBuilder<TSyntaxKind, TSyntaxKind>();
             var assignmentToTokenBuilder = ImmutableDictionary.CreateBuilder<TSyntaxKind, TSyntaxKind>();
-            ;
 
             foreach (var (exprKind, assignmentKind, tokenKind) in kinds)
             {
