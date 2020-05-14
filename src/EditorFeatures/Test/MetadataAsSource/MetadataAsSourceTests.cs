@@ -3028,7 +3028,7 @@ public class TestType
         public void NestedM(string s);
 
 #nullable enable
-    }}                    
+    }}
 }}";
 
             using var context = TestContext.Create(
