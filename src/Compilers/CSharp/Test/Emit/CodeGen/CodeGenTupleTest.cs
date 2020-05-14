@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using TestResources.NetFX;
 using Xunit;
 using static TestResources.NetFX.ValueTuple;
 
@@ -5994,7 +5993,7 @@ namespace System
             var tupleWithSomeNames = comp.CreateTupleTypeSymbol(vt3, ImmutableArray.Create(null, "Item2", "Charlie"));
 
             Assert.True(tupleWithSomeNames.IsTupleType);
-            Assert.Equal("(System.Int32, System.String Item2, System.Int32 Charlie)[missing]", tupleWithSomeNames.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String, System.Int32 Charlie)[missing]", tupleWithSomeNames.ToTestDisplayString());
             Assert.Equal(new[] { null, "Item2", "Charlie" }, GetTupleElementNames(tupleWithSomeNames));
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32" }, ElementTypeNames(tupleWithSomeNames));
             Assert.Equal(SymbolKind.ErrorType, tupleWithSomeNames.Kind);
@@ -26464,7 +26463,6 @@ public class ClassB
         [WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")]
         [WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
         [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
-        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
         public void CustomFields_01()
         {
             var source0 = @"
@@ -26547,7 +26545,6 @@ class Program
         [Fact]
         [WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")]
         [WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
-        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
         [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
         public void CustomFields_02()
         {
@@ -26632,7 +26629,6 @@ class Program
         [Fact]
         [WorkItem(43524, "https://github.com/dotnet/roslyn/issues/43524")]
         [WorkItem(1095184, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")]
-        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
         [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
         public void CustomFields_03()
         {
@@ -27670,6 +27666,75 @@ class C
                 Assert.Same(field, field.TupleUnderlyingField);
                 Assert.Null(field.CorrespondingTupleField);
             }
+        }
+
+        [Fact]
+        public void TupleWithElementNamedWithDefaultName()
+        {
+            string source = @"
+class C
+{
+    (int Item1, int Item2) M() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            var m = (MethodSymbol)comp.GetMember("C.M");
+            var tuple = m.ReturnType;
+            Assert.Equal("(System.Int32, System.Int32)", tuple.ToTestDisplayString());
+            Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
+
+            var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
+            Assert.Equal(0, item1.TupleElementIndex);
+            var item1Underlying = item1.TupleUnderlyingField;
+            Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
+            Assert.Equal(0, item1Underlying.TupleElementIndex);
+            Assert.Same(item1Underlying, item1Underlying.TupleUnderlyingField);
+
+            var item2 = tuple.GetMember<TupleElementFieldSymbol>("Item2");
+            Assert.Equal(1, item2.TupleElementIndex);
+            var item2Underlying = item2.TupleUnderlyingField;
+            Assert.IsType<SubstitutedFieldSymbol>(item2Underlying);
+            Assert.Equal(1, item2Underlying.TupleElementIndex);
+            Assert.Same(item2Underlying, item2Underlying.TupleUnderlyingField);
+        }
+
+        [Fact]
+        public void IndexOfUnderlyingFieldsInTuple9()
+        {
+            string source = @"
+class C
+{
+    (int, int, int, int, int, int, int, int, int) M() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            var m = (MethodSymbol)comp.GetMember("C.M");
+            var tuple = m.ReturnType;
+            Assert.Equal("(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)",
+                tuple.ToTestDisplayString());
+            Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
+
+            var item8 = tuple.GetMember<TupleElementFieldSymbol>("Item8");
+            Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8",
+                item8.ToTestDisplayString());
+            Assert.Equal(7, item8.TupleElementIndex);
+
+            var item8Underlying = item8.TupleUnderlyingField;
+            Assert.Equal("Item1", item8Underlying.Name);
+            Assert.IsType<SubstitutedFieldSymbol>(item8Underlying);
+            Assert.Equal(0, item8Underlying.TupleElementIndex);
+            Assert.Same(item8Underlying, item8Underlying.TupleUnderlyingField);
+
+            var item9 = tuple.GetMember<TupleElementFieldSymbol>("Item9");
+            Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item9",
+                item9.ToTestDisplayString());
+            Assert.Equal(8, item9.TupleElementIndex);
+
+            var item9Underlying = item9.TupleUnderlyingField;
+            Assert.Equal("Item2", item9Underlying.Name);
+            Assert.IsType<SubstitutedFieldSymbol>(item9Underlying);
+            Assert.Equal(1, item9Underlying.TupleElementIndex);
+            Assert.Same(item9Underlying, item9Underlying.TupleUnderlyingField);
         }
     }
 }

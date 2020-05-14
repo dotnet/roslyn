@@ -400,7 +400,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ContainingType.IsDefinition && TupleElementIndex >= 0;
+                Debug.Assert(!(this is TupleFieldSymbol));
+                return TupleElementIndex >= 0;
             }
         }
 
@@ -413,6 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                Debug.Assert(!(this is TupleFieldSymbol));
                 return ContainingType.IsTupleType ? this : null;
             }
         }
@@ -425,7 +427,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (ContainingType.IsDefinition && TupleElementIndex >= 0) ? this : null;
+                Debug.Assert(!(this is TupleFieldSymbol));
+                return TupleElementIndex >= 0 ? this : null;
             }
         }
 
@@ -446,17 +449,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (ContainingType.IsTupleType && ContainingType.IsDefinition)
+                Debug.Assert(!(this is TupleFieldSymbol));
+                if (ContainingType.IsTupleType)
                 {
                     var i = NamedTypeSymbol.MatchesCanonicalElementName(Name);
-                    int itemsPerType = Math.Min(ContainingType.Arity, NamedTypeSymbol.ValueTupleRestPosition - 1);
-                    if (i > 0 && i <= itemsPerType)
+                    if (i > 0 && i <= ContainingType.Arity && i <= NamedTypeSymbol.ValueTupleRestPosition - 1)
                     {
                         WellKnownMember wellKnownMember = NamedTypeSymbol.GetTupleTypeMember(ContainingType.Arity, i);
 
                         RuntimeMembers.MemberDescriptor relativeDescriptor = WellKnownMembers.GetDescriptor(wellKnownMember);
-                        var found = CSharpCompilation.GetRuntimeMember(ImmutableArray.Create<Symbol>(this), relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance,
-                                                                  accessWithinOpt: null); // force lookup of public members only
+                        var found = CSharpCompilation.GetRuntimeMember(ImmutableArray.Create<Symbol>(this.OriginalDefinition),
+                            relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance,
+                            accessWithinOpt: null); // force lookup of public members only
 
                         if (found is object)
                         {
