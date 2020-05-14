@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentRangeFormattingParams request, ClientCapabilities clientCapabilities,
             string? clientName, CancellationToken cancellationToken)
         {
-            return await GetTextEditsAsync(solution, request.TextDocument.Uri, clientName, cancellationToken, range: request.Range).ConfigureAwait(false);
+            return await GetTextEditsAsync(solution, request.TextDocument, clientName, cancellationToken, range: request.Range).ConfigureAwait(false);
         }
     }
 }

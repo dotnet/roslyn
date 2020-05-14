@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -49,7 +48,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _protocol = protocol;
             _workspace = workspace;
 
-            _jsonRpc = new JsonRpc(outputStream, inputStream, this);
+            var jsonMessageFormatter = new JsonMessageFormatter();
+            jsonMessageFormatter.JsonSerializer.Converters.Add(new VSExtensionConverter<TextDocumentIdentifier, VSTextDocumentIdentifier>());
+
+            _jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
+            _jsonRpc.AddLocalRpcTarget(this);
             _jsonRpc.StartListening();
 
             _diagnosticService = diagnosticService;

@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             {
                 var runRequest = ((JToken)request.Arguments.Single()).ToObject<RunCodeActionParams>();
                 var codeActions = await GetCodeActionsAsync(requestContext.Context,
-                    runRequest.CodeActionParams.TextDocument.Uri,
+                    runRequest.CodeActionParams.TextDocument,
                     runRequest.CodeActionParams.Range,
                     null, cancellationToken).ConfigureAwait(false);
 

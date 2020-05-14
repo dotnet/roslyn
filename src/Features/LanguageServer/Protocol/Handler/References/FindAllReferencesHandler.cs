@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             Debug.Assert(clientCapabilities.HasVisualStudioLspCapability());
 
-            var document = solution.GetDocumentFromURI(referenceParams.TextDocument.Uri, clientName);
+            var document = solution.GetDocument(referenceParams.TextDocument, clientName);
             if (document == null)
             {
                 return Array.Empty<LSP.VSReferenceItem>();

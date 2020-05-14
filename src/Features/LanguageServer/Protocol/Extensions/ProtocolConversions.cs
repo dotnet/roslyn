@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -447,6 +448,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static string ProjectIdToProjectContextId(ProjectId id)
         {
             return id.Id + "|" + id.DebugName;
+        }
+
+        public static ProjectId ProjectContextToProjectId(ProjectContext projectContext)
+        {
+            int delimiter = projectContext.Id.IndexOf('|');
+
+            return ProjectId.CreateFromSerialized(
+                Guid.Parse(projectContext.Id.Substring(0, delimiter)),
+                debugName: projectContext.Id.Substring(delimiter + 1));
         }
     }
 }

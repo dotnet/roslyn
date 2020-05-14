@@ -33,19 +33,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             string? clientName,
             CancellationToken cancellationToken)
         {
-            var startingDocument = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);
+            var documents = solution.GetDocuments(request.TextDocument.Uri, clientName);
 
-            if (startingDocument == null || startingDocument.FilePath == null)
+            if (!documents.Any())
             {
                 return Task.FromResult<ActiveProjectContexts?>(null);
             }
 
-            var allDocumentIds = solution.GetDocumentIdsWithFilePath(startingDocument.FilePath);
             var contexts = new List<ProjectContext>();
 
-            foreach (var documentId in allDocumentIds)
+            foreach (var document in documents)
             {
-                var project = solution.GetRequiredProject(documentId.ProjectId);
+                var project = document.Project;
                 var context = new ProjectContext
                 {
                     Id = ProtocolConversions.ProjectIdToProjectContextId(project.Id),
@@ -69,12 +68,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // GetDocumentIdInCurrentContext will just return the same ID back, which means we're going to pick the first
             // ID in GetDocumentIdsWithFilePath, but there's really nothing we can do since we don't have contexts for
             // close documents anyways.
-            var currentContextDocumentId = solution.Workspace.GetDocumentIdInCurrentContext(allDocumentIds.First());
+            var currentContextDocumentId = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
 
             return Task.FromResult<ActiveProjectContexts?>(new ActiveProjectContexts
             {
                 ProjectContexts = contexts.ToArray(),
-                DefaultIndex = allDocumentIds.IndexOf(currentContextDocumentId)
+                DefaultIndex = documents.IndexOf(d => d.Id == currentContextDocumentId)
             });
         }
     }

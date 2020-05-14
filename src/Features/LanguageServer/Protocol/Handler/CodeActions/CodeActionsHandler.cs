@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
         {
             var codeActions = await GetCodeActionsAsync(solution,
-                request.TextDocument.Uri,
+                request.TextDocument,
                 request.Range,
                 clientName, cancellationToken).ConfigureAwait(false);
 
