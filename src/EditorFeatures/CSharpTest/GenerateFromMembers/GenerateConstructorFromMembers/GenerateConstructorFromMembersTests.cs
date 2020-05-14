@@ -1002,6 +1002,84 @@ chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true);
         }
 
+        [WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecksWithNullableReferenceType()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z
+{
+    int a;
+    string b;
+    string? c;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z
+{
+    int a;
+    string b;
+    string? c;
+
+    public Z(int a, string b, string? c{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b ?? throw new ArgumentNullException(nameof(b));
+        this.c = c;
+    }
+}",
+chosenSymbols: new string[] { "a", "b", "c" },
+optionsCallback: options => options[0].Value = true);
+        }
+
+        [WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecksWithNullableReferenceTypeForGenerics()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z<T> where T : class
+{
+    int a;
+    string b;
+    T? c;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z<T> where T : class
+{
+    int a;
+    string b;
+    T? c;
+
+    public Z(int a, string b, T c{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b ?? throw new ArgumentNullException(nameof(b));
+        this.c = c;
+    }
+}",
+chosenSymbols: new string[] { "a", "b", "c" },
+optionsCallback: options => options[0].Value = true);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestAddNullChecks2()
         {
@@ -1566,7 +1644,7 @@ chosenSymbols: null);
     {
         field_a = p_a_End;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1586,7 +1664,7 @@ chosenSymbols: null);
     {
         field_s_a = p_a_End;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1606,7 +1684,7 @@ chosenSymbols: null);
     {
         s_field_a = p_a_End;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1617,7 +1695,7 @@ chosenSymbols: null);
 @"class Z
 {
     int [|field__End|] = 2;
-}", new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp)));
+}", new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1639,7 +1717,7 @@ chosenSymbols: null);
     {
         s_field_a = p_a;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
         }
     }
 }

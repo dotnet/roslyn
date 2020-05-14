@@ -94,6 +94,11 @@
         <target state="translated">Modulkopie kann nicht zum Erstellen von Assembly-Metadaten verwendet werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="new">Only a single {0} can be registered per generator.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">Der Analyzer "{0}" enthält einen NULL-Deskriptor in "SupportedDiagnostics".</target>

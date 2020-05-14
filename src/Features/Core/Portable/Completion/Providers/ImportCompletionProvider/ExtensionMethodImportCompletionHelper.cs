@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     /// <remarks>It runs out-of-proc if it's enabled</remarks>
     internal static partial class ExtensionMethodImportCompletionHelper
     {
-        private static readonly char[] s_dotSeparator = new char[] { '.' };
-
         private static readonly object s_gate = new object();
         private static Task s_indexingTask = Task.CompletedTask;
 
@@ -86,8 +83,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var counter = new StatisticCounter();
             var ticks = Environment.TickCount;
 
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-
             // Get the metadata name of all the base types and interfaces this type derived from.
             using var _ = PooledHashSet<string>.GetInstance(out var allTypeNamesBuilder);
             allTypeNamesBuilder.Add(receiverTypeSymbol.MetadataName);
@@ -121,20 +116,194 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return (ImmutableArray<SerializableImportCompletionItem>.Empty, counter);
             }
 
-            var matchedMethods = CreateAggregatedFilter(allTypeNames, indicesResult.SyntaxIndices, indicesResult.SymbolInfos);
-
             counter.GetFilterTicks = Environment.TickCount - ticks;
             counter.NoFilter = !indicesResult.HasResult;
 
             ticks = Environment.TickCount;
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var items = GetExtensionMethodItems(compilation.GlobalNamespace, receiverTypeSymbol,
-                semanticModel!, position, namespaceInScope, matchedMethods, counter, cancellationToken);
+            var items = await GetExtensionMethodItemsAsync(document, receiverTypeSymbol, allTypeNames, indicesResult, position, namespaceInScope, counter, cancellationToken).ConfigureAwait(false);
 
             counter.GetSymbolTicks = Environment.TickCount - ticks;
 
             return (items, counter);
+        }
+
+        private static async Task<ImmutableArray<SerializableImportCompletionItem>> GetExtensionMethodItemsAsync(
+            Document document,
+            ITypeSymbol receiverTypeSymbol,
+            ImmutableArray<string> targetTypeNames,
+            GetIndicesResult indices,
+            int position,
+            ISet<string> namespaceFilter,
+            StatisticCounter counter,
+            CancellationToken cancellationToken)
+        {
+            if (!indices.HasResult)
+            {
+                return ImmutableArray<SerializableImportCompletionItem>.Empty;
+            }
+
+            var currentProject = document.Project;
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var currentCompilation = semanticModel.Compilation;
+            var currentAssembly = currentCompilation.Assembly;
+
+            using var _1 = ArrayBuilder<SerializableImportCompletionItem>.GetInstance(out var builder);
+            using var _2 = PooledDictionary<INamespaceSymbol, string>.GetInstance(out var namespaceNameCache);
+
+            // Get extension method items from source
+            foreach (var (project, syntaxIndex) in indices.SyntaxIndices!)
+            {
+                var filter = CreateAggregatedFilter(targetTypeNames, syntaxIndex);
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var assembly = compilation.Assembly;
+
+                var internalsVisible = currentAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
+
+                var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(
+                    compilation.Assembly, filter, namespaceFilter, internalsVisible,
+                    counter, cancellationToken);
+
+                var isSymbolFromCurrentCompilation = project == currentProject;
+                GetExtensionMethodItemsWorker(position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, isSymbolFromCurrentCompilation, builder, namespaceNameCache);
+            }
+
+            // Get extension method items from PE
+            foreach (var (peReference, symbolInfo) in indices.SymbolInfos!)
+            {
+                var filter = CreateAggregatedFilter(targetTypeNames, symbolInfo);
+                if (currentCompilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assembly)
+                {
+                    var internalsVisible = currentAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
+
+                    var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(
+                        assembly, filter, namespaceFilter, internalsVisible,
+                        counter, cancellationToken);
+
+                    GetExtensionMethodItemsWorker(position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, isSymbolFromCurrentCompilation: false, builder, namespaceNameCache);
+                }
+            }
+
+            return builder.ToImmutable();
+        }
+
+        private static void GetExtensionMethodItemsWorker(
+            int position,
+            SemanticModel semanticModel,
+            ITypeSymbol receiverTypeSymbol,
+            ImmutableArray<IMethodSymbol> matchingMethodSymbols,
+            bool isSymbolFromCurrentCompilation,
+            ArrayBuilder<SerializableImportCompletionItem> builder,
+            Dictionary<INamespaceSymbol, string> stringCache)
+        {
+            foreach (var methodSymbol in matchingMethodSymbols)
+            {
+                // Symbols could be from a different compilation,
+                // because we retrieved them on a per-assembly basis.
+                // Need to find the matching one in current compilation
+                // before any further checks is done.
+                var methodSymbolInCurrentCompilation = isSymbolFromCurrentCompilation
+                    ? methodSymbol
+                    : SymbolFinder.FindSimilarSymbols(methodSymbol, semanticModel.Compilation).FirstOrDefault();
+
+                if (methodSymbolInCurrentCompilation == null
+                    || !semanticModel.IsAccessible(position, methodSymbolInCurrentCompilation))
+                {
+                    continue;
+                }
+
+                var reducedMethodSymbol = methodSymbolInCurrentCompilation.ReduceExtensionMethod(receiverTypeSymbol);
+                if (reducedMethodSymbol != null)
+                {
+                    var symbolKeyData = SymbolKey.CreateString(reducedMethodSymbol);
+                    builder.Add(new SerializableImportCompletionItem(
+                        symbolKeyData,
+                        reducedMethodSymbol.Name,
+                        reducedMethodSymbol.Arity,
+                        reducedMethodSymbol.GetGlyph(),
+                        GetFullyQualifiedNamespaceName(reducedMethodSymbol.ContainingNamespace, stringCache)));
+                }
+            }
+        }
+
+        private static string GetFullyQualifiedNamespaceName(INamespaceSymbol symbol, Dictionary<INamespaceSymbol, string> stringCache)
+        {
+            if (symbol.ContainingNamespace == null || symbol.ContainingNamespace.IsGlobalNamespace)
+            {
+                return symbol.Name;
+            }
+
+            if (stringCache.TryGetValue(symbol, out var name))
+            {
+                return name;
+            }
+
+            name = GetFullyQualifiedNamespaceName(symbol.ContainingNamespace, stringCache) + "." + symbol.Name;
+            stringCache[symbol] = name;
+            return name;
+        }
+
+        private static ImmutableArray<IMethodSymbol> GetPotentialMatchingSymbolsFromAssembly(
+            IAssemblySymbol assembly,
+            MultiDictionary<string, string> extensionMethodFilter,
+            ISet<string> namespaceFilter,
+            bool internalsVisible,
+            StatisticCounter counter,
+            CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
+
+            foreach (var (fullyQualifiedContainerName, methodNames) in extensionMethodFilter)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // First try to filter out types from already imported namespaces
+                var indexOfLastDot = fullyQualifiedContainerName.LastIndexOf('.');
+                var qualifiedNamespaceName = indexOfLastDot > 0 ? fullyQualifiedContainerName.Substring(0, indexOfLastDot) : string.Empty;
+
+                if (namespaceFilter.Contains(qualifiedNamespaceName))
+                {
+                    continue;
+                }
+
+                counter.TotalTypesChecked++;
+
+                // Container of extension method (static class in C# and Module in VB) can't be generic or nested.
+                var containerSymbol = assembly.GetTypeByMetadataName(fullyQualifiedContainerName);
+
+                if (containerSymbol == null
+                    || !containerSymbol.MightContainExtensionMethods
+                    || !IsAccessible(containerSymbol, internalsVisible))
+                {
+                    continue;
+                }
+
+                foreach (var methodName in methodNames)
+                {
+                    var methodSymbols = containerSymbol.GetMembers(methodName).OfType<IMethodSymbol>();
+
+                    foreach (var methodSymbol in methodSymbols)
+                    {
+                        counter.TotalExtensionMethodsChecked++;
+
+                        if (methodSymbol.IsExtensionMethod &&
+                            IsAccessible(methodSymbol, internalsVisible))
+                        {
+                            // Find a potential match.
+                            builder.Add(methodSymbol);
+                        }
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
+
+            // An quick accessibility check based on declared accessibility only, a semantic based check is still required later.
+            // Since we are dealing with extension methods and their container (top level static class and modules), only public,
+            // internal and private modifiers are in play here. 
+            // Also, this check is called for a method symbol only when the container was checked and is accessible.
+            static bool IsAccessible(ISymbol symbol, bool internalsVisible) =>
+                symbol.DeclaredAccessibility == Accessibility.Public ||
+                (symbol.DeclaredAccessibility == Accessibility.Internal && internalsVisible);
         }
 
         private static async Task<GetIndicesResult> TryGetIndicesAsync(
@@ -146,13 +315,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var cacheService = GetCacheService(solution.Workspace);
             var graph = currentProject.Solution.GetProjectDependencyGraph();
             var relevantProjectIds = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id)
-                                        .Concat(currentProject.Id);
+                .Concat(currentProject.Id);
 
-            using var syntaxDisposer = ArrayBuilder<CacheEntry>.GetInstance(out var syntaxBuilder);
-            using var symbolDisposer = ArrayBuilder<SymbolTreeInfo>.GetInstance(out var symbolBuilder);
+            var syntaxIndices = new Dictionary<Project, CacheEntry>();
+            var symbolInfos = new Dictionary<PortableExecutableReference, SymbolTreeInfo>();
 
             foreach (var projectId in relevantProjectIds)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var project = solution.GetProject(projectId);
                 if (project == null || !project.SupportsCompilation)
                 {
@@ -169,12 +340,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return GetIndicesResult.NoneResult;
                 }
 
-                syntaxBuilder.Add(cacheEntry.Value);
+                syntaxIndices.Add(project, cacheEntry.Value);
             }
 
             // Search through all direct PE references.
             foreach (var peReference in currentProject.MetadataReferences.OfType<PortableExecutableReference>())
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                     solution, peReference, loadOnly: !forceIndexCreation, cancellationToken).ConfigureAwait(false);
 
@@ -186,276 +359,69 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (info.ContainsExtensionMethod)
                 {
-                    symbolBuilder.Add(info);
+                    symbolInfos.Add(peReference, info);
                 }
             }
 
-            var syntaxIndices = syntaxBuilder.ToImmutable();
-            var symbolInfos = symbolBuilder.ToImmutable();
-
-            return new GetIndicesResult(hasResult: true, syntaxIndices, symbolInfos);
+            return new GetIndicesResult(syntaxIndices, symbolInfos);
         }
 
-        private static MultiDictionary<string, string> CreateAggregatedFilter(ImmutableArray<string> targetTypeNames, ImmutableArray<CacheEntry> syntaxIndices, ImmutableArray<SymbolTreeInfo> symbolInfos)
+        // Create filter for extension methods from source.
+        private static MultiDictionary<string, string> CreateAggregatedFilter(ImmutableArray<string> targetTypeNames, CacheEntry syntaxIndex)
         {
             var results = new MultiDictionary<string, string>();
 
-            // Find matching extension methods from source.
-            foreach (var index in syntaxIndices)
+            // Add simple extension methods with matching target type name
+            foreach (var targetTypeName in targetTypeNames)
             {
-                // Add simple extension methods with matching target type name
-                foreach (var targetTypeName in targetTypeNames)
+                var methodInfos = syntaxIndex.SimpleExtensionMethodInfo[targetTypeName];
+                if (methodInfos.Count == 0)
                 {
-                    var methodInfos = index.SimpleExtensionMethodInfo[targetTypeName];
-                    if (methodInfos.Count == 0)
-                    {
-                        continue;
-                    }
-
-                    foreach (var methodInfo in methodInfos)
-                    {
-                        results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
-                    }
+                    continue;
                 }
 
-                // Add all complex extension methods, we will need to completely rely on symbols to match them.
-                foreach (var methodInfo in index.ComplexExtensionMethodInfo)
-                {
-                    results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
-                }
-            }
-
-            // Find matching extension methods from metadata
-            foreach (var info in symbolInfos)
-            {
-                var methodInfos = info.GetMatchingExtensionMethodInfo(targetTypeNames);
                 foreach (var methodInfo in methodInfos)
                 {
                     results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
                 }
             }
 
+            // Add all complex extension methods, we will need to completely rely on symbols to match them.
+            foreach (var methodInfo in syntaxIndex.ComplexExtensionMethodInfo)
+            {
+                results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
+            }
+
             return results;
         }
 
-        private static ImmutableArray<SerializableImportCompletionItem> GetExtensionMethodItems(
-            INamespaceSymbol rootNamespaceSymbol,
-            ITypeSymbol receiverTypeSymbol,
-            SemanticModel semanticModel,
-            int position,
-            ISet<string> namespaceFilter,
-            MultiDictionary<string, string> methodNameFilter,
-            StatisticCounter counter,
-            CancellationToken cancellationToken)
+        // Create filter for extension methods from metadata
+        private static MultiDictionary<string, string> CreateAggregatedFilter(ImmutableArray<string> targetTypeNames, SymbolTreeInfo symbolInfo)
         {
-            var compilation = semanticModel.Compilation;
-            using var _ = ArrayBuilder<SerializableImportCompletionItem>.GetInstance(out var builder);
+            var results = new MultiDictionary<string, string>();
 
-            using var conflictTypeRootNode = new ConflictNameNode(name: string.Empty);
-
-            foreach (var (fullyQualifiedContainerName, methodNames) in methodNameFilter)
+            foreach (var methodInfo in symbolInfo.GetMatchingExtensionMethodInfo(targetTypeNames))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var indexOfLastDot = fullyQualifiedContainerName.LastIndexOf('.');
-                var qualifiedNamespaceName = indexOfLastDot > 0 ? fullyQualifiedContainerName.Substring(0, indexOfLastDot) : string.Empty;
-
-                if (namespaceFilter.Contains(qualifiedNamespaceName))
-                {
-                    continue;
-                }
-
-                // Container of extension method (static class in C# and Module in VB) can't be generic or nested.
-                // Note that we might incorrectly ignore valid types, because, for example, calling `GetTypeByMetadataName` 
-                // would return null if we have multiple definitions of a type even though only one is accessible from here
-                // (e.g. an internal type declared inside a shared document). In this case, we have to handle the conflicted
-                // types explicitly here.
-                //
-                // TODO:
-                // Alternatively, we can try to get symbols out of each assembly, instead of the compilation (which includes all references), 
-                // to avoid such conflict. We should give this approach a try and see if any perf improvement can be achieved.
-                var containerSymbol = compilation.GetTypeByMetadataName(fullyQualifiedContainerName);
-
-                if (containerSymbol != null)
-                {
-                    GetItemsFromTypeContainsPotentialMatches(containerSymbol, qualifiedNamespaceName, methodNames, receiverTypeSymbol, semanticModel, position, counter, builder);
-                }
-                else
-                {
-                    conflictTypeRootNode.Add(fullyQualifiedContainerName, (qualifiedNamespaceName, methodNames));
-                }
+                results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
             }
 
-            var ticks = Environment.TickCount;
-
-            GetItemsFromConflictingTypes(rootNamespaceSymbol, conflictTypeRootNode, builder, receiverTypeSymbol, semanticModel, position, counter);
-
-            counter.GetSymbolExtraTicks = Environment.TickCount - ticks;
-
-            return builder.ToImmutable();
-        }
-
-        private static void GetItemsFromTypeContainsPotentialMatches(
-            INamedTypeSymbol containerSymbol,
-            string qualifiedNamespaceName,
-            MultiDictionary<string, string>.ValueSet methodNames,
-            ITypeSymbol receiverTypeSymbol,
-            SemanticModel semanticModel,
-            int position,
-            StatisticCounter counter,
-            ArrayBuilder<SerializableImportCompletionItem> builder)
-        {
-            counter.TotalTypesChecked++;
-
-            if (containerSymbol == null ||
-                !containerSymbol.MightContainExtensionMethods ||
-                !IsSymbolAccessible(containerSymbol, position, semanticModel))
-            {
-                return;
-            }
-
-            foreach (var methodName in methodNames)
-            {
-                var methodSymbols = containerSymbol.GetMembers(methodName).OfType<IMethodSymbol>();
-
-                foreach (var methodSymbol in methodSymbols)
-                {
-                    counter.TotalExtensionMethodsChecked++;
-                    IMethodSymbol? reducedMethodSymbol = null;
-
-                    if (methodSymbol.IsExtensionMethod &&
-                        IsSymbolAccessible(methodSymbol, position, semanticModel))
-                    {
-                        reducedMethodSymbol = methodSymbol.ReduceExtensionMethod(receiverTypeSymbol);
-                    }
-
-                    if (reducedMethodSymbol != null)
-                    {
-                        var symbolKeyData = SymbolKey.CreateString(reducedMethodSymbol);
-                        builder.Add(new SerializableImportCompletionItem(
-                            symbolKeyData,
-                            reducedMethodSymbol.Name,
-                            reducedMethodSymbol.Arity,
-                            reducedMethodSymbol.GetGlyph(),
-                            qualifiedNamespaceName));
-                    }
-                }
-            }
-        }
-
-        private static void GetItemsFromConflictingTypes(
-            INamespaceSymbol containingNamespaceSymbol,
-            ConflictNameNode conflictTypeNodes,
-            ArrayBuilder<SerializableImportCompletionItem> builder,
-            ITypeSymbol receiverTypeSymbol,
-            SemanticModel semanticModel,
-            int position,
-            StatisticCounter counter)
-        {
-            Debug.Assert(!conflictTypeNodes.NamespaceAndMethodNames.HasValue);
-
-            foreach (var child in conflictTypeNodes.Children.Values)
-            {
-                if (child.NamespaceAndMethodNames == null)
-                {
-                    var childNamespace = containingNamespaceSymbol.GetMembers(child.Name).OfType<INamespaceSymbol>().FirstOrDefault();
-                    if (childNamespace != null)
-                    {
-                        GetItemsFromConflictingTypes(childNamespace, child, builder, receiverTypeSymbol, semanticModel, position, counter);
-                    }
-                }
-                else
-                {
-                    var types = containingNamespaceSymbol.GetMembers(child.Name).OfType<INamedTypeSymbol>();
-                    foreach (var type in types)
-                    {
-                        var (namespaceName, methodNames) = child.NamespaceAndMethodNames.Value;
-                        GetItemsFromTypeContainsPotentialMatches(type, namespaceName, methodNames, receiverTypeSymbol, semanticModel, position, counter, builder);
-                    }
-                }
-            }
-        }
-
-        // We only call this when the containing symbol is accessible, 
-        // so being declared as public means this symbol is also accessible.
-        private static bool IsSymbolAccessible(ISymbol symbol, int position, SemanticModel semanticModel)
-            => symbol.DeclaredAccessibility == Accessibility.Public || semanticModel.IsAccessible(position, symbol);
-
-        /// <summary>
-        /// The purpose of this is to help us keeping track of conflicting types with data required to create 
-        /// corresponding items in a tree, which is easy to use while navigating symbol tree recursively.
-        /// For example, two internal classes with identical fully qualified name but declared in two different
-        /// projects would be a conflict, even if only one is accessible from project that triggered the completion.
-        /// </summary>
-        private class ConflictNameNode : IDisposable
-        {
-            /// <summary>
-            /// Holds the name of either a namespace name or a type (which is causing conflict).
-            /// </summary>
-            public string Name { get; }
-
-            /// <summary>
-            /// Child nodes. Only used when this node is a namespace node.
-            /// </summary>
-            public PooledDictionary<string, ConflictNameNode> Children { get; }
-
-            /// <summary>
-            /// Data needed to create a completion item based on a symbol. Not null only when this node is a type node.
-            /// </summary>
-            public (string namespaceName, MultiDictionary<string, string>.ValueSet methodNames)? NamespaceAndMethodNames { get; private set; }
-
-            public ConflictNameNode(string name)
-            {
-                Name = name;
-                Children = PooledDictionary<string, ConflictNameNode>.GetInstance();
-            }
-
-            public void Add(string fullyQualifiedContainerName, (string namespaceName, MultiDictionary<string, string>.ValueSet methodNames) namespaceAndMethodNames)
-            {
-                var parts = fullyQualifiedContainerName.Split(s_dotSeparator);
-
-                var current = this;
-                foreach (var part in parts)
-                {
-                    if (!current.Children.TryGetValue(part, out var child))
-                    {
-                        child = new ConflictNameNode(part);
-                        current.Children.Add(part, child);
-                    }
-
-                    current = child;
-                }
-
-                // Type and Namespace can't have identical name
-                Debug.Assert(current.Children.Count == 0);
-                current.NamespaceAndMethodNames = namespaceAndMethodNames;
-            }
-
-            public void Dispose()
-            {
-                foreach (var childNode in Children.Values)
-                {
-                    childNode.Dispose();
-                }
-
-                Children.Free();
-            }
+            return results;
         }
 
         private readonly struct GetIndicesResult
         {
             public bool HasResult { get; }
-            public ImmutableArray<CacheEntry> SyntaxIndices { get; }
-            public ImmutableArray<SymbolTreeInfo> SymbolInfos { get; }
+            public Dictionary<Project, CacheEntry>? SyntaxIndices { get; }
+            public Dictionary<PortableExecutableReference, SymbolTreeInfo>? SymbolInfos { get; }
 
-            public GetIndicesResult(bool hasResult, ImmutableArray<CacheEntry> syntaxIndices = default, ImmutableArray<SymbolTreeInfo> symbolInfos = default)
+            public GetIndicesResult(Dictionary<Project, CacheEntry> syntaxIndices, Dictionary<PortableExecutableReference, SymbolTreeInfo> symbolInfos)
             {
-                HasResult = hasResult;
+                HasResult = true;
                 SyntaxIndices = syntaxIndices;
                 SymbolInfos = symbolInfos;
             }
 
-            public static GetIndicesResult NoneResult => new GetIndicesResult(hasResult: false);
+            public static GetIndicesResult NoneResult => default;
         }
     }
 
@@ -466,7 +432,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public int TotalExtensionMethodsProvided;
         public int GetFilterTicks;
         public int GetSymbolTicks;
-        public int GetSymbolExtraTicks;
         public int TotalTypesChecked;
         public int TotalExtensionMethodsChecked;
 

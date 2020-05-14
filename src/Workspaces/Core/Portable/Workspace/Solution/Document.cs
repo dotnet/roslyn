@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<DocumentId> GetLinkedDocumentIds()
         {
             var documentIdsWithPath = this.Project.Solution.GetDocumentIdsWithFilePath(this.FilePath);
-            var filteredDocumentIds = this.Project.Solution.FilterDocumentIdsByLanguage(documentIdsWithPath, this.Project.Language).ToImmutableArray();
+            var filteredDocumentIds = this.Project.Solution.FilterDocumentIdsByLanguage(documentIdsWithPath, this.Project.Language);
             return filteredDocumentIds.Remove(this.Id);
         }
 

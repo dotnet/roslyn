@@ -265,13 +265,46 @@
   <data name="Use_explicitly_provided_tuple_name" xml:space="preserve">
     <value>Use explicitly provided tuple name</value>
   </data>
+  <data name="Use_System_HashCode" xml:space="preserve">
+    <value>Use 'System.HashCode'</value>
+  </data>
+  <data name="GetHashCode_implementation_can_be_simplified" xml:space="preserve">
+    <value>'GetHashCode' implementation can be simplified</value>
+  </data>
+  <data name="Use_compound_assignment" xml:space="preserve">
+    <value>Use compound assignment</value>
+  </data>
   <data name="Use_null_propagation" xml:space="preserve">
     <value>Use null propagation</value>
+  </data>
+  <data name="Use_inferred_member_name" xml:space="preserve">
+    <value>Use inferred member name</value>
+  </data>
+  <data name="Member_name_can_be_simplified" xml:space="preserve">
+    <value>Member name can be simplified</value>
+  </data>
+  <data name="Interpolation_can_be_simplified" xml:space="preserve">
+    <value>Interpolation can be simplified</value>
+  </data>
+  <data name="Simplify_interpolation" xml:space="preserve">
+    <value>Simplify interpolation</value>
+  </data>
+  <data name="Use_auto_property" xml:space="preserve">
+    <value>Use auto property</value>
   </data>
   <data name="Format_string_contains_invalid_placeholder" xml:space="preserve">
     <value>Format string contains invalid placeholder</value>
   </data>
   <data name="Invalid_format_string" xml:space="preserve">
     <value>Invalid format string</value>
+  </data>
+  <data name="Convert_to_tuple" xml:space="preserve">
+    <value>Convert to tuple</value>
+  </data>
+  <data name="Simplify_conditional_expression" xml:space="preserve">
+    <value>Simplify conditional expression</value>
+  </data>
+  <data name="Conditional_expression_can_be_simplified" xml:space="preserve">
+    <value>Conditional expression can be simplified</value>
   </data>
 </root>

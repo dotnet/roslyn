@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
+            if (obj is NativeIntegerParameterSymbol nps)
+            {
+                return nps.Equals(this, compareKind);
+            }
+
             var symbol = obj as SourceParameterSymbolBase;
             return (object)symbol != null
                 && symbol.Ordinal == this.Ordinal
@@ -85,6 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (type.Type.ContainsDynamic())
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+            }
+
+            if (type.Type.ContainsNativeInteger())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
             }
 
             if (type.Type.ContainsTupleNames())

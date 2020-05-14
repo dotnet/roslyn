@@ -204,9 +204,10 @@ namespace Microsoft.CodeAnalysis
                 return _projectToOpenDocumentsMap.SelectMany(kvp => kvp.Value).ToImmutableArray();
             }
         }
+#nullable enable
 
         /// <summary>
-        /// Gets the ids for documents associated with a text container.
+        /// Gets the ids for documents in the <see cref="CurrentSolution"/> snapshot associated with the given <paramref name="container"/>.
         /// Documents are normally associated with a text container when the documents are opened.
         /// </summary>
         public virtual IEnumerable<DocumentId> GetRelatedDocumentIds(SourceTextContainer container)
@@ -216,28 +217,20 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(container));
             }
 
-            using (_stateLock.DisposableWait())
+            var documentId = GetDocumentIdInCurrentContext(container);
+            if (documentId == null)
             {
-                return GetRelatedDocumentIds_NoLock(container);
-            }
-        }
-
-        private ImmutableArray<DocumentId> GetRelatedDocumentIds_NoLock(SourceTextContainer container)
-        {
-            if (!_bufferToDocumentInCurrentContextMap.TryGetValue(container, out var documentId))
-            {
-                // it is not an opened file
                 return ImmutableArray<DocumentId>.Empty;
             }
 
-            return this.CurrentSolution.GetRelatedDocumentIds(documentId);
+            return CurrentSolution.GetRelatedDocumentIds(documentId);
         }
 
         /// <summary>
         /// Gets the id for the document associated with the given text container in its current context.
         /// Documents are normally associated with a text container when the documents are opened.
         /// </summary>
-        public virtual DocumentId GetDocumentIdInCurrentContext(SourceTextContainer container)
+        public virtual DocumentId? GetDocumentIdInCurrentContext(SourceTextContainer container)
         {
             if (container == null)
             {
@@ -249,6 +242,11 @@ namespace Microsoft.CodeAnalysis
                 return GetDocumentIdInCurrentContext_NoLock(container);
             }
         }
+
+        private DocumentId? GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
+            => _bufferToDocumentInCurrentContextMap.TryGetValue(container, out var documentId) ? documentId : null;
+
+#nullable restore
 
         /// <summary>
         /// Finds the <see cref="DocumentId"/> related to the given <see cref="DocumentId"/> that
@@ -275,20 +273,6 @@ namespace Microsoft.CodeAnalysis
         {
             // TODO: remove linear search
             return _bufferToAssociatedDocumentsMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
-        }
-
-        private DocumentId GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
-        {
-            var foundValue = _bufferToDocumentInCurrentContextMap.TryGetValue(container, out var docId);
-
-            if (foundValue)
-            {
-                return docId;
-            }
-            else
-            {
-                return null;
-            }
         }
 
         /// <summary>
@@ -539,7 +523,9 @@ namespace Microsoft.CodeAnalysis
             this.RegisterText(textContainer);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter 'updateActiveContext' - shipped public API.
         protected internal void OnDocumentClosed(DocumentId documentId, TextLoader reloader, bool updateActiveContext = false)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             // The try/catch here is to find additional telemetry for https://devdiv.visualstudio.com/DevDiv/_queries/query/71ee8553-7220-4b2a-98cf-20edab701fd1/,
             // where we have one theory that OnDocumentClosed is running but failing somewhere in the middle and thus failing to get to the RaiseDocumentClosedEventAsync() line. 

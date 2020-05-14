@@ -4,12 +4,9 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.MetadataAsSource
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -21,9 +18,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
         Inherits AbstractMetadataAsSourceService
 
         Private ReadOnly _memberSeparationRule As AbstractFormattingRule = New FormattingRule()
+        Public Shared ReadOnly Instance As New VisualBasicMetadataAsSourceService()
 
-        Public Sub New(languageServices As HostLanguageServices)
-            MyBase.New(languageServices.GetService(Of ICodeGenerationService)())
+        Private Sub New()
         End Sub
 
         Protected Overrides Async Function AddAssemblyInfoRegionAsync(document As Document, symbolCompilation As Compilation, symbol As ISymbol, cancellationToken As CancellationToken) As Task(Of Document)
@@ -108,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
                 Return FormattingOperations.CreateAdjustNewLinesOperation(GetNumberOfLines(triviaList) + 1, AdjustNewLinesOption.ForceLines)
             End Function
 
-            Public Overrides Sub AddAnchorIndentationOperationsSlow(list As List(Of AnchorIndentationOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextOperation As NextAnchorIndentationOperationAction)
+            Public Overrides Sub AddAnchorIndentationOperationsSlow(list As List(Of AnchorIndentationOperation), node As SyntaxNode, ByRef nextOperation As NextAnchorIndentationOperationAction)
                 Return
             End Sub
 

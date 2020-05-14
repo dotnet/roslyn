@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
 
             if (!accessorDeclarationSyntax.Body.TryConvertToArrowExpressionBody(
                     accessorDeclarationSyntax.Kind(), accessor.SyntaxTree.Options, preference,
-                    out var arrowExpression, out var semicolonToken))
+                    out var arrowExpression, out _))
             {
                 return accessorDeclarationSyntax.WithSemicolonToken(default);
             };

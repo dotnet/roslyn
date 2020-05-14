@@ -339,9 +339,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         internal static ExpressionSyntax GetInitializerExpression(ExpressionSyntax initializer)
-            => initializer is CheckedExpressionSyntax
-                ? ((CheckedExpressionSyntax)initializer).Expression.WalkDownParentheses()
-                : initializer.WalkDownParentheses();
+        {
+            var current = (initializer as RefExpressionSyntax)?.Expression ?? initializer;
+            current = (current as CheckedExpressionSyntax)?.Expression ?? current;
+            return current.WalkDownParentheses();
+        }
 
         protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {

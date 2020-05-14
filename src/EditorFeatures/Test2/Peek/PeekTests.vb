@@ -57,8 +57,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
-                Assert.Equal($"String [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
-                Assert.Equal($"String [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
+                Assert.Equal($"String [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"String [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
                 Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("String", StringComparison.Ordinal))
             End Using
         End Sub
@@ -75,8 +75,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
-                Assert.Equal($"Enumerable [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
-                Assert.Equal($"Enumerable [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
+                Assert.Equal($"Enumerable [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"Enumerable [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
                 Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("Distinct", StringComparison.Ordinal))
             End Using
         End Sub
@@ -95,8 +95,8 @@ End Class
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
-                Assert.Equal($"SerializableAttribute [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
-                Assert.Equal($"SerializableAttribute [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
+                Assert.Equal($"SerializableAttribute [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"SerializableAttribute [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
                 Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("New()", StringComparison.Ordinal)) ' Navigates to constructor
             End Using
         End Sub

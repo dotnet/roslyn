@@ -5,11 +5,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -253,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // specification to match the previous implementation.
 
             var operators = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
-            this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators);
+            this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators, skipNativeIntegerOperators: !operand.Type.IsNativeIntegerOrNullableNativeIntegerType());
 
             GetEnumOperations(kind, operand, operators);
 

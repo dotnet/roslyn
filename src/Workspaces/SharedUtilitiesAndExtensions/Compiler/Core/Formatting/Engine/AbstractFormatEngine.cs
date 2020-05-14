@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -31,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly SyntaxNode _commonRoot;
         private readonly SyntaxToken _token1;
         private readonly SyntaxToken _token2;
-        private readonly string _language;
 
         protected readonly TextSpan SpanToFormat;
 
@@ -75,15 +76,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // get span and common root
             this.SpanToFormat = GetSpanToFormat();
-            _commonRoot = token1.GetCommonRoot(token2);
-            if (token1 == default)
-            {
-                _language = token2.Language;
-            }
-            else
-            {
-                _language = token1.Language;
-            }
+            _commonRoot = token1.GetCommonRoot(token2) ?? throw ExceptionUtilities.Unreachable;
         }
 
         protected abstract AbstractTriviaDataFactory CreateTriviaFactory();
@@ -216,14 +209,14 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // pre-allocate list once. this is cheaper than re-adjusting list as items are added.
                 var list = new TokenPairWithOperations[tokenStream.TokenCount - 1];
 
-                foreach (var pair in tokenStream.TokenIterator)
+                foreach (var (index, currentToken, nextToken) in tokenStream.TokenIterator)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var spaceOperation = _formattingRules.GetAdjustSpacesOperation(pair.Item2, pair.Item3);
-                    var lineOperation = _formattingRules.GetAdjustNewLinesOperation(pair.Item2, pair.Item3);
+                    var spaceOperation = _formattingRules.GetAdjustSpacesOperation(currentToken, nextToken);
+                    var lineOperation = _formattingRules.GetAdjustNewLinesOperation(currentToken, nextToken);
 
-                    list[pair.Item1] = new TokenPairWithOperations(tokenStream, pair.Item1, spaceOperation, lineOperation);
+                    list[index] = new TokenPairWithOperations(tokenStream, index, spaceOperation, lineOperation);
                 }
 
                 return list;

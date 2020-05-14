@@ -308,18 +308,21 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             // We're switching between the target language and the Interactive Command "language".
             // First, remove the current submission from the solution.
 
+            var documentId = _workspace.GetDocumentIdInCurrentContext(buffer.AsTextContainer());
             var oldSolution = _workspace.CurrentSolution;
+            var relatedDocumentIds = oldSolution.GetRelatedDocumentIds(documentId);
+
             var newSolution = oldSolution;
 
-            foreach (var documentId in _workspace.GetRelatedDocumentIds(buffer.AsTextContainer()))
+            foreach (var relatedDocumentId in relatedDocumentIds)
             {
-                Debug.Assert(documentId != null);
+                Debug.Assert(relatedDocumentId != null);
 
-                newSolution = newSolution.RemoveDocument(documentId);
+                newSolution = newSolution.RemoveDocument(relatedDocumentId);
 
                 // TODO (tomat): Is there a better way to remove mapping between buffer and document in REPL? 
                 // Perhaps TrackingWorkspace should implement RemoveDocumentAsync?
-                _workspace.ClearOpenDocument(documentId);
+                _workspace.ClearOpenDocument(relatedDocumentId);
             }
 
             // Next, remove the previous submission project and update the workspace.

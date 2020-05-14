@@ -7,15 +7,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -25,9 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
     internal class CSharpMetadataAsSourceService : AbstractMetadataAsSourceService
     {
         private static readonly AbstractFormattingRule s_memberSeparationRule = new FormattingRule();
+        public static readonly CSharpMetadataAsSourceService Instance = new CSharpMetadataAsSourceService();
 
-        public CSharpMetadataAsSourceService(HostLanguageServices languageServices)
-            : base(languageServices.GetService<ICodeGenerationService>())
+        private CSharpMetadataAsSourceService()
         {
         }
 
@@ -70,7 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             => ImmutableArray.Create<AbstractReducer>(
                 new CSharpNameReducer(),
                 new CSharpEscapingReducer(),
-                new CSharpParenthesesReducer(),
+                new CSharpParenthesizedExpressionReducer(),
+                new CSharpParenthesizedPatternReducer(),
                 new CSharpDefaultExpressionReducer());
 
         private class FormattingRule : AbstractMetadataFormattingRule
@@ -115,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
                 return FormattingOperations.CreateAdjustNewLinesOperation(GetNumberOfLines(triviaList) + 1, AdjustNewLinesOption.ForceLines);
             }
 
-            public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextAnchorIndentationOperationAction nextOperation)
+            public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
             {
                 return;
             }

@@ -23,11 +23,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSourceService
     {
-        private readonly ICodeGenerationService _codeGenerationService;
-
-        protected AbstractMetadataAsSourceService(ICodeGenerationService codeGenerationService)
-            => _codeGenerationService = codeGenerationService;
-
         public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {
             if (document == null)
@@ -43,7 +38,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 document.Project.Solution,
                 rootNamespace,
                 CreateCodeGenerationSymbol(document, symbol),
-                CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan()), symbol),
+                CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
                 cancellationToken).ConfigureAwait(false);
 
             document = await RemoveSimplifierAnnotationsFromImportsAsync(document, cancellationToken).ConfigureAwait(false);
@@ -123,7 +118,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     new[] { wrappedType });
         }
 
-        private static CodeGenerationOptions CreateCodeGenerationOptions(Location contextLocation, ISymbol symbol)
+        private static CodeGenerationOptions CreateCodeGenerationOptions(Location contextLocation)
         {
             return new CodeGenerationOptions(
                 contextLocation: contextLocation,

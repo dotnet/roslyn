@@ -384,6 +384,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Indicates whether the method should be emitted.
+        /// </summary>
+        internal static bool ShouldEmit(this MethodSymbol method)
+        {
+            // Don't emit the default value type constructor - the runtime handles that
+            if (method.IsDefaultValueTypeConstructor())
+            {
+                return false;
+            }
+
+            if (method is SynthesizedStaticConstructor cctor && !cctor.ShouldEmit())
+            {
+                return false;
+            }
+
+            // Don't emit partial methods without an implementation part.
+            if (method.IsPartialMethod() && method.PartialImplementationPart is null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// If the event has a AddMethod, return that.  Otherwise check the overridden
         /// event, if any.  Repeat for each overridden event.
         /// </summary>

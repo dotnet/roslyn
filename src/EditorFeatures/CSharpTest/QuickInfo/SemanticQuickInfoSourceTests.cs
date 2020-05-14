@@ -2534,6 +2534,38 @@ class D : X$$
                 MainDescription("struct System.Int32"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Constructor_ImplicitObjectCreation()
+        {
+            await TestAsync(
+@"class C
+{
+    static void Main()
+    {
+        C c = ne$$w();
+    }
+}
+",
+                MainDescription("C.C()"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Constructor_ImplicitObjectCreation_WithParameters()
+        {
+            await TestAsync(
+@"class C
+{
+    C(int i) { }
+    C(string s) { }
+    static void Main()
+    {
+        C c = ne$$w(1);
+    }
+}
+",
+                MainDescription($"C.C(int i) (+ 1 {FeaturesResources.overload})"));
+        }
+
         [WorkItem(539841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539841")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestIsNamedTypeAccessibleForErrorTypes()
@@ -6922,6 +6954,87 @@ class Program
                 MainDescription("int Program.M.get"),
                 Documentation("Summary text"),
                 Value($"\r\n{FeaturesResources.Value_colon}\r\n  Value text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoNotPattern1()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is not $$Person p)
+        {
+        }
+    }
+}",
+                MainDescription("class Person"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoNotPattern2()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is $$not Person p)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoOrPattern1()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is $$Person or int)
+        {
+        }
+    }
+}", MainDescription("class Person"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoOrPattern2()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is Person or $$int)
+        {
+        }
+    }
+}", MainDescription("struct System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoOrPattern3()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is Person $$or int)
+        {
+        }
+    }
+}");
         }
     }
 }

@@ -167,11 +167,11 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var project = document.Project;
             var originalSolution = project.Solution;
             var getMethodReferences = await SymbolFinder.FindReferencesAsync(
-                new SymbolAndProjectId(getMethod, project.Id), originalSolution, cancellationToken).ConfigureAwait(false);
+                getMethod, originalSolution, cancellationToken).ConfigureAwait(false);
             var setMethodReferences = setMethod == null
                 ? SpecializedCollections.EmptyEnumerable<ReferencedSymbol>()
                 : await SymbolFinder.FindReferencesAsync(
-                    new SymbolAndProjectId(setMethod, project.Id), originalSolution, cancellationToken).ConfigureAwait(false);
+                    setMethod, originalSolution, cancellationToken).ConfigureAwait(false);
 
             // Get the warnings we'd like to put at the definition site.
             var definitionWarning = GetDefinitionIssues(getMethodReferences);
@@ -451,7 +451,9 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return result;
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter - Method not completely implemented.
         private string GetDefinitionIssues(IEnumerable<ReferencedSymbol> getMethodReferences)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             // TODO: add things to be concerned about here.  For example:
             // 1. If any of the referenced symbols are from metadata.

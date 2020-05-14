@@ -35,8 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
             // Check IsNode to compress blank lines after this node if it is the last child of the parent.
             //
-            // Full events are grouped together with event field definitions.
-            var compressEmptyLines = !nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.EventDeclaration) || nextSibling.IsKind(SyntaxKind.EventFieldDeclaration);
+            // Full events are grouped together with event field definitions in Metadata as Source.
+            var compressEmptyLines = isMetadataAsSource
+                && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.EventDeclaration) || nextSibling.IsKind(SyntaxKind.EventFieldDeclaration));
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 eventDeclaration,

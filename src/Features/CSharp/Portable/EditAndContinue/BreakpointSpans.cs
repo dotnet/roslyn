@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
@@ -183,6 +184,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return caseClause.WhenClause == null
                         ? TryCreateSpanForSwitchLabel((SwitchLabelSyntax)node, position)
                         : CreateSpan(caseClause.WhenClause);
+
+                case SyntaxKind.SwitchExpressionArm:
+                    var switchArm = (SwitchExpressionArmSyntax)node;
+                    return createSpanForSwitchArm(switchArm);
+
+                    TextSpan createSpanForSwitchArm(SwitchExpressionArmSyntax switchArm) =>
+                        CreateSpan((position <= switchArm.WhenClause?.FullSpan.End == true) ? switchArm.WhenClause : (SyntaxNode)switchArm.Expression);
+
+                case SyntaxKind.SwitchExpression when
+                            node is SwitchExpressionSyntax switchExpression &&
+                            switchExpression.Arms.Count > 0 &&
+                            position >= switchExpression.OpenBraceToken.Span.End &&
+                            position <= switchExpression.CloseBraceToken.Span.Start:
+                    // This can occur if the cursor is on a separator. Find the nearest switch arm.
+                    switchArm = switchExpression.Arms.LastOrDefault(arm => position >= arm.FullSpan.Start) ?? switchExpression.Arms.First();
+                    return createSpanForSwitchArm(switchArm);
 
                 case SyntaxKind.WhenClause:
                     return CreateSpan(node);
@@ -676,6 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// 2) The expression is a breakable expression inside a query expression.
         /// 3) The expression is in a for statement initializer, condition or incrementor.
         /// 4) The expression is a foreach initializer.
+        /// 5) The expression is the value of an arm of a switch expression
         /// </summary>
         private static bool IsBreakableExpression(ExpressionSyntax expression)
         {
@@ -689,6 +707,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 case SyntaxKind.ArrowExpressionClause:
                     Debug.Assert(((ArrowExpressionClauseSyntax)parent).Expression == expression);
+                    return true;
+
+                case SyntaxKind.SwitchExpressionArm:
+                    Debug.Assert(((SwitchExpressionArmSyntax)parent).Expression == expression);
                     return true;
 
                 case SyntaxKind.ForStatement:

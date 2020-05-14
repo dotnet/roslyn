@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestVar()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestUpdateReference()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestTupleType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestVarInForEach()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 
 class C
@@ -163,7 +163,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestTupleTypeInForEach()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 
 class C
@@ -193,7 +193,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestFixAll1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -219,7 +219,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestFixAll2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -253,7 +253,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestFixAll3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -279,7 +279,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestFixAll4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -320,7 +320,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithUserNamesThatMatchDefaultTupleNameWithVar1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -344,7 +344,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithUserNamesThatMatchDefaultTupleNameWithVar2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -449,7 +449,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestTrivia1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -490,7 +490,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithDefaultExpressionInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -531,7 +531,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithExplicitImplicitConversionFromNonTuple()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     class Person
@@ -582,7 +582,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithExplicitImplicitConversionFromNonTupleInForEach()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Linq;
 class C
 {
@@ -616,7 +616,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithTupleLiteralConversion()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -638,7 +638,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithImplicitTupleConversion()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
@@ -664,7 +664,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestWithImplicitTupleConversionInForEach()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 class C
 {
@@ -693,7 +693,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestEscapedContextualKeywordAsTupleName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 class C
 {
@@ -724,17 +724,12 @@ class C
 }");
         }
 
-#if CODE_STYLE
-        [WorkItem(41462, "https://github.com/dotnet/roslyn/issues/41462")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41462")]
-#else
         [Fact]
-#endif
         [WorkItem(42770, "https://github.com/dotnet/roslyn/issues/42770")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestPreserveAwait()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

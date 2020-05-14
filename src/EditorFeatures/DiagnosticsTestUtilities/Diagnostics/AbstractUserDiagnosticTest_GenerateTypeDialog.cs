@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -45,7 +46,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             IList<TypeKindOptions> assertTypeKindAbsent = null,
             bool isCancelled = false)
         {
-            using var testState = GenerateTypeTestState.Create(initial, projectName, typeName, existingFilename, languageName);
+            var workspace = TestWorkspace.IsWorkspaceElement(initial)
+                ? TestWorkspace.Create(initial)
+                : languageName == LanguageNames.CSharp
+                  ? TestWorkspace.CreateCSharp(initial)
+                  : TestWorkspace.CreateVisualBasic(initial);
+
+            var testOptions = new TestParameters();
+            var (diagnostics, actions, _) = await GetDiagnosticAndFixesAsync(workspace, testOptions);
+
+            using var testState = new GenerateTypeTestState(workspace, projectToBeModified: projectName, typeName, existingFilename);
 
             // Initialize the viewModel values
             testState.TestGenerateTypeOptionsService.SetGenerateTypeOptions(
@@ -64,8 +74,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             testState.TestProjectManagementService.SetDefaultNamespace(
                 defaultNamespace: defaultNamespace);
 
-            var testOptions = new TestParameters();
-            var (diagnostics, actions, _) = await GetDiagnosticAndFixesAsync(testState.Workspace, testOptions);
             var generateTypeDiagFixes = diagnostics.SingleOrDefault(df => GenerateTypeTestState.FixIds.Contains(df.Id));
 
             if (isMissing)

@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
+                allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
@@ -104,8 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             raiseEventStatement As RaiseEventStatementSyntax,
             semanticModel As SemanticModel,
             anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-            documentationCommentFormattingService As IDocumentationCommentFormattingService,
-            cancellationToken As CancellationToken
+            documentationCommentFormattingService As IDocumentationCommentFormattingService
         ) As SignatureHelpItem
 
             Dim position = raiseEventStatement.SpanStart
@@ -119,8 +118,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 eventSymbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(eventSymbol, semanticModel, position),
                 GetSeparatorParts(),
-                GetPostambleParts(eventSymbol, semanticModel, position),
-                type.DelegateInvokeMethod.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList())
+                GetPostambleParts(),
+                type.DelegateInvokeMethod.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
 
             Return item
         End Function
@@ -146,11 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return result
         End Function
 
-        Private Function GetPostambleParts(
-            eventSymbol As IEventSymbol,
-            semanticModel As SemanticModel,
-            position As Integer) As IList(Of SymbolDisplayPart)
-
+        Private Function GetPostambleParts() As IList(Of SymbolDisplayPart)
             Return {Punctuation(SyntaxKind.CloseParenToken)}
         End Function
     End Class

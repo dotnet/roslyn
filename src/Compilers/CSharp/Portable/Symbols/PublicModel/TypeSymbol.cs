@@ -139,6 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool ITypeSymbol.IsTupleType => UnderlyingTypeSymbol.IsTupleType;
 
+        bool ITypeSymbol.IsNativeIntegerType => UnderlyingTypeSymbol.IsNativeIntegerType;
+
         string ITypeSymbol.ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format)
         {
             return SymbolDisplay.ToDisplayString(this, topLevelNullability, format);

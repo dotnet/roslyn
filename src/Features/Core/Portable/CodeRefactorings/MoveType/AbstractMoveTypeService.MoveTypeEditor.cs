@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             private async Task<SyntaxNode> AddFinalNewLineIfDesiredAsync(Document document, SyntaxNode modifiedRoot)
             {
                 var options = await document.GetOptionsAsync(CancellationToken).ConfigureAwait(false);
-                var insertFinalNewLine = options.GetOption(FormattingOptions.InsertFinalNewLine);
+                var insertFinalNewLine = options.GetOption(FormattingOptions2.InsertFinalNewLine);
                 if (insertFinalNewLine)
                 {
                     var endOfFileToken = ((ICompilationUnitSyntax)modifiedRoot).EndOfFileToken;

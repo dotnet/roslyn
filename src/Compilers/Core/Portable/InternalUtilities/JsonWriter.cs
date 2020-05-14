@@ -78,7 +78,7 @@ namespace Roslyn.Utilities
             _pending = Pending.None;
         }
 
-        public void Write(string key, string value)
+        public void Write(string key, string? value)
         {
             WriteKey(key);
             Write(value);
@@ -96,7 +96,7 @@ namespace Roslyn.Utilities
             Write(value);
         }
 
-        public void Write(string value)
+        public void Write(string? value)
         {
             WritePending();
             _output.Write('"');

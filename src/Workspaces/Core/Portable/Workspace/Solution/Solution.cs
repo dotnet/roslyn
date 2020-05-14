@@ -14,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
@@ -39,8 +38,8 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SerializableOptionSet options)
-            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options))
+        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SerializableOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
+            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -117,15 +116,45 @@ namespace Microsoft.CodeAnalysis
             return new Project(solution, state);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter 'cancellationToken' - shipped public API
         /// <summary>
         /// Gets the <see cref="Project"/> associated with an assembly symbol.
         /// </summary>
-        public Project? GetProject(IAssemblySymbol assemblySymbol, CancellationToken cancellationToken = default)
+        public Project? GetProject(IAssemblySymbol assemblySymbol,
+            CancellationToken cancellationToken = default)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var projectState = _state.GetProjectState(assemblySymbol);
 
             return projectState == null ? null : GetProject(projectState.Id);
         }
+
+        /// <summary>
+        /// Given a <paramref name="symbol"/> returns the <see cref="ProjectId"/> of the <see cref="Project"/> it came
+        /// from.  Returns <see langword="null"/> if <paramref name="symbol"/> does not come from <paramref name="symbol"/>.
+        /// </summary>
+        /// <remarks>
+        /// This function differs from <see cref="GetProject(IAssemblySymbol, CancellationToken)"/> in terms of how it
+        /// treats <see cref="IAssemblySymbol"/>s.  Specifically, say there is the following:
+        ///
+        /// <c>
+        /// Project-A, containing Symbol-A.<para/>
+        /// Project-B, with a reference to Project-A, and usage of Symbol-A.
+        /// </c>
+        ///
+        /// It is possible (with retargeting, and other complex cases) that Symbol-A from Project-B will be a different
+        /// symbol than Symbol-A from Project-A.  However, <see cref="GetProject(IAssemblySymbol, CancellationToken)"/>
+        /// will always try to return Project-A for either of the Symbol-A's, as it prefers to return the original
+        /// Source-Project of the original definition, not the project that actually produced the symbol.  For many
+        /// features this is an acceptable abstraction.  However, for some cases (Find-References in particular) it is
+        /// necessary to resolve symbols back to the actual project/compilation that produced them for correctness.
+        /// </remarks>
+        internal ProjectId? GetOriginatingProjectId(ISymbol symbol)
+            => _state.GetOriginatingProjectId(symbol);
+
+        /// <inheritdoc cref="GetOriginatingProjectId"/>
+        internal Project? GetOriginatingProject(ISymbol symbol)
+            => GetProject(GetOriginatingProjectId(symbol));
 
         /// <summary>
         /// True if the solution contains the document in one of its projects
@@ -328,6 +357,22 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             var newState = _state.WithProjectOutputRefFilePath(projectId, outputRefFilePath);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the compiler output file path.
+        /// </summary>
+        public Solution WithProjectCompilationOutputFilePaths(ProjectId projectId, in CompilationOutputFilePaths paths)
+        {
+            CheckContainsProject(projectId);
+
+            var newState = _state.WithProjectCompilationOutputFilePaths(projectId, paths);
             if (newState == _state)
             {
                 return this;
@@ -542,17 +587,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw new InvalidOperationException(WorkspacesResources.The_project_already_references_the_target_project);
                 }
-
-                if (_state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
-                {
-                    throw new InvalidOperationException(WorkspacesResources.The_project_already_transitively_references_the_target_project);
-                }
-
-                if (_state.IsInvalidSubmissionReference(projectId, projectReference.ProjectId))
-                {
-                    throw new InvalidOperationException(WorkspacesResources.This_submission_already_references_another_submission_project);
-                }
             }
+
+            CheckCircularProjectReferences(projectId, collection);
+            CheckSubmissionProjectReferences(projectId, collection, ignoreExistingReferences: false);
 
             var newState = _state.AddProjectReferences(projectId, collection);
             if (newState == _state)
@@ -602,7 +640,13 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectReferences(projectId, PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projectReferences, nameof(projectReferences)));
+            // avoid enumerating multiple times:
+            var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projectReferences, nameof(projectReferences));
+
+            CheckCircularProjectReferences(projectId, collection);
+            CheckSubmissionProjectReferences(projectId, collection, ignoreExistingReferences: true);
+
+            var newState = _state.WithProjectReferences(projectId, collection);
             if (newState == _state)
             {
                 return this;
@@ -737,8 +781,12 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            // avoid enumerating multiple times:
-            var collection = analyzerReferences?.ToCollection();
+            if (analyzerReferences is null)
+            {
+                throw new ArgumentNullException(nameof(analyzerReferences));
+            }
+
+            var collection = analyzerReferences.ToImmutableArray();
 
             PublicContract.RequireUniqueNonNullItems(collection, nameof(analyzerReferences));
 
@@ -799,6 +847,87 @@ namespace Microsoft.CodeAnalysis
 
             var newState = _state.WithProjectAnalyzerReferences(
                 projectId,
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
+
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Create a new solution instance updated to include the specified analyzer reference.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="analyzerReference"/> is <see langword="null"/>.</exception>
+        public Solution AddAnalyzerReference(AnalyzerReference analyzerReference)
+        {
+            return AddAnalyzerReferences(
+                SpecializedCollections.SingletonEnumerable(
+                    analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))));
+        }
+
+        /// <summary>
+        /// Create a new solution instance updated to include the specified analyzer references.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="analyzerReferences"/> contains <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="analyzerReferences"/> contains duplicate items.</exception>
+        /// <exception cref="InvalidOperationException">The solution already contains the specified reference.</exception>
+        public Solution AddAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
+        {
+            // avoid enumerating multiple times:
+            var collection = analyzerReferences?.ToCollection();
+
+            PublicContract.RequireUniqueNonNullItems(collection, nameof(analyzerReferences));
+
+            foreach (var analyzerReference in collection)
+            {
+                if (_state.AnalyzerReferences.Contains(analyzerReference))
+                {
+                    throw new InvalidOperationException(WorkspacesResources.The_solution_already_contains_the_specified_reference);
+                }
+            }
+
+            var newState = _state.AddAnalyzerReferences(collection);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Create a new solution instance with the project specified updated to no longer include
+        /// the specified analyzer reference.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="analyzerReference"/> is <see langword="null"/>.</exception>
+        /// <exception cref="InvalidOperationException">The solution does not contain the specified reference.</exception>
+        public Solution RemoveAnalyzerReference(AnalyzerReference analyzerReference)
+        {
+            if (analyzerReference == null)
+            {
+                throw new ArgumentNullException(nameof(analyzerReference));
+            }
+
+            var newState = _state.RemoveAnalyzerReference(analyzerReference);
+            if (newState == _state)
+            {
+                throw new InvalidOperationException(WorkspacesResources.Solution_does_not_contain_specified_reference);
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the specified analyzer references.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="analyzerReferences"/> contains <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="analyzerReferences"/> contains duplicate items.</exception>
+        public Solution WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
+        {
+            var newState = _state.WithAnalyzerReferences(
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
 
             if (newState == _state)
@@ -1540,11 +1669,11 @@ namespace Microsoft.CodeAnalysis
             if (string.IsNullOrEmpty(filePath))
             {
                 // this document can't have any related document. only related document is itself.
-                return ImmutableArray.Create<DocumentId>(documentId);
+                return ImmutableArray.Create(documentId);
             }
 
-            var documentIds = this.GetDocumentIdsWithFilePath(filePath);
-            return this.FilterDocumentIdsByLanguage(documentIds, projectState.ProjectInfo.Language).ToImmutableArray();
+            var documentIds = GetDocumentIdsWithFilePath(filePath);
+            return this.FilterDocumentIdsByLanguage(documentIds, projectState.ProjectInfo.Language);
         }
 
         internal Solution WithNewWorkspace(Workspace workspace, int workspaceVersion)
@@ -1630,6 +1759,11 @@ namespace Microsoft.CodeAnalysis
         /// instance was created.
         /// </summary>
         public OptionSet Options => _state.Options;
+
+        /// <summary>
+        /// Analyzer references associated with the solution.
+        /// </summary>
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences => _state.AnalyzerReferences;
 
         /// <summary>
         /// Creates a new solution instance with the specified <paramref name="options"/>.
@@ -1746,6 +1880,55 @@ namespace Microsoft.CodeAnalysis
             foreach (var documentId in documentIds)
             {
                 CheckContainsAnalyzerConfigDocument(documentId);
+            }
+        }
+
+        /// <summary>
+        /// Throws if setting the project references of project <paramref name="projectId"/> to specified <paramref name="projectReferences"/>
+        /// would form a cycle in project dependency graph.
+        /// </summary>
+        private void CheckCircularProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
+        {
+            foreach (var projectReference in projectReferences)
+            {
+                if (projectId == projectReference.ProjectId || _state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
+                {
+                    throw new InvalidOperationException(WorkspacesResources.The_project_already_transitively_references_the_target_project);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Throws if setting the project references of project <paramref name="projectId"/> to specified <paramref name="projectReferences"/>
+        /// would form an invalid submission project chain.
+        /// 
+        /// Submission projects can reference at most one other submission project. Regular projects can't reference any.
+        /// </summary>
+        private void CheckSubmissionProjectReferences(ProjectId projectId, IEnumerable<ProjectReference> projectReferences, bool ignoreExistingReferences)
+        {
+            var projectState = _state.GetRequiredProjectState(projectId);
+
+            bool isSubmission = projectState.IsSubmission;
+            bool hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => _state.GetRequiredProjectState(p.ProjectId).IsSubmission);
+
+            foreach (var projectReference in projectReferences)
+            {
+                // Note: need to handle reference to a project that's not included in the solution:
+                var referencedProjectState = _state.GetProjectState(projectReference.ProjectId);
+                if (referencedProjectState != null && referencedProjectState.IsSubmission)
+                {
+                    if (!isSubmission)
+                    {
+                        throw new InvalidOperationException(WorkspacesResources.Only_submission_project_can_reference_submission_projects);
+                    }
+
+                    if (hasSubmissionReference)
+                    {
+                        throw new InvalidOperationException(WorkspacesResources.This_submission_already_references_another_submission_project);
+                    }
+
+                    hasSubmissionReference = true;
+                }
             }
         }
     }

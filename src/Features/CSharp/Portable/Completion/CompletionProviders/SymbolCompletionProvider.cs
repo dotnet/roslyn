@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 context.SemanticModel, position, context.Workspace, options, cancellationToken);
         }
 
-        protected async override Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
+        protected override async Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
         {
             var sourceText = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
             if (ShouldTriggerInArgumentLists(sourceText, options))
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 : CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        internal async override Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, OptionSet options, CancellationToken cancellationToken)
+        internal override async Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, OptionSet options, CancellationToken cancellationToken)
         {
             if (trigger.Kind == CompletionTriggerKind.Insertion && caretPosition > 0)
             {

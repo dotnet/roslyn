@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.BaseConstructorInitializer:
                     case SyntaxKind.ThisConstructorInitializer:
                         var init = (ConstructorInitializerSyntax)original.Syntax;
+                        Debug.Assert(init.Parent is object);
                         return new BoundSequencePointWithSpan(init, rewritten, CreateSpanForConstructorInitializer((ConstructorDeclarationSyntax)init.Parent));
                 }
             }
@@ -404,6 +405,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the expression are being executed.
             return AddConditionSequencePoint(base.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory), original.Syntax, factory);
+        }
+
+        public override BoundExpression InstrumentSwitchExpressionArmExpression(BoundExpression original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        {
+            return new BoundSequencePointExpression(original.Syntax, base.InstrumentSwitchExpressionArmExpression(original, rewrittenExpression, factory), rewrittenExpression.Type);
         }
 
         public override BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)

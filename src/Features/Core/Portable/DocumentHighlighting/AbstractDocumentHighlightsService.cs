@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
@@ -65,11 +63,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 return result;
             }
 
-            // use speculative semantic model to see whether we are on a symbol we can do HR
-            var span = new TextSpan(position, 0);
             var solution = document.Project.Solution;
 
-            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                 semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
@@ -77,16 +73,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 return ImmutableArray<DocumentHighlights>.Empty;
             }
 
-            symbol = await GetSymbolToSearchAsync(document, position, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
-            if (symbol == null)
-            {
-                return ImmutableArray<DocumentHighlights>.Empty;
-            }
-
             // Get unique tags for referenced symbols
             return await GetTagsForReferencedSymbolAsync(
-                new SymbolAndProjectId(symbol, document.Project.Id),
-                document, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                symbol, document, documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
@@ -128,12 +117,11 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> GetTagsForReferencedSymbolAsync(
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             Document document,
             IImmutableSet<Document> documentsToSearch,
             CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
             Contract.ThrowIfNull(symbol);
             if (ShouldConsiderSymbol(symbol))
             {
@@ -141,7 +129,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
                 var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
                 await SymbolFinder.FindReferencesAsync(
-                    symbolAndProjectId, document.Project.Solution, progress,
+                    symbol, document.Project.Solution, progress,
                     documentsToSearch, options, cancellationToken).ConfigureAwait(false);
 
                 return await FilterAndCreateSpansAsync(
@@ -257,9 +245,11 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                             // GetDocument will return null for locations in #load'ed trees.
                             // TODO:  Remove this check and add logic to fetch the #load'ed tree's
                             // Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
+                            // TODO: the assert is also commented out becase generated syntax trees won't
+                            // have a document until https://github.com/dotnet/roslyn/issues/42823 is fixed
                             if (document == null)
                             {
-                                Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
+                                // Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
                                 continue;
                             }
 

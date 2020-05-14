@@ -167,20 +167,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 checksum, _concatenatedNames, _nodes, _spellCheckerTask, _inheritanceMap, _extensionMethodOfComplexType, _simpleTypeNameToExtensionMethodMap);
         }
 
-        public Task<ImmutableArray<SymbolAndProjectId>> FindAsync(
-            SearchQuery query, IAssemblySymbol assembly, ProjectId assemblyProjectId, SymbolFilter filter, CancellationToken cancellationToken)
+        public Task<ImmutableArray<ISymbol>> FindAsync(
+            SearchQuery query, IAssemblySymbol assembly, SymbolFilter filter, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
             Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             return this.FindAsync(
-                query, new AsyncLazy<IAssemblySymbol>(assembly),
-                assemblyProjectId, filter, cancellationToken);
+                query, new AsyncLazy<IAssemblySymbol>(assembly), filter, cancellationToken);
         }
 
-        public async Task<ImmutableArray<SymbolAndProjectId>> FindAsync(
-            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, ProjectId assemblyProjectId,
+        public async Task<ImmutableArray<ISymbol>> FindAsync(
+            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly,
             SymbolFilter filter, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -189,9 +188,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var symbols = await FindCoreAsync(query, lazyAssembly, cancellationToken).ConfigureAwait(false);
 
-            return DeclarationFinder.FilterByCriteria(
-                symbols.SelectAsArray(s => new SymbolAndProjectId(s, assemblyProjectId)),
-                filter);
+            return DeclarationFinder.FilterByCriteria(symbols, filter);
         }
 
         private Task<ImmutableArray<ISymbol>> FindCoreAsync(
@@ -543,7 +540,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             Debug.Assert(_inheritanceMap.Keys.Count == other._inheritanceMap.Keys.Count);
             var orderedKeys1 = this._inheritanceMap.Keys.Order().ToList();
-            var orderedKeys2 = other._inheritanceMap.Keys.Order().ToList();
 
             for (var i = 0; i < orderedKeys1.Count; i++)
             {

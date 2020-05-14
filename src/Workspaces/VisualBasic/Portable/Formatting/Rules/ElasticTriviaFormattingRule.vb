@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -15,11 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddSuppressOperationsSlow(list As List(Of SuppressOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextOperation As NextSuppressOperationAction)
+        Public Overrides Sub AddSuppressOperationsSlow(list As List(Of SuppressOperation), node As SyntaxNode, ByRef nextOperation As NextSuppressOperationAction)
             nextOperation.Invoke()
         End Sub
 
-        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextOperation As NextIndentBlockOperationAction)
+        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
             nextOperation.Invoke()
 
             If node.Kind = SyntaxKind.ObjectMemberInitializer Then
@@ -59,7 +58,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Overrides Sub AddAlignTokensOperationsSlow(list As List(Of AlignTokensOperation),
                                                       node As SyntaxNode,
-                                                      options As AnalyzerConfigOptions,
                                                       ByRef nextOperation As NextAlignTokensOperationAction)
             nextOperation.Invoke()
 
@@ -86,14 +84,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, options As AnalyzerConfigOptions, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             ' if it doesn't have elastic trivia, pass it through
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
-                Return nextOperation.Invoke()
+                Return nextOperation.Invoke(previousToken, currentToken)
             End If
 
             ' if it has one, check whether there is a forced one
-            Dim operation = nextOperation.Invoke()
+            Dim operation = nextOperation.Invoke(previousToken, currentToken)
 
             If operation IsNot Nothing AndAlso operation.Option = AdjustSpacesOption.ForceSpaces Then
                 Return operation
@@ -123,18 +121,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Public Overrides Function GetAdjustNewLinesOperationSlow(
-                previousToken As SyntaxToken,
-                currentToken As SyntaxToken,
-                options As AnalyzerConfigOptions,
+                ByRef previousToken As SyntaxToken,
+                ByRef currentToken As SyntaxToken,
                 ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
 
             ' if it doesn't have elastic trivia, pass it through
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
-                Return nextOperation.Invoke()
+                Return nextOperation.Invoke(previousToken, currentToken)
             End If
 
             ' if it has one, check whether there is a forced one
-            Dim operation = nextOperation.Invoke()
+            Dim operation = nextOperation.Invoke(previousToken, currentToken)
 
             If operation IsNot Nothing AndAlso operation.Option = AdjustNewLinesOption.ForceLines Then
                 Return operation

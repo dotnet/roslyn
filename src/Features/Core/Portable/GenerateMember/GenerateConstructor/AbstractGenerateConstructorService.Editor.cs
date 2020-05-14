@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var remainingParameters);
 
                 var fields = _withFields
-                    ? syntaxFactory.CreateFieldsForParameters(remainingParameters, parameterToNewFieldMap)
+                    ? SyntaxGeneratorExtensions.CreateFieldsForParameters(remainingParameters, parameterToNewFieldMap)
                     : ImmutableArray<IFieldSymbol>.Empty;
                 var assignStatements = syntaxFactory.CreateAssignmentStatements(
                     _document.SemanticModel, remainingParameters,

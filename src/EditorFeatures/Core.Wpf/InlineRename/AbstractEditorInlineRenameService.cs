@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,13 +41,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             Document document, SyntaxToken triggerToken, CancellationToken cancellationToken)
         {
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (syntaxFactsService.IsReservedOrContextualKeyword(triggerToken))
             {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             var tokenRenameInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, triggerToken, cancellationToken);
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // see bugs 659683 (compiler API) and 659705 (rename/workspace api) for examples
                 var symbolForVar = semanticModel.GetSpeculativeSymbolInfo(
                     triggerToken.SpanStart,
-                    triggerToken.Parent,
+                    triggerToken.Parent!,
                     SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
 
                 if (symbolForVar == null)
@@ -89,8 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var symbolAndProjectId = await RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var symbol = symbolAndProjectId.Symbol;
+            var symbol = await RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (symbol == null)
             {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
@@ -103,8 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             // Cannot rename constructors in VB.  TODO: this logic should be in the VB subclass of this type.
             var workspace = document.Project.Solution.Workspace;
-            if (symbol != null &&
-                symbol.Kind == SymbolKind.NamedType &&
+            if (symbol.Kind == SymbolKind.NamedType &&
                 symbol.Language == LanguageNames.VisualBasic &&
                 triggerToken.ToString().Equals("New", StringComparison.OrdinalIgnoreCase))
             {
@@ -168,9 +168,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 else if (location.IsInSource)
                 {
                     var solution = document.Project.Solution;
+                    var sourceDocument = solution.GetDocument(location.SourceTree);
+                    if (sourceDocument == null)
+                    {
+                        // The file is generated so we can't go editing it (for now). See https://github.com/dotnet/roslyn/issues/42823
+                        // for tracking places that may need to be updated.
+                        return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+                    }
+
                     if (document.Project.IsSubmission)
                     {
-                        var projectIdOfLocation = solution.GetDocument(location.SourceTree).Project.Id;
+                        var projectIdOfLocation = sourceDocument.Project.Id;
 
                         if (solution.Projects.Any(p => p.IsSubmission && p.ProjectReferences.Any(r => r.ProjectId == projectIdOfLocation)))
                         {
@@ -180,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     else
                     {
                         // We eventually need to return the symbol locations, so we must convert each location to a DocumentSpan since our return type is language-agnostic.
-                        documentSpans.Add(new DocumentSpan(solution.GetDocument(location.SourceTree), location.SourceSpan));
+                        documentSpans.Add(new DocumentSpan(sourceDocument, location.SourceSpan));
                     }
                 }
                 else
@@ -189,15 +197,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var triggerText = sourceText.ToString(triggerToken.Span);
+
             return new SymbolInlineRenameInfo(
-                refactorNotifyServices, document, triggerToken.Span,
-                symbolAndProjectId, forceRenameOverloads, documentSpans.ToImmutableAndFree(), cancellationToken);
+                refactorNotifyServices, document, triggerToken.Span, triggerText,
+                symbol, forceRenameOverloads, documentSpans.ToImmutableAndFree(), cancellationToken);
         }
 
         private async Task<SyntaxToken> GetTriggerTokenAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var token = await syntaxTree.GetTouchingWordAsync(position, syntaxFacts, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
             return token;
         }

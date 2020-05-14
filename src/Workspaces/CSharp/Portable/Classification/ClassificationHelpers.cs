@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     internal static class ClassificationHelpers
     {
         private const string FromKeyword = "from";
-        private const string ValueKeyword = "value";
         private const string VarKeyword = "var";
         private const string UnmanagedKeyword = "unmanaged";
         private const string NotNullKeyword = "notnull";
@@ -240,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 {
                     FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.FieldName,
                     LocalDeclarationStatementSyntax localDeclarationStatement => localDeclarationStatement.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName,
-                    EventFieldDeclarationSyntax aventFieldDeclarationSyntax => ClassificationTypeNames.EventName,
+                    EventFieldDeclarationSyntax _ => ClassificationTypeNames.EventName,
                     _ => ClassificationTypeNames.LocalName,
                 };
             }

@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
@@ -120,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim accessibleMembers = New ImmutableArray(Of ISymbol)
             If memberGroup.Length > 0 Then
                 accessibleMembers = GetAccessibleMembers(invocationExpression, semanticModel, within, memberGroup, cancellationToken)
-                items.AddRange(GetMemberGroupItems(accessibleMembers, document, invocationExpression, semanticModel, cancellationToken))
+                items.AddRange(GetMemberGroupItems(accessibleMembers, document, invocationExpression, semanticModel))
             End If
 
             If expressionType.IsDelegateType() Then
