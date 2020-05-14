@@ -127,7 +127,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private async Task<ImmutableArray<PackageSource>?> GetPackageSourcesImplAsync()
         {
-            var cancellationToken = _tokenSource.Token;
+            CancellationToken cancellationToken;
+            lock (_gate)
+            {
+                // Read the current cancellation token within the gate to ensure the token source is not disposed at the
+                // time of the read.
+                cancellationToken = _tokenSource.Token;
+            }
+
             try
             {
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
