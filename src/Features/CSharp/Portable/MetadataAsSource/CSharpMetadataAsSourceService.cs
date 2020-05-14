@@ -106,10 +106,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var (_, annotated, notAnnotated) = GetNullableAnnotations(root);
+            var (_, annotatedOrNotAnnotated) = GetNullableAnnotations(root);
 
             // If there are no annotated or not-annotated types, then no need to add `#nullable enable`.
-            if (!annotated && !notAnnotated)
+            if (!annotatedOrNotAnnotated)
                 return document;
 
             var newRoot = AddNullableRegions(root, cancellationToken);
@@ -118,11 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private (bool oblivious, bool annotated, bool notAnnotated) GetNullableAnnotations(SyntaxNode node)
+        private (bool oblivious, bool annotatedOrNotAnnotated) GetNullableAnnotations(SyntaxNode node)
         {
-            return (HasAnnotation(node, NullableSyntaxAnnotation.None),
-                    HasAnnotation(node, NullableSyntaxAnnotation.Annotated),
-                    HasAnnotation(node, NullableSyntaxAnnotation.NotAnnotated));
+            return (HasAnnotation(node, NullableSyntaxAnnotation.Oblivious),
+                    HasAnnotation(node, NullableSyntaxAnnotation.AnnotatedOrNotAnnotated));
         }
 
         private bool HasAnnotation(SyntaxNode node, SyntaxAnnotation annotation)
@@ -176,6 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 
             foreach (var member in type.Members)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (member is BaseTypeDeclarationSyntax)
                 {
                     // if we hit a type, and we're currently disabled, then switch us back to enabled for that type.
@@ -185,10 +186,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
                 }
 
                 // we hit a member.  see what sort of types it contained.
-                var (oblivious, annotated, notAnnotated) = GetNullableAnnotations(member);
+                var (oblivious, annotatedOrNotAnnotated) = GetNullableAnnotations(member);
 
                 // if we have null annotations, transition us back to the enabled state
-                if (annotated || notAnnotated)
+                if (annotatedOrNotAnnotated)
                 {
                     builder.Add(TransitionTo(member, enabled: true, ref currentlyEnabled));
                 }

@@ -13,7 +13,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     /// </summary>
     internal sealed class NullableSyntaxAnnotation
     {
+        /// <summary>
+        /// For <c>string~</c> types.
+        /// </summary>
         public static readonly SyntaxAnnotation Oblivious = new SyntaxAnnotation($"{nameof(NullableSyntaxAnnotation)}.{Oblivious}");
-        public static readonly SyntaxAnnotation NotOblivious = new SyntaxAnnotation($"{nameof(NullableSyntaxAnnotation)}.{NotOblivious}");
+        /// <summary>
+        /// For <c>string!</c> or <c>string?</c> types.
+        /// </summary>
+        public static readonly SyntaxAnnotation AnnotatedOrNotAnnotated = new SyntaxAnnotation($"{nameof(NullableSyntaxAnnotation)}.{AnnotatedOrNotAnnotated}");
     }
 }
