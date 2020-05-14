@@ -150,8 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 // Attempt to keep the part of a member that follows the attributes on a single
                 // line if that's how it's currently written.
-                var tokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
-                AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
+                var (firstToken, lastToken) = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
+                AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
 
                 // Also, If the member is on single line with its attributes on it, then keep 
                 // it on a single line.  This is for code like the following:
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var propertyDeclNode = node as PropertyDeclarationSyntax;
                 if (propertyDeclNode?.Initializer != null && propertyDeclNode?.AccessorList != null)
                 {
-                    AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, propertyDeclNode.AccessorList.GetLastToken());
+                    AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, propertyDeclNode.AccessorList.GetLastToken());
                 }
 
                 return;
