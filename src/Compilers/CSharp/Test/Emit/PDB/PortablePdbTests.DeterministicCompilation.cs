@@ -122,43 +122,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions["checked"]);
         }
 
-        private static void VerifyReferenceInfo(TestMetadataReferenceInfo reference, BlobReader metadataReferenceReader)
+        private static void VerifyReferenceInfo(TestMetadataReferenceInfo[] references, BlobReader metadataReferenceReader)
         {
-            var (timestamp, imageSize, name, mvid) = ParseMetadataReferenceInfo(metadataReferenceReader);
-            Assert.Equal(reference.Timestamp, timestamp);
-            Assert.Equal(reference.SizeOfImage, imageSize);
-            Assert.Equal(reference.Name, name);
-            Assert.Equal(reference.Mvid, mvid);
+            foreach (var reference in references)
+            {
+                var (timestamp, imageSize, name, mvid) = ParseMetadataReferenceInfo(metadataReferenceReader);
+                Assert.Equal(reference.Timestamp, timestamp);
+                Assert.Equal(reference.SizeOfImage, imageSize);
+                Assert.Equal(reference.Name, name);
+                Assert.Equal(reference.Mvid, mvid);
+            }
         }
 
-        [Fact]
-        public void PortablePdb_DeterministicCompilation1()
+        private static void TestDeterministicCompilation(SyntaxTree syntaxTree, params TestMetadataReferenceInfo[] metadataReferences)
         {
-
-            string source = @"
-using System;
-
-class C
-{
-    public static void Main()
-    {
-        Console.WriteLine();
-    }
-}
-";
-            var reference = new TestMetadataReferenceInfo(
-@"public struct StructWithReference
-{
-    string PrivateData;
-}
-public struct StructWithValue
-{
-    int PrivateData;
-}", fullPath: "abcd.dll");
-
             var originalCompilation = CreateCompilation(
-                Parse(source, "goo.cs"),
-                references: new[] { reference.MetadataReference },
+                syntaxTree,
+                references: metadataReferences.SelectAsArray(r => r.MetadataReference),
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             var originalCompilationOptions = originalCompilation.Options;
@@ -190,9 +170,37 @@ public struct StructWithValue
                     var compilationOptionsReader = GetSingleBlob(PortableCustomDebugInfoKinds.CompilationOptions, pdbReader);
 
                     VerifyCompilationOptions(originalCompilationOptions, compilationOptionsReader);
-                    VerifyReferenceInfo(reference, metadataReferenceReader);
+                    VerifyReferenceInfo(metadataReferences, metadataReferenceReader);
                 }
             }
+        }
+
+        [Fact]
+        public void PortablePdb_DeterministicCompilation1()
+        {
+
+            string source = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+";
+            var reference = new TestMetadataReferenceInfo(
+@"public struct StructWithReference
+{
+    string PrivateData;
+}
+public struct StructWithValue
+{
+    int PrivateData;
+}", fullPath: "abcd.dll");
+
+            TestDeterministicCompilation(Parse(source, "goo.cs"), reference);
         }
     }
 }
