@@ -566,7 +566,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var sig = symbol.Signature;
 
                 var otherReturnType = (TypeSymbol)Visit(sig.ReturnType);
-                var translationFailed = otherReturnType is null;
+                if (otherReturnType is null)
+                {
+                    return null;
+                }
+
                 var otherRefCustomModifiers = VisitCustomModifiers(sig.RefCustomModifiers);
                 var otherReturnTypeWithAnnotations = sig.ReturnTypeWithAnnotations.WithTypeAndModifiers(otherReturnType, VisitCustomModifiers(sig.ReturnTypeWithAnnotations.CustomModifiers));
 
@@ -583,33 +587,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         var otherType = (TypeSymbol)Visit(param.Type);
                         if (otherType is null)
                         {
-                            translationFailed = true;
+                            otherParamsBuilder.Free();
+                            otherParamRefCustomModifiersBuilder.Free();
+                            return null;
                         }
 
                         otherParamRefCustomModifiersBuilder.Add(VisitCustomModifiers(param.RefCustomModifiers));
                         otherParamsBuilder.Add(param.TypeWithAnnotations.WithTypeAndModifiers(otherType, VisitCustomModifiers(param.TypeWithAnnotations.CustomModifiers)));
                     }
 
-                    if (translationFailed)
-                    {
-                        otherParamsBuilder.Free();
-                        otherParamRefCustomModifiersBuilder.Free();
-                    }
-                    else
-                    {
-                        otherParameterTypes = otherParamsBuilder.ToImmutableAndFree();
-                        otherParamRefCustomModifiers = otherParamRefCustomModifiersBuilder.ToImmutableAndFree();
-                    }
+                    otherParameterTypes = otherParamsBuilder.ToImmutableAndFree();
+                    otherParamRefCustomModifiers = otherParamRefCustomModifiersBuilder.ToImmutableAndFree();
                 }
 
-                if (translationFailed)
-                {
-                    return null;
-                }
-                else
-                {
-                    return symbol.SubstituteTypeSymbol(otherReturnTypeWithAnnotations, otherParameterTypes, otherRefCustomModifiers, otherParamRefCustomModifiers);
-                }
+                return symbol.SubstituteTypeSymbol(otherReturnTypeWithAnnotations, otherParameterTypes, otherRefCustomModifiers, otherParamRefCustomModifiers);
             }
 
             public override Symbol VisitProperty(PropertySymbol symbol)
@@ -792,43 +783,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var sig = type.Signature;
                 var otherSig = other.Signature;
 
-                if (!isEqual(sig.ReturnTypeWithAnnotations, otherSig.ReturnTypeWithAnnotations,
-                             sig.RefKind, otherSig.RefKind,
-                             sig.RefCustomModifiers, otherSig.RefCustomModifiers,
-                             allowOut: false))
+                ValidateFunctionPointerParamOrReturn(
+                    sig.ReturnTypeWithAnnotations, otherSig.ReturnTypeWithAnnotations,
+                    sig.RefKind, otherSig.RefKind,
+                    sig.RefCustomModifiers, otherSig.RefCustomModifiers,
+                    allowOut: false);
+                if (sig.RefKind != otherSig.RefKind || !AreTypesEqual(sig.ReturnTypeWithAnnotations, otherSig.ReturnTypeWithAnnotations))
                 {
                     return false;
                 }
 
-                if (sig.ParameterCount != otherSig.ParameterCount)
-                {
-                    return false;
-                }
+                return sig.Parameters.SequenceEqual(otherSig.Parameters, AreFunctionPointerParametersEqual);
+            }
 
-                for (int i = 0; i < sig.ParameterCount; i++)
-                {
-                    var param = sig.Parameters[i];
-                    var otherParam = otherSig.Parameters[i];
-                    if (!isEqual(param.TypeWithAnnotations, otherParam.TypeWithAnnotations,
-                                param.RefKind, otherParam.RefKind,
-                                param.RefCustomModifiers, otherParam.RefCustomModifiers,
-                                allowOut: true))
-                    {
-                        return false;
-                    }
-                }
+            private bool AreFunctionPointerParametersEqual(ParameterSymbol param, ParameterSymbol otherParam)
+            {
+                ValidateFunctionPointerParamOrReturn(
+                    param.TypeWithAnnotations, otherParam.TypeWithAnnotations,
+                    param.RefKind, otherParam.RefKind,
+                    param.RefCustomModifiers, otherParam.RefCustomModifiers,
+                    allowOut: false);
 
-                return true;
+                return param.RefKind == otherParam.RefKind && AreTypesEqual(param.TypeWithAnnotations, otherParam.TypeWithAnnotations);
+            }
 
-                bool isEqual(TypeWithAnnotations type, TypeWithAnnotations otherType, RefKind refKind, RefKind otherRefKind, ImmutableArray<CustomModifier> refCustomModifiers, ImmutableArray<CustomModifier> otherRefCustomModifiers, bool allowOut)
-                {
-                    Debug.Assert(type.CustomModifiers.IsEmpty);
-                    Debug.Assert(otherType.CustomModifiers.IsEmpty);
-                    Debug.Assert(verifyRefModifiers(refCustomModifiers, refKind, allowOut));
-                    Debug.Assert(verifyRefModifiers(otherRefCustomModifiers, otherRefKind, allowOut));
+            [Conditional("DEBUG")]
+            private void ValidateFunctionPointerParamOrReturn(TypeWithAnnotations type, TypeWithAnnotations otherType, RefKind refKind, RefKind otherRefKind, ImmutableArray<CustomModifier> refCustomModifiers, ImmutableArray<CustomModifier> otherRefCustomModifiers, bool allowOut)
+            {
 
-                    return refKind != otherRefKind || !AreTypesEqual(type.Type, otherType.Type);
-                }
+                Debug.Assert(type.CustomModifiers.IsEmpty);
+                Debug.Assert(otherType.CustomModifiers.IsEmpty);
+                Debug.Assert(verifyRefModifiers(refCustomModifiers, refKind, allowOut));
+                Debug.Assert(verifyRefModifiers(otherRefCustomModifiers, otherRefKind, allowOut));
 
                 static bool verifyRefModifiers(ImmutableArray<CustomModifier> modifiers, RefKind refKind, bool allowOut)
                 {

@@ -1287,7 +1287,6 @@ unsafe class C
     delegate*<in C, void> f6;
     delegate*<out C, void> f7;
 }
-class D {}
 ";
 
             var compilation0 = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
