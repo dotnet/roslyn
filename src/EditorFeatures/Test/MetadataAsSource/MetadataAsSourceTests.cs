@@ -2743,7 +2743,7 @@ class C
 {
     void M()
     {
-        var obj = new TestType().[|M1|](0);
+        var obj = new TestType().[|M1|]((int?)0);
     }
 }";
             var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -2891,6 +2891,70 @@ public class TestType
     public TestType();
 
     public void [|M1|]<T>(T s);
+}}";
+
+            using var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp8",
+                sourceWithSymbolReference: sourceWithSymbolReference,
+                metadataLanguageVersion: "CSharp8");
+
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestNullableEnableDisable12()
+        {
+            var metadata = @"
+#nullable enable
+
+using System;
+
+namespace N
+{
+    public class TestType
+    {
+        public void M1(string s)
+        {
+        }
+
+    #nullable disable
+
+        public void M2(string s)
+        {
+        }
+    }
+}";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M()
+    {
+        var obj = new N.TestType().[|M1|](null);
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+#nullable enable
+
+namespace N
+{{
+    public class TestType
+    {{
+        public TestType();
+
+        public void [|M1|](string s);
+#nullable disable
+        public void M2(string s);
+
+#nullable enable
+    }}
 }}";
 
             using var context = TestContext.Create(
