@@ -112,6 +112,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             return kvp.ToImmutableDictionary();
         }
 
+        private static void VerifyCompilationOptions(CompilationOptions originalOptions, BlobReader compilationOptionsBlobReader, string compilerVersion = null)
+        {
+            var pdbOptions = ParseCompilationOptions(compilationOptionsBlobReader);
+            compilerVersion ??= typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+
+            Assert.Equal(compilerVersion.ToString(), pdbOptions["compilerversion"]);
+            Assert.Equal(originalOptions.NullableContextOptions.ToString(), pdbOptions["nullable"]);
+            Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions["checked"]);
+        }
+
+        private static void VerifyReferenceInfo(TestMetadataReferenceInfo reference, BlobReader metadataReferenceReader)
+        {
+            var (timestamp, imageSize, name, mvid) = ParseMetadataReferenceInfo(metadataReferenceReader);
+            Assert.Equal(reference.Timestamp, timestamp);
+            Assert.Equal(reference.SizeOfImage, imageSize);
+            Assert.Equal(reference.Name, name);
+            Assert.Equal(reference.Mvid, mvid);
+        }
+
         [Fact]
         public void PortablePdb_DeterministicCompilation1()
         {
@@ -170,21 +189,8 @@ public struct StructWithValue
                     var metadataReferenceReader = GetSingleBlob(PortableCustomDebugInfoKinds.MetadataReferenceInfo, pdbReader);
                     var compilationOptionsReader = GetSingleBlob(PortableCustomDebugInfoKinds.CompilationOptions, pdbReader);
 
-                    var (timestamp, imageSize, name, mvid) = ParseMetadataReferenceInfo(metadataReferenceReader);
-                    var compilationOptions = ParseCompilationOptions(compilationOptionsReader);
-
-                    // Check version
-                    var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-                    Assert.Equal(compilerVersion.ToString(), compilationOptions["compilerversion"]);
-
-                    // Check source encoding
-                    //Assert.Equal("", compilerFlags["sourceencoding"]);
-
-                    // Check the metadata references
-                    Assert.Equal(reference.Timestamp, timestamp);
-                    Assert.Equal(reference.SizeOfImage, imageSize);
-                    Assert.Equal(reference.Name, name);
-                    Assert.Equal(reference.Mvid, mvid);
+                    VerifyCompilationOptions(originalCompilationOptions, compilationOptionsReader);
+                    VerifyReferenceInfo(reference, metadataReferenceReader);
                 }
             }
         }
