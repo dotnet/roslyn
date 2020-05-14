@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             var cancellationToken = _tokenSource.Token;
             try
             {
-                return await GetPackageSourcesImplAsync(cancellationToken).ConfigureAwait(false);
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -139,27 +139,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return null;
             }
 
-            // Local function
-            async Task<ImmutableArray<PackageSource>> GetPackageSourcesImplAsync(CancellationToken cancellationToken)
+            try
             {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                try
-                {
-                    return _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
-                        .SelectAsArray(r => new PackageSource(r.Key, r.Value));
-                }
-                catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
-                {
-                    // These exceptions can happen when the nuget.config file is broken.
-                    return ImmutableArray<PackageSource>.Empty;
-                }
-                catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
-                {
-                    // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
-                    // https://github.com/dotnet/roslyn/issues/40857
-                    return ImmutableArray<PackageSource>.Empty;
-                }
+                return _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
+                    .SelectAsArray(r => new PackageSource(r.Key, r.Value));
+            }
+            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
+            {
+                // These exceptions can happen when the nuget.config file is broken.
+                return ImmutableArray<PackageSource>.Empty;
+            }
+            catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
+            {
+                // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
+                // https://github.com/dotnet/roslyn/issues/40857
+                return ImmutableArray<PackageSource>.Empty;
             }
         }
 
